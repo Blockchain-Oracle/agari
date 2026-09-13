@@ -1,0 +1,51 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+out/
+dist/
+build/
+target/
+.anchor/
+test-ledger/
+.surfpool/
+
+# env — only .env.example is ever committed
+.env
+.env.*
+!.env.example
+
+# keypairs never live in the repo (role and program keys are in ~/.config/agari)
+*-keypair.json
+*.keypair.json
+
+# tooling
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.DS_Store
+*.pem
+coverage/
+
+# local references (clones + symlinks) and time-sensitive price archives
+/reference/
+/data/archive/
+
+# local AI authoring tools and prompts (CLAUDE.md and context/ ARE tracked)
+/.claude/
+/.codex/
+/.agents/
+/.cursor/
+/.windsurf/
+AGENTS.md
+GEMINI.md
+prompt.md
+PROMPT.md
+*.prompt.md
+
+# UI review screenshots (local)
+.review/
+
+# the deckmaster's reveal journal: the operator's own durable copy, never the repo's
+.agari/
