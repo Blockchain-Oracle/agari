@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
-const IGNORED_DIR_NAMES = new Set(["node_modules", ".next", "dist", "out", ".git", "coverage", ".turbo", "cache"]);
+const IGNORED_DIR_NAMES = new Set(["node_modules", ".next", "dist", "out", ".git", "coverage", ".turbo", "cache", "target", ".anchor"]);
 const IGNORED_REL_PATHS = new Set(["reference", "contracts/lib"]);
 
 function toPosix(path) {
