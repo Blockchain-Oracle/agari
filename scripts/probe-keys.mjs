@@ -9,6 +9,14 @@ const results = [];
 
 const PYTH_AAPL = "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688"; // Equity.US.AAPL/USD
 const PYTH_BTC = "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43"; // Crypto.BTC/USD
+// The Pyth trial's equities (plan PD-1): TSLA, QQQ, VOO.
+const PYTH_TRIAL = {
+  TSLA: "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+  QQQ: "9695e2b96ea7b3859da9ed25b7a46a920a776e2fdae19a7bcfdf2b219230452d",
+  VOO: "236b30dd09a9c00dfeec156c7b1efd646c0f01825a1758e3e4a0679e3bdff179",
+};
+const REDSTONE = "https://oracle-gateway-2.a.redstone.finance/data-packages";
+const REDSTONE_NAMES = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL"];
 const TSLAX_MINT = "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB";
 const NVDAX_MINT = "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh";
 
@@ -65,6 +73,34 @@ await probe("Pyth Hermes", `AAPL first update >= last close ${iso(close)}`, `htt
   needs: ["PYTH_API_KEY"],
   summarize: pythParsed,
 });
+const trialIds = Object.values(PYTH_TRIAL).map((id) => `ids[]=${id}`).join("&");
+await probe("Pyth Hermes", `trial TSLA/QQQ/VOO exact-T at last close ${iso(close)}`, `https://hermes.pyth.network/v2/updates/price/${close}?${trialIds}&parsed=true`, {
+  headers: bearer("PYTH_API_KEY"),
+  needs: ["PYTH_API_KEY"],
+  summarize: (j) =>
+    (j.parsed ?? [])
+      .map((f) => {
+        const sym = Object.keys(PYTH_TRIAL).find((s) => PYTH_TRIAL[s] === f.id);
+        const exact = f.metadata?.prev_publish_time < close && close <= f.price.publish_time && f.price.publish_time <= close + 5;
+        return `${sym} ${(Number(f.price.price) * 10 ** f.price.expo).toFixed(2)} exactT=${exact}`;
+      })
+      .join(" | "),
+});
+
+// --- RedStone (public signed packages, no key) ---
+const rsSummary = (j, T) =>
+  REDSTONE_NAMES.map((n) => {
+    const pk = (j[n] ?? []).filter((p) => T === undefined || p.timestampMilliseconds === T);
+    return `${n}:${new Set(pk.map((p) => p.signerAddress)).size}sig`;
+  }).join(" ");
+await probe("RedStone", "latest packages (no key)", `${REDSTONE}/latest/redstone-primary-prod`, {
+  summarize: (j) => `${Object.keys(j).length} feeds; ${rsSummary(j)}; TSLA ts=${iso((j.TSLA?.[0]?.timestampMilliseconds ?? 0) / 1000)}`,
+});
+const rsT = Math.floor((Date.now() - 3_600_000) / 10_000) * 10_000;
+await probe("RedStone", `historical exact T ${iso(rsT / 1000)} (no key)`, `${REDSTONE}/historical/redstone-primary-prod/${rsT}`, {
+  summarize: (j) => `${rsSummary(j, rsT)}; TSLA signers ${[...new Set((j.TSLA ?? []).map((p) => p.signerAddress.slice(0, 8)))].join(",")}`,
+});
+
 const tslaxFeeds = await probe("Pyth Hermes", "xStock token feed lookup (no key)", `https://hermes.pyth.network/v2/price_feeds?query=TSLAX`, {
   summarize: (j) => j.map((f) => f.attributes?.symbol).join(", ") || "none",
 });

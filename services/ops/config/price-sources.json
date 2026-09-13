@@ -1,0 +1,75 @@
+{
+  "_doc": [
+    "D-003 price-source matrix (plan PD-1). Each ticker lists immutable policy versions; the roller picks the highest version whose [validFrom, validUntil] (inclusive, UTC) covers BOTH boundaries of a Window, and lists nothing when none does (honest 'paused: no signed source').",
+    "Versions become on-chain Series policy versions via scripts/deploy/set-policies.mjs (S3). Never edit an existing version: append a new one.",
+    "validUntil null = open-ended. Times are the NYSE close in UTC (16:00 ET = 20:00Z in EDT)."
+  ],
+  "defaults": {
+    "pyth": { "graceSec": 5, "maxConfBps": 50, "admissionSec": 900 },
+    "redstone": { "strictSec": 300, "admissionSec": 900, "threshold": 3 },
+    "switchboard": { "minDelaySec": 10, "admissionSec": 60, "maxSlotAge": 20, "minOracles": 3 },
+    "attested": { "minDelaySec": 60, "admissionSec": 900, "barLenSec": 60 },
+    "crossCheck": { "maxDivergenceBps": 25, "checkAdmissionSec": 120 },
+    "gapOpenAdmission": "until the Gap Window's lock_at (see S2 handoff: admission differs per boundary)"
+  },
+  "redstone": {
+    "gateway": "https://oracle-gateway-2.a.redstone.finance",
+    "dataServiceId": "redstone-primary-prod",
+    "signersObserved_2026-09-13": [
+      "0xdEB22f54738d54976C4c0fe5ce6d408E40d88499",
+      "0xDD682daEC5A90dD295d14DA4b0bec9281017b5bE",
+      "0x51Ce04Be4b3E32572C4Ec9135221d0691Ba7d202",
+      "0x9c5AE89C4Af6aA32cE58588DBaF90d18a855B6de",
+      "0x8BB8F32Df04c8b654987DAaeD53D6B6091e3B774"
+    ],
+    "signersAuthoritative": "pending D-002: RedStone Solana adapter config.rs (primary-prod); must match signersObserved before S2 init"
+  },
+  "pythTrial": {
+    "hermes": "https://hermes.pyth.network",
+    "lastCoveredClose": "2026-09-25T20:00:00Z",
+    "trialEnds": "about 2026-09-27 (14 days from activation on 2026-09-13; exact time in Pyth Terminal)"
+  },
+  "tickers": {
+    "TSLA": {
+      "pythFeedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+      "redstoneFeedId": "TSLA",
+      "xstockMint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+      "surgeSymbol": "TSLAX/USD",
+      "versions": [
+        { "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": "2026-09-25T20:00:00Z", "primary": "pyth", "check": "redstone" },
+        { "version": 2, "validFrom": "2026-09-25T20:00:00Z", "validUntil": null, "primary": "redstone", "check": null }
+      ]
+    },
+    "QQQ": {
+      "pythFeedId": "9695e2b96ea7b3859da9ed25b7a46a920a776e2fdae19a7bcfdf2b219230452d",
+      "xstockMint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ",
+      "surgeSymbol": "QQQX/USD",
+      "versions": [
+        { "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": "2026-09-25T20:00:00Z", "primary": "pyth", "check": null }
+      ],
+      "afterTrial": "paused (attested demo data only by user opt-in; Stork key requested 2026-09-13)"
+    },
+    "VOO": {
+      "pythFeedId": "236b30dd09a9c00dfeec156c7b1efd646c0f01825a1758e3e4a0679e3bdff179",
+      "versions": [
+        { "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": "2026-09-25T20:00:00Z", "primary": "pyth", "check": null }
+      ],
+      "afterTrial": "paused (attested demo data only by user opt-in)"
+    },
+    "NVDA": { "redstoneFeedId": "NVDA", "xstockMint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "AAPL": { "redstoneFeedId": "AAPL", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "MSFT": { "redstoneFeedId": "MSFT", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "META": { "redstoneFeedId": "META", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "AMZN": { "redstoneFeedId": "AMZN", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "GOOGL": { "redstoneFeedId": "GOOGL", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] }
+  },
+  "tokenLane": {
+    "_doc": "S6. Switchboard Surge quotes (batched); verified xStock mints only. Feed hashes are pinned when S6 builds the jobs.",
+    "tickers": {
+      "TSLAx": { "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "surgeSymbol": "TSLAX/USD" },
+      "NVDAx": { "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD" },
+      "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD" },
+      "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD" }
+    }
+  }
+}

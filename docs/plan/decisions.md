@@ -18,14 +18,29 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **Evidence:** SBF spike of anchor-lang 1.2.0 vs 1.1.2 with `pyth-solana-receiver-sdk 2.0.0`, `redstone` rust-sdk (git rev) and `switchboard-on-demand 0.13.0` (`solana-v3`). Result to be filled in.
 - **Rule:** pin the newest Anchor for which all oracle crates SBF-build. Crates that fail get in-crate verifiers in S2.
 
-### D-003 — Price-source matrix and policy-version dates (pending)
+### D-003 — Price-source matrix and policy-version dates
 - **Date / owner:** 2026-09-13 · planner (S0)
-- **Evidence:** `scripts/probe-keys.mjs` rerun, S0 archivers, `C:13`.
-- **Rule:** `services/ops/config/price-sources.json` holds PD-1 versions per ticker:
-  - TSLA: Pyth + RedStone check until the Fri 09-25 close, then RedStone.
-  - QQQ/VOO: Pyth until the Fri 09-25 close, then paused.
-  - NVDA/AAPL/MSFT/META/AMZN/GOOGL: RedStone.
-  - Token lane: Switchboard (S6).
+- **Evidence:**
+  - `scripts/probe-keys.mjs` rerun 2026-09-13 ~19:45 UTC:
+    - Pyth trial exact-T at Fri 09-11 16:00 ET: TSLA 365.48, QQQ 714.90, VOO 702.50, all `exactT`. RedStone TSLA at the same T is 365.4827, so primary and check agree within 1 bp.
+    - AAPL, `Crypto.TSLAX/USD` and Pro AAPL return 403: not in the trial. The token lane can't use Pyth.
+    - RedStone gives 5 signers for all 7 single names, both latest and at an exact past T.
+    - Alpaca calendar: 77 sessions to year end; early closes 11-27 and 12-24.
+  - `data/archive/pyth/2026-09-11.jsonl`: 391/391 boundaries pass exact-T for all three feeds.
+- **Rule:** `services/ops/config/price-sources.json` holds the PD-1 versions (validity inclusive, UTC):
+  - **TSLA:** v1 Pyth + RedStone check `2026-09-11 → 2026-09-25T20:00Z`; v2 RedStone from `2026-09-25T20:00Z`. The 09-25 Gap Window (open T = Fri 20:00Z) is covered only by v2; Friday's intraday Windows stay on v1.
+  - **QQQ/VOO:** v1 Pyth until `2026-09-25T20:00Z`, then paused.
+  - **NVDA/AAPL/MSFT/META/AMZN/GOOGL:** v1 RedStone, open-ended.
+  - **Token lane:** Switchboard Surge (S6); feed hashes pinned then.
+- **Defaults:**
+  - Pyth: grace 5 s, max confidence 50 bps, admission 900 s.
+  - RedStone: strict (all signers) 300 s, admission 900 s, threshold 3.
+  - Switchboard: min delay 10 s, admission 60 s, max slot age 20, 3 oracles.
+  - Cross-check: max divergence 25 bps, check admission 120 s.
+- **RedStone signers observed on the gateway:** `0xdEB22f54…8499`, `0xDD682daE…b5bE`, `0x51Ce04Be…d202`, `0x9c5AE89C…B6de`, `0x8BB8F32D…B774`. They must match the adapter's authoritative list (D-002) before S2 `init-events`.
+- **S2 spec note:** one admission value per Window can't serve the Gap lane, whose opening print needs until `lock_at` but whose Monday print should void quickly. `specs/prints.md` uses admission per boundary (`open_admission_sec` / `close_admission_sec`), consistent with PD-6.
+- **User-visible:** every verdict names its source. QQQ/VOO show "paused: no signed source" after the 09-25 close.
+- **Approval:** within plan r2 PD-1 (user, 2026-09-13).
 
 ### D-004 — Product decisions carried from plan r2
 - **Date / owner:** 2026-09-13 · user
