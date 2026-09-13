@@ -1,0 +1,17 @@
+[toolchain]
+package_manager = "pnpm"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+
+[programs.devnet]
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/agari/devnet/deployer.json"
+
+[scripts]
+test = "cargo test"

@@ -1,0 +1,11 @@
+[package]
+name = "agari-common"
+version = "0.1.0"
+description = "Grid, seeds, place results, checked views and book walks shared by Agari programs"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
