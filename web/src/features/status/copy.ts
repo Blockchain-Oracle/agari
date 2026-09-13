@@ -1,0 +1,42 @@
+/** `/status` — ported from `reference/yosuku/app/status/page.tsx`; the mechanics named are ours. */
+export const STATUS = {
+  title: "Status",
+  section: { index: "01", title: "System Status" },
+  loading: "Loading status...",
+  unreachable: "Unable to reach the status probe.",
+  healthy: "All Systems Operational",
+  degraded: "Degraded Performance",
+  maxLag: (sec: number, pipeline: string) => `Max lag: ${sec}s (${pipeline})`,
+  noLag: "No lag measured",
+  checkpoint: "Block",
+  noBlock: "—",
+  tableTitle: (n: number) => `Pipeline Status (${n})`,
+  lag: (sec: number) => `${sec}s`,
+  latency: (ms: number) => `${ms}ms`,
+  optional: "optional",
+  lastChecked: (clock: string) => `Last checked: ${clock} · Auto-refreshes every 30s`,
+
+  pipelines: {
+    rpc: "Somnia RPC · chain head",
+    indexer: "DreamDEX indexer · live windows",
+    price: (asset: string) => `Price feed · ${asset}`,
+    store: "Social store · the Room and takes",
+    sensei: "Sensei · model",
+  },
+
+  detail: {
+    rpc: (block: string, offsetSec: string) => `block ${block} · head ${offsetSec}s vs this clock`,
+    indexer: (lanes: number, windows: number, source: string) => `${lanes} lanes · ${windows} live windows · venue ${source}`,
+    venueSource: { env: "from config", inferred: "read off the busiest live venue", none: "not found" } as const,
+    noVenue: "no live venue found on the indexer",
+    noPrint: "the feed has no print for this asset",
+    price: (price: string, printedAt: string) => `${price} · printed ${printedAt}`,
+    storeOff: "not connected on this deployment — set DATABASE_URL",
+    storeOk: "answered",
+    storeDown: (why: string) => `configured, not answering — ${why}`,
+    senseiOff: (hint: string) => `no credential — set ${hint}`,
+    senseiOk: (provider: string, model: string, via: string) => `${provider}/${model} via ${via}`,
+    timedOut: (sec: number) => `timed out after ${sec}s`,
+    stale: (asOf: string) => `last read failed — holding a reading from ${asOf}`,
+  },
+} as const;

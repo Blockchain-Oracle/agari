@@ -1,0 +1,210 @@
+/* `/strategies` and `/agents` — `reference/yosuku/app/strategies/page.tsx` and `app/agents/page.tsx`.
+ * `.strat-card`, `.strat-sigil`, `.strat-mem` and the `.desk-*` amount rows already live in part-17/18. */
+
+/* AGENT_ACCENTS — the eight curated per-agent hues, all legible on near-black */
+.strat-accent-0 { --agent-accent: #e04d26; }
+.strat-accent-1 { --agent-accent: #f7931a; }
+.strat-accent-2 { --agent-accent: #2fa47c; }
+.strat-accent-3 { --agent-accent: #5b8def; }
+.strat-accent-4 { --agent-accent: #c05cd8; }
+.strat-accent-5 { --agent-accent: #22b8cf; }
+.strat-accent-6 { --agent-accent: #e0a62e; }
+.strat-accent-7 { --agent-accent: #d8556b; }
+/* h-9 w-9 / h-14 w-14 sigil tiles; the paper tile behind the drawn persona is #f4eee1 in the reference's image URL,
+   and the persona itself (DiceBear notionists, drawn in AgentPortrait.tsx) fills the tile. It breathes: a slow bob
+   with a hair of tilt, phased per agent (--idle-phase) so a grid never moves in unison, and a nod when its card is
+   hovered. Still under reduced motion. */
+.strat-sigil--small { height: 36px; width: 36px; }
+.strat-sigil--row { height: 44px; width: 44px; }
+.strat-sigil--card { height: 56px; width: 56px; }
+.strat-sigil-paper { background: #f4eee1; display: block; height: 100%; width: 100%; }
+.strat-sigil-paper svg { display: block; width: 100%; height: 100%; transform-origin: 50% 92%; animation: strat-idle 3.6s ease-in-out infinite; animation-delay: var(--idle-phase, 0s); }
+.strat-sigil:hover .strat-sigil-paper svg, a:hover .strat-sigil-paper svg, button:hover .strat-sigil-paper svg, .strat-row:hover .strat-sigil-paper svg { animation: strat-nod 0.7s ease-in-out 1; }
+@keyframes strat-idle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3%) rotate(-2deg); } }
+@keyframes strat-nod { 0% { transform: rotate(0deg); } 30% { transform: rotate(6deg) scale(1.05); } 65% { transform: rotate(-4deg) scale(1.05); } 100% { transform: rotate(0deg); } }
+@media (prefers-reduced-motion: reduce) { .strat-sigil-paper svg { animation: none; } }
+/* live counts: border-t border-white/10 pt-3 font-mono text-[10px] md:text-[11px] uppercase tracking-[0.28em] text-white/40 tabular-nums */
+.strat-counts { border-top: 1px solid color-mix(in srgb, var(--white) 10%, transparent); padding-top: 12px; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.28em; color: color-mix(in srgb, var(--white) 40%, transparent); font-variant-numeric: tabular-nums; }
+@media (min-width: 768px) { .strat-counts { font-size: 11px; } }
+/* w-1.5 h-1.5 rounded-full bg-vermilion animate-pulse */
+.strat-live-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--color-vermilion); animation: desk-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+/* nameplate: mt-7 pb-7 border-b border-white/15; h1 font-display font-[800] text-[1.9rem] md:text-[2.6rem] xl:text-[3rem] leading-[1.0] tracking-tight */
+.strat-nameplate { margin-top: 28px; padding-bottom: 28px; border-bottom: 1px solid color-mix(in srgb, var(--white) 15%, transparent); }
+.strat-h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.9rem; line-height: 1; letter-spacing: -0.025em; max-width: 48rem; color: var(--color-ink); }
+@media (min-width: 768px) { .strat-h1 { font-size: 2.6rem; } }
+@media (min-width: 1280px) { .strat-h1 { font-size: 3rem; } }
+/* section headers: font-display font-[800] text-[19px] tracking-tight */
+.strat-h2 { font-family: var(--font-display); font-weight: 800; font-size: 19px; letter-spacing: -0.025em; color: var(--color-ink); }
+/* font-mono text-[10px] uppercase tracking-[0.14em] */
+.strat-meta { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; }
+/* font-mono text-[9px] uppercase tracking-[0.18em] */
+.strat-micro { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; }
+/* font-mono text-[11px] uppercase tracking-[0.22em] */
+.strat-rail-title { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.22em; }
+/* font-mono text-[10.5px] / text-[10px] / text-[11px] / text-[12px] plain mono runs */
+.strat-mono-10 { font-family: var(--font-mono); font-size: 10px; }
+.strat-mono-11 { font-family: var(--font-mono); font-size: 11px; }
+.strat-mono-12 { font-family: var(--font-mono); font-size: 12px; }
+/* archive toggle: rounded-full border border-white/12 px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/65 */
+.strat-toggle { flex-shrink: 0; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); padding: 8px 16px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: color-mix(in srgb, var(--white) 65%, transparent); background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.strat-toggle:hover { border-color: color-mix(in srgb, var(--white) 25%, transparent); color: var(--white); }
+/* tabs: px-1 pb-2 font-mono text-[11px] uppercase tracking-[0.12em] border-b-2 */
+.strat-tab { flex-shrink: 0; padding: 0 4px 8px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; border-bottom: 2px solid transparent; color: color-mix(in srgb, var(--white) 40%, transparent); background: transparent; cursor: pointer; transition: color 0.2s; }
+.strat-tab:hover { color: var(--white); }
+.strat-tab--on { color: var(--white); border-bottom-color: var(--color-vermilion); }
+/* card: h3 font-display font-[800] text-[19px] leading-tight tracking-tight truncate */
+.strat-card-name { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1.25; letter-spacing: -0.025em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* mt-1 font-mono text-[10.5px] text-white/45 */
+.strat-card-instinct { margin-top: 4px; font-family: var(--font-mono); font-size: 10.5px; color: color-mix(in srgb, var(--white) 45%, transparent); }
+/* shrink-0 mt-0.5 font-mono text-[11px] text-white/70 border border-white/12 rounded-full px-2.5 py-1 whitespace-nowrap */
+.strat-card-cap { flex-shrink: 0; margin-top: 2px; font-family: var(--font-mono); font-size: 11px; color: color-mix(in srgb, var(--white) 70%, transparent); border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); border-radius: 9999px; padding: 4px 10px; white-space: nowrap; }
+/* mt-6 min-h-[42px] */
+.strat-card-move { margin-top: 24px; min-height: 42px; }
+/* font-display font-[800] text-[30px] leading-none tabular-nums */
+.strat-card-net { font-family: var(--font-display); font-weight: 800; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.strat-card-net--gain { color: var(--profit, var(--gain)); }
+.strat-card-net--loss { color: var(--loss); }
+/* inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.16em] rounded-full px-2.5 py-1 */
+.strat-card-tag { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; border-radius: 9999px; padding: 4px 10px; }
+.strat-card-tag--quiet { padding: 0; color: color-mix(in srgb, var(--white) 35%, transparent); }
+/* h-1 w-1 rounded-full bg-white/30 */
+.strat-card-tag-dot { height: 4px; width: 4px; border-radius: 9999px; background: color-mix(in srgb, var(--white) 30%, transparent); }
+/* recent rows: border border-white/[0.08] bg-bg divide-y divide-white/[0.05] */
+.strat-rows { border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); background: var(--bg); overflow: hidden; }
+.strat-rows > * + * { border-top: 1px solid color-mix(in srgb, var(--white) 5%, transparent); }
+/* flex items-center gap-3 px-5 py-3 hover:bg-white/[0.02] */
+.strat-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; transition: background 0.2s; }
+.strat-row:hover { background: color-mix(in srgb, var(--white) 2%, transparent); }
+/* font-display font-[700] text-[13px] w-28 truncate */
+.strat-row-name { font-family: var(--font-display); font-weight: 700; font-size: 13px; width: 7rem; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* px-5 py-8 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-white/30 */
+.strat-rows-empty { padding: 32px 20px; text-center: center; text-align: center; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: color-mix(in srgb, var(--white) 30%, transparent); }
+/* the empty archive: border border-white/[0.08] bg-white/[0.02] p-16 text-center */
+.strat-empty { border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); background: color-mix(in srgb, var(--white) 2%, transparent); padding: 64px; text-align: center; }
+/* studio: preset card rounded-xl border p-4 */
+.strat-choice { position: relative; text-align: left; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); padding: 16px; background: transparent; cursor: pointer; transition: border-color 0.2s; }
+.strat-choice:hover { border-color: color-mix(in srgb, var(--white) 20%, transparent); }
+.strat-choice--on { border-color: var(--color-vermilion); background: rgba(224, 77, 38, 0.06); }
+.strat-choice--off { border-color: color-mix(in srgb, var(--white) 6%, transparent); opacity: 0.6; cursor: not-allowed; }
+/* font-display font-[700] text-[15px] / text-[14px] */
+.strat-choice-title { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+/* text-[12px] text-gray-400 leading-snug mt-2 */
+.strat-choice-body { font-size: 12px; color: var(--gray-400); line-height: 1.375; margin-top: 8px; }
+/* the four L-corners that ignite vermilion on hover */
+.strat-corner { pointer-events: none; position: absolute; width: 8px; height: 8px; opacity: 0; transition: opacity 0.2s; border-color: var(--color-vermilion); }
+.strat-choice:hover .strat-corner, .strat-preview:hover .strat-corner { opacity: 1; }
+.strat-corner--tl { left: 6px; top: 6px; border-left: 1px solid; border-top: 1px solid; }
+.strat-corner--tr { right: 6px; top: 6px; border-right: 1px solid; border-top: 1px solid; }
+.strat-corner--bl { left: 6px; bottom: 6px; border-left: 1px solid; border-bottom: 1px solid; }
+.strat-corner--br { right: 6px; bottom: 6px; border-right: 1px solid; border-bottom: 1px solid; }
+/* chips: flex-1 py-1.5 rounded font-mono text-[11px] border */
+.strat-chip { flex: 1; padding: 6px 0; border-radius: 4px; font-family: var(--font-mono); font-size: 11px; border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); color: color-mix(in srgb, var(--white) 50%, transparent); background: transparent; cursor: pointer; transition: border-color 0.2s; }
+.strat-chip:hover { border-color: color-mix(in srgb, var(--white) 20%, transparent); }
+.strat-chip--on { border-color: var(--color-vermilion); color: var(--color-vermilion); background: rgba(224, 77, 38, 0.06); }
+/* INPUT: w-full px-3 py-2 rounded bg-white/[0.03] border border-white/[0.08] focus:border-white/20 font-mono text-[12px] */
+.strat-input { width: 100%; padding: 8px 12px; border-radius: 4px; background: color-mix(in srgb, var(--white) 3%, transparent); border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); font-family: var(--font-mono); font-size: 12px; outline: none; transition: border-color 0.2s; color: inherit; }
+.strat-input:focus { border-color: color-mix(in srgb, var(--white) 20%, transparent); }
+.strat-textarea { min-height: 96px; resize: vertical; font-family: var(--font-mono); }
+/* preview: rounded-xl border border-white/[0.1] bg-bg p-5 */
+.strat-preview { position: relative; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--white) 10%, transparent); background: var(--bg); padding: 20px; overflow: hidden; }
+/* LedgerStat: px-3 py-3; label font-mono text-[9px] uppercase tracking-[0.18em]; value font-mono text-sm tabular-nums */
+.strat-ledger-stat { padding: 12px; }
+.strat-ledger-stat + .strat-ledger-stat { border-left: 1px solid color-mix(in srgb, var(--white) 6%, transparent); }
+.strat-ledger-value { font-family: var(--font-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+/* the studio publish button: w-full py-3 rounded-full text-sm font-semibold bg-vermilion */
+.strat-publish { width: 100%; padding: 12px 0; border-radius: 9999px; font-size: 14px; font-weight: 600; background: var(--color-vermilion); color: var(--white); border: 0; cursor: pointer; transition: background 0.2s; }
+.strat-publish:hover { background: var(--color-vermilion-d, #b53d1c); }
+.strat-publish:disabled { opacity: 0.6; cursor: not-allowed; }
+/* pill: font-mono text-[9px] uppercase tracking-[0.16em] text-vermilion border border-vermilion/40 rounded-full px-2 py-0.5 */
+.strat-pill-v { flex-shrink: 0; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--color-vermilion); border: 1px solid rgba(224, 77, 38, 0.4); border-radius: 9999px; padding: 2px 8px; }
+/* sensei link: rounded-full border border-vermilion/40 bg-vermilion/[0.07] px-4 py-2 text-[12.5px] font-semibold text-vermilion */
+.strat-sensei { flex-shrink: 0; border-radius: 9999px; border: 1px solid rgba(224, 77, 38, 0.4); background: rgba(224, 77, 38, 0.07); padding: 8px 16px; font-size: 12.5px; font-weight: 600; color: var(--color-vermilion); transition: background 0.2s; }
+.strat-sensei:hover { background: rgba(224, 77, 38, 0.14); }
+/* the memory market headline: font-display font-[800] text-[2rem] md:text-[3.1rem] leading-[0.94] tracking-tight */
+.strat-memory-h2 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 0.94; letter-spacing: -0.025em; max-width: 48rem; color: var(--color-ink); }
+@media (min-width: 768px) { .strat-memory-h2 { font-size: 3.1rem; } }
+/* coming-soon capsule: border border-dashed border-white/[0.09] bg-white/[0.01] p-6 min-h-[280px] */
+.strat-capsule-soon { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 1px dashed color-mix(in srgb, var(--white) 9%, transparent); background: color-mix(in srgb, var(--white) 1%, transparent); padding: 24px; min-height: 280px; text-align: center; }
+/* h-10 w-10 rounded-full border border-white/10 */
+.strat-capsule-icon { height: 40px; width: 40px; display: grid; place-items: center; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 10%, transparent); color: color-mix(in srgb, var(--white) 40%, transparent); }
+.strat-capsule-icon svg { width: 16px; height: 16px; }
+/* the X bar: mt-5 border-y border-white/10 py-3 */
+.strat-xbar { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid color-mix(in srgb, var(--white) 10%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--white) 10%, transparent); padding: 12px 0; }
+@media (min-width: 640px) { .strat-xbar { flex-direction: row; align-items: center; justify-content: space-between; } }
+/* h-9 w-9 rounded-full border border-white/12 bg-white/[0.03] */
+.strat-xbar-icon { display: flex; height: 36px; width: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); background: color-mix(in srgb, var(--white) 3%, transparent); }
+.strat-xbar-icon svg { width: 16px; height: 16px; }
+/* text-[13px] font-semibold */
+.strat-xbar-title { font-size: 13px; font-weight: 600; }
+/* h-9 rounded-full border border-white/15 px-4 text-[12px] font-semibold */
+.strat-xbar-btn { display: inline-flex; height: 36px; align-items: center; gap: 8px; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); padding: 0 16px; font-size: 12px; font-weight: 600; transition: border-color 0.2s; }
+.strat-xbar-btn:hover { border-color: color-mix(in srgb, var(--white) 30%, transparent); }
+.strat-xbar-btn--v { background: var(--color-vermilion); border-color: transparent; color: var(--white); }
+.strat-xbar-btn--v:hover { background: var(--color-vermilion-d, #b53d1c); }
+.strat-xbar-btn svg { width: 14px; height: 14px; }
+/* drawer: fixed inset-0 z-[9999] flex justify-end; panel max-w-[440px] border-l border-white/10 bg-[var(--bg)] p-6 shadow-2xl animate-[slideIn_.22s_ease] */
+.strat-drawer-root { position: fixed; inset: 0; z-index: 9999; display: flex; justify-content: flex-end; }
+.strat-drawer-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
+.strat-drawer { position: relative; height: 100%; width: 100%; max-width: 440px; overflow-y: auto; border-left: 1px solid color-mix(in srgb, var(--white) 10%, transparent); background: var(--bg); padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: strat-slide-in 0.22s ease; }
+@keyframes strat-slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+/* absolute right-4 top-4 rounded-full p-2 text-gray-600 */
+.strat-drawer-close { position: absolute; right: 16px; top: 16px; border-radius: 9999px; padding: 8px; color: var(--gray-600); background: transparent; cursor: pointer; transition: color 0.2s, background 0.2s; }
+.strat-drawer-close:hover { background: color-mix(in srgb, var(--white) 5%, transparent); color: var(--white); }
+.strat-drawer-close svg { width: 16px; height: 16px; }
+/* h2 font-display font-[800] text-xl truncate */
+.strat-drawer-name { font-family: var(--font-display); font-weight: 800; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--white); }
+/* border-l-2 border-vermilion pl-4 mb-5 */
+.strat-drawer-rule { border-left: 2px solid var(--color-vermilion); padding-left: 16px; margin-bottom: 20px; }
+.strat-drawer-rule--quiet { border-left-color: color-mix(in srgb, var(--white) 15%, transparent); }
+/* text-[12.5px] text-white/70 leading-snug */
+.strat-drawer-body { font-size: 12.5px; color: color-mix(in srgb, var(--white) 70%, transparent); line-height: 1.375; }
+.strat-drawer-body strong { color: var(--white); font-weight: 600; }
+/* CapStat: label text-[9px] font-bold uppercase tracking-[0.18em] text-gray-500 block mb-1; value font-mono text-sm tabular-nums; unit text-[11px] ml-1 */
+.strat-capstat-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray-500); display: block; margin-bottom: 4px; }
+.strat-capstat-value { font-family: var(--font-mono); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--white); }
+.strat-capstat-unit { color: var(--gray-500); font-size: 11px; margin-left: 4px; }
+/* the copy-balance box: rounded-xl border border-white/[0.08] bg-black/30 px-4 py-2.5 */
+.strat-budget { border-radius: 12px; border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); background: var(--color-surface-1); padding: 10px 16px; transition: border-color 0.2s; }
+.strat-budget:focus-within { border-color: rgba(224, 77, 38, 0.5); }
+/* font-display text-2xl font-bold text-white */
+.strat-budget-input { width: 100%; background: transparent; font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--white); outline: none; }
+.strat-budget-input::placeholder { color: var(--gray-600); }
+/* rounded-md border border-white/15 px-2 py-0.5 font-mono text-[10px] text-gray-300 */
+.strat-budget-chip { border-radius: 6px; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); padding: 2px 8px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-300); background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.strat-budget-chip:hover { border-color: rgba(224, 77, 38, 0.5); color: var(--white); }
+/* the confirm: mt-3 w-full rounded-full py-3 font-semibold; live shadow */
+.strat-confirm { margin-top: 12px; width: 100%; border-radius: 9999px; padding: 12px 0; font-weight: 600; transition: all 0.2s; border: 0; cursor: pointer; }
+.strat-confirm--live { background: var(--color-vermilion); color: var(--white); box-shadow: 0 6px 28px -8px var(--color-vermilion); }
+.strat-confirm--live:hover { background: var(--color-vermilion-d, #b53d1c); }
+.strat-confirm--dead { cursor: not-allowed; background: color-mix(in srgb, var(--white) 7%, transparent); color: var(--gray-400); }
+/* pause: w-full py-3 rounded-full text-sm font-semibold border border-white/12 text-gray-200 */
+.strat-pause { width: 100%; padding: 12px 0; border-radius: 9999px; font-size: 14px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); color: var(--gray-200); background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.strat-pause:hover { color: var(--white); border-color: color-mix(in srgb, var(--white) 30%, transparent); }
+.strat-pause:disabled { opacity: 0.5; }
+/* agents: Stat card border border-white/[0.08] rounded bg-bg p-5; value font-display text-3xl font-extrabold tracking-tight tabular-nums */
+.agents-stat { border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); border-radius: 4px; background: var(--bg); padding: 20px; }
+.agents-stat-value { font-family: var(--font-display); font-size: 30px; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--color-ink); }
+/* row: border border-white/[0.08] rounded bg-bg p-5 hover:bg-white/[0.02]; top: borderLeft 2px vermilion */
+.agents-row { border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); border-radius: 4px; background: var(--bg); padding: 20px; transition: background 0.2s; }
+.agents-row:hover { background: color-mix(in srgb, var(--white) 2%, transparent); }
+.agents-row--top { border-left: 2px solid var(--color-vermilion); }
+/* rank: font-mono text-3xl font-bold tabular-nums text-gray-700 w-12 leading-none */
+.agents-rank { font-family: var(--font-mono); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gray-700); width: 48px; flex-shrink: 0; line-height: 1; }
+/* w-11 h-11 border border-white/10 rounded-full font-jp text-lg text-gray-300 */
+/* font-mono text-[9px] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded; color vermilion; border 1px solid vermilion-d */
+.agents-top-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; color: var(--color-vermilion); border: 1px solid var(--color-vermilion-d, #b53d1c); }
+/* font-mono text-lg font-bold tabular-nums */
+.agents-figure { font-family: var(--font-mono); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.agents-figure--v { color: var(--color-vermilion); }
+/* font-mono text-[9px] tracking-[0.16em] uppercase text-gray-500 mb-1 */
+.agents-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 4px; }
+/* h1 font-display font-[800] text-4xl tracking-tight */
+.agents-h1 { font-family: var(--font-display); font-weight: 800; font-size: 36px; letter-spacing: -0.025em; color: var(--color-ink); margin-bottom: 8px; }
+/* the how panel: border border-white/[0.08] rounded bg-bg p-5 */
+.agents-panel { border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); border-radius: 4px; background: var(--bg); padding: 20px; }
+
+/* The studio's dry read: one model call's reading, inside the vermilion rule the playbook box uses */
+.strat-dry { margin-top: 14px; border: 1px solid rgba(224, 77, 38, 0.3); border-radius: 12px; background: rgba(224, 77, 38, 0.04); padding: 12px 16px; }
+.strat-dry-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+/* The drawer's agent memory: one Window per row, ruled like the recent copy-trades */
+.strat-memory-row { padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--white) 6%, transparent); }

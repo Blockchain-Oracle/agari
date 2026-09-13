@@ -1,0 +1,46 @@
+/* The Ticket's private line — reference/yosuku/components/Ticket624Drawer.tsx L1221–1247. Each rule names the
+   utility string it replaces; light-theme steps follow part-14.css's `text-white/NN` mapping. */
+
+/* -mt-2 mb-4 (the ticket's gap-4 column stands in for both) flex items-center justify-between gap-3 rounded border border-vermilion/25 bg-vermilion/[0.05] px-2.5 py-2 */
+.tk-priv-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--vermilion) 25%, transparent);
+  background: color-mix(in srgb, var(--vermilion) 5%, transparent);
+  padding: 8px 10px;
+}
+/* font-mono text-[9px] leading-snug text-white/60 */
+.tk-priv-box-text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1.375;
+  color: rgba(255, 255, 255, 0.6);
+}
+/* shrink-0 font-mono text-[9px] uppercase tracking-[0.14em] text-vermilion disabled:opacity-50 */
+.tk-priv-box-action {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--vermilion);
+}
+.tk-priv-box-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* -mt-2 mb-4 (the gap stands in) font-mono text-[9px] text-white/35 */
+.tk-priv-line {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+}
+[data-theme="light"] .tk-priv-box-text {
+  color: rgba(20, 18, 16, 0.7);
+}
+[data-theme="light"] .tk-priv-line {
+  color: rgba(20, 18, 16, 0.55);
+}

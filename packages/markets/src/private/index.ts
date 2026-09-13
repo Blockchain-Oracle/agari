@@ -1,0 +1,10 @@
+export { claimDomain, signPrivateClaim, verifyPrivateClaim, type ClaimDomain } from "./claim";
+export { resolvePrivateDeployment } from "./deployment";
+export { cashOutPrivateBet, ClaimRefusedError } from "./desk-cashout";
+export { createDeskClient, type DeskClient, type DeskClientConfig } from "./desk-client";
+export { deskHealth } from "./desk-health";
+export { openPrivateBet, publicReason, type DeskOpenInput } from "./desk-open";
+export { diagnosePrivate } from "./errors";
+export { canonicalSignature, deriveSlotKeys, type SlotKeys } from "./keys";
+export { getPrivateBudget, getPrivateDeskState, getPrivateSlot, privateDeskContract, sizePrivateForStake, toPrivateBudget, toPrivateSlot } from "./read";
+export { ensurePrivateAllowance, sendPrivateIntent, submitPrivateTx, summarizePrivate, writePrivate, type PrivateTxContext } from "./write";

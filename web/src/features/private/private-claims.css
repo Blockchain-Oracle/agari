@@ -1,0 +1,66 @@
+/* Ported verbatim from reference/yosuku/components/PrivateClaims.tsx's StyleTag (the `.pc*` rules, dark first,
+   then its own `[data-theme='light']` overrides). The reference wrote its inks as literals rather than the
+   `--white` token, so this card flips with the theme without the `--white` remap trap (RESUME §Never write var(--white)). */
+.pc, .pc-empty { border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.3); border-radius: 16px; padding: 16px; }
+.pc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pc-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0; }
+.pc-sub, .pc-empty-sub { font-size: 12px; color: rgba(255, 255, 255, 0.55); margin: 2px 0 0; }
+.pc-empty-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0; }
+.pc-actions { display: flex; gap: 8px; }
+.pc-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.8); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px; padding: 6px 12px; background: transparent; transition: background 0.15s, color 0.15s; }
+.pc-btn:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.pc-icon { width: 14px; height: 14px; }
+.pc-note { font-size: 12px; color: rgba(255, 255, 255, 0.7); margin: 10px 0 0; }
+.pc-list { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px 12px; }
+.pc-row-main { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+.pc-row-side { display: flex; align-items: center; gap: 10px; }
+.pc-side { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 999px; }
+.pc-side.is-up { color: #34D399; background: rgba(52, 211, 153, 0.12); }
+.pc-side.is-down { color: #FB7185; background: rgba(251, 113, 133, 0.12); }
+.pc-strike { font-size: 13px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.pc-stake { font-size: 12px; color: rgba(255, 255, 255, 0.6); font-variant-numeric: tabular-nums; }
+.pc-payout { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pc-payout.is-win { color: #34D399; }
+.pc-payout.is-loss { color: #FB7185; }
+.pc-when { font-size: 11px; color: rgba(255, 255, 255, 0.35); }
+.pc-warn { font-size: 12px; line-height: 1.5; color: #FCA5A5; margin: 10px 0 0; border: 1px solid rgba(251, 113, 133, 0.25); background: rgba(251, 113, 133, 0.08); border-radius: 10px; padding: 8px 10px; }
+.pc-check { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; }
+.pc-check.is-ok { color: #34D399; }
+.pc-check.is-bad { color: #FB7185; }
+.pc-check.is-checking { color: rgba(255, 255, 255, 0.4); }
+.pc-status { font-size: 11px; color: rgba(255, 255, 255, 0.5); text-transform: capitalize; }
+.pc-cash { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #0B0B0B; background: #fff; border: 0; border-radius: 999px; padding: 6px 14px; }
+.pc-cash:disabled { opacity: 0.5; cursor: not-allowed; }
+.pc-foot { font-size: 11px; color: rgba(255, 255, 255, 0.45); margin: 14px 0 0; line-height: 1.5; }
+
+[data-theme="light"] .pc, [data-theme="light"] .pc-empty { border-color: rgba(20, 18, 16, 0.1); background: rgba(255, 255, 255, 0.75); }
+[data-theme="light"] .pc-title, [data-theme="light"] .pc-empty-title, [data-theme="light"] .pc-strike { color: #1A1613; }
+[data-theme="light"] .pc-sub, [data-theme="light"] .pc-empty-sub { color: rgba(26, 22, 19, 0.62); }
+[data-theme="light"] .pc-btn { color: rgba(26, 22, 19, 0.75); border-color: rgba(20, 18, 16, 0.16); }
+[data-theme="light"] .pc-btn:hover { background: rgba(20, 18, 16, 0.05); color: #1A1613; }
+[data-theme="light"] .pc-note { color: rgba(26, 22, 19, 0.72); }
+[data-theme="light"] .pc-row { border-color: rgba(20, 18, 16, 0.1); }
+[data-theme="light"] .pc-stake { color: rgba(26, 22, 19, 0.6); }
+[data-theme="light"] .pc-status { color: rgba(26, 22, 19, 0.5); }
+[data-theme="light"] .pc-check.is-checking { color: rgba(26, 22, 19, 0.4); }
+[data-theme="light"] .pc-cash { color: #fff; background: #1A1613; }
+[data-theme="light"] .pc-foot { color: rgba(26, 22, 19, 0.5); }
+[data-theme="light"] .pc-when { color: rgba(26, 22, 19, 0.4); }
+[data-theme="light"] .pc-warn { color: #9F1239; border-color: rgba(159, 18, 57, 0.2); background: rgba(159, 18, 57, 0.06); }
+
+/* Inside the portfolio plate's cream `.plate-rows` the card must read in cream ink whatever the theme — the plate never flips. */
+.plate-rows .pc, .plate-rows .pc-empty { border-color: rgba(20, 18, 16, 0.1); background: rgba(255, 255, 255, 0.75); }
+.plate-rows .pc-title, .plate-rows .pc-empty-title, .plate-rows .pc-strike { color: #1A1613; }
+.plate-rows .pc-sub, .plate-rows .pc-empty-sub { color: rgba(26, 22, 19, 0.62); }
+.plate-rows .pc-btn { color: rgba(26, 22, 19, 0.75); border-color: rgba(20, 18, 16, 0.16); }
+.plate-rows .pc-btn:hover { background: rgba(20, 18, 16, 0.05); color: #1A1613; }
+.plate-rows .pc-note { color: rgba(26, 22, 19, 0.72); }
+.plate-rows .pc-row { border-color: rgba(20, 18, 16, 0.1); }
+.plate-rows .pc-stake { color: rgba(26, 22, 19, 0.6); }
+.plate-rows .pc-status { color: rgba(26, 22, 19, 0.5); }
+.plate-rows .pc-check.is-checking { color: rgba(26, 22, 19, 0.4); }
+.plate-rows .pc-cash { color: #fff; background: #1A1613; }
+.plate-rows .pc-foot { color: rgba(26, 22, 19, 0.5); }
+.plate-rows .pc-when { color: rgba(26, 22, 19, 0.4); }
+.plate-rows .pc-warn { color: #9F1239; border-color: rgba(159, 18, 57, 0.2); background: rgba(159, 18, 57, 0.06); }

@@ -1,0 +1,130 @@
+/* Ported from reference/yosuku/components/AddFunds.tsx, CreditWelcome.tsx and app/fund/page.tsx. The reference
+ * writes these as Tailwind arbitrary values; the `design-literals` invariant keeps hex and px out of TSX, so
+ * the values live here with the source utility named above each rule. */
+
+/* Above the sticky shell and ticket (9999), including when opened from a ticket's insufficient-funds prompt. */
+.fund-modal-root { position: fixed; inset: 0; z-index: 10010; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.fund-modal-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+/* relative w-full max-w-md border border-white/10 rounded-2xl bg-[#0d0d10] p-7 shadow-2xl */
+.fund-modal {
+  position: relative; width: 100%; max-width: 448px; max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: #0d0d10;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+[data-theme="light"] .fund-modal { background: var(--bg); border-color: rgba(20, 18, 16, 0.12); }
+/* absolute right-4 top-4 rounded-full p-2 text-gray-600 hover:bg-white/[0.05] hover:text-white */
+.fund-modal-close { position: absolute; right: 16px; top: 16px; border-radius: 999px; padding: 8px; color: var(--gray-600); transition: background 200ms var(--ease), color 200ms var(--ease); }
+.fund-modal-close:hover { background: rgba(255, 255, 255, 0.05); color: var(--white); }
+.fund-eyebrow-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+/* w-1.5 h-1.5 rounded-full bg-vermilion, glow 0 0 12px */
+.fund-eyebrow-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--vermilion); box-shadow: 0 0 12px var(--vermilion); }
+/* font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 */
+.fund-eyebrow { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-500); }
+/* font-display text-2xl font-extrabold tracking-tight mb-1 */
+.fund-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; color: var(--white); margin-bottom: 4px; }
+/* text-gray-400 text-sm leading-relaxed mb-6 */
+.fund-body { font-size: 14px; line-height: 1.625; color: var(--gray-400); margin-bottom: 24px; }
+/* font-mono text-xs text-gray-500 text-center py-6 */
+.fund-connect-first { display: flex; flex-direction: column; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); text-align: center; padding-block: 24px; }
+/* flex items-center justify-between border border-white/[0.06] rounded-xl px-4 py-3 mb-4 */
+.fund-account { display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; }
+.fund-account-label { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); }
+.fund-account-addr { font-family: var(--font-mono); font-size: 12px; color: var(--gray-300); transition: color 200ms var(--ease); }
+.fund-account-addr:hover { color: var(--white); }
+.fund-rows { display: flex; flex-direction: column; gap: 10px; }
+/* w-full bg-white text-black font-semibold rounded-full py-3 hover:scale-[1.02] active:scale-[0.97] */
+.fund-cta-white { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; background: var(--white); color: #000; font-weight: 600; padding-block: 12px; transition: transform 150ms var(--ease); }
+/* The collateral's own mark on the mint, at the label's cap height. */
+.fund-cta-mark { width: 16px; height: 16px; flex: none; }
+.fund-cta-white:hover:not(:disabled) { transform: scale(1.02); }
+.fund-cta-white:active:not(:disabled) { transform: scale(0.97); }
+.fund-cta-white:disabled { opacity: 0.6; cursor: not-allowed; }
+.fund-progress { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; overflow-wrap: anywhere; }
+.fund-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+.fund-balances div { min-width: 0; padding: 10px; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); border-radius: 8px; }
+.fund-balances dt { font-size: 11px; color: var(--gray-500); }
+.fund-balances dd { margin: 5px 0 0; font-size: 13px; color: var(--white); }
+[data-theme="light"] .fund-cta-white { background: #141210; color: var(--bg); }
+/* block w-full text-center bg-vermilion text-white font-semibold rounded-full py-3 hover:bg-vermilion-d */
+.fund-cta-vermilion { display: block; width: 100%; text-align: center; border-radius: 999px; background: var(--vermilion); color: #fff; font-weight: 600; padding-block: 12px; transition: background 200ms var(--ease); }
+.fund-cta-vermilion:hover:not(:disabled) { background: var(--vermilion-d); }
+.fund-cta-vermilion:disabled { opacity: 0.5; cursor: not-allowed; }
+/* flex w-full items-center justify-center gap-2 rounded-full border border-white/15 py-3 font-semibold hover:border-vermilion/50 */
+.fund-row { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.15); padding-block: 12px; font-weight: 600; color: var(--white); transition: border-color 200ms var(--ease); }
+.fund-row:hover:not(:disabled) { border-color: color-mix(in srgb, var(--vermilion) 50%, transparent); }
+.fund-row:disabled { opacity: 0.4; cursor: not-allowed; }
+[data-theme="light"] .fund-row { border-color: rgba(20, 18, 16, 0.15); color: #141210; }
+/* text-[12px] mt-3 text-center · error rose · ok emerald */
+.fund-msg { font-size: 12px; margin-top: 12px; text-align: center; }
+.fund-msg--ok { color: var(--profit); }
+.fund-msg--err { color: var(--loss); }
+/* mt-5 pt-4 border-t border-white/[0.06] text-center · font-mono text-[11px] text-gray-500 hover:text-vermilion */
+.fund-foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center; display: flex; flex-direction: column; gap: 6px; }
+.fund-foot-line { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); }
+.fund-foot-link { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); transition: color 200ms var(--ease); }
+.fund-foot-link:hover { color: var(--vermilion); }
+
+/* ── CreditWelcome: fixed inset-0 z-[140] · scrim bg-black/60 backdrop-blur-sm ── */
+.credit-root { position: fixed; inset: 0; z-index: 10020; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.credit-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+/* relative w-full max-w-sm rounded-2xl border border-emerald-500/25 bg-[#0c0c0f] px-6 pt-7 pb-6 text-center shadow-[0_24px_90px_rgba(16,185,129,0.18)] */
+.credit-card {
+  position: relative; width: 100%; max-width: 384px; border-radius: 16px; text-align: center;
+  border: 1px solid color-mix(in srgb, var(--profit) 25%, transparent); background: #0c0c0f;
+  padding: 28px 24px 24px; box-shadow: 0 24px 90px color-mix(in srgb, var(--profit) 18%, transparent);
+}
+[data-theme="light"] .credit-card { background: var(--bg); }
+/* absolute top-3.5 right-3.5 rounded-full p-1 text-gray-600 hover:text-white */
+.credit-close { position: absolute; top: 14px; right: 14px; border-radius: 999px; padding: 4px; color: var(--gray-600); transition: color 200ms var(--ease); }
+.credit-close:hover { color: var(--white); }
+/* mx-auto mb-4 h-14 w-14 rounded-full border border-emerald-500/30 bg-emerald-500/10 · glow 0 0 28px emerald/25 */
+.credit-badge {
+  margin: 0 auto 16px; display: flex; height: 56px; width: 56px; align-items: center; justify-content: center; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--profit) 30%, transparent); background: color-mix(in srgb, var(--profit) 10%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--profit) 25%, transparent); color: var(--profit);
+}
+/* font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-400/80 */
+.credit-eyebrow { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: color-mix(in srgb, var(--profit) 80%, transparent); }
+/* font-display text-2xl font-extrabold tracking-tight text-white mt-1.5 */
+.credit-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; color: var(--white); margin-top: 6px; }
+/* text-gray-400 text-[13px] leading-relaxed mt-2 mb-5 */
+.credit-body { font-size: 13px; line-height: 1.625; color: var(--gray-400); margin: 8px 0 20px; }
+
+/* ── /fund: app/fund/page.tsx ── max-w-xl mx-auto px-5 sm:px-8 pt-28 sm:pt-32 pb-28 */
+.fund-page { position: relative; max-width: 576px; margin: 0 auto; padding: 112px 20px; }
+@media (min-width: 640px) { .fund-page { padding: 128px 32px 112px; } }
+/* font-mono text-[11px] tracking-[0.28em] uppercase text-vermilion mb-4 */
+.fund-page-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--vermilion); margin-bottom: 16px; }
+/* font-display font-[800] tracking-[-0.03em] leading-[0.98] text-[clamp(2.3rem,7vw,3.4rem)] */
+.fund-page-title { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(2.3rem, 7vw, 3.4rem); color: var(--white); }
+/* mt-4 text-gray-400 leading-relaxed max-w-[42ch] */
+.fund-page-body { margin-top: 16px; color: var(--gray-400); line-height: 1.625; max-width: 42ch; }
+/* mt-9 rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-7 */
+.fund-card { margin-top: 36px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); padding: 24px; box-shadow: 0 40px 90px -60px rgba(0, 0, 0, 0.9); }
+@media (min-width: 640px) { .fund-card { padding: 28px; } }
+/* rounded-2xl border border-white/[0.08] bg-black/20 px-5 py-4 focus-within:border-vermilion/50 */
+.fund-amt { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2); padding: 16px 20px; transition: border-color 200ms var(--ease); }
+.fund-amt:focus-within { border-color: color-mix(in srgb, var(--vermilion) 50%, transparent); }
+.fund-amt-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray-500); margin-bottom: 6px; }
+.fund-amt-field { display: flex; align-items: center; gap: 12px; }
+/* flex-1 min-w-0 bg-transparent font-display text-4xl font-bold text-white outline-none tabular-nums */
+.fund-amt-input { flex: 1; min-width: 0; background: transparent; font-family: var(--font-display); font-size: 36px; font-weight: 700; color: var(--white); outline: none; font-variant-numeric: tabular-nums; }
+.fund-amt-unit { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--gray-300); flex-shrink: 0; }
+.fund-presets { margin-top: 12px; display: flex; gap: 8px; }
+/* rounded-lg border border-white/12 px-3 py-1.5 font-mono text-[12px] text-gray-400 hover:border-vermilion/50 hover:text-white */
+.fund-preset { border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px 12px; font-family: var(--font-mono); font-size: 12px; color: var(--gray-400); transition: border-color 200ms var(--ease), color 200ms var(--ease); }
+.fund-preset:hover { border-color: color-mix(in srgb, var(--vermilion) 50%, transparent); color: var(--white); }
+/* mt-5 flex items-baseline justify-between */
+.fund-pay { margin-top: 20px; display: flex; align-items: baseline; justify-content: space-between; }
+.fund-pay-label { font-family: var(--font-mono); font-size: 14px; color: var(--gray-500); }
+.fund-pay-value { font-family: var(--font-display); font-weight: 700; font-size: 24px; color: var(--white); font-variant-numeric: tabular-nums; }
+.fund-cap { margin-top: 4px; text-align: right; font-family: var(--font-mono); font-size: 11px; color: color-mix(in srgb, var(--vermilion) 80%, transparent); }
+.fund-gate { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.fund-gate-connect { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.fund-gate-line { font-size: 13px; color: var(--gray-400); }
+/* w-full rounded-full bg-vermilion font-display font-bold py-4 text-[15px] shadow-[0_18px_40px_-16px_var(--vermilion)] */
+.fund-cta-vermilion--big { font-family: var(--font-display); font-weight: 700; font-size: 15px; padding-block: 16px; box-shadow: 0 18px 40px -16px var(--vermilion); }
+.fund-blocked { font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--gray-500); text-align: center; max-width: 42ch; }
+.fund-free { font-family: var(--font-mono); font-size: 12px; color: var(--vermilion); text-decoration: underline; text-underline-offset: 4px; }
+/* mt-6 text-center font-mono text-[10.5px] leading-relaxed text-gray-600 max-w-[46ch] mx-auto */
+.fund-page-foot { margin: 24px auto 0; text-align: center; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.625; color: var(--gray-600); max-width: 46ch; }

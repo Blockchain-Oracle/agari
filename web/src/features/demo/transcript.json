@@ -1,0 +1,52 @@
+[
+  {
+    "id": "01-intro",
+    "seconds": 13,
+    "text": "Meet Masayume. Price markets, agents, and games, built around Dream DEX Event Contracts on Somnia. Make your call. See it through. This walkthrough uses Shannon testnet assets only."
+  },
+  {
+    "id": "02-markets",
+    "seconds": 15,
+    "text": "Start with a Window. Each market names an asset, an opening price, and a closing time. Choose Up or Down, review the available price, and follow the transaction. The final oracle print decides the outcome."
+  },
+  {
+    "id": "03-builder",
+    "seconds": 23,
+    "text": "The agent builder separates identity, behavior, a test read, and publication. You can explore it before connecting a wallet. This is Shannon Sensei. Its real model read saw the correct opening price and an eleven basis point move. It chose to hold because the offered price left little edge. A hold is a result, too."
+  },
+  {
+    "id": "04-publication",
+    "seconds": 15,
+    "text": "Here is its confirmed publication on Somnia. The same name and portrait appear in the catalogue and management screen. Publication registers the strategy. It does not deposit money or start trading from a follower's wallet."
+  },
+  {
+    "id": "05-permission",
+    "seconds": 20,
+    "text": "Copying adds a separate permission and subscription. Review the total budget, the amount allowed per trade, the expiry, and the actual subscription fee. The management screen distinguishes that consent from the runner's operation. Pausing stops future copies; existing positions still need settlement."
+  },
+  {
+    "id": "06-x",
+    "seconds": 23,
+    "text": "A call can also begin on X. This clearly labeled testnet mention requested one test dollar of Bitcoin Up in a four hour Window. The confirmed order spent less than the requested maximum. Its receipt image carries the sender, market, direction, Window, actual spend, and transaction hash. The accompanying link opens that same transaction independently."
+  },
+  {
+    "id": "07-moonshot",
+    "seconds": 19,
+    "text": "Moonshot turns the same oracle outcome into a target and a payout. This real round moved from In play, to Won, to Paid. The closing print passed the chosen target, and the claim transaction returned the payout to the wallet. Those are separate, verifiable steps."
+  },
+  {
+    "id": "08-arcade",
+    "seconds": 11,
+    "text": "The arcade adds another way to play. Runs use server issued seeds and replay checks before a score reaches the leaderboard. Arcade scores are separate from on-chain positions and payouts."
+  },
+  {
+    "id": "09-architecture",
+    "seconds": 19,
+    "text": "Underneath, Dream DEX supplies market discovery, books, quotes, and Event Contracts. Masayume adds the interface, bounded Vault permissions, and durable records for decisions and execution attempts. Uncertain execution is reconciled before another submission. The documentation explains those boundaries, and the receipts expose the chain evidence."
+  },
+  {
+    "id": "10-close",
+    "seconds": 8,
+    "text": "Explore Masayume on Somnia testnet. Open the app, read the docs, and follow the receipts. Make your call. See it through."
+  }
+]

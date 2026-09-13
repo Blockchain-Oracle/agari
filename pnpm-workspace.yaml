@@ -1,0 +1,43 @@
+packages:
+  - web
+  - packages/*
+  - services/*
+  - scripts
+
+allowBuilds:
+  bufferutil: false
+  esbuild: true
+  keccak: false
+  sharp: false
+  utf-8-validate: false
+
+catalog:
+  next: 16.3.4
+  react: 19.2.8
+  react-dom: 19.2.8
+  "@types/react": ^19
+  "@types/react-dom": ^19
+  "@types/node": ^22.20.1
+  typescript: ^5.9.0
+  zod: ^4.1.0
+  viem: ^2.38.0
+  wagmi: ^2.19.0
+  "@rainbow-me/rainbowkit": ^2.2.11
+  "@tanstack/react-query": ^5.90.0
+  lightweight-charts: ^5.2.0
+  vitest: ^4.0.0
+  tsx: ^4.20.0
+  tailwindcss: ^4.1.0
+  "@tailwindcss/postcss": ^4.1.0
+
+minimumReleaseAgeExclude:
+  - '@next/env@16.3.4'
+  - '@next/swc-darwin-arm64@16.3.4'
+  - '@next/swc-darwin-x64@16.3.4'
+  - '@next/swc-linux-arm64-gnu@16.3.4'
+  - '@next/swc-linux-arm64-musl@16.3.4'
+  - '@next/swc-linux-x64-gnu@16.3.4'
+  - '@next/swc-linux-x64-musl@16.3.4'
+  - '@next/swc-win32-arm64-msvc@16.3.4'
+  - '@next/swc-win32-x64-msvc@16.3.4'
+  - next@16.3.4

@@ -1,0 +1,126 @@
+/* `/earn` — reference/yosuku/app/earn/page.tsx. The `.earn-*` classes are the reference's own (yosuku/part-17.css);
+ * these are its inline Tailwind arbitrary values as named rules, the source utility above each. Light steps
+ * follow part-14's ladder; the grays are the reference's `--gray-*` vars (RESUME.md §The same rule for backgrounds). */
+
+/* min-h-screen relative — the shell's main already spans the viewport; only `relative` is kept */
+.ea-page { position: relative; }
+
+/* p-6 md:p-8 backdrop-blur-sm */
+.ea-panel { padding: 24px; backdrop-filter: blur(4px); position: relative; }
+@media (min-width: 768px) { .ea-panel { padding: 32px; } }
+.ea-panel-inner { position: relative; }
+/* relative font-mono text-xs text-gray-500 py-3 */
+.ea-loading { position: relative; font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-500); padding: 12px 0; }
+/* flex items-center justify-between mb-6 */
+.ea-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+/* font-mono text-[10px] tracking-[0.22em] uppercase text-gray-500; the right-hand tag is tracking-[0.18em] */
+.ea-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray-500); }
+.ea-tag--brand { letter-spacing: 0.18em; }
+/* flex items-end gap-3 */
+.ea-price-row { display: flex; align-items: flex-end; gap: 12px; }
+/* font-display text-[clamp(2.8rem,5vw,3.5rem)] font-extrabold leading-[0.88] tracking-tight tabular-nums */
+.ea-price { font-family: var(--font-display); font-size: clamp(2.8rem, 5vw, 3.5rem); font-weight: 800; line-height: 0.88; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
+/* ml-1 align-baseline font-mono text-[0.9rem] font-normal tracking-normal text-gray-500 */
+.ea-price-unit { margin-left: 4px; vertical-align: baseline; font-family: var(--font-mono); font-size: 0.9rem; font-weight: 400; letter-spacing: normal; color: var(--gray-500); }
+/* rounded-full px-2.5 py-1 mb-1 inline-flex items-center gap-1.5 font-mono text-[11px] text-new-mint */
+.ea-chip { border-radius: 9999px; padding: 4px 10px; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--color-new-mint); }
+/* mt-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-gray-500 */
+.ea-since { margin-top: 10px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--gray-500); }
+/* my-6 */
+.ea-hair { margin: 24px 0; }
+/* grid grid-cols-2 gap-5 */
+.ea-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+/* mb-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-gray-500 */
+.ea-k { display: block; margin-bottom: 6px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray-500); }
+/* font-mono text-[15px] tabular-nums */
+.ea-v { font-family: var(--font-mono); font-size: 15px; font-variant-numeric: tabular-nums; }
+/* text-vermilion mb-2 */
+.ea-v--accent { color: var(--vermilion); margin-bottom: 8px; }
+/* text-xs text-gray-500 */
+.ea-v-unit { font-size: 12px; color: var(--gray-500); }
+/* style={{ width: `max(4px, ${utilization}%)` }} — the fill never vanishes at zero */
+.ea-meter-fill { width: max(4px, var(--ea-fill, 0%)); }
+
+/* main .container max-w-5xl mx-auto pt-6 md:pt-10 pb-16 */
+.ea-main { max-width: 64rem; margin: 0 auto; padding-top: 24px; padding-bottom: 64px; }
+@media (min-width: 768px) { .ea-main { padding-top: 40px; } }
+
+/* mb-5 border border-vermilion/40 bg-vermilion/[0.06] px-4 py-3 */
+.ea-paused { margin-bottom: 20px; border: 1px solid color-mix(in srgb, var(--vermilion) 40%, transparent); background: color-mix(in srgb, var(--vermilion) 6%, transparent); padding: 12px 16px; }
+/* font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion mb-1 */
+.ea-paused-title { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--vermilion); margin-bottom: 4px; }
+/* text-[13px] text-white/70 leading-snug max-w-2xl */
+.ea-paused-body { font-size: 13px; color: rgba(255, 255, 255, 0.7); line-height: 1.375; max-width: 42rem; }
+[data-theme="light"] .ea-paused-body { color: rgba(20, 18, 16, 0.75); }
+
+/* grid md:grid-cols-2 gap-5 mb-10 */
+.ea-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin-bottom: 40px; }
+@media (min-width: 768px) { .ea-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* p-6 */
+.ea-card { padding: 24px; }
+/* py-8 text-center */
+.ea-connect { padding: 32px 0; text-align: center; }
+/* font-mono text-xs text-gray-500 mb-4 */
+.ea-connect-text { font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-500); margin-bottom: 16px; }
+.ea-connect-cta { display: flex; justify-content: center; }
+/* flex items-baseline justify-between gap-3 mb-3 min-w-0 */
+.ea-field-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; min-width: 0; }
+.ea-field-head .ea-k { margin-bottom: 0; color: var(--gray-600); font-size: 10px; }
+/* font-mono text-[10px] text-gray-600 truncate shrink */
+.ea-wallet { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1; }
+/* flex items-center gap-2 rounded-xl px-4 py-3.5 mb-3 */
+.ea-field { display: flex; align-items: center; gap: 8px; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+/* bg-transparent flex-1 outline-none font-mono text-2xl min-w-0 — outline-none is a layered utility in the reference, so its focus ring survives; here the ring is kept the same way */
+.ea-input { background: transparent; flex: 1; font-family: var(--font-mono); font-size: 24px; line-height: 32px; min-width: 0; color: inherit; }
+.ea-input:focus:not(:focus-visible) { outline: none; }
+/* font-mono text-[10px] uppercase tracking-wider text-vermilion hover:text-white */
+.ea-max { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vermilion); background: transparent; cursor: pointer; transition: color 150ms var(--ease); }
+.ea-max:hover { color: var(--white); }
+/* font-mono text-sm text-gray-500 */
+.ea-input-unit { font-family: var(--font-mono); font-size: 14px; line-height: 20px; color: var(--gray-500); }
+/* grid grid-cols-4 gap-2 mb-4 */
+.ea-quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+/* rounded-lg py-2 font-mono text-xs border transition-all text-gray-500 hover:text-gray-300 */
+.ea-quick-chip { border-radius: 8px; padding: 8px 0; font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-500); background: transparent; cursor: pointer; transition: color 150ms var(--ease), border-color 150ms var(--ease), background 150ms var(--ease); }
+.ea-quick-chip:hover { color: var(--gray-300); }
+/* bg-vermilion/15 border-vermilion/50 text-white */
+.ea-quick-chip--on { background: color-mix(in srgb, var(--vermilion) 15%, transparent); border-color: color-mix(in srgb, var(--vermilion) 50%, transparent); color: var(--white); }
+/* block w-full max-w-[280px] mx-auto sm:w-auto sm:px-16 bg-vermilion text-white font-semibold rounded-full py-3.5 hover:bg-vermilion-d active:scale-[0.98] disabled:opacity-40 */
+.ea-supply { display: block; width: 100%; max-width: 280px; margin: 0 auto; background: var(--vermilion); color: #fff; font-weight: 600; border-radius: 9999px; padding: 14px 0; cursor: pointer; transition: background 150ms var(--ease), transform 150ms var(--ease); }
+@media (min-width: 640px) { .ea-supply { width: auto; padding-left: 64px; padding-right: 64px; } }
+.ea-supply:hover:not(:disabled) { background: var(--vermilion-d); }
+.ea-supply:active:not(:disabled) { transform: scale(0.98); }
+.ea-supply:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* mb-4 */
+.ea-position-title { margin-bottom: 16px; color: var(--gray-600); font-size: 10px; }
+/* font-mono text-xs text-gray-500 py-10 text-center */
+.ea-empty { font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-500); padding: 40px 0; text-align: center; }
+/* font-display text-4xl font-extrabold tracking-tight */
+.ea-position-value { font-family: var(--font-display); font-size: 36px; line-height: 40px; font-weight: 800; letter-spacing: -0.025em; }
+/* text-base text-gray-500 font-mono font-normal */
+.ea-position-unit { font-size: 16px; line-height: 24px; color: var(--gray-500); font-family: var(--font-mono); font-weight: 400; }
+/* font-mono text-[11px] text-gray-500 mt-1 mb-5 */
+.ea-position-sub { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); margin-top: 4px; margin-bottom: 20px; }
+/* block w-full max-w-[280px] mx-auto rounded-full py-3 font-mono text-xs uppercase tracking-wider text-vermilion hover:text-white disabled:opacity-50 */
+.ea-withdraw { display: block; width: 100%; max-width: 280px; margin: 0 auto; border-radius: 9999px; padding: 12px 0; font-family: var(--font-mono); font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vermilion); background: transparent; cursor: pointer; }
+.ea-withdraw:hover:not(:disabled) { color: var(--white); }
+.ea-withdraw:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Ours: mt-3 text-[12px] text-gray-500 */
+.ea-note { margin-top: 12px; font-size: 12px; color: var(--gray-500); text-align: center; }
+
+/* Ours: §02 — the parlay slip's card surface, as a table */
+.ea-table-wrap { overflow-x: auto; margin-bottom: 40px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(23, 23, 23, 0.4); }
+[data-theme="light"] .ea-table-wrap { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+.ea-table { width: 100%; border-collapse: collapse; }
+.ea-th { text-align: left; padding: 12px 16px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray-500); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+[data-theme="light"] .ea-th { border-bottom-color: rgba(20, 18, 16, 0.1); }
+.ea-td { padding: 12px 16px; font-family: var(--font-mono); font-size: 12px; color: var(--white); border-top: 1px solid rgba(255, 255, 255, 0.05); vertical-align: top; }
+[data-theme="light"] .ea-td { border-top-color: rgba(20, 18, 16, 0.07); }
+.ea-td--num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ea-td-sub { color: var(--gray-500); }
+.ea-row-btn { margin-left: 8px; }
+
+/* text-center mt-8 text-[12px] font-mono text-gray-300 / text-vermilion */
+.ea-msg { text-align: center; margin-top: 32px; font-size: 12px; font-family: var(--font-mono); color: var(--gray-300); }
+.ea-msg--err { color: var(--vermilion); }

@@ -1,0 +1,72 @@
+import type { BadgeId, ClaimState, ReputationTier, RoundOutcome } from "@masayume/core/projection";
+
+/** The settled-history panel, the reputation panel and the Trader Edge link on `/portfolio`. */
+export const HISTORY = {
+  title: "Settled",
+  settledCount: (n: number) => `${n} settled`,
+  openCount: (n: number) => `${n} open`,
+  outcome: { win: "Won", loss: "Lost", void: "Void", closed: "Closed early" } satisfies Record<RoundOutcome, string>,
+  paid: "paid",
+  net: "net",
+  claim: {
+    paid: "collected",
+    "to-collect": "to collect",
+    none: "",
+    unknown: "collection unread",
+  } satisfies Record<ClaimState, string>,
+  collectLink: "collect →",
+  receipt: "Receipt",
+  receiptTitle: "Settlement receipt",
+  entryTx: "entry tx",
+  shorted: "sold short — you were handed the other side",
+  showAll: (n: number) => `Show all ${n}`,
+  showFewer: "Show fewer",
+  /** The reading covers a prefix of the wallet's history — the indexer's paging ceiling was hit. */
+  partial: "This wallet has more history than one reading can page; the figures below cover its most recent part.",
+  empty: { why: "Nothing settled yet.", nextAction: { label: "History fills in as your Windows close", href: "/markets" } },
+  csv: "Download CSV",
+  csvName: (address: string) => `masayume-history-${address.slice(0, 8)}.csv`,
+  csvFailed: "Couldn't build the file — try again.",
+  summary: {
+    title: "Your record",
+    net: "Net, all settled",
+    winRate: "Win rate",
+    streak: "Current run",
+    streakUnit: (n: number) => (n === 1 ? "win" : "wins"),
+    rounds: (settled: number, open: number) => `${settled} settled · ${open} open`,
+    curveEmpty: "curve fills as trades settle",
+    curveLabel: (direction: "up" | "down", amount: string) => `Cumulative result curve, currently ${direction} ${amount}`,
+    notYet: "—",
+  },
+  reputation: {
+    title: "Reputation",
+    tier: "Tier",
+    record: (bets: number, wins: number) => `${wins} of ${bets} decided`,
+    next: (tier: string) => `Next: ${tier}`,
+    top: "Top tier",
+    progress: (pct: number) => `${pct}% toward the next tier`,
+    seasonRank: "Season rank",
+    unlocked: (n: number, total: number) => `${n} of ${total} unlocked`,
+    tiers: { Novice: "Novice", Trader: "Trader", Whale: "Whale", Oracle: "Oracle" } satisfies Record<ReputationTier, string>,
+    /** The reference's own tier ladder; only the thresholds are real here — see `reputation.ts` in core. */
+    rule: "Tiers are earned on decided Windows and win rate: Trader at 5 and 45%, Whale at 15 and 55%, Oracle at 30 and 65%.",
+  },
+  badges: {
+    unlocked: "Unlocked",
+    locked: "Locked",
+    pendingEarn: "Needs the Earn vault",
+    names: {
+      first_trade: { name: "First Trade", description: "Opened your first position." },
+      winning_streak: { name: "Hot Streak", description: "3 consecutive winning Windows." },
+      lp_provider: { name: "LP Provider", description: "Supplied liquidity to the vault." },
+      whale: { name: "Whale", description: "Staked over 1,000 in volume." },
+      oracle: { name: "Oracle", description: "70%+ win rate with 10+ decided Windows." },
+    } satisfies Record<BadgeId, { name: string; description: string }>,
+  },
+  edgeLink: {
+    eyebrow: "Trader analytics",
+    title: "See what is actually working.",
+    copy: "P&L, drawdown, expectancy and timing, calculated from your on-chain betting history.",
+    action: "Open edge report",
+  },
+} as const;

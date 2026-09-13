@@ -1,0 +1,45 @@
+{
+  "name": "@masayume/markets",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./faucet": "./src/faucet/index.ts",
+    ".": "./src/index.ts",
+    "./chain": "./src/chain.ts",
+    "./env": "./src/env.ts",
+    "./games": "./src/games/index.ts",
+    "./identity": "./src/identity.ts",
+    "./leverage": "./src/leverage/index.ts",
+    "./maker": "./src/maker/index.ts",
+    "./parlay": "./src/parlay/index.ts",
+    "./perf": "./src/perf/index.ts",
+    "./private": "./src/private/index.ts",
+    "./range": "./src/range/index.ts",
+    "./react": "./src/react/index.ts",
+    "./runtime": "./src/runtime/index.ts",
+    "./sessions": "./src/sessions/index.ts",
+    "./strategies": "./src/strategies/index.ts",
+    "./vault": "./src/vault/index.ts",
+    "./x": "./src/x/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@masayume/core": "workspace:*",
+    "@somnia-chain/markets-sdk": "0.28.1",
+    "@tanstack/react-query": "catalog:",
+    "viem": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  }
+}

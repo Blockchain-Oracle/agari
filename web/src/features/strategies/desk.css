@@ -1,0 +1,106 @@
+/* The Live Desk — `reference/yosuku/components/LiveDesk.tsx`. The card is authored dark; part-18's
+ * `.live-desk` light remaps repoint its white ink on cream, so the TSX keeps the reference's
+ * `text-white/NN` utilities and only the px-sized rules live here. */
+
+/* group/desk relative rounded-xl border border-white/[0.1] bg-bg overflow-hidden */
+.desk { position: relative; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--white) 10%, transparent); background: var(--bg); overflow: hidden; }
+/* p-6 sm:p-7 min-w-0 */
+.desk-body { padding: 24px; min-width: 0; }
+@media (min-width: 640px) { .desk-body { padding: 28px; } }
+/* font-display font-[800] text-[1.7rem] tracking-tight leading-none */
+.desk-name { font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; letter-spacing: -0.025em; line-height: 1; }
+/* inline-flex items-center gap-1 rounded-full border border-vermilion/40 bg-vermilion/[0.06] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-vermilion */
+.desk-chip-autopilot { display: inline-flex; align-items: center; gap: 4px; border-radius: 9999px; border: 1px solid rgba(224, 77, 38, 0.4); background: rgba(224, 77, 38, 0.06); padding: 2px 8px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-vermilion); }
+/* text-[13.5px] leading-snug mt-2 */
+.desk-what { font-size: 13.5px; line-height: 1.375; margin-top: 8px; overflow-wrap: anywhere; }
+/* h-9 w-9 rounded-full border border-white/12 */
+.desk-share { display: flex; height: 36px; width: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); color: color-mix(in srgb, var(--white) 50%, transparent); transition: color 0.2s, border-color 0.2s; background: transparent; }
+.desk-share:hover { border-color: color-mix(in srgb, var(--white) 25%, transparent); color: var(--white); }
+.desk-share svg { width: 16px; height: 16px; }
+/* the sigil tile: h-14 w-14 rounded-lg border border-vermilion/40 bg-vermilion/[0.07] */
+/* font-mono text-[9px] uppercase tracking-[0.18em] */
+.desk-eyebrow { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; }
+/* font-mono text-[10px] uppercase tracking-[0.18em] */
+.desk-status { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; }
+/* font-mono text-[10px] */
+.desk-note { font-family: var(--font-mono); font-size: 10px; }
+/* font-mono text-[9px] */
+.desk-fine { font-family: var(--font-mono); font-size: 9px; }
+/* text-[12px] leading-snug / text-[12.5px] */
+.desk-copy { font-size: 12px; line-height: 1.375; overflow-wrap: anywhere; }
+.desk-copy--lg { font-size: 12.5px; }
+/* font-display font-[800] text-2xl tabular-nums leading-none */
+.desk-figure { font-family: var(--font-display); font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; line-height: 1; }
+/* font-mono text-sm tabular-nums */
+.desk-limits { font-family: var(--font-mono); font-size: 14px; font-variant-numeric: tabular-nums; }
+/* grid grid-cols-2 max-w-md border border-white/[0.08] bg-white/[0.02] */
+.desk-numbers { display: grid; grid-template-columns: 1fr 1fr; max-width: 28rem; border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); background: color-mix(in srgb, var(--white) 2%, transparent); }
+.desk-numbers > div { padding: 12px; }
+.desk-numbers > div + div { border-left: 1px solid color-mix(in srgb, var(--white) 6%, transparent); }
+/* border-l-2 pl-3 py-0.5 */
+.desk-pulse { border-left-width: 2px; padding-left: 12px; padding-top: 2px; padding-bottom: 2px; }
+/* inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle */
+.desk-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; margin-right: 6px; vertical-align: middle; }
+/* border border-vermilion/40 bg-vermilion/[0.06] px-4 py-3 max-w-md */
+.desk-notice { border: 1px solid rgba(224, 77, 38, 0.4); background: rgba(224, 77, 38, 0.06); padding: 12px 16px; max-width: 28rem; position: relative; }
+.desk-notice--quiet { border-color: color-mix(in srgb, var(--white) 15%, transparent); background: color-mix(in srgb, var(--white) 2%, transparent); }
+/* rounded-md border border-vermilion/50 px-2.5 py-0.5 font-mono text-[10px] text-vermilion */
+.desk-link-btn { margin-top: 8px; border-radius: 6px; border: 1px solid rgba(224, 77, 38, 0.5); padding: 2px 10px; font-family: var(--font-mono); font-size: 10px; color: var(--color-vermilion); background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.desk-link-btn:hover { color: var(--white); border-color: var(--color-vermilion); }
+.desk-link-btn:disabled { opacity: 0.5; }
+.desk-link-btn--quiet { border-color: color-mix(in srgb, var(--white) 20%, transparent); color: color-mix(in srgb, var(--white) 70%, transparent); }
+/* rounded-full bg-vermilion hover:bg-vermilion-d text-white text-[13px] font-semibold px-5 py-2.5 */
+.desk-btn-primary { flex-shrink: 0; border-radius: 9999px; background: var(--color-vermilion); color: var(--white); font-size: 13px; font-weight: 600; padding: 10px 20px; transition: background 0.2s; cursor: pointer; border: 0; }
+.desk-btn-primary:hover { background: var(--color-vermilion-d, #b53d1c); }
+.desk-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.desk-btn-primary--wide { padding: 12px 28px; }
+/* rounded-full border border-white/15 text-gray-200 text-[13px] font-semibold px-5 py-2.5 */
+.desk-btn-ghost { flex-shrink: 0; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); color: var(--gray-200); font-size: 13px; font-weight: 600; padding: 10px 20px; background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.desk-btn-ghost:hover { color: var(--white); border-color: color-mix(in srgb, var(--white) 30%, transparent); }
+.desk-btn-ghost:disabled { opacity: 0.5; }
+/* rounded-full border border-white/15 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-gray-300 */
+.desk-pill { border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); padding: 8px 16px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray-300); background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+.desk-pill:hover { color: var(--white); border-color: color-mix(in srgb, var(--white) 30%, transparent); }
+.desk-pill:disabled { opacity: 0.5; }
+.desk-pill--on { border-color: rgba(224, 77, 38, 0.6); color: var(--color-vermilion); }
+/* the record card: rounded-lg border border-white/[0.08] bg-white/[0.015] overflow-hidden */
+.desk-record { border-radius: 8px; border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); background: color-mix(in srgb, var(--white) 1.5%, transparent); overflow: hidden; }
+/* font-display font-[800] text-[34px] leading-none tabular-nums */
+.desk-winrate { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+/* grid grid-cols-3 divide-x divide-white/[0.07] border-t border-white/[0.07] */
+.desk-trio { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid color-mix(in srgb, var(--white) 7%, transparent); }
+.desk-trio > div + div { border-left: 1px solid color-mix(in srgb, var(--white) 7%, transparent); }
+/* px-4 py-3.5 text-center sm:text-left */
+.desk-trio > div { padding: 14px 16px; min-width: 0; text-align: center; }
+@media (min-width: 640px) { .desk-trio > div { text-align: left; } }
+/* font-display font-[800] text-[1.4rem] leading-none tabular-nums */
+.desk-trio-value { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+/* the amount row: desk-amount lives in part-18; this is the input sizing (font-display text-xl font-bold) */
+.desk-amount-figure { font-family: var(--font-display); font-size: 20px; font-weight: 700; outline: none; background: transparent; width: 100%; min-width: 0; }
+/* h-9 w-9 rounded-full … faucet chip: rounded-md border border-vermilion/50 bg-vermilion/[0.06] px-2.5 py-0.5 font-mono text-[10px] text-vermilion */
+.desk-faucet { white-space: nowrap; border-radius: 6px; border: 1px solid rgba(224, 77, 38, 0.5); background: rgba(224, 77, 38, 0.06); padding: 2px 10px; font-family: var(--font-mono); font-size: 10px; color: var(--color-vermilion); cursor: pointer; transition: background 0.2s; }
+.desk-faucet:hover { background: rgba(224, 77, 38, 0.12); }
+/* risk modes: grid grid-cols-3 gap-1.5; each min-w-0 rounded-md border px-2 py-2 text-left */
+.desk-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.desk-mode { min-width: 0; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--white) 9%, transparent); background: color-mix(in srgb, var(--white) 1.5%, transparent); padding: 8px; text-align: left; cursor: pointer; transition: border-color 0.2s; }
+.desk-mode:hover { border-color: color-mix(in srgb, var(--white) 20%, transparent); }
+.desk-mode--on { border-color: rgba(224, 77, 38, 0.6); background: rgba(224, 77, 38, 0.08); }
+/* block text-[11px] font-semibold */
+.desk-mode-label { display: block; font-size: 11px; font-weight: 600; }
+/* mt-0.5 block font-mono text-[8px] text-white/30 */
+.desk-mode-detail { margin-top: 2px; display: block; font-family: var(--font-mono); font-size: 8px; color: color-mix(in srgb, var(--white) 30%, transparent); }
+/* caps editor: w-44 rounded-xl border border-white/[0.08] bg-black/30 px-3 py-2 */
+.desk-caps { width: 11rem; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--white) 8%, transparent); background: var(--color-surface-1); padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; transition: border-color 0.2s; }
+.desk-caps:focus-within { border-color: rgba(224, 77, 38, 0.5); }
+/* font-mono text-[13px] font-semibold text-white */
+.desk-caps-input { width: 100%; min-width: 0; background: transparent; font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--white); outline: none; }
+.desk-caps-input::placeholder { color: var(--gray-600); }
+/* text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 block mb-1.5 */
+.desk-field-label { display: block; margin-bottom: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-500); }
+/* font-display font-[700] text-[14px] */
+.desk-question { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+/* animate-pulse */
+.desk-live-dot { animation: desk-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes desk-pulse { 50% { opacity: 0.5; } }
+/* the +N chips: font-mono text-[10px] (desk-chip colours live in part-18) */
+.desk-chip-sized { font-size: 10px; }

@@ -1,0 +1,45 @@
+/* Order matters:
+ *   1. the ported Yosuku design system (owns Tailwind, the palette, faces, easings)
+ *   2. the semantic bridge (adds only Masayume's existing semantic names)
+ *   3. component tiers and base rules
+ * The superseded gold/Archivo theme is gone — not overridden. */
+@import "./yosuku/index.css";
+@import "tw-animate-css";
+@import "./bridge.css";
+@import "./tokens.css";
+@import "./shell.css";
+@import "./navigation.css";
+@import "./markets-hero.css";
+@import "./ticket.css";
+@import "./ticket-composer.css";
+@import "./ticket-composer-light.css";
+@import "./modal.css";
+@import "./reel-theme.css";
+@import "./reel.css";
+@import "./reel-chrome.css";
+@import "./toast.css";
+@import "./tutorial.css";
+@import "./word-board.css";
+@import "./market-card.css";
+@import "./icons.css";
+@import "./room.css";
+@import "./room-thread.css";
+@import "./history.css";
+@import "./trader-edge-link.css";
+@import "./edge.css";
+@import "./edge-report.css";
+@import "./leaderboard-theme.css";
+@import "./take.css";
+@import "./take-composer.css";
+@import "./share-card.css";
+@import "./alerts.css";
+@import "./news.css";
+@import "./status.css";
+@import "./how-it-works.css";
+@import "./demo.css";
+@import "./pitch.css";
+@import "./pitch-slides.css";
+@import "./error.css";
+@import "./download.css";
+@import "./stats.css";
+@import "./base.css";

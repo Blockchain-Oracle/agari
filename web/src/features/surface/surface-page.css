@@ -1,0 +1,170 @@
+/* `/surface` — reference/yosuku/app/surface/page.tsx. The reference writes its layout as inline Tailwind
+ * arbitrary values on a dark-only page; `design-literals` keeps hex and px out of TSX, so the values live
+ * here with the source utility named above each rule. Light steps follow yosuku/part-14.css's ladder;
+ * `--white` and the `--gray-*` vars are the reference's own and flip with the theme
+ * (RESUME.md §Never write var(--white) on a surface that does not flip — this one does). */
+
+/* main.container pt-[120px] pb-12 — `.page-shell` reserves the 92px of chrome; the reference's 120 leaves 28 of air */
+.sf-page { padding-top: 28px; padding-bottom: 48px; }
+
+/* font-mono text-[11px] tracking-[0.18em] uppercase text-gray-500 mb-7 flex items-center gap-3 */
+.sf-crumbs { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-500); }
+/* hover:text-white transition-colors */
+.sf-crumbs a { color: inherit; transition: color 200ms var(--ease); }
+.sf-crumbs a:hover { color: var(--white); }
+/* text-gray-700 */
+.sf-crumbs-sep { color: var(--gray-700); }
+/* text-white */
+.sf-crumbs-here { color: var(--white); }
+
+/* font-display font-[800] text-4xl text-white tracking-tight mb-6 */
+.sf-title { font-family: var(--font-display); font-weight: 800; font-size: 36px; line-height: 40px; letter-spacing: -0.025em; color: var(--white); margin-bottom: 24px; }
+/* text-gray-400 text-sm leading-relaxed max-w-2xl mb-8 */
+.sf-intro { color: var(--gray-400); font-size: 14px; line-height: 1.625; max-width: 42rem; margin-bottom: 32px; }
+/* span.text-white */
+.sf-intro-em { color: var(--white); }
+
+/* ── selectors: flex flex-wrap items-center gap-2 mb-8 ── */
+.sf-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 32px; }
+.sf-chips-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* text-gray-700 mx-1 */
+.sf-chips-sep { color: var(--gray-700); margin: 0 4px; }
+/* font-mono border transition-colors · off: border-white/10 text-gray-500 hover:text-gray-300 */
+.sf-chip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: var(--gray-500); cursor: pointer; transition: color 200ms var(--ease), border-color 200ms var(--ease), background 200ms var(--ease); }
+.sf-chip:hover { color: var(--gray-300); }
+[data-theme="light"] .sf-chip { border-color: rgba(20, 18, 16, 0.11); }
+/* text-[12px] px-3 py-1.5 rounded-full · on: border-white/25 bg-white/10 text-white */
+.sf-chip--asset { font-size: 12px; padding: 6px 12px; border-radius: 9999px; }
+.sf-chip--asset.sf-chip--on { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: var(--white); }
+[data-theme="light"] .sf-chip--asset.sf-chip--on { border-color: rgba(20, 18, 16, 0.22); background: rgba(20, 18, 16, 0.08); }
+/* text-[11px] px-2.5 py-1.5 rounded · on: border-vermilion/40 text-vermilion */
+.sf-chip--window { font-size: 11px; padding: 6px 10px; border-radius: 4px; }
+.sf-chip--window.sf-chip--on { border-color: color-mix(in srgb, var(--vermilion) 40%, transparent); color: var(--vermilion); }
+/* Ours: the clock beside the cadence — the reference labels by days/hours to expiry */
+.sf-chip-clock { color: var(--gray-600); font-variant-numeric: tabular-nums; }
+.sf-chip--on .sf-chip-clock { color: inherit; opacity: 0.7; }
+
+/* space-y-8 */
+.sf-sections { display: flex; flex-direction: column; gap: 32px; }
+
+/* border border-white/[0.08] rounded bg-bg */
+.sf-box { border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 4px; background: var(--bg); }
+[data-theme="light"] .sf-box { border-color: rgba(20, 18, 16, 0.11); background: #FBF7EE; }
+/* p-3, style={{ height: 220 }} */
+.sf-box--chart { position: relative; padding: 12px; height: 220px; }
+/* style={{ height: 180 }} — the x labels need a row of their own here */
+.sf-box--short { height: 200px; }
+/* overflow-hidden; ours: a wide table scrolls inside its own box, the page never does */
+.sf-box--table { overflow-x: auto; overflow-y: hidden; }
+/* flex items-center justify-center h-full font-mono text-xs text-gray-600 */
+.sf-box-empty { display: flex; align-items: center; justify-content: center; height: 100%; font-family: var(--font-mono); font-size: 12px; color: var(--gray-600); text-align: center; padding: 0 20px; }
+.sf-box-empty--rows { height: auto; padding: 32px 20px; }
+
+/* ── §01 tiles: grid grid-cols-2 md:grid-cols-4 gap-3 — four across from 768, as the reference; between 768 and 900
+ * a $77,842.39 print at the 24px face would not fit its tile, so the face steps down there ── */
+.sf-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 768px) { .sf-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* border border-white/[0.08] rounded bg-bg p-5 */
+.sf-tile { min-width: 0; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 4px; background: var(--bg); padding: 20px; }
+[data-theme="light"] .sf-tile { border-color: rgba(20, 18, 16, 0.11); background: #FBF7EE; }
+/* font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-2 */
+.sf-tile-k { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-500); margin-bottom: 8px; }
+/* font-display text-2xl font-extrabold tracking-tight tabular-nums text-white — one face for all four tiles, the countdown included */
+.sf-tile-v { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--white); white-space: nowrap; }
+.sf-tile-v > * { font-family: inherit; font-size: inherit; font-weight: inherit; letter-spacing: inherit; }
+/* four across from 768 leaves ~131px for a $77,842.39 print at the 24px face; step down until the tile widens */
+@media (min-width: 768px) and (max-width: 899px) { .sf-tile-v { font-size: 20px; line-height: 28px; } }
+/* a two-column row of tiles at 390 leaves ~125px for the figure: the print needs a smaller face, never a wrapped number */
+@media (max-width: 640px) {
+  .sf-tile { padding: 14px; }
+  .sf-tile-v { font-size: 19px; line-height: 26px; }
+}
+.sf-tile-word { font-size: 18px; letter-spacing: 0; color: var(--vermilion); }
+.sf-tile-pending { font-family: var(--font-mono); font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--gray-500); }
+/* Ours — the breakdown under each figure, in the reference's params-line grammar: font-mono text-[10px] text-gray-500 */
+.sf-tile-sub { margin-top: 8px; min-height: 1.4em; font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); }
+
+/* the reference's surface page animates nothing; neither does this one */
+
+/* ── §02 depth — drawIvLine's grammar, the same grid §04 draws on (.sf-term, .sf-term-y, .sf-term-grid) ── */
+.sf-term-plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+/* the bids in ink, the asks in vermilion — the curve's colour in drawIvLine is VERM */
+.sf-depth-area--bids { fill: color-mix(in srgb, var(--white) 14%, transparent); stroke: color-mix(in srgb, var(--white) 55%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sf-depth-area--asks { fill: color-mix(in srgb, var(--vermilion) 18%, transparent); stroke: var(--vermilion); stroke-width: 1; vector-effect: non-scaling-stroke; }
+/* the forward marker: rgba(224,77,38,0.5), dashed [3,3] */
+.sf-depth-mid { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed color-mix(in srgb, var(--vermilion) 50%, transparent); }
+.sf-depth-mid-label { position: absolute; top: 0; left: 6px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-500); white-space: nowrap; }
+/* a crossed book has no mid to mark; the word sits where the marker would */
+.sf-depth-crossed { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--vermilion); }
+/* x labels: 9px monospace at rgba(255,255,255,0.35), centred on their price (ctx.textAlign = 'center'); the two edges hug the plot */
+.sf-depth-x { grid-column: 2; position: relative; height: 12px; font-family: var(--font-mono); font-size: 9px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+.sf-depth-x > span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.sf-depth-x > span:first-child { transform: none; }
+.sf-depth-x > span:last-child { transform: translateX(-100%); }
+/* the figures in the line under the box: text-gray-400, as the reference's parameter values */
+.sf-params b { font-weight: 400; color: var(--gray-400); }
+
+/* ── §03 the ladder: grid gap-2 px-5 py-2 text-[12px] font-mono tabular-nums ── */
+.sf-ladder { display: flex; flex-direction: column; gap: 12px; }
+.sf-side-chips { display: flex; gap: 8px; }
+.sf-row { display: grid; grid-template-columns: 1.1fr 0.9fr 0.8fr 1fr 1fr 1.3fr; gap: 8px; align-items: baseline; min-width: 560px; padding: 8px 20px; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--gray-300); transition: background 200ms var(--ease); }
+/* hover:bg-white/[0.02] */
+.sf-row:hover { background: rgba(255, 255, 255, 0.02); }
+[data-theme="light"] .sf-row:hover { background: rgba(20, 18, 16, 0.03); }
+/* py-2.5 border-b border-white/[0.06] text-[9px] uppercase tracking-[0.16em] text-gray-500 */
+.sf-row--head { padding: 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--gray-500); }
+.sf-row--head:hover { background: transparent; }
+[data-theme="light"] .sf-row--head { border-bottom-color: rgba(20, 18, 16, 0.07); }
+.sf-row-num { text-align: right; }
+/* the strike column: text-gray-300, ATM in text-vermilion */
+.sf-row-stake { color: var(--gray-300); }
+.sf-row-unit { font-size: 10px; color: var(--gray-500); }
+.sf-row-slip { color: var(--gray-400); }
+/* the UP price column: text-emerald-400/90 — the reference's own, and the profit token */
+.sf-row-pays, .sf-trow-up { color: color-mix(in srgb, var(--profit) 90%, transparent); }
+.sf-row-fill { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); text-align: right; }
+/* a stake past the visible book steps back on the ATM rung's wash (bg-vermilion/[0.06]); its edge is named in vermilion */
+.sf-row--beyond { color: var(--gray-500); background: color-mix(in srgb, var(--vermilion) 6%, transparent); }
+.sf-row--beyond .sf-row-stake { color: var(--gray-400); }
+.sf-row--beyond .sf-row-fill { color: var(--vermilion); }
+/* font-mono text-[10px] text-gray-600 mt-2 flex flex-wrap gap-x-4 gap-y-1 — the ladder's 12px gap stands in for mt-2 */
+.sf-params { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); }
+
+/* ── §04 the curve: drawIvLine's padL 44 / padB 24 as a grid ── */
+.sf-term { display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 6px 8px; }
+.sf-term-y { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; font-family: var(--font-mono); font-size: 9px; color: var(--gray-500); }
+.sf-term-plot { position: relative; min-height: 0; }
+/* grid: rgba(255,255,255,0.06) */
+.sf-term-grid { stroke: rgba(255, 255, 255, 0.06); stroke-width: 1; vector-effect: non-scaling-stroke; }
+[data-theme="light"] .sf-term-grid { stroke: rgba(20, 18, 16, 0.08); }
+/* the curve: VERM, lineWidth 1.8 */
+.sf-term-line { fill: none; stroke: var(--vermilion); stroke-width: 1.8; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+/* the endpoint dots (r 2.2), here on every point and pressable */
+.sf-term-dot { position: absolute; width: 10px; height: 10px; padding: 0; border-radius: 9999px; background: var(--vermilion); border: 2px solid var(--bg); transform: translate(-50%, -50%); cursor: pointer; transition: transform 200ms var(--ease), box-shadow 200ms var(--ease); }
+[data-theme="light"] .sf-term-dot { border-color: #FBF7EE; }
+.sf-term-dot:hover, .sf-term-dot--focal { transform: translate(-50%, -50%) scale(1.4); }
+.sf-term-dot--focal { box-shadow: 0 0 0 3px color-mix(in srgb, var(--vermilion) 30%, transparent); }
+.sf-term-gap { position: absolute; bottom: 4px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); }
+.sf-term-x { grid-column: 2; display: flex; }
+.sf-term-x > span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; font-family: var(--font-mono); font-size: 9px; color: var(--gray-500); }
+.sf-term-x b { font-size: 10px; font-weight: 600; color: var(--gray-400); }
+.sf-term-x i { font-style: normal; font-variant-numeric: tabular-nums; }
+.sf-term-x--focal b { color: var(--vermilion); }
+
+/* the same Windows as rows */
+.sf-termwrap { display: flex; flex-direction: column; gap: 12px; }
+.sf-trow { display: grid; grid-template-columns: 1.2fr 0.8fr 1.1fr 0.6fr 0.6fr 0.7fr 1.2fr 1fr; gap: 8px; align-items: baseline; min-width: 760px; width: 100%; padding: 8px 20px; border: 0; background: transparent; text-align: left; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--gray-300); cursor: pointer; transition: background 200ms var(--ease); }
+.sf-trow:hover { background: rgba(255, 255, 255, 0.02); }
+.sf-trow--head { padding: 10px 20px; border-top: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--gray-500); cursor: default; }
+.sf-trow--head:hover { background: transparent; }
+/* the ATM rung: bg-vermilion/[0.06], its label text-vermilion */
+.sf-trow--focal { background: color-mix(in srgb, var(--vermilion) 6%, transparent); }
+.sf-trow--focal .sf-trow-window b { color: var(--vermilion); }
+[data-theme="light"] .sf-trow:hover { background: rgba(20, 18, 16, 0.03); }
+[data-theme="light"] .sf-trow--head { border-bottom-color: rgba(20, 18, 16, 0.07); }
+.sf-trow-window b { font-weight: 600; color: var(--white); }
+.sf-trow-crossed { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--vermilion); }
+.sf-trow-state { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); text-align: right; }
+
+/* the settlement basis, in the hero's grammar: font-mono text-[10px] tracking-[0.06em] text-gray-600 */
+.sf-basis { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--gray-600); }

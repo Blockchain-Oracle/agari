@@ -1,0 +1,42 @@
+# The ops service on Fly: one machine, never stopped, in the region the database lives in.
+#
+# Deploy from the repo root (the Docker context is the workspace):
+#   fly deploy --config services/ops/fly.toml --dockerfile services/ops/Dockerfile .
+#
+# One machine is a rule, not a saving: every actor is a single writer over its own key (AD-4), and a
+# second machine would race the first's nonces. The volume holds the deck journal — the second copy of
+# every sealed deck's reveal material, written before the commitment is published.
+app = "masayume-ops"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  GAME_ROOM_HOST = "0.0.0.0"
+  GAME_ROOM_PORT = "8787"
+  GAME_DECK_JOURNAL = "/data/deck-journal.jsonl"
+
+[[mounts]]
+  source = "ops_data"
+  destination = "/data"
+
+# The duel room's WebSocket, and its /health and /occupancy reads, behind Fly's TLS: wss://masayume-ops.fly.dev.
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  max_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

@@ -1,0 +1,215 @@
+/* `/parlay` — reference/yosuku/app/parlay/page.tsx and the two cards it mounts.
+ *
+ * The reference writes these as inline Tailwind arbitrary values; `design-literals` keeps hex and
+ * px out of TSX, so the values live here with the source utility named above each rule. Light
+ * steps follow yosuku/part-14.css's ladder; the grays are the reference's own `--gray-*` vars,
+ * which is what its Tailwind config maps `text-gray-*` to (they follow the theme; the compiled
+ * utilities do not — RESUME.md §The same rule for backgrounds). */
+
+/* main.container pt-[120px] pb-16 — `.page-shell` reserves the 92px of chrome; the reference's 120 leaves 28 of air */
+.pl-page { padding-top: 28px; padding-bottom: 64px; }
+
+/* Hero: mb-12 */
+.pl-hero { margin-bottom: 48px; }
+
+/* font-mono text-[10px] tracking-[0.22em] uppercase text-vermilion/80 block mb-4 */
+.pl-eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--vermilion) 80%, transparent);
+}
+
+/* section mb-8; the `.mt-6` body under each SectionHead */
+/* Named `pl-block`, not `pl-section`: `pl-` is also Tailwind's padding-left namespace, and
+ * bridge.css defines `--spacing-section`, so `.pl-section` was silently minted as a real utility
+ * (`padding-left: 64px`) that nothing here competed with. Every section on /parlay and /games/range
+ * carried a phantom 64px indent — a sixth of a phone's width. Before adding any `pl-<name>` class,
+ * check that `--spacing-<name>` does not exist in bridge.css. */
+.pl-block { margin-bottom: 32px; }
+.pl-block-body { margin-top: 24px; }
+
+/* ── §03 How a parlay pays: grid sm:grid-cols-3 gap-4 ── */
+.pl-how { display: grid; gap: 16px; }
+@media (min-width: 640px) { .pl-how { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* rounded-2xl border border-white/[0.08] bg-neutral-900/40 p-5 */
+.pl-how-card {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(23, 23, 23, 0.4);
+  padding: 20px;
+}
+[data-theme="light"] .pl-how-card { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+
+/* font-display font-[800] text-2xl text-vermilion mb-2 leading-none */
+.pl-how-n { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; color: var(--vermilion); margin-bottom: 8px; }
+/* font-display font-bold text-sm text-white mb-1.5 */
+.pl-how-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; }
+/* text-[12px] text-gray-500 leading-relaxed */
+.pl-how-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }
+
+/* ── Not connected: rounded-2xl border border-white/[0.08] bg-neutral-900/60 p-8 text-center ── */
+.pl-connect {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(23, 23, 23, 0.6);
+  padding: 32px;
+  text-align: center;
+}
+[data-theme="light"] .pl-connect { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+/* w-8 h-8 text-gray-600 mx-auto mb-3 */
+.pl-connect-icon { width: 32px; height: 32px; margin: 0 auto 12px; color: var(--gray-600); }
+/* text-sm text-gray-400 mb-1 */
+.pl-connect-title { font-size: 14px; color: var(--gray-400); margin-bottom: 4px; }
+/* text-xs text-gray-600 mb-4 */
+.pl-connect-sub { font-size: 12px; color: var(--gray-600); margin-bottom: 16px; }
+.pl-connect-cta { display: flex; justify-content: center; }
+
+/* ── Motion: the reference's framer-motion enters (opacity + a few px of travel), as CSS ── */
+@keyframes pl-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pl-drop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes pl-fade { from { opacity: 0; } to { opacity: 1; } }
+.pl-rise { animation: pl-rise 220ms var(--easeOut) both; }
+.pl-drop { animation: pl-drop 160ms var(--easeOut) both; }
+.pl-fade { animation: pl-fade 200ms var(--ease) both; }
+@media (prefers-reduced-motion: reduce) {
+  .pl-rise, .pl-drop, .pl-fade { animation: none; }
+}
+
+/* ── §02 the slip ── */
+/* space-y-4 */
+.pl-slip { display: flex; flex-direction: column; gap: 16px; }
+
+/* rounded-2xl border border-dashed border-white/[0.08] bg-neutral-900/20 p-8 text-center */
+.pl-slip-empty {
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(23, 23, 23, 0.2);
+  padding: 32px;
+  text-align: center;
+  /* font-mono text-[11px] tracking-wider uppercase text-gray-600 */
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gray-600);
+}
+[data-theme="light"] .pl-slip-empty { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+
+/* rounded-2xl border p-5 transition-colors + border-white/[0.08] bg-neutral-900/40 (live) */
+.pl-card {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(23, 23, 23, 0.4);
+  padding: 20px;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease);
+}
+[data-theme="light"] .pl-card { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+/* border-vermilion/40 bg-vermilion/[0.04] */
+.pl-card--won { border-color: color-mix(in srgb, var(--vermilion) 40%, transparent); background: color-mix(in srgb, var(--vermilion) 4%, transparent); }
+[data-theme="light"] .pl-card--won { border-color: color-mix(in srgb, var(--vermilion) 40%, transparent); background: color-mix(in srgb, var(--vermilion) 6%, transparent); }
+/* border-white/[0.06] bg-neutral-900/30 opacity-60 */
+.pl-card--lost { border-color: rgba(255, 255, 255, 0.06); background: rgba(23, 23, 23, 0.3); opacity: 0.6; }
+[data-theme="light"] .pl-card--lost { border-color: rgba(20, 18, 16, 0.07); }
+
+/* flex items-start justify-between mb-3 */
+.pl-card-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+/* flex items-center gap-2 */
+.pl-card-name { display: flex; align-items: center; gap: 8px; }
+.pl-card-name svg { color: var(--vermilion); }
+/* font-display font-bold text-sm text-white */
+.pl-card-streak { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); }
+/* font-mono text-[9px] tracking-wider uppercase px-2 py-0.5 rounded-full bg-white/5 text-gray-300 */
+.pl-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--gray-300);
+}
+[data-theme="light"] .pl-pill { background: rgba(20, 18, 16, 0.05); }
+/* bg-vermilion/15 text-vermilion */
+.pl-pill--won { background: color-mix(in srgb, var(--vermilion) 15%, transparent); color: var(--vermilion); }
+/* bg-white/5 text-gray-500 */
+.pl-pill--dead { color: var(--gray-500); }
+.pl-card-right { text-align: right; }
+/* font-display font-[800] text-lg text-vermilion leading-none tabular-nums */
+.pl-card-x { font-family: var(--font-display); font-weight: 800; font-size: 18px; line-height: 1; color: var(--vermilion); font-variant-numeric: tabular-nums; }
+/* font-mono text-[10px] text-gray-500 mt-0.5 */
+.pl-card-sub { font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); margin-top: 2px; }
+.pl-card-legs { margin-bottom: 4px; }
+
+/* flex items-center gap-3 py-2 border-t border-white/[0.05] first:border-t-0 */
+.pl-cleg { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.pl-cleg:first-child { border-top: 0; }
+[data-theme="light"] .pl-cleg { border-top-color: rgba(20, 18, 16, 0.07); }
+/* font-mono text-[10px] text-gray-600 w-4 shrink-0 */
+.pl-cleg-idx { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); width: 16px; flex-shrink: 0; }
+/* w-5 h-5 rounded-full grid place-items-center shrink-0 + border border-white/15 text-gray-500 (pending) */
+.pl-cleg-dot { width: 20px; height: 20px; border-radius: 9999px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.15); color: var(--gray-500); }
+[data-theme="light"] .pl-cleg-dot { border-color: rgba(20, 18, 16, 0.16); }
+/* bg-vermilion text-white */
+.pl-cleg-dot--won { border-color: transparent; background: var(--vermilion); color: #fff; }
+/* bg-white/10 text-gray-500 */
+.pl-cleg-dot--lost { border-color: transparent; background: rgba(255, 255, 255, 0.1); }
+[data-theme="light"] .pl-cleg-dot--lost { background: rgba(20, 18, 16, 0.08); }
+.pl-cleg-dot--void { border-style: dashed; }
+.pl-cleg-main { flex: 1; min-width: 0; }
+/* font-display text-[13px] text-white leading-tight */
+.pl-cleg-name { font-family: var(--font-display); font-size: 13px; line-height: 1.25; color: var(--white); }
+/* text-vermilion (UP) / text-sky-400 (DOWN) */
+.pl-cleg-side--up { color: var(--vermilion); }
+.pl-cleg-side--down { color: #38bdf8; }
+/* text-gray-500 */
+.pl-cleg-line { color: var(--gray-500); }
+/* font-mono text-[11px] tabular-nums shrink-0 */
+.pl-cleg-state { font-family: var(--font-mono); font-size: 11px; font-variant-numeric: tabular-nums; flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; }
+.pl-cleg-state--won { color: var(--vermilion); }
+.pl-cleg-state--lost { color: var(--gray-500); }
+.pl-cleg-state--pending { color: var(--gray-400); }
+/* Ours: the permissionless crank the reference left to a keeper — the slip's own pill grammar */
+.pl-settle {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--vermilion) 50%, transparent);
+  color: var(--vermilion);
+  background: transparent;
+  cursor: pointer;
+  transition: background 200ms var(--ease);
+}
+.pl-settle:hover:not(:disabled) { background: color-mix(in srgb, var(--vermilion) 10%, transparent); }
+.pl-settle:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* w-full mt-3 flex items-center justify-center gap-2 bg-vermilion hover:bg-vermilion-d disabled:opacity-60 text-white font-display font-bold text-sm py-2.5 rounded-xl */
+.pl-claim {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--vermilion);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 200ms var(--ease);
+}
+.pl-claim:hover:not(:disabled) { background: var(--vermilion-d); }
+.pl-claim:disabled { opacity: 0.6; cursor: not-allowed; }
+/* mt-3 text-[12px] text-gray-500 text-center */
+.pl-card-note { margin-top: 12px; font-size: 12px; color: var(--gray-500); text-align: center; }

@@ -1,0 +1,193 @@
+WEBVTT
+
+1
+00:00:00.150 --> 00:00:01.032
+Meet Masayume.
+
+2
+00:00:01.032 --> 00:00:06.766
+Price markets, agents, and games, built around Dream DEX Event Contracts on Somnia.
+
+3
+00:00:06.766 --> 00:00:08.089
+Make your call.
+
+4
+00:00:08.089 --> 00:00:09.412
+See it through.
+
+5
+00:00:09.412 --> 00:00:12.500
+This walkthrough uses Shannon testnet assets only.
+
+6
+00:00:13.150 --> 00:00:14.790
+Start with a Window.
+
+7
+00:00:14.790 --> 00:00:19.710
+Each market names an asset, an opening price, and a closing time.
+
+8
+00:00:19.710 --> 00:00:24.630
+Choose Up or Down, review the available price, and follow the transaction.
+
+9
+00:00:24.630 --> 00:00:27.500
+The final oracle print decides the outcome.
+
+10
+00:00:28.150 --> 00:00:32.620
+The agent builder separates identity, behavior, a test read, and publication.
+
+11
+00:00:32.620 --> 00:00:35.871
+You can explore it before connecting a wallet.
+
+12
+00:00:35.871 --> 00:00:37.496
+This is Shannon Sensei.
+
+13
+00:00:37.496 --> 00:00:43.185
+Its real model read saw the correct opening price and an eleven basis point
+
+14
+00:00:43.185 --> 00:00:43.592
+move.
+
+15
+00:00:43.592 --> 00:00:48.062
+It chose to hold because the offered price left little edge.
+
+16
+00:00:48.062 --> 00:00:50.500
+A hold is a result, too.
+
+17
+00:00:51.150 --> 00:00:54.020
+Here is its confirmed publication on Somnia.
+
+18
+00:00:54.020 --> 00:00:58.940
+The same name and portrait appear in the catalogue and management screen.
+
+19
+00:00:58.940 --> 00:01:00.580
+Publication registers the strategy.
+
+20
+00:01:00.580 --> 00:01:05.500
+It does not deposit money or start trading from a follower's wallet.
+
+21
+00:01:06.150 --> 00:01:09.375
+Copying adds a separate permission and subscription.
+
+22
+00:01:09.375 --> 00:01:14.443
+Review the total budget, the amount allowed per trade, the expiry,
+
+23
+00:01:14.443 --> 00:01:16.746
+and the actual subscription fee.
+
+24
+00:01:16.746 --> 00:01:21.354
+The management screen distinguishes that consent from the runner's operation.
+
+25
+00:01:21.354 --> 00:01:25.500
+Pausing stops future copies; existing positions still need settlement.
+
+26
+00:01:26.150 --> 00:01:28.995
+A call can also begin on X.
+
+27
+00:01:28.995 --> 00:01:34.684
+This clearly labeled testnet mention requested one test dollar of Bitcoin Up in a
+
+28
+00:01:34.684 --> 00:01:35.903
+four hour Window.
+
+29
+00:01:35.903 --> 00:01:39.560
+The confirmed order spent less than the requested maximum.
+
+30
+00:01:39.560 --> 00:01:45.249
+Its receipt image carries the sender, market, direction, Window, actual spend, and transaction hash.
+
+31
+00:01:45.249 --> 00:01:48.500
+The accompanying link opens that same transaction independently.
+
+32
+00:01:49.150 --> 00:01:54.043
+Moonshot turns the same oracle outcome into a target and a payout.
+
+33
+00:01:54.043 --> 00:01:58.529
+This real round moved from In play, to Won, to Paid.
+
+34
+00:01:58.529 --> 00:02:01.383
+The closing print passed the chosen target,
+
+35
+00:02:01.383 --> 00:02:05.461
+and the claim transaction returned the payout to the wallet.
+
+36
+00:02:05.461 --> 00:02:07.500
+Those are separate, verifiable steps.
+
+37
+00:02:08.150 --> 00:02:10.565
+The arcade adds another way to play.
+
+38
+00:02:10.565 --> 00:02:15.395
+Runs use server issued seeds and replay checks before a score reaches the leaderboard.
+
+39
+00:02:15.395 --> 00:02:18.500
+Arcade scores are separate from on-chain positions and payouts.
+
+40
+00:02:19.150 --> 00:02:23.636
+Underneath, Dream DEX supplies market discovery, books, quotes, and Event Contracts.
+
+41
+00:02:23.636 --> 00:02:26.490
+Masayume adds the interface, bounded Vault permissions,
+
+42
+00:02:26.490 --> 00:02:29.752
+and durable records for decisions and execution attempts.
+
+43
+00:02:29.752 --> 00:02:32.607
+Uncertain execution is reconciled before another submission.
+
+44
+00:02:32.607 --> 00:02:37.500
+The documentation explains those boundaries, and the receipts expose the chain evidence.
+
+45
+00:02:38.150 --> 00:02:39.900
+Explore Masayume on Somnia testnet.
+
+46
+00:02:39.900 --> 00:02:43.400
+Open the app, read the docs, and follow the receipts.
+
+47
+00:02:43.400 --> 00:02:44.450
+Make your call.
+
+48
+00:02:44.450 --> 00:02:45.500
+See it through.

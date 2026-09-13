@@ -1,0 +1,176 @@
+/* The combined ticket — reference/yosuku/components/ParlayBuilder.tsx, the sticky right column. */
+
+/* lg:sticky lg:top-[120px] */
+@media (min-width: 1024px) { .pl-ticket-col { position: sticky; top: 120px; } }
+
+/* rounded-2xl border border-white/[0.08] bg-neutral-900/60 overflow-hidden */
+.pl-ticket { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(23, 23, 23, 0.6); overflow: hidden; }
+[data-theme="light"] .pl-ticket { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+/* px-5 py-4 border-b border-white/5 flex items-center justify-between */
+.pl-ticket-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+[data-theme="light"] .pl-ticket-head { border-bottom-color: rgba(20, 18, 16, 0.07); }
+/* font-display font-bold text-sm tracking-wide text-white */
+.pl-ticket-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; letter-spacing: 0.025em; color: var(--white); }
+/* font-mono text-[9px] tracking-[0.18em] uppercase text-gray-600 */
+.pl-ticket-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-600); }
+/* p-5 space-y-4 */
+.pl-ticket-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+/* text-xs text-gray-500 text-center py-6 leading-relaxed */
+.pl-need2 { font-size: 12px; color: var(--gray-500); text-align: center; padding: 24px 0; line-height: 1.625; }
+
+/* text-center py-2 */
+.pl-pays { text-align: center; padding: 8px 0; }
+/* font-mono text-[9px] tracking-[0.2em] uppercase text-gray-600 mb-1 */
+.pl-pays-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-600); margin-bottom: 4px; }
+/* font-display font-[800] leading-none text-vermilion text-5xl tracking-tight */
+.pl-pays-x { font-family: var(--font-display); font-weight: 800; line-height: 1; color: var(--vermilion); font-size: 48px; letter-spacing: -0.025em; display: flex; justify-content: center; }
+/* Loader2 w-9 h-9 animate-spin mx-auto text-vermilion/60 */
+.pl-pays-x svg { width: 36px; height: 36px; color: color-mix(in srgb, var(--vermilion) 60%, transparent); }
+/* font-mono text-[10px] text-gray-500 mt-2 */
+.pl-pays-sub { font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); margin-top: 8px; }
+
+/* flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-400/[0.06] border border-amber-400/15; text-[11px] text-amber-400/90 leading-snug */
+.pl-corr { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.15); font-size: 11px; line-height: 1.375; color: rgba(251, 191, 36, 0.9); }
+.pl-corr svg { width: 14px; height: 14px; flex-shrink: 0; color: #fbbf24; }
+[data-theme="light"] .pl-corr { color: #92400e; background: rgba(251, 191, 36, 0.12); }
+
+/* rounded-xl bg-white/[0.02] border border-white/5 p-3 space-y-3 */
+.pl-solver { border-radius: 12px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+[data-theme="light"] .pl-solver { background: rgba(20, 18, 16, 0.03); border-color: rgba(20, 18, 16, 0.07); }
+/* flex rounded-lg overflow-hidden border border-white/10 text-[11px] font-bold */
+.pl-modes { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 11px; font-weight: 700; }
+[data-theme="light"] .pl-modes { border-color: rgba(20, 18, 16, 0.11); }
+/* flex-1 py-1.5 + text-gray-500 hover:text-gray-300 */
+.pl-mode { flex: 1; padding: 6px 0; color: var(--gray-500); background: transparent; cursor: pointer; transition: color 200ms var(--ease), background 200ms var(--ease); }
+.pl-mode:hover { color: var(--gray-300); }
+/* bg-vermilion/15 text-vermilion */
+.pl-mode[aria-pressed="true"] { background: color-mix(in srgb, var(--vermilion) 15%, transparent); color: var(--vermilion); }
+
+/* AmountField: flex items-center justify-between mb-1.5 */
+.pl-field-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+/* text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 */
+.pl-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-500); }
+/* text-[10px] text-gray-600 */
+.pl-field-hint { font-size: 10px; color: var(--gray-600); }
+.pl-field-input { position: relative; }
+/* w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-white/20 text-white font-mono text-lg outline-none */
+.pl-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 18px;
+  outline: none;
+  transition: border-color 200ms var(--ease);
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.pl-input::-webkit-outer-spin-button, .pl-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pl-input:focus { border-color: rgba(255, 255, 255, 0.2); }
+[data-theme="light"] .pl-input { background: rgba(20, 18, 16, 0.03); border-color: rgba(20, 18, 16, 0.11); }
+[data-theme="light"] .pl-input:focus { border-color: rgba(20, 18, 16, 0.22); }
+/* absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500 */
+.pl-input-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 700; color: var(--gray-500); }
+
+/* space-y-1.5 pt-1 */
+.pl-rows { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+/* flex justify-between items-baseline */
+.pl-row { display: flex; justify-content: space-between; align-items: baseline; }
+/* text-gray-500 text-xs */
+.pl-row-label { color: var(--gray-500); font-size: 12px; }
+/* font-mono font-bold + text-gray-300 text-sm (default) */
+.pl-row-val { font-family: var(--font-mono); font-weight: 700; color: var(--gray-300); font-size: 14px; }
+/* text-white text-base */
+.pl-row-val--emph { color: var(--white); font-size: 16px; }
+/* text-vermilion text-base */
+.pl-row-val--accent { color: var(--vermilion); font-size: 16px; }
+/* flex justify-end -mt-0.5; font-mono text-[10px] text-gray-600 */
+.pl-profit { display: flex; justify-content: flex-end; margin-top: -2px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); min-height: 12px; }
+
+/* per-leg breakdown: space-y-1; rows flex items-center justify-between text-[11px] */
+.pl-breakdown { display: flex; flex-direction: column; gap: 4px; }
+.pl-bd-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+/* text-gray-500 truncate
+ *
+ * `min-width: 0` is what makes the truncate real. A flex item defaults to `min-width: auto`, which
+ * resolves to min-content — and the min-content of a `nowrap` string is the whole string. So the
+ * ellipsis never engaged: this row demanded 281px, which forced the ticket to 323px and the page
+ * wider than a phone, and every other part of /games/range looked shifted because the document
+ * itself was scrolling. `.pl-picker-label` next door has always been fine for exactly this reason —
+ * its parent `.pl-picker` carries the `min-width: 0`. */
+.pl-bd-what { flex: 1 1 auto; min-width: 0; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-bd-prob { flex-shrink: 0; }
+/* On a phone the band's own numbers are the point of this line, so it wraps rather than being cut
+ * with an ellipsis. The reference's single truncated row is kept from the tablet width up. */
+@media (max-width: 720px) {
+  .pl-bd-row { flex-wrap: wrap; align-items: baseline; }
+  .pl-bd-what { white-space: normal; overflow: visible; }
+  /* Once the description wraps, `space-between` drops the print to the start of the next line where
+   * it reads as a stray number. Keep it on the right edge, where it sits on one line. */
+  .pl-bd-prob { margin-left: auto; }
+}
+/* text-emerald-400/80 / text-rose-400/80 */
+.pl-bd-side--up { color: color-mix(in srgb, var(--profit) 80%, transparent); }
+.pl-bd-side--down { color: color-mix(in srgb, var(--loss) 80%, transparent); }
+/* text-gray-700 */
+.pl-bd-when { color: var(--gray-700); }
+[data-theme="light"] .pl-bd-when { color: var(--gray-500); }
+/* font-mono text-gray-400 */
+.pl-bd-prob { font-family: var(--font-mono); color: var(--gray-400); }
+
+/* w-full text-center text-[11px] text-rose-400/90 underline underline-offset-2 hover:text-rose-300 */
+.pl-quote-err { width: 100%; text-align: center; font-size: 11px; color: color-mix(in srgb, var(--loss) 90%, transparent); text-decoration: underline; text-underline-offset: 2px; background: transparent; cursor: pointer; }
+/* rose-300 */
+.pl-quote-err:hover { color: #FDA4AF; }
+
+/* w-full py-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all disabled:cursor-not-allowed
+   + bg-vermilion hover:bg-vermilion-d text-white shadow-[0_0_20px_rgba(224,77,38,0.25)] disabled:opacity-50 */
+.pl-place {
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--vermilion);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(224, 77, 38, 0.25);
+  cursor: pointer;
+  transition: background 200ms var(--ease), opacity 200ms var(--ease);
+}
+.pl-place:hover:not(:disabled) { background: var(--vermilion-d); }
+.pl-place:disabled { opacity: 0.5; cursor: not-allowed; }
+/* bg-white/[0.06] text-gray-400 border border-white/10 — no quote or not enough, while idle */
+.pl-place--muted { background: rgba(255, 255, 255, 0.06); color: var(--gray-400); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: none; }
+.pl-place--muted:disabled { opacity: 1; }
+[data-theme="light"] .pl-place--muted { background: rgba(20, 18, 16, 0.05); border-color: rgba(20, 18, 16, 0.11); }
+.pl-place-inner { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.pl-place-inner svg { width: 16px; height: 16px; }
+/* text-[10px] text-gray-600 text-center leading-relaxed */
+.pl-footnote { font-size: 10px; color: var(--gray-600); text-align: center; line-height: 1.625; }
+
+/* flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 */
+.pl-err { display: flex; align-items: flex-start; gap: 8px; padding: 12px; border-radius: 12px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); }
+.pl-err > svg { width: 16px; height: 16px; color: var(--loss); flex-shrink: 0; margin-top: 2px; }
+.pl-err-body { min-width: 0; }
+/* text-xs text-rose-400 font-bold */
+.pl-err-title { font-size: 12px; color: var(--loss); font-weight: 700; }
+.pl-err-details { margin-top: 4px; }
+/* text-[10px] text-rose-400/50 cursor-pointer select-none */
+.pl-err-summary { font-size: 10px; color: color-mix(in srgb, var(--loss) 50%, transparent); cursor: pointer; user-select: none; }
+/* text-[11px] text-rose-400/60 mt-1 break-all max-h-24 overflow-y-auto */
+.pl-err-detail { font-size: 11px; color: color-mix(in srgb, var(--loss) 60%, transparent); margin-top: 4px; word-break: break-all; max-height: 96px; overflow-y: auto; }
+/* text-[10px] text-rose-400 underline mt-1 */
+.pl-err-retry { font-size: 10px; color: var(--loss); text-decoration: underline; margin-top: 4px; background: transparent; cursor: pointer; }
+/* block text-center text-[11px] text-new-mint/60 hover:text-new-mint */
+.pl-txlink { display: block; text-align: center; font-size: 11px; color: color-mix(in srgb, var(--color-new-mint) 60%, transparent); transition: color 200ms var(--ease); }
+.pl-txlink:hover { color: var(--color-new-mint); }
+
+/* mt-3 flex items-start gap-2 px-1; Trophy w-3.5 h-3.5 text-gray-600 mt-0.5; p text-[10px] text-gray-600 leading-relaxed */
+.pl-trophy { margin-top: 12px; display: flex; align-items: flex-start; gap: 8px; padding: 0 4px; }
+.pl-trophy svg { width: 14px; height: 14px; color: var(--gray-600); flex-shrink: 0; margin-top: 2px; }
+.pl-trophy p { font-size: 10px; color: var(--gray-600); line-height: 1.625; }

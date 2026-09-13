@@ -1,0 +1,40 @@
+{
+  "name": "@masayume/scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "invariants": "node invariants/run.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "spike:reference": "tsx spike/reference-basis.ts",
+    "spike:pin-id": "tsx spike/pin-market-id.ts",
+    "spike:roll-gap": "tsx spike/roll-gap.ts",
+    "spike:book-cross": "tsx spike/book-cross-probe.ts",
+    "spike:smoke-submitter": "tsx spike/smoke-submitter.ts",
+    "spike:smoke-order": "tsx spike/smoke-order.ts",
+    "spike:check-claimables": "tsx spike/check-claimables.ts",
+    "spike:smoke-verdict": "tsx spike/smoke-verdict.ts",
+    "spike:reel-rounds": "tsx spike/reel-rounds.ts",
+    "spike:fill-projection": "tsx spike/fill-projection.ts",
+    "spike:fill-projection-verify": "tsx spike/fill-projection-verify.ts",
+    "spike:fill-projection-live": "tsx spike/fill-projection-live.ts",
+    "spike:endpoint-ids": "tsx spike/endpoint-ids.ts",
+    "spike:parlay-fork": "tsx spike/parlay-fork.ts",
+    "spike:range-oracle": "tsx spike/range-oracle.ts",
+    "spike:moonshot": "tsx spike/moonshot-preview.ts",
+    "spike:live-windows": "tsx spike/live-windows.ts",
+    "spike:stage5-live": "tsx spike/stage5-live.ts",
+    "spike:private-live": "tsx spike/private-live.ts",
+    "spike:boot-timing": "tsx spike/boot-timing.ts"
+  },
+  "dependencies": {
+    "@masayume/core": "workspace:*",
+    "@masayume/markets": "workspace:*",
+    "tsx": "catalog:",
+    "viem": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

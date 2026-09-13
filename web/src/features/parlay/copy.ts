@@ -1,0 +1,126 @@
+import { PARLAY_NOT_DEPLOYED } from "@masayume/core/parlay";
+
+/**
+ * `/parlay` — the reference's words (`app/parlay/page.tsx`, `components/ParlayBuilder.tsx`,
+ * `components/ParlaySlip.tsx`), facts adapted to DreamDEX: a leg is a Window of any listed asset,
+ * its line is the opening print, and a Window the venue voids voids the ticket.
+ */
+export const PARLAY = {
+  title: "Parlay",
+  eyebrow: "One ticket · many rounds",
+  sections: {
+    build: { number: "01", title: "Build the streak", desc: "Pick the markets, set the lines, watch the multiplier climb." },
+    tickets: { number: "02", title: "Your tickets", desc: "Each leg ticks green as it settles. Claim the instant the streak lands." },
+    how: { number: "03", title: "How a parlay pays" },
+  },
+  how: [
+    {
+      n: "①",
+      t: "Odds multiply",
+      d: "Each leg has a win chance under 100%. Combine them and the chances multiply down, so the payout multiplies up. Two coin flips already pay roughly 4×.",
+    },
+    {
+      n: "②",
+      t: "All-or-nothing",
+      d: "The ticket only pays if every single leg settles in the money. One miss and the whole stake is lost. That is the price of the multiplied payout.",
+    },
+    {
+      n: "③",
+      t: "Pre-funded payout",
+      d: "The full winning payout is set aside up front, so it can never come up short. Win the streak and claim it the instant the last leg settles.",
+    },
+  ],
+  notDeployed: {
+    eyebrow: "Multi-leg",
+    title: "Parlay",
+    body: "A multi-leg ticket whose legs become immutable when opened, with the maximum payout funded before the ticket is accepted and void rules shown before you confirm.",
+    why: PARLAY_NOT_DEPLOYED,
+    dependency: "the ParlayReserve contract — deploy with contracts/script/DeployParlayReserve.s.sol, then pnpm contracts:export",
+  },
+  connect: {
+    title: "Connect your wallet to build a parlay",
+    /** The reference: "Any Sui wallet. Test funds are free". */
+    sub: "Any wallet on Somnia Shannon. Test funds are free",
+  },
+  builder: {
+    yourLegs: "Your legs",
+    preset: "BTC close streak",
+    presetNeedTwo: "Need at least two live BTC Windows for a streak parlay.",
+    loading: "Loading markets…",
+    noLegs: "No legs yet",
+    /** The reference: "Stack 2 or 3 BTC rounds." — the venue lists more than BTC. */
+    noLegsBody: "Stack 2 or 3 Windows. The parlay pays out only if every leg lands: small stake, multiplied payout.",
+    addFirst: "Add your first leg",
+    addAnother: "Add another market",
+    settled: "market settled, pick another",
+    noMarkets: "No live Windows",
+    up: "Up",
+    down: "Down",
+    /** The strike picker's slot: on DreamDEX the line is the Window's opening print, not a choice. */
+    line: "line",
+    linePending: "opening print pending",
+    remove: "Remove leg",
+    pickWindow: "Pick a Window",
+    /** The reserve's floor per leg is fixed (`ParlayPricing.sol`), so no stake changes this — only the book can. */
+    thin: (filled: string, depth: string) => `${filled} of ${depth} contracts resting`,
+  },
+  ticket: {
+    title: "Ticket",
+    tag: "parlay",
+    pays: "Pays",
+    needTwo: "Add at least two legs to see your multiplied odds.",
+    combined: (n: number, pct: string) => `all ${n} legs must land · ${pct}% combined`,
+    /** The reference: "Legs share a BTC market, so odds are adjusted for correlation." */
+    correlated: "Legs settle on the same closing print, so odds are adjusted for correlation.",
+    setStake: "Set stake",
+    setPayout: "Set payout",
+    youPay: "You pay",
+    youWin: "You win",
+    wallet: (balance: string, symbol: string) => `Wallet: ${balance} ${symbol}`,
+    ifLands: "If every leg lands",
+    profit: (amount: string, symbol: string) => `${amount} ${symbol} profit if you sweep`,
+    /** The reference: "A leg can't be priced (market inactive or settled). Retry". Ours names the reserve's reason. */
+    retry: "Retry",
+    placing: "Placing parlay…",
+    placed: "Parlay placed!",
+    pricing: "Pricing…",
+    unavailable: "Quote unavailable",
+    insufficient: (symbol: string) => `Insufficient ${symbol}`,
+    place: (stake: string, symbol: string) => `Place · ${stake} ${symbol}`,
+    build: "Build your parlay",
+    footnote: "The full payout is set aside up front. No account setup. Your stake leaves your wallet, and the rest is covered for you.",
+    /** Additive: the reserve that sets the payout aside, so "set aside up front" is a figure, not a promise. */
+    reserve: (liquid: string, symbol: string, utilizationPct: string) => `Reserve: ${liquid} ${symbol} liquid · ${utilizationPct}% in play`,
+    reservePaused: "The reserve is paused: no new tickets until it reopens. Settlement and claims still run.",
+    tryAgain: "Try again",
+    technical: "technical details",
+    viewTx: "View on the Shannon explorer",
+    trophy: "Every leg must settle in the money. The instant one leg settles against you, the ticket is dead, and your stake is the most you can lose.",
+    toast: (n: number, stake: string, payout: string, symbol: string) => `Parlay placed. ${n} legs, ${stake} to ${payout} ${symbol} if every leg lands.`,
+    thinBook: (leg: number, filled: string, depth: string) => `Leg ${leg}'s book is thin — ${filled} of ${depth} contracts resting. Wait for the maker to lay more, or pick another Window.`,
+    requote: (stake: string, symbol: string) => `The book moved — this ticket now costs ${stake} ${symbol}. Confirm again to place it at the new price.`,
+  },
+  slip: {
+    streak: (n: number) => `${n}-leg streak`,
+    inPlay: (won: number, total: number) => `In play · ${won}/${total}`,
+    won: "Won",
+    dead: "Dead",
+    voided: "Voided",
+    paid: "Paid",
+    legWon: "won",
+    legMissed: "missed",
+    legVoid: "void",
+    settle: "Settle",
+    settling: "Settling…",
+    claim: (amount: string, symbol: string) => `Claim ${amount} ${symbol}`,
+    claiming: "Claiming…",
+    claimed: (amount: string, symbol: string, hash: string) => `Claimed ${amount} ${symbol} · ${hash}…`,
+    settled: "Leg settled.",
+    lost: "One leg settled against you. The ticket is dead, stake lost.",
+    voidedNote: "The venue voided a Window, so the ticket is void. Your stake is back in your wallet.",
+    paidNote: "Paid out to your wallet.",
+    emptyConnected: "No open tickets yet. Build a streak above",
+    emptyDisconnected: "Connect to see your tickets",
+  },
+  devTitle: "Parlay",
+} as const;
