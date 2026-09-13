@@ -13,6 +13,7 @@
     "test": "vitest run",
     "invariants": "node scripts/invariants/run.mjs",
     "ci": "pnpm typecheck && pnpm invariants && pnpm test",
+    "env:check": "node scripts/env-check.mjs",
     "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",
     "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "contracts:export": "node contracts/export.mjs",
