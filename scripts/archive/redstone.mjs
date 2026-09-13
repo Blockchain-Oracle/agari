@@ -7,7 +7,7 @@
 // Out:  data/archive/redstone/<session-date>.jsonl  (one line per boundary T, resumable)
 // Keys: ALPACA_KEY_ID, ALPACA_SECRET_KEY (calendar only). RedStone needs no key.
 
-import { boundaries, isoSec, jsonlStore, log, nyseSessions, politeGet, sleep, todayEt } from "./calendar.mjs";
+import { boundaries, isoSec, jsonlStore, log, nyseSessions, politeGet, runLoop, sleep, todayEt } from "./calendar.mjs";
 
 const GATEWAY = "https://oracle-gateway-2.a.redstone.finance";
 const SERVICE = "redstone-primary-prod";
@@ -76,9 +76,7 @@ async function pass() {
   log(ACTOR, "pass complete", { saved, sessions: sessions.length });
 }
 
-for (;;) {
-  await pass();
-  if (!follow) break;
-  const next10s = (Math.floor(Date.now() / 10_000) + 1) * 10_000;
-  await sleep(Math.max(next10s - Date.now(), 0) + FETCH_DELAY_SEC * 1000);
-}
+await runLoop(ACTOR, pass, {
+  follow,
+  nextDelayMs: () => Math.max((Math.floor(Date.now() / 10_000) + 1) * 10_000 - Date.now(), 0) + FETCH_DELAY_SEC * 1000,
+});

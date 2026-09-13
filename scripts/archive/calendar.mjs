@@ -35,8 +35,49 @@ export function log(actor, why, extra = {}) {
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** NYSE sessions between two dates (inclusive) with UTC open/close seconds. */
+const CALENDAR_TTL_MS = 60 * 60 * 1000;
+const calendarCache = new Map();
+
+/**
+ * NYSE sessions between two dates (inclusive), cached for an hour. When Alpaca is unreachable the
+ * last good answer is reused (or an empty list before the first success), so a network blip never
+ * stops an archiver.
+ */
 export async function nyseSessions(from, to) {
+  const key = `${from}:${to}`;
+  const hit = calendarCache.get(key);
+  if (hit && Date.now() - hit.atMs < CALENDAR_TTL_MS) return hit.sessions;
+  try {
+    const sessions = await fetchSessions(from, to);
+    calendarCache.set(key, { atMs: Date.now(), sessions });
+    return sessions;
+  } catch (err) {
+    log("calendar", "Alpaca calendar unavailable; reusing last good answer", {
+      error: String(err?.cause?.code ?? err?.message ?? err),
+      cached: Boolean(hit),
+    });
+    return hit?.sessions ?? [];
+  }
+}
+
+/** Runs `pass` forever (or once), logging and backing off on errors instead of crashing. */
+export async function runLoop(actor, pass, { follow, nextDelayMs, stop = () => false }) {
+  let failures = 0;
+  for (;;) {
+    let outcome;
+    try {
+      outcome = await pass();
+      failures = 0;
+    } catch (err) {
+      failures++;
+      log(actor, "pass failed; retrying", { error: String(err?.cause?.code ?? err?.message ?? err), failures });
+    }
+    if (!follow || stop(outcome)) return outcome;
+    await sleep(failures ? Math.min(60_000 * failures, 600_000) : nextDelayMs());
+  }
+}
+
+async function fetchSessions(from, to) {
   const { ALPACA_KEY_ID, ALPACA_SECRET_KEY } = process.env;
   if (!ALPACA_KEY_ID || !ALPACA_SECRET_KEY) throw new Error("set ALPACA_KEY_ID and ALPACA_SECRET_KEY (.env.local)");
   const url = `https://paper-api.alpaca.markets/v2/calendar?start=${from}&end=${to}`;

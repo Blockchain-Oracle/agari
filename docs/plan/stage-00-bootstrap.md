@@ -36,6 +36,7 @@
 - **RedStone package JSON:** `{timestampMilliseconds, signature (base64, 65 B), dataPoints[{dataFeedId, value}], signerAddress, dataPackageId}`. The value is decimal JSON; the RedStone SDK rebuilds signed bytes from it with 8 decimals.
 - **D-002:** Anchor 1.2.0 and 1.1.2 both SBF-build with Pyth receiver, RedStone rust-sdk and Switchboard (after the `getrandom` custom patch). The CLI 1.2.0 prebuilt installs via avm in seconds without touching the Solana release. Spike sources are in `docs/plan/spikes/d002/`; S2 starts from them.
 - **Toolchain side effects (expected, first run):** platform-tools v1.52 downloaded to `~/.cache/solana/v1.52` (1.3 GB); rustup auto-installed `1.98.1` for `anchor/rust-toolchain.toml`; avm now has 1.1.2 and 1.2.0 (current).
+- **Archiver crash (fixed):** both detached archivers died about 10 min after launch. An Alpaca calendar request timed out and the unguarded fetch threw. Fix: calendar cached for 1 h with last-good fallback, and `runLoop` logs failed passes and backs off instead of exiting. Restarted 2026-09-13 ~20:25 UTC; no market data was lost (weekend).
 - **Devnet faucets:** the public faucet rate-limited twice; Helius allows 1 SOL per project per day and was already exhausted.
 - **No global git identity** on this machine: the repo uses a local `user.name` / `user.email` matching Masayume's repo.
 - **zsh doesn't word-split** `$var` in `set -- $spec`, so multi-word shell loops run under `bash`.

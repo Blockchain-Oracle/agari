@@ -7,7 +7,7 @@
 // Out:  data/archive/pyth/<session-date>.jsonl  (one line per boundary T, resumable)
 // Keys: PYTH_API_KEY, ALPACA_KEY_ID, ALPACA_SECRET_KEY. Nothing secret is printed or saved.
 
-import { boundaries, isoSec, jsonlStore, log, nyseSessions, politeGet, sleep, todayEt } from "./calendar.mjs";
+import { boundaries, isoSec, jsonlStore, log, nyseSessions, politeGet, runLoop, sleep, todayEt } from "./calendar.mjs";
 
 const FEEDS = {
   TSLA: "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
@@ -75,14 +75,15 @@ async function pass() {
 }
 
 let authFailures = 0;
-for (;;) {
-  const outcome = await pass();
-  authFailures = outcome === "auth" ? authFailures + 1 : 0;
-  if (authFailures >= 3) {
-    log(ACTOR, "key rejected three passes in a row; the trial has probably ended, stopping");
-    break;
-  }
-  if (!follow || todayEt() > until) break;
-  const nextMinute = (Math.floor(Date.now() / 60_000) + 1) * 60_000;
-  await sleep(nextMinute - Date.now() + SETTLE_DELAY_SEC * 1000);
-}
+await runLoop(ACTOR, pass, {
+  follow,
+  nextDelayMs: () => (Math.floor(Date.now() / 60_000) + 1) * 60_000 - Date.now() + SETTLE_DELAY_SEC * 1000,
+  stop: (outcome) => {
+    authFailures = outcome === "auth" ? authFailures + 1 : 0;
+    if (authFailures >= 3) {
+      log(ACTOR, "key rejected three passes in a row; the trial has probably ended, stopping");
+      return true;
+    }
+    return todayEt() > until;
+  },
+});
