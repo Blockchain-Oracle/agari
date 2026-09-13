@@ -1,7 +1,7 @@
 "use client";
 
-import { oneUnit } from "@masayume/core/units";
-import { useAssetPrice } from "@masayume/markets/react";
+import { oneUnit } from "@agari/core/units";
+import { useAssetPrice } from "@agari/markets/react";
 import { useEffect, useState } from "react";
 import { basisRaw, feedRawToOracleRaw, ORACLE_SCALE } from "@/features/markets/hero/units";
 import { notify } from "@/lib/toast";

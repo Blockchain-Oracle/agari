@@ -1,6 +1,6 @@
-import { isOk } from "@masayume/core/schemas";
-import { isDbConfigured, upsertPlaybook } from "@masayume/db";
-import { getStrategy } from "@masayume/markets/strategies";
+import { isOk } from "@agari/core/schemas";
+import { isDbConfigured, upsertPlaybook } from "@agari/db";
+import { getStrategy } from "@agari/markets/strategies";
 import { NextResponse } from "next/server";
 import { verifyMessage } from "viem";
 import { playbookMessage, playbookRequestSchema } from "@/features/strategies/protocol";

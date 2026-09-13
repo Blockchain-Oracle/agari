@@ -8,7 +8,7 @@
 // one vermilion accent.
 //
 // Single source of truth. Every surface that shows the mark imports this.
-export default function MasayumeMark({
+export default function AgariMark({
   className,
   figure = "currentColor",
   dot = "var(--vermilion)",

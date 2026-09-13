@@ -1,6 +1,6 @@
 "use client";
 
-import { PINNED_TESTNET } from "@masayume/markets";
+import { PINNED_TESTNET } from "@agari/markets";
 import Link from "next/link";
 import { PITCH } from "./copy";
 import { LogoCard, SomniaMark } from "./marks";

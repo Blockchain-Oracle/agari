@@ -1,10 +1,10 @@
 "use client";
 
-import { phase as phaseOf, type MarketPhase } from "@masayume/core/lifecycle";
-import type { EventMarket, MarketId, Side } from "@masayume/core/types";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@masayume/core/units";
-import { marketDeepLink } from "@masayume/core/urls";
-import { useNextWindow, useOnchain, useOpeningPrice } from "@masayume/markets/react";
+import { phase as phaseOf, type MarketPhase } from "@agari/core/lifecycle";
+import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { marketDeepLink } from "@agari/core/urls";
+import { useNextWindow, useOnchain, useOpeningPrice } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
 import type { TicketSelection } from "./types";
 

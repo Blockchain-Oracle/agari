@@ -1,6 +1,6 @@
 "use client";
 
-import type { ArcadeGame } from "@masayume/core/games/arcade";
+import type { ArcadeGame } from "@agari/core/games/arcade";
 import { ARCADE } from "./copy";
 import type { RunEnd } from "./run";
 

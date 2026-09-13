@@ -1,10 +1,10 @@
 "use client";
 
-import { phase } from "@masayume/core/lifecycle";
-import { neededMove } from "@masayume/core/market";
-import type { BookStructure } from "@masayume/core/surface";
-import type { EventMarket } from "@masayume/core/types";
-import { bpsToOddsCents } from "@masayume/core/units";
+import { phase } from "@agari/core/lifecycle";
+import { neededMove } from "@agari/core/market";
+import type { BookStructure } from "@agari/core/surface";
+import type { EventMarket } from "@agari/core/types";
+import { bpsToOddsCents } from "@agari/core/units";
 import type { ReactNode } from "react";
 import { Countdown } from "@/components/data";
 import { HERO } from "@/lib/copy";

@@ -1,6 +1,6 @@
-import { PRIVATE_NOT_DEPLOYED, type PrivateBudget, type PrivateDeskState, type PrivateQuote, type PrivateSlot } from "@masayume/core/private";
-import { err, ok, type Reading } from "@masayume/core/schemas";
-import { diagnosis, OUTCOME_TO_SIDE, SIDE_TO_OUTCOME, toMarketId, type Address, type Bytes32, type MarketId, type OutcomeIdx, type Side } from "@masayume/core/types";
+import { PRIVATE_NOT_DEPLOYED, type PrivateBudget, type PrivateDeskState, type PrivateQuote, type PrivateSlot } from "@agari/core/private";
+import { err, ok, type Reading } from "@agari/core/schemas";
+import { diagnosis, OUTCOME_TO_SIDE, SIDE_TO_OUTCOME, toMarketId, type Address, type Bytes32, type MarketId, type OutcomeIdx, type Side } from "@agari/core/types";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";

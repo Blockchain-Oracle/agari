@@ -1,4 +1,4 @@
-import { PRIVATE_HONESTY, PRIVATE_NOT_DEPLOYED } from "@masayume/core/private";
+import { PRIVATE_HONESTY, PRIVATE_NOT_DEPLOYED } from "@agari/core/private";
 
 /**
  * The private route — the reference's own words where it has them (`Ticket624Drawer.tsx` L1175–1247: the
@@ -86,7 +86,7 @@ export const PRIVATE = {
     settled: "settled",
     credited: "credited",
     foot: "Keep your backup somewhere safe. Nobody at Masayume can rebuild these for you, which is the same reason nobody there can read them.",
-    fileName: (date: string) => `masayume-private-claims-${date}.json`,
+    fileName: (date: string) => `agari-private-claims-${date}.json`,
     just: "just now",
     minutes: (m: number) => `${m}m ago`,
     hours: (h: number) => `${h}h ago`,

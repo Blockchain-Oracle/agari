@@ -1,7 +1,7 @@
-import { PRIVATE_NOT_DEPLOYED, type PrivateIntent } from "@masayume/core/private";
-import type { IntentJournal, PhaseListener, TxOutcome } from "@masayume/core/ports";
-import { diagnosis, type Address, type Diagnosis, type Hex } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
+import { PRIVATE_NOT_DEPLOYED, type PrivateIntent } from "@agari/core/private";
+import type { IntentJournal, PhaseListener, TxOutcome } from "@agari/core/ports";
+import { diagnosis, type Address, type Diagnosis, type Hex } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { erc20Abi, maxUint256, type ContractFunctionArgs, type ContractFunctionName } from "viem";
 import { SOMNIA_SHANNON } from "../chain";
 import { getCollateral } from "../collateral";

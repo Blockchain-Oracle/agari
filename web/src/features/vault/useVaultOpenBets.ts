@@ -1,10 +1,10 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@masayume/core/constants";
-import type { Reading } from "@masayume/core/schemas";
-import { type Address, type IndexedStatus, type MarketId } from "@masayume/core/types";
-import { listVaultTallies, marketsProvider, tallyToLedger, withReading } from "@masayume/markets";
-import { useReadingQuery } from "@masayume/markets/react";
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import type { Reading } from "@agari/core/schemas";
+import { type Address, type IndexedStatus, type MarketId } from "@agari/core/types";
+import { listVaultTallies, marketsProvider, tallyToLedger, withReading } from "@agari/markets";
+import { useReadingQuery } from "@agari/markets/react";
 import type { QueryClient } from "@tanstack/react-query";
 
 /** One open Window the vault holds for the wallet: what it holds and what it cost, never a mark it cannot read. */

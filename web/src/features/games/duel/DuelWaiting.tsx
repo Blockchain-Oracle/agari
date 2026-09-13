@@ -1,9 +1,9 @@
 "use client";
 
-import { STT_FAUCETS } from "@masayume/core/constants";
-import type { Address, Diagnosis } from "@masayume/core/types";
+import { STT_FAUCETS } from "@agari/core/constants";
+import type { Address, Diagnosis } from "@agari/core/types";
 import { useNowMs } from "@/components/data";
-import { shortHex } from "@masayume/core/units";
+import { shortHex } from "@agari/core/units";
 import { DUEL } from "./copy";
 import type { DealingView } from "./useDuelRoom";
 

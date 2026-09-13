@@ -3,9 +3,9 @@
  * for a claimed wallet, the web app mints, the ops room admits the token and answers `hello` with a
  * snapshot. Scratch driver for slice B (2026-09-04); not a product path.
  *
- *   WEB_URL=http://localhost:3000 pnpm --filter @masayume/ops exec tsx src/spike/room-key-check.ts
+ *   WEB_URL=http://localhost:3000 pnpm --filter @agari/ops exec tsx src/spike/room-key-check.ts
  */
-import { roomAuthMessage, ROOM_PROTOCOL_VERSION } from "@masayume/core/games";
+import { roomAuthMessage, ROOM_PROTOCOL_VERSION } from "@agari/core/games";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import WebSocket from "ws";
 
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
   console.log(`forgery (key claimed = wallet, signed by another key): ${forged.status} ${((await forged.json()) as { error?: string }).error ?? ""}`);
 
   await new Promise<void>((resolve, reject) => {
-    const ws = new WebSocket(target.url as string, [grant.token as string, "masayume.room.v1"]);
+    const ws = new WebSocket(target.url as string, [grant.token as string, "agari.room.v1"]);
     const timer = setTimeout(() => reject(new Error("no snapshot within 8s")), 8_000);
     ws.on("open", () => ws.send(JSON.stringify({ type: "hello", protocolVersion: ROOM_PROTOCOL_VERSION })));
     ws.on("message", (raw) => {

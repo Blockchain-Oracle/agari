@@ -1,9 +1,9 @@
 "use client";
 
-import type { PhaseListener, TxOutcome, WritePhase } from "@masayume/core/ports";
-import type { PrivateIntent } from "@masayume/core/private";
-import type { Diagnosis, Hex } from "@masayume/core/types";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@masayume/markets/react";
+import type { PhaseListener, TxOutcome, WritePhase } from "@agari/core/ports";
+import type { PrivateIntent } from "@agari/core/private";
+import type { Diagnosis, Hex } from "@agari/core/types";
+import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

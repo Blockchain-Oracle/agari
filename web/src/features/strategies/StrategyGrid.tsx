@@ -1,6 +1,6 @@
 "use client";
 
-import type { StrategySubscription } from "@masayume/core/strategies";
+import type { StrategySubscription } from "@agari/core/strategies";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";

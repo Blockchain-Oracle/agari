@@ -6,7 +6,7 @@ export interface CreditedDetail {
   firstTime: boolean;
 }
 
-const WELCOMED_KEY = (address: string) => `masayume.welcomed.${address.toLowerCase()}`;
+const WELCOMED_KEY = (address: string) => `agari.welcomed.${address.toLowerCase()}`;
 
 /**
  * Announces a credit. The FIRST for an address is the celebratory moment (`CreditWelcome`); the rest are

@@ -1,11 +1,11 @@
 "use client";
 
-import type { BookedOrder } from "@masayume/core/ports";
-import { isOk } from "@masayume/core/schemas";
-import { belowMinStake, minStakeBase } from "@masayume/core/sizing";
-import type { Hex } from "@masayume/core/types";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@masayume/core/units";
-import { useBalanceSheet, useSigner } from "@masayume/markets/react";
+import type { BookedOrder } from "@agari/core/ports";
+import { isOk } from "@agari/core/schemas";
+import { belowMinStake, minStakeBase } from "@agari/core/sizing";
+import type { Hex } from "@agari/core/types";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { useBalanceSheet, useSigner } from "@agari/markets/react";
 import { useCallback, useState } from "react";
 import { useVenue } from "@/features/markets";
 import { QuickChips } from "@/features/markets/ticket/QuickChips";
@@ -29,7 +29,7 @@ import "./lucky.css";
  * the chips reuse the Ticket's own, and the stake must clear the venue's floor before the reels move.
  */
 
-const STAKE_KEY = "masayume.games.luckyStake";
+const STAKE_KEY = "agari.games.luckyStake";
 const stakeCodec = { parse: (raw: string) => (/^\d*\.?\d*$/.test(raw) ? raw : null), serialize: (v: string) => v };
 
 function sanitize(text: string): string {

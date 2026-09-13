@@ -1,4 +1,4 @@
-import type { Bytes32 } from "@masayume/core/types";
+import type { Bytes32 } from "@agari/core/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DuelStage } from "@/features/games";

@@ -10,7 +10,7 @@
  * for a component that reads it on mount, but the evaluator (`AlertsWatcher`) has to learn
  * about a rule the moment the button saves it, without a reload.
  */
-const STORAGE_KEY = "masayume.priceAlerts";
+const STORAGE_KEY = "agari.priceAlerts";
 
 export type AlertDirection = "above" | "below";
 

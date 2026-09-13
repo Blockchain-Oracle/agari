@@ -1,6 +1,6 @@
-import { knockoutLine, leverageStatusOf, type LeverageMark, type LeverageParams, type LeveragePosition, type LeverageQuote, type LeverageReserveState } from "@masayume/core/leverage";
-import { err, ok, type Reading } from "@masayume/core/schemas";
-import { diagnosis, OUTCOME_TO_SIDE, SIDE_TO_OUTCOME, toMarketId, type Address, type MarketId, type OutcomeIdx, type Side } from "@masayume/core/types";
+import { knockoutLine, leverageStatusOf, type LeverageMark, type LeverageParams, type LeveragePosition, type LeverageQuote, type LeverageReserveState } from "@agari/core/leverage";
+import { err, ok, type Reading } from "@agari/core/schemas";
+import { diagnosis, OUTCOME_TO_SIDE, SIDE_TO_OUTCOME, toMarketId, type Address, type MarketId, type OutcomeIdx, type Side } from "@agari/core/types";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";

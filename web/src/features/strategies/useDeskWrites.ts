@@ -1,13 +1,13 @@
 "use client";
 
-import type { TxOutcome } from "@masayume/core/ports";
-import type { StrategyIntent } from "@masayume/core/strategies";
-import type { Address } from "@masayume/core/types";
-import { isOk } from "@masayume/core/schemas";
-import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@masayume/markets/react";
-import { getClient } from "@masayume/markets/runtime";
-import { getStrategy, listSubscriptionsOf, submitStrategyTx } from "@masayume/markets/strategies";
-import { getVaultGrant, getVaultSnapshot, resolveVaultDeployment, type VaultContracts } from "@masayume/markets/vault";
+import type { TxOutcome } from "@agari/core/ports";
+import type { StrategyIntent } from "@agari/core/strategies";
+import type { Address } from "@agari/core/types";
+import { isOk } from "@agari/core/schemas";
+import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
+import { getClient } from "@agari/markets/runtime";
+import { getStrategy, listSubscriptionsOf, submitStrategyTx } from "@agari/markets/strategies";
+import { getVaultGrant, getVaultSnapshot, resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PublicClient } from "viem";

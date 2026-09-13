@@ -1,7 +1,7 @@
-import { roomRef, stakeTier, type DeckCommitment, type DuelMode, type MatchPlayers, type ServerMessage, type StakeTierId } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { getArenaMatch } from "@masayume/markets/games";
+import { roomRef, stakeTier, type DeckCommitment, type DuelMode, type MatchPlayers, type ServerMessage, type StakeTierId } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { getArenaMatch } from "@agari/markets/games";
 import type { RoomContext } from "../game-room/handlers";
 
 /**

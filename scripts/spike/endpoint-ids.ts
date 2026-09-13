@@ -1,5 +1,5 @@
-import { isOk } from "@masayume/core";
-import { marketsProvider, resolveVenueId } from "@masayume/markets";
+import { isOk } from "@agari/core";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 
 const SETTLED_PAGE = 20;

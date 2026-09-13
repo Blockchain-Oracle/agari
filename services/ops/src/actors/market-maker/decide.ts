@@ -1,7 +1,7 @@
-import { headroomSec } from "@masayume/core/lifecycle";
-import { fairYesRaw, pairAround, quantizeQuantity, quoteExpiryNs, type MakerParams, type MakerWindowView, type Pair } from "@masayume/core/maker";
-import type { EventMarket, MarketId, OnchainSnapshot } from "@masayume/core/types";
-import type { PoolTop } from "@masayume/markets/maker";
+import { headroomSec } from "@agari/core/lifecycle";
+import { fairYesRaw, pairAround, quantizeQuantity, quoteExpiryNs, type MakerParams, type MakerWindowView, type Pair } from "@agari/core/maker";
+import type { EventMarket, MarketId, OnchainSnapshot } from "@agari/core/types";
+import type { PoolTop } from "@agari/markets/maker";
 import type { MakerEnv } from "./env";
 
 /** What the actor last rested on a Window, so it requotes only when the book actually moved. */

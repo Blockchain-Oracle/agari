@@ -1,10 +1,10 @@
 "use client";
 
-import { isSettled, phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import type { EventMarket, LaneSet, MarketId, Side } from "@masayume/core/types";
-import { marketDeepLink, parseMarketsSearch } from "@masayume/core/urls";
-import { useMarket, useNextWindow } from "@masayume/markets/react";
+import { isSettled, phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import type { EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
+import { marketDeepLink, parseMarketsSearch } from "@agari/core/urls";
+import { useMarket, useNextWindow } from "@agari/markets/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { formatCadence, MARKETS } from "@/lib/copy";

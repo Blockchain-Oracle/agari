@@ -5,8 +5,8 @@
  * subscriber need to hear about it? Getting that wrong in the "hold" direction freezes the book on
  * screen, which is why it lives apart from the wiring and is checked on its own.
  */
-import { ok, stale, type ReadingOk } from "@masayume/core/schemas";
-import type { BookDepth, BookLevelView } from "@masayume/core/types";
+import { ok, stale, type ReadingOk } from "@agari/core/schemas";
+import type { BookDepth, BookLevelView } from "@agari/core/types";
 
 function sameLevels(a: readonly BookLevelView[], b: readonly BookLevelView[]): boolean {
   if (a.length !== b.length) return false;

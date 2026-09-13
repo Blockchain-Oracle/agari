@@ -1,4 +1,4 @@
-import type { AgentPosture, PresetKey, StrategySpec } from "@masayume/core/strategies";
+import type { AgentPosture, PresetKey, StrategySpec } from "@agari/core/strategies";
 import { STRATEGIES } from "./copy";
 
 /** What the studio holds while a creator builds: every preset's knobs at once, so switching presets loses nothing. */
@@ -20,7 +20,7 @@ export interface StudioDraft {
 }
 
 export function initialStudioDraft(houseRunner: string | null): StudioDraft {
-  return { preset: "agent", lookback: 6, thresholdPct: "0.2", persona: STRATEGIES.studio.agent.defaultPersona, posture: "balanced", cadences: [900, 3600], hosting: houseRunner ? "house" : "self", agent: "", name: "", portraitSeed: "masayume-new-agent", maxPerTrade: "1", maxDaily: "5", subFee: "0", playbook: "" };
+  return { preset: "agent", lookback: 6, thresholdPct: "0.2", persona: STRATEGIES.studio.agent.defaultPersona, posture: "balanced", cadences: [900, 3600], hosting: houseRunner ? "house" : "self", agent: "", name: "", portraitSeed: "agari-new-agent", maxPerTrade: "1", maxDaily: "5", subFee: "0", playbook: "" };
 }
 
 export function studioReadKey(form: StudioDraft): string {

@@ -1,9 +1,9 @@
 "use client";
 
-import type { StrategySubscription } from "@masayume/core/strategies";
-import type { VaultGrant, VaultSnapshot } from "@masayume/core/vault";
-import { isOk, type Reading } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
+import type { StrategySubscription } from "@agari/core/strategies";
+import type { VaultGrant, VaultSnapshot } from "@agari/core/vault";
+import { isOk, type Reading } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
 import { useMemo } from "react";
 import type { StrategiesPayload, StrategyWire } from "./protocol";
 import { useMySubscriptions, useStrategyHealth } from "./useStrategies";

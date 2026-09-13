@@ -1,6 +1,6 @@
 "use client";
 
-import type { PrivateStatus } from "@masayume/core/private";
+import type { PrivateStatus } from "@agari/core/private";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const RETRY_MS = 2_500;

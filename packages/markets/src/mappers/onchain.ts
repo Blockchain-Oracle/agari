@@ -1,4 +1,4 @@
-import type { MarketId, OnchainSnapshot, OutcomeIdx } from "@masayume/core/types";
+import type { MarketId, OnchainSnapshot, OutcomeIdx } from "@agari/core/types";
 import type { MarketOnchain } from "@somnia-chain/markets-sdk";
 import { lowerAddress } from "./scalars";
 

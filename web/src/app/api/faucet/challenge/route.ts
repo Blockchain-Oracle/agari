@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FaucetError } from "@masayume/core/faucet";
+import { FaucetError } from "@agari/core/faucet";
 import { faucetBody, faucetErrorResponse, faucetForRequest } from "@/features/funding/faucet-config.server";
 
 export const dynamic = "force-dynamic";

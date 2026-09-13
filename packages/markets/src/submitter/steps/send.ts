@@ -1,5 +1,5 @@
-import type { Attribution } from "@masayume/core/ports";
-import type { OnchainSnapshot, Quote, Side } from "@masayume/core/types";
+import type { Attribution } from "@agari/core/ports";
+import type { OnchainSnapshot, Quote, Side } from "@agari/core/types";
 import { ORDER_TYPE, type PlaceOrderResult } from "@somnia-chain/markets-sdk";
 import { toBuySide } from "../../mappers/side";
 import type { SessionTrader } from "../../sessions/trader";

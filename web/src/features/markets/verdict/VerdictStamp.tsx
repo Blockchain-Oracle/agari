@@ -1,4 +1,4 @@
-import type { VerdictOutcome } from "@masayume/core/types";
+import type { VerdictOutcome } from "@agari/core/types";
 import { verdictStrings } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 

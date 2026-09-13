@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { StrategySubscription } from "@masayume/core/strategies";
-import type { VaultGrant } from "@masayume/core/vault";
+import type { StrategySubscription } from "@agari/core/strategies";
+import type { VaultGrant } from "@agari/core/vault";
 import { copyProgressKey, matchesProgressGrant, parseCopyProgress, type CopyProgress } from "./copy-progress";
 import { strategyIdentity } from "./identity";
 import { copyStateOf } from "./lifecycle";

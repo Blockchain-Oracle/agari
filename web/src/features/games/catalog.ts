@@ -1,4 +1,4 @@
-import { gameDescriptor, gamesInGroup, type GameDescriptor, type GameGroup, type GameId } from "@masayume/core/games";
+import { gameDescriptor, gamesInGroup, type GameDescriptor, type GameGroup, type GameId } from "@agari/core/games";
 import { NAV_ITEMS, type NavItem } from "@/components/shell/header/nav-items";
 
 /**
@@ -6,7 +6,7 @@ import { NAV_ITEMS, type NavItem } from "@/components/shell/header/nav-items";
  *
  * The name, one-line blurb, icon and href come from the navigation registry rather than being
  * restated here: a mode that is called one thing in the header and another on its card is a
- * defect no test would catch. The economic kind comes from `@masayume/core/games`, so the card's
+ * defect no test would catch. The economic kind comes from `@agari/core/games`, so the card's
  * honest label about whose money is at risk is the same fact the write lanes gate on.
  *
  * `readiness` is a build fact, not a chain read — it says whether the thing behind the route

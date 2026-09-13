@@ -1,5 +1,5 @@
-import type { PrivateClaim } from "@masayume/core/private";
-import { toMarketId, type Address } from "@masayume/core/types";
+import type { PrivateClaim } from "@agari/core/private";
+import { toMarketId, type Address } from "@agari/core/types";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, expect, it } from "vitest";

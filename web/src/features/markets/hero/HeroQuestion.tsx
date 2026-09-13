@@ -1,5 +1,5 @@
-import { neededMove } from "@masayume/core/market";
-import { formatOracleRaw } from "@masayume/core/units";
+import { neededMove } from "@agari/core/market";
+import { formatOracleRaw } from "@agari/core/units";
 import { HERO, HERO_HEAD } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { ORACLE_SCALE } from "./units";

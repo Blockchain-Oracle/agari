@@ -2,7 +2,7 @@
 
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import MasayumeMark from "@/components/shell/MasayumeMark";
+import AgariMark from "@/components/shell/AgariMark";
 import { PITCH } from "./copy";
 import { Mono, Tick } from "./primitives";
 import { SLIDES_A } from "./slides-a";
@@ -64,7 +64,7 @@ export function PitchDeck() {
 
         <div className="pitch-head">
           <div className="pitch-brand">
-            <MasayumeMark className="pitch-brand-mark" />
+            <AgariMark className="pitch-brand-mark" />
             <span className="pitch-brand-name">{PITCH.brand}</span>
           </div>
           <Mono className="pitch-folio" tone="faint">

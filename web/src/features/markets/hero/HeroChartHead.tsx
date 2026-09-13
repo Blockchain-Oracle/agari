@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket, Lane } from "@masayume/core/types";
+import type { EventMarket, Lane } from "@agari/core/types";
 import { AssetDisc } from "./asset-mark";
 import { HeroCadenceTabs } from "./HeroCadenceTabs";
 import { HeroQuestion } from "./HeroQuestion";

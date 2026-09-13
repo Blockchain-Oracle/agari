@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 
 /** `+1.20` / `-0.40` / `0.00` — the reference's `signed()` over base units, never a float. */
 export function signedMoney(value: bigint, decimals: number, symbol?: string): string {

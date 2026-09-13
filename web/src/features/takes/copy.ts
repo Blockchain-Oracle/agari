@@ -1,4 +1,4 @@
-import { COMPOSER_PERMANENCE } from "@masayume/core/copy";
+import { COMPOSER_PERMANENCE } from "@agari/core/copy";
 
 /**
  * The take's words — ported from `reference/yosuku/components/TakeReelCard.tsx` and

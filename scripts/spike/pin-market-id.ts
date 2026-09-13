@@ -1,4 +1,4 @@
-import { decodeOutcomeId, marketIdOf, marketKey, outcomeIdsOf, readModuleMarket, readSettlementRecord } from "@masayume/markets/identity";
+import { decodeOutcomeId, marketIdOf, marketKey, outcomeIdsOf, readModuleMarket, readSettlementRecord } from "@agari/markets/identity";
 import { runSpike, short, type Client } from "./lib/boot";
 import { bullets, heading, table } from "./lib/markdown";
 

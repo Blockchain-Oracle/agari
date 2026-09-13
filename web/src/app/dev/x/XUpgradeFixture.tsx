@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { diagnosis, type Address, type Hex } from "@masayume/core/types";
-import { simulateCaps, type VaultGrant } from "@masayume/core/vault";
-import { xPermissionState } from "@masayume/core/x";
+import { diagnosis, type Address, type Hex } from "@agari/core/types";
+import { simulateCaps, type VaultGrant } from "@agari/core/vault";
+import { xPermissionState } from "@agari/core/x";
 import { XWalletCardView, type XGrantState, type XLink } from "@/features/x";
 import { updateXPermission, type XUpdateProgress } from "@/features/x/update-permission";
-import type { TxOutcome } from "@masayume/core/ports";
+import type { TxOutcome } from "@agari/core/ports";
 import { PLATE, PoolRows } from "@/features/markets/portfolio/plate";
 
 const OWNER = `0x${"11".repeat(20)}` as Address;

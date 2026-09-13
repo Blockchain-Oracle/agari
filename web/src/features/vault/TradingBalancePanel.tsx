@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { VenueCredit } from "@masayume/core/types";
+import { isOk } from "@agari/core/schemas";
+import type { VenueCredit } from "@agari/core/types";
 import { useWalletSession } from "@/lib/wallet-session";
 import { VAULT } from "./copy";
 import { TradingBalanceView } from "./TradingBalanceView";

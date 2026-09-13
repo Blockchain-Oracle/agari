@@ -1,6 +1,6 @@
-import { deployedOf, realizedOf, type MakerParams, type MakerVaultState, type MakerWindowBook, type MakerWindowView } from "@masayume/core/maker";
-import type { Reading } from "@masayume/core/schemas";
-import { toMarketId, type Address, type MarketId } from "@masayume/core/types";
+import { deployedOf, realizedOf, type MakerParams, type MakerVaultState, type MakerWindowBook, type MakerWindowView } from "@agari/core/maker";
+import type { Reading } from "@agari/core/schemas";
+import { toMarketId, type Address, type MarketId } from "@agari/core/types";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";

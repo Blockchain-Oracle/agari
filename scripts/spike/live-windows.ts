@@ -2,11 +2,11 @@
  * Lists the venue's live Windows with their time left — the id a fork test needs (`FORK_MARKET_ID`, decimal),
  * because a fork's clock is frozen at the fork block and only a Window that is Trading there will do.
  *
- *   pnpm --filter @masayume/scripts spike:live-windows
+ *   pnpm --filter @agari/scripts spike:live-windows
  */
-import { phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import { marketsProvider, resolveVenueId } from "@masayume/markets";
+import { phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 import { heading, table } from "./lib/markdown";
 

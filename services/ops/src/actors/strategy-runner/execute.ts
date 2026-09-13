@@ -1,10 +1,10 @@
-import { isOk } from "@masayume/core/schemas";
-import { dailyHeadroomBase, type VaultGrant } from "@masayume/core/vault";
-import type { Decision, StrategyFill, StrategySubscription } from "@masayume/core/strategies";
-import { toMarketId, type EventMarket, type MarketId } from "@masayume/core/types";
-import { msToSec } from "@masayume/core/units";
-import { marketsProvider, type SubmitterSession } from "@masayume/markets";
-import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, recordAttemptFill } from "@masayume/db";
+import { isOk } from "@agari/core/schemas";
+import { dailyHeadroomBase, type VaultGrant } from "@agari/core/vault";
+import type { Decision, StrategyFill, StrategySubscription } from "@agari/core/strategies";
+import { toMarketId, type EventMarket, type MarketId } from "@agari/core/types";
+import { msToSec } from "@agari/core/units";
+import { marketsProvider, type SubmitterSession } from "@agari/markets";
+import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, recordAttemptFill } from "@agari/db";
 
 export type ExecutionResult =
   | { status: "filled"; fill: StrategyFill }

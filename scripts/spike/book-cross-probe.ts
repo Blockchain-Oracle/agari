@@ -3,11 +3,11 @@
  * (context/48). Reads the contract's own `getBookLevels` view (which skips expired makers itself) and
  * the SDK's live store side by side, three passes six seconds apart, on the BTC lanes up to 15m.
  *
- *   pnpm --filter @masayume/scripts spike:book-cross
+ *   pnpm --filter @agari/scripts spike:book-cross
  */
-import { isOk } from "@masayume/core/schemas";
-import { marketsProvider, resolveVenueId } from "@masayume/markets";
-import { getClient } from "@masayume/markets/runtime";
+import { isOk } from "@agari/core/schemas";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
+import { getClient } from "@agari/markets/runtime";
 import { runSpike } from "./lib/boot";
 
 const fmt = (levels: { price: bigint; quantity: bigint }[]) => levels.slice(0, 4).map((l) => `${(Number(l.price) / 1e4).toFixed(2)}¢×${(Number(l.quantity) / 1e6).toFixed(0)}`).join(" ");

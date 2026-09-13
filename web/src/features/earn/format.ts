@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 
 /** The reference's `sharePrice.toFixed(4)` from the raw share price, without a float. */
 export function formatSharePrice(sharePriceRaw: bigint, decimals: number): string {

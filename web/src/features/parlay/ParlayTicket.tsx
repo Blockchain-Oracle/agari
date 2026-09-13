@@ -1,13 +1,13 @@
 "use client";
 
-import type { ParlayQuote, ParlayReserveState } from "@masayume/core/parlay";
-import type { Diagnosis, EventMarket, Hex } from "@masayume/core/types";
-import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
+import type { Diagnosis, EventMarket, Hex } from "@agari/core/types";
+import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import { AlertCircle, Loader2, Trophy } from "lucide-react";
 import { Countdown } from "@/components/data";
 import { diagnosisCopy } from "@/lib/copy";
-import { formatCadence } from "@masayume/core/market";
+import { formatCadence } from "@agari/core/market";
 import { cn } from "@/lib/utils";
 import { PARLAY } from "./copy";
 import { formatBpsPct, formatLine, formatMultiplier, formatProbPct, parseThinBook, utilizationPct } from "./format";

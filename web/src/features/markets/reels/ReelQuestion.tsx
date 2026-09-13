@@ -1,7 +1,7 @@
 "use client";
 
-import { neededMove } from "@masayume/core/market";
-import { formatOracleRaw } from "@masayume/core/units";
+import { neededMove } from "@agari/core/market";
+import { formatOracleRaw } from "@agari/core/units";
 import { REELS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { ORACLE_SCALE } from "../hero/units";

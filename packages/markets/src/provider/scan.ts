@@ -1,5 +1,5 @@
-import { type LedgerSetAction } from "@masayume/core/projection";
-import type { Address, Bytes32, MarketId } from "@masayume/core/types";
+import { type LedgerSetAction } from "@agari/core/projection";
+import type { Address, Bytes32, MarketId } from "@agari/core/types";
 import type { BinaryMarket, FillRow } from "@somnia-chain/markets-sdk";
 import { toSetAction } from "../mappers/fill";
 import { getClient } from "../runtime/read-runtime";

@@ -1,4 +1,4 @@
-import type { AssetPrice, PricePoint } from "@masayume/core/types";
+import type { AssetPrice, PricePoint } from "@agari/core/types";
 import type { LivePrice, PricePoint as FeedPoint } from "@somnia-chain/markets-sdk";
 import { bigintOf, type Scalar } from "./scalars";
 

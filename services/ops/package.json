@@ -1,5 +1,5 @@
 {
-  "name": "@masayume/ops",
+  "name": "@agari/ops",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -23,10 +23,10 @@
     "season:distribute": "tsx src/tools/season-distribute.ts"
   },
   "dependencies": {
-    "@masayume/brain": "workspace:*",
-    "@masayume/core": "workspace:*",
-    "@masayume/db": "workspace:*",
-    "@masayume/markets": "workspace:*",
+    "@agari/brain": "workspace:*",
+    "@agari/core": "workspace:*",
+    "@agari/db": "workspace:*",
+    "@agari/markets": "workspace:*",
     "opentype.js": "1.3.4",
     "rettiwt-api": "7.1.3",
     "sharp": "0.34.5",

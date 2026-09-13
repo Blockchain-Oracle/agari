@@ -1,5 +1,5 @@
-import type { ArenaMatch, ArenaParams, ArenaStatus } from "@masayume/core/games";
-import { toMarketId, type Address, type Bytes32, type MarketId } from "@masayume/core/types";
+import type { ArenaMatch, ArenaParams, ArenaStatus } from "@agari/core/games";
+import { toMarketId, type Address, type Bytes32, type MarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { decideMatch, isDone } from "./decide";
 

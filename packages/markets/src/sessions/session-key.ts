@@ -1,5 +1,5 @@
-import type { IntentJournal } from "@masayume/core/ports";
-import type { Address, Hex } from "@masayume/core/types";
+import type { IntentJournal } from "@agari/core/ports";
+import type { Address, Hex } from "@agari/core/types";
 import { createWalletClient, http, type PublicClient, type WalletClient } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { SOMNIA_SHANNON } from "../chain";

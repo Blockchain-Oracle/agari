@@ -1,6 +1,6 @@
 "use client";
 
-import type { Side } from "@masayume/core/types";
+import type { Side } from "@agari/core/types";
 import { Button } from "@/components/ui/button";
 import { TICKET } from "@/lib/copy";
 import { cn } from "@/lib/utils";

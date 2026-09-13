@@ -1,8 +1,8 @@
 import { execSync } from "node:child_process";
 
-import type { ParlayLegInput } from "@masayume/core/parlay";
-import { toMarketId, type Hex } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
+import type { ParlayLegInput } from "@agari/core/parlay";
+import { toMarketId, type Hex } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
 import {
   closeRuntime,
   configureMarkets,
@@ -16,7 +16,7 @@ import {
   quoteParlayOnchain,
   submitParlayOpen,
   unwrap,
-} from "@masayume/markets";
+} from "@agari/markets";
 
 /**
  * Drives the parlay reserve through the REAL adapter against a local Anvil fork of Shannon (RESUME.md
@@ -42,7 +42,7 @@ function marketIdOf(raw: string) {
 async function pickWindows(): Promise<[ParlayLegInput, ParlayLegInput]> {
   const pinned = process.env.FORK_MARKET_IDS?.split(",").map((s) => s.trim()).filter(Boolean);
   if (pinned?.length === 2) return [{ marketId: marketIdOf(pinned[0] as string), side: "up" }, { marketId: marketIdOf(pinned[1] as string), side: "down" }];
-  const { resolveVenueId } = await import("@masayume/markets");
+  const { resolveVenueId } = await import("@agari/markets");
   const venue = unwrap(await resolveVenueId(env.venueId));
   if (!venue.venueId) throw new Error("no venue");
   const lanes = unwrap(await marketsProvider.listLiveLanes(venue.venueId));

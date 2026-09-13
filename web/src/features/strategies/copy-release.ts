@@ -1,5 +1,5 @@
-import type { Address, Hex } from "@masayume/core/types";
-import type { VaultGrant } from "@masayume/core/vault";
+import type { Address, Hex } from "@agari/core/types";
+import type { VaultGrant } from "@agari/core/vault";
 import { matchesProgressGrant, type CopyProgress } from "./copy-progress";
 import type { CopyWriteResult } from "./copy-setup";
 

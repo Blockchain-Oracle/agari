@@ -1,11 +1,11 @@
-import { decideAgentWindow, missingCredentialHint, resolveModel } from "@masayume/brain";
-import { phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import { decisionSlot, EMPTY_AGENT_RECORD, isSpec, moveBps, type AgentSpec } from "@masayume/core/strategies";
-import type { EventMarket } from "@masayume/core/types";
-import { formatBaseUnits, msToSec } from "@masayume/core/units";
-import { ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId } from "@masayume/markets";
-import { readAgentContext } from "@masayume/markets/strategies";
+import { decideAgentWindow, missingCredentialHint, resolveModel } from "@agari/brain";
+import { phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import { decisionSlot, EMPTY_AGENT_RECORD, isSpec, moveBps, type AgentSpec } from "@agari/core/strategies";
+import type { EventMarket } from "@agari/core/types";
+import { formatBaseUnits, msToSec } from "@agari/core/units";
+import { ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
+import { readAgentContext } from "@agari/markets/strategies";
 import { STRATEGIES } from "./copy";
 import type { AgentPreviewRequest, AgentPreviewResponse } from "./protocol";
 

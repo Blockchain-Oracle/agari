@@ -1,7 +1,7 @@
 "use client";
 
-import { LUCKY_ASSETS, LUCKY_MULTIPLIERS } from "@masayume/core/games";
-import type { Side } from "@masayume/core/types";
+import { LUCKY_ASSETS, LUCKY_MULTIPLIERS } from "@agari/core/games";
+import type { Side } from "@agari/core/types";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { SIDE_WORD } from "@/features/markets/side-styles";

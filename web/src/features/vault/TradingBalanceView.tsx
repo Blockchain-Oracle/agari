@@ -1,10 +1,10 @@
 "use client";
 
-import type { BlockerKind } from "@masayume/core/copy";
-import type { Reading } from "@masayume/core/schemas";
-import type { VenueCredit } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import type { VaultSnapshot } from "@masayume/core/vault";
+import type { BlockerKind } from "@agari/core/copy";
+import type { Reading } from "@agari/core/schemas";
+import type { VenueCredit } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import type { VaultSnapshot } from "@agari/core/vault";
 import { ErrorState, LoadingState, StaleTick } from "@/components/states";
 import { cn } from "@/lib/utils";
 import { VAULT } from "./copy";

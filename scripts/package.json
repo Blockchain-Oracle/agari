@@ -1,5 +1,5 @@
 {
-  "name": "@masayume/scripts",
+  "name": "@agari/scripts",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,8 +28,8 @@
     "spike:boot-timing": "tsx spike/boot-timing.ts"
   },
   "dependencies": {
-    "@masayume/core": "workspace:*",
-    "@masayume/markets": "workspace:*",
+    "@agari/core": "workspace:*",
+    "@agari/markets": "workspace:*",
     "tsx": "catalog:",
     "viem": "catalog:"
   },

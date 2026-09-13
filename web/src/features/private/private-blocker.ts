@@ -1,6 +1,6 @@
-import type { BlockerKind } from "@masayume/core/copy";
-import type { PrivateQuote } from "@masayume/core/private";
-import type { Diagnosis } from "@masayume/core/types";
+import type { BlockerKind } from "@agari/core/copy";
+import type { PrivateQuote } from "@agari/core/private";
+import type { Diagnosis } from "@agari/core/types";
 import { commonBlocker, type TicketBlockerInput } from "../markets/ticket/ticket-guards";
 
 export interface PrivateGuardInput {

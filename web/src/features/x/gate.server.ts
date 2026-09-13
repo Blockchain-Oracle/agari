@@ -1,5 +1,5 @@
-import { X_LINK_SIGNATURE_TTL_MS, xLinkMessage, xUnlinkMessage } from "@masayume/core/x";
-import { xLinkByAuthor, xLinkByWallet, type XLinkRecord } from "@masayume/db";
+import { X_LINK_SIGNATURE_TTL_MS, xLinkMessage, xUnlinkMessage } from "@agari/core/x";
+import { xLinkByAuthor, xLinkByWallet, type XLinkRecord } from "@agari/db";
 import { cookies } from "next/headers";
 import { verifyMessage } from "viem";
 import { readXConfig, type XConfig } from "./config.server";

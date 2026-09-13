@@ -1,8 +1,8 @@
 "use client";
 
-import { mapReading, stale, type Reading } from "@masayume/core/schemas";
-import type { AssetPrice, EventMarket, PricePoint } from "@masayume/core/types";
-import { useAssetPrice, usePriceHistory } from "@masayume/markets/react";
+import { mapReading, stale, type Reading } from "@agari/core/schemas";
+import type { AssetPrice, EventMarket, PricePoint } from "@agari/core/types";
+import { useAssetPrice, usePriceHistory } from "@agari/markets/react";
 import { useEffect, useMemo, useState } from "react";
 import { basisRaw, FEED_DECIMALS_DEFAULT, feedRawToOracleRaw } from "./units";
 

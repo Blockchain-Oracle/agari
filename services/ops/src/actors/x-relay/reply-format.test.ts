@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SHANNON_EXPLORER_URL } from "@masayume/core/constants";
-import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@masayume/core/x";
+import { SHANNON_EXPLORER_URL } from "@agari/core/constants";
+import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@agari/core/x";
 import { createReplyPresentation, REFUSAL_DETAILS, REPLY_LIMIT, replyText, TRADE_FROM_X_URL } from "./reply-format";
 
 const HASH = `0x${"ab".repeat(32)}`;

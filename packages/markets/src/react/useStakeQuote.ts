@@ -1,7 +1,7 @@
-import { REQUOTE_MS } from "@masayume/core/constants";
-import type { QuoteTarget } from "@masayume/core/ports";
-import { isOk, ok, stale, type Reading } from "@masayume/core/schemas";
-import type { Quote, Side } from "@masayume/core/types";
+import { REQUOTE_MS } from "@agari/core/constants";
+import type { QuoteTarget } from "@agari/core/ports";
+import { isOk, ok, stale, type Reading } from "@agari/core/schemas";
+import type { Quote, Side } from "@agari/core/types";
 import { useLiveBinaryOrderBookByMarket, useLiveStatus, useWatchMarket } from "@somnia-chain/markets-sdk/react";
 import { useMemo } from "react";
 import { getBookParams } from "../provider/books";

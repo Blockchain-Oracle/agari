@@ -1,8 +1,8 @@
 "use client";
 
-import type { DuelHistoryRow } from "@masayume/db";
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
+import type { DuelHistoryRow } from "@agari/db";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Pager } from "@/components/chrome";

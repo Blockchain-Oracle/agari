@@ -1,12 +1,12 @@
 "use client";
 
-import { deriveVerdict } from "@masayume/core/claims";
-import { ONCHAIN_POLL_MS, VERDICT_POLL_MS } from "@masayume/core/constants";
-import { combineReadings, isOk, mapReading, type Reading } from "@masayume/core/schemas";
-import type { Address, EventMarket, MarketId, Resolution, Verdict } from "@masayume/core/types";
-import { secToMs } from "@masayume/core/units";
-import { marketsProvider } from "@masayume/markets";
-import { keys, useHoldings, useMarket, useOnchain, usePositions, useReadingQuery, useTick } from "@masayume/markets/react";
+import { deriveVerdict } from "@agari/core/claims";
+import { ONCHAIN_POLL_MS, VERDICT_POLL_MS } from "@agari/core/constants";
+import { combineReadings, isOk, mapReading, type Reading } from "@agari/core/schemas";
+import type { Address, EventMarket, MarketId, Resolution, Verdict } from "@agari/core/types";
+import { secToMs } from "@agari/core/units";
+import { marketsProvider } from "@agari/markets";
+import { keys, useHoldings, useMarket, useOnchain, usePositions, useReadingQuery, useTick } from "@agari/markets/react";
 import { useMemo, useRef } from "react";
 
 export type VerdictPhase = "open" | "settling" | "settled";

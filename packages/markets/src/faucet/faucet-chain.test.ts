@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { parseTransaction } from "viem";
-import { STT_FAUCET_POLICY } from "@masayume/core/faucet";
+import { STT_FAUCET_POLICY } from "@agari/core/faucet";
 import { createFaucetChain } from "./index";
 
 const rpc = vi.hoisted(() => ({

@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarketId } from "@masayume/core/types";
+import type { MarketId } from "@agari/core/types";
 import React from "react";
 import { CommentRoom } from "./CommentRoom";
 import { ROOM } from "./copy";

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatSeasonCountdown, seasonRemainingMs } from "@masayume/core/games";
+import { formatSeasonCountdown, seasonRemainingMs } from "@agari/core/games";
 import { useNowMs } from "@/components/data";
 import { TrophyMark } from "./art/PixelArt";
 import { GAMES } from "./copy";

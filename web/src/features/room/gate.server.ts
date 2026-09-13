@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import type { Address } from "@masayume/core/types";
-import { hasBet } from "@masayume/db";
-import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@masayume/markets";
+import type { Address } from "@agari/core/types";
+import { hasBet } from "@agari/db";
+import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@agari/markets";
 import { verifyMessage } from "viem";
 import { ROOM_TOKEN_TTL_MS, roomJoinMessage } from "./protocol";
 

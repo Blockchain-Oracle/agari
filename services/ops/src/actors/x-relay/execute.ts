@@ -1,8 +1,8 @@
-import { noEntryCutoffSec } from "@masayume/core/lifecycle";
-import { describeRefusal, isBalanceOnlyXGrant, parseInstruction, selectXWindow, X_REFUSAL_DETAILS, type XInstruction } from "@masayume/core/x";
-import { xLinkByAuthor, xReceiptUpsert, type XReceiptRecord } from "@masayume/db";
-import { getCollateral, getVaultSnapshot, marketsProvider, resolveVenueId, type SubmitterSession } from "@masayume/markets";
-import type { Bytes32 } from "@masayume/core/types";
+import { noEntryCutoffSec } from "@agari/core/lifecycle";
+import { describeRefusal, isBalanceOnlyXGrant, parseInstruction, selectXWindow, X_REFUSAL_DETAILS, type XInstruction } from "@agari/core/x";
+import { xLinkByAuthor, xReceiptUpsert, type XReceiptRecord } from "@agari/db";
+import { getCollateral, getVaultSnapshot, marketsProvider, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import type { Bytes32 } from "@agari/core/types";
 import type { Mention } from "./transport";
 import { outcomeToReceipt } from "./receipt-outcome";
 

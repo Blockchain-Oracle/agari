@@ -1,4 +1,4 @@
-import { isArcadeGame } from "@masayume/core/games/arcade";
+import { isArcadeGame } from "@agari/core/games/arcade";
 import { NextResponse } from "next/server";
 import { readBoard } from "@/features/games/arcade/score.server";
 

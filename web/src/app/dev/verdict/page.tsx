@@ -1,6 +1,6 @@
 "use client";
 
-import { isBytes32, toMarketId } from "@masayume/core/types";
+import { isBytes32, toMarketId } from "@agari/core/types";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { SectionHeader } from "@/components/chrome";

@@ -1,4 +1,4 @@
-import { SIDE_TO_OUTCOME, type Address, type Hex, type MarketId, type Side } from "@masayume/core/types";
+import { SIDE_TO_OUTCOME, type Address, type Hex, type MarketId, type Side } from "@agari/core/types";
 import { parseEventLogs, type TransactionReceipt } from "viem";
 import { eventVaultAbi } from "../contracts/event-vault.abi";
 import { getClient, getVaultDeployment } from "../runtime/read-runtime";

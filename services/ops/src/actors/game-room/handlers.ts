@@ -7,11 +7,11 @@ import {
   type ClientMessage,
   type MatchState,
   type ServerMessage,
-} from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import { isBytes32, type Address, type Bytes32 } from "@masayume/core/types";
-import { marketsProvider } from "@masayume/markets";
-import { readArenaAgent } from "@masayume/markets/games";
+} from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import { isBytes32, type Address, type Bytes32 } from "@agari/core/types";
+import { marketsProvider } from "@agari/markets";
+import { readArenaAgent } from "@agari/markets/games";
 import type { PendingMatch } from "../matchmaker/pending";
 import type { RoomConnection, RoomHub } from "./hub";
 import { buildMatchSnapshot } from "./snapshot";

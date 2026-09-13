@@ -1,4 +1,4 @@
-import type { Address } from "@masayume/core/types";
+import type { Address } from "@agari/core/types";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getClient } from "../runtime/read-runtime";

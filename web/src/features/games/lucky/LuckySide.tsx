@@ -1,7 +1,7 @@
 "use client";
 
-import { LUCKY_VERIFIED } from "@masayume/core/games";
-import { shortHex } from "@masayume/core/units";
+import { LUCKY_VERIFIED } from "@agari/core/games";
+import { shortHex } from "@agari/core/units";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useGames } from "../GamesProvider";

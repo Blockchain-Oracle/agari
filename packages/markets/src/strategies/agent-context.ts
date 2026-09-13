@@ -1,7 +1,7 @@
-import { err, isOk, ok, type Reading } from "@masayume/core/schemas";
-import type { AgentContext, AgentSample } from "@masayume/core/strategies";
-import { diagnosis, type EventMarket, type PricePoint, type Side } from "@masayume/core/types";
-import { msToSec } from "@masayume/core/units";
+import { err, isOk, ok, type Reading } from "@agari/core/schemas";
+import type { AgentContext, AgentSample } from "@agari/core/strategies";
+import { diagnosis, type EventMarket, type PricePoint, type Side } from "@agari/core/types";
+import { msToSec } from "@agari/core/units";
 import { marketsProvider } from "../provider";
 import { openingOnFeedScale } from "./price-basis";
 

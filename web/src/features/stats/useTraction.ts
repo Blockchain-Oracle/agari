@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@masayume/core";
-import { useReadingQuery } from "@masayume/markets/react";
+import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { useReadingQuery } from "@agari/markets/react";
 import { toTractionData, tractionPayloadSchema, type TractionData } from "./protocol";
 
 /** The reference polls every 30 s; the route serves from the board's three-minute cache, so this is cheap. */

@@ -1,8 +1,8 @@
-import type { IntentJournal, PhaseListener, TxOutcome } from "@masayume/core/ports";
-import { GAS_SAFETY_BPS } from "@masayume/core/constants";
-import { encodeSpec, REGISTRY_NOT_DEPLOYED, type StrategyIntent } from "@masayume/core/strategies";
-import { diagnosis, type Address, type Hex } from "@masayume/core/types";
-import { formatBaseUnits, mulBpsCeil, oneUnit } from "@masayume/core/units";
+import type { IntentJournal, PhaseListener, TxOutcome } from "@agari/core/ports";
+import { GAS_SAFETY_BPS } from "@agari/core/constants";
+import { encodeSpec, REGISTRY_NOT_DEPLOYED, type StrategyIntent } from "@agari/core/strategies";
+import { diagnosis, type Address, type Hex } from "@agari/core/types";
+import { formatBaseUnits, mulBpsCeil, oneUnit } from "@agari/core/units";
 import { erc20Abi, keccak256, toBytes, type ContractFunctionArgs, type ContractFunctionName } from "viem";
 import { SOMNIA_SHANNON } from "../chain";
 import { getCollateral } from "../collateral";
@@ -142,7 +142,7 @@ export function summarizeStrategy(intent: StrategyIntent, decimals: number): str
 
 /**
  * The second lane for the registry: journal → gas → (fee allowance) → simulate → send → receipt.
- * Journaled under its own kinds; the intent union in `@masayume/core/ports` grows to include them
+ * Journaled under its own kinds; the intent union in `@agari/core/ports` grows to include them
  * when the parent wires `StrategyIntent` in — until then the record is cast, never faked.
  */
 export async function submitStrategyTx(ctx: StrategyTxContext, intent: StrategyIntent, onPhase?: PhaseListener): Promise<TxOutcome> {

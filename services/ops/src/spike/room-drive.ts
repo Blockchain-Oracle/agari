@@ -1,7 +1,7 @@
-import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
-import { parseMarketsEnv } from "@masayume/markets";
-import { resolveArenaDeployment } from "@masayume/markets/games";
+import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@agari/core/games";
+import type { Address } from "@agari/core/types";
+import { parseMarketsEnv } from "@agari/markets";
+import { resolveArenaDeployment } from "@agari/markets/games";
 import { WebSocket } from "ws";
 import { startGameRoom } from "../actors/game-room";
 import { roomMac } from "../actors/game-room/token";
@@ -11,7 +11,7 @@ import { roomMac } from "../actors/game-room/token";
  * browser would actually see — the handshake, the refusals, the rate limit, and a reconnect that rebuilds
  * a live Shannon match from the chain alone.
  *
- *   MATCH_ID=0x… pnpm --filter @masayume/ops spike:room
+ *   MATCH_ID=0x… pnpm --filter @agari/ops spike:room
  *
  * `MATCH_ID` is optional; without it the chain-backed checks are skipped and the transport is still
  * proven. With it, the last check is the slice's acceptance criterion in one line: a socket that has
@@ -40,7 +40,7 @@ interface Client {
 }
 
 async function connect(token: string): Promise<Client | number> {
-  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["masayume.room.v1", token]);
+  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["agari.room.v1", token]);
   const inbox: ServerMessage[] = [];
   const waiters: ((m: ServerMessage) => void)[] = [];
   socket.on("message", (data) => {

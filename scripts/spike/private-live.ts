@@ -1,11 +1,11 @@
 import { execSync } from "node:child_process";
 
-import { formatCadence } from "@masayume/core/copy";
-import { privateOpenMessage } from "@masayume/core/private";
-import type { Hex } from "@masayume/core/types";
-import { formatBaseUnits, oneUnit } from "@masayume/core/units";
-import { closeRuntime, configureMarkets, createMemoryJournal, createSubmitterSession, getCollateral, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, unwrap } from "@masayume/markets";
-import { cashOutPrivateBet, createDeskClient, deriveSlotKeys, deskHealth, getPrivateBudget, getPrivateDeskState, getPrivateSlot, openPrivateBet, sizePrivateForStake } from "@masayume/markets/private";
+import { formatCadence } from "@agari/core/copy";
+import { privateOpenMessage } from "@agari/core/private";
+import type { Hex } from "@agari/core/types";
+import { formatBaseUnits, oneUnit } from "@agari/core/units";
+import { closeRuntime, configureMarkets, createMemoryJournal, createSubmitterSession, getCollateral, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, unwrap } from "@agari/markets";
+import { cashOutPrivateBet, createDeskClient, deriveSlotKeys, deskHealth, getPrivateBudget, getPrivateDeskState, getPrivateSlot, openPrivateBet, sizePrivateForStake } from "@agari/markets/private";
 import { privateKeyToAccount } from "viem/accounts";
 
 /**
@@ -14,7 +14,7 @@ import { privateKeyToAccount } from "viem/accounts";
  * three sends, each measured — and, with WAIT=1, waits for the Window to settle, cashes out (settle, sweep,
  * credit, each measured) and the owner withdraws. SKIP_FUND=1 skips the deposit when the balance already covers it.
  *
- *   HOUSE_KEY=… PRIVATE_DESK_PRIVATE_KEY=… pnpm --filter @masayume/scripts spike:private-live        (WAIT=1 to settle)
+ *   HOUSE_KEY=… PRIVATE_DESK_PRIVATE_KEY=… pnpm --filter @agari/scripts spike:private-live        (WAIT=1 to settle)
  */
 const WAIT = process.env.WAIT === "1";
 const SKIP_FUND = process.env.SKIP_FUND === "1";

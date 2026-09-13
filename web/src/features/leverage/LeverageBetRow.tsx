@@ -1,9 +1,9 @@
 "use client";
 
-import { equityOf, type LeverageMark, type LeveragePosition } from "@masayume/core/leverage";
-import { countdown } from "@masayume/core/lifecycle";
-import { formatBaseUnits } from "@masayume/core/units";
-import { marketDeepLink } from "@masayume/core/urls";
+import { equityOf, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
+import { countdown } from "@agari/core/lifecycle";
+import { formatBaseUnits } from "@agari/core/units";
+import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address, Bytes32, Hex } from "@masayume/core/types";
+import type { Address, Bytes32, Hex } from "@agari/core/types";
 import { useCallback, useEffect, useState } from "react";
 import { deviceId } from "@/features/session/store";
 
@@ -64,7 +64,7 @@ export function useGameSponsor(): GameSponsor {
     try {
       const response = await fetch(ENDPOINT, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-masayume-device": deviceId() },
+        headers: { "content-type": "application/json", "x-agari-device": deviceId() },
         body: JSON.stringify({ matchId, player, agent }),
       });
       const body = (await response.json().catch(() => ({}))) as { hash?: Hex | null; amountWei?: string; why?: string; error?: string };

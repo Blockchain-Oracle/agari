@@ -1,6 +1,6 @@
-import type { ParlayQuote, ParlayReserveState } from "@masayume/core/parlay";
-import { err, ok, type Reading } from "@masayume/core/schemas";
-import { diagnosis, toMarketId, type Address, type EventMarket, type MarketId } from "@masayume/core/types";
+import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
+import { err, ok, type Reading } from "@agari/core/schemas";
+import { diagnosis, toMarketId, type Address, type EventMarket, type MarketId } from "@agari/core/types";
 import type { DraftLeg } from "@/features/parlay/LegRow";
 import type { ParlayTicketView } from "@/features/parlay";
 

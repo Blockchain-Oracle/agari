@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { keys, usePositions } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { keys, usePositions } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Fragment, useState } from "react";

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits, formatUtc } from "@masayume/core/units";
+import { formatBaseUnits, formatUtc } from "@agari/core/units";
 import type { XGrantState } from "./useXGrant";
 import { X_CARD } from "./copy";
 

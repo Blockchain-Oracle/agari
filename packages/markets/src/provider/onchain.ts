@@ -1,5 +1,5 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { MarketId, OnchainSnapshot } from "@masayume/core/types";
+import type { Reading } from "@agari/core/schemas";
+import type { MarketId, OnchainSnapshot } from "@agari/core/types";
 import { getClient } from "../runtime/read-runtime";
 import { toOnchainSnapshot } from "../mappers/onchain";
 import { withReading } from "./reading";

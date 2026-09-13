@@ -1,6 +1,6 @@
-import type { BookedOrder } from "@masayume/core/ports";
-import type { MarketId, Side } from "@masayume/core/types";
-import { ceilDiv, oneUnit, ownTermsPriceRaw, priceRawToBps } from "@masayume/core/units";
+import type { BookedOrder } from "@agari/core/ports";
+import type { MarketId, Side } from "@agari/core/types";
+import { ceilDiv, oneUnit, ownTermsPriceRaw, priceRawToBps } from "@agari/core/units";
 import type { PlaceOrderResult } from "@somnia-chain/markets-sdk";
 
 export interface BookFillsInput {

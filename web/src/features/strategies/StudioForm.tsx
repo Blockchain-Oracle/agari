@@ -1,6 +1,6 @@
 "use client";
 
-import { PRESETS } from "@masayume/core/strategies";
+import { PRESETS } from "@agari/core/strategies";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";

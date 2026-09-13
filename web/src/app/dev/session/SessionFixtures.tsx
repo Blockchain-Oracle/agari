@@ -1,8 +1,8 @@
 "use client";
 
-import type { TxOutcome } from "@masayume/core/ports";
-import { diagnosis, type Address } from "@masayume/core/types";
-import type { VaultGrant } from "@masayume/core/vault";
+import type { TxOutcome } from "@agari/core/ports";
+import { diagnosis, type Address } from "@agari/core/types";
+import type { VaultGrant } from "@agari/core/vault";
 import { useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { RouteControl, SESSION, SessionChip, SessionControl, SessionManagerBody, type FundingSource, type SessionKeyView, type SessionStatus } from "@/features/session";

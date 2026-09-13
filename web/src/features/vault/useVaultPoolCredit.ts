@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { VenueCredit } from "@masayume/core/types";
-import type { VaultDeployment } from "@masayume/core/vault";
-import { useBalanceSheet } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { VenueCredit } from "@agari/core/types";
+import type { VaultDeployment } from "@agari/core/vault";
+import { useBalanceSheet } from "@agari/markets/react";
 
 /**
  * The vault's own venue credit, per pool — the balance sheet read for the vault's address. A

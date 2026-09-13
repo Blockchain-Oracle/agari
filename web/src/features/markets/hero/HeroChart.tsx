@@ -1,7 +1,7 @@
 "use client";
 
-import type { EventMarket, Lane, MarketId, Side } from "@masayume/core/types";
-import { useOpeningPrice } from "@masayume/markets/react";
+import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
+import { useOpeningPrice } from "@agari/markets/react";
 import { ReadingBoundary } from "@/components/states";
 import { HeroChartFoot } from "./HeroChartFoot";
 import { HeroChartHead } from "./HeroChartHead";

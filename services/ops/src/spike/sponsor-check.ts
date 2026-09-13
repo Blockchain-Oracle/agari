@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, Hex } from "@masayume/core/types";
-import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, keyGasBalance, loadCollateral, parseMarketsEnv } from "@masayume/markets";
-import { getArenaState, readArenaAgent, sendArenaIntent } from "@masayume/markets/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, Hex } from "@agari/core/types";
+import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, keyGasBalance, loadCollateral, parseMarketsEnv } from "@agari/markets";
+import { getArenaState, readArenaAgent, sendArenaIntent } from "@agari/markets/games";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { finish } from "./finish";
 
@@ -11,7 +11,7 @@ import { finish } from "./finish";
  * as the seat's agent with no gas sent, the web route is asked to fund that key, the key's balance is
  * read before and after, and the match is withdrawn. Scratch driver for slice C (2026-09-04).
  *
- *   PLAYER_KEY=… CHALLENGER=0x… WEB_URL=http://localhost:3000 pnpm --filter @masayume/ops spike:sponsor
+ *   PLAYER_KEY=… CHALLENGER=0x… WEB_URL=http://localhost:3000 pnpm --filter @agari/ops spike:sponsor
  */
 const WEB_URL = process.env.WEB_URL ?? "http://localhost:3000";
 const CHALLENGER = (process.env.CHALLENGER ?? "").toLowerCase() as Address;
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   const ask = async (label: string) => {
     const res = await fetch(`${WEB_URL}/api/games/sponsor`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-masayume-device": "sponsor-check" },
+      headers: { "content-type": "application/json", "x-agari-device": "sponsor-check" },
       body: JSON.stringify({ matchId, player: session.address, agent }),
     });
     const body = (await res.json()) as { hash?: string; amountWei?: string; why?: string; error?: string };
@@ -67,7 +67,7 @@ async function main(): Promise<void> {
   const stranger = privateKeyToAccount(generatePrivateKey()).address;
   const res = await fetch(`${WEB_URL}/api/games/sponsor`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-masayume-device": "sponsor-check" },
+    headers: { "content-type": "application/json", "x-agari-device": "sponsor-check" },
     body: JSON.stringify({ matchId, player: session.address, agent: stranger }),
   });
   console.log(`stranger's key (must refuse: not the seat's): ${res.status} ${JSON.stringify(await res.json())}`);

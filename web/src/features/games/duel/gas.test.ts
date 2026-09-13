@@ -1,4 +1,4 @@
-import { requiredGasWei } from "@masayume/markets";
+import { requiredGasWei } from "@agari/markets";
 import { describe, expect, it } from "vitest";
 import { deckGasWei, PICK_ATTEMPTS_FUNDED, pickFeeWei, sponsorDefaultCapWei, sponsorTopUpWei } from "./gas";
 

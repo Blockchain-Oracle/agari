@@ -1,6 +1,6 @@
 "use client";
 
-import type { Diagnosis } from "@masayume/core";
+import type { Diagnosis } from "@agari/core";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { openFunds } from "@/features/funding/credited";

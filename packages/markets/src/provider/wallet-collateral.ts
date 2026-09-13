@@ -1,4 +1,4 @@
-import type { Address } from "@masayume/core/types";
+import type { Address } from "@agari/core/types";
 import { loadCollateral } from "../collateral";
 import { getClient } from "../runtime/read-runtime";
 import { withReading } from "./reading";

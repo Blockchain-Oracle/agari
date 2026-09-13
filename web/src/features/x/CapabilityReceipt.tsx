@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { TRADE_FROM_X } from "./copy";
 import { Dot } from "./StepSpine";
 import { X_GRANT } from "./useXGrant";

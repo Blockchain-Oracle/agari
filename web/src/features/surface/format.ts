@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 
 /** Basis points as cents, one decimal only when the tick needs it: 400 → "4¢", 50 → "0.5¢". */
 export function centsText(bps: number): string {

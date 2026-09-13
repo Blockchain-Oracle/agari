@@ -1,4 +1,4 @@
-import type { EdgeWindow } from "@masayume/core/projection";
+import type { EdgeWindow } from "@agari/core/projection";
 
 /** `/portfolio/edge` — ported from the reference's Trader Edge page; facts adapted to DreamDEX. */
 export const EDGE = {

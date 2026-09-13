@@ -1,7 +1,7 @@
 "use client";
 
-import { minStakeBase } from "@masayume/core/sizing";
-import { formatBaseUnits } from "@masayume/core/units";
+import { minStakeBase } from "@agari/core/sizing";
+import { formatBaseUnits } from "@agari/core/units";
 import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { TICKET } from "@/lib/copy";

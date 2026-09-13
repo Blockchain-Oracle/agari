@@ -20,13 +20,13 @@ import { resolveLeverageDeployment } from "../leverage/deployment";
 import { resolvePrivateDeployment } from "../private/deployment";
 import { resolveArenaDeployment } from "../games/deployment";
 import { resolveVaultDeployment } from "../vault/deployment";
-import type { ParlayDeployment } from "@masayume/core/parlay";
-import type { RangeDeployment } from "@masayume/core/range";
-import type { MakerDeployment } from "@masayume/core/maker";
-import type { LeverageDeployment } from "@masayume/core/leverage";
-import type { PrivateDeployment } from "@masayume/core/private";
-import type { ArenaDeployment } from "@masayume/core/games";
-import type { VaultDeployment } from "@masayume/core/vault";
+import type { ParlayDeployment } from "@agari/core/parlay";
+import type { RangeDeployment } from "@agari/core/range";
+import type { MakerDeployment } from "@agari/core/maker";
+import type { LeverageDeployment } from "@agari/core/leverage";
+import type { PrivateDeployment } from "@agari/core/private";
+import type { ArenaDeployment } from "@agari/core/games";
+import type { VaultDeployment } from "@agari/core/vault";
 
 type ExchangeConfig = ConstructorParameters<typeof SomniaMarkets>[0];
 

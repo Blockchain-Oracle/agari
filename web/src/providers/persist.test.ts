@@ -1,5 +1,5 @@
-import type { MarketId } from "@masayume/core/types";
-import { keys } from "@masayume/markets/react";
+import type { MarketId } from "@agari/core/types";
+import { keys } from "@agari/markets/react";
 import { describe, expect, it } from "vitest";
 import { isPersistable } from "./persist";
 

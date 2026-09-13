@@ -1,8 +1,8 @@
 "use client";
 
-import type { Address, Hex } from "@masayume/core/types";
-import type { VaultDeployment } from "@masayume/core/vault";
-import { createLocalStorageJournal, createSessionKeySession, createSponsorTransport, nowMs, sessionKeyClient, type SubmitterSession } from "@masayume/markets";
+import type { Address, Hex } from "@agari/core/types";
+import type { VaultDeployment } from "@agari/core/vault";
+import { createLocalStorageJournal, createSessionKeySession, createSponsorTransport, nowMs, sessionKeyClient, type SubmitterSession } from "@agari/markets";
 import { useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
 import { deviceId } from "./store";
@@ -19,7 +19,7 @@ interface KeySessionInput {
 function withKeyLock<T>(key: Address, task: () => Promise<T>): Promise<T> {
   const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
   if (!locks) return task();
-  return locks.request(`masayume.sessionKey.${key.toLowerCase()}`, task) as Promise<T>;
+  return locks.request(`agari.sessionKey.${key.toLowerCase()}`, task) as Promise<T>;
 }
 
 function serialised(session: SubmitterSession): SubmitterSession {

@@ -1,5 +1,5 @@
-import type { AttributionHook, IntentJournal, StopGate } from "@masayume/core/ports";
-import type { Address } from "@masayume/core/types";
+import type { AttributionHook, IntentJournal, StopGate } from "@agari/core/ports";
+import type { Address } from "@agari/core/types";
 import { SomniaMarkets } from "@somnia-chain/markets-sdk";
 import { createPublicClient, createWalletClient, http, type Account, type Hex, type WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";

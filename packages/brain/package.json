@@ -1,5 +1,5 @@
 {
-  "name": "@masayume/brain",
+  "name": "@agari/brain",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "@ai-sdk/anthropic": "^4.0.46",
     "@ai-sdk/google": "^4.0.59",
     "@ai-sdk/openai": "^4.0.53",
-    "@masayume/core": "workspace:*",
+    "@agari/core": "workspace:*",
     "ai": "^7.0.87",
     "zod": "catalog:"
   },

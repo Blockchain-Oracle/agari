@@ -1,9 +1,9 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@masayume/core/constants";
-import type { Reading } from "@masayume/core/schemas";
-import { readRangeCapacity, type RangeCapacity } from "@masayume/markets/range";
-import { keys, useReadingQuery } from "@masayume/markets/react";
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import type { Reading } from "@agari/core/schemas";
+import { readRangeCapacity, type RangeCapacity } from "@agari/markets/range";
+import { keys, useReadingQuery } from "@agari/markets/react";
 
 /** Nested under the reserve's key so the invalidation after any reserve write refreshes it too. */
 const capacityKey = (expirySec: number | null, houseLockedBase: bigint) => [...keys.rangeReserve(), "capacity", expirySec, houseLockedBase.toString()] as const;

@@ -1,8 +1,8 @@
-import type { IntentJournal } from "@masayume/core/ports";
+import type { IntentJournal } from "@agari/core/ports";
 import { createJournal, type IntentStore, type JournalRecord } from "./journal";
 import { createMemoryStore } from "./journal-memory";
 
-export const INTENT_JOURNAL_KEY = "masayume.intents.v1";
+export const INTENT_JOURNAL_KEY = "agari.intents.v1";
 
 // bigint never survives JSON; any future bigint field serializes as a decimal string.
 const replacer = (_key: string, value: unknown) => (typeof value === "bigint" ? value.toString() : value);

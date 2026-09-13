@@ -1,4 +1,4 @@
-import type { Diagnosis, DiagnosisKind } from "@masayume/core/types";
+import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
 import { diagnoseNamedRevert } from "../vault/errors";
 
 /** The reserve's own reverts (`IParlayReserve` errors), mapped into the one diagnosis vocabulary (AD-13). */

@@ -1,4 +1,4 @@
-import { EMPTY_AGENT_RECORD, type AgentContext, type AgentSpec } from "@masayume/core/strategies";
+import { EMPTY_AGENT_RECORD, type AgentContext, type AgentSpec } from "@agari/core/strategies";
 import { MockLanguageModelV3 } from "ai/test";
 import { describe, expect, it } from "vitest";
 import { decideAgentWindow, promptHashOf } from "./agent-decide";

@@ -1,6 +1,6 @@
-import type { BalanceSheet } from "@masayume/core/types";
-import { requiredGasWei } from "@masayume/markets";
-import { SOMNIA_SHANNON } from "@masayume/markets/chain";
+import type { BalanceSheet } from "@agari/core/types";
+import { requiredGasWei } from "@agari/markets";
+import { SOMNIA_SHANNON } from "@agari/markets/chain";
 import { Money } from "@/components/data";
 import { StaleTick, type ReadingMeta } from "@/components/states";
 import type { ReactNode } from "react";

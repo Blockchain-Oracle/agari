@@ -1,7 +1,7 @@
 "use client";
 
-import type { Reading } from "@masayume/core/schemas";
-import type { Bytes32, EventMarket, LaneSet, MarketId, Side } from "@masayume/core/types";
+import type { Reading } from "@agari/core/schemas";
+import type { Bytes32, EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
 import { ReadingBoundary } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { BetweenRounds } from "./BetweenRounds";

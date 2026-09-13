@@ -14,7 +14,7 @@ import {
   type ArcadeRunConfig,
   type RideState,
   type Rng,
-} from "@masayume/core/games/arcade";
+} from "@agari/core/games/arcade";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { attachRideControls, type RideInput } from "./controls";
 import { createRideFx, drawRide } from "./ride-draw";

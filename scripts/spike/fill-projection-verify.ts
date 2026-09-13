@@ -1,5 +1,5 @@
-import { toMarketId, type Address } from "@masayume/core";
-import { marketsProvider } from "@masayume/markets";
+import { toMarketId, type Address } from "@agari/core";
+import { marketsProvider } from "@agari/markets";
 import { runSpike, short } from "./lib/boot";
 
 const DAY_SEC = 86_400;

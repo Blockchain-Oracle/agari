@@ -1,7 +1,7 @@
-import type { Submitter, TxOutcome } from "@masayume/core/ports";
-import type { Address, Hex } from "@masayume/core/types";
-import type { VaultGrant } from "@masayume/core/vault";
-import { X_GRANT, xGrantCaps } from "@masayume/core/x";
+import type { Submitter, TxOutcome } from "@agari/core/ports";
+import type { Address, Hex } from "@agari/core/types";
+import type { VaultGrant } from "@agari/core/vault";
+import { X_GRANT, xGrantCaps } from "@agari/core/x";
 
 export interface XUpdateProgress {
   version: 1;

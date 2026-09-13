@@ -1,10 +1,10 @@
 "use client";
 
-import { formatBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
-import { isOk } from "@masayume/core/schemas";
-import { useBalanceSheet, useWalletCollateral } from "@masayume/markets/react";
-import type { Address, Hex } from "@masayume/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
+import { isOk } from "@agari/core/schemas";
+import { useBalanceSheet, useWalletCollateral } from "@agari/markets/react";
+import type { Address, Hex } from "@agari/core/types";
 import type { useFaucet } from "@/features/markets/faucet/useFaucet";
 import { FUNDING } from "./copy";
 

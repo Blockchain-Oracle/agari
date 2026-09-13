@@ -1,5 +1,5 @@
-import { STT_FAUCETS } from "@masayume/core/constants";
-import type { Address } from "@masayume/core/types";
+import { STT_FAUCETS } from "@agari/core/constants";
+import type { Address } from "@agari/core/types";
 import { Hash } from "@/components/data";
 import { Button } from "@/components/ui/button";
 import { FAUCET, OUT_OF_GAS } from "@/lib/copy";

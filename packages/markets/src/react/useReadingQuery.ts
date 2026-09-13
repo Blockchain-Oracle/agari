@@ -1,5 +1,5 @@
-import { err, type Reading } from "@masayume/core/schemas";
-import type { DiagnosisKind } from "@masayume/core/types";
+import { err, type Reading } from "@agari/core/schemas";
+import type { DiagnosisKind } from "@agari/core/types";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
 import { diagnose } from "../errors/error-map";
 import { ReadingError } from "../errors/reading-error";

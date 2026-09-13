@@ -1,7 +1,7 @@
 "use client";
 
-import type { BookedOrder } from "@masayume/core/ports";
-import type { Address, Bytes32, Hex } from "@masayume/core/types";
+import type { BookedOrder } from "@agari/core/ports";
+import type { Address, Bytes32, Hex } from "@agari/core/types";
 import { useCallback, useRef, useState } from "react";
 import { deviceId } from "@/features/session/store";
 import { isDealt, type DealtLuckyWire, type LuckyCommitWire, type LuckyDealWire, type LuckyPlacedStatus, type LuckyPlacedWire } from "./lucky-wire";
@@ -52,7 +52,7 @@ function randomSeed(): Bytes32 {
 async function post<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${ENDPOINT}/${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-masayume-device": deviceId() },
+    headers: { "content-type": "application/json", "x-agari-device": deviceId() },
     body: JSON.stringify(body),
   });
   const json = (await response.json().catch(() => ({}))) as T & { error?: string };

@@ -1,6 +1,6 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
+import { isOk } from "@agari/core/schemas";
 import type { ListItem } from "@/lib/use-pager";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useChainNowMs } from "../markets/useChainNow";

@@ -1,4 +1,4 @@
-import type { ArcadeGame } from "@masayume/core/games/arcade";
+import type { ArcadeGame } from "@agari/core/games/arcade";
 
 /**
  * Everything the arcade says.

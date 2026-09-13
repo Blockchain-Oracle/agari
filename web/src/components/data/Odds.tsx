@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { bpsToOddsCents } from "@masayume/core/units";
+import { bpsToOddsCents } from "@agari/core/units";
 
 interface OddsProps {
   bps: number;

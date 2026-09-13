@@ -1,9 +1,9 @@
 "use client";
 
-import type { EventMarket } from "@masayume/core/types";
-import { formatCadence } from "@masayume/core/market";
-import { formatOracleRaw } from "@masayume/core/units";
-import { ORACLE_PRICE_SCALE } from "@masayume/markets/identity";
+import type { EventMarket } from "@agari/core/types";
+import { formatCadence } from "@agari/core/market";
+import { formatOracleRaw } from "@agari/core/units";
+import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 import { useCallback, useState, type ReactNode } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { MarketRoom } from "@/features/room";

@@ -1,8 +1,8 @@
 "use client";
 
-import type { Diagnosis } from "@masayume/core/types";
-import { sessionGasTopUpWei } from "@masayume/markets";
-import { useBalanceSheet } from "@masayume/markets/react";
+import type { Diagnosis } from "@agari/core/types";
+import { sessionGasTopUpWei } from "@agari/markets";
+import { useBalanceSheet } from "@agari/markets/react";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";

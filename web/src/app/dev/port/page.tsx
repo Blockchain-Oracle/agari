@@ -1,6 +1,6 @@
-import { formatBaseUnits, formatOracleRaw, isOk, phase, type EventMarket, type Reading } from "@masayume/core";
-import { bootMarkets, ensureMarkets, marketsProvider } from "@masayume/markets";
-import { ORACLE_PRICE_SCALE } from "@masayume/markets/identity";
+import { formatBaseUnits, formatOracleRaw, isOk, phase, type EventMarket, type Reading } from "@agari/core";
+import { bootMarkets, ensureMarkets, marketsProvider } from "@agari/markets";
+import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 import { webEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";

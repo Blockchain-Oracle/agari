@@ -10,10 +10,10 @@ import {
   roomTokenExpiresAtMs,
   verifyRoomToken,
   type RoomTokenClaims,
-} from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
-import { parseMarketsEnv } from "@masayume/markets";
-import { resolveArenaDeployment } from "@masayume/markets/games";
+} from "@agari/core/games";
+import type { Address } from "@agari/core/types";
+import { parseMarketsEnv } from "@agari/markets";
+import { resolveArenaDeployment } from "@agari/markets/games";
 import { verifyMessage } from "viem";
 
 /**

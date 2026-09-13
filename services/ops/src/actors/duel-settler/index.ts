@@ -1,9 +1,9 @@
-import type { ArenaIntent } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Bytes32, Hex, MarketId } from "@masayume/core/types";
-import { getDeck, isDbConfigured, listLiveMatches, markDeckRevealed } from "@masayume/db";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, type SubmitterSession } from "@masayume/markets";
-import { getArenaMatch, getArenaState, resolveArenaDeployment, sendArenaIntent } from "@masayume/markets/games";
+import type { ArenaIntent } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Bytes32, Hex, MarketId } from "@agari/core/types";
+import { getDeck, isDbConfigured, listLiveMatches, markDeckRevealed } from "@agari/db";
+import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, type SubmitterSession } from "@agari/markets";
+import { getArenaMatch, getArenaState, resolveArenaDeployment, sendArenaIntent } from "@agari/markets/games";
 import { deckKey, fromJournal, open } from "../matchmaker/seal";
 import { decideMatch, isDone, type SettlerAction } from "./decide";
 

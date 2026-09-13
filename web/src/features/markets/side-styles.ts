@@ -1,4 +1,4 @@
-import type { Side } from "@masayume/core/types";
+import type { Side } from "@agari/core/types";
 import { MARKETS } from "@/lib/copy";
 
 /** The up/down washes from the token surfaces; the side word is always present next to them (color law). */

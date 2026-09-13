@@ -1,4 +1,4 @@
-import { parseMarketsEnv, type MarketsEnv } from "@masayume/markets/env";
+import { parseMarketsEnv, type MarketsEnv } from "@agari/markets/env";
 import { z } from "zod";
 
 const webOnlySchema = z.object({

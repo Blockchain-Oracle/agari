@@ -1,6 +1,6 @@
 "use client";
 
-import { chainReconciler, recoverUnresolved, type RecoveryResult, type SubmitterSession } from "@masayume/markets";
+import { chainReconciler, recoverUnresolved, type RecoveryResult, type SubmitterSession } from "@agari/markets";
 import { useEffect } from "react";
 import { RECOVERY } from "@/features/recovery/copy";
 import { notify } from "@/lib/toast";

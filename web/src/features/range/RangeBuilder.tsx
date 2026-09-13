@@ -1,11 +1,11 @@
 "use client";
 
-import type { RangeMode, RangeReserveState, RangeSide } from "@masayume/core/range";
-import { RANGE_STAKE_HEADROOM_BPS } from "@masayume/core/range";
-import { isOk } from "@masayume/core/schemas";
-import type { Hex, MarketId } from "@masayume/core/types";
-import { formatBaseUnits, parseDecimalToBaseUnits, mulBpsCeil } from "@masayume/core/units";
-import { useBalanceSheet } from "@masayume/markets/react";
+import type { RangeMode, RangeReserveState, RangeSide } from "@agari/core/range";
+import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
+import { isOk } from "@agari/core/schemas";
+import type { Hex, MarketId } from "@agari/core/types";
+import { formatBaseUnits, parseDecimalToBaseUnits, mulBpsCeil } from "@agari/core/units";
+import { useBalanceSheet } from "@agari/markets/react";
 import { Target, Wallet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

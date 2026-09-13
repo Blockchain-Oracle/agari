@@ -1,6 +1,6 @@
-import { err, ok, stale, type Reading } from "@masayume/core/schemas";
-import { diagnosis, toMarketId, type Address } from "@masayume/core/types";
-import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@masayume/core/vault";
+import { err, ok, stale, type Reading } from "@agari/core/schemas";
+import { diagnosis, toMarketId, type Address } from "@agari/core/types";
+import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@agari/core/vault";
 import type { VAULT } from "@/features/vault";
 import type { VaultOpenBet } from "@/features/vault";
 

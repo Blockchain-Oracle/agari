@@ -1,6 +1,6 @@
 "use client";
 
-import { bookStructure } from "@masayume/core/surface";
+import { bookStructure } from "@agari/core/surface";
 import Link from "next/link";
 import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";

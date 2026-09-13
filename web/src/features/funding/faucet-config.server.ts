@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
-import { FaucetError, STT_FAUCET_POLICY, type FaucetStatus } from "@masayume/core/faucet";
-import { isDbConfigured } from "@masayume/db";
-import { createFaucetChain } from "@masayume/markets/faucet";
+import { FaucetError, STT_FAUCET_POLICY, type FaucetStatus } from "@agari/core/faucet";
+import { isDbConfigured } from "@agari/db";
+import { createFaucetChain } from "@agari/markets/faucet";
 import type { Hex } from "viem";
 import { createFaucetService } from "./faucet-service.server";
 
@@ -23,7 +23,7 @@ export function faucetForRequest(request: Request) {
   // Vercel overwrites x-forwarded-for at the trusted edge. Production outside Vercel requires an explicit trusted proxy.
   const ip = process.env.VERCEL === "1" ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() : process.env.NODE_ENV !== "production" ? "local-development" : null;
   if (!ip) throw new FaucetError("connection-unverified", "The faucet could not verify this connection.", 503);
-  const ipHash = createHmac("sha256", config.key).update(`masayume-faucet-ip:${ip}`).digest("hex");
+  const ipHash = createHmac("sha256", config.key).update(`agari-faucet-ip:${ip}`).digest("hex");
   return { service: createFaucetService(config.chain), ipHash, origin };
 }
 export function faucetErrorResponse(error: unknown): Response {

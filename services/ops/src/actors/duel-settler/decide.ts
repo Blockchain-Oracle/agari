@@ -1,5 +1,5 @@
-import { cardsInMask, type ArenaMatch, type ArenaParams } from "@masayume/core/games";
-import type { Bytes32, MarketId } from "@masayume/core/types";
+import { cardsInMask, type ArenaMatch, type ArenaParams } from "@agari/core/games";
+import type { Bytes32, MarketId } from "@agari/core/types";
 
 /**
  * What the arena will accept for one match right now — every crank's precondition, restated from

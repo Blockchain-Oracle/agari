@@ -1,4 +1,4 @@
-import type { Bytes32, Hex } from "@masayume/core/types";
+import type { Bytes32, Hex } from "@agari/core/types";
 import { concatHex, keccak256, parseSignature, serializeSignature, stringToHex, type Hex as ViemHex } from "viem";
 
 /** secp256k1's group order halved: a signature with `s` above it is the malleated twin of a canonical one. */

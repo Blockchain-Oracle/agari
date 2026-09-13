@@ -1,7 +1,7 @@
 "use client";
 
-import type { Hex } from "@masayume/core/types";
-import { txUrl } from "@masayume/core/urls";
+import type { Hex } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { RANGE } from "./copy";
 

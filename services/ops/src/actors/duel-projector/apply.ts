@@ -9,9 +9,9 @@ import {
   type ArenaEvent,
   type ArenaEventLog,
   type ProjectionContext,
-} from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
-import { applyRatingsOnce, readRatings, recordMatchCreated, recordMatchProgress, recordPick, recordSettlement } from "@masayume/db";
+} from "@agari/core/games";
+import type { Address } from "@agari/core/types";
+import { applyRatingsOnce, readRatings, recordMatchCreated, recordMatchProgress, recordPick, recordSettlement } from "@agari/db";
 import { resnapshotRoom, type RoomContext } from "../game-room/handlers";
 import { entryFor, forget, seedFromCreation, type MatchCache, type MatchEntry } from "./facts";
 

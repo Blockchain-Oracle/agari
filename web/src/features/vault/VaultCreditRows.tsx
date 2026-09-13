@@ -1,9 +1,9 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
-import { useVaultSnapshot, useWalletHistory } from "@masayume/markets/react";
+import { formatCadence } from "@agari/core/copy";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
+import { useVaultSnapshot, useWalletHistory } from "@agari/markets/react";
 import Link from "next/link";
 import { CLAIM } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";

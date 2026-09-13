@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk, type Reading } from "@masayume/core/schemas";
-import type { Bytes32, EventMarket, Lane, LaneSet, MarketId } from "@masayume/core/types";
-import { useLanes } from "@masayume/markets/react";
+import { isOk, type Reading } from "@agari/core/schemas";
+import type { Bytes32, EventMarket, Lane, LaneSet, MarketId } from "@agari/core/types";
+import { useLanes } from "@agari/markets/react";
 import { useCallback, useMemo, useState } from "react";
 
 export interface SurfaceSelection {

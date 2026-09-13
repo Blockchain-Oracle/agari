@@ -1,5 +1,5 @@
-import type { Address } from "@masayume/core/types";
-import type { VaultDeployment } from "@masayume/core/vault";
+import type { Address } from "@agari/core/types";
+import type { VaultDeployment } from "@agari/core/vault";
 import type { MarketsEnv } from "../env";
 import { resolveAddresses } from "../addresses";
 import masayume from "../addresses.masayume.json";

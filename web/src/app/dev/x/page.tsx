@@ -1,7 +1,7 @@
 "use client";
 
-import { xGrantCaps, xPermissionState, type XReceipt } from "@masayume/core/x";
-import type { VaultGrant } from "@masayume/core/vault";
+import { xGrantCaps, xPermissionState, type XReceipt } from "@agari/core/x";
+import type { VaultGrant } from "@agari/core/vault";
 import { SectionHeader } from "@/components/chrome";
 import { ClaimReceiptCard, XReceiptsList, XWalletCardView, type XGrantState, type XLink, type XStatus } from "@/features/x";
 import { WALLET } from "../states/fixtures";

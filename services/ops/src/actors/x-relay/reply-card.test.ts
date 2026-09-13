@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
-import type { XReceiptStatus } from "@masayume/core/x";
+import type { XReceiptStatus } from "@agari/core/x";
 import { renderReplyCardPng, renderReplyCardSvg } from "./reply-card";
 import { createReplyPresentation } from "./reply-format";
 

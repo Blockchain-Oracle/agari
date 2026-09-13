@@ -1,8 +1,8 @@
 "use client";
 
-import type { BookLevelView, EventMarket } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { useBook } from "@masayume/markets/react";
+import type { BookLevelView, EventMarket } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { useBook } from "@agari/markets/react";
 import { Odds } from "@/components/data";
 import { ReadingBoundary, StaleTick } from "@/components/states";
 import { HERO } from "@/lib/copy";

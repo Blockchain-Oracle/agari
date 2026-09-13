@@ -1,6 +1,6 @@
 "use client";
 
-import type { PrizeTier } from "@masayume/core/games";
+import type { PrizeTier } from "@agari/core/games";
 import { useEffect, useState } from "react";
 
 /** The wire from `/api/games/season`, with the escrow's money as bigint. */

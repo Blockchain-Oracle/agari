@@ -1,7 +1,7 @@
 "use client";
 
-import type { MakerVaultState } from "@masayume/core/maker";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@masayume/core/units";
+import type { MakerVaultState } from "@agari/core/maker";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ConnectButton } from "../markets/wallet";

@@ -1,4 +1,4 @@
-import { bytes32Schema } from "@masayume/core/types";
+import { bytes32Schema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { revealDraw } from "@/features/games/lucky/lucky.server";

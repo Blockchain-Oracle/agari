@@ -1,4 +1,4 @@
-import { isDbConfigured, xLinkByAuthor, xLinkRevoke } from "@masayume/db";
+import { isDbConfigured, xLinkByAuthor, xLinkRevoke } from "@agari/db";
 import { NextResponse, type NextRequest } from "next/server";
 import { X_ERRORS } from "@/features/x/copy";
 import { readXGate, signatureFresh, verifyLinkSignature } from "@/features/x/gate.server";

@@ -1,4 +1,4 @@
-import type { Address, Hex } from "@masayume/core/types";
+import type { Address, Hex } from "@agari/core/types";
 import { createWalletClient, http, type PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { SOMNIA_SHANNON } from "../chain";

@@ -1,6 +1,6 @@
 "use client";
 
-import { shortHex } from "@masayume/core/units";
+import { shortHex } from "@agari/core/units";
 import type { CSSProperties } from "react";
 import { LoadingState } from "@/components/states";
 import { addressHue } from "@/lib/address-hue";

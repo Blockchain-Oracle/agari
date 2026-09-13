@@ -1,4 +1,4 @@
-import { addressSchema } from "@masayume/core/types";
+import { addressSchema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { commitDraw } from "@/features/games/lucky/lucky.server";
@@ -16,7 +16,7 @@ const requestSchema = z.object({ wallet: addressSchema, stakeBase: z.string().re
 export async function POST(req: Request) {
   const parsed = requestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "that is not a spin" }, { status: 400 });
-  const verdict = await commitDraw({ wallet: parsed.data.wallet, stakeBase: BigInt(parsed.data.stakeBase), device: req.headers.get("x-masayume-device") ?? "", nowMs: Date.now() });
+  const verdict = await commitDraw({ wallet: parsed.data.wallet, stakeBase: BigInt(parsed.data.stakeBase), device: req.headers.get("x-agari-device") ?? "", nowMs: Date.now() });
   if (!verdict.ok) return NextResponse.json({ error: verdict.error }, { status: verdict.status });
   return NextResponse.json(verdict.wire);
 }

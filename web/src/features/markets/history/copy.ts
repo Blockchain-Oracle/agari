@@ -1,4 +1,4 @@
-import type { BadgeId, ClaimState, ReputationTier, RoundOutcome } from "@masayume/core/projection";
+import type { BadgeId, ClaimState, ReputationTier, RoundOutcome } from "@agari/core/projection";
 
 /** The settled-history panel, the reputation panel and the Trader Edge link on `/portfolio`. */
 export const HISTORY = {
@@ -25,7 +25,7 @@ export const HISTORY = {
   partial: "This wallet has more history than one reading can page; the figures below cover its most recent part.",
   empty: { why: "Nothing settled yet.", nextAction: { label: "History fills in as your Windows close", href: "/markets" } },
   csv: "Download CSV",
-  csvName: (address: string) => `masayume-history-${address.slice(0, 8)}.csv`,
+  csvName: (address: string) => `agari-history-${address.slice(0, 8)}.csv`,
   csvFailed: "Couldn't build the file — try again.",
   summary: {
     title: "Your record",

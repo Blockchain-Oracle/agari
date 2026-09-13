@@ -1,12 +1,12 @@
 "use client";
 
-import type { ParlayLegInput } from "@masayume/core/parlay";
-import type { MarketId } from "@masayume/core/types";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
-import { submitParlayOpen, type ParlayOpenOutcome } from "@masayume/markets/parlay";
-import { invalidateAfterWrite, useSubmitter } from "@masayume/markets/react";
-import { getClient } from "@masayume/markets/runtime";
-import { resolveVaultDeployment, type VaultContracts } from "@masayume/markets/vault";
+import type { ParlayLegInput } from "@agari/core/parlay";
+import type { MarketId } from "@agari/core/types";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { submitParlayOpen, type ParlayOpenOutcome } from "@agari/markets/parlay";
+import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import { getClient } from "@agari/markets/runtime";
+import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import type { PublicClient } from "viem";

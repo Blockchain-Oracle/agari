@@ -1,10 +1,10 @@
 "use client";
 
-import { PRIVATE_BACKUP_KIND, PRIVATE_BACKUP_VERSION, privateTicketSchema, type PrivateTicket } from "@masayume/core/private";
+import { PRIVATE_BACKUP_KIND, PRIVATE_BACKUP_VERSION, privateTicketSchema, type PrivateTicket } from "@agari/core/private";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** The reference kept its tickets under `yosuku_private_bet_tickets`; ours live under this key, newest first. */
-const KEY = "masayume.private.claims";
+const KEY = "agari.private.claims";
 /** Rows kept beyond this are the settled ones; an open claim is never evicted — it is the only record of that money. */
 const CAP = 60;
 const REFRESH_MS = 4_000;

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AddFunds, CreditWelcome, OPEN_FUNDS_EVENT } from "@/features/funding";
-import MasayumeMark from "../MasayumeMark";
+import AgariMark from "../AgariMark";
 import ThemeToggle from "../ThemeToggle";
 import { DesktopNavMenu } from "./DesktopNavMenu";
 import { HeaderAccount } from "./HeaderAccount";
@@ -41,9 +41,9 @@ export default function Header() {
   return (
     <>
       <header className="header">
-        <Link className="logo" href="/markets" aria-label="Masayume markets" data-cursor="hover">
-          <span className="logo-mark"><MasayumeMark /></span>
-          <span>MASAYUME</span>
+        <Link className="logo" href="/markets" aria-label="Agari markets" data-cursor="hover">
+          <span className="logo-mark"><AgariMark /></span>
+          <span>AGARI</span>
         </Link>
 
         <nav className="nav" aria-label="Primary navigation">

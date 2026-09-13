@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
-import { useVaultSnapshot } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { useVaultSnapshot } from "@agari/markets/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ConnectButton } from "@/features/markets/wallet";

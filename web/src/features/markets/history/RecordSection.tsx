@@ -1,8 +1,8 @@
 "use client";
 
-import { computeBadges, computeTraderEdge, reputationOf } from "@masayume/core/projection";
-import { isOk } from "@masayume/core/schemas";
-import { useMakerShares, useMakerVault } from "@masayume/markets/react";
+import { computeBadges, computeTraderEdge, reputationOf } from "@agari/core/projection";
+import { isOk } from "@agari/core/schemas";
+import { useMakerShares, useMakerVault } from "@agari/markets/react";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { ReadingBoundary } from "@/components/states";

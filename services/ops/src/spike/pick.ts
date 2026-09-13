@@ -1,7 +1,7 @@
-import { isOk } from "@masayume/core/schemas";
-import type { Bytes32, MarketId } from "@masayume/core/types";
-import type { SubmitterSession } from "@masayume/markets";
-import { quoteArenaPick, sendArenaIntent } from "@masayume/markets/games";
+import { isOk } from "@agari/core/schemas";
+import type { Bytes32, MarketId } from "@agari/core/types";
+import type { SubmitterSession } from "@agari/markets";
+import { quoteArenaPick, sendArenaIntent } from "@agari/markets/games";
 
 /**
  * One card, one side, retried while the pick deadline allows.

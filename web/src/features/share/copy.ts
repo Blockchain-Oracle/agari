@@ -6,7 +6,7 @@
  * build) — the owner's account is not yet the name the placeholder assumed (2026-09-04).
  */
 const BRAND = {
-  brand: "MASAYUME",
+  brand: "AGARI",
   site: "masayume.app",
   siteUrl: "https://masayume.app",
   handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "@masayume_app",
@@ -46,7 +46,7 @@ export const SHARE = {
     another: "Place another",
     stakeLine: "STAKE  →  RETURN IF IT LANDS",
     settlesLine: (utc: string) => `SETTLES ${utc} · ORACLE-SETTLED AT THE CLOSE`,
-    footerKind: "MASAYUME · LIVE CALL",
+    footerKind: "AGARI · LIVE CALL",
     tx: (short: string) => `TX ${short}`,
     /** The pre-filled post: real staked numbers only, framed as a live call. */
     /** The reference's text carries the multiple — `My call: ${band} (2×)` (`openBetShareCard.ts` L97–99). */

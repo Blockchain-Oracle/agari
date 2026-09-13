@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { formatUtc } from "@masayume/core/units";
+import { formatUtc } from "@agari/core/units";
 
 interface UtcTimeProps {
   ms: number;

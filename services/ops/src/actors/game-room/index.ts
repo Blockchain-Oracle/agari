@@ -1,7 +1,7 @@
-import { activeMatchFor } from "@masayume/db";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { ensureMarkets, parseMarketsEnv } from "@masayume/markets";
-import { resolveArenaDeployment } from "@masayume/markets/games";
+import { activeMatchFor } from "@agari/db";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
+import { resolveArenaDeployment } from "@agari/markets/games";
 import { readRoomEnv, ROOM_ENV } from "./env";
 import { createRoomHub } from "./hub";
 import type { RoomContext } from "./handlers";

@@ -1,8 +1,8 @@
 "use client";
 
 import "@rainbow-me/rainbowkit/styles.css";
-import { SOMNIA_SHANNON } from "@masayume/markets/chain";
-import { MarketsProvider } from "@masayume/markets/react";
+import { SOMNIA_SHANNON } from "@agari/markets/chain";
+import { MarketsProvider } from "@agari/markets/react";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";

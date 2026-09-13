@@ -17,9 +17,9 @@
  *
  * It has no signer and no account, so it belongs here rather than in a session (see ../sessions).
  */
-import type { BookTarget } from "@masayume/core/ports";
-import type { Reading, ReadingOk } from "@masayume/core/schemas";
-import type { BookDepth } from "@masayume/core/types";
+import type { BookTarget } from "@agari/core/ports";
+import type { Reading, ReadingOk } from "@agari/core/schemas";
+import type { BookDepth } from "@agari/core/types";
 import type { BinaryOrderBook, WatchHandle } from "@somnia-chain/markets-sdk";
 import { toBookDepth } from "../mappers/book";
 import { nowMs } from "../provider/clock";

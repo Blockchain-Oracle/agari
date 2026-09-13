@@ -1,6 +1,6 @@
 "use client";
 
-import { SOMNIA_SHANNON } from "@masayume/markets/chain";
+import { SOMNIA_SHANNON } from "@agari/markets/chain";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { del, get, set } from "idb-keyval";
 import { useEffect } from "react";
@@ -23,7 +23,7 @@ import { useEffect } from "react";
  * the cache buster, and a namespace miss simply reads as "nothing stored".
  */
 const SCHEMA_VERSION = 1;
-const NAMESPACE = `masayume.read-cache.v${SCHEMA_VERSION}.${SOMNIA_SHANNON.id}`;
+const NAMESPACE = `agari.read-cache.v${SCHEMA_VERSION}.${SOMNIA_SHANNON.id}`;
 const MAX_AGE_MS = 24 * 60 * 60 * 1_000;
 const WRITE_DEBOUNCE_MS = 1_000;
 

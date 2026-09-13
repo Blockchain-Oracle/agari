@@ -1,7 +1,7 @@
-import type { IntentJournal, PhaseListener, TxOutcome, VaultIntent } from "@masayume/core/ports";
-import { diagnosis, type Address, type Diagnosis, type Hex } from "@masayume/core/types";
-import { GRANT_KIND_INDEX, VAULT_NOT_DEPLOYED, type VaultDeployment } from "@masayume/core/vault";
-import { formatBaseUnits } from "@masayume/core/units";
+import type { IntentJournal, PhaseListener, TxOutcome, VaultIntent } from "@agari/core/ports";
+import { diagnosis, type Address, type Diagnosis, type Hex } from "@agari/core/types";
+import { GRANT_KIND_INDEX, VAULT_NOT_DEPLOYED, type VaultDeployment } from "@agari/core/vault";
+import { formatBaseUnits } from "@agari/core/units";
 import {
   encodeFunctionData,
   erc20Abi,

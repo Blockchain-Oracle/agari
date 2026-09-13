@@ -1,12 +1,12 @@
 "use client";
 
-import { noEntryCutoffSec } from "@masayume/core/lifecycle";
-import { ENTRY_BUFFER_SEC } from "@masayume/core/constants";
-import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@masayume/core/units";
-import type { EventMarket } from "@masayume/core/types";
-import { selectXWindow, X_CADENCES, xRefusalCopy, type XAsset } from "@masayume/core/x";
-import { marketsProvider } from "@masayume/markets";
-import { useLanes, useTick } from "@masayume/markets/react";
+import { noEntryCutoffSec } from "@agari/core/lifecycle";
+import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
+import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
+import type { EventMarket } from "@agari/core/types";
+import { selectXWindow, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
+import { marketsProvider } from "@agari/markets";
+import { useLanes, useTick } from "@agari/markets/react";
 import { ArrowDownRight, ArrowUpRight, Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { BitcoinMark, EthereumMark } from "@/components/icons/AssetMarks";

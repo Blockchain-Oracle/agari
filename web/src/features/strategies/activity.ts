@@ -1,5 +1,5 @@
-import { deriveRunnerHealth, type RunnerHealth } from "@masayume/core/strategies";
-import { dailyHeadroomBase, type VaultGrant } from "@masayume/core/vault";
+import { deriveRunnerHealth, type RunnerHealth } from "@agari/core/strategies";
+import { dailyHeadroomBase, type VaultGrant } from "@agari/core/vault";
 import type { CopyState } from "./lifecycle";
 
 export interface StrategyActivity {

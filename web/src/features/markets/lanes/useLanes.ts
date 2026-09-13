@@ -1,15 +1,15 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@masayume/core/constants";
-import { isOk, type Reading } from "@masayume/core/schemas";
-import type { Bytes32, Lane, LaneSet } from "@masayume/core/types";
-import { laneNextStart } from "@masayume/markets";
-import { keys, useLanes, useReadingQuery } from "@masayume/markets/react";
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import { isOk, type Reading } from "@agari/core/schemas";
+import type { Bytes32, Lane, LaneSet } from "@agari/core/types";
+import { laneNextStart } from "@agari/markets";
+import { keys, useLanes, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { numberCodec, usePersistedState } from "@/lib/persisted";
 
-const LANE_KEY = "masayume.lane";
+const LANE_KEY = "agari.lane";
 const NO_PIN = 0;
 
 export interface LanesState {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ArcadeGame } from "@masayume/core/games/arcade";
+import type { ArcadeGame } from "@agari/core/games/arcade";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { gameEntry } from "../catalog";

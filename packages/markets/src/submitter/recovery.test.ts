@@ -1,5 +1,5 @@
-import type { IntentRecord } from "@masayume/core/ports";
-import type { Address } from "@masayume/core/types";
+import type { IntentRecord } from "@agari/core/ports";
+import type { Address } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { createJournal } from "./journal";
 import { createMemoryStore } from "./journal-memory";

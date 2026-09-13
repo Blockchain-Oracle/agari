@@ -1,4 +1,4 @@
-import { addressSchema } from "@masayume/core/types";
+import { addressSchema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { mintFromSignature, renewFromToken, roomArena } from "@/features/games/room-token.server";

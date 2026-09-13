@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import type { MarketPhase } from "@masayume/core/lifecycle";
-import type { EventMarket } from "@masayume/core/types";
+import { formatCadence } from "@agari/core/copy";
+import type { MarketPhase } from "@agari/core/lifecycle";
+import type { EventMarket } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { HERO, TICKET } from "@/lib/copy";
 

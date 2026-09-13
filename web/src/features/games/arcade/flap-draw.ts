@@ -1,4 +1,4 @@
-import { FIELD_H, FIELD_W, FLAP, lerp, type FlapState } from "@masayume/core/games/arcade";
+import { FIELD_H, FIELD_W, FLAP, lerp, type FlapState } from "@agari/core/games/arcade";
 import { rgb, rgba, type Rgb } from "./palette";
 import { COIN, drawSprite } from "./sprites";
 import { applyFieldTransform, type ArcadeView } from "./useArcadeLoop";

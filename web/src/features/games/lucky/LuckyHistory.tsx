@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import { Pager } from "@/components/chrome";
 import { Hash, useNowMs } from "@/components/data";
 import { useVenue } from "@/features/markets";

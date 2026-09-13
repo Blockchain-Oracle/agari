@@ -1,6 +1,6 @@
-import { formatCadence } from "@masayume/core/copy";
-import type { Hex, Side } from "@masayume/core/types";
-import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@masayume/core/units";
+import { formatCadence } from "@agari/core/copy";
+import type { Hex, Side } from "@agari/core/types";
+import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
 import { ORACLE_SCALE } from "@/features/markets/hero/units";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";

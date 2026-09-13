@@ -1,9 +1,9 @@
 "use client";
 
-import type { EventMarket } from "@masayume/core/types";
-import { formatWallClock } from "@masayume/core/units";
-import { marketDeepLink } from "@masayume/core/urls";
-import { ORACLE_PRICE_SCALE } from "@masayume/markets/identity";
+import type { EventMarket } from "@agari/core/types";
+import { formatWallClock } from "@agari/core/units";
+import { marketDeepLink } from "@agari/core/urls";
+import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 import Link from "next/link";
 import { Countdown } from "@/components/data";
 import { MARKETS, PLAIN_WORDS, WORD_BOARD, wordQuestion } from "@/lib/copy";

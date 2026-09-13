@@ -1,7 +1,7 @@
 "use client";
 
-import { computeBadges, computeTraderEdge, reputationOf, type SettledRound, type WalletHistory } from "@masayume/core/projection";
-import { ok } from "@masayume/core";
+import { computeBadges, computeTraderEdge, reputationOf, type SettledRound, type WalletHistory } from "@agari/core/projection";
+import { ok } from "@agari/core";
 import { useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { EdgeReport, EdgeState } from "@/features/edge";

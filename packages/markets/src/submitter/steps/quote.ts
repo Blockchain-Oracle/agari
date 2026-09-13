@@ -1,6 +1,6 @@
-import type { QuoteTarget } from "@masayume/core/ports";
-import { admissibilityBlocker, belowMinStake } from "@masayume/core/sizing";
-import { diagnosis, type Quote, type Side } from "@masayume/core/types";
+import type { QuoteTarget } from "@agari/core/ports";
+import { admissibilityBlocker, belowMinStake } from "@agari/core/sizing";
+import { diagnosis, type Quote, type Side } from "@agari/core/types";
 import { ReadingError } from "../../errors/reading-error";
 import { freshQuoteStake } from "../../provider/quotes";
 import { OrderRefusedError, RequoteError } from "../errors";

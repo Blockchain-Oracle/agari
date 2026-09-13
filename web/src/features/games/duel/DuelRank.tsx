@@ -1,7 +1,7 @@
 "use client";
 
-import { formatSeasonCountdown, prizeForRank, seasonRemainingMs, type PrizeTier } from "@masayume/core/games";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
+import { formatSeasonCountdown, prizeForRank, seasonRemainingMs, type PrizeTier } from "@agari/core/games";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { useEffect, useState, type CSSProperties } from "react";
 import { useNowMs } from "@/components/data";
 import { addressHue } from "@/lib/address-hue";

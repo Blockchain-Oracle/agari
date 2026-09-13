@@ -1,5 +1,5 @@
-import type { Address } from "@masayume/core/types";
-import { secToMs } from "@masayume/core/units";
+import type { Address } from "@agari/core/types";
+import { secToMs } from "@agari/core/units";
 
 export type Scalar = string | number | bigint | null | undefined;
 

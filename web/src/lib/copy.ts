@@ -1,6 +1,6 @@
-export * from "@masayume/core/copy";
+export * from "@agari/core/copy";
 
-/** Surface labels only — contract strings live in @masayume/core/copy. */
+/** Surface labels only — contract strings live in @agari/core/copy. */
 export const NAV = {
   markets: "Markets",
   reels: "Reels",

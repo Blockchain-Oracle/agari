@@ -1,8 +1,8 @@
 "use client";
 
-import type { MarketId } from "@masayume/core/types";
-import { getMakerUnsettledExpired } from "@masayume/markets/maker";
-import { invalidateAfterWrite, useSubmitter } from "@masayume/markets/react";
+import type { MarketId } from "@agari/core/types";
+import { getMakerUnsettledExpired } from "@agari/markets/maker";
+import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

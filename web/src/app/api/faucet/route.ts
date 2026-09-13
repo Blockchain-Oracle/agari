@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FaucetError } from "@masayume/core/faucet";
+import { FaucetError } from "@agari/core/faucet";
 import { createFaucetService } from "@/features/funding/faucet-service.server";
 import { faucetBody, faucetConfig, faucetErrorResponse, faucetForRequest, unavailableFaucetStatus } from "@/features/funding/faucet-config.server";
 

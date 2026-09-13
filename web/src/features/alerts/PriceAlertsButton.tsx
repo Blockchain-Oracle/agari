@@ -1,6 +1,6 @@
 "use client";
 
-import { oneUnit } from "@masayume/core/units";
+import { oneUnit } from "@agari/core/units";
 import { BellIcon, PlusIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFloatingMenus } from "@/components/shell/header/useFloatingMenus";

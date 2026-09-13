@@ -1,4 +1,4 @@
-import { closeRuntime, ensureMarkets, getClient, parseMarketsEnv, type MarketsEnv } from "@masayume/markets";
+import { closeRuntime, ensureMarkets, getClient, parseMarketsEnv, type MarketsEnv } from "@agari/markets";
 
 export type Client = ReturnType<typeof getClient>;
 

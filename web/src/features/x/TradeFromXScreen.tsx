@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
@@ -54,7 +54,7 @@ export function TradeFromXScreen() {
       <div className="xt-strip">
         <div className="xt-strip-inner">
           <Link href={MARKETS_PATH} className="xt-brand">
-            MASAYUME <span className="xt-brand-crumb">{TRADE_FROM_X.crumb}</span>
+            AGARI <span className="xt-brand-crumb">{TRADE_FROM_X.crumb}</span>
           </Link>
           <nav className="xt-nav" aria-label="Primary">
             {ISLAND_NAV.map((item) => (

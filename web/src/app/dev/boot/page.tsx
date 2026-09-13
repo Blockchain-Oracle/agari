@@ -1,4 +1,4 @@
-import { ensureMarkets, getClient, PINNED_TESTNET, SOMNIA_SHANNON } from "@masayume/markets";
+import { ensureMarkets, getClient, PINNED_TESTNET, SOMNIA_SHANNON } from "@agari/markets";
 import { webEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";

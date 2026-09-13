@@ -11,7 +11,7 @@ import { gameEntry, gameIdFromPath } from "./catalog";
  * so a client that read it while hydrating disagreed with the markup it was handed (measured 2026-09-04 as a
  * hydration error on `/games`). The server snapshot is null, and the plate appears after hydration.
  */
-const KEY = "masayume.games.last";
+const KEY = "agari.games.last";
 const NONE = null;
 const noop = () => () => undefined;
 

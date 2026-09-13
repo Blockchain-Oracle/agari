@@ -1,7 +1,7 @@
 "use client";
 
-import { FAUCET_UNITS } from "@masayume/core/constants";
-import { formatBaseUnits } from "@masayume/core/units";
+import { FAUCET_UNITS } from "@agari/core/constants";
+import { formatBaseUnits } from "@agari/core/units";
 import Link from "next/link";
 import { OPEN_FUNDS_EVENT } from "@/features/funding";
 import { RouteControl, SessionControl, type FundingSource } from "@/features/session";

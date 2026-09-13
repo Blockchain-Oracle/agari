@@ -1,5 +1,5 @@
-import type { MakerDeployment } from "@masayume/core/maker";
-import type { Address } from "@masayume/core/types";
+import type { MakerDeployment } from "@agari/core/maker";
+import type { Address } from "@agari/core/types";
 import masayume from "../addresses.masayume.json";
 import { SOMNIA_SHANNON_ID } from "../chain";
 import type { MarketsEnv } from "../env";

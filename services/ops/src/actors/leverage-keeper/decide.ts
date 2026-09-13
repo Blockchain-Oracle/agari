@@ -1,5 +1,5 @@
-import type { LeverageMark, LeveragePosition } from "@masayume/core/leverage";
-import type { MarketId, OnchainSnapshot } from "@masayume/core/types";
+import type { LeverageMark, LeveragePosition } from "@agari/core/leverage";
+import type { MarketId, OnchainSnapshot } from "@agari/core/types";
 
 export type PositionAction = { kind: "settle" | "knock-out" | "hold"; positionId: bigint; marketId: MarketId; why: string };
 

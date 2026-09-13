@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address } from "@masayume/core/types";
+import type { Address } from "@agari/core/types";
 import { useCallback, useEffect, useState } from "react";
 import type { LuckyBoardWire, LuckyHistoryWire } from "./lucky-wire";
 

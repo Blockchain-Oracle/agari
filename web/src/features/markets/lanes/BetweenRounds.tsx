@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { Bytes32 } from "@masayume/core/types";
-import { secToMs } from "@masayume/core/units";
+import { isOk } from "@agari/core/schemas";
+import type { Bytes32 } from "@agari/core/types";
+import { secToMs } from "@agari/core/units";
 import { EmptyState, LoadingState } from "@/components/states";
 import { betweenRoundsLine, MARKETS } from "@/lib/copy";
 import { useLaneNextStart } from "./useLanes";

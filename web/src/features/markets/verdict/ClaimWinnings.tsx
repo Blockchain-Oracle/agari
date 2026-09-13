@@ -1,10 +1,10 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { MarketId, Verdict } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { useSubmitter } from "@masayume/markets/react";
-import { invalidateAfterWrite, useClaimables } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { MarketId, Verdict } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { useSubmitter } from "@agari/markets/react";
+import { invalidateAfterWrite, useClaimables } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, Loader2, Trophy } from "lucide-react";
 import { useState } from "react";

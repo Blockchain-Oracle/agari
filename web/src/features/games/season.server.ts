@@ -1,8 +1,8 @@
-import { prizePoolTotalUnits, seasonConfigFrom, type SeasonConfig } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
-import { ensureMarkets, loadCollateral } from "@masayume/markets";
-import { getSeasonPool } from "@masayume/markets/games";
+import { prizePoolTotalUnits, seasonConfigFrom, type SeasonConfig } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
+import { ensureMarkets, loadCollateral } from "@agari/markets";
+import { getSeasonPool } from "@agari/markets/games";
 import { marketsEnvFromProcess } from "@/features/session/sponsor.server";
 
 /**

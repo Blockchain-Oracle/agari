@@ -1,5 +1,5 @@
-import type { ArenaDeployment } from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
+import type { ArenaDeployment } from "@agari/core/games";
+import type { Address } from "@agari/core/types";
 import masayume from "../addresses.masayume.json";
 import { SOMNIA_SHANNON_ID } from "../chain";
 import type { MarketsEnv } from "../env";

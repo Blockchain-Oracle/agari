@@ -1,4 +1,4 @@
-import type { Badge, ReputationData } from "@masayume/core/projection";
+import type { Badge, ReputationData } from "@agari/core/projection";
 import { BadgeGrid } from "./BadgeGrid";
 import { HISTORY } from "./copy";
 

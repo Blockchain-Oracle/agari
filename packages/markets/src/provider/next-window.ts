@@ -1,6 +1,6 @@
-import { ROLL_GAP_SEC } from "@masayume/core/constants";
-import type { Reading } from "@masayume/core/schemas";
-import type { Bytes32, EventMarket } from "@masayume/core/types";
+import { ROLL_GAP_SEC } from "@agari/core/constants";
+import type { Reading } from "@agari/core/schemas";
+import type { Bytes32, EventMarket } from "@agari/core/types";
 import { getClient } from "../runtime/read-runtime";
 import { toEventMarket } from "../mappers/market";
 import { activeVenue } from "../venue";

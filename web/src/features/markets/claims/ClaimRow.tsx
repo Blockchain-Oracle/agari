@@ -1,7 +1,7 @@
-import { formatCadence } from "@masayume/core/copy";
-import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@masayume/core/types";
-import { secToMs } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import { formatCadence } from "@agari/core/copy";
+import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@agari/core/types";
+import { secToMs } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import { Hash, Money, UtcTime } from "@/components/data";
 import { CLAIM, diagnosisCopy } from "@/lib/copy";
 import { cn } from "@/lib/utils";

@@ -1,7 +1,7 @@
 "use client";
 
-import { countdown } from "@masayume/core/lifecycle";
-import { marketDeepLink } from "@masayume/core/urls";
+import { countdown } from "@agari/core/lifecycle";
+import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";

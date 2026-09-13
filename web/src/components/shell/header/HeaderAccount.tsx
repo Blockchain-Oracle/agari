@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
 import { ConnectButton as RainbowConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import { useRef, useState, type RefObject } from "react";

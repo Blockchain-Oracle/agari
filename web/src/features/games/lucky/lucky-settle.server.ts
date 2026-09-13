@@ -1,7 +1,7 @@
-import { luckyBestStreak, luckyStreak, luckyVerdict, type LuckyResult } from "@masayume/core/games";
-import { buildLedgers, type LedgerFill, type MarketLedger } from "@masayume/core/projection";
-import { isOk } from "@masayume/core/schemas";
-import { toMarketId, type Address, type Bytes32, type EventMarket, type Hex } from "@masayume/core/types";
+import { luckyBestStreak, luckyStreak, luckyVerdict, type LuckyResult } from "@agari/core/games";
+import { buildLedgers, type LedgerFill, type MarketLedger } from "@agari/core/projection";
+import { isOk } from "@agari/core/schemas";
+import { toMarketId, type Address, type Bytes32, type EventMarket, type Hex } from "@agari/core/types";
 import {
   gamesStoreConfigured,
   getLuckyDraw,
@@ -11,8 +11,8 @@ import {
   recordLuckyPlacement,
   recordLuckyResult,
   type LuckyDrawRow,
-} from "@masayume/db";
-import { ensureMarkets, listWalletFills, marketsProvider } from "@masayume/markets";
+} from "@agari/db";
+import { ensureMarkets, listWalletFills, marketsProvider } from "@agari/markets";
 import { marketsEnvFromProcess } from "@/features/session/sponsor.server";
 import type { LuckyBoardWire, LuckyHistoryWire, LuckyPlacedStatus, LuckyPlacedWire, LuckyRowWire } from "./lucky-wire";
 

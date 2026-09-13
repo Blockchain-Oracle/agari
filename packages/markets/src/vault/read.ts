@@ -1,6 +1,6 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { Address, OnchainSnapshot } from "@masayume/core/types";
-import { grantKindOf, GRANT_KINDS, type GrantKind, type VaultGrant, type VaultHoldings, type VaultSnapshot } from "@masayume/core/vault";
+import type { Reading } from "@agari/core/schemas";
+import type { Address, OnchainSnapshot } from "@agari/core/types";
+import { grantKindOf, GRANT_KINDS, type GrantKind, type VaultGrant, type VaultHoldings, type VaultSnapshot } from "@agari/core/vault";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";

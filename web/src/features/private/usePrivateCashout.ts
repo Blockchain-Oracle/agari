@@ -1,9 +1,9 @@
 "use client";
 
-import type { PrivateCashoutResult, PrivateTicket } from "@masayume/core/private";
-import type { Address } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { invalidateAfterWrite } from "@masayume/markets/react";
+import type { PrivateCashoutResult, PrivateTicket } from "@agari/core/private";
+import type { Address } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { notify } from "@/lib/toast";

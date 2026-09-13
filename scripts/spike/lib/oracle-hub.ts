@@ -1,4 +1,4 @@
-import { PINNED_TESTNET } from "@masayume/markets";
+import { PINNED_TESTNET } from "@agari/markets";
 import { encodeAbiParameters, type Address, type Hex } from "viem";
 
 /**

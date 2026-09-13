@@ -1,6 +1,6 @@
 "use client";
 
-import { practiceMove, type DeckCard, type Pick, type PracticeCardResult, type PracticeMove } from "@masayume/core/games";
+import { practiceMove, type DeckCard, type Pick, type PracticeCardResult, type PracticeMove } from "@agari/core/games";
 import { cadenceLabel } from "../stage/SwipeDeck";
 import { PRACTICE } from "./copy";
 

@@ -1,8 +1,8 @@
-import type { GrantTerms } from "@masayume/core/ports";
-import { minStakeBase } from "@masayume/core/sizing";
-import type { Address } from "@masayume/core/types";
-import { formatBaseUnits, oneCent, oneUnit, parseDecimalToBaseUnits } from "@masayume/core/units";
-import type { VaultGrant } from "@masayume/core/vault";
+import type { GrantTerms } from "@agari/core/ports";
+import { minStakeBase } from "@agari/core/sizing";
+import type { Address } from "@agari/core/types";
+import { formatBaseUnits, oneCent, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
+import type { VaultGrant } from "@agari/core/vault";
 import { SESSION } from "./copy";
 
 export interface CapsForm {

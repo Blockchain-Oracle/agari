@@ -1,5 +1,5 @@
-import { SDK_MAX_FEE_PER_GAS_WEI } from "@masayume/core/constants";
-import { requiredGasWei } from "@masayume/markets";
+import { SDK_MAX_FEE_PER_GAS_WEI } from "@agari/core/constants";
+import { requiredGasWei } from "@agari/markets";
 
 /**
  * What a seat's key needs in its tank, and what a sponsor may put there — pure, so the entry, the

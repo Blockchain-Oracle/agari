@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { phase } from "@masayume/core/lifecycle";
-import type { EventMarket } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
-import { createMemoryJournal, createSubmitterSession, marketsProvider, resolveVenueId } from "@masayume/markets";
+import { phase } from "@agari/core/lifecycle";
+import type { EventMarket } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
+import { createMemoryJournal, createSubmitterSession, marketsProvider, resolveVenueId } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 
 const STAKE_UNITS = 5n;

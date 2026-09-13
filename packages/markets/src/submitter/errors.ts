@@ -1,4 +1,4 @@
-import type { Diagnosis, Quote } from "@masayume/core/types";
+import type { Diagnosis, Quote } from "@agari/core/types";
 
 /** A pre-send step refused the order; the lane turns it into a `refused` outcome with this diagnosis. */
 export class OrderRefusedError extends Error {

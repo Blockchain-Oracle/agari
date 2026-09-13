@@ -1,6 +1,6 @@
-import { bandProbE6, floorStake, rungHolds, sideProbRaw, solveStrike, type RangeParams } from "@masayume/core/range";
-import { err, ok } from "@masayume/core/schemas";
-import { diagnosis, toMarketId } from "@masayume/core/types";
+import { bandProbE6, floorStake, rungHolds, sideProbRaw, solveStrike, type RangeParams } from "@agari/core/range";
+import { err, ok } from "@agari/core/schemas";
+import { diagnosis, toMarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { solveMoonshotQuote, type MoonshotReads } from "./moonshot";
 import type { RangeBand, RangePreview } from "./read";

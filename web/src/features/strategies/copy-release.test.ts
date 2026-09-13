@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import type { VaultGrant } from "@masayume/core/vault";
+import type { VaultGrant } from "@agari/core/vault";
 import { releaseCopyPermission } from "./copy-release";
 import { completeCopySetup } from "./copy-setup";
 import type { CopyProgress } from "./copy-progress";

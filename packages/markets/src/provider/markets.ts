@@ -1,6 +1,6 @@
-import { groupIntoLanes } from "@masayume/core/market";
-import type { Reading } from "@masayume/core/schemas";
-import { toMarketId, type Bytes32, type EventMarket, type IndexedStatus, type LaneSet, type MarketId } from "@masayume/core/types";
+import { groupIntoLanes } from "@agari/core/market";
+import type { Reading } from "@agari/core/schemas";
+import { toMarketId, type Bytes32, type EventMarket, type IndexedStatus, type LaneSet, type MarketId } from "@agari/core/types";
 import type { BinaryMarket } from "@somnia-chain/markets-sdk";
 import { getClient } from "../runtime/read-runtime";
 import { toEventMarket } from "../mappers/market";

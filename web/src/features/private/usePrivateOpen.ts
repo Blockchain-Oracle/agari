@@ -1,11 +1,11 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import { privateOpenMessage, type PrivateOpenRequest, type PrivateOpenResult } from "@masayume/core/private";
-import type { Address, EventMarket, Side } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { sizePrivateForStake } from "@masayume/markets/private";
-import { invalidateAfterWrite } from "@masayume/markets/react";
+import { formatCadence } from "@agari/core/copy";
+import { privateOpenMessage, type PrivateOpenRequest, type PrivateOpenResult } from "@agari/core/private";
+import type { Address, EventMarket, Side } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { sizePrivateForStake } from "@agari/markets/private";
+import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { useSignMessage } from "wagmi";
@@ -19,7 +19,7 @@ import { upsertPrivateTicket } from "./claims-store";
  * is the seed of the bet's keys, so re-sending it resumes the same slot and can never charge twice; signing a
  * new one would. It stays until the desk says "opened" or "refused".
  */
-const PENDING_KEY = "masayume.private.pending";
+const PENDING_KEY = "agari.private.pending";
 
 export interface PendingOpen {
   request: PrivateOpenRequest;

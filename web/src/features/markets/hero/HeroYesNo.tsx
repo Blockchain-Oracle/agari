@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarketId, Side } from "@masayume/core/types";
+import type { MarketId, Side } from "@agari/core/types";
 import { HERO_HEAD, MARKETS } from "@/lib/copy";
 
 interface HeroYesNoProps {

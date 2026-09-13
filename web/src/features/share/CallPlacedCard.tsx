@@ -1,7 +1,7 @@
 "use client";
 
-import { formatBaseUnits, formatClock, formatUtc, remainingSec, secToMs } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import { formatBaseUnits, formatClock, formatUtc, remainingSec, secToMs } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
 import { callBandLabel, callDirLabel, callMultiple, callWinBase, shortCallId, type CallCard } from "./call-card";
 import { SHARE } from "./copy";

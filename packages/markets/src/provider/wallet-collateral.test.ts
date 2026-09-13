@@ -1,5 +1,5 @@
-import { diagnosis, err, ok } from "@masayume/core";
-import type { Address } from "@masayume/core/types";
+import { diagnosis, err, ok } from "@agari/core";
+import type { Address } from "@agari/core/types";
 import { beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ collateral: vi.fn(), balance: vi.fn(), portfolio: vi.fn() }));

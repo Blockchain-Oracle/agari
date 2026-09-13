@@ -4,14 +4,14 @@
  * checks the expiry's capacity for the lock. Nothing is signed. The plan's sanity check: a solved 5× LONG band
  * comes back with `probRaw ≤ 178,571` and a multiple ≥ 5.
  *
- *   pnpm --filter @masayume/scripts spike:moonshot                       (LONG ×5, payout 5)
- *   DIRECTION=short MULTIPLE=25 PAYOUT=1 ASSET=ETH MIN_LEFT_SEC=120 pnpm --filter @masayume/scripts spike:moonshot
+ *   pnpm --filter @agari/scripts spike:moonshot                       (LONG ×5, payout 5)
+ *   DIRECTION=short MULTIPLE=25 PAYOUT=1 ASSET=ETH MIN_LEFT_SEC=120 pnpm --filter @agari/scripts spike:moonshot
  */
-import { phase } from "@masayume/core/lifecycle";
-import { isMoonshotRung, targetProbE6, type MoonshotDirection } from "@masayume/core/range";
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits, formatOracleRaw, oneUnit } from "@masayume/core/units";
-import { getRangeReserveState, loadCollateral, marketsProvider, quoteMoonshotOnchain, readRangeCapacity, resolveVenueId, unwrap } from "@masayume/markets";
+import { phase } from "@agari/core/lifecycle";
+import { isMoonshotRung, targetProbE6, type MoonshotDirection } from "@agari/core/range";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits, formatOracleRaw, oneUnit } from "@agari/core/units";
+import { getRangeReserveState, loadCollateral, marketsProvider, quoteMoonshotOnchain, readRangeCapacity, resolveVenueId, unwrap } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 
 const json = (value: unknown) => JSON.stringify(value, (_k, v: unknown) => (typeof v === "bigint" ? v.toString() : v), 2);

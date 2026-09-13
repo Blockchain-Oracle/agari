@@ -5,7 +5,7 @@
  * correctly with no database and each surface says plainly that it is not
  * connected rather than showing an empty room that nobody has read.
  */
-export const DB_PACKAGE = "@masayume/db" as const;
+export const DB_PACKAGE = "@agari/db" as const;
 
 export * from "./arcade";
 export * from "./bettors";

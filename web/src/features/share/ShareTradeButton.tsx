@@ -14,7 +14,7 @@ export function ShareTradeButton({ card }: { card: TradeCard }) {
       disabled={busy}
       aria-busy={busy}
       data-cursor="hover"
-      onClick={() => void share({ render: () => renderTradeShareCard(card), fileName: `masayume-trade-${shortTradeId(card)}.png`, text: buildTradeTweetText(card) })}
+      onClick={() => void share({ render: () => renderTradeShareCard(card), fileName: `agari-trade-${shortTradeId(card)}.png`, text: buildTradeTweetText(card) })}
     >
       {busy ? SHARE.rendering : `${SHARE.shareCard} ↗`}
     </button>

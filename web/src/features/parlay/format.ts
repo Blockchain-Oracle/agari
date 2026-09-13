@@ -1,5 +1,5 @@
-import type { Diagnosis, MarketId } from "@masayume/core/types";
-import { formatOracleRaw } from "@masayume/core/units";
+import type { Diagnosis, MarketId } from "@agari/core/types";
+import { formatOracleRaw } from "@agari/core/units";
 import { ORACLE_SCALE } from "../markets/hero/units";
 
 const pad2 = (n: number): string => String(n).padStart(2, "0");

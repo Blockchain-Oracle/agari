@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
+import type { Address } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { Hash, UtcTime } from "@/components/data";
 import { SESSION } from "./copy";
 import { SessionDetail } from "./SessionDetail";

@@ -1,8 +1,8 @@
 "use client";
 
-import { termBand, type TermPoint } from "@masayume/core/surface";
-import type { MarketId } from "@masayume/core/types";
-import { bpsToOddsCents, formatClock } from "@masayume/core/units";
+import { termBand, type TermPoint } from "@agari/core/surface";
+import type { MarketId } from "@agari/core/types";
+import { bpsToOddsCents, formatClock } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { SURFACE } from "./copy";
 

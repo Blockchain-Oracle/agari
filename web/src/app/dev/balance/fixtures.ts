@@ -1,5 +1,5 @@
-import { err, ok, stale, type Reading } from "@masayume/core/schemas";
-import { diagnosis, type BalanceSheet } from "@masayume/core/types";
+import { err, ok, stale, type Reading } from "@agari/core/schemas";
+import { diagnosis, type BalanceSheet } from "@agari/core/types";
 import type { BALANCE } from "@/lib/copy";
 
 // Canned sheets carry their own decimals the way a chain read would; nothing here is a real balance.

@@ -1,6 +1,6 @@
-import { xRefusalCopy, xReceiptRecovery, type XReceipt } from "@masayume/core/x";
-import { shortHex } from "@masayume/core/units";
-import { EXPLORER_URL } from "@masayume/markets/chain";
+import { xRefusalCopy, xReceiptRecovery, type XReceipt } from "@agari/core/x";
+import { shortHex } from "@agari/core/units";
+import { EXPLORER_URL } from "@agari/markets/chain";
 import { TRADE_FROM_X } from "./copy";
 import { receiptDisplay } from "./receipt-display";
 

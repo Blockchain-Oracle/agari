@@ -1,6 +1,6 @@
-import type { AssetPrice, PricePoint } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
-import { ORACLE_PRICE_SCALE, PRICE_BASIS } from "@masayume/markets/identity";
+import type { AssetPrice, PricePoint } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
+import { ORACLE_PRICE_SCALE, PRICE_BASIS } from "@agari/markets/identity";
 
 /** Feed.decimals is 18 on every asset today (SDK PRICE_FEED_DECIMALS); a live tick's own `decimals` overrides it. */
 export const FEED_DECIMALS_DEFAULT = 18;

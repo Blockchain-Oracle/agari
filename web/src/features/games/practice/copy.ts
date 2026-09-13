@@ -1,4 +1,4 @@
-import { PRACTICE_WATCH_SEC } from "@masayume/core/games";
+import { PRACTICE_WATCH_SEC } from "@agari/core/games";
 
 /**
  * Everything Practice says.

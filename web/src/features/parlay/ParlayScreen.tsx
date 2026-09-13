@@ -1,8 +1,8 @@
 "use client";
 
-import type { ParlayReserveState } from "@masayume/core/parlay";
-import { isOk } from "@masayume/core/schemas";
-import { useParlayReserve } from "@masayume/markets/react";
+import type { ParlayReserveState } from "@agari/core/parlay";
+import { isOk } from "@agari/core/schemas";
+import { useParlayReserve } from "@agari/markets/react";
 import { CapabilityPending, SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";
 import { useVenue } from "../markets/useVenue";

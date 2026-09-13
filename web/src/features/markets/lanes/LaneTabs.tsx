@@ -1,6 +1,6 @@
 "use client";
 
-import type { Lane } from "@masayume/core/types";
+import type { Lane } from "@agari/core/types";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCadence, MARKETS } from "@/lib/copy";
 

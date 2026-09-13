@@ -1,6 +1,6 @@
 "use client";
 
-import { MOONSHOT_AIM_LADDER, aimToCall, callToAim, type MoonshotAim, type MoonshotCall } from "@masayume/core/range";
+import { MOONSHOT_AIM_LADDER, aimToCall, callToAim, type MoonshotAim, type MoonshotCall } from "@agari/core/range";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useCallback, type KeyboardEvent } from "react";
 import { usePersistedState } from "@/lib/persisted";
@@ -9,7 +9,7 @@ import { useGames } from "../GamesProvider";
 import { MOONSHOT } from "./copy";
 
 /** Pips remembers the aim (`pips_moonshot_aim`); the default is its `DEFAULT_AIM_IDX`, LONG ×5. */
-const AIM_KEY = "masayume.games.moonshot.aim";
+const AIM_KEY = "agari.games.moonshot.aim";
 const DEFAULT_AIM: MoonshotAim = 5;
 const LAST = MOONSHOT_AIM_LADDER.length - 1;
 /** Deepest LONG at the ceiling, deepest SHORT at the floor — the knob's own order, read top down. */

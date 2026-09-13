@@ -1,5 +1,5 @@
-import { classifyRangeBand, type RangeQuote, type RangeReserveState } from "@masayume/core/range";
-import { diagnosis, toMarketId, type Address, type Diagnosis, type EventMarket, type MarketId } from "@masayume/core/types";
+import { classifyRangeBand, type RangeQuote, type RangeReserveState } from "@agari/core/range";
+import { diagnosis, toMarketId, type Address, type Diagnosis, type EventMarket, type MarketId } from "@agari/core/types";
 import type { RangeRoundView } from "@/features/range";
 
 // Canned readings; nothing here is a real round, address or deployment.

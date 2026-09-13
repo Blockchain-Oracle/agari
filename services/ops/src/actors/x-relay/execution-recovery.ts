@@ -1,7 +1,7 @@
-import type { XReceipt } from "@masayume/core/x";
-import { priceRawToBps, oneUnit } from "@masayume/core/units";
-import { toMarketId, type Address, type Hex } from "@masayume/core/types";
-import { recoverVaultExecution, type RecoveredVaultExecution } from "@masayume/markets/vault";
+import type { XReceipt } from "@agari/core/x";
+import { priceRawToBps, oneUnit } from "@agari/core/units";
+import { toMarketId, type Address, type Hex } from "@agari/core/types";
+import { recoverVaultExecution, type RecoveredVaultExecution } from "@agari/markets/vault";
 
 /** Only complete durable execution context can be reconciled against the shared vault verifier. */
 export async function resolveXExecution(receipt: XReceipt): Promise<RecoveredVaultExecution> {

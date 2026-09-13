@@ -9,14 +9,14 @@ import {
   type ArenaIntent,
   type Pick,
   type StakeTierId,
-} from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import { diagnosis, type Address, type Bytes32, type Diagnosis, type MarketId } from "@masayume/core/types";
-import { topUpSessionGas } from "@masayume/markets";
-import { quoteArenaPick, submitArenaPick, type ArenaPickOutcome } from "@masayume/markets/games";
-import { invalidateAfterWrite, useSubmitter } from "@masayume/markets/react";
-import { getClient } from "@masayume/markets/runtime";
-import { resolveVaultDeployment, type VaultContracts } from "@masayume/markets/vault";
+} from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import { diagnosis, type Address, type Bytes32, type Diagnosis, type MarketId } from "@agari/core/types";
+import { topUpSessionGas } from "@agari/markets";
+import { quoteArenaPick, submitArenaPick, type ArenaPickOutcome } from "@agari/markets/games";
+import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import { getClient } from "@agari/markets/runtime";
+import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import type { PublicClient } from "viem";

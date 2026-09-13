@@ -1,9 +1,9 @@
 "use client";
 
-import type { TxOutcome } from "@masayume/core/ports";
-import { diagnosis, type ClaimableRow, type Diagnosis } from "@masayume/core/types";
-import { diagnose, marketsProvider, nowMs, unwrap, type MarketsSubmitter } from "@masayume/markets";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@masayume/markets/react";
+import type { TxOutcome } from "@agari/core/ports";
+import { diagnosis, type ClaimableRow, type Diagnosis } from "@agari/core/types";
+import { diagnose, marketsProvider, nowMs, unwrap, type MarketsSubmitter } from "@agari/markets";
+import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { IDLE_RUN, itemsFromRows } from "./claim-run";

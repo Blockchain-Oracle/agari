@@ -1,4 +1,4 @@
-import { isDbConfigured, xGetRelayHealth } from "@masayume/db";
+import { isDbConfigured, xGetRelayHealth } from "@agari/db";
 import { NextResponse, type NextRequest } from "next/server";
 import { X_HANDLE } from "@/features/x/copy";
 import { executorAddress } from "@/features/x/config.server";

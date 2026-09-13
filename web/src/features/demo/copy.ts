@@ -17,7 +17,7 @@ export const DEMO = {
     coverUrl: "https://masayume.app/demo/official-demo-cover.jpg",
   },
   bar: {
-    brand: "MASAYUME",
+    brand: "AGARI",
     sub: "/ demo",
     pitch: "pitch",
     stats: "stats",

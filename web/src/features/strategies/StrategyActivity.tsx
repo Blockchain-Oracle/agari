@@ -1,5 +1,5 @@
-import type { RunnerHealth } from "@masayume/core/strategies";
-import type { VaultGrant } from "@masayume/core/vault";
+import type { RunnerHealth } from "@agari/core/strategies";
+import type { VaultGrant } from "@agari/core/vault";
 import { strategyActivityOf } from "./activity";
 import type { CopyState } from "./lifecycle";
 import { ago } from "./names";

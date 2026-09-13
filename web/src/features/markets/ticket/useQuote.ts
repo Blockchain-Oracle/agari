@@ -1,9 +1,9 @@
 "use client";
 
-import { QUOTE_DEBOUNCE_MS, QUOTE_STALE_AFTER_MS } from "@masayume/core/constants";
-import type { Reading } from "@masayume/core/schemas";
-import type { EventMarket, Quote, Side } from "@masayume/core/types";
-import { useStakeQuote } from "@masayume/markets/react";
+import { QUOTE_DEBOUNCE_MS, QUOTE_STALE_AFTER_MS } from "@agari/core/constants";
+import type { Reading } from "@agari/core/schemas";
+import type { EventMarket, Quote, Side } from "@agari/core/types";
+import { useStakeQuote } from "@agari/markets/react";
 import { useDebounced } from "./useDebounced";
 
 export interface QuoteState {

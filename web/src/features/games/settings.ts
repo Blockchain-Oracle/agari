@@ -35,9 +35,9 @@ export interface GameSettings {
   accent: AccentChoice;
 }
 
-const MOTION_KEY = "masayume.games.motion";
-const HAPTICS_KEY = "masayume.games.haptics";
-const ACCENT_KEY = "masayume.games.accent";
+const MOTION_KEY = "agari.games.motion";
+const HAPTICS_KEY = "agari.games.haptics";
+const ACCENT_KEY = "agari.games.accent";
 
 const motionCodec = {
   parse: (raw: string): MotionChoice | null => (raw === "system" || raw === "full" || raw === "reduced" ? raw : null),

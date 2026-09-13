@@ -1,6 +1,6 @@
 "use client";
 
-import type { Lane } from "@masayume/core/types";
+import type { Lane } from "@agari/core/types";
 import { formatCadence, HERO_HEAD } from "@/lib/copy";
 
 interface HeroCadenceTabsProps {

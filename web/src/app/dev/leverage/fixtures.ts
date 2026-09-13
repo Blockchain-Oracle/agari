@@ -1,5 +1,5 @@
-import type { LeverageMark, LeveragePosition, LeverageQuote, LeverageReserveState } from "@masayume/core/leverage";
-import { toMarketId, type Address, type MarketId } from "@masayume/core/types";
+import type { LeverageMark, LeveragePosition, LeverageQuote, LeverageReserveState } from "@agari/core/leverage";
+import { toMarketId, type Address, type MarketId } from "@agari/core/types";
 
 // Canned readings; nothing here is a real position, address or deployment.
 const DECIMALS = 6;

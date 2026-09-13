@@ -1,8 +1,8 @@
 "use client";
 
-import type { ArenaAgentGrant } from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
-import { createLocalStorageJournal, createSessionKeySession, keyGasBalance, nowMs, type SubmitterSession } from "@masayume/markets";
+import type { ArenaAgentGrant } from "@agari/core/games";
+import type { Address } from "@agari/core/types";
+import { createLocalStorageJournal, createSessionKeySession, keyGasBalance, nowMs, type SubmitterSession } from "@agari/markets";
 import { useCallback, useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";

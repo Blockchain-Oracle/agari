@@ -1,7 +1,7 @@
 "use client";
 
-import type { Diagnosis } from "@masayume/core/types";
-import { useSubmitter } from "@masayume/markets/react";
+import type { Diagnosis } from "@agari/core/types";
+import { useSubmitter } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 

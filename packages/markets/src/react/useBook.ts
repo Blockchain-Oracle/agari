@@ -1,6 +1,6 @@
-import type { BookTarget } from "@masayume/core/ports";
-import type { Reading } from "@masayume/core/schemas";
-import type { BookDepth } from "@masayume/core/types";
+import type { BookTarget } from "@agari/core/ports";
+import type { Reading } from "@agari/core/schemas";
+import type { BookDepth } from "@agari/core/types";
 import { useCallback, useSyncExternalStore } from "react";
 import { bookSnapshot, subscribeBook } from "../runtime/coordinator";
 

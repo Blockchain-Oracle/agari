@@ -1,4 +1,4 @@
-import { oneUnit } from "@masayume/core/units";
+import { oneUnit } from "@agari/core/units";
 import { ORACLE_PRICE_SCALE } from "../identity";
 
 /**

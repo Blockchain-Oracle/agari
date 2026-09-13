@@ -1,5 +1,5 @@
-import { ok } from "@masayume/core/schemas";
-import { toMarketId, type Address, type Bytes32 } from "@masayume/core/types";
+import { ok } from "@agari/core/schemas";
+import { toMarketId, type Address, type Bytes32 } from "@agari/core/types";
 import type { BinaryMarket, FillRow } from "@somnia-chain/markets-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

@@ -10,13 +10,13 @@ import {
   type DeckCard,
   type MatchState,
   type Pick,
-} from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { formatBaseUnits, formatOracleRaw } from "@masayume/core/units";
-import { keyGasBalance, requiredGasWei } from "@masayume/markets";
-import { quoteArenaPick } from "@masayume/markets/games";
-import { useArenaState, useAssetPrice, useOpeningPrice } from "@masayume/markets/react";
+} from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { formatBaseUnits, formatOracleRaw } from "@agari/core/units";
+import { keyGasBalance, requiredGasWei } from "@agari/markets";
+import { quoteArenaPick } from "@agari/markets/games";
+import { useArenaState, useAssetPrice, useOpeningPrice } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNowMs } from "@/components/data";
 import { useVenue } from "@/features/markets";

@@ -1,12 +1,12 @@
 "use client";
 
-import { FAUCET_UNITS } from "@masayume/core/constants";
-import type { FaucetClaimView, FaucetStatus } from "@masayume/core/faucet";
-import type { WritePhase } from "@masayume/core/ports";
-import type { Diagnosis, Hex } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
-import { collateralOrNull, loadCollateral, requiredGasWei } from "@masayume/markets";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@masayume/markets/react";
+import { FAUCET_UNITS } from "@agari/core/constants";
+import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
+import type { WritePhase } from "@agari/core/ports";
+import type { Diagnosis, Hex } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
+import { collateralOrNull, loadCollateral, requiredGasWei } from "@agari/markets";
+import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSignMessage } from "wagmi";

@@ -1,5 +1,5 @@
-import { createRateState, type RateState, type RoomRef, type ServerMessage } from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
+import { createRateState, type RateState, type RoomRef, type ServerMessage } from "@agari/core/games";
+import type { Address } from "@agari/core/types";
 import { WebSocket } from "ws";
 
 /**

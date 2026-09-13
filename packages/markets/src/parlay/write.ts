@@ -1,7 +1,7 @@
-import { PARLAY_NOT_DEPLOYED, type ParlayIntent } from "@masayume/core/parlay";
-import type { IntentJournal, PhaseListener, TxOutcome } from "@masayume/core/ports";
-import { diagnosis, SIDE_TO_OUTCOME, type Address, type Diagnosis, type Hex } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
+import { PARLAY_NOT_DEPLOYED, type ParlayIntent } from "@agari/core/parlay";
+import type { IntentJournal, PhaseListener, TxOutcome } from "@agari/core/ports";
+import { diagnosis, SIDE_TO_OUTCOME, type Address, type Diagnosis, type Hex } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { erc20Abi, maxUint256, parseEventLogs, type ContractFunctionArgs, type ContractFunctionName } from "viem";
 import { SOMNIA_SHANNON } from "../chain";
 import { getCollateral } from "../collateral";

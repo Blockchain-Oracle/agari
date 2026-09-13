@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { faucetTopUpWei, STT_FAUCET_POLICY as POLICY, type FaucetChallenge, type FaucetClaim } from "@masayume/core/faucet";
-import type { FaucetStore } from "@masayume/db";
-import type { FaucetChain } from "@masayume/markets/faucet";
+import { faucetTopUpWei, STT_FAUCET_POLICY as POLICY, type FaucetChallenge, type FaucetClaim } from "@agari/core/faucet";
+import type { FaucetStore } from "@agari/db";
+import type { FaucetChain } from "@agari/markets/faucet";
 import { createFaucetService } from "./faucet-service.server";
 
 const FUNDER = `0x${"aa".repeat(20)}`;

@@ -1,8 +1,8 @@
-import type { Bytes32, EventMarket } from "@masayume/core/types";
+import type { Bytes32, EventMarket } from "@agari/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ lanes: vi.fn(), opening: vi.fn(), price: vi.fn() }));
-vi.mock("@masayume/markets", () => ({ marketsProvider: { listLiveLanes: mocks.lanes, getOpeningPrice: mocks.opening, getAssetPrice: mocks.price } }));
+vi.mock("@agari/markets", () => ({ marketsProvider: { listLiveLanes: mocks.lanes, getOpeningPrice: mocks.opening, getAssetPrice: mocks.price } }));
 import { scanVenue } from "./decide";
 
 const VENUE = `0x${"22".repeat(32)}` as Bytes32;

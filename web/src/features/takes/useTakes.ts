@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarketId, Side } from "@masayume/core/types";
+import type { MarketId, Side } from "@agari/core/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useSignMessage } from "wagmi";

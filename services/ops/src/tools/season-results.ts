@@ -1,9 +1,9 @@
-import { prizePoolTotalUnits, seasonConfigFrom, seasonWinners } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
-import { countRankedFinalized, isDbConfigured, listTopRatings } from "@masayume/db";
-import { closeRuntime, ensureMarkets, loadCollateral, parseMarketsEnv } from "@masayume/markets";
-import { getSeasonPool } from "@masayume/markets/games";
+import { prizePoolTotalUnits, seasonConfigFrom, seasonWinners } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
+import { countRankedFinalized, isDbConfigured, listTopRatings } from "@agari/db";
+import { closeRuntime, ensureMarkets, loadCollateral, parseMarketsEnv } from "@agari/markets";
+import { getSeasonPool } from "@agari/markets/games";
 import { finish } from "../spike/finish";
 
 /**
@@ -12,7 +12,7 @@ import { finish } from "../spike/finish";
  * set against the total so the operator sees whether the escrow covers the sheet before distributing.
  * Read-only. Point DATABASE_URL at the ladder the settler writes and SEASON_* at the season.
  *
- *   pnpm --filter @masayume/ops season:results
+ *   pnpm --filter @agari/ops season:results
  */
 export async function seasonSheet(): Promise<{ winners: ReturnType<typeof seasonWinners>; totalUnits: number; excluded: { wallet: string; rating: number; stakedDuels: number }[] }> {
   const season = seasonConfigFrom(process.env);

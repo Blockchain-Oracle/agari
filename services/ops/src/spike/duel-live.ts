@@ -1,8 +1,8 @@
-import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, Hex } from "@masayume/core/types";
-import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, parseMarketsEnv } from "@masayume/markets";
-import { resolveArenaDeployment, sendArenaIntent } from "@masayume/markets/games";
+import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, Hex } from "@agari/core/types";
+import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, parseMarketsEnv } from "@agari/markets";
+import { resolveArenaDeployment, sendArenaIntent } from "@agari/markets/games";
 import { WebSocket } from "ws";
 import { startDuelProjector } from "../actors/duel-projector";
 import { startGameRoom } from "../actors/game-room";
@@ -13,7 +13,7 @@ import { finish } from "./finish";
  * The whole chain-to-browser path, live: a socket joins a real Shannon match, a real transaction changes
  * it, and the projector delivers that change to the socket without anyone asking.
  *
- *   PLAYER_KEY=… MATCH_ID=0x… FROM_BLOCK=… pnpm --filter @masayume/ops spike:duel-live
+ *   PLAYER_KEY=… MATCH_ID=0x… FROM_BLOCK=… pnpm --filter @agari/ops spike:duel-live
  *
  * It cancels the match it is given, because a creator's cancel is the one terminal event a single
  * wallet can cause on demand — no opponent, no deadline to wait out, no settlement to wait for.
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
   const wallet = session.address.toLowerCase() as Address;
   const token = mintRoomToken(roomSessionClaims(wallet, wallet, deployment.chainId, deployment.gameArena, Date.now()), (payload) => roomMac(SECRET, payload));
 
-  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["masayume.room.v1", token]);
+  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["agari.room.v1", token]);
   await new Promise<void>((resolve, reject) => {
     socket.once("open", () => resolve());
     socket.once("error", reject);

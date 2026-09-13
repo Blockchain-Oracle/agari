@@ -1,8 +1,8 @@
-import type { BookedOrder, OrderOutcome, OrderRequest, OrderRoute, PhaseListener } from "@masayume/core/ports";
-import { diagnosis, type Diagnosis, type Hex, type MarketId, type Quote, type Side } from "@masayume/core/types";
-import { simulateCaps, VAULT_NOT_DEPLOYED, type CapRefusal, type VaultGrant } from "@masayume/core/vault";
-import { formatBaseUnits, msToSec, oneUnit, ownTermsPriceRaw, priceRawToBps } from "@masayume/core/units";
-import { formatCadence } from "@masayume/core/copy";
+import type { BookedOrder, OrderOutcome, OrderRequest, OrderRoute, PhaseListener } from "@agari/core/ports";
+import { diagnosis, type Diagnosis, type Hex, type MarketId, type Quote, type Side } from "@agari/core/types";
+import { simulateCaps, VAULT_NOT_DEPLOYED, type CapRefusal, type VaultGrant } from "@agari/core/vault";
+import { formatBaseUnits, msToSec, oneUnit, ownTermsPriceRaw, priceRawToBps } from "@agari/core/units";
+import { formatCadence } from "@agari/core/copy";
 import { parseEventLogs } from "viem";
 import { eventVaultAbi } from "../contracts/event-vault.abi";
 import { outcomeIdxOf } from "../mappers/side";

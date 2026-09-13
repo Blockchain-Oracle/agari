@@ -1,8 +1,8 @@
 "use client";
 
-import { OUTCOME_TO_SIDE, type EventMarket, type Hex, type Resolution, type Verdict } from "@masayume/core/types";
-import { formatBaseUnits, secToMs, shortHex } from "@masayume/core/units";
-import { oracleGraphUrl, txUrl } from "@masayume/core/urls";
+import { OUTCOME_TO_SIDE, type EventMarket, type Hex, type Resolution, type Verdict } from "@agari/core/types";
+import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
+import { oracleGraphUrl, txUrl } from "@agari/core/urls";
 import { Money } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import { oraclePriceText } from "@/features/markets/hero";

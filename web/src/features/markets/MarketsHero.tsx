@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { MarketId, Side } from "@masayume/core/types";
-import { mark } from "@masayume/markets/perf";
+import { isOk } from "@agari/core/schemas";
+import type { MarketId, Side } from "@agari/core/types";
+import { mark } from "@agari/markets/perf";
 import type { ReactNode } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { MARKETS } from "@/lib/copy";

@@ -1,4 +1,4 @@
-import type { EquityPoint } from "@masayume/core/projection";
+import type { EquityPoint } from "@agari/core/projection";
 import { EquitySparkline } from "@/features/markets/history";
 import { STRATEGIES } from "./copy";
 import { RecordStat } from "./DeskInputs";

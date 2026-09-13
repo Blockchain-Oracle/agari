@@ -11,7 +11,7 @@ import { ensureSchema } from "../src/migrate";
 import { SCHEMA_SQL } from "../src/schema";
 import { readFaucetStore } from "../src/faucet";
 
-const name = `masayume-faucet-test-${randomUUID().slice(0, 10)}`;
+const name = `agari-faucet-test-${randomUUID().slice(0, 10)}`;
 const password = randomUUID();
 const docker = (...args: string[]) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const FUNDER = `0x${"aa".repeat(20)}`;

@@ -1,8 +1,8 @@
 "use client";
 
-import { PRICE_STALE_AFTER_MS } from "@masayume/core/constants";
-import type { DeckCard } from "@masayume/core/games";
-import { formatOracleRaw, secToMs } from "@masayume/core/units";
+import { PRICE_STALE_AFTER_MS } from "@agari/core/constants";
+import type { DeckCard } from "@agari/core/games";
+import { formatOracleRaw, secToMs } from "@agari/core/units";
 import { useCallback } from "react";
 import { StaleTick } from "@/components/states";
 import { booleanCodec, usePersistedState } from "@/lib/persisted";
@@ -28,7 +28,7 @@ import "./practice.css";
  * `none` and there is no submitter in this file to disagree with it.
  */
 
-const TUTORIAL_KEY = "masayume.games.practiceSeen";
+const TUTORIAL_KEY = "agari.games.practiceSeen";
 
 export function PracticeStage() {
   const session = usePracticeRound();

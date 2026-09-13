@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { useLanes } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { useLanes } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useChainNowMs } from "@/features/markets/useChainNow";

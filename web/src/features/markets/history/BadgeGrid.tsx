@@ -1,4 +1,4 @@
-import type { Badge } from "@masayume/core/projection";
+import type { Badge } from "@agari/core/projection";
 import { BadgeCheckIcon, ChartNoAxesCombinedIcon, CrownIcon, DropletsIcon, FlameIcon, TargetIcon, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HISTORY } from "./copy";

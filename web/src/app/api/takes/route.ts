@@ -1,6 +1,6 @@
-import { insertTake, isDbConfigured, listTakes, type TakeRecord } from "@masayume/db";
-import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@masayume/markets";
-import { secToMs } from "@masayume/core/units";
+import { insertTake, isDbConfigured, listTakes, type TakeRecord } from "@agari/db";
+import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@agari/markets";
+import { secToMs } from "@agari/core/units";
 import { NextResponse } from "next/server";
 import { holdsPosition } from "@/features/room/gate.server";
 import { TAKE_ERRORS } from "@/features/takes/copy";

@@ -1,10 +1,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { seasonConfigFrom, toBaseUnits } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Hex } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { closeRuntime, ensureMarkets, getClient, loadCollateral, parseMarketsEnv } from "@masayume/markets";
-import { distributeSeasonPrizes, getSeasonPool } from "@masayume/markets/games";
+import { seasonConfigFrom, toBaseUnits } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Hex } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { closeRuntime, ensureMarkets, getClient, loadCollateral, parseMarketsEnv } from "@agari/markets";
+import { distributeSeasonPrizes, getSeasonPool } from "@agari/markets/games";
 import type { PublicClient } from "viem";
 import { finish } from "../spike/finish";
 import { seasonSheet } from "./season-results";
@@ -17,8 +17,8 @@ import { seasonSheet } from "./season-results";
  * SAFE BY DEFAULT: prints the plan and exits. Pass `--execute` to submit; real funds move only then.
  * `SEASON_ADMIN_PRIVATE_KEY` is the pool's admin (the deployer that created it).
  *
- *   pnpm --filter @masayume/ops season:distribute            # dry run
- *   pnpm --filter @masayume/ops season:distribute --execute  # pay out
+ *   pnpm --filter @agari/ops season:distribute            # dry run
+ *   pnpm --filter @agari/ops season:distribute --execute  # pay out
  */
 const EXECUTE = process.argv.includes("--execute");
 

@@ -1,6 +1,6 @@
-import { orderExpirySec } from "@masayume/core/lifecycle";
-import { diagnosis, type OnchainSnapshot } from "@masayume/core/types";
-import { msToSec, secToNs } from "@masayume/core/units";
+import { orderExpirySec } from "@agari/core/lifecycle";
+import { diagnosis, type OnchainSnapshot } from "@agari/core/types";
+import { msToSec, secToNs } from "@agari/core/units";
 import { OrderRefusedError } from "../errors";
 
 /**

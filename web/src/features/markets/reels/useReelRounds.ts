@@ -1,7 +1,7 @@
 "use client";
 
-import { isEnterable, phase, type MarketPhase } from "@masayume/core/lifecycle";
-import type { EventMarket, LaneSet } from "@masayume/core/types";
+import { isEnterable, phase, type MarketPhase } from "@agari/core/lifecycle";
+import type { EventMarket, LaneSet } from "@agari/core/types";
 import { useRef } from "react";
 
 /**

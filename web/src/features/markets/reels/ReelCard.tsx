@@ -1,7 +1,7 @@
 "use client";
 
-import type { EventMarket } from "@masayume/core/types";
-import { useOpeningPrice } from "@masayume/markets/react";
+import type { EventMarket } from "@agari/core/types";
+import { useOpeningPrice } from "@agari/markets/react";
 import { memo } from "react";
 import { REELS } from "@/lib/copy";
 import { useOracleSpot } from "../hero/useOracleSpot";

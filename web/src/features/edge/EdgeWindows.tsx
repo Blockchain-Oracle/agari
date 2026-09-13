@@ -1,4 +1,4 @@
-import type { EdgeWindow } from "@masayume/core/projection";
+import type { EdgeWindow } from "@agari/core/projection";
 import { cn } from "@/lib/utils";
 import { EDGE } from "./copy";
 import { signedMoney } from "./format";

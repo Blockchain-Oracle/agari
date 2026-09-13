@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { FaucetError, STT_FAUCET_POLICY as POLICY, faucetChallengeMessage, faucetClaimView, faucetTopUpWei, type FaucetClaim, type FaucetStatus } from "@masayume/core/faucet";
-import { readFaucetStore, withFaucetLock, type FaucetStore } from "@masayume/db";
-import type { FaucetChain } from "@masayume/markets/faucet";
+import { FaucetError, STT_FAUCET_POLICY as POLICY, faucetChallengeMessage, faucetClaimView, faucetTopUpWei, type FaucetClaim, type FaucetStatus } from "@agari/core/faucet";
+import { readFaucetStore, withFaucetLock, type FaucetStore } from "@agari/db";
+import type { FaucetChain } from "@agari/markets/faucet";
 
 export interface FaucetServiceDeps {
   chain: FaucetChain;

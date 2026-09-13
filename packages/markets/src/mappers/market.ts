@@ -1,5 +1,5 @@
-import { CADENCE_SNAP_TOLERANCE_SEC } from "@masayume/core/constants";
-import { toMarketId, type EventMarket, type OutcomeIdx } from "@masayume/core/types";
+import { CADENCE_SNAP_TOLERANCE_SEC } from "@agari/core/constants";
+import { toMarketId, type EventMarket, type OutcomeIdx } from "@agari/core/types";
 import { resolveIntervalSec, snapIntervalSec, type BinaryMarket } from "@somnia-chain/markets-sdk";
 import { bigintOf, bigintOrZero, lowerAddress, numberOf, secToMsOrNull } from "./scalars";
 

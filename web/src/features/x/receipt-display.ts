@@ -1,5 +1,5 @@
-import { X_RECEIPT_STATUSES, type XReceipt, type XReceiptStatus } from "@masayume/core/x";
-import { formatBaseUnits } from "@masayume/core/units";
+import { X_RECEIPT_STATUSES, type XReceipt, type XReceiptStatus } from "@agari/core/x";
+import { formatBaseUnits } from "@agari/core/units";
 
 const LABELS: Record<XReceiptStatus, string> = {
   filled: "Order filled",

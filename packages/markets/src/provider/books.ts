@@ -1,6 +1,6 @@
-import type { BookTarget } from "@masayume/core/ports";
-import type { Reading } from "@masayume/core/schemas";
-import type { Address, BookDepth, BookParams, MarketId } from "@masayume/core/types";
+import type { BookTarget } from "@agari/core/ports";
+import type { Reading } from "@agari/core/schemas";
+import type { Address, BookDepth, BookParams, MarketId } from "@agari/core/types";
 import { getClient } from "../runtime/read-runtime";
 import { toBookDepth, toBookParams } from "../mappers/book";
 import { withReading } from "./reading";

@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
-import { shortHex } from "@masayume/core/units";
-import { usePrivateBudget, usePrivateDesk, useVaultSnapshot } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
+import { shortHex } from "@agari/core/units";
+import { usePrivateBudget, usePrivateDesk, useVaultSnapshot } from "@agari/markets/react";
 import { useXGrant, useXStatus } from "@/features/x";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useBalancePlate } from "../../balance";

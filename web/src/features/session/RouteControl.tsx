@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import { SESSION } from "./copy";
 import type { FundingSource } from "./useTicketRoute";
 

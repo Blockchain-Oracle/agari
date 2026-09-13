@@ -1,8 +1,8 @@
 "use client";
 
-import type { TermPoint } from "@masayume/core/surface";
-import type { MarketId } from "@masayume/core/types";
-import { bpsToOddsCents } from "@masayume/core/units";
+import type { TermPoint } from "@agari/core/surface";
+import type { MarketId } from "@agari/core/types";
+import { bpsToOddsCents } from "@agari/core/units";
 import { Countdown } from "@/components/data";
 import { StaleTick } from "@/components/states";
 import { cn } from "@/lib/utils";

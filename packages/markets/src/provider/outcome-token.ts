@@ -1,4 +1,4 @@
-import type { Address, MarketId } from "@masayume/core/types";
+import type { Address, MarketId } from "@agari/core/types";
 import { getOnchain } from "./onchain";
 import type { Unwrap } from "./reading";
 

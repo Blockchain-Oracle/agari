@@ -1,6 +1,6 @@
-import { formatCadence } from "@masayume/core/copy";
-import { OUTCOME_TO_SIDE, type MarketId } from "@masayume/core/types";
-import { txUrl } from "@masayume/core/urls";
+import { formatCadence } from "@agari/core/copy";
+import { OUTCOME_TO_SIDE, type MarketId } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
 import { Money } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";

@@ -1,7 +1,7 @@
 "use client";
 
-import type { BlockerKind } from "@masayume/core/copy";
-import { parseDecimalToBaseUnits } from "@masayume/core/units";
+import type { BlockerKind } from "@agari/core/copy";
+import { parseDecimalToBaseUnits } from "@agari/core/units";
 import { useState } from "react";
 import { blockerLabel } from "@/lib/copy";
 import { VAULT } from "./copy";

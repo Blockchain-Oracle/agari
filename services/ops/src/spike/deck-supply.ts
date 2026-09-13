@@ -1,8 +1,8 @@
-import { DECK_MIN, nextDealableSec, type DeckCandidate, type DeckPolicy } from "@masayume/core/games";
-import { phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import { closeRuntime, ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId } from "@masayume/markets";
-import { getArenaState } from "@masayume/markets/games";
+import { DECK_MIN, nextDealableSec, type DeckCandidate, type DeckPolicy } from "@agari/core/games";
+import { phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import { closeRuntime, ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
+import { getArenaState } from "@agari/markets/games";
 import { dealHeadroomSec } from "../actors/matchmaker/deckmaster";
 import { finish } from "./finish";
 
@@ -14,7 +14,7 @@ import { finish } from "./finish";
  * its cycle that outlasts join + reveal + card life. At `minDeckSize` 3 that left the duel dealable 40%
  * of the time; the owner's answer was a floor of two and tighter windows.
  *
- *   pnpm --filter @masayume/ops spike:deck-supply
+ *   pnpm --filter @agari/ops spike:deck-supply
  *
  * The venue's schedule is deterministic — a Window expires at E and its successor runs E → E+interval —
  * so one read projects the whole hour. `DECK_MIN`, `HORIZON_SEC` and the arena's own parameters can be

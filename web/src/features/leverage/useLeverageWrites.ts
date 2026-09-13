@@ -1,11 +1,11 @@
 "use client";
 
-import type { MarketId, Side } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { submitLeverageOpen, type LeverageOpenOutcome } from "@masayume/markets/leverage";
-import { invalidateAfterWrite, useSubmitter } from "@masayume/markets/react";
-import { getClient } from "@masayume/markets/runtime";
-import { resolveVaultDeployment, type VaultContracts } from "@masayume/markets/vault";
+import type { MarketId, Side } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { submitLeverageOpen, type LeverageOpenOutcome } from "@agari/markets/leverage";
+import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import { getClient } from "@agari/markets/runtime";
+import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { recordBet } from "@/features/room/record-bet";
 import { useCallback, useState } from "react";

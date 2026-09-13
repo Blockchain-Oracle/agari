@@ -1,10 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { deckCommitmentPreimage, nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@masayume/core/games";
-import { phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, Hex, MarketId } from "@masayume/core/types";
-import { putDeck } from "@masayume/db";
-import { marketsProvider, parseMarketsEnv, resolveVenueId } from "@masayume/markets";
+import { deckCommitmentPreimage, nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@agari/core/games";
+import { phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, Hex, MarketId } from "@agari/core/types";
+import { putDeck } from "@agari/db";
+import { marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
 import { keccak256 } from "viem";
 import { DECK_KEY_ENV, deckKey, journal, seal, type RevealMaterial } from "./seal";
 

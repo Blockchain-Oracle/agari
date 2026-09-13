@@ -1,4 +1,4 @@
-import type { Diagnosis, DiagnosisKind } from "@masayume/core/types";
+import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
 import { diagnoseNamedRevert } from "../vault/errors";
 
 /** The desk's own reverts (`IPrivateDesk` errors), mapped into the one diagnosis vocabulary (AD-13). */

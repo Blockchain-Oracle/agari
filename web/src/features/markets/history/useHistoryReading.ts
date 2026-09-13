@@ -1,9 +1,9 @@
 "use client";
 
-import type { WalletHistory } from "@masayume/core/projection";
-import type { Reading } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
-import { keys, useWalletHistory } from "@masayume/markets/react";
+import type { WalletHistory } from "@agari/core/projection";
+import type { Reading } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
+import { keys, useWalletHistory } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useWalletSession } from "@/lib/wallet-session";

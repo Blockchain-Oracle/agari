@@ -1,4 +1,4 @@
-import type { IntentJournal } from "@masayume/core/ports";
+import type { IntentJournal } from "@agari/core/ports";
 import { createJournal, type IntentStore, type JournalRecord } from "./journal";
 
 export function createMemoryStore(): IntentStore {

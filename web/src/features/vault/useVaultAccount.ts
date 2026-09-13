@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk, type Reading } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
-import type { VaultGrant, VaultSnapshot } from "@masayume/core/vault";
-import { keys, useBalanceSheet, useVaultSnapshot } from "@masayume/markets/react";
+import { isOk, type Reading } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
+import type { VaultGrant, VaultSnapshot } from "@agari/core/vault";
+import { keys, useBalanceSheet, useVaultSnapshot } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useWalletSession } from "@/lib/wallet-session";

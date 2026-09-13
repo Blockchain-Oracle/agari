@@ -1,6 +1,6 @@
-import type { LedgerFill } from "@masayume/core/projection";
-import type { Reading } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
+import type { LedgerFill } from "@agari/core/projection";
+import type { Reading } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
 import { toLedgerFill } from "../mappers/fill";
 import { getClient } from "../runtime/read-runtime";
 import { withReading } from "./reading";

@@ -1,5 +1,5 @@
-import type { LeverageDeployment } from "@masayume/core/leverage";
-import type { Address } from "@masayume/core/types";
+import type { LeverageDeployment } from "@agari/core/leverage";
+import type { Address } from "@agari/core/types";
 import masayume from "../addresses.masayume.json";
 import { SOMNIA_SHANNON_ID } from "../chain";
 import type { MarketsEnv } from "../env";

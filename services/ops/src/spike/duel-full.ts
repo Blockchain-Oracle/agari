@@ -1,7 +1,7 @@
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, Hex, MarketId } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { phase } from "@masayume/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, Hex, MarketId } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { phase } from "@agari/core/lifecycle";
 import {
   closeRuntime,
   createMemoryJournal,
@@ -12,8 +12,8 @@ import {
   parseMarketsEnv,
   resolveVenueId,
   type SubmitterSession,
-} from "@masayume/markets";
-import { getArenaCredit, getArenaMatch, getArenaState, quoteArenaPick, sendArenaIntent } from "@masayume/markets/games";
+} from "@agari/markets";
+import { getArenaCredit, getArenaMatch, getArenaState, quoteArenaPick, sendArenaIntent } from "@agari/markets/games";
 import { erc20Abi } from "viem";
 import { dealDeck, deckSupply, newMatchId } from "../actors/matchmaker/deckmaster";
 import { deckKey, fromJournal, open } from "../actors/matchmaker/seal";
@@ -24,7 +24,7 @@ import { placePickWithRetry } from "./pick";
  * One duel, driven end to end against Shannon: deal, create, join, reveal, pick every card on both
  * sides, wait for the venue's prints, settle each card, award the pot, claim both credits.
  *
- *   CREATOR_KEY=… CHALLENGER_KEY=… pnpm --filter @masayume/ops spike:duel-full
+ *   CREATOR_KEY=… CHALLENGER_KEY=… pnpm --filter @agari/ops spike:duel-full
  *
  * This is the one path slice 7 left unproven, because it is the first that spends a player's own money:
  * every earlier spike stops at the commitment. `PHASE` bounds how far it goes —

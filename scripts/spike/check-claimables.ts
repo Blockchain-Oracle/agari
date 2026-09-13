@@ -1,5 +1,5 @@
-import { toMarketId, type Address } from "@masayume/core";
-import { bootMarkets, marketsProvider } from "@masayume/markets";
+import { toMarketId, type Address } from "@agari/core";
+import { bootMarkets, marketsProvider } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 
 const WALLET: Address = "0xd357019E2c55375477802A047dB7bC1A77819358";

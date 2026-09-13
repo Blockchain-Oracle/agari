@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { VaultCaps, VaultGrant } from "@masayume/core/vault";
+import type { VaultCaps, VaultGrant } from "@agari/core/vault";
 
 const integer = z.string().regex(/^\d+$/);
 const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
@@ -13,7 +13,7 @@ export const copyProgressSchema = z.object({
   caps: z.object({ maxStakePerTradeBase: integer, maxDailySpendBase: integer, maxOpenPositions: z.number().int().positive(), maxPriceRaw: integer }),
 });
 export type CopyProgress = z.infer<typeof copyProgressSchema>;
-export const copyProgressKey = (wallet: string, vault: string) => `masayume.copy-progress:50312:${vault.toLowerCase()}:${wallet.toLowerCase()}`;
+export const copyProgressKey = (wallet: string, vault: string) => `agari.copy-progress:50312:${vault.toLowerCase()}:${wallet.toLowerCase()}`;
 export function parseCopyProgress(raw: string | null): CopyProgress | null {
   try { const result = copyProgressSchema.safeParse(JSON.parse(raw ?? "null")); return result.success ? result.data : null; } catch { return null; }
 }

@@ -1,4 +1,4 @@
-import { toMarketId, type OpenPosition } from "@masayume/core/types";
+import { toMarketId, type OpenPosition } from "@agari/core/types";
 import type { OpenPositionPnL } from "@somnia-chain/markets-sdk";
 import { numberOf } from "./scalars";
 

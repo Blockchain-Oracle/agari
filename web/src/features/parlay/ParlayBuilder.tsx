@@ -1,11 +1,11 @@
 "use client";
 
-import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@masayume/core/parlay";
-import { RANGE_STAKE_HEADROOM_BPS } from "@masayume/core/range";
-import { isOk } from "@masayume/core/schemas";
-import type { EventMarket, Hex } from "@masayume/core/types";
-import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@masayume/core/units";
-import { useBalanceSheet } from "@masayume/markets/react";
+import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@agari/core/parlay";
+import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
+import { isOk } from "@agari/core/schemas";
+import type { EventMarket, Hex } from "@agari/core/types";
+import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
+import { useBalanceSheet } from "@agari/markets/react";
 import { Layers, Plus, Wallet, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

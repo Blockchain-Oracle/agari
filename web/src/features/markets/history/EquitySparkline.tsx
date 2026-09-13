@@ -1,5 +1,5 @@
-import type { EquityPoint } from "@masayume/core/projection";
-import { formatBaseUnits } from "@masayume/core/units";
+import type { EquityPoint } from "@agari/core/projection";
+import { formatBaseUnits } from "@agari/core/units";
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 import { HISTORY } from "./copy";

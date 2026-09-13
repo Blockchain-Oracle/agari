@@ -5,7 +5,7 @@ import type { Pick } from "./types";
 /**
  * The canonical preimages a commitment is taken over, and the unbiased mapping from random bytes to a draw.
  *
- * Core carries no hash: `@masayume/core` must stay free of crypto and platform dependencies, and the
+ * Core carries no hash: `@agari/core` must stay free of crypto and platform dependencies, and the
  * hash is the one part both Solidity and Node already have. So this module owns the part that is easy to
  * get subtly wrong and hard to notice — the exact byte layout, and the rejection sampling — and takes the
  * hash function as an argument. `GameArena.revealDeck` must mirror `deckCommitmentPreimage` word for word;

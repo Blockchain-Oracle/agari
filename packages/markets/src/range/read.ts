@@ -14,10 +14,10 @@ import {
   type RangeReserveState,
   type RangeRound,
   type RangeSide,
-} from "@masayume/core/range";
-import { err, ok, type Reading } from "@masayume/core/schemas";
-import { diagnosis, toMarketId, type Address, type MarketId } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
+} from "@agari/core/range";
+import { err, ok, type Reading } from "@agari/core/schemas";
+import { diagnosis, toMarketId, type Address, type MarketId } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";

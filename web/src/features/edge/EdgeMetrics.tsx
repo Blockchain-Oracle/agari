@@ -1,5 +1,5 @@
-import type { TraderEdge } from "@masayume/core/projection";
-import { formatBaseUnits } from "@masayume/core/units";
+import type { TraderEdge } from "@agari/core/projection";
+import { formatBaseUnits } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { EDGE } from "./copy";
 import { signedMoney, toneOf, type Tone } from "./format";

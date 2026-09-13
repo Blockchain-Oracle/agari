@@ -1,7 +1,7 @@
-import { deriveVerdict, formatBaseUnits, formatOracleRaw, isOk, oneUnit } from "@masayume/core";
-import { verdictStrings } from "@masayume/core/copy";
-import { marketsProvider, resolveVenueId } from "@masayume/markets";
-import { ORACLE_PRICE_SCALE } from "@masayume/markets/identity";
+import { deriveVerdict, formatBaseUnits, formatOracleRaw, isOk, oneUnit } from "@agari/core";
+import { verdictStrings } from "@agari/core/copy";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
+import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 import { runSpike, short } from "./lib/boot";
 
 const SETTLED_PAGE = 40;

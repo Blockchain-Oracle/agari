@@ -1,6 +1,6 @@
-import { privateCashoutRequestSchema, type PrivateClaim } from "@masayume/core/private";
-import { toMarketId } from "@masayume/core/types";
-import { cashOutPrivateBet, ClaimRefusedError, publicReason } from "@masayume/markets/private";
+import { privateCashoutRequestSchema, type PrivateClaim } from "@agari/core/private";
+import { toMarketId } from "@agari/core/types";
+import { cashOutPrivateBet, ClaimRefusedError, publicReason } from "@agari/markets/private";
 import { NextResponse } from "next/server";
 import { getDesk } from "@/features/private/desk.server";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
+import { isOk } from "@agari/core/schemas";
 import { useEffect, useState } from "react";
 import { CapabilityPending } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";

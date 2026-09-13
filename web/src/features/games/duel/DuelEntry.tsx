@@ -1,10 +1,10 @@
 "use client";
 
-import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
-import { useArenaState, useBalanceSheet } from "@masayume/markets/react";
-import { STT_FAUCETS } from "@masayume/core/constants";
+import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
+import { useArenaState, useBalanceSheet } from "@agari/markets/react";
+import { STT_FAUCETS } from "@agari/core/constants";
 import { useVenue } from "@/features/markets";
 import { useWalletSession } from "@/lib/wallet-session";
 import { DUEL } from "./copy";

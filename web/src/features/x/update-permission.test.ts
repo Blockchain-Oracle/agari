@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { diagnosis, type Address, type Hex } from "@masayume/core/types";
-import type { VaultGrant } from "@masayume/core/vault";
-import type { TxOutcome } from "@masayume/core/ports";
-import { isBalanceOnlyXGrant } from "@masayume/core/x";
+import { diagnosis, type Address, type Hex } from "@agari/core/types";
+import type { VaultGrant } from "@agari/core/vault";
+import type { TxOutcome } from "@agari/core/ports";
+import { isBalanceOnlyXGrant } from "@agari/core/x";
 import { parseXUpdate, updateXPermission, type XUpdateDependencies, type XUpdateProgress } from "./update-permission";
 
 const OWNER = `0x${"11".repeat(20)}` as Address;

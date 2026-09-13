@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address } from "@masayume/core/types";
-import type { SponsorStatus } from "@masayume/markets";
+import type { Address } from "@agari/core/types";
+import type { SponsorStatus } from "@agari/markets";
 import { useCallback, useEffect, useState } from "react";
 
 export const SPONSOR_ENDPOINT = "/api/sponsor";

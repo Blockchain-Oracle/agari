@@ -1,9 +1,9 @@
 "use client";
 
-import { SETTLING } from "@masayume/core/copy";
-import { formatCadence } from "@masayume/core/market";
-import type { ParlayLegStatus, ParlayStatus } from "@masayume/core/parlay";
-import { formatBaseUnits, formatClock, remainingSec } from "@masayume/core/units";
+import { SETTLING } from "@agari/core/copy";
+import { formatCadence } from "@agari/core/market";
+import type { ParlayLegStatus, ParlayStatus } from "@agari/core/parlay";
+import { formatBaseUnits, formatClock, remainingSec } from "@agari/core/units";
 import { Check, Clock, Layers, Loader2, Minus, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PARLAY } from "./copy";

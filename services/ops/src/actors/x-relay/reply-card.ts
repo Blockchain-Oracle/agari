@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { X_REFUSAL_TITLES, type XReceiptStatus } from "@masayume/core/x";
+import { X_REFUSAL_TITLES, type XReceiptStatus } from "@agari/core/x";
 
 /** Structural subset of ReplyPresentation. All facts come from the receipt formatter. */
 export interface ReplyCardInput {

@@ -1,6 +1,6 @@
 "use client";
 
-import { parseStrategyMetadata } from "@masayume/core/strategies";
+import { parseStrategyMetadata } from "@agari/core/strategies";
 import { AgentPortrait } from "./AgentPortrait";
 import { money } from "./format";
 import { strategyIdentity, STRATEGY_MARKETS } from "./identity";

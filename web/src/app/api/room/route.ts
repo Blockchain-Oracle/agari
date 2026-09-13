@@ -1,4 +1,4 @@
-import { insertComment, isDbConfigured, listComments } from "@masayume/db";
+import { insertComment, isDbConfigured, listComments } from "@agari/db";
 import { NextResponse } from "next/server";
 import { ROOM_ERRORS } from "@/features/room/copy";
 import { readToken } from "@/features/room/gate.server";

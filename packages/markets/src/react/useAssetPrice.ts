@@ -1,7 +1,7 @@
-import { PRICE_POLL_MS, PRICE_STALE_AFTER_MS } from "@masayume/core/constants";
-import { ok, stale, type Reading } from "@masayume/core/schemas";
-import type { AssetPrice } from "@masayume/core/types";
-import { secToMs } from "@masayume/core/units";
+import { PRICE_POLL_MS, PRICE_STALE_AFTER_MS } from "@agari/core/constants";
+import { ok, stale, type Reading } from "@agari/core/schemas";
+import type { AssetPrice } from "@agari/core/types";
+import { secToMs } from "@agari/core/units";
 import { useLivePrice, useWatchPrice } from "@somnia-chain/markets-sdk/react";
 import { useMemo } from "react";
 import { toAssetPrice } from "../mappers/price";

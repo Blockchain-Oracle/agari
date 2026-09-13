@@ -1,7 +1,7 @@
 "use client";
 
-import { computeTraderEdge } from "@masayume/core/projection";
-import { isOk } from "@masayume/core/schemas";
+import { computeTraderEdge } from "@agari/core/projection";
+import { isOk } from "@agari/core/schemas";
 import Link from "next/link";
 import { useMemo } from "react";
 import { useHistoryReading } from "@/features/markets/history";

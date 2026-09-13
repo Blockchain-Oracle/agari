@@ -1,8 +1,8 @@
 "use client";
 
-import type { Reading } from "@masayume/core/schemas";
-import type { Diagnosis, DiagnosisKind } from "@masayume/core/types";
-import { mark } from "@masayume/markets/perf";
+import type { Reading } from "@agari/core/schemas";
+import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
+import { mark } from "@agari/markets/perf";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 

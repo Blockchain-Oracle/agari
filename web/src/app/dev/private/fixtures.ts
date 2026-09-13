@@ -1,6 +1,6 @@
-import type { PrivateBudget, PrivateClaim, PrivateDeskState, PrivateQuote, PrivateTicket } from "@masayume/core/private";
-import { toMarketId, type Address, type Hex } from "@masayume/core/types";
-import { claimDomain, deriveSlotKeys, signPrivateClaim } from "@masayume/markets/private";
+import type { PrivateBudget, PrivateClaim, PrivateDeskState, PrivateQuote, PrivateTicket } from "@agari/core/private";
+import { toMarketId, type Address, type Hex } from "@agari/core/types";
+import { claimDomain, deriveSlotKeys, signPrivateClaim } from "@agari/markets/private";
 import { createWalletClient, http, stringToHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 

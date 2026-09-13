@@ -1,8 +1,8 @@
 "use client";
 
-import { PINNED_TESTNET } from "@masayume/markets";
+import { PINNED_TESTNET } from "@agari/markets";
 import Link from "next/link";
-import MasayumeMark from "@/components/shell/MasayumeMark";
+import AgariMark from "@/components/shell/AgariMark";
 import { PITCH } from "./copy";
 import { PhoneMock } from "./mocks";
 import { CountUp, Emph, Kicker, Mono, PhaseCard, Rise, SpecPanel, StatCard } from "./primitives";
@@ -160,7 +160,7 @@ export function slidesB(usage: VenueUsage): Slide[] {
           </Rise>
           <Rise i={2} className="pitch-team">
             <span className="pitch-team-avatar">
-              <MasayumeMark className="pitch-team-mark" />
+              <AgariMark className="pitch-team-mark" />
             </span>
             <span>
               <div className="pitch-team-name">

@@ -1,6 +1,6 @@
-import { arenaRefundReasonOf, arenaStatusOf, pickOf, type ArenaEvent, type ArenaEventLog } from "@masayume/core/games";
-import type { Reading } from "@masayume/core/schemas";
-import { toMarketId, type Address, type Bytes32 } from "@masayume/core/types";
+import { arenaRefundReasonOf, arenaStatusOf, pickOf, type ArenaEvent, type ArenaEventLog } from "@agari/core/games";
+import type { Reading } from "@agari/core/schemas";
+import { toMarketId, type Address, type Bytes32 } from "@agari/core/types";
 import { parseEventLogs, zeroAddress, type Log, type PublicClient } from "viem";
 import { gameArenaAbi } from "../contracts/game-arena.abi";
 import { withReading } from "../provider/reading";

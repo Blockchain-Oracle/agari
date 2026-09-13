@@ -1,5 +1,5 @@
-import { MARKETS_POLL_MS } from "@masayume/core/constants";
-import type { Address } from "@masayume/core/types";
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import type { Address } from "@agari/core/types";
 import { getWalletCollateral } from "../provider/wallet-collateral";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";

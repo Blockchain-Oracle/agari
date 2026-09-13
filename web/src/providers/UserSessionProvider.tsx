@@ -1,7 +1,7 @@
 "use client";
 
-import { mark } from "@masayume/markets/perf";
-import { SubmitterSessionProvider } from "@masayume/markets/react";
+import { mark } from "@agari/markets/perf";
+import { SubmitterSessionProvider } from "@agari/markets/react";
 import { createContext, useContext, type ReactNode } from "react";
 import type { WalletClient } from "viem";
 import { useWalletClient } from "wagmi";

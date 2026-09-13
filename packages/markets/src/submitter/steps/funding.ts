@@ -1,4 +1,4 @@
-import { diagnosis, type Address, type Diagnosis, type OnchainSnapshot, type Quote } from "@masayume/core/types";
+import { diagnosis, type Address, type Diagnosis, type OnchainSnapshot, type Quote } from "@agari/core/types";
 import { diagnose } from "../../errors/error-map";
 import { getClient } from "../../runtime/read-runtime";
 import { checkGas } from "../gas";

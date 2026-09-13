@@ -1,9 +1,9 @@
 "use client";
 
-import type { LaneSet, MarketId } from "@masayume/core/types";
-import { isBytes32, toMarketId } from "@masayume/core/types";
-import { marketsProvider } from "@masayume/markets";
-import { useLanes, useMarketsBoot } from "@masayume/markets/react";
+import type { LaneSet, MarketId } from "@agari/core/types";
+import { isBytes32, toMarketId } from "@agari/core/types";
+import { marketsProvider } from "@agari/markets";
+import { useLanes, useMarketsBoot } from "@agari/markets/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { SectionHeader } from "@/components/chrome";

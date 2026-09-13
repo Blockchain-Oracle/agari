@@ -1,6 +1,6 @@
 "use client";
 
-import { roundsToCsv, type SettledRound } from "@masayume/core/projection";
+import { roundsToCsv, type SettledRound } from "@agari/core/projection";
 import { useCallback } from "react";
 import { notify } from "@/lib/toast";
 import { HISTORY } from "./copy";

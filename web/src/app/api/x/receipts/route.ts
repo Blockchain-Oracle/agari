@@ -1,5 +1,5 @@
-import { isDbConfigured, xReceiptsByWallet } from "@masayume/db";
-import type { XReceipt } from "@masayume/core/x";
+import { isDbConfigured, xReceiptsByWallet } from "@agari/db";
+import type { XReceipt } from "@agari/core/x";
 import { NextResponse, type NextRequest } from "next/server";
 import { X_RECEIPTS_LIMIT, type XReceiptsFeed } from "@/features/x/protocol";
 

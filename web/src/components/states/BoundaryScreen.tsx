@@ -1,6 +1,6 @@
 "use client";
 
-import { ERROR_BOUNDARY } from "@masayume/core/copy";
+import { ERROR_BOUNDARY } from "@agari/core/copy";
 import { useEffect } from "react";
 
 interface BoundaryScreenProps {

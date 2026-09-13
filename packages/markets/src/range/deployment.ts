@@ -1,5 +1,5 @@
-import type { RangeDeployment } from "@masayume/core/range";
-import type { Address } from "@masayume/core/types";
+import type { RangeDeployment } from "@agari/core/range";
+import type { Address } from "@agari/core/types";
 import masayume from "../addresses.masayume.json";
 import { SOMNIA_SHANNON_ID } from "../chain";
 import type { MarketsEnv } from "../env";

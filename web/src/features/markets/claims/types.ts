@@ -1,4 +1,4 @@
-import type { Address, ClaimKind, Diagnosis, Hex, MarketId, OutcomeIdx } from "@masayume/core/types";
+import type { Address, ClaimKind, Diagnosis, Hex, MarketId, OutcomeIdx } from "@agari/core/types";
 
 /** One redemption = one leg = one wallet signature; a void row contributes two items (canon #11). */
 export type ClaimItemStatus = "pending" | "claiming" | "confirmed" | "reverted" | "unknown";

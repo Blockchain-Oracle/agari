@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 
 type MoneyTone = "neutral" | "pnl";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import MasayumeMark from "@/components/shell/MasayumeMark";
+import AgariMark from "@/components/shell/AgariMark";
 import { LogoX } from "./marks";
 import { PITCH } from "./copy";
 import { Rise, Tag } from "./primitives";
@@ -66,7 +66,7 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
           </div>
           <div className="pitch-phone-app">
             <span className="pitch-phone-brand">
-              <MasayumeMark className="pitch-phone-mark" />
+              <AgariMark className="pitch-phone-mark" />
               masayume
             </span>
             <span className="pitch-phone-balance">12.74 tUSDC</span>
@@ -74,7 +74,7 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
           {won ? (
             <div className="pitch-phone-won">
               <div className="pitch-phone-stamp">正夢</div>
-              <div className="pitch-phone-won-label">MASAYUME · IT CAME TRUE</div>
+              <div className="pitch-phone-won-label">AGARI · IT CAME TRUE</div>
               <div className="pitch-phone-won-figure">+14.60</div>
               <div className="pitch-phone-won-sub">paid to your wallet · settlement receipt ↗</div>
               <div className="pitch-phone-cta">Collect</div>
@@ -114,7 +114,7 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
       <div className="pitch-xcard-body">
         <div className="pitch-xcard-author">
           <span className="pitch-xcard-avatar">
-            <MasayumeMark className="pitch-xcard-mark" />
+            <AgariMark className="pitch-xcard-mark" />
           </span>
           <span>
             <span className="pitch-xcard-name">Masayume</span>
@@ -127,7 +127,7 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
         <div className="pitch-xcard-text">Will BTC close above $64,000 by 23:40 UTC?</div>
         <div className="pitch-xcard-embed">
           <div className="pitch-xcard-embed-head">
-            <span>MASAYUME · BTC $64,000</span>
+            <span>AGARI · BTC $64,000</span>
             <span className="up">↑ 0.4%</span>
           </div>
           <MiniChart w={296} h={58} strikeY={34} />

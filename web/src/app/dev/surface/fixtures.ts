@@ -1,7 +1,7 @@
-import { diagnosis } from "@masayume/core/types";
-import { err, ok } from "@masayume/core/schemas";
-import { termPoints, type TermPoint } from "@masayume/core/surface";
-import { toMarketId, type Address, type BookDepth, type BookLevelView, type EventMarket, type MarketId } from "@masayume/core/types";
+import { diagnosis } from "@agari/core/types";
+import { err, ok } from "@agari/core/schemas";
+import { termPoints, type TermPoint } from "@agari/core/surface";
+import { toMarketId, type Address, type BookDepth, type BookLevelView, type EventMarket, type MarketId } from "@agari/core/types";
 
 // Canned books; nothing here is a real market, pool or order.
 const DECIMALS = 6;

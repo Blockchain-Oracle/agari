@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { remainingSec } from "@masayume/core/units";
-import { useLanes } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { remainingSec } from "@agari/core/units";
+import { useLanes } from "@agari/markets/react";
 import { useMemo } from "react";
 import { TICKER_SLOTS, useTickerPrices } from "@/components/chrome/useTickerPrices";
 import { useNowMs } from "@/components/data/useNowMs";
@@ -59,7 +59,7 @@ export default function Marquee() {
   }
 
   // An honest holding state: loading is a product state, invented prices are not.
-  if (items.length === 0) items.push({ label: "MASAYUME", value: "LOADING", direction: "" });
+  if (items.length === 0) items.push({ label: "AGARI", value: "LOADING", direction: "" });
 
   const renderCells = (keyPrefix: string) =>
     items.map((item, i) => (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diagnosis, toMarketId, type DiagnosisKind, type Quote } from "@masayume/core/types";
+import { diagnosis, toMarketId, type DiagnosisKind, type Quote } from "@agari/core/types";
 import { outcomeToReceipt } from "./receipt-outcome";
 
 const HASH = `0x${"ab".repeat(32)}` as const;

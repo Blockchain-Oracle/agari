@@ -1,7 +1,7 @@
 "use client";
 
-import type { MakerVaultState } from "@masayume/core/maker";
-import { oneUnit } from "@masayume/core/units";
+import type { MakerVaultState } from "@agari/core/maker";
+import { oneUnit } from "@agari/core/units";
 import { EARN } from "./copy";
 import { formatSharePrice, money2, sharePriceDeltaPct, utilizationPct } from "./format";
 

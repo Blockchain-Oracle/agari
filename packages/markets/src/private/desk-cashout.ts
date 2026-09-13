@@ -1,5 +1,5 @@
-import type { PrivateCashoutResult, PrivateClaim } from "@masayume/core/private";
-import { toMarketId, type Address, type Hex } from "@masayume/core/types";
+import type { PrivateCashoutResult, PrivateClaim } from "@agari/core/private";
+import { toMarketId, type Address, type Hex } from "@agari/core/types";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { privateDeskAbi } from "../contracts/private-desk.abi";
 import { getOnchain } from "../provider/onchain";

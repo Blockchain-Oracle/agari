@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket } from "@masayume/core/types";
+import type { EventMarket } from "@agari/core/types";
 import { ReadingBoundary } from "@/components/states";
 import { PriceChart } from "../hero/PriceChart";
 import { useChartSeries } from "../hero/useChartSeries";

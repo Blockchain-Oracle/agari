@@ -1,4 +1,4 @@
-import { isOk, type Reading } from "@masayume/core";
+import { isOk, type Reading } from "@agari/core";
 import {
   closeRuntime,
   configureMarkets,
@@ -6,7 +6,7 @@ import {
   parseMarketsEnv,
   resolveVenueId,
   syncClock,
-} from "@masayume/markets";
+} from "@agari/markets";
 
 type TimedReading = {
   name: "clock" | "collateral" | "venue";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address, Hex } from "@masayume/core/types";
+import type { Address, Hex } from "@agari/core/types";
 import { del, get, set } from "idb-keyval";
 
 /** One key per owner, kept in IndexedDB: it survives reloads, and clearing site data deletes it — by design. */
@@ -10,8 +10,8 @@ export interface StoredSessionKey {
   createdAtMs: number;
 }
 
-const KEY_PREFIX = "masayume.sessionKey.";
-const DEVICE_KEY = "masayume.device";
+const KEY_PREFIX = "agari.sessionKey.";
+const DEVICE_KEY = "agari.device";
 
 const keyFor = (owner: Address) => `${KEY_PREFIX}${owner.toLowerCase()}`;
 

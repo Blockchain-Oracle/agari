@@ -1,7 +1,7 @@
-import type { TxOutcome } from "@masayume/core/ports";
-import type { Address, Hex } from "@masayume/core/types";
-import type { VaultDeployment, VaultGrant } from "@masayume/core/vault";
-import type { SponsorStatus } from "@masayume/markets";
+import type { TxOutcome } from "@agari/core/ports";
+import type { Address, Hex } from "@agari/core/types";
+import type { VaultDeployment, VaultGrant } from "@agari/core/vault";
+import type { SponsorStatus } from "@agari/markets";
 import type { CapsForm } from "./caps";
 
 export type SessionStatus = "no-wallet" | "not-deployed" | "loading" | "disarmed" | "armed" | "grant-without-key" | "expired";

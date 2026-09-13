@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk, type Reading } from "@masayume/core/schemas";
-import type { Bytes32 } from "@masayume/core/types";
-import { useClockFact, useCollateralFact, useMarketsBoot, useVenueFact, type MarketsBoot } from "@masayume/markets/react";
+import { isOk, type Reading } from "@agari/core/schemas";
+import type { Bytes32 } from "@agari/core/types";
+import { useClockFact, useCollateralFact, useMarketsBoot, useVenueFact, type MarketsBoot } from "@agari/markets/react";
 import { webEnv } from "@/lib/env";
 
 export interface VenueContext {

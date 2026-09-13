@@ -83,7 +83,7 @@ importers:
       '@ai-sdk/openai':
         specifier: ^4.0.53
         version: 4.0.53(zod@4.5.4)
-      '@masayume/core':
+      '@agari/core':
         specifier: workspace:*
         version: link:../core
       ai:
@@ -134,7 +134,7 @@ importers:
 
   packages/markets:
     dependencies:
-      '@masayume/core':
+      '@agari/core':
         specifier: workspace:*
         version: link:../core
       '@somnia-chain/markets-sdk':
@@ -162,10 +162,10 @@ importers:
 
   scripts:
     dependencies:
-      '@masayume/core':
+      '@agari/core':
         specifier: workspace:*
         version: link:../packages/core
-      '@masayume/markets':
+      '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets
       tsx:
@@ -184,16 +184,16 @@ importers:
 
   services/ops:
     dependencies:
-      '@masayume/brain':
+      '@agari/brain':
         specifier: workspace:*
         version: link:../../packages/brain
-      '@masayume/core':
+      '@agari/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@masayume/db':
+      '@agari/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@masayume/markets':
+      '@agari/markets':
         specifier: workspace:*
         version: link:../../packages/markets
       opentype.js:
@@ -251,16 +251,16 @@ importers:
       '@dicebear/notionists':
         specifier: 9.4.2
         version: 9.4.2(@dicebear/core@9.4.3)
-      '@masayume/brain':
+      '@agari/brain':
         specifier: workspace:*
         version: link:../packages/brain
-      '@masayume/core':
+      '@agari/core':
         specifier: workspace:*
         version: link:../packages/core
-      '@masayume/db':
+      '@agari/db':
         specifier: workspace:*
         version: link:../packages/db
-      '@masayume/markets':
+      '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets
       '@rainbow-me/rainbowkit':

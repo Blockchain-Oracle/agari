@@ -1,6 +1,6 @@
 "use client";
 
-import { toMarketId } from "@masayume/core/types";
+import { toMarketId } from "@agari/core/types";
 import { SectionHeader } from "@/components/chrome";
 import { TakeReelCard, type FeedTake } from "@/features/takes";
 import { FIXED_NOW_MS, FIXED_NOW_SEC, WALLET } from "../states/fixtures";

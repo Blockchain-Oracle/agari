@@ -1,7 +1,7 @@
 "use client";
 
-import { FAUCET_UNITS } from "@masayume/core/constants";
-import { txUrl } from "@masayume/core/urls";
+import { FAUCET_UNITS } from "@agari/core/constants";
+import { txUrl } from "@agari/core/urls";
 import { Hash } from "@/components/data";
 import { BlockedButton, ErrorState } from "@/components/states";
 import { FAUCET } from "@/lib/copy";

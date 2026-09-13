@@ -17,7 +17,7 @@ import {
   xMarkInterruptedReplyPosts, xStopReplyDelivery, xIsRelayReply, xSuppressRelayReplyDeliveries,
 } from "../src/x-reply-delivery";
 
-const containerName = `masayume-x-delivery-test-${randomUUID().slice(0, 12)}`;
+const containerName = `agari-x-delivery-test-${randomUUID().slice(0, 12)}`;
 const password = randomUUID();
 const docker = (...args: string[]) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const HASH = `0x${"11".repeat(32)}`;

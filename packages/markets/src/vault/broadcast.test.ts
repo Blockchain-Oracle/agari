@@ -1,5 +1,5 @@
-import type { OrderRequest, StopGate } from "@masayume/core/ports";
-import { toMarketId, type Address, type Hex, type Quote } from "@masayume/core/types";
+import type { OrderRequest, StopGate } from "@agari/core/ports";
+import { toMarketId, type Address, type Hex, type Quote } from "@agari/core/types";
 import type { TransactionReceipt } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createJournal } from "../submitter/journal";

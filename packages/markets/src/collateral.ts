@@ -1,5 +1,5 @@
-import { ok, type Reading } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
+import { ok, type Reading } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
 import { resolveAddresses } from "./addresses";
 import { getClient } from "./runtime/read-runtime";
 import { nowMs } from "./provider/clock";

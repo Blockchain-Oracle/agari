@@ -1,4 +1,4 @@
-import { diagnosis, type Diagnosis, type Hex } from "@masayume/core/types";
+import { diagnosis, type Diagnosis, type Hex } from "@agari/core/types";
 import type { TxResult } from "@somnia-chain/markets-sdk";
 import { diagnose } from "../../errors/error-map";
 

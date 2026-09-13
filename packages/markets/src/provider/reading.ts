@@ -1,4 +1,4 @@
-import { err, ok, stale, type Reading, type ReadingOk, type StaleReason } from "@masayume/core/schemas";
+import { err, ok, stale, type Reading, type ReadingOk, type StaleReason } from "@agari/core/schemas";
 import { diagnose } from "../errors/error-map";
 import { ReadingError } from "../errors/reading-error";
 import { nowMs } from "./clock";

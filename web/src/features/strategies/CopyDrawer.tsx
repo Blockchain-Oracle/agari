@@ -1,8 +1,8 @@
 "use client";
 
-import { parseStrategyMetadata, type StrategySubscription } from "@masayume/core/strategies";
-import type { VaultGrant } from "@masayume/core/vault";
-import { addressUrl, txUrl } from "@masayume/core/urls";
+import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
+import type { VaultGrant } from "@agari/core/vault";
+import { addressUrl, txUrl } from "@agari/core/urls";
 import { XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";

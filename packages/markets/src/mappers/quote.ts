@@ -1,6 +1,6 @@
-import { BPS_DENOMINATOR } from "@masayume/core/constants";
-import type { Quote, Side } from "@masayume/core/types";
-import { bpsToOddsCents, mulBps, oneCent, priceRawToBps } from "@masayume/core/units";
+import { BPS_DENOMINATOR } from "@agari/core/constants";
+import type { Quote, Side } from "@agari/core/types";
+import { bpsToOddsCents, mulBps, oneCent, priceRawToBps } from "@agari/core/units";
 import type { BinaryOrderQuote, BinaryStakeQuote } from "@somnia-chain/markets-sdk";
 
 export interface QuoteParts {

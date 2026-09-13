@@ -1,9 +1,9 @@
-import { phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFollowSpec } from "@masayume/core/strategies";
-import type { Bytes32, EventMarket } from "@masayume/core/types";
-import { marketsProvider } from "@masayume/markets";
-import { openingOnFeedScale } from "@masayume/markets/strategies";
+import { phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFollowSpec } from "@agari/core/strategies";
+import type { Bytes32, EventMarket } from "@agari/core/types";
+import { marketsProvider } from "@agari/markets";
+import { openingOnFeedScale } from "@agari/markets/strategies";
 
 export interface Scan {
   /** Windows the runner could act on this cycle, each with its decision. */

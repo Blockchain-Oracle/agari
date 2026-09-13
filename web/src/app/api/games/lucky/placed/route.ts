@@ -1,4 +1,4 @@
-import { bytes32Schema, hexSchema } from "@masayume/core/types";
+import { bytes32Schema, hexSchema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { confirmPlacement } from "@/features/games/lucky/lucky-settle.server";

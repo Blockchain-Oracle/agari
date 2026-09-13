@@ -1,6 +1,6 @@
 "use client";
 
-import { mark, milestones, subscribeMilestones } from "@masayume/markets/perf";
+import { mark, milestones, subscribeMilestones } from "@agari/markets/perf";
 import { useReportWebVitals } from "next/web-vitals";
 import { useEffect } from "react";
 

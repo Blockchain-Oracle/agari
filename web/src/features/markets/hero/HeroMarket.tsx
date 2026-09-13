@@ -1,9 +1,9 @@
 "use client";
 
-import { phase } from "@masayume/core/lifecycle";
-import type { EventMarket, MarketId, Side } from "@masayume/core/types";
-import { marketsProvider } from "@masayume/markets";
-import { useMarket, useOnchain, useOpeningPrice, useTick } from "@masayume/markets/react";
+import { phase } from "@agari/core/lifecycle";
+import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import { marketsProvider } from "@agari/markets";
+import { useMarket, useOnchain, useOpeningPrice, useTick } from "@agari/markets/react";
 import { ReadingBoundary } from "@/components/states";
 import { HERO } from "@/lib/copy";
 import { ChartLegend } from "./ChartLegend";

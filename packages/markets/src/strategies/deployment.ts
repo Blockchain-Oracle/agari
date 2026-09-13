@@ -1,5 +1,5 @@
-import type { Address } from "@masayume/core/types";
-import type { RegistryDeployment } from "@masayume/core/strategies";
+import type { Address } from "@agari/core/types";
+import type { RegistryDeployment } from "@agari/core/strategies";
 import masayume from "../addresses.masayume.json";
 import { SOMNIA_SHANNON_ID } from "../chain";
 

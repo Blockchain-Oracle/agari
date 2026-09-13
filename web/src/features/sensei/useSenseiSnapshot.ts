@@ -1,7 +1,7 @@
 "use client";
 
-import { computeDrift, formatCadence, type Drift } from "@masayume/core/market";
-import type { EventMarket, LaneSet } from "@masayume/core/types";
+import { computeDrift, formatCadence, type Drift } from "@agari/core/market";
+import type { EventMarket, LaneSet } from "@agari/core/types";
 import { useMemo } from "react";
 import { type ChartPoint, useChartSeries } from "../markets/hero/useChartSeries";
 import { useTopOfBook } from "../markets/hero/useTopOfBook";

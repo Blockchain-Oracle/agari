@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import type { ReactNode } from "react";
 import { Chevron } from "./Chevron";
 import { PLATE } from "./copy";

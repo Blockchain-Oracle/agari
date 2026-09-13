@@ -1,6 +1,6 @@
 "use client";
 
-import type { DeckCard, Pick } from "@masayume/core/games";
+import type { DeckCard, Pick } from "@agari/core/games";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useTransform, type PanInfo } from "motion/react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";

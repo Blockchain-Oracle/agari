@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@masayume/core";
-import { useReadingQuery } from "@masayume/markets/react";
+import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { useReadingQuery } from "@agari/markets/react";
 import { newsPayloadSchema, type Article } from "./protocol";
 
 /** The reference refreshes the wire every minute (`NewsFeed.tsx` L65). */

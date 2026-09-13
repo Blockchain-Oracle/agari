@@ -1,6 +1,6 @@
 "use client";
 
-import { MARKET_PARAM } from "@masayume/core/urls";
+import { MARKET_PARAM } from "@agari/core/urls";
 import type { ReelItem } from "@/features/takes";
 import { useEffect, useRef, type RefObject } from "react";
 

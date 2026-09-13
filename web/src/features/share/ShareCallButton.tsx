@@ -20,7 +20,7 @@ export function ShareCallButton({ card, variant = "link" }: ShareCallButtonProps
       disabled={busy}
       aria-busy={busy}
       data-cursor="hover"
-      onClick={() => void share({ render: () => renderCallShareCard(card), fileName: `masayume-call-${shortCallId(card)}.png`, text: buildCallTweetText(card) })}
+      onClick={() => void share({ render: () => renderCallShareCard(card), fileName: `agari-call-${shortCallId(card)}.png`, text: buildCallTweetText(card) })}
     >
       {busy ? SHARE.rendering : `${SHARE.shareCall} ↗`}
     </button>

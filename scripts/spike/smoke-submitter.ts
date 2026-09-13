@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
-import { FAUCET_UNITS } from "@masayume/core/constants";
-import { oneUnit } from "@masayume/core/units";
-import { createMemoryJournal, createSubmitterSession, loadCollateral } from "@masayume/markets";
+import { FAUCET_UNITS } from "@agari/core/constants";
+import { oneUnit } from "@agari/core/units";
+import { createMemoryJournal, createSubmitterSession, loadCollateral } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 
 const json = (value: unknown) => JSON.stringify(value, (_k, v: unknown) => (typeof v === "bigint" ? v.toString() : v), 2);

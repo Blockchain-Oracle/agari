@@ -1,4 +1,4 @@
-import type { Bytes32, MarketId } from "@masayume/core/types";
+import type { Bytes32, MarketId } from "@agari/core/types";
 import { QUERY_KEY_SCOPE, marketFeesKey, marketOnchainKey } from "@somnia-chain/markets-sdk";
 
 const APP = "masayume";

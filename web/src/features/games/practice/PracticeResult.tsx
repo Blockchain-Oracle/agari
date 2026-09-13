@@ -1,6 +1,6 @@
 "use client";
 
-import type { PracticeRound, PracticeScore } from "@masayume/core/games";
+import type { PracticeRound, PracticeScore } from "@agari/core/games";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useGames } from "../GamesProvider";

@@ -1,5 +1,5 @@
-import type { GrantKind } from "@masayume/core/vault";
-import { VAULT_NOT_DEPLOYED } from "@masayume/core/vault";
+import type { GrantKind } from "@agari/core/vault";
+import { VAULT_NOT_DEPLOYED } from "@agari/core/vault";
 
 /**
  * The Trading Balance — ported from the reference's `trading_vault` card

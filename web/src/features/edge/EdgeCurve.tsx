@@ -1,5 +1,5 @@
-import type { EquityPoint } from "@masayume/core/projection";
-import { oneUnit } from "@masayume/core/units";
+import type { EquityPoint } from "@agari/core/projection";
+import { oneUnit } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { EDGE } from "./copy";
 import type { Tone } from "./format";

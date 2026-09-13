@@ -1,6 +1,6 @@
 "use client";
 
-import type { PrivateTicket } from "@masayume/core/private";
+import type { PrivateTicket } from "@agari/core/private";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";

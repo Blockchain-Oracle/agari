@@ -33,8 +33,8 @@ export const SFX_FILES: Readonly<Record<SfxName, string>> = {
 /** The bed is ours, sequenced in `bed.ts`: Flicky's track is Uppbeat-licensed (a visible per-download credit), which is not ours to carry. */
 export const BGM_BED = "chip" as const;
 
-const SFX_VOLUME_KEY = "masayume.games.sfxVolume";
-const BGM_VOLUME_KEY = "masayume.games.bgmVolume";
+const SFX_VOLUME_KEY = "agari.games.sfxVolume";
+const BGM_VOLUME_KEY = "agari.games.bgmVolume";
 /** The sliders multiply these tuned levels: "100%" is the designed balance, not full amplitude. */
 const SFX_VOLUME_BASE = 0.6;
 const BGM_VOLUME_BASE = 0.3;

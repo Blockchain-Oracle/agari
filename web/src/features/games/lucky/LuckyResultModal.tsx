@@ -1,7 +1,7 @@
 "use client";
 
-import { formatBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import { formatBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";

@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { useLanes } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { useLanes } from "@agari/markets/react";
 import { useMemo } from "react";
 import { useVenue } from "@/features/markets/useVenue";
 import { Ticker } from "./Ticker";

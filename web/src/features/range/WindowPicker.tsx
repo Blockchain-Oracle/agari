@@ -1,7 +1,7 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/market";
-import type { EventMarket, MarketId } from "@masayume/core/types";
+import { formatCadence } from "@agari/core/market";
+import type { EventMarket, MarketId } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { cn } from "@/lib/utils";
 import { RANGE } from "./copy";

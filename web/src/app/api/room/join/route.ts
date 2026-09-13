@@ -1,4 +1,4 @@
-import { isDbConfigured } from "@masayume/db";
+import { isDbConfigured } from "@agari/db";
 import { NextResponse } from "next/server";
 import { holdsPosition, mintToken, verifyJoinSignature } from "@/features/room/gate.server";
 import { ROOM_ERRORS } from "@/features/room/copy";

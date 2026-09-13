@@ -1,4 +1,4 @@
-import { ensureMarkets, executeSponsored, getClient, sponsorableFunctionOf, SPONSORABLE_FUNCTIONS } from "@masayume/markets";
+import { ensureMarkets, executeSponsored, getClient, sponsorableFunctionOf, SPONSORABLE_FUNCTIONS } from "@agari/markets";
 import type { PublicClient } from "viem";
 import { NextResponse } from "next/server";
 import { deadlineIsSane, forwardRequestSchema, gate, marketsEnvFromProcess, sponsorConfig, vaultDeploymentFromProcess } from "@/features/session/sponsor.server";
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   if (BigInt(request.gas) > config.maxGas) return refuse(403, `gas above the sponsor's ${config.maxGas} ceiling`);
   if (!deadlineIsSane(request.deadlineSec, Math.floor(nowMs / 1000))) return refuse(403, "deadline is past, or further out than the sponsor accepts");
 
-  const device = req.headers.get("x-masayume-device") ?? "";
+  const device = req.headers.get("x-agari-device") ?? "";
   const byDevice = gate("device", device, config.maxPerDevicePerHour, nowMs);
   if (!byDevice.ok) return refuse(429, byDevice.reason);
   const byAddress = gate("address", request.from, config.maxPerAddressPerHour, nowMs);

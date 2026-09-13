@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { XReceipt, XReceiptStatus } from "@masayume/core/x";
+import type { XReceipt, XReceiptStatus } from "@agari/core/x";
 import { receiptDisplay } from "./receipt-display";
 
 const receipt: XReceipt = {

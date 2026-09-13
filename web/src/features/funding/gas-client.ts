@@ -1,4 +1,4 @@
-import type { FaucetClaimView, FaucetStatus } from "@masayume/core/faucet";
+import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
 
 export type FundingStage = "idle" | "checking" | "verifying" | "adding-gas" | "minting" | "ready";
 export const FUNDING_STAGE_LABEL: Record<FundingStage, string> = { idle: "Get test funds", checking: "Checking balances…", verifying: "Verify wallet — no gas fee", "adding-gas": "Adding STT for gas…", minting: "Confirm test tUSDC in your wallet…", ready: "Ready" };
@@ -12,7 +12,7 @@ export async function faucetJson<T>(path: string, body?: unknown): Promise<T> {
 export const readGasStatus = (wallet: string) => faucetJson<FaucetStatus>(`/api/faucet?wallet=${wallet}`);
 
 interface GasRequest { id: string; signature: string }
-const storageKey = (wallet: string) => `masayume.faucet.gas-request.${wallet.toLowerCase()}`;
+const storageKey = (wallet: string) => `agari.faucet.gas-request.${wallet.toLowerCase()}`;
 function savedRequest(wallet: string): GasRequest | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(storageKey(wallet)) ?? "null");

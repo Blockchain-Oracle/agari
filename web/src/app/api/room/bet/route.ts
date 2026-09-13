@@ -1,6 +1,6 @@
-import { addressSchema } from "@masayume/core/types";
-import { hasBet, isDbConfigured, recordBettor } from "@masayume/db";
-import { ensureMarkets, getClient, parseMarketsEnv } from "@masayume/markets";
+import { addressSchema } from "@agari/core/types";
+import { hasBet, isDbConfigured, recordBettor } from "@agari/db";
+import { ensureMarkets, getClient, parseMarketsEnv } from "@agari/markets";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ROOM_ERRORS } from "@/features/room/copy";

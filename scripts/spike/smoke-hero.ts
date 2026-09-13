@@ -1,6 +1,6 @@
-import { formatOracleRaw, isOk, neededMove, oneUnit, phase } from "@masayume/core";
-import { marketsProvider, resolveVenueId } from "@masayume/markets";
-import { ORACLE_PRICE_SCALE, PRICE_BASIS } from "@masayume/markets/identity";
+import { formatOracleRaw, isOk, neededMove, oneUnit, phase } from "@agari/core";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
+import { ORACLE_PRICE_SCALE, PRICE_BASIS } from "@agari/markets/identity";
 import { runSpike, short } from "./lib/boot";
 
 const HISTORY_LEAD_SEC = 60;

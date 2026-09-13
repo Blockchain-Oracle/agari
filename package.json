@@ -1,5 +1,5 @@
 {
-  "name": "masayume",
+  "name": "agari",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.24.0",
@@ -13,6 +13,8 @@
     "test": "vitest run",
     "invariants": "node scripts/invariants/run.mjs",
     "ci": "pnpm typecheck && pnpm invariants && pnpm test",
+    "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",
+    "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "contracts:export": "node contracts/export.mjs",
     "contracts:test": "forge test --root contracts --no-match-contract Fork"
   },

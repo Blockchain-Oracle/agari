@@ -1,8 +1,8 @@
 "use client";
 
-import { toVerdict, type SettledRound } from "@masayume/core/projection";
-import { isOk } from "@masayume/core/schemas";
-import { useMarket, useResolution } from "@masayume/markets/react";
+import { toVerdict, type SettledRound } from "@agari/core/projection";
+import { isOk } from "@agari/core/schemas";
+import { useMarket, useResolution } from "@agari/markets/react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VerdictCard } from "../verdict";
 import { HISTORY } from "./copy";

@@ -1,5 +1,5 @@
-import { COMPOSER_PERMANENCE } from "@masayume/core/copy";
-import type { Address, MarketId, Side } from "@masayume/core/types";
+import { COMPOSER_PERMANENCE } from "@agari/core/copy";
+import type { Address, MarketId, Side } from "@agari/core/types";
 import { z } from "zod";
 
 /** One confident sentence, not an essay — the reference's own cap (`lib/sui/takes.ts` L23). */

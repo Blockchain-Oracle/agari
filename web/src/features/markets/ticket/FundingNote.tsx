@@ -1,5 +1,5 @@
-import type { FundingCheck } from "@masayume/markets";
-import { formatBaseUnits } from "@masayume/core/units";
+import type { FundingCheck } from "@agari/markets";
+import { formatBaseUnits } from "@agari/core/units";
 import { TICKET } from "@/lib/copy";
 
 interface FundingNoteProps {

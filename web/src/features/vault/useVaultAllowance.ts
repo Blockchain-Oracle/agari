@@ -1,10 +1,10 @@
 "use client";
 
-import type { Reading } from "@masayume/core/schemas";
-import type { Address } from "@masayume/core/types";
-import type { VaultDeployment } from "@masayume/core/vault";
-import { getClient, getCollateral, withReading } from "@masayume/markets";
-import { useReadingQuery } from "@masayume/markets/react";
+import type { Reading } from "@agari/core/schemas";
+import type { Address } from "@agari/core/types";
+import type { VaultDeployment } from "@agari/core/vault";
+import { getClient, getCollateral, withReading } from "@agari/markets";
+import { useReadingQuery } from "@agari/markets/react";
 
 const allowanceKey = (wallet: string | null, vault: string | null) => ["masayume", "vault-allowance", wallet, vault] as const;
 

@@ -1,4 +1,4 @@
-import { deskHealth } from "@masayume/markets/private";
+import { deskHealth } from "@agari/markets/private";
 import { NextResponse } from "next/server";
 import { getDesk } from "@/features/private/desk.server";
 

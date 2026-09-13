@@ -1,4 +1,4 @@
-import { SIDE_TO_OUTCOME, type OutcomeIdx, type Side } from "@masayume/core/types";
+import { SIDE_TO_OUTCOME, type OutcomeIdx, type Side } from "@agari/core/types";
 import type { quoteBinarySellOverBook, quoteBinaryStakeOverBook } from "@somnia-chain/markets-sdk";
 
 export type BuySide = Parameters<typeof quoteBinaryStakeOverBook>[1];

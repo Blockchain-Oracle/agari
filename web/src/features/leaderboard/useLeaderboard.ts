@@ -1,6 +1,6 @@
 "use client";
 
-import { diagnosis, err, ok, stale, type Reading } from "@masayume/core";
+import { diagnosis, err, ok, stale, type Reading } from "@agari/core";
 import { useQuery } from "@tanstack/react-query";
 import { BOARD_REFRESH_MS, readLeaderboard } from "./leaderboard-client";
 import type { BoardData } from "./protocol";

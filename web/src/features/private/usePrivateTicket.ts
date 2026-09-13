@@ -1,12 +1,12 @@
 "use client";
 
-import { formatCadence, type BlockerContext, type BlockerKind } from "@masayume/core/copy";
-import type { BookedOrder } from "@masayume/core/ports";
-import type { PrivateBudget, PrivateOpenResult, PrivateQuote } from "@masayume/core/private";
-import { isOk } from "@masayume/core/schemas";
-import type { Diagnosis, EventMarket, Side } from "@masayume/core/types";
-import { formatBaseUnits, oneUnit, priceRawToBps } from "@masayume/core/units";
-import { usePrivateBudget, usePrivateDesk } from "@masayume/markets/react";
+import { formatCadence, type BlockerContext, type BlockerKind } from "@agari/core/copy";
+import type { BookedOrder } from "@agari/core/ports";
+import type { PrivateBudget, PrivateOpenResult, PrivateQuote } from "@agari/core/private";
+import { isOk } from "@agari/core/schemas";
+import type { Diagnosis, EventMarket, Side } from "@agari/core/types";
+import { formatBaseUnits, oneUnit, priceRawToBps } from "@agari/core/units";
+import { usePrivateBudget, usePrivateDesk } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
 import { notify } from "@/lib/toast";
 import { useWalletSession } from "@/lib/wallet-session";

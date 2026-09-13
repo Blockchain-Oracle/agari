@@ -1,4 +1,4 @@
-import type { Bytes32 } from "@masayume/core/types";
+import type { Bytes32 } from "@agari/core/types";
 import {
   binaryModuleReadAbi,
   binarySettlementAbi,

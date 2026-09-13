@@ -1,12 +1,12 @@
 "use client";
 
-import type { BlockerContext, BlockerKind } from "@masayume/core/copy";
-import type { MarketPhase } from "@masayume/core/lifecycle";
-import type { RangeReserveState } from "@masayume/core/range";
-import { RANGE_STAKE_HEADROOM_BPS } from "@masayume/core/range";
-import { belowMinStake, minStakeBase } from "@masayume/core/sizing";
-import type { EventMarket, Hex } from "@masayume/core/types";
-import { formatBaseUnits, mulBpsCeil } from "@masayume/core/units";
+import type { BlockerContext, BlockerKind } from "@agari/core/copy";
+import type { MarketPhase } from "@agari/core/lifecycle";
+import type { RangeReserveState } from "@agari/core/range";
+import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
+import { belowMinStake, minStakeBase } from "@agari/core/sizing";
+import type { EventMarket, Hex } from "@agari/core/types";
+import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";

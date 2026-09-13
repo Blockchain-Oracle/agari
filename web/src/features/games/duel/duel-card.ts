@@ -1,4 +1,4 @@
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { CARD_H, CARD_MARGIN, CARD_W, closeCard, drawFooter, drawMasthead, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "@/features/share/canvas";
 import { SHARE } from "@/features/share/copy";
 import { DUEL } from "./copy";

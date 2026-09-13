@@ -1,4 +1,4 @@
-import type { Address, BalanceSheet } from "@masayume/core/types";
+import type { Address, BalanceSheet } from "@agari/core/types";
 
 export interface FundingSplit {
   creditUsedBase: bigint;

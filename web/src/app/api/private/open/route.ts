@@ -1,9 +1,9 @@
-import { formatCadence } from "@masayume/core/copy";
-import { privateOpenMessage, privateOpenRequestSchema } from "@masayume/core/private";
-import { toMarketId } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { getCollateral, marketsProvider } from "@masayume/markets";
-import { canonicalSignature, openPrivateBet } from "@masayume/markets/private";
+import { formatCadence } from "@agari/core/copy";
+import { privateOpenMessage, privateOpenRequestSchema } from "@agari/core/private";
+import { toMarketId } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { getCollateral, marketsProvider } from "@agari/markets";
+import { canonicalSignature, openPrivateBet } from "@agari/markets/private";
 import { NextResponse } from "next/server";
 import { verifyMessage } from "viem";
 import { getDesk } from "@/features/private/desk.server";

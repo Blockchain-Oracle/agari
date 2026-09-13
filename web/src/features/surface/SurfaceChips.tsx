@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/market";
-import type { EventMarket, MarketId } from "@masayume/core/types";
-import { formatClock, remainingSec } from "@masayume/core/units";
+import { formatCadence } from "@agari/core/market";
+import type { EventMarket, MarketId } from "@agari/core/types";
+import { formatClock, remainingSec } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { SURFACE } from "./copy";
 

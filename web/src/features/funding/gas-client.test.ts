@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { FaucetClaimView, FaucetStatus } from "@masayume/core/faucet";
+import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
 import { requestGas } from "./gas-client";
 
 const wallet = `0x${"ab".repeat(20)}`;
 const claim: FaucetClaimView = { id: "request-1", amountWei: "2000000000000000000", txHash: `0x${"cd".repeat(32)}`, status: "confirmed", nextClaimAtMs: 1_900_000_000_000 };
 const status: FaucetStatus = { configured: true, ready: true, address: wallet, fundingBalanceWei: "50000000000000000000", walletBalanceWei: "0", dailyRemainingWei: "40000000000000000000", targetWei: claim.amountWei, thresholdWei: "1000000000000000000", claim: null, message: "Eligible" };
 const stored = new Map<string, string>();
-const storageKey = `masayume.faucet.gas-request.${wallet}`;
+const storageKey = `agari.faucet.gas-request.${wallet}`;
 const response = (body: unknown, code = 200) => new Response(JSON.stringify(body), { status: code });
 const input = () => ({ wallet, status, current: () => true, sign: vi.fn(async () => "0x1234"), stage: vi.fn(), onClaim: vi.fn() });
 

@@ -1,4 +1,4 @@
-import { MAKER_NOT_DEPLOYED } from "@masayume/core/maker";
+import { MAKER_NOT_DEPLOYED } from "@agari/core/maker";
 
 /**
  * `/earn` — the reference's words (`app/earn/page.tsx`), facts adapted to DreamDEX: the vault is not the

@@ -1,6 +1,6 @@
-import type { Address, Hex } from "@masayume/core/types";
-import { addressUrl, txUrl } from "@masayume/core/urls";
-import { PINNED_TESTNET } from "@masayume/markets";
+import type { Address, Hex } from "@agari/core/types";
+import { addressUrl, txUrl } from "@agari/core/urls";
+import { PINNED_TESTNET } from "@agari/markets";
 
 /**
  * The proofs on `/demo` — real transactions and real contracts, nothing else.

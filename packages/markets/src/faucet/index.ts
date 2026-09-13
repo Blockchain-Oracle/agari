@@ -1,4 +1,4 @@
-import { FaucetError, STT_FAUCET_POLICY, type FaucetClaim } from "@masayume/core/faucet";
+import { FaucetError, STT_FAUCET_POLICY, type FaucetClaim } from "@agari/core/faucet";
 import { createPublicClient, http, keccak256, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { SOMNIA_SHANNON } from "../chain";

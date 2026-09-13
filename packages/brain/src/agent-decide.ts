@@ -1,5 +1,5 @@
-import { agentPrompt, gateAgentVerdict, type AgentContext, type AgentPrompt, type AgentRecordSummary, type AgentSpec, type Decision } from "@masayume/core/strategies";
-import type { VaultCaps } from "@masayume/core/vault";
+import { agentPrompt, gateAgentVerdict, type AgentContext, type AgentPrompt, type AgentRecordSummary, type AgentSpec, type Decision } from "@agari/core/strategies";
+import type { VaultCaps } from "@agari/core/vault";
 import type { LanguageModel } from "ai";
 import { createHash } from "node:crypto";
 import { readAgentVerdict, type AgentRead } from "./agent-read";

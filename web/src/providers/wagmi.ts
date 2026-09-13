@@ -1,4 +1,4 @@
-import { RPC_HTTP_URLS, SOMNIA_SHANNON } from "@masayume/markets/chain";
+import { RPC_HTTP_URLS, SOMNIA_SHANNON } from "@agari/markets/chain";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import {
   braveWallet,

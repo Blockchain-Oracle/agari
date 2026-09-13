@@ -1,8 +1,8 @@
-import { MAKER_NOT_DEPLOYED, type MakerIntent } from "@masayume/core/maker";
-import type { IntentJournal, PhaseListener, TxOutcome } from "@masayume/core/ports";
-import { diagnosis, type Address, type Diagnosis } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import type { GasLane } from "@masayume/core/constants";
+import { MAKER_NOT_DEPLOYED, type MakerIntent } from "@agari/core/maker";
+import type { IntentJournal, PhaseListener, TxOutcome } from "@agari/core/ports";
+import { diagnosis, type Address, type Diagnosis } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import type { GasLane } from "@agari/core/constants";
 import { erc20Abi, maxUint256, type ContractFunctionArgs, type ContractFunctionName, type Hex } from "viem";
 import { SOMNIA_SHANNON } from "../chain";
 import { getCollateral } from "../collateral";

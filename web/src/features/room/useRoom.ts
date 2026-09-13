@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { MarketId } from "@masayume/core/types";
-import { usePositions } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { MarketId } from "@agari/core/types";
+import { usePositions } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
 import { useSignMessage } from "wagmi";
 import { useWalletSession } from "@/lib/wallet-session";

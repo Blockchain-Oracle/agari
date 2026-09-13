@@ -1,10 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { deckCommitmentPreimage, selectDeck, type DeckCandidate } from "@masayume/core/games";
-import { phase } from "@masayume/core/lifecycle";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, Hex, MarketId } from "@masayume/core/types";
-import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId } from "@masayume/markets";
-import { getArenaState, sendArenaIntent } from "@masayume/markets/games";
+import { deckCommitmentPreimage, selectDeck, type DeckCandidate } from "@agari/core/games";
+import { phase } from "@agari/core/lifecycle";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, Hex, MarketId } from "@agari/core/types";
+import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
+import { getArenaState, sendArenaIntent } from "@agari/markets/games";
 import { keccak256 } from "viem";
 import { finish } from "./finish";
 
@@ -14,7 +14,7 @@ import { finish } from "./finish";
  * and the deck comes from the deckmaster — here one key stands in for both, and the match is left
  * unjoined for the room to read.
  *
- *   PLAYER_KEY=… pnpm --filter @masayume/ops spike:arena-open
+ *   PLAYER_KEY=… pnpm --filter @agari/ops spike:arena-open
  */
 /** The opponent this match names at creation. The arena binds it now, so it is required rather than guessed. */
 const CHALLENGER = (process.env.CHALLENGER ?? "").toLowerCase() as Address;
@@ -91,7 +91,7 @@ async function main(): Promise<void> {
     potBase: 0n,
   });
   console.log(`created in ${sent.hash} · gas ${sent.receipt.gasUsed} · status ${sent.receipt.status}`);
-  console.log(`\nMATCH_ID=${matchId} WALLET=${session.address.toLowerCase()} pnpm --filter @masayume/ops spike:room`);
+  console.log(`\nMATCH_ID=${matchId} WALLET=${session.address.toLowerCase()} pnpm --filter @agari/ops spike:room`);
   // The reveal material is printed rather than persisted: durable decks arrive with the deckmaster.
   console.log(JSON.stringify({ serverSeed, clientSeeds }, null, 2));
   await session.dispose();

@@ -1,6 +1,6 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { Address, BalanceSheet, VenueCredit } from "@masayume/core/types";
-import { oneUnit, ownTermsPriceRaw } from "@masayume/core/units";
+import type { Reading } from "@agari/core/schemas";
+import type { Address, BalanceSheet, VenueCredit } from "@agari/core/types";
+import { oneUnit, ownTermsPriceRaw } from "@agari/core/units";
 import type { Portfolio, VaultPayoutFallback } from "@somnia-chain/markets-sdk";
 import { getCollateral } from "../collateral";
 import { getClient, getVaultDeployment } from "../runtime/read-runtime";

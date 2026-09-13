@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { AssetPrice } from "@masayume/core/types";
-import { useAssetPrice } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { AssetPrice } from "@agari/core/types";
+import { useAssetPrice } from "@agari/markets/react";
 import { useEffect } from "react";
 
 /**

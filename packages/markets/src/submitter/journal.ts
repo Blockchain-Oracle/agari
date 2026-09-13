@@ -1,4 +1,4 @@
-import type { IntentJournal, IntentRecord, IntentState } from "@masayume/core/ports";
+import type { IntentJournal, IntentRecord, IntentState } from "@agari/core/ports";
 
 export interface JournalRecord extends IntentRecord {
   failureReason?: string;

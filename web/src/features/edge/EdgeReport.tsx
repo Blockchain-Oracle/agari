@@ -1,4 +1,4 @@
-import type { TraderEdge, WalletHistory } from "@masayume/core/projection";
+import type { TraderEdge, WalletHistory } from "@agari/core/projection";
 import { cn } from "@/lib/utils";
 import { EDGE } from "./copy";
 import { EdgeCurve } from "./EdgeCurve";

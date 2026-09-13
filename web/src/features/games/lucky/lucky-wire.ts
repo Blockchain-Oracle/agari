@@ -1,5 +1,5 @@
-import type { LuckyResult } from "@masayume/core/games";
-import type { Address, Bytes32, Hex, Side } from "@masayume/core/types";
+import type { LuckyResult } from "@agari/core/games";
+import type { Address, Bytes32, Hex, Side } from "@agari/core/types";
 
 /**
  * What the five Lucky routes say, typed once for both ends. Money is a decimal string in base units on

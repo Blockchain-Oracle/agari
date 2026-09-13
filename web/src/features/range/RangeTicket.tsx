@@ -1,10 +1,10 @@
 "use client";
 
-import type { RangeQuote, RangeReserveState, RangeSide } from "@masayume/core/range";
-import type { Diagnosis, EventMarket, Hex } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
-import { formatCadence } from "@masayume/core/market";
+import type { RangeQuote, RangeReserveState, RangeSide } from "@agari/core/range";
+import type { Diagnosis, EventMarket, Hex } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@agari/core/market";
 import { Loader2 } from "lucide-react";
 import { Countdown } from "@/components/data";
 import { diagnosisCopy } from "@/lib/copy";

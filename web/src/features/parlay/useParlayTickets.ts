@@ -1,11 +1,11 @@
 "use client";
 
-import type { ParlayLeg, ParlayTicket } from "@masayume/core/parlay";
-import type { Reading } from "@masayume/core/schemas";
-import type { Address, IndexedStatus, MarketId } from "@masayume/core/types";
-import { marketsProvider, withReading } from "@masayume/markets";
-import { listParlaysOf } from "@masayume/markets/parlay";
-import { keys, useReadingQuery } from "@masayume/markets/react";
+import type { ParlayLeg, ParlayTicket } from "@agari/core/parlay";
+import type { Reading } from "@agari/core/schemas";
+import type { Address, IndexedStatus, MarketId } from "@agari/core/types";
+import { marketsProvider, withReading } from "@agari/markets";
+import { listParlaysOf } from "@agari/markets/parlay";
+import { keys, useReadingQuery } from "@agari/markets/react";
 
 /** A leg with the Window it names read beside it, so the slip can say what the leg is and when it can settle. */
 export interface ParlayLegView extends ParlayLeg {

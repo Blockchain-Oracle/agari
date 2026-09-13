@@ -1,10 +1,10 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { formatCadence } from "@masayume/core/copy";
-import type { LaneSet, Side } from "@masayume/core/types";
-import { formatOracleRaw } from "@masayume/core/units";
-import { useOpeningPrice } from "@masayume/markets/react";
+import { formatCadence } from "@agari/core/copy";
+import type { LaneSet, Side } from "@agari/core/types";
+import { formatOracleRaw } from "@agari/core/units";
+import { useOpeningPrice } from "@agari/markets/react";
 import { UnplugIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { ORACLE_SCALE } from "@/features/markets/hero/units";

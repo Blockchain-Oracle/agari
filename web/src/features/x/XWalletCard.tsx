@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@masayume/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@agari/core/units";
 import { ChevronDown, RefreshCw, Unlink } from "lucide-react";
 import { useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";

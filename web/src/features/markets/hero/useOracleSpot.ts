@@ -1,6 +1,6 @@
 "use client";
 
-import { useAssetPrice } from "@masayume/markets/react";
+import { useAssetPrice } from "@agari/markets/react";
 import { basisRaw, feedRawToOracleRaw } from "./units";
 
 /**

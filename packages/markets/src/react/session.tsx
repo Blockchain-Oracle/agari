@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address } from "@masayume/core/types";
+import type { Address } from "@agari/core/types";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { WalletClient } from "viem";
 import type { MarketsEnv } from "../env";

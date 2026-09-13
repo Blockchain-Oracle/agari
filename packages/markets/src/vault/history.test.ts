@@ -1,5 +1,5 @@
-import type { RoundMarket } from "@masayume/core/projection";
-import { toMarketId } from "@masayume/core/types";
+import type { RoundMarket } from "@agari/core/projection";
+import { toMarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { tallyToLedger, vaultRound, VAULT_TX_SENTINEL, type VaultTally } from "./history";
 

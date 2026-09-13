@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk, type Reading } from "@masayume/core/schemas";
-import { formatBaseUnits } from "@masayume/core/units";
-import { formatClock, remainingSec } from "@masayume/core/units";
+import { isOk, type Reading } from "@agari/core/schemas";
+import { formatBaseUnits } from "@agari/core/units";
+import { formatClock, remainingSec } from "@agari/core/units";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { diagnosisCopy } from "@/lib/copy";

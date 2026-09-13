@@ -1,10 +1,10 @@
-import { phase } from "@masayume/core/lifecycle";
-import type { MakerVaultState, MakerWindowView } from "@masayume/core/maker";
-import { isOk } from "@masayume/core/schemas";
-import type { Bytes32, EventMarket, MarketId } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, type SubmitterSession } from "@masayume/markets";
-import { getMakerVaultState, listMakerOpenWindows, readPoolTop } from "@masayume/markets/maker";
+import { phase } from "@agari/core/lifecycle";
+import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
+import { isOk } from "@agari/core/schemas";
+import type { Bytes32, EventMarket, MarketId } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
+import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import { getMakerVaultState, listMakerOpenWindows, readPoolTop } from "@agari/markets/maker";
 import { decideOpen, decideQuote, type Placed } from "./decide";
 import { readMakerEnv, type MakerEnv } from "./env";
 

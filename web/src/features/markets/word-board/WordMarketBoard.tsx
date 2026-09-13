@@ -1,7 +1,7 @@
 "use client";
 
-import { groupByHorizon } from "@masayume/core/market";
-import type { LaneSet } from "@masayume/core/types";
+import { groupByHorizon } from "@agari/core/market";
+import type { LaneSet } from "@agari/core/types";
 import { WORD_BOARD } from "@/lib/copy";
 import { WordCard } from "./WordCard";
 

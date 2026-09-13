@@ -1,5 +1,5 @@
-import { PRIVATE_CLAIM_DOMAIN_NAME, PRIVATE_CLAIM_DOMAIN_VERSION, PRIVATE_CLAIM_TYPES, type PrivateClaim } from "@masayume/core/private";
-import type { Address, Hex } from "@masayume/core/types";
+import { PRIVATE_CLAIM_DOMAIN_NAME, PRIVATE_CLAIM_DOMAIN_VERSION, PRIVATE_CLAIM_TYPES, type PrivateClaim } from "@agari/core/private";
+import type { Address, Hex } from "@agari/core/types";
 import { verifyTypedData, type WalletClient } from "viem";
 
 export interface ClaimDomain {

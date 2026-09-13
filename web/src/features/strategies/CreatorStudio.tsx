@@ -1,8 +1,8 @@
 "use client";
 
-import { describeSpec, isSpec, PRESETS } from "@masayume/core/strategies";
-import { parseDecimalToBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import { describeSpec, isSpec, PRESETS } from "@agari/core/strategies";
+import { parseDecimalToBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
 import { notify } from "@/lib/toast";
@@ -35,7 +35,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
   const dry = useDryRead(studioReadKey(form));
   const successfulRead = dry.state.status === "ok" && dry.state.result.verdict !== null;
   useEffect(() => {
-    setForm((f) => f.portraitSeed === "masayume-new-agent" ? { ...f, portraitSeed: crypto.randomUUID() } : f);
+    setForm((f) => f.portraitSeed === "agari-new-agent" ? { ...f, portraitSeed: crypto.randomUUID() } : f);
   }, []);
   const runner = form.hosting === "house" ? houseRunner : form.agent.trim();
   const name = form.name.trim() || codenameFromAddress(form.portraitSeed);

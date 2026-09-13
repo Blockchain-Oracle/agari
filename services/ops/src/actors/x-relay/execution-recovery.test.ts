@@ -1,4 +1,4 @@
-import type { XReceipt } from "@masayume/core/x";
+import type { XReceipt } from "@agari/core/x";
 import { describe, expect, it, vi } from "vitest";
 import { recoverExecutionReceipt, recoverXExecutions } from "./execution-recovery";
 

@@ -13,10 +13,10 @@ import {
   type PracticeClose,
   type PracticeRound,
   type PracticeScore,
-} from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { AssetPrice } from "@masayume/core/types";
-import { useLanes } from "@masayume/markets/react";
+} from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { AssetPrice } from "@agari/core/types";
+import { useLanes } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useChainNowMs, useVenue } from "@/features/markets";
 

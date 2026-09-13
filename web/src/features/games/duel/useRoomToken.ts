@@ -1,7 +1,7 @@
 "use client";
 
-import { ROOM_TOKEN_TTL_MS, roomAuthMessage } from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
+import { ROOM_TOKEN_TTL_MS, roomAuthMessage } from "@agari/core/games";
+import type { Address } from "@agari/core/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { DUEL } from "./copy";
@@ -35,7 +35,7 @@ const ENDPOINT = "/api/games/room-token";
 /** Renew this long before expiry: enough for a slow round trip, short enough to stay one token. */
 const RENEW_LEAD_MS = 90_000;
 /** One token per wallet, so switching accounts in a tab cannot resume the previous one's seat. */
-const STORE_KEY = (wallet: string) => `masayume.room.${wallet.toLowerCase()}`;
+const STORE_KEY = (wallet: string) => `agari.room.${wallet.toLowerCase()}`;
 /** Below this a stored token is not worth resuming: it would expire mid-handshake. */
 const RESUME_FLOOR_MS = 20_000;
 

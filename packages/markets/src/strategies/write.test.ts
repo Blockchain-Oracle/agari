@@ -1,7 +1,7 @@
-import type { IntentJournal } from "@masayume/core/ports";
-import type { StrategyIntent } from "@masayume/core/strategies";
-import type { Address, Hex } from "@masayume/core/types";
-import { mulBpsCeil } from "@masayume/core/units";
+import type { IntentJournal } from "@agari/core/ports";
+import type { StrategyIntent } from "@agari/core/strategies";
+import type { Address, Hex } from "@agari/core/types";
+import { mulBpsCeil } from "@agari/core/units";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { maxUint256 } from "viem";
 import type { VaultContracts } from "../vault/write";

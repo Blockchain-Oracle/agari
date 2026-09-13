@@ -1,8 +1,8 @@
 "use client";
 
-import type { LeveragePosition } from "@masayume/core/leverage";
-import { isOk } from "@masayume/core/schemas";
-import { useLeverageMark, useLeverageReserve, useMarket, useMyLeveragePositions } from "@masayume/markets/react";
+import type { LeveragePosition } from "@agari/core/leverage";
+import { isOk } from "@agari/core/schemas";
+import { useLeverageMark, useLeverageReserve, useMarket, useMyLeveragePositions } from "@agari/markets/react";
 import type { ListItem } from "@/lib/use-pager";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useChainNowMs } from "../markets/useChainNow";

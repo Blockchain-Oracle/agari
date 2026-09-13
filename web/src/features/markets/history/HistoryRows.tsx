@@ -1,6 +1,6 @@
 "use client";
 
-import type { SettledRound, WalletHistory } from "@masayume/core/projection";
+import type { SettledRound, WalletHistory } from "@agari/core/projection";
 import { useState } from "react";
 import { Pager } from "@/components/chrome";
 import { ReadingBoundary } from "@/components/states";

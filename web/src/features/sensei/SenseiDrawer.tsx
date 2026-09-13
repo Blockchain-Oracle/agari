@@ -1,9 +1,9 @@
 "use client";
 
-import type { EventMarket } from "@masayume/core/types";
-import { formatClock, formatOracleRaw } from "@masayume/core/units";
+import type { EventMarket } from "@agari/core/types";
+import { formatClock, formatOracleRaw } from "@agari/core/units";
 import { useEffect, useRef, useState } from "react";
-import MasayumeMark from "@/components/shell/MasayumeMark";
+import AgariMark from "@/components/shell/AgariMark";
 import { cn } from "@/lib/utils";
 import { CardSpark } from "../markets/lanes/CardSpark";
 import { ORACLE_SCALE } from "../markets/hero/units";
@@ -118,7 +118,7 @@ export function SenseiDrawer({ open, onClose, chat, reading, markets, nowMs, sec
             <div key={index} className={cn("sd-row", message.role)}>
               {message.role === "assistant" && (
                 <span className="sd-ava" aria-hidden>
-                  <MasayumeMark className="sd-ava-mark" />
+                  <AgariMark className="sd-ava-mark" />
                 </span>
               )}
               <div className={cn("sd-msg", message.role)}>
@@ -133,7 +133,7 @@ export function SenseiDrawer({ open, onClose, chat, reading, markets, nowMs, sec
           {chat.loading && (
             <div className="sd-row assistant">
               <span className="sd-ava" aria-hidden>
-                <MasayumeMark className="sd-ava-mark" />
+                <AgariMark className="sd-ava-mark" />
               </span>
               <div className="sd-msg assistant">
                 <span className="sensei-dots">

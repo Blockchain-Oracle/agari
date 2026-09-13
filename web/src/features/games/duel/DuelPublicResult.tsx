@@ -1,10 +1,10 @@
 "use client";
 
-import { cardsInMask } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Bytes32 } from "@masayume/core/types";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
-import { useArenaMatch } from "@masayume/markets/react";
+import { cardsInMask } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Bytes32 } from "@agari/core/types";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { useArenaMatch } from "@agari/markets/react";
 import { useState, type CSSProperties } from "react";
 import { LoadingState } from "@/components/states";
 import { useVenue } from "@/features/markets";

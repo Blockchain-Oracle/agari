@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@masayume/core";
-import { useReadingQuery } from "@masayume/markets/react";
+import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { useReadingQuery } from "@agari/markets/react";
 import { statusPayloadSchema, type StatusPayload } from "./protocol";
 
 /** The reference re-checks every 30 s (`app/status/page.tsx` L28). */

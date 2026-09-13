@@ -1,4 +1,4 @@
-import { agentVerdictSchema, type AgentPrompt, type AgentReadFailure, type AgentVerdict } from "@masayume/core/strategies";
+import { agentVerdictSchema, type AgentPrompt, type AgentReadFailure, type AgentVerdict } from "@agari/core/strategies";
 import { APICallError, generateObject, NoObjectGeneratedError, type LanguageModel } from "ai";
 
 export const DEFAULT_AGENT_TIMEOUT_MS = 20_000;

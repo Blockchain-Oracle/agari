@@ -1,10 +1,10 @@
 /** Contract-level strings from EXPERIENCE.md. Surfaces import these; they never inline them. */
 
 export const BRAND = {
-  name: "Masayume",
-  kanji: "正夢",
-  romaji: "masayume",
-  tagline: "the dream that came true",
+  name: "Agari",
+  kanji: "上がり",
+  romaji: "agari",
+  tagline: "the winning hand",
 } as const;
 
 export const RECEIPT_FOOTER = "Only you can cash out.";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { TraderEdge, WalletHistory } from "@masayume/core/projection";
+import type { TraderEdge, WalletHistory } from "@agari/core/projection";
 import { DownloadIcon } from "lucide-react";
 import { Money } from "@/components/data";
 import { Button } from "@/components/ui/button";

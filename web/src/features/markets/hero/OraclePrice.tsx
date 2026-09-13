@@ -1,4 +1,4 @@
-import { formatOracleRaw } from "@masayume/core/units";
+import { formatOracleRaw } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { ORACLE_SCALE } from "./units";
 

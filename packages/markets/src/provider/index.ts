@@ -1,4 +1,4 @@
-import type { MarketsProvider } from "@masayume/core/ports";
+import type { MarketsProvider } from "@agari/core/ports";
 import { getBalanceSheet } from "./balances";
 import { getBookDepth, getBookParams } from "./books";
 import { listClaimables } from "./claimables";

@@ -1,4 +1,4 @@
-import { type Address } from "@masayume/core";
+import { type Address } from "@agari/core";
 import { runSpike, short } from "./lib/boot";
 
 const WALLET: Address = "0xd357019E2c55375477802A047dB7bC1A77819358";

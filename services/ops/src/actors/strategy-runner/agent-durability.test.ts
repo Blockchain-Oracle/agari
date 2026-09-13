@@ -1,13 +1,13 @@
-import type { AgentContext, StrategyRecord } from "@masayume/core/strategies";
-import type { Bytes32, EventMarket } from "@masayume/core/types";
+import type { AgentContext, StrategyRecord } from "@agari/core/strategies";
+import type { Bytes32, EventMarket } from "@agari/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ claim: vi.fn(), previous: vi.fn(), store: vi.fn(), lanes: vi.fn(), context: vi.fn(), record: vi.fn(), decide: vi.fn(), decisions: vi.fn() }));
-vi.mock("@masayume/db", () => ({ beginStrategyDecision: mocks.claim, getStrategyDecision: mocks.previous, recordStrategyDecision: mocks.store, listStrategyDecisions: mocks.decisions }));
-vi.mock("@masayume/markets", () => ({ marketsProvider: { listLiveLanes: mocks.lanes } }));
-vi.mock("@masayume/markets/strategies", () => ({ readAgentContext: mocks.context }));
+vi.mock("@agari/db", () => ({ beginStrategyDecision: mocks.claim, getStrategyDecision: mocks.previous, recordStrategyDecision: mocks.store, listStrategyDecisions: mocks.decisions }));
+vi.mock("@agari/markets", () => ({ marketsProvider: { listLiveLanes: mocks.lanes } }));
+vi.mock("@agari/markets/strategies", () => ({ readAgentContext: mocks.context }));
 vi.mock("./agent-record", () => ({ readAgentRecord: mocks.record, settlementReader: () => vi.fn() }));
-vi.mock("@masayume/brain", async (original) => ({ ...await original<object>(), decideAgentWindow: mocks.decide }));
+vi.mock("@agari/brain", async (original) => ({ ...await original<object>(), decideAgentWindow: mocks.decide }));
 
 import { scanVenueWithAgent, warmAgentState, type AgentRunner } from "./agent";
 import { readRunnerEnv } from "./env";

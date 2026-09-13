@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { XReceipt } from "@masayume/core/x";
+import type { XReceipt } from "@agari/core/x";
 import { deliverReplies, startReplyDelivery, type ReplyDeliveryContext } from "./reply-delivery";
 
 const receipt: XReceipt = {

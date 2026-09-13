@@ -1,6 +1,6 @@
-import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@masayume/core/projection";
-import { toMarketId, type Address, type Hex, type MarketId } from "@masayume/core/types";
-import { secToMs } from "@masayume/core/units";
+import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
+import { toMarketId, type Address, type Hex, type MarketId } from "@agari/core/types";
+import { secToMs } from "@agari/core/units";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { eventVaultAbi } from "../contracts/event-vault.abi";

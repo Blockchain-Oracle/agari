@@ -1,4 +1,4 @@
-import type { Verdict } from "@masayume/core/types";
+import type { Verdict } from "@agari/core/types";
 import { Money } from "@/components/data";
 import { VERDICT_UI } from "@/lib/copy";
 import { cn } from "@/lib/utils";

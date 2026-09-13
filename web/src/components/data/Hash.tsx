@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { shortHex } from "@masayume/core/units";
+import { shortHex } from "@agari/core/units";
 
 interface HashProps {
   value: string;

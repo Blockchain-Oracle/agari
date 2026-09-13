@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket, Lane, MarketId, Side } from "@masayume/core/types";
+import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
 import { MarketCard } from "./MarketCard";
 
 interface LaneRowsProps {

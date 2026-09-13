@@ -1,6 +1,6 @@
-import type { Hex } from "@masayume/core/types";
-import { ensureMarkets, loadCollateral, unwrap } from "@masayume/markets";
-import { createDeskClient, type DeskClient } from "@masayume/markets/private";
+import type { Hex } from "@agari/core/types";
+import { ensureMarkets, loadCollateral, unwrap } from "@agari/markets";
+import { createDeskClient, type DeskClient } from "@agari/markets/private";
 import { webEnv } from "@/lib/env";
 
 /**

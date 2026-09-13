@@ -1,10 +1,10 @@
 "use client";
 
-import { REQUOTE_MS } from "@masayume/core/constants";
-import type { ParlayLegInput, ParlayMode, ParlayParams, ParlayQuote } from "@masayume/core/parlay";
-import type { Diagnosis } from "@masayume/core/types";
-import { quoteParlayOnchain } from "@masayume/markets/parlay";
-import { keys, useReadingQuery } from "@masayume/markets/react";
+import { REQUOTE_MS } from "@agari/core/constants";
+import type { ParlayLegInput, ParlayMode, ParlayParams, ParlayQuote } from "@agari/core/parlay";
+import type { Diagnosis } from "@agari/core/types";
+import { quoteParlayOnchain } from "@agari/markets/parlay";
+import { keys, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useDebounced } from "../markets/ticket/useDebounced";

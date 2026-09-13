@@ -1,4 +1,4 @@
-import type { Address } from "@masayume/core/types";
+import type { Address } from "@agari/core/types";
 import { z } from "zod";
 import { tractionSchema } from "@/features/stats/protocol";
 

@@ -1,10 +1,10 @@
 "use client";
 
-import type { OrderRoute } from "@masayume/core/ports";
-import type { Address, EventMarket, OnchainSnapshot, Quote, Side } from "@masayume/core/types";
-import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@masayume/core/units";
-import { dailyHeadroomBase, simulateCaps } from "@masayume/core/vault";
-import { useSubmitter, useVaultHoldings } from "@masayume/markets/react";
+import type { OrderRoute } from "@agari/core/ports";
+import type { Address, EventMarket, OnchainSnapshot, Quote, Side } from "@agari/core/types";
+import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@agari/core/units";
+import { dailyHeadroomBase, simulateCaps } from "@agari/core/vault";
+import { useSubmitter, useVaultHoldings } from "@agari/markets/react";
 import { SESSION } from "./copy";
 import { refusalText } from "./refusal";
 import { useSessionKey } from "./SessionKeyProvider";

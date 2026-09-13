@@ -1,4 +1,4 @@
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
 import Link from "next/link";
 import { LEADERBOARD } from "./copy";
 import { glyphFromAddress } from "./glyph";

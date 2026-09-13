@@ -1,5 +1,5 @@
-import { formatCadence, isOk, phase, type MarketPhase } from "@masayume/core";
-import { marketsProvider, resolveVenueId } from "@masayume/markets";
+import { formatCadence, isOk, phase, type MarketPhase } from "@agari/core";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
 import { runSpike } from "./lib/boot";
 
 /** Exactly the set `web/src/features/markets/reels/useReelRounds.ts` filters on. */

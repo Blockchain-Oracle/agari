@@ -1,6 +1,6 @@
-import { enumerateClaimables, type SettledHolding, type SettledMarket } from "@masayume/core/claims";
-import type { Reading } from "@masayume/core/schemas";
-import { toMarketId, type Address, type Bytes32, type ClaimableRow, type Holdings, type MarketId } from "@masayume/core/types";
+import { enumerateClaimables, type SettledHolding, type SettledMarket } from "@agari/core/claims";
+import type { Reading } from "@agari/core/schemas";
+import { toMarketId, type Address, type Bytes32, type ClaimableRow, type Holdings, type MarketId } from "@agari/core/types";
 import type { PortfolioMarket, PortfolioPosition } from "@somnia-chain/markets-sdk";
 import { getClient } from "../runtime/read-runtime";
 import { bigintOf, lowerAddress, numberOf } from "../mappers/scalars";

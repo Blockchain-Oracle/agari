@@ -1,7 +1,7 @@
-import { settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@masayume/core/projection";
-import { toMarketId, type Address } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
-import { ok, type Reading } from "@masayume/core";
+import { settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
+import { toMarketId, type Address } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
+import { ok, type Reading } from "@agari/core";
 import type { BoardData } from "@/features/leaderboard";
 import { DECIMALS, FIXED_NOW_MS, TX_HASH } from "../states/fixtures";
 

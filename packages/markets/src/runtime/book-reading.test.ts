@@ -1,5 +1,5 @@
-import { ok } from "@masayume/core/schemas";
-import type { BookDepth, BookLevelView } from "@masayume/core/types";
+import { ok } from "@agari/core/schemas";
+import type { BookDepth, BookLevelView } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { decideBookEmit, reuseBookValue, sameBookDepth } from "./book-reading";
 

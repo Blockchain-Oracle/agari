@@ -112,5 +112,5 @@ export const privateTicketSchema = z.object({
 });
 
 /** The backup file: plain JSON on purpose — it has to survive a lost laptop, a new device, and this app going away. */
-export const PRIVATE_BACKUP_KIND = "masayume.private.claims";
+export const PRIVATE_BACKUP_KIND = "agari.private.claims";
 export const PRIVATE_BACKUP_VERSION = 1;

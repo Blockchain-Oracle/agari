@@ -1,5 +1,5 @@
-import { PRINT_DECIMALS } from "@masayume/core/range";
-import { formatOracleRaw } from "@masayume/core/units";
+import { PRINT_DECIMALS } from "@agari/core/range";
+import { formatOracleRaw } from "@agari/core/units";
 
 const CENTS = 100n;
 /** Under this print a band's edges need cents to be told apart (ETH at $2.4k sits on a $0.20 grid). */

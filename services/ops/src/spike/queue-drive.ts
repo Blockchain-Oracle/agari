@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@masayume/core/games";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { parseMarketsEnv } from "@masayume/markets";
-import { resolveArenaDeployment } from "@masayume/markets/games";
+import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@agari/core/games";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { parseMarketsEnv } from "@agari/markets";
+import { resolveArenaDeployment } from "@agari/markets/games";
 import { keccak256 } from "viem";
 import { WebSocket } from "ws";
 import { startGameRoom } from "../actors/game-room";
@@ -11,7 +11,7 @@ import { roomMac } from "../actors/game-room/token";
 /**
  * Drives the queue with two real sockets: join, pair, open both seeds, receive one commitment.
  *
- *   pnpm --filter @masayume/ops spike:queue
+ *   pnpm --filter @agari/ops spike:queue
  *
  * No chain write happens here — a commitment is off-chain, and what the players do with it (create and
  * join the match) is the browser's job in slice 8. What this proves is the ceremony: two players commit
@@ -44,7 +44,7 @@ async function connect(chainId: number, arena: Address, label: string): Promise<
   const wallet = `0x${randomBytes(20).toString("hex")}` as Address;
   const seed = `0x${randomBytes(32).toString("hex")}` as Bytes32;
   const token = mintRoomToken(roomSessionClaims(wallet, wallet, chainId, arena, Date.now()), (payload) => roomMac(SECRET, payload));
-  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["masayume.room.v1", token]);
+  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["agari.room.v1", token]);
   const seen: ServerMessage[] = [];
   const waiting = new Map<string, (m: ServerMessage) => void>();
   socket.on("message", (data) => {

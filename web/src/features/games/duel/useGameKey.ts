@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address, Hex } from "@masayume/core/types";
-import { generateSessionKey } from "@masayume/markets";
+import type { Address, Hex } from "@agari/core/types";
+import { generateSessionKey } from "@agari/markets";
 import { del, get, set } from "idb-keyval";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { privateKeyToAccount } from "viem/accounts";
@@ -20,7 +20,7 @@ import { useWalletSession } from "@/lib/wallet-session";
  * instance: three components mounting at once used to race `loadOrCreate`, and two of them could have
  * generated a key each and kept the one the store did not.
  */
-const KEY_PREFIX = "masayume.gameKey.";
+const KEY_PREFIX = "agari.gameKey.";
 
 export interface StoredGameKey {
   address: Address;

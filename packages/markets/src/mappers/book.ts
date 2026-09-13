@@ -1,5 +1,5 @@
-import type { BookDepth, BookLevelView, BookParams } from "@masayume/core/types";
-import { priceRawToBps } from "@masayume/core/units";
+import type { BookDepth, BookLevelView, BookParams } from "@agari/core/types";
+import { priceRawToBps } from "@agari/core/units";
 import type { BinaryBookParams, BinaryOrderBook, BookLevel } from "@somnia-chain/markets-sdk";
 
 function toLevels(levels: readonly BookLevel[], decimals: number): BookLevelView[] {

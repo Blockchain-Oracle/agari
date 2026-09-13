@@ -1,10 +1,10 @@
 "use client";
 
-import { REQUOTE_MS } from "@masayume/core/constants";
-import type { LeverageParams, LeverageQuote } from "@masayume/core/leverage";
-import type { Diagnosis, EventMarket, Side } from "@masayume/core/types";
-import { sizeLeverageForStake } from "@masayume/markets/leverage";
-import { keys, useReadingQuery } from "@masayume/markets/react";
+import { REQUOTE_MS } from "@agari/core/constants";
+import type { LeverageParams, LeverageQuote } from "@agari/core/leverage";
+import type { Diagnosis, EventMarket, Side } from "@agari/core/types";
+import { sizeLeverageForStake } from "@agari/markets/leverage";
+import { keys, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useDebounced } from "../markets/ticket/useDebounced";

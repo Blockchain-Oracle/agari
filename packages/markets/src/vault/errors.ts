@@ -1,4 +1,4 @@
-import { diagnosis, type Diagnosis, type DiagnosisKind } from "@masayume/core/types";
+import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
 import { BaseError, ContractFunctionRevertedError } from "viem";
 import { diagnoseWrite } from "../submitter/steps/assert-tx-ok";
 

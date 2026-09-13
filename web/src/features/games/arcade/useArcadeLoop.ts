@@ -1,6 +1,6 @@
 "use client";
 
-import { FIELD_H, FIELD_W, STEP_MS } from "@masayume/core/games/arcade";
+import { FIELD_H, FIELD_W, STEP_MS } from "@agari/core/games/arcade";
 import { useEffect, useRef, type RefObject } from "react";
 import { useDocumentVisible } from "@/lib/visibility";
 import { readPalette, type ArcadePalette } from "./palette";

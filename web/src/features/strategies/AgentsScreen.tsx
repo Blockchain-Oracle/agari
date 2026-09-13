@@ -1,7 +1,7 @@
 "use client";
 
-import { rankAgents, type StrategyRecord } from "@masayume/core/strategies";
-import { addressUrl } from "@masayume/core/urls";
+import { rankAgents, type StrategyRecord } from "@agari/core/strategies";
+import { addressUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { useMemo } from "react";
 import { CapabilityPending } from "@/components/shell";

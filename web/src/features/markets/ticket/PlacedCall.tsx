@@ -1,8 +1,8 @@
 "use client";
 
-import type { BookedOrder } from "@masayume/core/ports";
-import type { EventMarket } from "@masayume/core/types";
-import { useOpeningPrice } from "@masayume/markets/react";
+import type { BookedOrder } from "@agari/core/ports";
+import type { EventMarket } from "@agari/core/types";
+import { useOpeningPrice } from "@agari/markets/react";
 import Link from "next/link";
 import { useState } from "react";
 import { CallPlacedCard, SHARE, type CallCard } from "@/features/share";

@@ -1,6 +1,6 @@
 "use client";
 
-import { activeMatchId as activeMatchIdOf, IDLE, type MatchState } from "@masayume/core/games";
+import { activeMatchId as activeMatchIdOf, IDLE, type MatchState } from "@agari/core/games";
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { usePrefersReducedMotion } from "@/lib/motion";
 import { fireFeedback, type FeedbackCue } from "./feedback";

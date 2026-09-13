@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address, OnchainSnapshot, Quote } from "@masayume/core/types";
-import { assertFunded, type FundingCheck } from "@masayume/markets";
+import type { Address, OnchainSnapshot, Quote } from "@agari/core/types";
+import { assertFunded, type FundingCheck } from "@agari/markets";
 import { useEffect, useState } from "react";
 
 /**

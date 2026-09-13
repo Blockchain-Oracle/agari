@@ -9,9 +9,9 @@ import {
   type RoundMarket,
   type SettledRound,
   type WalletHistory,
-} from "@masayume/core/projection";
-import type { Reading } from "@masayume/core/schemas";
-import { toMarketId, type Address, type Holdings, type MarketId } from "@masayume/core/types";
+} from "@agari/core/projection";
+import type { Reading } from "@agari/core/schemas";
+import { toMarketId, type Address, type Holdings, type MarketId } from "@agari/core/types";
 import type { BinaryMarket } from "@somnia-chain/markets-sdk";
 import { getCollateral } from "../collateral";
 import { toLedgerFill, toSetAction } from "../mappers/fill";

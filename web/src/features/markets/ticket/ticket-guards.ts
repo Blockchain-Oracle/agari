@@ -1,10 +1,10 @@
-import type { BlockerKind } from "@masayume/core/copy";
-import type { LeverageQuote } from "@masayume/core/leverage";
-import type { MarketPhase } from "@masayume/core/lifecycle";
-import type { Reading } from "@masayume/core/schemas";
-import { admissibilityBlocker, belowMinStake } from "@masayume/core/sizing";
-import type { Diagnosis, Quote, Side } from "@masayume/core/types";
-import type { FundingCheck } from "@masayume/markets";
+import type { BlockerKind } from "@agari/core/copy";
+import type { LeverageQuote } from "@agari/core/leverage";
+import type { MarketPhase } from "@agari/core/lifecycle";
+import type { Reading } from "@agari/core/schemas";
+import { admissibilityBlocker, belowMinStake } from "@agari/core/sizing";
+import type { Diagnosis, Quote, Side } from "@agari/core/types";
+import type { FundingCheck } from "@agari/markets";
 import type { WalletSession } from "@/lib/wallet-session";
 
 export interface TicketBlockerInput {

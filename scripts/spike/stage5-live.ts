@@ -1,8 +1,8 @@
 import { execSync } from "node:child_process";
 
-import { type Hex } from "@masayume/core/types";
-import { mulBpsCeil, oneUnit } from "@masayume/core/units";
-import { RANGE_STAKE_HEADROOM_BPS } from "@masayume/core/range";
+import { type Hex } from "@agari/core/types";
+import { mulBpsCeil, oneUnit } from "@agari/core/units";
+import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import {
   closeRuntime,
   configureMarkets,
@@ -24,14 +24,14 @@ import {
   submitLeverageOpen,
   submitRangeOpen,
   unwrap,
-} from "@masayume/markets";
+} from "@agari/markets";
 
 /**
  * Drives the three Stage 5 reserves through the REAL adapter on Shannon: reads their live state, opens a 2×
  * boost of 10 and a range band of 5 on the soonest Trading Window with enough time left, reports the gas each
  * lane used, and — with WAIT=1 — waits for the Window to settle and cranks both positions (permissionless).
  *
- *   HOUSE_KEY=<funded key> pnpm --filter @masayume/scripts spike:stage5-live        (WAIT=1 to settle)
+ *   HOUSE_KEY=<funded key> pnpm --filter @agari/scripts spike:stage5-live        (WAIT=1 to settle)
  */
 const WAIT = process.env.WAIT === "1";
 const BOOST = process.env.BOOST !== "0";

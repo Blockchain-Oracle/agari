@@ -1,5 +1,5 @@
-import type { IntentJournal, IntentRecord } from "@masayume/core/ports";
-import type { Address } from "@masayume/core/types";
+import type { IntentJournal, IntentRecord } from "@agari/core/ports";
+import type { Address } from "@agari/core/types";
 import { reconcileUnknown, type ReconcileVerdict } from "./reconcile";
 
 /**

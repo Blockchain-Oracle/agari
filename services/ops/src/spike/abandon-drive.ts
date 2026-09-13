@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@masayume/core/games";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { parseMarketsEnv } from "@masayume/markets";
-import { resolveArenaDeployment } from "@masayume/markets/games";
+import { mintRoomToken, roomSessionClaims, ROOM_PROTOCOL_VERSION, type ServerMessage } from "@agari/core/games";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { parseMarketsEnv } from "@agari/markets";
+import { resolveArenaDeployment } from "@agari/markets/games";
 import { keccak256 } from "viem";
 import { WebSocket } from "ws";
 import { startGameRoom } from "../actors/game-room";
@@ -11,7 +11,7 @@ import { roomMac } from "../actors/game-room/token";
 /**
  * The failure a live session actually hit, driven on purpose: an opponent who disappears mid-pairing.
  *
- *   pnpm --filter @masayume/ops spike:abandon
+ *   pnpm --filter @agari/ops spike:abandon
  *
  * On 2026-09-04 a browser closed between `match.found` and its seed reveal. The room dissolved the
  * pairing and put BOTH players back in the queue — including the one whose socket was already closing —
@@ -58,7 +58,7 @@ async function connect(chainId: number, arena: Address, label: string): Promise<
   const wallet = `0x${randomBytes(20).toString("hex")}` as Address;
   const seed = `0x${randomBytes(32).toString("hex")}` as Bytes32;
   const token = mintRoomToken(roomSessionClaims(wallet, wallet, chainId, arena, Date.now()), (payload) => roomMac(SECRET, payload));
-  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["masayume.room.v1", token]);
+  const socket = new WebSocket(`ws://127.0.0.1:${PORT}/`, ["agari.room.v1", token]);
   const seen: ServerMessage[] = [];
   const waiting = new Map<string, (m: ServerMessage) => void>();
   socket.on("message", (data) => {

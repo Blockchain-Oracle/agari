@@ -1,13 +1,13 @@
-import type { Address, EventMarket } from "@masayume/core/types";
-import type { StrategySubscription } from "@masayume/core/strategies";
-import type { SubmitterSession } from "@masayume/markets";
+import type { Address, EventMarket } from "@agari/core/types";
+import type { StrategySubscription } from "@agari/core/strategies";
+import type { SubmitterSession } from "@agari/markets";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ getAttempt: vi.fn(), begin: vi.fn(), finish: vi.fn(), recordFill: vi.fn(), unresolved: vi.fn(), owners: vi.fn(), decisions: vi.fn(), fills: vi.fn(), snapshot: vi.fn(), onchain: vi.fn(), holdings: vi.fn(), quote: vi.fn(), recover: vi.fn(), tallies: vi.fn(), grant: vi.fn(), subscribers: vi.fn(), send: vi.fn(), settle: vi.fn(), market: vi.fn() }));
-vi.mock("@masayume/db", () => ({ getStrategyAttempt: mocks.getAttempt, beginStrategyAttempt: mocks.begin, finishStrategyAttempt: mocks.finish, recordAttemptFill: mocks.recordFill, listUnresolvedStrategyAttempts: mocks.unresolved, listStrategyOwners: mocks.owners, listStrategyDecisions: mocks.decisions, listStrategyFills: mocks.fills }));
-vi.mock("@masayume/markets", () => ({ marketsProvider: { getVaultSnapshot: mocks.snapshot, getOnchain: mocks.onchain, getVaultHoldings: mocks.holdings, freshQuoteStake: mocks.quote, getMarket: mocks.market, nowMs: () => 2_000_000 } }));
-vi.mock("@masayume/markets/vault", () => ({ getVaultGrant: mocks.grant, listVaultTallies: mocks.tallies, recoverVaultExecution: mocks.recover }));
-vi.mock("@masayume/markets/strategies", () => ({ listStrategySubscribers: mocks.subscribers }));
+vi.mock("@agari/db", () => ({ getStrategyAttempt: mocks.getAttempt, beginStrategyAttempt: mocks.begin, finishStrategyAttempt: mocks.finish, recordAttemptFill: mocks.recordFill, listUnresolvedStrategyAttempts: mocks.unresolved, listStrategyOwners: mocks.owners, listStrategyDecisions: mocks.decisions, listStrategyFills: mocks.fills }));
+vi.mock("@agari/markets", () => ({ marketsProvider: { getVaultSnapshot: mocks.snapshot, getOnchain: mocks.onchain, getVaultHoldings: mocks.holdings, freshQuoteStake: mocks.quote, getMarket: mocks.market, nowMs: () => 2_000_000 } }));
+vi.mock("@agari/markets/vault", () => ({ getVaultGrant: mocks.grant, listVaultTallies: mocks.tallies, recoverVaultExecution: mocks.recover }));
+vi.mock("@agari/markets/strategies", () => ({ listStrategySubscribers: mocks.subscribers }));
 
 import { executeForSubscriber } from "./execute";
 import { readAgentRecord, settlementReader } from "./agent-record";

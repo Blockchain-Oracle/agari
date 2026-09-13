@@ -1,11 +1,11 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import type { PrivateTicket } from "@masayume/core/private";
-import type { Address } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatCadence } from "@agari/core/copy";
+import type { PrivateTicket } from "@agari/core/private";
+import type { Address } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { Download, Loader2, ShieldAlert, ShieldCheck, Upload } from "lucide-react";
-import { useTick } from "@masayume/markets/react";
+import { useTick } from "@agari/markets/react";
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { exportPrivateClaims, importPrivateClaims } from "./claims-store";

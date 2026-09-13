@@ -1,5 +1,5 @@
-import type { LedgerFill } from "@masayume/core/projection";
-import type { Address, MarketId } from "@masayume/core/types";
+import type { LedgerFill } from "@agari/core/projection";
+import type { Address, MarketId } from "@agari/core/types";
 import type { BinaryMarket, FillRow } from "@somnia-chain/markets-sdk";
 import { toLedgerFill } from "../mappers/fill";
 import { toRoundMarket } from "./history";

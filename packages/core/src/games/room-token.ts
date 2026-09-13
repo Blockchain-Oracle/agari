@@ -28,7 +28,7 @@ import type { RoomErrorCode } from "./protocol";
  * it may keep minting new ones. A re-mint costs no prompt now, but a token that renews rather than re-signs
  * is one fewer thing for a phone mid-swipe to do.
  *
- * **No crypto lives here.** `@masayume/core` stays free of platform dependencies, so the HMAC is passed in
+ * **No crypto lives here.** `@agari/core` stays free of platform dependencies, so the HMAC is passed in
  * — the same shape `verifyDeckCommitment` uses for keccak. Both callers hold one line of `node:crypto`
  * each; everything that could be got subtly wrong — the claim order, the clock comparisons, the arena
  * binding — is here, and tested once.

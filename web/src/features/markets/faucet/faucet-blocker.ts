@@ -1,5 +1,5 @@
-import type { BlockerKind } from "@masayume/core/copy";
-import type { WritePhase } from "@masayume/core/ports";
+import type { BlockerKind } from "@agari/core/copy";
+import type { WritePhase } from "@agari/core/ports";
 import type { WalletSession } from "@/lib/wallet-session";
 
 export interface FaucetBlockerInput {

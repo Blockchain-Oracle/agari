@@ -1,9 +1,9 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/market";
-import type { EventMarket } from "@masayume/core/types";
-import { formatOracleRaw } from "@masayume/core/units";
-import { marketDeepLink } from "@masayume/core/urls";
+import { formatCadence } from "@agari/core/market";
+import type { EventMarket } from "@agari/core/types";
+import { formatOracleRaw } from "@agari/core/units";
+import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { useState } from "react";
 import { Countdown } from "@/components/data";

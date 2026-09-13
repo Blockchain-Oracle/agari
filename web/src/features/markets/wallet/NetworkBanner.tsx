@@ -1,6 +1,6 @@
 "use client";
 
-import { SOMNIA_SHANNON } from "@masayume/markets/chain";
+import { SOMNIA_SHANNON } from "@agari/markets/chain";
 import { WrongNetworkBanner } from "@/components/chrome";
 import { useWalletSession } from "@/lib/wallet-session";
 

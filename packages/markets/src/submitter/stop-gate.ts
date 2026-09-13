@@ -1,4 +1,4 @@
-import type { StopGate } from "@masayume/core/ports";
+import type { StopGate } from "@agari/core/ports";
 
 const ALLOW_ALL_RESERVATION = "allow-all";
 

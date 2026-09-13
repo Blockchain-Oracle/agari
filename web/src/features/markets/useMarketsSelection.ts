@@ -1,7 +1,7 @@
 "use client";
 
-import type { EventMarket, Lane, LaneSet, MarketId, Side } from "@masayume/core/types";
-import { marketDeepLink } from "@masayume/core/urls";
+import type { EventMarket, Lane, LaneSet, MarketId, Side } from "@agari/core/types";
+import { marketDeepLink } from "@agari/core/urls";
 import { useCallback, useState } from "react";
 import { findMarket, useResolveDeepLink } from "@/lib/deep-link";
 

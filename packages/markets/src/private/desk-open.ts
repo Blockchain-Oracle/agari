@@ -1,6 +1,6 @@
-import { privateAuthFresh, type PrivateClaim, type PrivateOpenResult, type PrivateTicket } from "@masayume/core/private";
-import { SIDE_TO_OUTCOME, type Address, type Hex, type MarketId, type Side } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
+import { privateAuthFresh, type PrivateClaim, type PrivateOpenResult, type PrivateTicket } from "@agari/core/private";
+import { SIDE_TO_OUTCOME, type Address, type Hex, type MarketId, type Side } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";
 import { privateDeskAbi } from "../contracts/private-desk.abi";

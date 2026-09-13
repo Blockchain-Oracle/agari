@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { shortHex } from "@masayume/core/units";
+import { shortHex } from "@agari/core/units";
 import { TRADE_FROM_X } from "./copy";
 
 export type StepState = "idle" | "active" | "done";

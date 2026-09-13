@@ -1,5 +1,5 @@
-import { GAS_CEILING, type GasLane } from "@masayume/core/constants";
-import type { Address, Hex } from "@masayume/core/types";
+import { GAS_CEILING, type GasLane } from "@agari/core/constants";
+import type { Address, Hex } from "@agari/core/types";
 import {
   createWalletClient,
   http,
@@ -161,7 +161,7 @@ export function createSponsorTransport(config: SponsorTransportConfig): SponsorT
         const request = await signForwardRequest({ ...config, publicClient, to: call.to, data: call.data, gas: call.gas, nowSec: config.nowSec() });
         const response = await fetchImpl(config.endpoint, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-masayume-device": config.deviceId },
+          headers: { "content-type": "application/json", "x-agari-device": config.deviceId },
           body: JSON.stringify({ request }),
         });
         const body = (await response.json().catch(() => ({}))) as { hash?: Hex; error?: string };

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ArcadeGame } from "@masayume/core/games/arcade";
+import type { ArcadeGame } from "@agari/core/games/arcade";
 import { useCallback, useEffect, useState } from "react";
 import { deviceId } from "@/features/session/store";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -60,7 +60,7 @@ export function useArcadeScore(game: ArcadeGame, auth: RoomAuth) {
       try {
         const response = await fetch(SCORE_ENDPOINT, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-masayume-device": deviceId() },
+          headers: { "content-type": "application/json", "x-agari-device": deviceId() },
           body: JSON.stringify({ game, token: auth.token, seed: end.seed, engineVersion: board.engineVersion, durationMs: end.durationMs, score: end.score, calm: end.calm, trace: end.trace }),
         });
         const body = (await response.json()) as ScoreAcceptedWire & { error?: string };

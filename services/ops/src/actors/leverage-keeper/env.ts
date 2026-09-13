@@ -1,4 +1,4 @@
-import type { Hex } from "@masayume/core/types";
+import type { Hex } from "@agari/core/types";
 
 export interface KeeperEnv {
   privateKey: Hex | null;

@@ -1,5 +1,5 @@
-import { ONCHAIN_STATUS } from "@masayume/core/lifecycle";
-import { diagnosis, type MarketId, type OnchainSnapshot } from "@masayume/core/types";
+import { ONCHAIN_STATUS } from "@agari/core/lifecycle";
+import { diagnosis, type MarketId, type OnchainSnapshot } from "@agari/core/types";
 import { ReadingError } from "../../errors/reading-error";
 import { getOnchain } from "../../provider/onchain";
 import { OrderRefusedError } from "../errors";

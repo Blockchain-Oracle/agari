@@ -1,14 +1,14 @@
-import { isOk } from "@masayume/core/schemas";
-import type { Bytes32, Hex } from "@masayume/core/types";
-import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, parseMarketsEnv } from "@masayume/markets";
-import { getArenaMatch } from "@masayume/markets/games";
+import { isOk } from "@agari/core/schemas";
+import type { Bytes32, Hex } from "@agari/core/types";
+import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, parseMarketsEnv } from "@agari/markets";
+import { getArenaMatch } from "@agari/markets/games";
 import { finish } from "./finish";
 import { placePickWithRetry } from "./pick";
 
 /**
  * One pick, retried until the deadline. The recovery a swipe needs when it loses a race for the book.
  *
- *   PLAYER_KEY=… MATCH_ID=… CARD=1 SIDE=down pnpm --filter @masayume/ops spike:pick-one
+ *   PLAYER_KEY=… MATCH_ID=… CARD=1 SIDE=down pnpm --filter @agari/ops spike:pick-one
  */
 async function main(): Promise<void> {
   const env = parseMarketsEnv();

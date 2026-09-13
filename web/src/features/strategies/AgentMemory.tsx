@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
+import { formatCadence } from "@agari/core/copy";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";
 import { ago } from "./names";

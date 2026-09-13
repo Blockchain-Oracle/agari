@@ -1,5 +1,5 @@
-import { formatUtc } from "@masayume/core/units";
-import type { VaultGrant } from "@masayume/core/vault";
+import { formatUtc } from "@agari/core/units";
+import type { VaultGrant } from "@agari/core/vault";
 import { Hash, Money } from "@/components/data";
 import { VAULT } from "./copy";
 import type { VaultWriteKind } from "./useVaultWrite";

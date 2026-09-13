@@ -1,4 +1,4 @@
-import { MasayumeMark } from "@/components/shell";
+import { AgariMark } from "@/components/shell";
 import { INSTALL } from "./copy";
 import { InstallCta } from "./InstallCta";
 import { PhoneShot } from "./PhoneShot";
@@ -41,7 +41,7 @@ export function DownloadPage() {
         {INSTALL.points.map((point) => (
           <article key={point.title}>
             <span className="dl-pt-mark">
-              <MasayumeMark figure="currentColor" />
+              <AgariMark figure="currentColor" />
             </span>
             <h3>{point.title}</h3>
             <p>{point.body}</p>

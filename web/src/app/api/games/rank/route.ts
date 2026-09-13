@@ -1,5 +1,5 @@
-import { isEligible } from "@masayume/core/games";
-import { countRankedFinalized, gamesStoreConfigured, ladderRankOf, listTopRatings, readRatings } from "@masayume/db";
+import { isEligible } from "@agari/core/games";
+import { countRankedFinalized, gamesStoreConfigured, ladderRankOf, listTopRatings, readRatings } from "@agari/db";
 import { NextResponse } from "next/server";
 import { seasonConfig } from "@/features/games/season.server";
 

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useModalSfx } from "./audio";
 import { gameEntry } from "./catalog";
 import { GAMES } from "./copy";
-import type { GameId } from "@masayume/core/games";
+import type { GameId } from "@agari/core/games";
 
 /**
  * Pips's per-game HOW TO overlay: the mode's name, the honest line about whose money is at risk, and

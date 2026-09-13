@@ -1,5 +1,5 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { Address, Holdings, OnchainSnapshot, OpenPosition } from "@masayume/core/types";
+import type { Reading } from "@agari/core/schemas";
+import type { Address, Holdings, OnchainSnapshot, OpenPosition } from "@agari/core/types";
 import { getClient } from "../runtime/read-runtime";
 import { toOpenPosition } from "../mappers/position";
 import { withReading } from "./reading";

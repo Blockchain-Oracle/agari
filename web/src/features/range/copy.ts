@@ -1,4 +1,4 @@
-import { RANGE_NOT_DEPLOYED } from "@masayume/core/range";
+import { RANGE_NOT_DEPLOYED } from "@agari/core/range";
 
 /**
  * Range — the reference's words from its Ticket (`Ticket624Drawer.tsx` range mode, L857–1030, L1257–1280),

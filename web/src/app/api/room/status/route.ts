@@ -1,4 +1,4 @@
-import { isDbConfigured } from "@masayume/db";
+import { isDbConfigured } from "@agari/db";
 import { NextResponse } from "next/server";
 
 /**

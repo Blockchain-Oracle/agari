@@ -1,5 +1,5 @@
-import { computeTraderEdge, reputationOf, computeBadges, type Address } from "@masayume/core";
-import { bootMarkets, marketsProvider } from "@masayume/markets";
+import { computeTraderEdge, reputationOf, computeBadges, type Address } from "@agari/core";
+import { bootMarkets, marketsProvider } from "@agari/markets";
 import { runSpike, short } from "./lib/boot";
 
 const WALLET = (process.env.WALLET ?? "0xe11825b13c96ccbe49cff978932375ce13daaeb4") as Address;

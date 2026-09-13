@@ -1,6 +1,6 @@
-import type { IntentRecord } from "@masayume/core/ports";
-import type { Address } from "@masayume/core/types";
-import { msToSec } from "@masayume/core/units";
+import type { IntentRecord } from "@agari/core/ports";
+import type { Address } from "@agari/core/types";
+import { msToSec } from "@agari/core/units";
 import { getClient } from "../runtime/read-runtime";
 
 export type ReconcileVerdict = "confirmed" | "reverted" | "absent" | "unknown";

@@ -1,7 +1,7 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import { formatClock } from "@masayume/core/units";
+import { formatCadence } from "@agari/core/copy";
+import { formatClock } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";
 import type { AgentPreviewResponse } from "./protocol";

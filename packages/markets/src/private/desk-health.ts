@@ -1,5 +1,5 @@
-import type { PrivateStatus } from "@masayume/core/private";
-import type { Address } from "@masayume/core/types";
+import type { PrivateStatus } from "@agari/core/private";
+import type { Address } from "@agari/core/types";
 import { MULTICALL3_ADDRESS, SOMNIA_SHANNON_ID } from "../chain";
 import { privateDeskAbi } from "../contracts/private-desk.abi";
 import { getPrivateDeployment } from "../runtime/read-runtime";

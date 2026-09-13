@@ -1,4 +1,4 @@
-import { gamesStoreConfigured, listMatchesFor } from "@masayume/db";
+import { gamesStoreConfigured, listMatchesFor } from "@agari/db";
 import { NextResponse } from "next/server";
 
 /**

@@ -1,7 +1,7 @@
 "use client";
 
-import { xLinkMessage, xUnlinkMessage } from "@masayume/core/x";
-import { shortHex } from "@masayume/core/units";
+import { xLinkMessage, xUnlinkMessage } from "@agari/core/x";
+import { shortHex } from "@agari/core/units";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSignMessage } from "wagmi";
 import { useWalletSession } from "@/lib/wallet-session";

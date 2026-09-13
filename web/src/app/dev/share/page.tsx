@@ -1,6 +1,6 @@
 "use client";
 
-import { toMarketId } from "@masayume/core/types";
+import { toMarketId } from "@agari/core/types";
 import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { CallPlacedCard, renderCallShareCard, renderTradeShareCard, type CallCard, type TradeCard } from "@/features/share";

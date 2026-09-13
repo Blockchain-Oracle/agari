@@ -1,6 +1,6 @@
-import { deriveVerdict, type VerdictInput } from "@masayume/core/claims";
-import { toMarketId, type Resolution, type Verdict } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
+import { deriveVerdict, type VerdictInput } from "@agari/core/claims";
+import { toMarketId, type Resolution, type Verdict } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
 import type { VerdictMarket } from "@/features/markets/verdict";
 import { DECIMALS, FIXED_NOW_MS, FIXED_NOW_SEC, TX_HASH } from "../states/fixtures";
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { MarketId } from "@masayume/core/types";
-import { shortHex } from "@masayume/core/units";
-import { oracleGraphUrl, txUrl } from "@masayume/core/urls";
-import { useResolution } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { MarketId } from "@agari/core/types";
+import { shortHex } from "@agari/core/units";
+import { oracleGraphUrl, txUrl } from "@agari/core/urls";
+import { useResolution } from "@agari/markets/react";
 import { ReceiptRow } from "@/components/receipt";
 import { CLAIM } from "@/lib/copy";
 

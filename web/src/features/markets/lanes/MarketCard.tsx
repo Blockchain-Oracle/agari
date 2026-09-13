@@ -1,8 +1,8 @@
 "use client";
 
-import { phase } from "@masayume/core/lifecycle";
-import type { EventMarket, MarketId, Side } from "@masayume/core/types";
-import { formatOracleRaw } from "@masayume/core/units";
+import { phase } from "@agari/core/lifecycle";
+import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import { formatOracleRaw } from "@agari/core/units";
 import { Countdown } from "@/components/data";
 import { formatCadence, HERO_HEAD, LANE_CARD, MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";

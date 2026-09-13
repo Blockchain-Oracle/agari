@@ -1,7 +1,7 @@
 "use client";
 
-import type { Reading } from "@masayume/core";
-import { keys, useMarketsBoot, type MarketsBoot as BootInfo } from "@masayume/markets/react";
+import type { Reading } from "@agari/core";
+import { keys, useMarketsBoot, type MarketsBoot as BootInfo } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, type ReactNode } from "react";
 import { ErrorState, StaleTick } from "@/components/states";

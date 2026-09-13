@@ -1,4 +1,4 @@
-import type { EventMarket } from "@masayume/core/types";
+import type { EventMarket } from "@agari/core/types";
 import type { FeedTake } from "./protocol";
 
 export type ReelItem = { kind: "market"; market: EventMarket } | { kind: "take"; take: FeedTake };

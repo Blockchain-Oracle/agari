@@ -1,7 +1,7 @@
 "use client";
 
-import { FAUCET_UNITS, STT_FAUCETS } from "@masayume/core/constants";
-import { collateralOrNull } from "@masayume/markets";
+import { FAUCET_UNITS, STT_FAUCETS } from "@agari/core/constants";
+import { collateralOrNull } from "@agari/markets";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

@@ -1,15 +1,15 @@
 "use client";
 
-import { STAKE_TIERS, type MatchState } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
-import { useArenaMatch, useArenaState } from "@masayume/markets/react";
+import { STAKE_TIERS, type MatchState } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { useArenaMatch, useArenaState } from "@agari/markets/react";
 import type { CSSProperties } from "react";
 import { useVenue } from "@/features/markets";
 import { addressHue } from "@/lib/address-hue";
 import { DUEL } from "./copy";
-import { formatBaseUnits as formatWei } from "@masayume/core/units";
+import { formatBaseUnits as formatWei } from "@agari/core/units";
 import { useState } from "react";
 import { DealingPlate, RefusalPlate } from "./DuelWaiting";
 import { useArenaWrites } from "./useArenaWrites";

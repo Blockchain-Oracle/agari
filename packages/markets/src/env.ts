@@ -1,4 +1,4 @@
-import { addressSchema, bytes32Schema } from "@masayume/core/types";
+import { addressSchema, bytes32Schema } from "@agari/core/types";
 import { z } from "zod";
 import { RPC_HTTP_URLS, RPC_WS_URLS, SOMNIA_SHANNON_ID } from "./chain";
 

@@ -7,7 +7,7 @@ import {
   ROOM_HEARTBEAT_MS,
   ROOM_MAX_PAYLOAD_BYTES,
   type RoomTokenClaims,
-} from "@masayume/core/games";
+} from "@agari/core/games";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -33,7 +33,7 @@ import { roomMacVerifier } from "./token";
  * player reconnects into a snapshot rather than into a socket nobody is reading.
  */
 
-const SUBPROTOCOL = "masayume.room.v1";
+const SUBPROTOCOL = "agari.room.v1";
 
 function offeredProtocols(req: IncomingMessage): readonly string[] {
   const header = req.headers["sec-websocket-protocol"];

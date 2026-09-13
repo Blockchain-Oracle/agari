@@ -1,4 +1,4 @@
-import type { BetRoute } from "@masayume/db";
+import type { BetRoute } from "@agari/db";
 
 /**
  * Tells the Room's registry about a confirmed fill. Fire-and-forget: the server re-reads the receipt before it

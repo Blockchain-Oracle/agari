@@ -1,7 +1,7 @@
-import type { Reading } from "@masayume/core/schemas";
-import { formatBaseUnits, formatUtc, secToMs } from "@masayume/core/units";
-import { getDb, isDbConfigured } from "@masayume/db";
-import { marketsProvider, resolveVenueId, syncClock, type MarketsEnv } from "@masayume/markets";
+import type { Reading } from "@agari/core/schemas";
+import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
+import { getDb, isDbConfigured } from "@agari/db";
+import { marketsProvider, resolveVenueId, syncClock, type MarketsEnv } from "@agari/markets";
 import { missingCredentialHint, resolveModel } from "@/features/sensei/model.server";
 import { STATUS } from "./copy";
 import { createDiagnosticRunner, DiagnosticFailure } from "./diagnostic-runner";

@@ -1,6 +1,6 @@
-import type { GasLane } from "@masayume/core/constants";
-import type { AttributionHook, IntentJournal, StopGate, Submitter } from "@masayume/core/ports";
-import type { Address } from "@masayume/core/types";
+import type { GasLane } from "@agari/core/constants";
+import type { AttributionHook, IntentJournal, StopGate, Submitter } from "@agari/core/ports";
+import type { Address } from "@agari/core/types";
 import type { Enqueue } from "../sessions/nonce-queue";
 import type { SessionTrader } from "../sessions/trader";
 import { nowMs as chainNowMs } from "../provider/clock";

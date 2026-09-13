@@ -1,10 +1,10 @@
 "use client";
 
-import { STAKE_TIERS, cardPnl, everyCardSettled, picksComplete, type CardReceipt, type MatchState } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, MarketId } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { useArenaCredit, useArenaState, useMarketsLite } from "@masayume/markets/react";
+import { STAKE_TIERS, cardPnl, everyCardSettled, picksComplete, type CardReceipt, type MatchState } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, MarketId } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { useArenaCredit, useArenaState, useMarketsLite } from "@agari/markets/react";
 import { useEffect, useRef, useState } from "react";
 import { useVenue } from "@/features/markets";
 import { LockedInMark } from "../art/PixelArt";

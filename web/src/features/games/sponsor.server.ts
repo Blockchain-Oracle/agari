@@ -1,7 +1,7 @@
-import { isOk } from "@masayume/core/schemas";
-import type { Address, Bytes32, Hex } from "@masayume/core/types";
-import { ensureMarkets, getClient, keyGasBalance } from "@masayume/markets";
-import { getArenaMatch, readArenaAgent, resolveArenaDeployment, sponsorKeyTopUp } from "@masayume/markets/games";
+import { isOk } from "@agari/core/schemas";
+import type { Address, Bytes32, Hex } from "@agari/core/types";
+import { ensureMarkets, getClient, keyGasBalance } from "@agari/markets";
+import { getArenaMatch, readArenaAgent, resolveArenaDeployment, sponsorKeyTopUp } from "@agari/markets/games";
 import type { PublicClient } from "viem";
 import { gate, marketsEnvFromProcess, sponsorConfig, type SponsorConfig } from "@/features/session/sponsor.server";
 import { sponsorDefaultCapWei, sponsorTopUpWei } from "./duel/gas";

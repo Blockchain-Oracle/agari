@@ -1,10 +1,10 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import type { AssetPrice } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { PRICE_BASIS } from "@masayume/markets/identity";
-import { useAssetPrice } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import type { AssetPrice } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { PRICE_BASIS } from "@agari/markets/identity";
+import { useAssetPrice } from "@agari/markets/react";
 import { useRef } from "react";
 import type { TickerDirection, TickerEntry } from "./TickerItem";
 

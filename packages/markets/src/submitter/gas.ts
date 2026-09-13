@@ -1,6 +1,6 @@
-import { GAS_CEILING, GAS_SAFETY_BPS, SDK_MAX_FEE_PER_GAS_WEI, type GasLane } from "@masayume/core/constants";
-import { diagnosis, type Address, type Diagnosis } from "@masayume/core/types";
-import { mulBpsCeil } from "@masayume/core/units";
+import { GAS_CEILING, GAS_SAFETY_BPS, SDK_MAX_FEE_PER_GAS_WEI, type GasLane } from "@agari/core/constants";
+import { diagnosis, type Address, type Diagnosis } from "@agari/core/types";
+import { mulBpsCeil } from "@agari/core/units";
 import { diagnose } from "../errors/error-map";
 import { getClient } from "../runtime/read-runtime";
 

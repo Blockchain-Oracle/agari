@@ -1,8 +1,8 @@
 "use client";
 
-import type { Hex } from "@masayume/core/types";
-import { formatBaseUnits } from "@masayume/core/units";
-import { txUrl } from "@masayume/core/urls";
+import type { Hex } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
 import { Hash, Money, Odds } from "@/components/data";
 import { ErrorState } from "@/components/states";

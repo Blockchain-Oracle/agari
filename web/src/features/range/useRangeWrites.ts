@@ -1,12 +1,12 @@
 "use client";
 
-import type { RangeSide } from "@masayume/core/range";
-import type { MarketId } from "@masayume/core/types";
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
-import { submitRangeOpen, type RangeOpenOutcome } from "@masayume/markets/range";
-import { invalidateAfterWrite, useSubmitter } from "@masayume/markets/react";
-import { getClient } from "@masayume/markets/runtime";
-import { resolveVaultDeployment, type VaultContracts } from "@masayume/markets/vault";
+import type { RangeSide } from "@agari/core/range";
+import type { MarketId } from "@agari/core/types";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { submitRangeOpen, type RangeOpenOutcome } from "@agari/markets/range";
+import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import { getClient } from "@agari/markets/runtime";
+import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import type { PublicClient } from "viem";

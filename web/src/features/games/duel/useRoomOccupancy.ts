@@ -1,6 +1,6 @@
 "use client";
 
-import { queueKey, type DuelMode, type StakeTierId } from "@masayume/core/games";
+import { queueKey, type DuelMode, type StakeTierId } from "@agari/core/games";
 import { useEffect, useState } from "react";
 
 /**

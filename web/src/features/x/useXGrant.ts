@@ -1,20 +1,20 @@
 "use client";
 
-import type { GrantTerms, TxOutcome } from "@masayume/core/ports";
-import { diagnosisCopy } from "@masayume/core/copy";
-import { formatBaseUnits } from "@masayume/core/units";
-import type { VaultGrant } from "@masayume/core/vault";
-import { X_GRANT, xGrantCaps, xPermissionState, type XPermissionState } from "@masayume/core/x";
-import { getVaultSnapshot } from "@masayume/markets";
-import { getClient } from "@masayume/markets/runtime";
-import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from "@masayume/markets/react";
+import type { GrantTerms, TxOutcome } from "@agari/core/ports";
+import { diagnosisCopy } from "@agari/core/copy";
+import { formatBaseUnits } from "@agari/core/units";
+import type { VaultGrant } from "@agari/core/vault";
+import { X_GRANT, xGrantCaps, xPermissionState, type XPermissionState } from "@agari/core/x";
+import { getVaultSnapshot } from "@agari/markets";
+import { getClient } from "@agari/markets/runtime";
+import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { decodeEventLog } from "viem";
 import { X_CARD, X_HANDLE } from "./copy";
 import { parseXUpdate, updateXPermission, type XUpdateProgress } from "./update-permission";
 
-export { X_GRANT } from "@masayume/core/x";
+export { X_GRANT } from "@agari/core/x";
 const PROGRESS_EVENT = "masayume:x-permission-update";
 const activeWrites = new Set<string>();
 const revokedEvent = [{ type: "event", name: "GrantRevoked", inputs: [

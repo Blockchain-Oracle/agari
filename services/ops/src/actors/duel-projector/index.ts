@@ -1,7 +1,7 @@
-import { isOk } from "@masayume/core/schemas";
-import { isDbConfigured, readCursor, writeCursor } from "@masayume/db";
-import { arenaHeadBlock, listArenaEvents, resolveArenaDeployment } from "@masayume/markets/games";
-import { ensureMarkets, parseMarketsEnv } from "@masayume/markets";
+import { isOk } from "@agari/core/schemas";
+import { isDbConfigured, readCursor, writeCursor } from "@agari/db";
+import { arenaHeadBlock, listArenaEvents, resolveArenaDeployment } from "@agari/markets/games";
+import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
 import type { RoomContext } from "../game-room/handlers";
 import { applyEvent, type ApplyDeps } from "./apply";
 import { createMatchCache } from "./facts";

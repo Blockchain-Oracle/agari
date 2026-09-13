@@ -1,4 +1,4 @@
-import { addressSchema, bytes32Schema } from "@masayume/core/types";
+import { addressSchema, bytes32Schema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fundSeatKey, gameSponsorStatus } from "@/features/games/sponsor.server";
@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const parsed = requestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "that is not a top-up request" }, { status: 400 });
-  const verdict = await fundSeatKey({ ...parsed.data, device: req.headers.get("x-masayume-device") ?? "", nowMs: Date.now() });
+  const verdict = await fundSeatKey({ ...parsed.data, device: req.headers.get("x-agari-device") ?? "", nowMs: Date.now() });
   if (!verdict.ok) return NextResponse.json({ error: verdict.error }, { status: verdict.status });
   return NextResponse.json({ hash: verdict.hash, amountWei: verdict.amountWei.toString(), why: verdict.why });
 }

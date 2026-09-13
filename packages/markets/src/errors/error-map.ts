@@ -1,4 +1,4 @@
-import { diagnosis, type Diagnosis, type DiagnosisKind } from "@masayume/core/types";
+import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
 import {
   ContractRevertError,
   IndexerError,

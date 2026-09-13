@@ -1,9 +1,9 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { QuoteTarget } from "@masayume/core/ports";
-import { bufferToSlippageBps, costCapBufferBps } from "@masayume/core/sizing";
-import { SLIPPAGE_MIN_TICKS } from "@masayume/core/constants";
-import type { BookParams, Quote, Side } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
+import type { Reading } from "@agari/core/schemas";
+import type { QuoteTarget } from "@agari/core/ports";
+import { bufferToSlippageBps, costCapBufferBps } from "@agari/core/sizing";
+import { SLIPPAGE_MIN_TICKS } from "@agari/core/constants";
+import type { BookParams, Quote, Side } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
 import { quoteBinaryOrderOverBook, quoteBinaryStakeOverBook, type BinaryOrderBook } from "@somnia-chain/markets-sdk";
 import { getClient } from "../runtime/read-runtime";
 import { toQuote } from "../mappers/quote";

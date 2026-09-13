@@ -1,5 +1,5 @@
-import { formatCadence } from "@masayume/core/copy";
-import type { EventMarket } from "@masayume/core/types";
+import { formatCadence } from "@agari/core/copy";
+import type { EventMarket } from "@agari/core/types";
 import { TICKET } from "@/lib/copy";
 
 interface AutoAdvanceNoteProps {

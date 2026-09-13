@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@masayume/core/units";
-import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@agari/core/units";
+import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@agari/markets/react";
 import { useState } from "react";
 import { Money } from "@/components/data";
 import { ErrorState, LoadingState } from "@/components/states";

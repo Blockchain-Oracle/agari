@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits } from "@masayume/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { ago, fmtCount, STATS } from "./copy";
 import { GrowthCurve } from "./GrowthCurve";

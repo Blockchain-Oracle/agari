@@ -1,6 +1,6 @@
 # The ops service — one long-running Node process (AD-8): the duel room, the matchmaker, the projector,
 # the settler, the maker and the keepers. Built from the repo root so the workspace packages it imports
-# as TypeScript source are present; run through tsx exactly as `pnpm --filter @masayume/ops start` does.
+# as TypeScript source are present; run through tsx exactly as `pnpm --filter @agari/ops start` does.
 #
 #   fly deploy --config services/ops/fly.toml --dockerfile services/ops/Dockerfile .
 #
@@ -25,7 +25,7 @@ COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
-RUN pnpm install --frozen-lockfile --filter "@masayume/ops..."
+RUN pnpm install --frozen-lockfile --filter "@agari/ops..."
 
 # The sources the service actually runs: its own, and the four packages it imports.
 COPY packages/brain ./packages/brain
@@ -39,4 +39,4 @@ ENV GAME_DECK_JOURNAL=/data/deck-journal.jsonl \
     GAME_ROOM_HOST=0.0.0.0 \
     GAME_ROOM_PORT=8787
 EXPOSE 8787
-CMD ["pnpm", "--filter", "@masayume/ops", "start"]
+CMD ["pnpm", "--filter", "@agari/ops", "start"]

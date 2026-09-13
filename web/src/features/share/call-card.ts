@@ -1,7 +1,7 @@
-import { estPayoutBase } from "@masayume/core/claims";
-import { formatCadence } from "@masayume/core/copy";
-import type { Hex, Side } from "@masayume/core/types";
-import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@masayume/core/units";
+import { estPayoutBase } from "@agari/core/claims";
+import { formatCadence } from "@agari/core/copy";
+import type { Hex, Side } from "@agari/core/types";
+import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
 import { ORACLE_SCALE } from "@/features/markets/hero/units";
 import { CARD_MARGIN, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawSpark, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";

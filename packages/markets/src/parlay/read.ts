@@ -12,10 +12,10 @@ import {
   type ParlayQuote,
   type ParlayReserveState,
   type ParlayTicket,
-} from "@masayume/core/parlay";
-import { err, ok, type Reading } from "@masayume/core/schemas";
-import { diagnosis, OUTCOME_TO_SIDE, SIDE_TO_OUTCOME, toMarketId, type Address, type OutcomeIdx } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
+} from "@agari/core/parlay";
+import { err, ok, type Reading } from "@agari/core/schemas";
+import { diagnosis, OUTCOME_TO_SIDE, SIDE_TO_OUTCOME, toMarketId, type Address, type OutcomeIdx } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { getCollateral } from "../collateral";

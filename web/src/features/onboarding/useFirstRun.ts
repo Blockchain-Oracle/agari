@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { booleanCodec, usePersistedState } from "@/lib/persisted";
 
-const FIRST_RUN_KEY = "masayume.tutorialSeen";
+const FIRST_RUN_KEY = "agari.tutorialSeen";
 
 export interface FirstRun {
   /** False until localStorage has been read, so the server and first client render agree. */

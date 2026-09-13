@@ -1,6 +1,6 @@
-import { addressSchema, hexSchema, type Address, type Hex } from "@masayume/core/types";
-import type { VaultDeployment } from "@masayume/core/vault";
-import { FORWARD_DEADLINE_SEC, parseMarketsEnv, resolveVaultDeployment, SPONSOR_MAX_GAS, sponsorAddressOf, type MarketsEnv } from "@masayume/markets";
+import { addressSchema, hexSchema, type Address, type Hex } from "@agari/core/types";
+import type { VaultDeployment } from "@agari/core/vault";
+import { FORWARD_DEADLINE_SEC, parseMarketsEnv, resolveVaultDeployment, SPONSOR_MAX_GAS, sponsorAddressOf, type MarketsEnv } from "@agari/markets";
 import { z } from "zod";
 
 /**

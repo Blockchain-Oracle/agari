@@ -1,4 +1,4 @@
-import { OUTCOME_TO_SIDE, type ClaimLeg } from "@masayume/core/types";
+import { OUTCOME_TO_SIDE, type ClaimLeg } from "@agari/core/types";
 import { Money } from "@/components/data";
 import { MARKETS, VERDICT_UI } from "@/lib/copy";
 

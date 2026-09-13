@@ -1,4 +1,4 @@
-import { isOk, type Reading, type StaleReason } from "@masayume/core";
+import { isOk, type Reading, type StaleReason } from "@agari/core";
 import type { ReactNode } from "react";
 import { EmptyState, type NextAction } from "./EmptyState";
 import { ErrorState } from "./ErrorState";

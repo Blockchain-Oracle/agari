@@ -1,4 +1,4 @@
-import type { Address, Hex, MarketId } from "@masayume/core/types";
+import type { Address, Hex, MarketId } from "@agari/core/types";
 import { z } from "zod";
 
 /** Wire shape of the traction slice — base units travel as decimal strings, never floats. */

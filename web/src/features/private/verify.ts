@@ -1,6 +1,6 @@
-import type { PrivateTicket } from "@masayume/core/private";
-import type { Address } from "@masayume/core/types";
-import { claimDomain, verifyPrivateClaim } from "@masayume/markets/private";
+import type { PrivateTicket } from "@agari/core/private";
+import type { Address } from "@agari/core/types";
+import { claimDomain, verifyPrivateClaim } from "@agari/markets/private";
 
 /**
  * Runs locally, against the key the CONTRACT pins when that is known, so trusting a claim never requires

@@ -10,9 +10,9 @@ import {
   type ArenaTier,
   type Pick,
   type Seat,
-} from "@masayume/core/games";
-import type { Reading } from "@masayume/core/schemas";
-import { toMarketId, type Address, type Bytes32, type MarketId } from "@masayume/core/types";
+} from "@agari/core/games";
+import type { Reading } from "@agari/core/schemas";
+import { toMarketId, type Address, type Bytes32, type MarketId } from "@agari/core/types";
 import { zeroAddress, type PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { gameArenaAbi } from "../contracts/game-arena.abi";

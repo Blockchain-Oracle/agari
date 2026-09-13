@@ -1,5 +1,5 @@
-import type { StrategyRecord } from "@masayume/core/strategies";
-import type { Address, Bytes32 } from "@masayume/core/types";
+import type { StrategyRecord } from "@agari/core/strategies";
+import type { Address, Bytes32 } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { agentBootLine, createAgentState, scanVenueWithAgent, takeCall, type AgentState } from "./agent";
 import { readRunnerEnv } from "./env";

@@ -1,4 +1,4 @@
-import type { Hex, Resolution } from "@masayume/core/types";
+import type { Hex, Resolution } from "@agari/core/types";
 import type { SomniaMarketsClient } from "@somnia-chain/markets-sdk";
 import { bigintOf, secToMsOrNull } from "./scalars";
 

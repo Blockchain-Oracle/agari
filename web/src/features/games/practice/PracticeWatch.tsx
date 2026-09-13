@@ -1,8 +1,8 @@
 "use client";
 
-import { PRACTICE_WATCH_SEC, type PracticeRound } from "@masayume/core/games";
+import { PRACTICE_WATCH_SEC, type PracticeRound } from "@agari/core/games";
 import type { CSSProperties } from "react";
-import type { AssetPrice } from "@masayume/core/types";
+import type { AssetPrice } from "@agari/core/types";
 import { PRACTICE } from "./copy";
 import { PracticeRow } from "./PracticeRow";
 

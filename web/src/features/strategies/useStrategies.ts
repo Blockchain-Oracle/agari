@@ -1,10 +1,10 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@masayume/core";
-import type { StrategySubscription } from "@masayume/core/strategies";
-import type { Address } from "@masayume/core/types";
-import { useReadingQuery } from "@masayume/markets/react";
-import { listSubscriptionsOf } from "@masayume/markets/strategies";
+import { diagnosis, err, ok, type Reading } from "@agari/core";
+import type { StrategySubscription } from "@agari/core/strategies";
+import type { Address } from "@agari/core/types";
+import { useReadingQuery } from "@agari/markets/react";
+import { listSubscriptionsOf } from "@agari/markets/strategies";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { healthPayloadSchema, strategiesPayloadSchema, type HealthPayload, type StrategiesPayload } from "./protocol";

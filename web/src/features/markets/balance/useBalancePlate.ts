@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk, type Reading } from "@masayume/core/schemas";
-import type { Address, BalanceSheet } from "@masayume/core/types";
-import { keys, useBalanceSheet } from "@masayume/markets/react";
+import { isOk, type Reading } from "@agari/core/schemas";
+import type { Address, BalanceSheet } from "@agari/core/types";
+import { keys, useBalanceSheet } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useWalletSession } from "@/lib/wallet-session";

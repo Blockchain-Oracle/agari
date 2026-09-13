@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import { formatOracleRaw, secToMs } from "@masayume/core/units";
-import { addressUrl, marketDeepLink } from "@masayume/core/urls";
+import { formatCadence } from "@agari/core/copy";
+import { formatOracleRaw, secToMs } from "@agari/core/units";
+import { addressUrl, marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { memo, type CSSProperties } from "react";
 import { ORACLE_SCALE } from "@/features/markets/hero/units";

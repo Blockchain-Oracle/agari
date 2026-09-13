@@ -1,9 +1,9 @@
 "use client";
 
-import type { MakerVaultState, MakerWindowView } from "@masayume/core/maker";
-import type { EventMarket, MarketId } from "@masayume/core/types";
-import { isOk } from "@masayume/core/schemas";
-import { useBalanceSheet, useMakerHistory, useMakerShares, useMakerVault, useMakerWindows, useMarketsLite } from "@masayume/markets/react";
+import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
+import type { EventMarket, MarketId } from "@agari/core/types";
+import { isOk } from "@agari/core/schemas";
+import { useBalanceSheet, useMakerHistory, useMakerShares, useMakerVault, useMakerWindows, useMarketsLite } from "@agari/markets/react";
 import { useEffect, useMemo, useState } from "react";
 import { CapabilityPending, SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";

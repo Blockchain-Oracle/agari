@@ -1,4 +1,4 @@
-import { FIELD_H, FIELD_W, lerp, RIDE, rideLineYAt, type RideState } from "@masayume/core/games/arcade";
+import { FIELD_H, FIELD_W, lerp, RIDE, rideLineYAt, type RideState } from "@agari/core/games/arcade";
 import { heatOf, rgb, rgba, type Rgb } from "./palette";
 import { drawSprite, PIP } from "./sprites";
 import { applyFieldTransform, type ArcadeView } from "./useArcadeLoop";

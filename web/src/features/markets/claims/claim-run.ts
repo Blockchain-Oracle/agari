@@ -1,4 +1,4 @@
-import type { ClaimableRow, MarketId, OutcomeIdx } from "@masayume/core/types";
+import type { ClaimableRow, MarketId, OutcomeIdx } from "@agari/core/types";
 import type { ClaimItem, ClaimRun } from "./types";
 
 export const IDLE_RUN: ClaimRun = { status: "idle", items: [], diagnosis: null, gasShort: false, finishedAtMs: null };

@@ -1,6 +1,6 @@
 "use client";
 
-import { txUrl } from "@masayume/core/urls";
+import { txUrl } from "@agari/core/urls";
 import { useMemo } from "react";
 import { AgentPortrait } from "./AgentPortrait";
 import { STRATEGIES } from "./copy";

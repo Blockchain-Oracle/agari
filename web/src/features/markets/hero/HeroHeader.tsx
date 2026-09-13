@@ -1,5 +1,5 @@
-import type { MarketPhase } from "@masayume/core/lifecycle";
-import type { EventMarket } from "@masayume/core/types";
+import type { MarketPhase } from "@agari/core/lifecycle";
+import type { EventMarket } from "@agari/core/types";
 import { Badge } from "@/components/ui/badge";
 import { HERO, formatCadence } from "@/lib/copy";
 

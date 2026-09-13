@@ -1,11 +1,11 @@
-import { SHANNON_EXPLORER_URL } from "@masayume/core/constants";
-import { formatBaseUnits } from "@masayume/core/units";
-import { X_RECEIPT_STATUSES, xRefusalCopy, xReceiptRecovery, type XReceipt, type XReceiptStatus } from "@masayume/core/x";
+import { SHANNON_EXPLORER_URL } from "@agari/core/constants";
+import { formatBaseUnits } from "@agari/core/units";
+import { X_RECEIPT_STATUSES, xRefusalCopy, xReceiptRecovery, type XReceipt, type XReceiptStatus } from "@agari/core/x";
 
 export const REPLY_LIMIT = 280;
 export const TRADE_FROM_X_URL = "https://masayume.app/trade-from-x";
 
-export { X_REFUSAL_DETAILS as REFUSAL_DETAILS } from "@masayume/core/x";
+export { X_REFUSAL_DETAILS as REFUSAL_DETAILS } from "@agari/core/x";
 
 export interface ReplyPresentation {
   status: XReceiptStatus;

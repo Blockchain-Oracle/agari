@@ -1,11 +1,11 @@
 "use client";
 
-import { REQUOTE_MS } from "@masayume/core/constants";
-import type { MoonshotCall, RangeMode, RangeParams } from "@masayume/core/range";
-import type { Diagnosis } from "@masayume/core/types";
-import { marketsProvider } from "@masayume/markets";
-import { quoteMoonshotOnchain, type MoonshotQuote, type MoonshotWindow } from "@masayume/markets/range";
-import { keys, useReadingQuery } from "@masayume/markets/react";
+import { REQUOTE_MS } from "@agari/core/constants";
+import type { MoonshotCall, RangeMode, RangeParams } from "@agari/core/range";
+import type { Diagnosis } from "@agari/core/types";
+import { marketsProvider } from "@agari/markets";
+import { quoteMoonshotOnchain, type MoonshotQuote, type MoonshotWindow } from "@agari/markets/range";
+import { keys, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useDebounced } from "../../markets/ticket/useDebounced";

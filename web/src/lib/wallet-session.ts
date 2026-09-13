@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address } from "@masayume/core/types";
-import { SOMNIA_SHANNON } from "@masayume/markets/chain";
+import type { Address } from "@agari/core/types";
+import { SOMNIA_SHANNON } from "@agari/markets/chain";
 import { useCallback } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
 

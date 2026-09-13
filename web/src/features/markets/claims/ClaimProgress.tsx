@@ -1,6 +1,6 @@
-import { formatCadence } from "@masayume/core/copy";
-import { OUTCOME_TO_SIDE } from "@masayume/core/types";
-import { txUrl } from "@masayume/core/urls";
+import { formatCadence } from "@agari/core/copy";
+import { OUTCOME_TO_SIDE } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
 import { Hash, Money } from "@/components/data";
 import { ErrorState } from "@/components/states";
 import { CLAIM, diagnosisCopy } from "@/lib/copy";

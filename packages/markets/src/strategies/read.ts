@@ -1,6 +1,6 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { StrategyRecord, StrategySubscription } from "@masayume/core/strategies";
-import type { Address } from "@masayume/core/types";
+import type { Reading } from "@agari/core/schemas";
+import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
+import type { Address } from "@agari/core/types";
 import type { PublicClient } from "viem";
 import { MULTICALL3_ADDRESS } from "../chain";
 import { strategyRegistryAbi } from "../contracts/strategy-registry.abi";

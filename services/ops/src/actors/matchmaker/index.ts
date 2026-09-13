@@ -9,12 +9,12 @@ import {
   type QueueEntry,
   type ServerMessage,
   type StakeTierId,
-} from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
+} from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
 import { deckSupply } from "./deckmaster";
-import type { Address, Bytes32 } from "@masayume/core/types";
-import { readRatings } from "@masayume/db";
-import { getArenaState } from "@masayume/markets/games";
+import type { Address, Bytes32 } from "@agari/core/types";
+import { readRatings } from "@agari/db";
+import { getArenaState } from "@agari/markets/games";
 import { WebSocket } from "ws";
 import type { RoomConnection } from "../game-room/hub";
 import type { Matchmaker, RoomContext } from "../game-room/handlers";

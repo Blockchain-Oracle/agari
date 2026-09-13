@@ -1,8 +1,8 @@
 "use client";
 
-import { formatBaseUnits, shortHex } from "@masayume/core/units";
-import { capResetsAtSec, dailyHeadroomBase } from "@masayume/core/vault";
-import { requiredGasWei, sessionGasTopUpWei } from "@masayume/markets";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { capResetsAtSec, dailyHeadroomBase } from "@agari/core/vault";
+import { requiredGasWei, sessionGasTopUpWei } from "@agari/markets";
 import { Hash, UtcTime } from "@/components/data";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/lib/toast";

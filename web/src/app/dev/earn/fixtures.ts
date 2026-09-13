@@ -1,5 +1,5 @@
-import type { MakerVaultState, MakerWindowView } from "@masayume/core/maker";
-import { toMarketId, type Address, type EventMarket, type MarketId } from "@masayume/core/types";
+import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
+import { toMarketId, type Address, type EventMarket, type MarketId } from "@agari/core/types";
 import { WINDOW } from "@/app/dev/range/fixtures";
 
 // Canned readings; nothing here is a real vault, address or deployment.

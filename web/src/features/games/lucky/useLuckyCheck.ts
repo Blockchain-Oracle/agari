@@ -1,7 +1,7 @@
 "use client";
 
-import { luckyDrawMessage, mapLuckyDraw } from "@masayume/core/games";
-import type { Hex } from "@masayume/core/types";
+import { luckyDrawMessage, mapLuckyDraw } from "@agari/core/games";
+import type { Hex } from "@agari/core/types";
 import { useEffect, useState } from "react";
 import { keccak256 } from "viem";
 import type { LuckyDealWire } from "./lucky-wire";

@@ -1,12 +1,12 @@
 "use client";
 
-import { formatCadence, type BlockerContext } from "@masayume/core/copy";
-import { BPS_PER_X, leverageBpsOf } from "@masayume/core/leverage";
-import type { BookedOrder } from "@masayume/core/ports";
-import { belowMinStake, minStakeBase } from "@masayume/core/sizing";
-import { formatBaseUnits, priceRawToBps } from "@masayume/core/units";
-import { collateralOrNull } from "@masayume/markets";
-import { useBalanceSheet, useLeverageReserve, useOnchain, useRangeReserve, useSigner } from "@masayume/markets/react";
+import { formatCadence, type BlockerContext } from "@agari/core/copy";
+import { BPS_PER_X, leverageBpsOf } from "@agari/core/leverage";
+import type { BookedOrder } from "@agari/core/ports";
+import { belowMinStake, minStakeBase } from "@agari/core/sizing";
+import { formatBaseUnits, priceRawToBps } from "@agari/core/units";
+import { collateralOrNull } from "@agari/markets";
+import { useBalanceSheet, useLeverageReserve, useOnchain, useRangeReserve, useSigner } from "@agari/markets/react";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Money } from "@/components/data";

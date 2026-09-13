@@ -1,6 +1,6 @@
 "use client";
 
-import { countdown } from "@masayume/core/lifecycle";
+import { countdown } from "@agari/core/lifecycle";
 import { Countdown, CountdownRing } from "@/components/data";
 
 interface CountdownBlockProps {

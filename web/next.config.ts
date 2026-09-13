@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     { source: "/docs", destination: DOCS_URL, permanent: false },
     { source: "/docs/:path*", destination: docsUrl(":path*"), permanent: false },
   ],
-  transpilePackages: ["@masayume/brain", "@masayume/core", "@masayume/markets"],
+  transpilePackages: ["@agari/brain", "@agari/core", "@agari/markets"],
   turbopack: {
     resolveAlias: Object.fromEntries(NEVER_EXECUTED.map((specifier) => [specifier, OPTIONAL_DEPENDENCY_STUB])),
   },

@@ -1,5 +1,5 @@
 {
-  "name": "@masayume/markets",
+  "name": "@agari/markets",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,7 +28,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@masayume/core": "workspace:*",
+    "@agari/core": "workspace:*",
     "@somnia-chain/markets-sdk": "0.28.1",
     "@tanstack/react-query": "catalog:",
     "viem": "catalog:",

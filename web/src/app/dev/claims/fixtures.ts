@@ -1,4 +1,4 @@
-import { diagnosis, toMarketId, type Address, type ClaimableRow, type Hex } from "@masayume/core/types";
+import { diagnosis, toMarketId, type Address, type ClaimableRow, type Hex } from "@agari/core/types";
 import { IDLE_RUN, itemsFromRows } from "@/features/markets/claims";
 import type { ClaimItem, ClaimRun } from "@/features/markets/claims";
 

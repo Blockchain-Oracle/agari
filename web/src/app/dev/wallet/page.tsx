@@ -1,6 +1,6 @@
 "use client";
 
-import { useSigner } from "@masayume/markets/react";
+import { useSigner } from "@agari/markets/react";
 import { SectionHeader } from "@/components/chrome";
 import { Hash } from "@/components/data";
 import { BalancePlate } from "@/features/markets/balance";

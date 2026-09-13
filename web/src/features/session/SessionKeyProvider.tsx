@@ -1,10 +1,10 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@masayume/core/constants";
-import type { TxOutcome } from "@masayume/core/ports";
-import { diagnosis, type Address, type Hex } from "@masayume/core/types";
-import { generateSessionKey, keyGasBalance, sessionGasTopUpWei, topUpSessionGas, type SubmitterSession } from "@masayume/markets";
-import { keys, useUserSession, useVaultSnapshot } from "@masayume/markets/react";
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import type { TxOutcome } from "@agari/core/ports";
+import { diagnosis, type Address, type Hex } from "@agari/core/types";
+import { generateSessionKey, keyGasBalance, sessionGasTopUpWei, topUpSessionGas, type SubmitterSession } from "@agari/markets";
+import { keys, useUserSession, useVaultSnapshot } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNowMs } from "@/components/data";

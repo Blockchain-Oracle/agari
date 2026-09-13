@@ -12,10 +12,10 @@ import {
   type RangeMode,
   type RangeParams,
   type RangeQuote,
-} from "@masayume/core/range";
-import { err, ok, type Reading } from "@masayume/core/schemas";
-import { diagnosis, type Diagnosis, type MarketId } from "@masayume/core/types";
-import { oneUnit } from "@masayume/core/units";
+} from "@agari/core/range";
+import { err, ok, type Reading } from "@agari/core/schemas";
+import { diagnosis, type Diagnosis, type MarketId } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
 import { getCollateral } from "../collateral";
 import { nowMs } from "../provider/clock";
 import { diagnoseRange } from "./errors";

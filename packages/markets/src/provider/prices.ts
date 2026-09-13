@@ -1,5 +1,5 @@
-import type { Reading } from "@masayume/core/schemas";
-import type { AssetPrice, MarketId, PricePoint } from "@masayume/core/types";
+import type { Reading } from "@agari/core/schemas";
+import type { AssetPrice, MarketId, PricePoint } from "@agari/core/types";
 import { getClient } from "../runtime/read-runtime";
 import { toAssetPrice, toPricePoint } from "../mappers/price";
 import { bigintOf } from "../mappers/scalars";

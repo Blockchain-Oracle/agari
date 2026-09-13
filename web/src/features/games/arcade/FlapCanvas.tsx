@@ -1,6 +1,6 @@
 "use client";
 
-import { createFlapState, createRng, stepFlap, ticksToMs, type ArcadeRunConfig, type FlapState, type Rng } from "@masayume/core/games/arcade";
+import { createFlapState, createRng, stepFlap, ticksToMs, type ArcadeRunConfig, type FlapState, type Rng } from "@agari/core/games/arcade";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { attachFlapControls } from "./controls";
 import { createFlapFx, drawFlap, flapFxPress } from "./flap-draw";

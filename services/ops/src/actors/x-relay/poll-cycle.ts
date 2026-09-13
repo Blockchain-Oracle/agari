@@ -1,4 +1,4 @@
-import type { XReceipt } from "@masayume/core/x";
+import type { XReceipt } from "@agari/core/x";
 import type { Mention } from "./transport";
 
 export interface MentionCycleContext {

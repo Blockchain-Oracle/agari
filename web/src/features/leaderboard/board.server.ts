@@ -1,4 +1,4 @@
-import { ensureMarkets, parseMarketsEnv, readVenueBoard, unwrap, type VenueBoard } from "@masayume/markets";
+import { ensureMarkets, parseMarketsEnv, readVenueBoard, unwrap, type VenueBoard } from "@agari/markets";
 import type { LeaderboardPayload } from "./protocol";
 import { unstable_cache } from "next/cache";
 
@@ -65,5 +65,5 @@ async function computeBoard(): Promise<LeaderboardPayload> {
 /** Key by the deployment's data source, never by a per-request timestamp. */
 export function readBoard(): Promise<LeaderboardPayload> {
   const { chainId, venueId, indexerUrl } = parseMarketsEnv();
-  return unstable_cache(computeBoard, ["masayume-venue-board-v2", String(chainId), venueId, indexerUrl], { revalidate: 180 })();
+  return unstable_cache(computeBoard, ["agari-venue-board-v2", String(chainId), venueId, indexerUrl], { revalidate: 180 })();
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@masayume/core/schemas";
-import { useClaimables, usePositions } from "@masayume/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { useClaimables, usePositions } from "@agari/markets/react";
 import { SectionHeader } from "@/components/chrome";
 import { ErrorState } from "@/components/states";
 import { openFunds } from "@/features/funding";

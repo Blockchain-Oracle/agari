@@ -1,4 +1,4 @@
-import { diagnosis, err, ok, stale, type Diagnosis, type Reading } from "@masayume/core";
+import { diagnosis, err, ok, stale, type Diagnosis, type Reading } from "@agari/core";
 
 export const DECIMALS = 6;
 export const SYMBOL = "tUSDC";

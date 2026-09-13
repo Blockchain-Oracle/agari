@@ -1,4 +1,4 @@
-import type { Diagnosis, DiagnosisKind } from "@masayume/core/types";
+import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
 import { diagnoseNamedRevert } from "../vault/errors";
 
 /**

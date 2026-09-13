@@ -1,10 +1,10 @@
 "use client";
 
-import { formatCadence } from "@masayume/core/copy";
-import { roundSettledAtMs, type SettledRound } from "@masayume/core/projection";
-import { OUTCOME_TO_SIDE } from "@masayume/core/types";
-import { marketDeepLink } from "@masayume/core/urls";
-import { txUrl } from "@masayume/core/urls";
+import { formatCadence } from "@agari/core/copy";
+import { roundSettledAtMs, type SettledRound } from "@agari/core/projection";
+import { OUTCOME_TO_SIDE } from "@agari/core/types";
+import { marketDeepLink } from "@agari/core/urls";
+import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { Money } from "@/components/data";
 import { VAULT } from "@/features/vault";

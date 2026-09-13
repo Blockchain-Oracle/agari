@@ -13,8 +13,8 @@ import {
   type RoomErrorCode,
   type ServerMessage,
   type StakeTierId,
-} from "@masayume/core/games";
-import type { Address } from "@masayume/core/types";
+} from "@agari/core/games";
+import type { Address } from "@agari/core/types";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { keccak256 } from "viem";
 import { useGameKey } from "./useGameKey";
@@ -40,7 +40,7 @@ import { playSfx } from "../audio";
  * why the queue is lost on a reconnect and the match is not.
  */
 
-const SUBPROTOCOL = "masayume.room.v1";
+const SUBPROTOCOL = "agari.room.v1";
 const BACKOFF_MS = [1_000, 2_000, 4_000, 8_000, 15_000];
 /** Closed by us, on purpose. Anything else is worth retrying. */
 const CLOSED_DELIBERATELY = 1_000;

@@ -15,7 +15,7 @@ import Link from "next/link";
 import { isIslandRoute } from "./ShellChrome";
 import { useEffect, useState } from "react";
 
-const KEY = "masayume.appstrip.dismissed";
+const KEY = "agari.appstrip.dismissed";
 const ROTATE_MS = 7000;
 
 // Statements, not slogans. Each is a fact that survives being read twice.

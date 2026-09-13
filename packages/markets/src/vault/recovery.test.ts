@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { encodeAbiParameters, encodeEventTopics, type TransactionReceipt } from "viem";
-import { toMarketId, type Address, type Hex } from "@masayume/core/types";
+import { toMarketId, type Address, type Hex } from "@agari/core/types";
 import { eventVaultAbi } from "../contracts/event-vault.abi";
 import { recoverVaultExecution, recoverVaultReceipt, type VaultExecutionEvidence } from "./recovery";
 

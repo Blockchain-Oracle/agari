@@ -1,4 +1,4 @@
-import { RANGE_NOT_DEPLOYED, type MoonshotDirection } from "@masayume/core/range";
+import { RANGE_NOT_DEPLOYED, type MoonshotDirection } from "@agari/core/range";
 
 /**
  * Moonshot — Pips' direction-and-reach call (`moonshot.tsx`: "scroll up to go LONG, down to go SHORT, and

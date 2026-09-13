@@ -1,6 +1,6 @@
 {
-  "name": "Masayume — Prediction Windows on Somnia",
-  "short_name": "Masayume",
+  "name": "Agari — Prediction Windows",
+  "short_name": "Agari",
   "description": "Live price Windows on Somnia testnet. Call it up or down, and get a settlement receipt you can click.",
   "start_url": "/markets",
   "scope": "/",

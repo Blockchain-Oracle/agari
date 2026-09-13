@@ -1,6 +1,6 @@
-import { toMarketId } from "@masayume/core/types";
-import { closeRuntime, configureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, unwrap } from "@masayume/markets";
-import { getClient } from "@masayume/markets/runtime";
+import { toMarketId } from "@agari/core/types";
+import { closeRuntime, configureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, unwrap } from "@agari/markets";
+import { getClient } from "@agari/markets/runtime";
 import type { PublicClient } from "viem";
 
 import {

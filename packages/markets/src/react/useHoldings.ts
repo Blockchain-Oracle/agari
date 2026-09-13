@@ -1,6 +1,6 @@
-import { MARKETS_POLL_MS } from "@masayume/core/constants";
-import type { Reading } from "@masayume/core/schemas";
-import type { Address, Holdings, OnchainSnapshot } from "@masayume/core/types";
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import type { Reading } from "@agari/core/schemas";
+import type { Address, Holdings, OnchainSnapshot } from "@agari/core/types";
 import { getHoldings } from "../provider/positions";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";

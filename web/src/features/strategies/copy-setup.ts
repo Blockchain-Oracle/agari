@@ -1,5 +1,5 @@
-import type { Address, Hex } from "@masayume/core/types";
-import type { VaultCaps, VaultGrant } from "@masayume/core/vault";
+import type { Address, Hex } from "@agari/core/types";
+import type { VaultCaps, VaultGrant } from "@agari/core/vault";
 import { matchesProgressGrant, type CopyProgress } from "./copy-progress";
 
 export interface CopyWriteResult { ok: boolean; txHash?: Hex; reason?: string; stage?: "grant" | "subscribe"; unknown?: boolean }

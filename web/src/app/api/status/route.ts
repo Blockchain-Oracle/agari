@@ -1,4 +1,4 @@
-import { ensureMarkets, parseMarketsEnv } from "@masayume/markets";
+import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
 import { NextResponse } from "next/server";
 import { probeIndexer, probePrice, probeRpc, probeSensei, probeStore } from "@/features/status/probes.server";
 import { HEALTHY_LAG_SEC, type StatusPayload, type StatusPipeline } from "@/features/status/protocol";

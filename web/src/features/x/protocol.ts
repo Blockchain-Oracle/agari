@@ -1,5 +1,5 @@
-import type { XReceipt } from "@masayume/core/x";
-import type { XRelayHealth } from "@masayume/db";
+import type { XReceipt } from "@agari/core/x";
+import type { XRelayHealth } from "@agari/db";
 import { z } from "zod";
 
 export const X_RECEIPTS_LIMIT = 30;

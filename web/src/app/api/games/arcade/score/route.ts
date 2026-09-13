@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const parsed = scoreClaimSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "that is not an arcade score" }, { status: 400 });
-  const verdict = await acceptScore(parsed.data, req.headers.get("x-masayume-device") ?? "", Date.now());
+  const verdict = await acceptScore(parsed.data, req.headers.get("x-agari-device") ?? "", Date.now());
   if (!verdict.ok) return NextResponse.json({ error: verdict.error }, { status: verdict.status });
   return NextResponse.json(verdict.body);
 }

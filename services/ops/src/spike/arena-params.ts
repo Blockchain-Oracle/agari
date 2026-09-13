@@ -1,8 +1,8 @@
-import type { ArenaParams } from "@masayume/core/games";
-import { isOk } from "@masayume/core/schemas";
-import type { Hex } from "@masayume/core/types";
-import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, parseMarketsEnv } from "@masayume/markets";
-import { getArenaState, resolveArenaDeployment, writeGameArena } from "@masayume/markets/games";
+import type { ArenaParams } from "@agari/core/games";
+import { isOk } from "@agari/core/schemas";
+import type { Hex } from "@agari/core/types";
+import { closeRuntime, createMemoryJournal, createSubmitterSession, ensureMarkets, parseMarketsEnv } from "@agari/markets";
+import { getArenaState, resolveArenaDeployment, writeGameArena } from "@agari/markets/games";
 import { finish } from "./finish";
 
 /**
@@ -17,8 +17,8 @@ import { finish } from "./finish";
  * seconds to sign a create and a join is generous for someone looking at the screen — and a player who
  * misses it triggers `refundUnjoined`, which returns the pot. The failure is a refund, not a loss.
  *
- *   pnpm --filter @masayume/ops spike:arena-params            (read)
- *   ADMIN_KEY=… APPLY=1 pnpm --filter @masayume/ops spike:arena-params   (write)
+ *   pnpm --filter @agari/ops spike:arena-params            (read)
+ *   ADMIN_KEY=… APPLY=1 pnpm --filter @agari/ops spike:arena-params   (write)
  */
 const TARGET: ArenaParams = {
   joinWindowSec: Number(process.env.JOIN_WINDOW_SEC ?? 60),

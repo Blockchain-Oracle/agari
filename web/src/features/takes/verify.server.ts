@@ -1,4 +1,4 @@
-import type { Side } from "@masayume/core/types";
+import type { Side } from "@agari/core/types";
 import { verifyMessage } from "viem";
 import { takeMessage } from "./protocol";
 

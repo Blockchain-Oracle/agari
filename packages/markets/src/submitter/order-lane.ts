@@ -1,8 +1,8 @@
-import type { AttributionHook, IntentJournal, OrderOutcome, OrderRequest, PhaseListener, StopGate } from "@masayume/core/ports";
-import { diagnosis, type Diagnosis } from "@masayume/core/types";
-import type { Address } from "@masayume/core/types";
-import { formatCadence } from "@masayume/core/copy";
-import { formatBaseUnits } from "@masayume/core/units";
+import type { AttributionHook, IntentJournal, OrderOutcome, OrderRequest, PhaseListener, StopGate } from "@agari/core/ports";
+import { diagnosis, type Diagnosis } from "@agari/core/types";
+import type { Address } from "@agari/core/types";
+import { formatCadence } from "@agari/core/copy";
+import { formatBaseUnits } from "@agari/core/units";
 import type { SessionTrader } from "../sessions/trader";
 import { OrderRefusedError, RequoteError } from "./errors";
 import { isTimeoutError } from "./failure";
