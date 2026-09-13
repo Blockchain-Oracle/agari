@@ -11,3 +11,14 @@ codegen-units = 1
 opt-level = 3
 incremental = false
 codegen-units = 1
+
+# D-002 pins, used by the program crates added from S2. After adding the oracle crates, run
+# `cargo update -p solana-program@5.0.0 --precise 3.0.0` (pythnet-sdk and switchboard are open-ended).
+[workspace.dependencies]
+anchor-lang = "=1.2.0"
+anchor-spl = "=1.2.0"
+pyth-solana-receiver-sdk = "=2.0.0"
+redstone = { git = "https://github.com/redstone-finance/rust-sdk", rev = "05e3c9fe4cec1651b5418c83c02f9a5db4cc4cfa", default-features = false, features = ["solana"] }
+switchboard-on-demand = { version = "=0.13.0", default-features = false, features = ["solana-v3"] }
+solana-instructions-sysvar = "=3.0.1"
+getrandom = { version = "0.2", features = ["custom"] }

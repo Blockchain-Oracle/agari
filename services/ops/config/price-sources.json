@@ -22,7 +22,7 @@
       "0x9c5AE89C4Af6aA32cE58588DBaF90d18a855B6de",
       "0x8BB8F32Df04c8b654987DAaeD53D6B6091e3B774"
     ],
-    "signersAuthoritative": "pending D-002: RedStone Solana adapter config.rs (primary-prod); must match signersObserved before S2 init"
+    "signersAuthoritative": "confirmed D-002: identical to signersObserved, threshold 3 (redstone-oracles-monorepo@519cd10 solana-price-adapter config_prod.rs)"
   },
   "pythTrial": {
     "hermes": "https://hermes.pyth.network",

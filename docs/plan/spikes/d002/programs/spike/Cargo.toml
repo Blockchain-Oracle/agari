@@ -1,0 +1,38 @@
+[package]
+name = "spike"
+version = "0.1.0"
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "spike"
+
+[features]
+default = ["pyth", "redstone", "switchboard"]
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+# oracle toggles, so each crate can be built in isolation
+pyth = ["dep:pyth-solana-receiver-sdk"]
+pyth-pro = ["pyth", "pyth-solana-receiver-sdk/pro-compatible"]
+redstone = ["dep:redstone", "dep:hex-literal"]
+# switchboard-on-demand 0.13.0 pulls libsecp256k1 (default features) -> rand -> getrandom 0.2,
+# which refuses the SBF target unless the "custom" backend is enabled (see src/lib.rs)
+switchboard = ["dep:switchboard-on-demand", "dep:solana-instructions-sysvar", "dep:getrandom"]
+
+[dependencies]
+anchor-lang = "=1.2.0"
+anchor-spl = "=1.2.0"
+pyth-solana-receiver-sdk = { version = "=2.0.0", optional = true }
+redstone = { git = "https://github.com/redstone-finance/rust-sdk", rev = "05e3c9fe4cec1651b5418c83c02f9a5db4cc4cfa", default-features = false, features = ["solana"], optional = true }
+hex-literal = { version = "0.4.1", optional = true }
+switchboard-on-demand = { version = "=0.13.0", default-features = false, features = ["solana-v3"], optional = true }
+solana-instructions-sysvar = { version = "=3.0.1", optional = true }
+getrandom = { version = "0.2", features = ["custom"], optional = true }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

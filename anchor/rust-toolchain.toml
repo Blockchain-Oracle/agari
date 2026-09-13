@@ -1,0 +1,6 @@
+# Host toolchain for IDL builds and LiteSVM tests (D-002). cargo build-sbf uses its own
+# platform-tools rustc (1.89.0-sbpf-solana-v1.52) regardless of this file.
+[toolchain]
+channel = "1.98.1"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

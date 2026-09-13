@@ -1,0 +1,30 @@
+a-anchor-1.2.0 all3-unpatched feats=ALL exit=1 so_bytes=- (getrandom 0.2.17: target is not supported)
+a-anchor-1.2.0 pyth feats=pyth exit=0 so_bytes=111328 secs=120
+a-anchor-1.2.0 pythpro feats=pyth-pro exit=0 so_bytes=111328 secs=4
+a-anchor-1.2.0 redstone feats=redstone exit=0 so_bytes=174576 secs=7
+a-anchor-1.2.0 sb-unpatched feats=switchboard exit=1 so_bytes=- secs=11
+    error: target is not supported, for more information see: https://docs.rs/getrandom/#unsupported-targets
+    error[E0433]: failed to resolve: use of unresolved module or unlinked crate `imp`
+    error: could not compile `getrandom` (lib) due to 2 previous errors
+a-anchor-1.2.0 sb feats=switchboard exit=0 so_bytes=143624 secs=25
+a-anchor-1.2.0 all3 feats=ALL exit=0 so_bytes=232880 secs=3
+b-anchor-1.1.2 all3-unpatched feats=ALL exit=1 so_bytes=- secs=28
+    error: target is not supported, for more information see: https://docs.rs/getrandom/#unsupported-targets
+    error[E0433]: failed to resolve: use of unresolved module or unlinked crate `imp`
+    error: could not compile `getrandom` (lib) due to 2 previous errors
+b-anchor-1.1.2 pyth feats=pyth exit=0 so_bytes=110896 secs=29
+b-anchor-1.1.2 pythpro feats=pyth-pro exit=0 so_bytes=110896 secs=1
+b-anchor-1.1.2 redstone feats=redstone exit=0 so_bytes=174144 secs=4
+b-anchor-1.1.2 sb feats=switchboard exit=0 so_bytes=143192 secs=24
+b-anchor-1.1.2 all3 feats=ALL exit=0 so_bytes=232448 secs=3
+--- rerun with anchor-spl (default features) added ---
+a-anchor-1.2.0 spl-all3 feats=ALL exit=0 so_bytes=247088 secs=54
+a-anchor-1.2.0 spl-pyth feats=pyth exit=0 so_bytes=125272 secs=27
+a-anchor-1.2.0 spl-pythpro feats=pyth-pro exit=0 so_bytes=125272 secs=2
+a-anchor-1.2.0 spl-redstone feats=redstone exit=0 so_bytes=189384 secs=6
+a-anchor-1.2.0 spl-sb feats=switchboard exit=0 so_bytes=157744 secs=3
+b-anchor-1.1.2 spl-all3 feats=ALL exit=0 so_bytes=246656 secs=50
+b-anchor-1.1.2 spl-pyth feats=pyth exit=0 so_bytes=124840 secs=26
+b-anchor-1.1.2 spl-pythpro feats=pyth-pro exit=0 so_bytes=124840 secs=1
+b-anchor-1.1.2 spl-redstone feats=redstone exit=0 so_bytes=188952 secs=5
+b-anchor-1.1.2 spl-sb feats=switchboard exit=0 so_bytes=157312 secs=3

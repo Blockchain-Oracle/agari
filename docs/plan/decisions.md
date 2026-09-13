@@ -13,10 +13,32 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** the app shows Agari; behaviour is unchanged (still EVM until S1).
 - **Approval:** plan r2 (user, 2026-09-13).
 
-### D-002 — Anchor version and oracle crates (pending)
-- **Date / owner:** 2026-09-13 · planner (S0)
-- **Evidence:** SBF spike of anchor-lang 1.2.0 vs 1.1.2 with `pyth-solana-receiver-sdk 2.0.0`, `redstone` rust-sdk (git rev) and `switchboard-on-demand 0.13.0` (`solana-v3`). Result to be filled in.
-- **Rule:** pin the newest Anchor for which all oracle crates SBF-build. Crates that fail get in-crate verifiers in S2.
+### D-002 — Anchor 1.2.0; all three oracle crates usable on SBF
+- **Date / owner:** 2026-09-13 · planner (S0), spike by a sub-agent.
+- **Evidence:**
+  - Sources: `docs/plan/spikes/d002/` (build matrix + program sources).
+  - Real `cargo build-sbf` on anchor-lang/anchor-spl **1.2.0 and 1.1.2** with `pyth-solana-receiver-sdk 2.0.0`, `redstone` rust-sdk (git rev `05e3c9f…`, `solana` feature) and `switchboard-on-demand 0.13.0` (`solana-v3`). Both pass with all three crates; .so ≈ 247 KB.
+  - The dependency graphs are identical apart from `anchor-*`. Host IDL build passes.
+  - Anchor CLI 1.2.0 installed via avm (prebuilt, 12 s). The Solana release link is unchanged (3.1.10), and `anchor build` passes.
+- **Rule:**
+  - `anchor/Anchor.toml` sets `anchor_version = "1.2.0"`; `[workspace.dependencies]` pins `anchor-lang`/`anchor-spl` `=1.2.0`.
+  - `anchor/rust-toolchain.toml` pins host rustc 1.98.1. SBF uses platform-tools 1.89.0 (`~/.cache/solana/v1.52`).
+  - After adding oracle crates, run `cargo update -p solana-program@5.0.0 --precise 3.0.0`; unpinned resolves 5.0.0.
+  - **Pyth:** default feature → receiver `rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ`; `pro-compatible` → `rec2HHDDnjLfj4kE7VyEtFA1HPGQLK33259532cRyHp`. S2 picks the one the trial's updates verify against on devnet.
+  - **RedStone:** use the SDK, with no in-crate verifier needed.
+    - Call `Config::try_new(threshold, signers, [feed], block_timestamp = T_ms, max_delay = Some(0), max_ahead = Some(0))`, then `process_payload`. This forces package timestamp == T without Clock.
+    - **Anti-selection (PD-1):** pass `threshold = 5` inside `strict_sec`, and 3 after.
+    - The SDK recovers every package (25k CU each) and silently drops a feed below threshold, so `require!(!values.is_empty())`.
+    - The median of an even count averages the two middle values.
+    - High-s signatures are rejected; dedupe is per (feed, signer).
+    - Heap: one payload clone per package, fine for ≤ 5 single-feed packages.
+  - **RedStone signers (primary-prod, threshold 3),** from the adapter `config_prod.rs` at `redstone-oracles-monorepo@519cd10`, matching the 5 addresses seen on the gateway (D-003): `8bb8f32d…b774`, `deb22f54…8499`, `51ce04be…d202`, `dd682dae…b5be`, `9c5ae89c…b6de`.
+  - **Switchboard:**
+    - `switchboard-on-demand` pulls `libsecp256k1` → `rand` → `getrandom 0.2`, which fails on SBF. Enable `getrandom = { features = ["custom"] }` + `register_custom_getrandom!(always_fail)` under `cfg(target_os = "solana")`; verification never needs randomness.
+    - Plus the 0xFFFF index workaround, pinned queue, distinct oracle indices (`spikes/d002/.../sb_settle.rs`).
+  - **Correction to `C:13` §3:** the "2 days between untrusted updates" limit was RedStone's *old* adapter (tag 2.0.1). The current adapter uses a 40 s interval and 3 min max delay. It doesn't affect Agari, which verifies in-program.
+- **User-visible:** none (build toolchain).
+- **Approval:** within plan r2 S0 (pin 1.2.0 if it builds).
 
 ### D-003 — Price-source matrix and policy-version dates
 - **Date / owner:** 2026-09-13 · planner (S0)
