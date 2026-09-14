@@ -31,6 +31,7 @@ coverage/
 # local references (clones + symlinks) and time-sensitive price archives
 /reference/
 /data/archive/
+/data/soak/
 
 # local AI authoring tools and prompts (CLAUDE.md and context/ ARE tracked)
 /.claude/
