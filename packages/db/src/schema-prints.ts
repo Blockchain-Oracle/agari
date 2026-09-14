@@ -22,5 +22,7 @@ CREATE TABLE IF NOT EXISTS print_archive (
   fetched_at_ms  BIGINT   NOT NULL,
   PRIMARY KEY (source, feed, boundary_sec)
 );
+-- When the row was stored (the gate measures T → archived, not T → fetched). Added after the first S3 rows existed.
+ALTER TABLE print_archive ADD COLUMN IF NOT EXISTS archived_at_ms BIGINT NOT NULL DEFAULT (extract(epoch FROM clock_timestamp()) * 1000)::bigint;
 CREATE INDEX IF NOT EXISTS print_archive_boundary_idx ON print_archive (boundary_sec DESC);
 `;
