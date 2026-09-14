@@ -2,7 +2,7 @@ import type { WalletHistory } from "../projection/types";
 import type { Reading } from "../schemas/reading";
 import type { AssetPrice, ClockSync, PricePoint, Resolution } from "../types/feeds";
 import type { EventMarket, LaneSet, MarketId, OnchainSnapshot, Side } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import type { Address, Hash32 } from "../types/primitives";
 import type { BalanceSheet, BookDepth, BookParams, ClaimableRow, Holdings, OpenPosition, Quote } from "../types/trading";
 import type { VaultHoldings, VaultSnapshot } from "../vault/types";
 
@@ -19,9 +19,9 @@ export interface QuoteTarget extends BookTarget {
 
 /** The ONE chain port for reads (AD-1). Every method returns a `Reading<T>`; nothing here throws for a chain failure. */
 export interface MarketsProvider {
-  listLiveLanes(venueId: Bytes32): Promise<Reading<LaneSet>>;
+  listLiveLanes(venueId: Address): Promise<Reading<LaneSet>>;
   getMarket(marketId: MarketId): Promise<Reading<EventMarket | null>>;
-  listSettled(venueId: Bytes32, limit?: number): Promise<Reading<EventMarket[]>>;
+  listSettled(venueId: Address, limit?: number): Promise<Reading<EventMarket[]>>;
   getOnchain(marketId: MarketId): Promise<Reading<OnchainSnapshot>>;
   getBookDepth(target: BookTarget, depth?: number): Promise<Reading<BookDepth>>;
   getBookParams(poolAddress: Address): Promise<Reading<BookParams>>;
@@ -33,7 +33,7 @@ export interface MarketsProvider {
   settlementFeeBps(marketId: MarketId): Promise<Reading<number>>;
   listOpenPositions(wallet: Address): Promise<Reading<OpenPosition[]>>;
   getHoldings(wallet: Address, onchain: OnchainSnapshot): Promise<Reading<Holdings>>;
-  listClaimables(wallet: Address, venueId: Bytes32): Promise<Reading<ClaimableRow[]>>;
+  listClaimables(wallet: Address, venueId: Address): Promise<Reading<ClaimableRow[]>>;
   /** Every settled Window for a wallet, replayed from its fills — the one derivation history, PnL and Trader Edge share. */
   listWalletHistory(wallet: Address): Promise<Reading<WalletHistory>>;
   getBalanceSheet(wallet: Address): Promise<Reading<BalanceSheet>>;

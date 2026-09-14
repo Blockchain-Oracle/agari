@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { testAddress, testMarketIdFromHex } from "../testing/ids";
 import { PRIVATE_AUTH_TTL_MS, privateAuthFresh, privateCashoutRequestSchema, privateOpenMessage, privateOpenRequestSchema } from "./protocol";
 
 const INPUT = {
-  owner: "0xD357A1b7F6E1C2d3E4F5061728394A5B6C7D9358",
-  contract: "0x4356F421bFAf8BFEEf5188C3A511aD79A5947c67",
+  owner: testAddress(0xd3),
+  contract: testAddress(0x43),
   chainId: 50312,
-  marketId: `0x${"11".repeat(32)}`,
+  marketId: testMarketIdFromHex("11".repeat(32)),
   asset: "BTC",
   cadenceText: "5m",
   expirySec: 1_788_400_300,
@@ -24,9 +25,9 @@ describe("privateOpenMessage", () => {
         "Side: UP",
         "Stake: 10.00 tUSDC",
         "Window: BTC 5m, closes 2026-09-03T01:51:40.000Z",
-        `Market: 0x${"11".repeat(32)}`,
-        "Desk: 0x4356f421bfaf8bfeef5188c3a511ad79a5947c67 on chain 50312",
-        "Wallet: 0xd357a1b7f6e1c2d3e4f5061728394a5b6c7d9358",
+        `Market: ${INPUT.marketId}`,
+        `Desk: ${INPUT.contract} on chain 50312`,
+        `Wallet: ${INPUT.owner}`,
         "Issued: 2026-09-03T01:46:40.000Z",
         "",
         "Signing lets the desk place this one bet from your private balance. It moves no funds by itself and costs nothing. Kept separate from your wallet, so it is harder to link back to you — not anonymous.",
@@ -40,7 +41,7 @@ describe("privateOpenMessage", () => {
     expect(privateOpenMessage({ ...INPUT, stakeText: "10.01" })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, issuedAtMs: INPUT.issuedAtMs + 1 })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, chainId: 1 })).not.toBe(base);
-    expect(privateOpenMessage({ ...INPUT, contract: `0x${"ab".repeat(20)}` })).not.toBe(base);
+    expect(privateOpenMessage({ ...INPUT, contract: testAddress(0xab) })).not.toBe(base);
   });
 });
 

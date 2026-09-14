@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import { testAddress, testMarketId } from "../testing/ids";
+import type { Address, Hash32 } from "../types/primitives";
 import { arenaPickKey, type ArenaEvent } from "./arena";
 import { messagesFor, receiptOfPick, receiptOfSettlement, seatFor, type MatchFacts, type ProjectionContext } from "./projection";
 import type { CardReceipt } from "./types";
 
-const CREATOR = "0xaaaa111111111111111111111111111111111111" as Address;
-const CHALLENGER = "0xbbbb111111111111111111111111111111111111" as Address;
-const STRANGER = "0xcccc111111111111111111111111111111111111" as Address;
+const CREATOR = testAddress(0xaa);
+const CHALLENGER = testAddress(0xbb);
+const STRANGER = testAddress(0xcc);
 const CHAIN = 50_312;
-const MATCH_ID = `0x${"11".repeat(32)}` as Bytes32;
-const MARKET = toMarketId(`0x${"22".repeat(32)}`);
+const MATCH_ID = `0x${"11".repeat(32)}` as Hash32;
+const MARKET = testMarketId(0x22);
 
 const FACTS: MatchFacts = { creator: CREATOR, challenger: CHALLENGER, deckSize: 3 };
 
@@ -41,9 +41,11 @@ const SETTLED: Extract<ArenaEvent, { kind: "settled" }> = {
 };
 
 describe("the arena's events, as a room's messages", () => {
-  it("seats a player by address, and refuses one who is not in the match", () => {
+  it("seats a player by exact address, and refuses one who is not in the match", () => {
     expect(seatFor(FACTS, CREATOR)).toBe(0);
-    expect(seatFor(FACTS, CHALLENGER.toUpperCase() as Address)).toBe(1);
+    expect(seatFor(FACTS, CHALLENGER)).toBe(1);
+    // Base58 is case-sensitive: a re-cased address is another key, never the same player.
+    expect(seatFor(FACTS, CHALLENGER.toUpperCase() as Address)).toBeNull();
     expect(seatFor(FACTS, STRANGER)).toBeNull();
   });
 

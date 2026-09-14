@@ -9,14 +9,14 @@
 export const X_LINK_SIGNATURE_TTL_MS = 5 * 60_000;
 
 export function xLinkMessage(authorId: string, wallet: string, issuedAtMs: number): string {
-  return ["Masayume X account link", `X user: ${authorId}`, `Wallet: ${wallet.toLowerCase()}`, `Issued: ${new Date(issuedAtMs).toISOString()}`].join("\n");
+  return ["Masayume X account link", `X user: ${authorId}`, `Wallet: ${wallet}`, `Issued: ${new Date(issuedAtMs).toISOString()}`].join("\n");
 }
 
 export function xUnlinkMessage(authorId: string, wallet: string, issuedAtMs: number): string {
   return [
     "Masayume X account disconnect",
     `X user: ${authorId}`,
-    `Wallet: ${wallet.toLowerCase()}`,
+    `Wallet: ${wallet}`,
     `Issued: ${new Date(issuedAtMs).toISOString()}`,
     "This removes the X route only. Funds remain in your Trading Balance.",
   ].join("\n");

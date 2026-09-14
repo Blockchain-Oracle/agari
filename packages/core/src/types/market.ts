@@ -1,15 +1,7 @@
-import { isBytes32, type Address, type Bytes32 } from "./primitives";
+import type { MarketId } from "./ids";
+import type { Address } from "./primitives";
 
-declare const marketIdBrand: unique symbol;
-
-/** The venue's bytes32 market id — the identity of a market everywhere off-chain. Never a pool address (NFR-3). */
-export type MarketId = Bytes32 & { readonly [marketIdBrand]: true };
-
-export function toMarketId(value: string): MarketId {
-  const lower = value.toLowerCase();
-  if (!isBytes32(lower)) throw new Error(`not a bytes32 market id: ${value}`);
-  return lower as MarketId;
-}
+export { toMarketId, type MarketId } from "./ids";
 
 export type Side = "up" | "down";
 export type OutcomeIdx = 0 | 1;
@@ -22,7 +14,7 @@ export type IndexedStatus = "Listed" | "Trading" | "Locked" | "Settling" | "Reso
 
 export interface EventMarket {
   marketId: MarketId;
-  venueId: Bytes32 | null;
+  venueId: Address | null;
   asset: string;
   question: string;
   intervalSec: number;
@@ -80,7 +72,7 @@ export interface Lane {
 }
 
 export interface LaneSet {
-  venueId: Bytes32;
+  venueId: Address;
   lanes: Lane[];
   excludedFixedStrike: number;
 }

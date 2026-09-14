@@ -53,7 +53,7 @@ export function strategyRecord(fills: readonly ScoredFill[]): StrategyRecordStat
     stakedBase: fills.reduce((sum, f) => sum + f.cashDeltaBase, 0n),
     curve,
     lastActiveSec: fills.reduce((max, f) => Math.max(max, f.atSec), 0),
-    distinctSubscribers: new Set(fills.map((f) => f.owner.toLowerCase())).size,
+    distinctSubscribers: new Set(fills.map((f) => f.owner)).size,
   };
   return stats;
 }

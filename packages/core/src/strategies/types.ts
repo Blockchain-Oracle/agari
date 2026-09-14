@@ -1,5 +1,5 @@
 import type { MarketId, OutcomeIdx, Side } from "../types/market";
-import type { Address, Hex } from "../types/primitives";
+import type { Address, Hex, Signature } from "../types/primitives";
 import type { VaultCaps } from "../vault/types";
 
 /** A creator's strategy expressed as DATA the fixed runner evaluates — never code (reference `StrategySpec`). */
@@ -71,7 +71,7 @@ export interface StrategySubscription {
 
 /** One fill the runner executed for a subscriber, as the runner recorded it. */
 export interface StrategyFill {
-  txHash: Hex;
+  txHash: Signature;
   strategyId: bigint;
   grantId: bigint;
   owner: Address;

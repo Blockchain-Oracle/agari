@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { testAddress } from "../testing/ids";
 import type { Address } from "../types/primitives";
 import {
   canRenewRoomToken,
@@ -16,10 +17,11 @@ import {
   type RoomTokenClaims,
 } from "./room-token";
 
-const WALLET = "0xd357000000000000000000000000000000009358" as Address;
-const KEY = "0xA11CE00000000000000000000000000000000001" as Address;
-const ARENA = "0xEC71498B3557c921813fFCF08a018316BCCDf0dF" as Address;
-const OTHER_ARENA = `0x${"4d27".padEnd(40, "0")}` as Address;
+const WALLET = testAddress(0xd3);
+const KEY = testAddress(0xa1);
+const ARENA = testAddress(0xec);
+const OTHER_ARENA = testAddress(0x4d);
+const STRANGER = testAddress(0xbb);
 const CHAIN = 50312;
 const NOW = 1_756_900_000_000;
 
@@ -42,9 +44,9 @@ const EXPECT = { chainId: CHAIN, arena: ARENA };
 describe("the duel room token", () => {
   it("names the wallet, the key and the arena in the text the key signs, and says what it is not", () => {
     const message = roomAuthMessage({ wallet: WALLET, key: KEY, chainId: CHAIN, arena: ARENA, issuedAtMs: NOW });
-    expect(message).toContain(WALLET.toLowerCase());
-    expect(message).toContain(KEY.toLowerCase());
-    expect(message).toContain(ARENA.toLowerCase());
+    expect(message).toContain(WALLET);
+    expect(message).toContain(KEY);
+    expect(message).toContain(ARENA);
     expect(message).toContain(`chain ${CHAIN}`);
     expect(message).toContain("moves no funds");
     expect(message).toContain("not the wallet");
@@ -61,26 +63,27 @@ describe("the duel room token", () => {
     expect(roomAuthFresh(NOW + 120_000, NOW)).toBe(false);
   });
 
-  it("lowercases and orders its claims, so a payload is one string for one set of facts", () => {
-    expect(roomTokenPayload(CLAIMS)).toBe(`r2.${WALLET.toLowerCase()}.${KEY.toLowerCase()}.${CHAIN}.${ARENA.toLowerCase()}.${NOW}.${NOW + ROOM_SESSION_MS}`);
-    expect(roomTokenPayload(roomSessionClaims(WALLET.toUpperCase() as Address, KEY.toUpperCase() as Address, CHAIN, ARENA.toUpperCase() as Address, NOW))).toBe(roomTokenPayload(CLAIMS));
+  it("orders its claims exactly as given, so a payload is one string for one set of facts", () => {
+    expect(roomTokenPayload(CLAIMS)).toBe(`r2.${WALLET}.${KEY}.${CHAIN}.${ARENA}.${NOW}.${NOW + ROOM_SESSION_MS}`);
+    // Base58 is case-sensitive: a re-cased wallet is a different key, so it is a different payload, never the same one.
+    expect(roomTokenPayload(roomSessionClaims(WALLET.toUpperCase() as Address, KEY, CHAIN, ARENA, NOW))).not.toBe(roomTokenPayload(CLAIMS));
   });
 
   it("accepts what it minted, and hands back the key beside the wallet", () => {
     const verdict = verifyRoomToken(mintRoomToken(CLAIMS, sign), EXPECT, NOW + 60_000, verify);
     expect(verdict.ok).toBe(true);
     if (verdict.ok) {
-      expect(verdict.claims.wallet).toBe(WALLET.toLowerCase());
-      expect(verdict.claims.key).toBe(KEY.toLowerCase());
+      expect(verdict.claims.wallet).toBe(WALLET);
+      expect(verdict.claims.key).toBe(KEY);
     }
   });
 
   it("refuses a token whose claims were edited after minting", () => {
     const token = mintRoomToken(CLAIMS, sign);
-    const forged = token.replace(WALLET.toLowerCase(), "0xbbbb111111111111111111111111111111111111");
+    const forged = token.replace(WALLET, STRANGER);
     expect(verifyRoomToken(forged, EXPECT, NOW, verify)).toEqual({ ok: false, code: "unauthenticated", why: "the room token is not ours" });
     // Swapping the key is the forgery that matters now: a stranger's key sat in a wallet's seat.
-    const rekeyed = token.replace(KEY.toLowerCase(), "0xbbbb111111111111111111111111111111111111");
+    const rekeyed = token.replace(KEY, STRANGER);
     expect(verifyRoomToken(rekeyed, EXPECT, NOW, verify).ok).toBe(false);
   });
 
@@ -110,7 +113,7 @@ describe("the duel room token", () => {
     const renewed = renewRoomTokenClaims(CLAIMS, NOW + ROOM_TOKEN_TTL_MS + 1);
     expect(renewed).not.toBeNull();
     expect(renewed?.sessionEndsAtMs).toBe(CLAIMS.sessionEndsAtMs);
-    expect(renewed?.key).toBe(KEY.toLowerCase());
+    expect(renewed?.key).toBe(KEY);
     expect(verifyRoomToken(mintRoomToken(renewed as RoomTokenClaims, sign), EXPECT, NOW + ROOM_TOKEN_TTL_MS + 2, verify).ok).toBe(true);
 
     const pastSession = NOW + ROOM_SESSION_MS + 1;
@@ -136,8 +139,8 @@ describe("the duel room token", () => {
       called += 1;
       return verify(payload, mac);
     };
-    const r1 = `r1.${WALLET.toLowerCase()}.${CHAIN}.${ARENA.toLowerCase()}.${NOW}.${NOW + ROOM_SESSION_MS}.mac`;
-    for (const bad of ["", "r1.a.b", r1, `r2.${WALLET.toLowerCase()}.notakey.${CHAIN}.${ARENA.toLowerCase()}.1.2.mac`]) {
+    const r1 = `r1.${WALLET}.${CHAIN}.${ARENA}.${NOW}.${NOW + ROOM_SESSION_MS}.mac`;
+    for (const bad of ["", "r1.a.b", r1, `r2.${WALLET}.notakey.${CHAIN}.${ARENA}.1.2.mac`]) {
       expect(verifyRoomToken(bad, EXPECT, NOW, counting).ok, bad).toBe(false);
     }
     expect(called).toBe(0);

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { err, ok, stale } from "../schemas/reading";
 import { diagnosis } from "../types/diagnosis";
-import { toMarketId, type EventMarket } from "../types/market";
+import type { EventMarket } from "../types/market";
 import type { BookDepth, BookLevelView } from "../types/trading";
 import { termBand, termPoints } from "./term";
+import { testAddress, testMarketId } from "../testing/ids";
 
 const D = 6;
 const UNIT = 10n ** BigInt(D);
@@ -17,7 +18,7 @@ const book = (bid: number | null, ask: number | null): BookDepth => ({
   downAsks: [],
   decimals: D,
 });
-const id = (n: number) => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
+const id = (n: number) => testMarketId(n);
 function market(n: number, intervalSec: number, expiresInSec: number): EventMarket {
   return {
     marketId: id(n),
@@ -29,12 +30,12 @@ function market(n: number, intervalSec: number, expiresInSec: number): EventMark
     isUpDown: true,
     tradingStartSec: NOW_SEC + expiresInSec - intervalSec,
     expirySec: NOW_SEC + expiresInSec,
-    poolAddress: "0x0000000000000000000000000000000000000001",
-    marketAddress: "0x0000000000000000000000000000000000000002",
+    poolAddress: testAddress(0xf1),
+    marketAddress: testAddress(0xf2),
     nonce: null,
     yesTokenId: 0n,
     noTokenId: 0n,
-    collateral: "0x0000000000000000000000000000000000000003",
+    collateral: testAddress(0xf3),
     decimals: D,
     status: "Trading",
     winningOutcome: null,

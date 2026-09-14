@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import { testAddress, testMarketId } from "../testing/ids";
+import type { Address, Hash32 } from "../types/primitives";
 import { arenaPickKey } from "./arena";
 import { reduce, type MatchEvent, type MatchState } from "./lifecycle";
 import type { CardReceipt, DeckCard } from "./types";
 import { decodeMatchState, encodeMatchState, wireMatchStateSchema } from "./wire";
 
-const CREATOR = "0xaaaa111111111111111111111111111111111111" as Address;
-const CHALLENGER = "0xbbbb111111111111111111111111111111111111" as Address;
+const CREATOR = testAddress(0xaa);
+const CHALLENGER = testAddress(0xbb);
 const PLAYERS = { creator: CREATOR, challenger: CHALLENGER };
 const MATCH_ID = "0xm1";
-const COMMITMENT = { hash: `0x${"ab".repeat(32)}` as Bytes32, size: 3, policyVersion: 1 };
+const COMMITMENT = { hash: `0x${"ab".repeat(32)}` as Hash32, size: 3, policyVersion: 1 };
 
 const CARDS: readonly DeckCard[] = [0, 1, 2].map((i) => ({
   index: i,
-  marketId: toMarketId(`0x${String(i + 1).padStart(64, "0")}`),
+  marketId: testMarketId(i + 1),
   asset: "BTC",
   intervalSec: 900,
   expirySec: 1_700_000_900 + i * 60,

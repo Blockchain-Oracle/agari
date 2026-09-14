@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
 import { PICK_ATTEMPT_MAX, cardLifeLeftSec, cardPlayable, pickFloorRaw, pickWindowEndsSec } from "./picking";
 import type { DeckCard } from "./types";
+import { testMarketId } from "../testing/ids";
 
 const NOW_SEC = 1_700_000_000;
 /** The deployed arena's own floor, read back from Shannon on 2026-09-03. */
 const PARAMS = { minCardLifeSec: 240 };
 
 function card(index: number, lifeSec: number): DeckCard {
-  return { index, marketId: toMarketId(`0x${String(index + 1).padStart(64, "0")}`), asset: "BTC", intervalSec: 900, expirySec: NOW_SEC + lifeSec };
+  return { index, marketId: testMarketId(index + 1), asset: "BTC", intervalSec: 900, expirySec: NOW_SEC + lifeSec };
 }
 
 describe("the arena's entry gate", () => {

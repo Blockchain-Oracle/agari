@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import { testAddressFromHex, testMarketIdFromHex } from "../testing/ids";
+import type { Hash32 } from "../types/primitives";
 import { luckyDrawMessage, mapLuckyDraw } from "./commitment";
 import {
   LUCKY_ASSETS,
@@ -19,8 +19,9 @@ import {
   type LuckyResult,
 } from "./lucky";
 
-const CLIENT_SEED = `0x${"33".repeat(32)}` as Bytes32;
-const WALLET = "0xaaaa000000000000000000000000000000000001" as Address;
+const CLIENT_SEED = `0x${"33".repeat(32)}` as Hash32;
+/** The old left-padded 20-byte word, as a 32-byte key: the message bytes (and both golden literals) are unchanged. */
+const WALLET = testAddressFromHex(`0x${"00".repeat(12)}aaaa${"00".repeat(17)}01`);
 
 const hexBytes = (hex: string): Uint8Array => Uint8Array.from((hex.slice(2).match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16)));
 
@@ -51,8 +52,8 @@ describe("the draw", () => {
 });
 
 describe("the candidate set", () => {
-  const a = toMarketId(`0x${"a1".repeat(32)}`);
-  const b = toMarketId(`0x${"b2".repeat(32)}`);
+  const a = testMarketIdFromHex("a1".repeat(32));
+  const b = testMarketIdFromHex("b2".repeat(32));
 
   it("commits to the same bytes whatever order the scan produced", () => {
     expect(luckyCandidatePreimage([a, b], 1)).toBe(luckyCandidatePreimage([b, a], 1));
@@ -68,7 +69,7 @@ describe("the candidate set", () => {
 describe("eligibility", () => {
   const now = 1_000_000;
   const candidate = (over: Partial<LuckyCandidate>): LuckyCandidate => ({
-    marketId: toMarketId(`0x${"c3".repeat(32)}`),
+    marketId: testMarketIdFromHex("c3".repeat(32)),
     asset: "ETH",
     intervalSec: 900,
     expirySec: now + 600,
@@ -78,19 +79,19 @@ describe("eligibility", () => {
 
   it("keeps only the drawn asset's trading Windows with real life left, soonest first", () => {
     const pool = [
-      candidate({ marketId: toMarketId(`0x${"01".repeat(32)}`), expirySec: now + 3_000 }),
-      candidate({ marketId: toMarketId(`0x${"02".repeat(32)}`), expirySec: now + 600 }),
-      candidate({ marketId: toMarketId(`0x${"03".repeat(32)}`), asset: "BTC" }),
-      candidate({ marketId: toMarketId(`0x${"04".repeat(32)}`), trading: false }),
-      candidate({ marketId: toMarketId(`0x${"05".repeat(32)}`), expirySec: now + 119 }),
-      candidate({ marketId: toMarketId(`0x${"06".repeat(32)}`), intervalSec: 300 }),
+      candidate({ marketId: testMarketIdFromHex("01".repeat(32)), expirySec: now + 3_000 }),
+      candidate({ marketId: testMarketIdFromHex("02".repeat(32)), expirySec: now + 600 }),
+      candidate({ marketId: testMarketIdFromHex("03".repeat(32)), asset: "BTC" }),
+      candidate({ marketId: testMarketIdFromHex("04".repeat(32)), trading: false }),
+      candidate({ marketId: testMarketIdFromHex("05".repeat(32)), expirySec: now + 119 }),
+      candidate({ marketId: testMarketIdFromHex("06".repeat(32)), intervalSec: 300 }),
     ];
-    expect(eligibleLuckyWindows(pool, "ETH", now).map((c) => c.marketId.slice(0, 4))).toEqual(["0x02", "0x01"]);
+    expect(eligibleLuckyWindows(pool, "ETH", now).map((c) => c.marketId)).toEqual([pool[1]!.marketId, pool[0]!.marketId]);
   });
 });
 
 describe("choosing the Window", () => {
-  const quote = (id: string, avgPriceBps: number, expirySec: number, partial = false) => ({ marketId: toMarketId(`0x${id.repeat(32)}`), avgPriceBps, expirySec, partial });
+  const quote = (id: string, avgPriceBps: number, expirySec: number, partial = false) => ({ marketId: testMarketIdFromHex(id.repeat(32)), avgPriceBps, expirySec, partial });
 
   it("targets the price that pays the reach", () => {
     expect(targetPriceBps(2)).toBe(5_000);

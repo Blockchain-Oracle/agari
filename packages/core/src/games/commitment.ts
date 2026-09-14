@@ -1,5 +1,6 @@
 import type { MarketId } from "../types/market";
-import type { Address, Bytes32, Hex } from "../types/primitives";
+import { decodeBase58 } from "../types/base58";
+import type { Address, Hash32, Hex } from "../types/primitives";
 import type { Pick } from "./types";
 
 /**
@@ -30,6 +31,15 @@ function hexWord(value: Hex): Hex {
   return `0x${body.padStart(WORD_HEX, "0")}`;
 }
 
+/** A Solana address is exactly one word: its 32 decoded bytes, never its base58 text. */
+function addressWord(value: Address): Hex {
+  const bytes = decodeBase58(value);
+  if (bytes === null || bytes.length !== 32) throw new Error(`not a 32-byte address: ${value}`);
+  let hex = "";
+  for (const byte of bytes) hex += byte.toString(16).padStart(2, "0");
+  return `0x${hex}`;
+}
+
 function concat(words: readonly Hex[]): Hex {
   return `0x${words.map((w) => w.slice(2)).join("")}`;
 }
@@ -38,12 +48,12 @@ export interface DeckCommitmentInput {
   chainId: number;
   /** Binds the commitment to one deployment, so a deck cannot be replayed against another arena. */
   arena: Address;
-  matchId: Bytes32;
+  matchId: Hash32;
   /** Bumped whenever the selection rules change, so an old deck cannot claim a new policy's guarantees. */
   policyVersion: number;
-  serverSeed: Bytes32;
+  serverSeed: Hash32;
   /** Both players', in join order. Neither side alone can steer the deck. */
-  clientSeeds: readonly Bytes32[];
+  clientSeeds: readonly Hash32[];
   cards: readonly MarketId[];
 }
 
@@ -51,21 +61,21 @@ export interface DeckCommitmentInput {
 export function deckCommitmentPreimage(input: DeckCommitmentInput): Hex {
   return concat([
     word(BigInt(input.chainId)),
-    hexWord(input.arena),
+    addressWord(input.arena),
     hexWord(input.matchId),
     word(BigInt(input.policyVersion)),
     hexWord(input.serverSeed),
     word(BigInt(input.clientSeeds.length)),
     ...input.clientSeeds.map(hexWord),
     word(BigInt(input.cards.length)),
-    ...input.cards.map(hexWord),
+    ...input.cards.map(addressWord),
   ]);
 }
 
-export type Keccak256 = (preimage: Hex) => Bytes32;
+export type Keccak256 = (preimage: Hex) => Hash32;
 
 /** True when the revealed deck is the one that was committed to. Case-insensitive, as hex always is. */
-export function verifyDeckCommitment(input: DeckCommitmentInput, commitment: Bytes32, keccak256: Keccak256): boolean {
+export function verifyDeckCommitment(input: DeckCommitmentInput, commitment: Hash32, keccak256: Keccak256): boolean {
   return keccak256(deckCommitmentPreimage(input)).toLowerCase() === commitment.toLowerCase();
 }
 
@@ -74,14 +84,14 @@ export function verifyDeckCommitment(input: DeckCommitmentInput, commitment: Byt
  * the server seed that was committed before the reel moved.
  */
 export interface LuckyDrawInput {
-  clientSeed: Bytes32;
+  clientSeed: Hash32;
   wallet: Address;
   nonce: number;
   policyVersion: number;
 }
 
 export function luckyDrawMessage(input: LuckyDrawInput): Hex {
-  return concat([hexWord(input.clientSeed), hexWord(input.wallet), word(BigInt(input.nonce)), word(BigInt(input.policyVersion))]);
+  return concat([hexWord(input.clientSeed), addressWord(input.wallet), word(BigInt(input.nonce)), word(BigInt(input.policyVersion))]);
 }
 
 /**
@@ -134,4 +144,4 @@ export function mapLuckyDraw(bytes: Uint8Array, options: LuckyOptions): LuckyDra
 }
 
 /** The word encoders, so the other commitments under this layout rule (`lucky.ts`) cannot drift from it. */
-export { word as uintWord, hexWord, concat as concatWords };
+export { word as uintWord, hexWord, addressWord, concat as concatWords };

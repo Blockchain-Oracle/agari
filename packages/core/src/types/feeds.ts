@@ -1,4 +1,4 @@
-import type { Hex } from "./primitives";
+import type { Signature } from "./primitives";
 
 export interface AssetPrice {
   asset: string;
@@ -23,7 +23,7 @@ export interface ClockSync {
 export interface Resolution {
   openingRaw: bigint | null;
   closingRaw: bigint | null;
-  settlementTxHash: Hex | null;
+  settlementTxHash: Signature | null;
   oracleQuestionId: string | null;
   settledAtMs: number | null;
   voided: boolean;

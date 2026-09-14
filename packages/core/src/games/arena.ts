@@ -1,5 +1,5 @@
 import type { MarketId } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import type { Address, Hash32, Signature } from "../types/primitives";
 import type { RefundReason } from "./lifecycle";
 import type { ArenaStatus, Pick, StakeTierId } from "./types";
 
@@ -74,7 +74,7 @@ export interface ArenaTier {
  * rather than expanded, so a projection can compare them to the chain without re-deriving anything.
  */
 export interface ArenaMatch {
-  matchId: Bytes32;
+  matchId: Hash32;
   creator: Address;
   challenger: Address;
   tier: number;
@@ -84,7 +84,7 @@ export interface ArenaMatch {
   pickedMask1: number;
   settledMask: number;
   policyVersion: number;
-  deckHash: Bytes32;
+  deckHash: Hash32;
   createdAtSec: number;
   joinedAtSec: number;
   revealedAtSec: number;
@@ -136,9 +136,9 @@ export function seatComplete(match: ArenaMatch, seat: Seat): boolean {
 }
 
 export function seatOf(match: ArenaMatch, wallet: Address): Seat | null {
-  const who = wallet.toLowerCase();
-  if (match.creator.toLowerCase() === who) return SEAT_CREATOR;
-  if (match.challenger.toLowerCase() === who) return SEAT_CHALLENGER;
+  const who = wallet;
+  if (match.creator === who) return SEAT_CREATOR;
+  if (match.challenger === who) return SEAT_CHALLENGER;
   return null;
 }
 
@@ -167,12 +167,12 @@ export function stakeTierIndex(id: StakeTierId): number {
  * seconds is what they actually see change.
  */
 export type ArenaEvent =
-  | { kind: "created"; matchId: Bytes32; creator: Address; tier: number; potBase: bigint; deckHash: Bytes32; deckSize: number; joinDeadlineSec: number }
-  | { kind: "joined"; matchId: Bytes32; challenger: Address; potBase: bigint; revealDeadlineSec: number }
-  | { kind: "revealed"; matchId: Bytes32; policyVersion: number; cards: readonly MarketId[]; pickDeadlineSec: number }
+  | { kind: "created"; matchId: Hash32; creator: Address; tier: number; potBase: bigint; deckHash: Hash32; deckSize: number; joinDeadlineSec: number }
+  | { kind: "joined"; matchId: Hash32; challenger: Address; potBase: bigint; revealDeadlineSec: number }
+  | { kind: "revealed"; matchId: Hash32; policyVersion: number; cards: readonly MarketId[]; pickDeadlineSec: number }
   | {
       kind: "picked";
-      matchId: Bytes32;
+      matchId: Hash32;
       player: Address;
       marketId: MarketId;
       cardIndex: number;
@@ -182,19 +182,19 @@ export type ArenaEvent =
       refundBase: bigint;
     }
   /** `forfeitedBy` is the seat that never finished; null when both did and the match is simply settling. */
-  | { kind: "locked"; matchId: Bytes32; status: ArenaStatus; forfeitedBy: Address | null }
-  | { kind: "settled"; matchId: Bytes32; player: Address; marketId: MarketId; cardIndex: number; payoutBase: bigint; pnlBase: bigint }
-  | { kind: "finalized"; matchId: Bytes32; winner: Address | null; creatorPnlBase: bigint; challengerPnlBase: bigint; potAwardedBase: bigint }
-  | { kind: "refunded"; matchId: Bytes32; reason: RefundReason; perPlayerBase: bigint }
+  | { kind: "locked"; matchId: Hash32; status: ArenaStatus; forfeitedBy: Address | null }
+  | { kind: "settled"; matchId: Hash32; player: Address; marketId: MarketId; cardIndex: number; payoutBase: bigint; pnlBase: bigint }
+  | { kind: "finalized"; matchId: Hash32; winner: Address | null; creatorPnlBase: bigint; challengerPnlBase: bigint; potAwardedBase: bigint }
+  | { kind: "refunded"; matchId: Hash32; reason: RefundReason; perPlayerBase: bigint }
   | { kind: "claimed"; player: Address; amountBase: bigint; by: Address }
   /** `agent` null is a revocation. */
-  | { kind: "agent"; matchId: Bytes32; player: Address; agent: Address | null; expiresAtSec: number; budgetBase: bigint };
+  | { kind: "agent"; matchId: Hash32; player: Address; agent: Address | null; expiresAtSec: number; budgetBase: bigint };
 
 /** One event with the chain identity that orders it — and the identity the database inserts against. */
 export interface ArenaEventLog {
   event: ArenaEvent;
   blockNumber: bigint;
-  txHash: Bytes32;
+  txHash: Signature;
   logIndex: number;
   blockTimeSec: number;
 }
@@ -225,26 +225,26 @@ export interface ArenaAgent {
  */
 export type ArenaIntent =
   /** With `agent`, the entry names and funds the seat's key in the same transaction (`createMatchWithAgent`). */
-  | { kind: "arena-create"; matchId: Bytes32; challenger: Address; tier: number; deckHash: Bytes32; deckSize: number; policyVersion: number; potBase: bigint; agent?: ArenaAgentGrant }
-  | { kind: "arena-join"; matchId: Bytes32; potBase: bigint; agent?: ArenaAgentGrant }
+  | { kind: "arena-create"; matchId: Hash32; challenger: Address; tier: number; deckHash: Hash32; deckSize: number; policyVersion: number; potBase: bigint; agent?: ArenaAgentGrant }
+  | { kind: "arena-join"; matchId: Hash32; potBase: bigint; agent?: ArenaAgentGrant }
   /** Names, or with `agent: null` revokes, the seat's key after entry. */
-  | { kind: "arena-authorize"; matchId: Bytes32; agent: Address | null; ttlSec: number }
+  | { kind: "arena-authorize"; matchId: Hash32; agent: Address | null; ttlSec: number }
   /** Permissionless: the commitment, not a key, is what proves the deck was fixed first. */
-  | { kind: "arena-reveal"; matchId: Bytes32; serverSeed: Bytes32; clientSeeds: readonly Bytes32[]; cards: readonly MarketId[] }
-  | { kind: "arena-pick"; matchId: Bytes32; cardIndex: number; pick: Pick; stakeBase: bigint; minQuantityRaw: bigint }
+  | { kind: "arena-reveal"; matchId: Hash32; serverSeed: Hash32; clientSeeds: readonly Hash32[]; cards: readonly MarketId[] }
+  | { kind: "arena-pick"; matchId: Hash32; cardIndex: number; pick: Pick; stakeBase: bigint; minQuantityRaw: bigint }
   /** The same pick, signed by the seat's key: the stake and the refund are `player`'s, the signature is not. */
-  | { kind: "arena-pick-for"; player: Address; matchId: Bytes32; cardIndex: number; pick: Pick; stakeBase: bigint; minQuantityRaw: bigint }
+  | { kind: "arena-pick-for"; player: Address; matchId: Hash32; cardIndex: number; pick: Pick; stakeBase: bigint; minQuantityRaw: bigint }
   /** Permissionless once the pick deadline has passed. */
-  | { kind: "arena-lock"; matchId: Bytes32 }
+  | { kind: "arena-lock"; matchId: Hash32 }
   /** Permissionless once the card's Window is resolved or voided. */
-  | { kind: "arena-settle-card"; matchId: Bytes32; cardIndex: number }
+  | { kind: "arena-settle-card"; matchId: Hash32; cardIndex: number }
   /** Permissionless once every played card is settled. */
-  | { kind: "arena-finalize"; matchId: Bytes32 }
-  | { kind: "arena-cancel"; matchId: Bytes32 }
+  | { kind: "arena-finalize"; matchId: Hash32 }
+  | { kind: "arena-cancel"; matchId: Hash32 }
   /** Permissionless once the join window has closed. */
-  | { kind: "arena-refund-unjoined"; matchId: Bytes32 }
+  | { kind: "arena-refund-unjoined"; matchId: Hash32 }
   /** Permissionless once the reveal window has closed. */
-  | { kind: "arena-refund-unrevealed"; matchId: Bytes32 }
+  | { kind: "arena-refund-unrevealed"; matchId: Hash32 }
   /** Permissionless: the credit only ever goes to the player named. */
   | { kind: "arena-claim"; player: Address };
 

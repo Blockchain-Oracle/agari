@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { enumerateClaimables, type SettledMarket } from "./enumerate";
 import { estPayoutBase } from "./payout";
+import { testAddress } from "../testing/ids";
 
 const market: SettledMarket = {
   marketId: `0x${"1".padStart(64, "0")}` as SettledMarket["marketId"],
-  marketAddress: `0x${"2".padStart(40, "0")}`,
+  marketAddress: testAddress(2),
   asset: "BTC",
   intervalSec: 300,
   expirySec: 1_000,

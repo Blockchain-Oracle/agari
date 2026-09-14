@@ -1,5 +1,5 @@
-import { isBytes32 } from "../types/primitives";
-import { toMarketId, type MarketId, type Side } from "../types/market";
+import { isMarketId, toMarketId, type MarketId } from "../types/ids";
+import type { Side } from "../types/market";
 
 export const MARKET_PARAM = "m";
 export const DIRECTION_PARAM = "dir";
@@ -38,7 +38,7 @@ export function parseMarketsSearch(params: SearchInput): MarketsSearch {
   const rawMarket = readParam(params, MARKET_PARAM);
   const rawDir = readParam(params, DIRECTION_PARAM);
   return {
-    marketId: rawMarket && isBytes32(rawMarket) ? toMarketId(rawMarket) : null,
+    marketId: rawMarket && isMarketId(rawMarket) ? toMarketId(rawMarket) : null,
     dir: rawDir === "up" || rawDir === "down" ? rawDir : null,
   };
 }

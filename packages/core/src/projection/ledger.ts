@@ -1,14 +1,14 @@
 import type { MarketId, OutcomeIdx } from "../types/market";
-import type { Hex } from "../types/primitives";
+import type { Signature } from "../types/primitives";
 import { oneUnit } from "../units/decimals";
 import type { LedgerFill, LedgerSetAction, MarketLedger } from "./types";
 
-type Event = { atMs: number; seq: number; marketId: MarketId; txHash: Hex; apply: (ledger: MarketLedger) => void };
+type Event = { atMs: number; seq: number; marketId: MarketId; txHash: Signature; apply: (ledger: MarketLedger) => void };
 
 const UP: OutcomeIdx = 0;
 const DOWN: OutcomeIdx = 1;
 
-function fresh(marketId: MarketId, atMs: number, txHash: Hex): MarketLedger {
+function fresh(marketId: MarketId, atMs: number, txHash: Signature): MarketLedger {
   return { marketId, heldUpRaw: 0n, heldDownRaw: 0n, costBase: 0n, proceedsBase: 0n, sidesTraded: [], fillCount: 0, shortCount: 0, firstAtMs: atMs, lastAtMs: atMs, entryTxHash: txHash };
 }
 

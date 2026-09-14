@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { hexSchema } from "./primitives";
+import { signatureSchema } from "./primitives";
 
 export const DIAGNOSIS_KINDS = [
   "signer-required",
@@ -40,7 +40,7 @@ export const diagnosisSchema = z.object({
   retryable: z.boolean(),
   technical: z.string(),
   errorName: z.string().optional(),
-  txHash: hexSchema.optional(),
+  txHash: signatureSchema.optional(),
 });
 
 export type Diagnosis = z.infer<typeof diagnosisSchema>;

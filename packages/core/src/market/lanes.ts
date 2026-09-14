@@ -1,4 +1,4 @@
-import type { Bytes32 } from "../types/primitives";
+import type { Address } from "../types/primitives";
 import type { EventMarket, Lane, LaneSet } from "../types/market";
 
 const SEC_PER_MIN = 60;
@@ -13,7 +13,7 @@ export function formatCadence(intervalSec: number): string {
 }
 
 /** Lanes derive from the live `intervalSec` values — never a hardcoded list (FR-6). Fixed-strike markets are excluded and counted. */
-export function groupIntoLanes(markets: readonly EventMarket[], venueId: Bytes32): LaneSet {
+export function groupIntoLanes(markets: readonly EventMarket[], venueId: Address): LaneSet {
   const byInterval = new Map<number, EventMarket[]>();
   let excludedFixedStrike = 0;
   for (const market of markets) {

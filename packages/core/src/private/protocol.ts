@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Side } from "../types/market";
-import { addressSchema, bytes32Schema } from "../types/primitives";
+import { marketIdSchema } from "../types/ids";
+import { addressSchema, hash32Schema } from "../types/primitives";
 
 /** A signed authorisation is only good for a few minutes, so a captured one cannot be replayed later. */
 export const PRIVATE_AUTH_TTL_MS = 5 * 60_000;
@@ -38,8 +39,8 @@ export function privateOpenMessage(input: PrivateOpenMessageInput): string {
     `Stake: ${input.stakeText} ${input.symbol}`,
     `Window: ${input.asset} ${input.cadenceText}, closes ${new Date(input.expirySec * 1000).toISOString()}`,
     `Market: ${input.marketId}`,
-    `Desk: ${input.contract.toLowerCase()} on chain ${input.chainId}`,
-    `Wallet: ${input.owner.toLowerCase()}`,
+    `Desk: ${input.contract} on chain ${input.chainId}`,
+    `Wallet: ${input.owner}`,
     `Issued: ${new Date(input.issuedAtMs).toISOString()}`,
     "",
     `Signing lets the desk place this one bet from your private balance. It moves no funds by itself and costs nothing. ${PRIVATE_HONESTY}`,
@@ -56,9 +57,9 @@ const signatureSchema = z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000);
 
 export const privateClaimSchema = z.object({
   owner: addressSchema,
-  slotId: bytes32Schema,
-  creditKey: bytes32Schema,
-  marketId: bytes32Schema,
+  slotId: hash32Schema,
+  creditKey: hash32Schema,
+  marketId: marketIdSchema,
   outcomeIdx: z.union([z.literal(0), z.literal(1)]),
   stakeBase: decimalString,
   issuedAtMs: z.number().int().positive(),
@@ -71,7 +72,7 @@ export const privateClaimSchema = z.object({
  */
 export const privateOpenRequestSchema = z.object({
   owner: addressSchema,
-  marketId: bytes32Schema,
+  marketId: marketIdSchema,
   side: z.enum(["up", "down"]),
   stakeBase: decimalString,
   /** The owner's guard against a book that moved since the quote: fewer contracts than this and the desk refunds. */

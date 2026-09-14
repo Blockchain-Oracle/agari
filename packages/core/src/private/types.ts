@@ -1,5 +1,5 @@
 import type { MarketId, Side } from "../types/market";
-import type { Address, Bytes32, Hex } from "../types/primitives";
+import type { Address, Hash32, Hex } from "../types/primitives";
 
 /** Where the desk lives on one chain — regenerated from `contracts/deployments` (AD-10). */
 export interface PrivateDeployment {
@@ -37,7 +37,7 @@ export interface PrivateBudget {
 
 /** One bet's throwaway slot as the contract records it — no owner on it, by design. */
 export interface PrivateSlot {
-  slotId: Bytes32;
+  slotId: Hash32;
   marketId: MarketId | null;
   side: Side | null;
   fundedAtSec: number;
@@ -71,7 +71,7 @@ export type PrivateIntent =
   | { kind: "private-revoke" }
   | { kind: "private-withdraw"; amountBase: bigint }
   /** Permissionless: anyone may settle a slot whose Window the venue resolved or voided. */
-  | { kind: "private-settle"; slotId: Bytes32; marketId: MarketId };
+  | { kind: "private-settle"; slotId: Hash32; marketId: MarketId };
 
 export const PRIVATE_NOT_DEPLOYED = "PrivateDesk is not deployed on this network yet" as const;
 
@@ -82,8 +82,8 @@ export const PRIVATE_NOT_DEPLOYED = "PrivateDesk is not deployed on this network
  */
 export interface PrivateClaim {
   owner: Address;
-  slotId: Bytes32;
-  creditKey: Bytes32;
+  slotId: Hash32;
+  creditKey: Hash32;
   marketId: MarketId;
   outcomeIdx: 0 | 1;
   stakeBase: string;

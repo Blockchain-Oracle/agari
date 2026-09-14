@@ -9,7 +9,7 @@
 ## Steps
 
 - [ ] 1a core (first; the other slices compile against it)
-  - [ ] 1a.1 `types/{primitives,ids}.ts`: base58 `Address`, `Signature`, `Hash32`; `MarketId` = Market PDA
+  - [x] 1a.1 `types/{primitives,ids}.ts`: base58 `Address`, `Signature`, `Hash32`; `MarketId` = Market PDA (D-010)
   - [ ] 1a.2 `market/tickers.ts`: `Ticker` registry (Pyth feed id, RedStone feed id, Surge symbol, Alpaca symbol, xStock mint, mark); `asset` → `Ticker`
   - [ ] 1a.3 `market/{session,lanes}.ts`: Pyth `schedule` parser, Alpaca calendar shape, session states, cadence alignment, `lock_at`, no-entry buffer, Regular/Gap/Token lanes
   - [ ] 1a.4 `auth/signed-message.ts`, `urls/explorer.ts`, `projection/settle.ts` (1e7 denominator), Somnia constants out of core
@@ -29,6 +29,9 @@
 
 - **Blast radius measured at start (2026-09-14):** 38 core files and 158 repo files use `Hex`/`Address`/`Bytes32`; 648 files import `@agari/core`; EVM imports are in 70 `packages/markets` files, 32 `web/src` files, 8 `services/ops` files and 3 `scripts/spike` files.
 
+- **1a.1:** only 40 type errors surfaced in core; the real hazards compiled silently. `txHash: Hex` still type-checked, and 30 `toLowerCase()` calls on addresses would have merged or corrupted base58 keys. Both were swept by hand (D-010). Core tests: 757 pass.
+
 ## Handoff
 
-- Nothing yet.
+- **1b–1d must:** never lowercase, uppercase or text-sort an `Address`/`MarketId`/`Signature` (Masayume web code does this for EVM ids); build test ids with `packages/core/src/testing/ids.ts`; treat `txHash` as a base58 `Signature`.
+- **1a.4 still owns:** `private/protocol.ts` wire `signature` (still a 0x hex regex), the signed-message wording in `faucet`, `x/link`, `games/room-token`, `private/protocol`, and `urls/explorer.ts` / Somnia constants.

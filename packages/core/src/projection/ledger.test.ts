@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
 import { buildLedgers } from "./ledger";
 import type { LedgerFill, LedgerSetAction } from "./types";
+import { testMarketId, testSignature } from "../testing/ids";
 
 const ONE = 1_000_000n;
-const M = toMarketId(`0x${"a1".padStart(64, "0")}`);
-const TX = "0xabc" as const;
+const M = testMarketId(0xa1);
+const TX = testSignature(0xab);
 
 const fill = (side: LedgerFill["side"], qty: bigint, yesPrice: bigint, atMs: number): LedgerFill => ({ marketId: M, side, quantityRaw: qty, yesPriceRaw: yesPrice, atMs, txHash: TX });
 

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { BASE_BAND, findOpponent, isCompatible, MAX_BAND, queueKey, searchBand, type QueueEntry } from "./matchmaking";
+import { testAddress } from "../testing/ids";
 
 const AT = 1_700_000_000_000;
 
 function entry(overrides: Partial<QueueEntry> = {}): QueueEntry {
   return {
-    wallet: "0x1111111111111111111111111111111111111111",
+    wallet: testAddress(0x11),
     rating: 1000,
     queuedAtMs: AT,
     connectionId: "c1",
@@ -29,24 +30,24 @@ describe("matchmaking", () => {
   });
 
   it("lets the player who waited longer reach a newcomer outside the newcomer's own band", () => {
-    const patient = entry({ wallet: "0xaaaa111111111111111111111111111111111111", rating: 1000, queuedAtMs: AT - 90_000 });
-    const fresh = entry({ wallet: "0xbbbb111111111111111111111111111111111111", rating: 1300, queuedAtMs: AT });
+    const patient = entry({ wallet: testAddress(0xaa), rating: 1000, queuedAtMs: AT - 90_000 });
+    const fresh = entry({ wallet: testAddress(0xbb), rating: 1300, queuedAtMs: AT });
     // 300 apart: outside the newcomer's ±100, inside the patient player's widened ±400.
     expect(isCompatible(fresh, patient, AT)).toBe(true);
     expect(Math.abs(fresh.rating - patient.rating)).toBeGreaterThan(BASE_BAND);
   });
 
   it("refuses a pairing nobody's band reaches, and never pairs a wallet with itself", () => {
-    const a = entry({ wallet: "0xaaaa111111111111111111111111111111111111", rating: 1000 });
-    const b = entry({ wallet: "0xbbbb111111111111111111111111111111111111", rating: 1600 });
+    const a = entry({ wallet: testAddress(0xaa), rating: 1000 });
+    const b = entry({ wallet: testAddress(0xbb), rating: 1600 });
     expect(isCompatible(a, b, AT)).toBe(false);
     expect(isCompatible(a, { ...a }, AT)).toBe(false);
   });
 
   it("drains the queue oldest first among everyone in band", () => {
-    const self = entry({ wallet: "0x9999111111111111111111111111111111111111" });
-    const newer = entry({ wallet: "0xaaaa111111111111111111111111111111111111", rating: 1010, queuedAtMs: AT - 1_000 });
-    const older = entry({ wallet: "0xbbbb111111111111111111111111111111111111", rating: 1050, queuedAtMs: AT - 20_000 });
+    const self = entry({ wallet: testAddress(0x99) });
+    const newer = entry({ wallet: testAddress(0xaa), rating: 1010, queuedAtMs: AT - 1_000 });
+    const older = entry({ wallet: testAddress(0xbb), rating: 1050, queuedAtMs: AT - 20_000 });
     expect(findOpponent(self, [newer, older], AT)?.wallet).toBe(older.wallet);
     expect(findOpponent(self, [], AT)).toBeNull();
   });

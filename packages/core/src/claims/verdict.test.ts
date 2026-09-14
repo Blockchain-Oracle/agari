@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
 import { deriveVerdict, type VerdictInput } from "./verdict";
+import { testMarketId } from "../testing/ids";
 
 const ONE = 1_000_000n;
-const marketId = toMarketId(`0x${"1".padStart(64, "0")}`);
+const marketId = testMarketId(1);
 
 const base = (overrides: Partial<VerdictInput>): VerdictInput => ({
   marketId,

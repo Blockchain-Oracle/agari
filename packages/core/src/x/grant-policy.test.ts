@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { testAddress } from "../testing/ids";
 import { simulateCaps, type VaultGrant } from "../vault";
 import { isBalanceOnlyXGrant, xGrantCaps, xPermissionState } from "./grant-policy";
 
-const actor = `0x${"11".repeat(20)}` as const;
+const actor = testAddress(0x11);
 const grant: VaultGrant = { grantId: 10n, owner: actor, actor, kind: "executor", revoked: false, expiresAtSec: 2000,
   spentDay: 0, spentTodayBase: 0n, openPositions: 0, caps: xGrantCaps(), budgetBase: 55_000_000n };
 const check = (g: VaultGrant, spendBase: bigint) => simulateCaps({ grant: g, nowSec: 1000, sidePriceRaw: 500_000n,

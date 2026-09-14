@@ -26,7 +26,7 @@ export interface AgentRow {
 export function rankAgents(strategies: readonly StrategyRecord[], recordOf: (strategyId: bigint) => StrategyRecordStats | null): AgentRow[] {
   const rows = new Map<string, AgentRow>();
   for (const s of strategies) {
-    const key = s.runner.toLowerCase();
+    const key = s.runner;
     const record = recordOf(s.strategyId);
     const row = rows.get(key) ?? {
       runner: s.runner,

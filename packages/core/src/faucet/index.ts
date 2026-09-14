@@ -62,7 +62,7 @@ export function faucetTopUpWei(balanceWei: bigint): bigint {
 }
 
 export function faucetChallengeMessage(input: { origin: string; wallet: string; id: string; expiresAtMs: number }): string {
-  return ["Masayume testnet gas request", `Site: ${input.origin}`, `Wallet: ${input.wallet.toLowerCase()}`, "Network: Somnia Shannon (50312)", "Request: top up STT to 2 only if my balance is below 1; subject to availability and limits.", `Nonce: ${input.id}`, `Expires: ${new Date(input.expiresAtMs).toISOString()}`, "This message costs no gas and gives no permission to spend my funds."].join("\n");
+  return ["Masayume testnet gas request", `Site: ${input.origin}`, `Wallet: ${input.wallet}`, "Network: Somnia Shannon (50312)", "Request: top up STT to 2 only if my balance is below 1; subject to availability and limits.", `Nonce: ${input.id}`, `Expires: ${new Date(input.expiresAtMs).toISOString()}`, "This message costs no gas and gives no permission to spend my funds."].join("\n");
 }
 
 export class FaucetError extends Error {
