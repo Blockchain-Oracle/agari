@@ -9,4 +9,4 @@ Env readiness (presence only): PYTH ✅(trial → ≈09-27) ALPACA ✅ FINNHUB �
 Toolchain: anchor-cli 1.2.0 (avm) · anchor-lang =1.2.0 · host rustc 1.98.1 (anchor/rust-toolchain.toml) · solana-cli 3.1.10 · surfpool 1.5.0 · pnpm 11.24
 Price sources: TSLA pyth+redstone(check) · QQQ/VOO pyth (until 09-25 close) · single names redstone · token switchboard (S6) — services/ops/config/price-sources.json
 Devnet addresses: none yet (deployer 0 SOL)
-Next action: S1 → first unchecked box in docs/plan/stage-01-solana-shell.md; S2 → first unchecked box in docs/plan/stage-02-events-engine.md (worktree ../agari-wt/s2). The workspace typecheck is red on stage/S1-solana-shell until 1d (core gate: pnpm --filter @agari/core typecheck + vitest).
+Next action: S1 → the browser pass (last unchecked box in docs/plan/stage-01-solana-shell.md; run against `pnpm build` + `next start`, dev compile is too slow for a sweep), then the S1 gate (Privy/Phantom items need the user's dashboard setup). S2 → review and merge the matching lane, then slice/S2q-prints, then redeem/close. The full fast gate is green on stage/S1-solana-shell.
