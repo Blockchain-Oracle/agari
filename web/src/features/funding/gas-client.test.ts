@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
+import { unavailableTusdcStatus, type FaucetClaimView, type FaucetStatus } from "@agari/core/faucet";
 import { encodeBase58 } from "@agari/core/types";
 import { requestGas } from "./gas-client";
 
 const wallet = encodeBase58(new Uint8Array(32).fill(0xab));
 const SIG = encodeBase58(new Uint8Array(64).fill(0x12));
-const claim: FaucetClaimView = { id: "request-1", amountLamports: "20000000", txHash: encodeBase58(new Uint8Array(64).fill(0xcd)), status: "confirmed", nextClaimAtMs: 1_900_000_000_000 };
-const status: FaucetStatus = { configured: true, ready: true, address: wallet, fundingBalanceLamports: "5000000000", walletBalanceLamports: "0", dailyRemainingLamports: "1000000000", targetLamports: claim.amountLamports, thresholdLamports: "5000000", claim: null, message: "Eligible" };
+const claim: FaucetClaimView = { asset: "sol", id: "request-1", amountLamports: "20000000", txHash: encodeBase58(new Uint8Array(64).fill(0xcd)), status: "confirmed", nextClaimAtMs: 1_900_000_000_000 };
+const status: FaucetStatus = { configured: true, ready: true, address: wallet, fundingBalanceLamports: "5000000000", walletBalanceLamports: "0", dailyRemainingLamports: "1000000000", targetLamports: claim.amountLamports, thresholdLamports: "5000000", claim: null, tusdc: unavailableTusdcStatus(), message: "Eligible" };
 const stored = new Map<string, string>();
 const storageKey = `agari.faucet.gas-request.${wallet}`;
 const response = (body: unknown, code = 200) => new Response(JSON.stringify(body), { status: code });
