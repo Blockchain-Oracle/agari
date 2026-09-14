@@ -15,7 +15,7 @@
 - [ ] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons
 - [x] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot` (D-020)
 - [x] Cancel, reduce, cancel-all, sweep-expired (D-020)
-- [ ] Complete sets; withdraw credit
+- [x] Complete sets; withdraw credit
 - [ ] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention
 - [x] `book_walk` + TS mirror + vectors
 - [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
@@ -72,6 +72,7 @@
   - Mutation check: a one-base-unit refund error and a missed `open_orders` decrement were each caught within 60 operations.
   - `book/walk.rs` implements `WalkLevel`/`WalkNode` for the engine's `Level`/`OrderNode` (`walk_bids`/`walk_asks`); a native test walks a Book built by `place`, including the expiry and rested-age filters.
 - **Cancels (S2.8).** `user_cancel_orders` (≤ 16 handles; stale skipped, another seat's live handle `NotOrderOwner`), `user_reduce_order` (in place, priority kept), `user_cancel_all` (scan ≤ `max_scan`, ≤ 32 removed) and `public_sweep_expired` (expired only, or everything at or after `lock_at` or once terminal; nothing to do is a success) work in every status and mode (D-009). All four share `matching::evict::remove_node`, the one refund rule. The cancel family and the sweep take `series` for the cash unit (D-020).
+- **Sets and cash (S2.9).** `user_mint_complete_set` (Normal mode, Trading; claims a seat, pulls `lots × 1000 × cu` + bond credit-first), `user_merge_complete_set` (Trading, any mode; credit back, optional withdraw) and `user_withdraw_credit` (any status or mode; `0 < amount ≤ credit`) move `backing_lots` exactly. Every payout goes only to a token account owned by the signing authority (`WrongTokenOwner` otherwise, AD-5).
 
 ## Handoff
 

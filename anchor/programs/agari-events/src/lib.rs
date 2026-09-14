@@ -68,4 +68,15 @@ pub mod agari_events {
         instructions::user_reduce_order::public_sweep_expired(ctx, max)
     }
 
+    pub fn user_mint_complete_set(ctx: Context<UserCompleteSet>, lots: u64, seat_hint: u16, use_credit: bool) -> Result<()> {
+        instructions::user_sets::user_mint_complete_set(ctx, lots, seat_hint, use_credit)
+    }
+
+    pub fn user_merge_complete_set(ctx: Context<UserCompleteSet>, lots: u64, seat_idx: u16, withdraw: bool) -> Result<()> {
+        instructions::user_sets::user_merge_complete_set(ctx, lots, seat_idx, withdraw)
+    }
+
+    pub fn user_withdraw_credit(ctx: Context<UserWithdrawCredit>, seat_idx: u16, amount: u64) -> Result<()> {
+        instructions::user_sets::user_withdraw_credit(ctx, seat_idx, amount)
+    }
 }
