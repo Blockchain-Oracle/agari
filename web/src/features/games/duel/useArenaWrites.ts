@@ -11,18 +11,16 @@ import {
   type StakeTierId,
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import { diagnosis, type Address, type Bytes32, type Diagnosis, type MarketId } from "@agari/core/types";
-import { topUpSessionGas } from "@agari/markets";
+import { ARENA_NOT_DEPLOYED } from "@agari/core/games";
+import { diagnosis, type Address, type Hash32, type Diagnosis, type MarketId, type Signature } from "@agari/core/types";
 import { quoteArenaPick, submitArenaPick, type ArenaPickOutcome } from "@agari/markets/games";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { getClient } from "@agari/markets/runtime";
 import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import type { PublicClient } from "viem";
 import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
-import { useOwnerWalletClient } from "@/providers/UserSessionProvider";
+import { useOwnerWallet } from "@/lib/wallet-session";
 import { useGameSession, type GameSession } from "./useGameSession";
 
 /**
@@ -67,7 +65,7 @@ export interface PickProgress {
 export function useArenaWrites() {
   const submitter = useSubmitter();
   const game = useGameSession();
-  const walletClient = useOwnerWalletClient();
+  const wallet = useOwnerWallet();
   const { address } = useWalletSession();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<ArenaBusy>(null);
@@ -75,9 +73,9 @@ export function useArenaWrites() {
   const [refusal, setRefusal] = useState<ArenaRefusal | null>(null);
 
   const contracts = useCallback((): VaultContracts | null => {
-    if (!walletClient) return null;
-    return { walletClient, publicClient: getClient().getViemClient() as PublicClient, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [walletClient]);
+    if (!wallet) return null;
+    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
+  }, [wallet]);
 
   const refresh = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
@@ -120,7 +118,7 @@ export function useArenaWrites() {
 
   /** The creator's transaction: the pot goes in and the sealed deck's hash goes on chain with it. */
   const create = useCallback(
-    (input: { matchId: Bytes32; challenger: Address; tier: StakeTierId; deckHash: Bytes32; deckSize: number; policyVersion: number; potBase: bigint; agent?: ArenaAgentGrant }) =>
+    (input: { matchId: Hash32; challenger: Address; tier: StakeTierId; deckHash: Hash32; deckSize: number; policyVersion: number; potBase: bigint; agent?: ArenaAgentGrant }) =>
       send(
         {
           kind: "arena-create",
@@ -139,7 +137,7 @@ export function useArenaWrites() {
   );
 
   const join = useCallback(
-    (matchId: Bytes32, potBase: bigint, agent?: ArenaAgentGrant) => send({ kind: "arena-join", matchId, potBase, ...(agent ? { agent } : {}) }, "join"),
+    (matchId: Hash32, potBase: bigint, agent?: ArenaAgentGrant) => send({ kind: "arena-join", matchId, potBase, ...(agent ? { agent } : {}) }, "join"),
     [send],
   );
 
@@ -150,7 +148,7 @@ export function useArenaWrites() {
    * Names this browser's key for a seat after the entry did not — the way back in when the key that
    * entered is on another device, or was lost with its storage. One wallet transaction, then the key swipes.
    */
-  const authorize = useCallback((matchId: Bytes32, agent: Address, ttlSec: number) => send({ kind: "arena-authorize", matchId, agent, ttlSec }, "authorize"), [send]);
+  const authorize = useCallback((matchId: Hash32, agent: Address, ttlSec: number) => send({ kind: "arena-authorize", matchId, agent, ttlSec }, "authorize"), [send]);
 
   /**
    * The two permissionless cranks a player may need to run themselves.
@@ -160,13 +158,13 @@ export function useArenaWrites() {
    * the arena credits whoever it already recorded — so the only thing the caller spends is gas.
    */
   const settleCard = useCallback(
-    (matchId: Bytes32, cardIndex: number) => send({ kind: "arena-settle-card", matchId, cardIndex }, `settle:${cardIndex}`),
+    (matchId: Hash32, cardIndex: number) => send({ kind: "arena-settle-card", matchId, cardIndex }, `settle:${cardIndex}`),
     [send],
   );
 
-  const finalize = useCallback((matchId: Bytes32) => send({ kind: "arena-finalize", matchId }, "finalize"), [send]);
+  const finalize = useCallback((matchId: Hash32) => send({ kind: "arena-finalize", matchId }, "finalize"), [send]);
   /** Closes a pick window whose deadline has passed — permissionless, and the one crank a dead duel needs to end. */
-  const lock = useCallback((matchId: Bytes32) => send({ kind: "arena-lock", matchId }, "lock"), [send]);
+  const lock = useCallback((matchId: Hash32) => send({ kind: "arena-lock", matchId }, "lock"), [send]);
 
   /**
    * One card, one side, retried while the deadline allows.
@@ -179,7 +177,7 @@ export function useArenaWrites() {
    * `placePick`, one signature per card — the shape the first duels shipped with.
    */
   const pick = useCallback(
-    async (input: { matchId: Bytes32; cardIndex: number; marketId: MarketId; side: Pick; stakeBase: bigint; deadlineSec: number }): Promise<ArenaPickOutcome> => {
+    async (input: { matchId: Hash32; cardIndex: number; marketId: MarketId; side: Pick; stakeBase: bigint; deadlineSec: number }): Promise<ArenaPickOutcome> => {
       const c = contracts();
       if (!submitter || !address || !c) {
         return { status: "refused", diagnosis: diagnosis("signer-required", "this browser has no signing session bound") };
@@ -225,25 +223,18 @@ export function useArenaWrites() {
 
   /**
    * The player's own top-up of the key — one wallet transaction, the fallback when no sponsor will pay and
-   * the entry's envelope has been spent. The amount is the caller's, sized off the cards still to play.
+   * the entry's envelope has been spent. The amount is the caller's, in lamports, sized off the cards still to play.
+   *
+   * On Solana that is a SOL transfer the markets adapter builds and the wallet signs (S4), for the arena program's key
+   * (S12). Until then it refuses with the arena's own not-deployed reason, and nothing is signed.
    */
   const fundKey = useCallback(
-    async (amountWei: bigint) => {
-      if (!walletClient || !game.key) return null;
-      setBusy("fund");
-      setRefusal(null);
-      try {
-        const hash = await topUpSessionGas({ ownerWalletClient: walletClient, key: game.key, amountWei });
-        return hash;
-      } catch (cause) {
-        setRefusal({ key: "fund", diagnosis: diagnosis("unknown", String((cause as Error)?.message ?? cause).slice(0, 200)), gasShort: false });
-        return null;
-      } finally {
-        setBusy(null);
-        await refresh();
-      }
+    async (_amountLamports: bigint): Promise<Signature | null> => {
+      if (!wallet || !game.key) return null;
+      setRefusal({ key: "fund", diagnosis: diagnosis("not-deployed", ARENA_NOT_DEPLOYED), gasShort: false });
+      return null;
     },
-    [walletClient, game.key, refresh],
+    [wallet, game.key],
   );
 
   return {
@@ -262,6 +253,6 @@ export function useArenaWrites() {
     progress,
     refusal,
     dismissRefusal: useCallback(() => setRefusal(null), []),
-    canSign: Boolean(submitter && walletClient),
+    canSign: Boolean(submitter && wallet),
   };
 }

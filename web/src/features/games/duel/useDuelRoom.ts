@@ -16,7 +16,7 @@ import {
 } from "@agari/core/games";
 import type { Address } from "@agari/core/types";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { keccak256 } from "viem";
+import { keccak256 } from "../keccak";
 import { useGameKey } from "./useGameKey";
 import { useRoomToken, type RoomAuth } from "./useRoomToken";
 import { playSfx } from "../audio";
@@ -210,7 +210,7 @@ export function useDuelRoom(region = "default", resumeMatchId: string | null = n
           break;
         case "pick.pending":
           // Relayed to both seats; a client's own swipe is not news to it.
-          if (message.player.toLowerCase() !== walletRef.current) setOpponentPending({ cardIndex: message.cardIndex, atMs: Date.now() });
+          if (message.player !== walletRef.current) setOpponentPending({ cardIndex: message.cardIndex, atMs: Date.now() });
           break;
         case "error":
           setError({ code: message.code, message: message.message, retryable: message.retryable, about: message.about ?? null, matchId: message.matchId ?? null });
@@ -264,7 +264,7 @@ export function useDuelRoom(region = "default", resumeMatchId: string | null = n
       const socket = new WebSocket(auth.url, [auth.token, SUBPROTOCOL]);
       socketRef.current = socket;
 
-      walletRef.current = auth.wallet.toLowerCase();
+      walletRef.current = auth.wallet;
 
       socket.onopen = () => {
         attemptRef.current = 0;

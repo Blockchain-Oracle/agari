@@ -1,4 +1,4 @@
-import type { Bytes32 } from "@agari/core/types";
+import type { Hash32 } from "@agari/core/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DuelStage } from "@/features/games";
@@ -12,5 +12,5 @@ export const metadata: Metadata = { title: "Prediction duel" };
 export default async function Page({ params }: { params: Promise<{ matchId: string }> }) {
   const { matchId } = await params;
   if (!/^0x[0-9a-fA-F]{64}$/.test(matchId)) notFound();
-  return <DuelStage resumeMatchId={matchId.toLowerCase() as Bytes32} />;
+  return <DuelStage resumeMatchId={matchId.toLowerCase() as Hash32} />;
 }

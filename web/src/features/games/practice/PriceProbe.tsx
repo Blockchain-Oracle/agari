@@ -1,5 +1,6 @@
 "use client";
 
+import { isTickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { AssetPrice } from "@agari/core/types";
 import { useAssetPrice } from "@agari/markets/react";
@@ -18,7 +19,7 @@ import { useEffect } from "react";
  * most needs told about.
  */
 export function PriceProbe({ asset, onPrice }: { asset: string; onPrice: (price: AssetPrice) => void }) {
-  const reading = useAssetPrice(asset);
+  const reading = useAssetPrice(isTickerSymbol(asset) ? asset : null);
 
   useEffect(() => {
     if (reading && isOk(reading) && reading.value) onPrice(reading.value);

@@ -17,10 +17,10 @@ export function MatchTile({ match }: { match: MatchState }) {
   const { address } = useWalletSession();
   const { feedback } = useGames();
   if (!("matchId" in match)) return null;
-  const you = address?.toLowerCase() ?? null;
-  const opponent = you === null ? null : match.players.creator.toLowerCase() === you ? match.players.challenger : match.players.creator;
+  const you = address ?? null;
+  const opponent = you === null ? null : match.players.creator === you ? match.players.challenger : match.players.creator;
   const cards = "cards" in match ? match.cards.length : 0;
-  const settled = "receipts" in match ? match.receipts.filter((r) => r.player.toLowerCase() === you && r.payoutBase !== null).length : 0;
+  const settled = "receipts" in match ? match.receipts.filter((r) => r.player === you && r.payoutBase !== null).length : 0;
   const live = match.phase !== "finalized" && match.phase !== "refunded";
   const words = GAMES.resume;
 

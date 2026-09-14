@@ -1,5 +1,5 @@
 import type { LuckyResult } from "@agari/core/games";
-import type { Address, Bytes32, Hex, Side } from "@agari/core/types";
+import type { Address, Hash32, MarketId, Side, Signature } from "@agari/core/types";
 
 /**
  * What the five Lucky routes say, typed once for both ends. Money is a decimal string in base units on
@@ -7,16 +7,16 @@ import type { Address, Bytes32, Hex, Side } from "@agari/core/types";
  */
 
 export interface LuckyCommitWire {
-  drawId: Bytes32;
+  drawId: Hash32;
   wallet: Address;
-  commitment: Bytes32;
+  commitment: Hash32;
   nonce: number;
   policyVersion: number;
   stakeBase: string;
 }
 
 export interface LuckyWindowWire {
-  marketId: Bytes32;
+  marketId: MarketId;
   asset: string;
   intervalSec: number;
   expirySec: number;
@@ -34,19 +34,19 @@ export interface LuckyQuoteWire {
 }
 
 export interface LuckyDealWire {
-  drawId: Bytes32;
+  drawId: Hash32;
   wallet: Address;
   nonce: number;
   policyVersion: number;
   stakeBase: string;
-  commitment: Bytes32;
-  serverSeed: Bytes32;
-  clientSeed: Bytes32;
+  commitment: Hash32;
+  serverSeed: Hash32;
+  clientSeed: Hash32;
   /** The policy's universes, so the browser's check replays the same mapping. */
   assets: readonly string[];
   multipliers: readonly number[];
   draw: { asset: string; side: Side; multiplier: number };
-  candidateHash: Bytes32;
+  candidateHash: Hash32;
   candidateCount: number;
   window: LuckyWindowWire | null;
   quote: LuckyQuoteWire | null;
@@ -69,20 +69,20 @@ export type LuckyPlacedStatus = "confirmed" | "nothingFilled" | "refused" | "rev
 export interface LuckyPlacedWire {
   result: LuckyResult;
   refusal: string | null;
-  txHash: Hex | null;
+  txHash: Signature | null;
   costBase: string | null;
   quantityRaw: string | null;
 }
 
 export interface LuckyRowWire {
-  drawId: Bytes32;
+  drawId: Hash32;
   nonce: number;
   asset: string | null;
   side: Side | null;
   multiplier: number | null;
-  marketId: Bytes32 | null;
+  marketId: MarketId | null;
   quoteAvgPriceBps: number | null;
-  txHash: Hex | null;
+  txHash: Signature | null;
   stakeBase: string;
   costBase: string | null;
   quantityRaw: string | null;

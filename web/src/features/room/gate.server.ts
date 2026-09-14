@@ -1,8 +1,8 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import type { Address } from "@agari/core/types";
+import { isAddress, isSignature, type Address } from "@agari/core/types";
 import { hasBet } from "@agari/db";
 import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@agari/markets";
-import { verifyMessage } from "viem";
+import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { ROOM_TOKEN_TTL_MS, roomJoinMessage } from "./protocol";
 
 /**
@@ -29,7 +29,8 @@ function sign(payload: string): string {
 
 /** `<address>.<marketId>.<expiry>.<mac>` — the claim travels with its own signature. */
 export function mintToken(address: string, marketId: string, nowMs: number): string {
-  const payload = `${address.toLowerCase()}.${marketId}.${nowMs + ROOM_TOKEN_TTL_MS}`;
+  // The address goes in exactly as written: base58 is case-sensitive (D-010).
+  const payload = `${address}.${marketId}.${nowMs + ROOM_TOKEN_TTL_MS}`;
   return `${payload}.${sign(payload)}`;
 }
 
@@ -47,17 +48,10 @@ export function readToken(token: string, marketId: string, nowMs: number): strin
   return address;
 }
 
-/** Whether the signature really is this address's, over the message we would have asked for. */
+/** Whether the signature really is this address's, over the message we would have asked for (ed25519, D-012). */
 export async function verifyJoinSignature(marketId: string, address: string, issuedAtMs: number, signature: string): Promise<boolean> {
-  try {
-    return await verifyMessage({
-      address: address as `0x${string}`,
-      message: roomJoinMessage(marketId, address, issuedAtMs),
-      signature: signature as `0x${string}`,
-    });
-  } catch {
-    return false;
-  }
+  if (!isAddress(address) || !isSignature(signature)) return false;
+  return verifyWalletMessage({ text: roomJoinMessage(marketId, address, issuedAtMs), signature, signer: address });
 }
 
 /**

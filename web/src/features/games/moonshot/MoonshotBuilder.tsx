@@ -2,7 +2,7 @@
 
 import { RANGE_STAKE_HEADROOM_BPS, moonshotPayoutCapBase, type RangeMode, type RangeReserveState } from "@agari/core/range";
 import { isOk } from "@agari/core/schemas";
-import type { Hex, MarketId } from "@agari/core/types";
+import type { MarketId, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet } from "@agari/markets/react";
 import { Rocket, Wallet } from "lucide-react";
@@ -50,7 +50,7 @@ export function MoonshotBuilder({ reserve, symbol }: MoonshotBuilderProps) {
   const [step, setStep] = useState<PlaceStep>("idle");
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
-  const [txHash, setTxHash] = useState<Hex | null>(null);
+  const [txHash, setTxHash] = useState<Signature | null>(null);
 
   // The soonest Window is the default; a Window that leaves the list hands over to the next.
   const picked = (marketId && byId.get(marketId)) || windows[0] || null;

@@ -1,7 +1,7 @@
 "use client";
 
 import type { BookedOrder } from "@agari/core/ports";
-import type { Address, Bytes32, Hex } from "@agari/core/types";
+import type { Address, Hash32, Signature } from "@agari/core/types";
 import { useCallback, useRef, useState } from "react";
 import { deviceId } from "@/features/session/store";
 import { isDealt, type DealtLuckyWire, type LuckyCommitWire, type LuckyDealWire, type LuckyPlacedStatus, type LuckyPlacedWire } from "./lucky-wire";
@@ -37,13 +37,13 @@ export interface LuckyDraw {
   /** The last reel has stopped: the card may show. */
   landed: () => void;
   /** What the lane said, reported once; `booked` rides along for the placed plate. */
-  report: (status: LuckyPlacedStatus, txHash: Hex | null, booked: BookedOrder | null) => Promise<void>;
+  report: (status: LuckyPlacedStatus, txHash: Signature | null, booked: BookedOrder | null) => Promise<void>;
   reset: () => void;
 }
 
 const ENDPOINT = "/api/games/lucky";
 
-function randomSeed(): Bytes32 {
+function randomSeed(): Hash32 {
   const bytes = new Uint8Array(32);
   globalThis.crypto.getRandomValues(bytes);
   return `0x${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
@@ -90,7 +90,7 @@ export function useLuckyDraw(): LuckyDraw {
   }, []);
 
   const report = useCallback(
-    async (status: LuckyPlacedStatus, txHash: Hex | null, booked: BookedOrder | null) => {
+    async (status: LuckyPlacedStatus, txHash: Signature | null, booked: BookedOrder | null) => {
       const deal = phase.kind === "dealt" ? phase.deal : null;
       if (!deal || reported.current === deal.drawId) return;
       reported.current = deal.drawId;

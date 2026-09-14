@@ -80,7 +80,7 @@ export const DUEL = {
     notDeployed: "No GameArena is deployed on this network.",
     balance: "Your balance",
     balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${need} ${symbol} and this wallet holds ${have}.`,
-    gasNeeded: "Picks are your own transactions, so this wallet also needs STT for gas.",
+    gasNeeded: "Picks are your own transactions, so this wallet also needs SOL for network fees.",
     /**
      * Said before the search, not at the first transaction.
      *
@@ -88,8 +88,8 @@ export const DUEL = {
      * "open the match" button costs the other player the whole pairing. On 2026-09-04 both browsers in a
      * live session held 0 STT and the entry let them queue anyway.
      */
-    gasShort: "This wallet holds no STT, and every step of a duel — opening the match, joining it, each pick — is a transaction you sign and pay for yourself.",
-    gasShortSponsored: "This wallet holds no STT. Your picks' gas is the sponsor's, but opening or joining a match is a transaction your wallet pays for itself.",
+    gasShort: "This wallet holds no SOL, and every step of a duel — opening the match, joining it, each pick — is a transaction you sign and pay for yourself.",
+    gasShortSponsored: "This wallet holds no SOL. Your picks' fees are the sponsor's, but opening or joining a match is a transaction your wallet pays for itself.",
     gasCheck: "Checking this wallet can pay for its own transactions…",
     gasRecheck: "I have funded it — check again",
   },
@@ -132,7 +132,7 @@ export const DUEL = {
     /** Said under the entry's own sentence once this browser holds a key: what else the one signature does. */
     oneSignature: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks, and sends it the gas they need.",
     oneSignatureSponsored: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks. Their gas is the sponsor's.",
-    sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the gas its picks need." : `The sponsor sent your key ${amount} STT for its picks.`),
+    sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the fees its picks need." : `The sponsor sent your key ${amount} SOL for its picks.`),
     sponsorDeclined: (why: string) => `The sponsor declined to fund your key: ${why}. Your picks will wait until it holds gas — the stage offers a way.`,
     waitingCreate: "Waiting for the other player to put the match on chain.",
     opening: "Opening…",
@@ -202,7 +202,7 @@ export const DUEL = {
     keyGasShortWhy: "The entry funds a key for one deck's picks and a retry each; a longer run of retries spends that.",
     askSponsor: "Ask the sponsor to fund it",
     asking: "Asking the sponsor…",
-    fundKey: (amount: string) => `Fund it from your wallet (${amount} STT)`,
+    fundKey: (amount: string) => `Fund it from your wallet (${amount} SOL)`,
     funding: "Waiting for your wallet…",
     keyFunded: "Your key holds gas again.",
     /** Flicky's auto-swipe: at a card's own deadline the favoured side is played rather than the card forfeited. */
@@ -259,7 +259,7 @@ export const DUEL = {
       sharing: "Rendering…",
       copy: "Copy link",
       copied: "Copied!",
-      verifyLine: "Verify on Shannon explorer",
+      verifyLine: "Verify on Solana Explorer",
       footerKind: "DUEL",
       reopen: "See the result",
       shareText: (verdict: "won" | "lost" | "tied", ret: string | null, url: string) =>

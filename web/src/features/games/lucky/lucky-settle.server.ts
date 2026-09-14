@@ -1,7 +1,7 @@
 import { luckyBestStreak, luckyStreak, luckyVerdict, type LuckyResult } from "@agari/core/games";
 import { buildLedgers, type LedgerFill, type MarketLedger } from "@agari/core/projection";
 import { isOk } from "@agari/core/schemas";
-import { toMarketId, type Address, type Bytes32, type EventMarket, type Hex } from "@agari/core/types";
+import { toMarketId, type Address, type Hash32, type EventMarket, type MarketId, type Signature } from "@agari/core/types";
 import {
   gamesStoreConfigured,
   getLuckyDraw,
@@ -48,7 +48,7 @@ async function measureFill(row: LuckyDrawRow, market: EventMarket): Promise<Meas
   const since = Math.floor((row.placedAtMs ?? row.createdAtMs) / 1_000) - FILL_LOOKBACK_SEC;
   const fills = await listWalletFills(row.wallet as Address, { pool: market.poolAddress, sinceSec: since });
   if (!isOk(fills)) return null;
-  const mine = fills.value.filter((f) => f.txHash.toLowerCase() === row.txHash && f.marketId === market.marketId);
+  const mine = fills.value.filter((f) => f.txHash === row.txHash && f.marketId === market.marketId);
   if (mine.length === 0) return null;
   const ledger = buildLedgers(mine, [], market.decimals).get(market.marketId);
   if (!ledger) return null;
@@ -72,14 +72,15 @@ async function marketOf(row: LuckyDrawRow): Promise<EventMarket | null> {
 }
 
 /** The browser's report of the Ticket lane's outcome, turned into the row's next honest state. */
-export async function confirmPlacement(input: { drawId: Bytes32; status: LuckyPlacedStatus; txHash: Hex | null }): Promise<PlacedOutcome> {
+export async function confirmPlacement(input: { drawId: Hash32; status: LuckyPlacedStatus; txHash: Signature | null }): Promise<PlacedOutcome> {
   const row = await getLuckyDraw(input.drawId);
   if (!row) return { ok: false, status: 404, error: "no draw by that id" };
   if (row.result !== "drawn") return { ok: false, status: 409, error: `that draw is already ${row.result}` };
   if (!row.marketId || !row.side) return { ok: false, status: 409, error: "that draw was never dealt a Window" };
   ensureMarkets(marketsEnvFromProcess());
 
-  const hash = input.txHash ? (input.txHash.toLowerCase() as Hex) : null;
+  // A transaction signature is base58 and case-sensitive: stored exactly as the lane reported it (D-010).
+  const hash = input.txHash;
   let wire: LuckyPlacedWire;
   switch (input.status) {
     case "confirmed": {
@@ -148,14 +149,14 @@ export async function reconcileDraws(wallet: Address): Promise<void> {
 }
 
 const toWire = (row: LuckyDrawRow): LuckyRowWire => ({
-  drawId: row.drawId as Bytes32,
+  drawId: row.drawId as Hash32,
   nonce: row.nonce,
   asset: row.asset,
   side: row.side,
   multiplier: row.multiplier,
-  marketId: row.marketId as Bytes32 | null,
+  marketId: row.marketId as MarketId | null,
   quoteAvgPriceBps: row.quoteAvgPriceBps,
-  txHash: row.txHash as Hex | null,
+  txHash: row.txHash as Signature | null,
   stakeBase: row.stakeBase,
   costBase: row.costBase,
   quantityRaw: row.quantityRaw,

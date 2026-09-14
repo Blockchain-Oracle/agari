@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { encodeBase58, toAddress, toMarketId } from "@agari/core/types";
 import { ROOM_TOKEN_TTL_MS } from "./protocol";
 import { clearRoomToken, readRoomToken, writeRoomToken } from "./room-session";
 
-const ADDRESS = "0xD357019E2c55375477802A047dB7bC1A77819358";
-const MARKET = "0x0000000000000000000000000000000000000000000000000000000000012345";
+/** Valid, distinct base58 ids: every byte `n` (the `@agari/core` testing helpers' method). */
+const filled = (n: number) => encodeBase58(new Uint8Array(32).fill(n));
+const ADDRESS = toAddress(filled(0xd3));
+const MARKET = toMarketId(filled(0x45));
+const OTHER_MARKET = toMarketId(filled(0x46));
 
 /** A `localStorage` that lives for one test, on a `window` that lives for one test. */
 function fakeStorage() {
@@ -30,9 +34,9 @@ describe("room-session", () => {
   it("remembers a token for the wallet and market it was minted for, and for nobody else", () => {
     writeRoomToken(ADDRESS, MARKET, "tok-1", 1_000_000);
     expect(readRoomToken(ADDRESS, MARKET, 1_000_000 + 60_000)).toBe("tok-1");
-    // the wallet's case does not matter; the market does
-    expect(readRoomToken(ADDRESS.toLowerCase(), MARKET, 1_000_000 + 60_000)).toBe("tok-1");
-    expect(readRoomToken(ADDRESS, `${MARKET.slice(0, -1)}6`, 1_000_000 + 60_000)).toBeNull();
+    // base58 is case-sensitive: a re-cased wallet is another key, and another market is another Room
+    expect(readRoomToken(ADDRESS.toLowerCase(), MARKET, 1_000_000 + 60_000)).toBeNull();
+    expect(readRoomToken(ADDRESS, OTHER_MARKET, 1_000_000 + 60_000)).toBeNull();
     expect(storage.size()).toBe(1);
   });
 
@@ -45,7 +49,7 @@ describe("room-session", () => {
   });
 
   it("survives the in-memory copy being lost, by reading storage back", () => {
-    storage.setItem(`masayume:room:${ADDRESS.toLowerCase()}:${MARKET}`, JSON.stringify({ token: "tok-3", expiresAtMs: 5_000_000 }));
+    storage.setItem(`agari:room:${ADDRESS}:${MARKET}`, JSON.stringify({ token: "tok-3", expiresAtMs: 5_000_000 }));
     expect(readRoomToken(ADDRESS, MARKET, 4_000_000)).toBe("tok-3");
   });
 

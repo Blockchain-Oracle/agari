@@ -1,6 +1,7 @@
 "use client";
 
 import { LUCKY_VERIFIED } from "@agari/core/games";
+import type { Address } from "@agari/core/types";
 import { shortHex } from "@agari/core/units";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -31,7 +32,7 @@ export interface LuckySideProps {
  */
 export function LuckySide({ wallet, watchDrawId, decimals, symbol }: LuckySideProps) {
   const { feedback } = useGames();
-  const { feed } = useLuckyHistory((wallet as `0x${string}` | null) ?? null);
+  const { feed } = useLuckyHistory((wallet as Address | null) ?? null);
   const board = useLuckyBoard();
   const [shown, setShown] = useState<LuckyRowWire | null>(null);
   const announced = useRef<string | null>(null);
@@ -53,7 +54,7 @@ export function LuckySide({ wallet, watchDrawId, decimals, symbol }: LuckySidePr
     } else feedback("modal-open");
   }, [watchDrawId, feed, feedback]);
 
-  const you = wallet?.toLowerCase() ?? null;
+  const you = wallet ?? null;
   const words = LUCKY.board;
 
   return (

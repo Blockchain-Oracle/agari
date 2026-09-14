@@ -57,7 +57,7 @@ export function DuelHistory() {
   }, [address]);
 
   const pager = usePager(feed?.rows ?? NO_ROWS, PAGE_SIZE);
-  const you = address?.toLowerCase() ?? null;
+  const you = address ?? null;
   const money = (base: string | null) => (base === null || decimals === null ? "—" : formatBaseUnits(BigInt(base), decimals, { maxDp: 2, minDp: 2 }));
 
   return (
@@ -81,14 +81,14 @@ export function DuelHistory() {
         <>
         <ul className="du-history">
           {pager.slice.map((row) => {
-            const creator = row.creator.toLowerCase() === you;
+            const creator = row.creator === you;
             const opponent = creator ? row.challenger : row.creator;
             const pnl = creator ? row.creatorPnlBase : row.challengerPnlBase;
             const live = row.status !== "finalized" && row.status !== "refunded";
-            const verdict = live ? words.live : row.winner === null ? words.tied : row.winner.toLowerCase() === you ? words.won : words.lost;
+            const verdict = live ? words.live : row.winner === null ? words.tied : row.winner === you ? words.won : words.lost;
             return (
               <li key={row.matchId}>
-                <Link href={`/games/duel/${row.matchId}`} className="du-history-row" data-verdict={live ? "live" : row.winner === null ? "tied" : row.winner.toLowerCase() === you ? "won" : "lost"}>
+                <Link href={`/games/duel/${row.matchId}`} className="du-history-row" data-verdict={live ? "live" : row.winner === null ? "tied" : row.winner === you ? "won" : "lost"}>
                   <span className="du-history-verdict">{verdict}</span>
                   <span className="du-history-main">
                     <span className="du-v">{opponent ? shortHex(opponent, 6, 4) : words.noOpponent}</span>

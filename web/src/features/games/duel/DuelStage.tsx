@@ -2,7 +2,7 @@
 
 import { isTerminal, type MatchState, type StakeTierId } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Bytes32 } from "@agari/core/types";
+import type { Address, Hash32 } from "@agari/core/types";
 import { useArenaMatch } from "@agari/markets/react";
 import { shortHex } from "@agari/core/units";
 import { useEffect, useState, type ReactNode } from "react";
@@ -34,14 +34,14 @@ import "./duel.css";
  * The shell's `match` is published from here, because the hub has to be able to offer "resume" over
  * "start a new one" from any page under `/games` (`GamesProvider` §match).
  */
-export function DuelStage({ resumeMatchId = null }: { resumeMatchId?: Bytes32 | null }) {
+export function DuelStage({ resumeMatchId = null }: { resumeMatchId?: Hash32 | null }) {
   const room = useDuelRoom("default", resumeMatchId);
   const { address } = useWalletSession();
   // A deep link is answered from the chain first: a seat gets the stage in resume mode, anyone else the
   // read-only result — Flicky's `play.tsx` guard, which sends a non-participant to `/game/duel/:id`.
   const named = useArenaMatch(resumeMatchId);
   const namedView = named && isOk(named) ? named.value : null;
-  const you = address?.toLowerCase() ?? null;
+  const you = address ?? null;
   const spectator = resumeMatchId !== null && namedView !== null && (you === null || (namedView.match.creator !== you && namedView.match.challenger !== you));
   const { setMatch } = useGames();
   const { state, auth } = room;
@@ -166,7 +166,7 @@ function Match({
   const entry = <DuelEntry onFind={room.joinQueue} roomOpen={room.status === "open"} tierId={tierId} onTier={onTier} occupancy={occupancy} />;
 
   // The room admitted the wallet and refused the key: the seat is real and this browser cannot yet swipe for it.
-  if (room.error?.code === "wrong-key" && room.error.matchId) return <Rekey matchId={room.error.matchId as Bytes32} room={room} wallet={wallet} />;
+  if (room.error?.code === "wrong-key" && room.error.matchId) return <Rekey matchId={room.error.matchId as Hash32} room={room} wallet={wallet} />;
 
   switch (state.phase) {
     case "idle":
@@ -222,7 +222,7 @@ function Match({
  * again. The other browser's key stops swiping the moment this lands; nothing about the pot or the picks
  * already on the book changes.
  */
-function Rekey({ matchId, room, wallet }: { matchId: Bytes32; room: ReturnType<typeof useDuelRoom>; wallet: string | null }) {
+function Rekey({ matchId, room, wallet }: { matchId: Hash32; room: ReturnType<typeof useDuelRoom>; wallet: string | null }) {
   const { authorize, busy, canSign, refusal, game } = useArenaWrites();
   const words = DUEL.rekey;
   const name = () => {
@@ -252,7 +252,7 @@ function Rekey({ matchId, room, wallet }: { matchId: Bytes32; room: ReturnType<t
         </button>
       )}
       <p className="du-foot">{words.note}</p>
-      {refusal && <RefusalPlate diagnosis={refusal.diagnosis} gasShort={refusal.gasShort} wallet={wallet as `0x${string}` | null} />}
+      {refusal && <RefusalPlate diagnosis={refusal.diagnosis} gasShort={refusal.gasShort} wallet={wallet as Address | null} />}
     </div>
   );
 }
