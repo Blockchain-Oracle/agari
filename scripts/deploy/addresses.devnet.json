@@ -11,8 +11,38 @@
       "sbpfArch": "v0",
       "soBytes": 764200,
       "soSha256": "310e14d7265d3fb32662de0035d0e0b9a7322a3c48860468087b90962bc44309",
-      "sourceCommit": "36f1384"
+      "sourceCommit": "36f1384",
+      "idlMetadata": "97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH"
     }
   },
-  "venue": {}
+  "venue": {
+    "collateralMint": "5i61C4kHUGjRiRoeSuRXY49bkpyCaHq5FYBjT8q82DpA",
+    "collateralDecimals": 6,
+    "mintAuthority": "6aRMkK3E9tUtFL4nk7fukSErvyUVSvSoQHw9t7RYBTkk",
+    "treasury": "ChRVcHdmUnTt2knDtpNHy79GBECDREkkecU3RKEBpzBF",
+    "admin": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+    "config": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3",
+    "series": {
+      "TSLA-5m": {
+        "address": "FK9jirQBjhCLMEgzKvPNNtMXBrxSA6aWerMcWz9WVXvZ",
+        "ticker": 1,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "8xPqjTVYdsu2f4fZo2EDuhkSxFrioZECnypZKfqW97m2",
+          "7KhqHNaSew6C5vbNPEgWbynuFbEokneyPWLnKQCC1cdg"
+        ]
+      },
+      "NVDA-5m": {
+        "address": "HC5DZDHnFFQZUy3m3qf3XbDYqcEb2xQmTzPLnP9w41Wk",
+        "ticker": 2,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "Cmt4NQVMTP78iLqJb4ESydyWx2uNM2992q8rUtgJtKfo",
+          "AUd42zrHsJh2NTGrPyPTsEv3zJSiAk2M7SpG4fBLBNC1"
+        ]
+      }
+    }
+  }
 }

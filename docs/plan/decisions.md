@@ -424,6 +424,30 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** within plan r2 S2 (codegen step).
 
+### D-026 — S2 venue bootstrap on devnet (init-events and IDL publish)
+- **Date / owner:** 2026-09-14 · S2 owner (deploy + init-events step)
+- **Evidence:**
+  - `admin_init_config` requires `admin == upgrade authority` (events-instructions.md §1.1), and the program has no admin-transfer instruction (S2 handoff deferral).
+  - `kit-import-boundary` scans `scripts/`, so a `scripts/deploy/init-events.mjs` importing `@solana/kit` fails the fast gate.
+  - `anchor idl init` (1.2.0) prints "Skipping IDL initialization on localnet" for `127.0.0.1` and shells out to `npx` (npm warnings in its output). `http://127.1:8899` reaches Surfpool without the skip.
+  - On a Surfpool devnet fork, the same init-events run created every account (1.621 SOL at mainnet rent), a re-run was a no-op, and two planted drifts were refused. Devnet: 9 txs, 1.183 SOL; IDL 13 txs, 0.0569 SOL (acceptance.md, 2026-09-14 13:59–14:03).
+- **Rule:**
+  - **Admin:** the GlobalConfig admin is the `deployer` role (the upgrade authority). The `admin` role key is unused by agari-events until a D-entry adds an admin transfer.
+  - **Collateral:** tUSDC is a plain SPL Token mint with 6 dp, mint authority `faucet-mint-authority` and no freeze authority. Its address comes from a create-once `tusdc-mint` role keypair, so re-runs and other clusters derive the same address. The treasury is the admin's tUSDC ATA.
+  - **Authorities:** rollers `[roller]`, attestors `[price-attestor]`, the five D-002 RedStone signers in `price-sources.json` order with threshold 3, and no program authorities (S10).
+    - The Switchboard queue is the zero key with `min_oracles 0` as a placeholder. S6 sets both through `admin_set_authorities`, which replaces every field, so S6 re-sends the full set.
+    - `result_retention_sec` is 21,600.
+  - **Series:** the LiteSVM launch grid: lot = tick = 1,000 base units, `min_lots` 1,000, 0.25 tUSDC seat bond, `min_rest_slots` 50, `max_lead_sec` 400,000, fills 16, evictions 16. Each Regular 5m Series gets 2 × 512-node Books.
+    - A RedStone **check** policy uses `strict_sec` 60 (prints.md §2.1), which lives in `@agari/markets/deploy`, not in `price-sources.json`.
+    - A missing Series is registered in the same transaction as all its versions.
+  - **Code:** transaction building lives in the server-only subpath `@agari/markets/deploy`, which the package root doesn't re-export. `scripts/deploy/init-events.ts` (tsx, `pnpm deploy:init-events [--cluster devnet|localnet]`) only reads files and replaces the plan's `.mjs`.
+    - Ensure-style: existing state is compared field by field, and any drift throws rather than being corrected.
+    - Books are reconciled from the record and the Series free list before any is created.
+    - `--cluster localnet` targets Surfpool and writes the gitignored `addresses.localnet.json`.
+  - **IDL publish:** `pnpm dlx @solana-program/program-metadata@0.9.3 write idl <program> packages/clients/agari-events/idl.json --keypair <deployer> --priority-fees 0`, the same canonical `idl` seed and zlib encoding `anchor idl` writes. Anchor's `idl init`/`upgrade` aren't used, because they call npx. The metadata address is recorded as `programs.agari_events.idlMetadata`. Re-publish after every program upgrade that changes the IDL.
+- **User-visible:** explorers decode agari-events instructions on devnet. Test collateral is "tUSDC" at `5i61C4kH…`.
+- **Approval:** within plan r2 S2 (deploy + init-events step).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

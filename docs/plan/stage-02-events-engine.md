@@ -21,7 +21,7 @@
 - [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
 - [ ] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
 - [x] Codegen (D-025)
-- [ ] Devnet deploy + `init-events` (needs the deployer funded: see STATUS blockers)
+- [x] Devnet deploy + `init-events` (D-024, D-026)
 - [ ] Surfpool drive (time travel): open → mint-pair → print (Pyth + RedStone check) → settle → redeem; plus a divergence void and a missing-print void
 - [ ] The same drive on devnet in market hours with real Pyth trial (TSLA) and RedStone (NVDA) prints, plus one attested print on a test series
 
@@ -117,9 +117,22 @@
   - **Still open in the deploy step:** `init-events` (config, tUSDC mint, TSLA/NVDA series, books), IDL publish, codegen.
 
 - **Codegen (S2 codegen, D-025).** `pnpm codegen` renders `@agari/clients/agari-events` from the checked-in `packages/clients/agari-events/idl.json`: 29 instruction builders, 6 account decoders, 21 events, 5 PDAs, the 85 errors. Program sources are unchanged since the deployed `36f1384`, so the IDL matches the chain.
+- **init-events + IDL (2026-09-14, D-026).**
+  - **Devnet venue:** config `42GFppq2…`, tUSDC `5i61C4kH…`, treasury `ChRVcHdm…`; TSLA-5m `FK9jirQB…` (v1 Pyth + RedStone check, v2 RedStone) and NVDA-5m `HC5DZDHn…` (v1 RedStone), each with 2 × 512-node Books. Everything is in `scripts/deploy/addresses.devnet.json`.
+  - **Cost:** init 1.183 SOL (a devnet Book is 290,047,680 lamports) and the IDL 0.0569 SOL. Deployer 4.872 SOL left.
+  - **Measured:** config init + authorities 15,534 CU / **1,090 B** (the largest; fixed-size arrays, so it never grows); TSLA register + 2 versions 19,791 CU / 664 B; NVDA register + 1 version 12,777 CU / 516 B; Book create + add 4,879 CU / 474 B.
+  - The on-chain IDL equals `packages/clients/agari-events/idl.json`. No deploy or metadata buffers remain.
+  - A Surfpool devnet fork ran the whole script first (mainnet rent 1.621 SOL). The re-run was a no-op, and planted drifts were refused with field diffs.
 
 ## Handoff
 
+- **Next (after init-events, D-026):**
+  - **Surfpool drive** (`scripts/drive/events-cycle.ts`, through `@agari/markets/deploy`): start `surfpool start --network devnet --no-deploy --no-tui` from a directory without `Anchor.toml` and fund the deployer with `-k ~/.config/agari/devnet/deployer.json`. The fork now reads the real devnet config, Series and Books, so the drive uses `addresses.devnet.json` and funds only the roller, relay and user keys. Don't run `init-events --cluster localnet` against a fresh fork: the forked config carries cluster tag 103, which is drift against localnet's 104.
+    - Flow: open a TSLA or NVDA Window (`roller_open_window`, policy version by prints.md §2.3), mint tUSDC to two users (faucet authority), mint-pair fill, record prints, settle, redeem. Then a divergence void and a missing-print void.
+    - Time travel: Surfpool `surfnet_timeTravel`.
+    - Prints: the TSLA Pyth fixture is at 2026-09-11 20:00Z, and version v1 covers it. RedStone packages need the archive: check `data/archive/redstone/` has TSLA/NVDA from the 09-14 session.
+  - **Targeted-tests and CU-profile boxes** are still open (below).
+  - `init-events` must be re-run (it's idempotent) after any `price-sources.json` version append. It fails loudly on edits to existing versions.
 - **Next steps after redeem and closure (done, D-022):**
   - **Targeted-tests box:** check the P§8 engine list against what exists (native: worked examples, fill matrix, edges, two randomized runs; LiteSVM: admin, orders, prints, settle, redeem, closure; PD-6 races per source). Add only what is missing.
   - **CU profile box:** the Surfpool `profileTransaction` pass (the LiteSVM numbers in Findings are the baseline).
