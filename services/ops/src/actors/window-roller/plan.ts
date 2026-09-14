@@ -3,7 +3,7 @@
  * and the chain clock in, one decision out. The executor recycles Books before it asks, and re-reads before it sends.
  */
 import { etDateOf, regularWindows, type BoundaryKind, type ScheduledWindow, type SessionCalendar } from "@agari/core/market";
-import { describeVersion, highestCoveringVersion, type VersionWindow } from "./versions";
+import { describeVersion, highestCoveringVersion, openPrintsAdmissible, type VersionWindow } from "./versions";
 
 /** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */
 export const BOUNDARY_KIND_U8: Record<BoundaryKind, number> = { Intraday: 0, SessionOpen: 1, SessionClose: 2 };
@@ -47,6 +47,8 @@ export type SeriesPlan =
 
 export const DEFAULT_LEAD_SEC = 120;
 export const DEFAULT_MIN_TRADABLE_SEC = 60;
+/** Time the relay needs after a late open to fetch and record the opening prints before their deadline. */
+export const PRINT_MARGIN_SEC = 45;
 
 const hhmm = (sec: number) => new Date(sec * 1000).toISOString().slice(11, 16);
 export const spanOf = (w: { tradingStartSec: number; expirySec: number }) => `${hhmm(w.tradingStartSec)}–${hhmm(w.expirySec)}Z`;
@@ -56,7 +58,14 @@ export function nextCandidate(series: PlanSeries, clock: PlanClock): ScheduledWi
   if (!clock.calendar) return null;
   const sessions = clock.calendar.sessions.filter((s) => s.closeSec > clock.nowSec).slice(0, 2);
   const windows = sessions.flatMap((s) => regularWindows(s, series.cadenceSec));
-  return windows.find((w) => w.tradingStartSec >= series.lastExpirySec && w.lockAtSec - clock.nowSec >= clock.minTradableSec) ?? null;
+  return (
+    windows.find((w) => {
+      if (w.tradingStartSec < series.lastExpirySec || w.lockAtSec - clock.nowSec < clock.minTradableSec) return false;
+      // An uncovered Window stays the candidate so the lane reports "paused"; a covered one must still take its open prints.
+      const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
+      return version === null || openPrintsAdmissible(series.versions[version]!, w, clock.nowSec, PRINT_MARGIN_SEC);
+    }) ?? null
+  );
 }
 
 export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {

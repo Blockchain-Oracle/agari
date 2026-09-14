@@ -9,10 +9,11 @@ const MON = sessionAt("2026-09-28", 570, 960);
 const CALENDAR: SessionCalendar = { fromDate: "2026-09-21", toDate: "2026-10-02", sessions: [FRI, MON], unknownDates: [] };
 const TRIAL_END = FRI.closeSec;
 const TSLA: VersionWindow[] = [
-  { validFromSec: FRI.openSec - 86_400 * 14, validUntilSec: TRIAL_END, primarySource: 1, checkSource: 2 },
-  { validFromSec: TRIAL_END, validUntilSec: null, primarySource: 2, checkSource: 0 },
+  { validFromSec: FRI.openSec - 86_400 * 14, validUntilSec: TRIAL_END, primarySource: 1, checkSource: 2, openAdmissionSec: 900, checkAdmissionSec: 120 },
+  { validFromSec: TRIAL_END, validUntilSec: null, primarySource: 2, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0 },
 ];
 const QQQ: VersionWindow[] = [TSLA[0]!];
+const NVDA: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 2, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0 }];
 
 const series = (over: Partial<PlanSeries> = {}): PlanSeries => ({
   key: "TSLA-5m", symbol: "TSLA", cadenceSec: 300, nextIndex: 7n, lastExpirySec: 0, versions: TSLA, freeBooks: ["BookA", "BookB"], ...over,
@@ -61,5 +62,18 @@ describe("window-roller plan", () => {
     const skips = [{ symbol: "TSLA", date: "2026-09-25", why: "split" }];
     expect(planSeries(series(), clock(FRI.openSec, { skips })).state).toBe("paused: corporate action (split)");
     expect(planSeries(series({ freeBooks: [] }), clock(FRI.openSec)).state).toBe("waiting: no free book");
+  });
+
+  it("skips a late Window whose open print or check open can no longer be admitted (a late open would void or go single-source)", () => {
+    // 60m 10:00–11:00 at 10:35: the open deadline (10:15) passed, so the next Window (11:00) is the candidate.
+    const hour = planSeries(series({ key: "NVDA-60m", cadenceSec: 3_600, versions: NVDA }), clock(FRI.openSec + 1_800 + 2_100));
+    expect(hour.kind === "wait" && hour.window.tradingStartSec).toBe(FRI.openSec + 5_400);
+    // TSLA 15m with a RedStone check at T + 100: the check deadline (T + 120) is inside the 45 s margin, so skip it.
+    const t = FRI.openSec + 900;
+    const checked = planSeries(series({ cadenceSec: 900 }), clock(t + 100));
+    expect(checked.kind === "wait" && checked.window.tradingStartSec).toBe(t + 900);
+    // Without a check the same Window still opens late: the primary open is admitted until T + 900.
+    const single = planSeries(series({ key: "NVDA-15m", cadenceSec: 900, versions: NVDA }), clock(t + 100));
+    expect(single).toMatchObject({ kind: "open" });
   });
 });
