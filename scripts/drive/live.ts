@@ -89,5 +89,5 @@ export async function liveCycle(env: DriveEnv, testSeries: string) {
   await redeemAll(env, test, [[a, aTok], [d, dTok]], "TEST");
 
   const closed = await closePythUpdates({ rpcUrl: env.rpcUrl, payerSecret: env.payerSecret, addresses: pythAccounts });
-  closed.forEach((signature) => ctx.log({ step: "pyth close", signature, note: `${pythAccounts.length} update accounts` }));
+  closed.forEach((signature) => ctx.log({ step: "pyth reclaim", signature, note: `${pythAccounts.length} update accounts closed` }));
 }

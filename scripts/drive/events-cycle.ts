@@ -23,8 +23,20 @@ const cluster = arg("--cluster", "localnet") as Cluster;
 const phases = new Set(arg("--phases", "live,void").split(","));
 if (cluster !== "devnet" && cluster !== "localnet") throw new Error(`--cluster must be devnet or localnet`);
 
-const rpcUrl = cluster === "localnet" ? "http://127.0.0.1:8899" : "https://api.devnet.solana.com";
-const rpcSubscriptionsUrl = cluster === "localnet" ? "ws://127.0.0.1:8900" : "wss://api.devnet.solana.com";
+// Devnet goes through Helius when HELIUS_API_KEY is set (the public endpoint rate-limits a 40-transaction drive).
+const helius = process.env.HELIUS_API_KEY;
+const rpcUrl = cluster === "localnet" ? "http://127.0.0.1:8899" : helius ? `https://devnet.helius-rpc.com/?api-key=${helius}` : "https://api.devnet.solana.com";
+const rpcSubscriptionsUrl = cluster === "localnet" ? "ws://127.0.0.1:8900" : helius ? `wss://devnet.helius-rpc.com/?api-key=${helius}` : "wss://api.devnet.solana.com";
+// web3.js 1 fetch errors can carry the request URL: never let the key reach a log.
+const redact = (text: string) => (helius ? text.replaceAll(helius, "<HELIUS_API_KEY>") : text);
+process.on("uncaughtException", (error) => {
+  console.error(redact(error instanceof Error ? `${error.stack ?? error.message}` : String(error)));
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error(redact(reason instanceof Error ? `${reason.stack ?? reason.message}` : String(reason)));
+  process.exit(1);
+});
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, "utf8")) as T;
 const secretOf = (role: string) => Uint8Array.from(readJson<number[]>(ensureRole(role).path));
 

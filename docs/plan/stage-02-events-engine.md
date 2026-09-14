@@ -23,7 +23,7 @@
 - [x] Codegen (D-025)
 - [x] Devnet deploy + `init-events` (D-024, D-026)
 - [x] Surfpool drive (time travel): open → mint-pair → print (Pyth + RedStone check) → settle → redeem; plus a divergence void and a missing-print void (D-027)
-- [ ] The same drive on devnet in market hours with real Pyth trial (TSLA) and RedStone (NVDA) prints, plus one attested print on a test series
+- [x] The same drive on devnet in market hours with real Pyth trial (TSLA) and RedStone (NVDA) prints, plus one attested print on a test series (D-027; RedStone ran as the TSLA check, NVDA voided unprinted)
 
 ## Gate
 
@@ -131,10 +131,41 @@
   - **TEST window (Series 900):** attested prints (361.91 / 362.62, 1% high) were checked by the same RedStone packages → **void `CrossCheckDivergence`**; 750,000 each (500,000 + bond) and the mvault → 0.
   - **NVDA window:** a resting bid and no prints; the clock jumped to `T + 902` → **void `MissingPrint`**; 750,000 refunded, mvault → 0.
   - **Bugs the drive found and fixed:** `ANY_SEAT` from a seated authority (`SeatMismatch`), and a Book stranded on an aborted run's Window (now `recycleBooks`).
+- **Devnet drive (2026-09-14 14:37–15:00Z, D-027).** `pnpm drive:events --cluster devnet` ran the same cycle on devnet: 40 transactions, all confirmed, one row each in acceptance.md. It covers every devnet item on the gate list.
+  - **TSLA:** Window opened; mint-pair, direct YES and burn-pair fills; Pyth trial prints 358.20432 / 358.75; RedStone 5-signer checks 358.18500933 / 358.78391019; cross-check settle → Up; redeems 7,370,000 + 1,550,000 = mvault.
+  - **TEST (Series 900):** attested prints; void `CrossCheckDivergence`; 750,000 × 2.
+  - **NVDA:** void `MissingPrint` at `T + 909`; 750,000.
+  - **Measured on devnet** (with the Kit planner's compute-budget instruction):
+
+    | Transaction | CU | Bytes |
+    |---|---|---|
+    | `roller_open_window` | 31,616–46,607 | 683 |
+    | RedStone 5-package print | **149,097** | **1,082** (of 1,232) |
+    | Pyth record | 6,953 | 353 |
+    | Attested pair | 9,366 | 720 |
+    | Place order, resting | 14,063–16,415 | 682 |
+    | Mint-pair IOC | 17,754 | 682 |
+    | Direct IOC | 17,614 | 682 |
+    | Burn IOC | 15,522 | 682 |
+    | Settle | 12,486 | 386 |
+    | Divergence void | 15,353 | 386 |
+    | `public_void_expired` | 14,478 | 386 |
+    | Sweep | 3,334–6,918 | 386 |
+    | Redeem | 14,104–14,142 | 618 |
+    | Pyth VAA verify (receiver SDK) | 84,592 | 766 |
+    | Pyth `post_update` | 31,823 | 830 |
+
+  - **Cost:** payer 0.3915 SOL (Series 900 + Book 0.2352). The three Windows' Market/Ledger/mvault rent is refundable through the closure instructions. Deployer 4.481 SOL left.
 
 ## Handoff
 
-- **Next (after init-events, D-026):**
+- **Next (after both drives, D-027):**
+  - **Prints box:** the devnet evidence now exists (Pyth trial post + print, RedStone 5-signer print, measured). Still missing: the real archived RedStone fixture as a LiteSVM vector (`anchor/tests/vectors/prints/README.md`); `data/archive/redstone/2026-09-14.jsonl` in the main worktree has today's TSLA/NVDA packages. Parse them with `parseGatewayJson` (exact decimals) or reuse the drive's payload bytes.
+  - **CU profile box:** Surfpool `profileTransaction`. The devnet table in Findings is the measured baseline; the 10-fill IOC is still only measured in LiteSVM (29,888 CU).
+  - **Targeted-tests box:** check the P§8 list against what exists (Findings) and add only what's missing.
+  - **Closure on devnet:** the three drive Windows still hold Market/Ledger/mvault rent. A settler pass (`public_release_book` for TSLA/TEST/NVDA; the drive recycles Books before opening, not after), then `public_close_ledger`, and `public_close_market` after 6 h, reclaims it. It belongs to the S3 settler; run it by hand only if SOL gets tight.
+  - **Re-running the drive:** `set -a; source ../../stocklana/.env.local; set +a; pnpm exec tsx scripts/drive/events-cycle.ts --cluster devnet | sed "s/$HELIUS_API_KEY/<redacted>/g"` (PYTH_API_KEY and HELIUS_API_KEY live in the main worktree's `.env.local`). It must run in NYSE hours; the Pyth trial covers TSLA until the 09-25 close.
+- **Earlier next (after init-events, D-026, done):**
   - **Surfpool drive** (`scripts/drive/events-cycle.ts`, through `@agari/markets/deploy`): start `surfpool start --network devnet --no-deploy --no-tui` from a directory without `Anchor.toml` and fund the deployer with `-k ~/.config/agari/devnet/deployer.json`. The fork now reads the real devnet config, Series and Books, so the drive uses `addresses.devnet.json` and funds only the roller, relay and user keys. Don't run `init-events --cluster localnet` against a fresh fork: the forked config carries cluster tag 103, which is drift against localnet's 104.
     - Flow: open a TSLA or NVDA Window (`roller_open_window`, policy version by prints.md §2.3), mint tUSDC to two users (faucet authority), mint-pair fill, record prints, settle, redeem. Then a divergence void and a missing-print void.
     - Time travel: Surfpool `surfnet_timeTravel`.

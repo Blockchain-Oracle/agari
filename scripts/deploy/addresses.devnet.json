@@ -42,6 +42,15 @@
           "Cmt4NQVMTP78iLqJb4ESydyWx2uNM2992q8rUtgJtKfo",
           "AUd42zrHsJh2NTGrPyPTsEv3zJSiAk2M7SpG4fBLBNC1"
         ]
+      },
+      "TEST-ATT-5m": {
+        "address": "EJxm5PFxMJxVmBKYXNkX3dh5qibQRBGP4g2dudqjB6Cc",
+        "ticker": 900,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "7vBcM7kGj1tLqKtZc1wJMRvZSQt7gBT9MVg4Lss1ksiM"
+        ]
       }
     }
   }
