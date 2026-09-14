@@ -54,6 +54,7 @@ export { bootMarkets, type MarketsBoot } from "./boot";
 export { applyClockSync, lastClockSync, nowMs, nowSec } from "./clock";
 export { getMarketsLite, getWalletCollateral, laneNextStart, listWalletFills, readRecoveryCursor, syncClock, type WalletFillsQuery } from "./reads";
 export { forgetReading, unwrap, withReading, type Unwrap } from "./reading";
+export { getRedemption, type Redemption } from "./redemption";
 export {
   mapPool,
   readVenueBoard,
