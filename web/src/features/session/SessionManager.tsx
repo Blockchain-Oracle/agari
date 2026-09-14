@@ -2,12 +2,12 @@
 
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { capResetsAtSec, dailyHeadroomBase } from "@agari/core/vault";
-import { requiredGasWei, sessionGasTopUpWei } from "@agari/markets";
 import { Hash, UtcTime } from "@/components/data";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/lib/toast";
 import { priceCapText } from "./caps";
 import { SESSION } from "./copy";
+import { LAMPORTS_PER_TAP, SESSION_KEY_TOPUP_LAMPORTS, SOL_DECIMALS } from "./fees";
 import { useSessionKey } from "./SessionKeyProvider";
 import { SessionModalShell } from "./SessionModal";
 import { SessionDetail } from "./SessionDetail";
@@ -21,16 +21,13 @@ interface SessionManagerProps {
   symbol: string;
 }
 
-const NATIVE_DECIMALS = 18;
-
 function gasLine(view: SessionKeyView): string {
   const m = SESSION.manager;
   if (view.sponsor?.configured && view.sponsor.sponsor) {
     return view.sponsorRefusal ? m.gasSponsorDeclined(view.sponsorRefusal) : m.gasSponsor(shortHex(view.sponsor.sponsor, 8, 6));
   }
-  if (view.keyGasWei === null || view.keyGasWei === 0n) return m.gasKeyEmpty;
-  const perTap = requiredGasWei("vault-order");
-  return m.gasKey(formatBaseUnits(view.keyGasWei, NATIVE_DECIMALS, { maxDp: 3, minDp: 0 }), Number(view.keyGasWei / perTap));
+  if (view.keyFeeLamports === null || view.keyFeeLamports === 0n) return m.gasKeyEmpty;
+  return m.gasKey(formatBaseUnits(view.keyFeeLamports, SOL_DECIMALS, { maxDp: 3, minDp: 0 }), Number(view.keyFeeLamports / LAMPORTS_PER_TAP));
 }
 
 /** The manager body, separated so the fixture page can render every state without a provider. */
@@ -76,7 +73,7 @@ export function SessionManagerBody({ view, actions, busy, symbol, onArmNew }: { 
   const spentToday = grant.spentDay === Math.floor(view.nowSec / 86_400) ? grant.spentTodayBase : 0n;
   const needsKey = view.status === "grant-without-key";
   const keyPays = !(view.sponsor?.configured ?? false);
-  const lowGas = keyPays && (view.keyGasWei ?? 0n) < requiredGasWei("vault-order");
+  const lowGas = keyPays && (view.keyFeeLamports ?? 0n) < LAMPORTS_PER_TAP;
 
   return (
     <div className={styles.manager}>
@@ -136,7 +133,7 @@ export function SessionManagerBody({ view, actions, busy, symbol, onArmNew }: { 
       </section>
       {lowGas && !needsKey && (
         <Button variant="secondary" size="sm" disabled={busy !== null} onClick={() => void actions.topUp()}>
-          {m.topUp(formatBaseUnits(sessionGasTopUpWei(), NATIVE_DECIMALS, { maxDp: 3, minDp: 0 }))}
+          {m.topUp(formatBaseUnits(SESSION_KEY_TOPUP_LAMPORTS, SOL_DECIMALS, { maxDp: 3, minDp: 0 }))}
         </Button>
       )}
       <div className={`${styles.section} flex flex-col gap-3`}>

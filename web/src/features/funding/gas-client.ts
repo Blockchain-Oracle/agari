@@ -1,18 +1,19 @@
 import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
 
 export type FundingStage = "idle" | "checking" | "verifying" | "adding-gas" | "minting" | "ready";
-export const FUNDING_STAGE_LABEL: Record<FundingStage, string> = { idle: "Get test funds", checking: "Checking balances…", verifying: "Verify wallet — no gas fee", "adding-gas": "Adding STT for gas…", minting: "Confirm test tUSDC in your wallet…", ready: "Ready" };
+export const FUNDING_STAGE_LABEL: Record<FundingStage, string> = { idle: "Get test funds", checking: "Checking balances…", verifying: "Verify wallet — no fee", "adding-gas": "Adding SOL for fees…", minting: "Confirm test tUSDC in your wallet…", ready: "Ready" };
 
 export async function faucetJson<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, { method: body === undefined ? "GET" : "POST", headers: body === undefined ? undefined : { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body), cache: "no-store", signal: AbortSignal.timeout(body === undefined ? 15_000 : 55_000) });
   const result = await response.json();
-  if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "The gas service is unavailable. Please retry.");
+  if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "The SOL service is unavailable. Please retry.");
   return result as T;
 }
 export const readGasStatus = (wallet: string) => faucetJson<FaucetStatus>(`/api/faucet?wallet=${wallet}`);
 
 interface GasRequest { id: string; signature: string }
-const storageKey = (wallet: string) => `agari.faucet.gas-request.${wallet.toLowerCase()}`;
+// Base58 is case-sensitive: the key is the address exactly as written (D-010).
+const storageKey = (wallet: string) => `agari.faucet.gas-request.${wallet}`;
 function savedRequest(wallet: string): GasRequest | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(storageKey(wallet)) ?? "null");
@@ -51,6 +52,6 @@ export async function requestGas(input: { wallet: string; status: FaucetStatus; 
     try { sessionStorage.removeItem(storageKey(wallet)); } catch { /* optional browser storage */ }
     return;
   }
-  if (claim.status === "prepared") throw new Error("Your STT transfer is still confirming. Retry to check the same transfer; no second payment will be sent.");
-  throw new Error(claim.status === "reverted" ? "The STT transfer reverted. Please use an external faucet for now." : "The STT transfer needs operator review. Please use an external faucet for now.");
+  if (claim.status === "prepared") throw new Error("Your SOL transfer is still confirming. Retry to check the same transfer; no second payment will be sent.");
+  throw new Error(claim.status === "reverted" ? "The SOL transfer failed. Please use an external faucet for now." : "The SOL transfer needs operator review. Please use an external faucet for now.");
 }

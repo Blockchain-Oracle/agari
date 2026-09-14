@@ -1,16 +1,16 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
 import type { TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Address, type Hex } from "@agari/core/types";
-import { generateSessionKey, keyGasBalance, sessionGasTopUpWei, topUpSessionGas, type SubmitterSession } from "@agari/markets";
+import { diagnosis, type Address, type Signature } from "@agari/core/types";
+import type { SubmitterSession } from "@agari/markets";
 import { keys, useUserSession, useVaultSnapshot } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNowMs } from "@/components/data";
-import { useOwnerWalletClient } from "@/providers/UserSessionProvider";
 import { useWalletSession } from "@/lib/wallet-session";
 import { termsFromForm, termsFromGrant, type CapsForm } from "./caps";
+import { KEY_FEES_UNAVAILABLE } from "./fees";
+import { generateSessionKey } from "./keygen";
 import { forgetSessionKey, loadSessionKey, saveSessionKey, type StoredSessionKey } from "./store";
 import { useKeySession } from "./useKeySession";
 import { useSponsorStatus } from "./useSponsorStatus";
@@ -33,14 +33,12 @@ function refusedTx(technical: string): TxOutcome {
 export function SessionKeyProvider({ children }: { children: ReactNode }) {
   const { address: owner } = useWalletSession();
   const userSession = useUserSession();
-  const ownerWalletClient = useOwnerWalletClient();
   const queryClient = useQueryClient();
   const nowMs = useNowMs();
   const nowSec = Math.floor(nowMs / 1000);
   const snapshot = useVaultSnapshot(owner);
   const { status: sponsor, refresh: refreshSponsor } = useSponsorStatus();
   const [stored, setStored] = useState<{ owner: Address | null; key: StoredSessionKey | null; loaded: boolean }>({ owner: null, key: null, loaded: false });
-  const [keyGasWei, setKeyGasWei] = useState<bigint | null>(null);
   const [busy, setBusy] = useState<SessionBusy>(null);
 
   // This browser's key for the connected owner, read once per owner.
@@ -67,26 +65,13 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
 
   const { session, sponsorRefusal } = useKeySession({
     armed: status === "armed",
-    privateKey: key?.privateKey ?? null,
+    secretKey: key?.secretKey ?? null,
     deployment: deployment ?? null,
     sponsorConfigured: sponsor?.configured ?? false,
   });
 
-  // The key's STT, polled while a key exists: what it can pay for itself when no sponsor will.
-  useEffect(() => {
-    if (!key) {
-      setKeyGasWei(null);
-      return;
-    }
-    let cancelled = false;
-    const read = () => keyGasBalance(key.address).then((wei) => !cancelled && setKeyGasWei(wei)).catch(() => undefined);
-    void read();
-    const id = setInterval(read, MARKETS_POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [key]);
+  // The key's SOL balance needs the chain read path (S4); until then it is honestly unknown.
+  const keyFeeLamports: bigint | null = null;
 
   const invalidate = useCallback(async () => {
     if (!owner) return;
@@ -96,29 +81,16 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
   const ensureKey = useCallback(async (): Promise<StoredSessionKey | null> => {
     if (!owner) return null;
     if (key) return key;
-    const fresh = generateSessionKey(owner);
-    const record: StoredSessionKey = { address: fresh.address, privateKey: fresh.privateKey, createdAtMs: fresh.createdAtMs };
+    const record: StoredSessionKey = await generateSessionKey();
     if (!(await saveSessionKey(owner, record))) return null;
     setStored({ owner, key: record, loaded: true });
     return record;
   }, [owner, key]);
 
+  /** Moving SOL from the owner to the key needs the send path (S7); a sponsored key needs nothing. */
   const topUpIfKeyPays = useCallback(
-    async (to: Address): Promise<{ hash: Hex | null; error: string | null }> => {
-      if (sponsor?.configured) return { hash: null, error: null };
-      if (!ownerWalletClient) return { hash: null, error: "no wallet client to move STT from" };
-      const required = sessionGasTopUpWei();
-      const have = await keyGasBalance(to).catch(() => 0n);
-      if (have >= required) return { hash: null, error: null };
-      try {
-        const hash = await topUpSessionGas({ ownerWalletClient, key: to, amountWei: required - have });
-        setKeyGasWei(await keyGasBalance(to).catch(() => null));
-        return { hash, error: null };
-      } catch (error) {
-        return { hash: null, error: error instanceof Error ? error.message : String(error) };
-      }
-    },
-    [sponsor, ownerWalletClient],
+    async (_to: Address): Promise<{ hash: Signature | null; error: string | null }> => (sponsor?.configured ? { hash: null, error: null } : { hash: null, error: KEY_FEES_UNAVAILABLE }),
+    [sponsor],
   );
 
   const enable = useCallback(
@@ -150,11 +122,10 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
     if (!submitter || !owner || !isGrantLive(live, nowSec)) return { outcome: refusedTx("no live grant to re-key"), topUpHash: null, topUpError: null };
     setBusy("rekeying");
     try {
-      const fresh = generateSessionKey(owner);
-      const record: StoredSessionKey = { address: fresh.address, privateKey: fresh.privateKey, createdAtMs: fresh.createdAtMs };
+      const record: StoredSessionKey = await generateSessionKey();
       if (!(await saveSessionKey(owner, record))) return { outcome: refusedTx(STORAGE_UNAVAILABLE), topUpHash: null, topUpError: null };
       // Replacing the grant returns the old budget before the new one is taken (the contract's own rule).
-      const outcome = await submitter.submitTx({ kind: "vault-grant", terms: termsFromGrant(live, fresh.address) });
+      const outcome = await submitter.submitTx({ kind: "vault-grant", terms: termsFromGrant(live, record.address) });
       if (outcome.status !== "confirmed") return { outcome, topUpHash: null, topUpError: null };
       setStored({ owner, key: record, loaded: true });
       const topUp = await topUpIfKeyPays(record.address);
@@ -178,7 +149,7 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
     }
   }, [userSession, grant, invalidate]);
 
-  const topUp = useCallback(async (): Promise<Hex | null> => {
+  const topUp = useCallback(async (): Promise<Signature | null> => {
     if (!key) return null;
     setBusy("topping-up");
     try {
@@ -205,10 +176,10 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
       nowSec,
       sponsor,
       sponsorRefusal: sponsorRefusal(),
-      keyGasWei,
+      keyFeeLamports,
       vaultAvailableBase: value?.account.availableBase ?? null,
     }),
-    [status, owner, key, grant, deployment, value, nowSec, sponsor, sponsorRefusal, keyGasWei],
+    [status, owner, key, grant, deployment, value, nowSec, sponsor, sponsorRefusal, keyFeeLamports],
   );
 
   const actions = useMemo<SessionKeyActions>(() => ({ enable, rekey, revoke, topUp, forget }), [enable, rekey, revoke, topUp, forget]);

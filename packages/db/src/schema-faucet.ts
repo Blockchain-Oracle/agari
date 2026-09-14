@@ -9,20 +9,20 @@ CREATE TABLE IF NOT EXISTS faucet_challenges (
 );
 CREATE INDEX IF NOT EXISTS faucet_challenges_ip_time ON faucet_challenges (ip_hash, created_at_ms);
 CREATE INDEX IF NOT EXISTS faucet_challenges_wallet_time ON faucet_challenges (wallet, created_at_ms);
-CREATE TABLE IF NOT EXISTS faucet_claims (
+-- Solana devnet SOL top-ups (D-012). A new table, not an altered one: the EVM-era faucet_claims (wei, nonce) is left untouched.
+CREATE TABLE IF NOT EXISTS sol_faucet_claims (
   id TEXT PRIMARY KEY REFERENCES faucet_challenges(id),
   wallet TEXT NOT NULL,
   funder TEXT NOT NULL,
   ip_hash TEXT NOT NULL,
-  amount_wei NUMERIC(78,0) NOT NULL CHECK (amount_wei > 0),
-  fee_wei NUMERIC(78,0) NOT NULL CHECK (fee_wei >= 0),
-  nonce BIGINT NOT NULL,
+  amount_lamports NUMERIC(20,0) NOT NULL CHECK (amount_lamports > 0),
+  fee_lamports NUMERIC(20,0) NOT NULL CHECK (fee_lamports >= 0),
+  last_valid_block_height BIGINT NOT NULL,
   tx_hash TEXT NOT NULL UNIQUE,
   raw_transaction TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('prepared','confirmed','reverted','conflict')),
-  created_at_ms BIGINT NOT NULL,
-  UNIQUE (funder, nonce)
+  created_at_ms BIGINT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS faucet_claims_wallet_time ON faucet_claims (wallet, created_at_ms);
-CREATE INDEX IF NOT EXISTS faucet_claims_time ON faucet_claims (created_at_ms);
+CREATE INDEX IF NOT EXISTS sol_faucet_claims_wallet_time ON sol_faucet_claims (wallet, created_at_ms);
+CREATE INDEX IF NOT EXISTS sol_faucet_claims_time ON sol_faucet_claims (created_at_ms);
 `;
