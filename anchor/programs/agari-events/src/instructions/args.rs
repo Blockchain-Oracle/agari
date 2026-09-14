@@ -102,3 +102,21 @@ impl From<PolicyVersionArgs> for PolicyVersion {
         }
     }
 }
+
+/// `user_place_order` arguments (events-instructions.md §3.1; 35 B + discriminator).
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct PlaceOrderArgs {
+    pub kind: u8,
+    pub price_ticks: u16,
+    pub lots: u64,
+    pub expire_ts: i64,
+    pub order_type: u8,
+    pub self_match: u8,
+    pub max_fills: u8,
+    pub max_evictions: u8,
+    /// A seat the authority owns or an empty one to claim; `u16::MAX` = the first empty seat.
+    pub seat_hint: u16,
+    pub use_credit: bool,
+    pub withdraw_proceeds: bool,
+    pub client_id: u64,
+}

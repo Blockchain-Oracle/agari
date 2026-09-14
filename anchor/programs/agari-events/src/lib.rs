@@ -4,10 +4,12 @@
 
 use anchor_lang::prelude::*;
 
+pub mod book;
 pub mod constants;
 pub mod errors;
 pub mod events;
 pub mod instructions;
+pub mod matching;
 pub mod state;
 
 use instructions::*;
@@ -44,5 +46,9 @@ pub mod agari_events {
 
     pub fn roller_open_window(ctx: Context<RollerOpenWindow>, args: OpenWindowArgs) -> Result<()> {
         instructions::roller_open_window::roller_open_window(ctx, args)
+    }
+
+    pub fn user_place_order(ctx: Context<UserPlaceOrder>, args: PlaceOrderArgs) -> Result<()> {
+        instructions::user_place_order::user_place_order(ctx, args)
     }
 }

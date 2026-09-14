@@ -13,7 +13,7 @@
 - [x] State accounts; `Book` as keypair + `#[account(zero)]`; `Ledger` PDA
 - [x] Admin instructions incl. `admin_add_policy_version` + `roller_open_window` (PROGRAM seats, version coverage check) (D-019)
 - [ ] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons
-- [ ] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot`
+- [x] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot` (D-020)
 - [ ] Cancel, reduce, cancel-all, sweep-expired
 - [ ] Complete sets; withdraw credit
 - [ ] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention
@@ -66,6 +66,12 @@
 
 - **Book walks (S2.6).** `agari-common::book_walk` (`levels`, `top_of_book`, `outcome_levels`, `vwap_over_depth`, `exit_walk`, `quote_stake`) and `packages/core/src/market/book-math.ts` agree on 49 shared vectors (`anchor/tests/vectors/book.vectors.json`: 9 hand-checked cases asserted by the generator, 40 seeded random books). Walks follow FIFO node refs, jump between bitmap bits, and stop after `nodes.len()` steps on a corrupt or cyclic level. The crate stays engine-free: walks are generic over `WalkLevel`/`WalkNode`.
 
+- **Matching (S2.7).** The core is pure (`matching::Venue`, D-020).
+  - Native tests pass: all eight §2.2 worked examples to the base unit (including `mvault = locked + backing` after the mint and payouts summing to `mvault` under Up and void), one test per fill row, and the edges.
+  - The randomized harness runs 12 seeds × 2,500 operations with the §8.3 invariants checked after every one: 30,000 ops, ≈ 10,000 refused, ≈ 3,300 fills.
+  - Mutation check: a one-base-unit refund error and a missed `open_orders` decrement were each caught within 60 operations.
+  - `book/walk.rs` implements `WalkLevel`/`WalkNode` for the engine's `Level`/`OrderNode` (`walk_bids`/`walk_asks`); a native test walks a Book built by `place`, including the expiry and rested-age filters.
+
 ## Handoff
 
 - **Next step:** matching (four paths, order types, self-match, caps, eviction, funding) on the harness.
@@ -79,7 +85,7 @@
   - Anchor account validation (signer, owner/type, `init`, `#[account(zero)]`) runs before handler checks; tests assert the spec's handler codes, not Anchor's (D-019).
   - The IDL now lists Book/Ledger/Market/Series/GlobalConfig as accounts; Codama still decodes Book nodes and Ledger seats by hand from `events-accounts.md` §3.8–3.9 (2d).
   - A fresh worktree's cold `anchor build` takes ≈ 10.5 min; a first `cargo test` in `anchor/tests` ≈ 1.5 min.
-- **Engine must add** (state/book.rs, a few lines): `impl agari_common::book_walk::WalkLevel for Level { head }` and `impl WalkNode for OrderNode { lots, expire_ts, placed_slot, is_live = flags & NODE_FLAG_LIVE != 0, next }`, then build `BookSide { bits: &book.bid_bits / &book.ask_bits, levels: &book.bids / &book.asks, nodes }`. Regenerate vectors with `node anchor/tests/vectors/gen-book-vectors.mjs` whenever walk semantics change.
+- **Book walks over the engine (done S2.7):** `agari_events::book::{walk_bids, walk_asks}(&book, nodes)` give `agari_common::book_walk::BookSide` over the real Book. Regenerate vectors with `node anchor/tests/vectors/gen-book-vectors.mjs` whenever walk semantics change.
 - **Prints handlers** convert `agari_common::print::PrintError` 1:1 into `EventsError`, build `PythPolicy`/`RedStonePolicy`/`AttestedPolicy` from the version's `PrintPolicy`, and normalize with `print::normalize::normalize`.
 
 - **Earlier handoff (S2.1), done in S2.2/S2.3:** workspace, common grid, seeds.

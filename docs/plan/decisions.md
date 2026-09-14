@@ -194,6 +194,18 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** within plan r2 S2 (implementation of the frozen spec).
 
+### D-020 — S2 matching, cancel and set implementation choices
+- **Date / owner:** 2026-09-14 · S2 lane M (steps S2.7–S2.9)
+- **Evidence:** `anchor/programs/agari-events/src/{book,matching}/**`; native tests (the §2.2 worked examples, the eight fill rows, edges, and 30,000 randomized operations with the §8.3 invariants checked after each); LiteSVM `anchor/tests/events_orders.rs`; the planted refund and open-order mutations the harness caught (seed 1, ops 24 and 53).
+- **Rule:**
+  - **A pure core.** Matching, seats, funding, cancels and sets are functions over `&mut Book`, the node slice, `&mut Ledger`, the seat slice and `&mut Market` (`matching::Venue`), with no Anchor account types and no token I/O. Handlers bind accounts, call the core, then move tokens by the amounts it returns. The randomized harness drives exactly this code.
+  - **Seat hint `u16::MAX`.** An authority that already holds a seat gets `SeatMismatch` (it passes its index); the empty-seat scan covers `0..capacity`, the existing-owner scan `0..seats_used`.
+  - **Taker proceeds.** `cash_received` is credited before funding, so `use_credit` can spend it; `withdraw_proceeds` then sweeps the whole credit (§4.3).
+  - **Stop reason.** A PostOnly that rests reports `PostOnlyRested`; everything else reports the loop's reason.
+  - **Handles in the IDL.** Events and instruction args use the program's own `events::OrderHandle` (same layout as `agari_common::Handle`, which has no IDL build); `PlaceResult` return data keeps `agari_common::Handle`.
+- **User-visible:** none beyond the spec.
+- **Approval:** within plan r2 (spec-conformant implementation detail).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
