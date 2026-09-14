@@ -16,6 +16,8 @@ export interface TicketBlockerInput {
   /** Wallet spendable plus venue payout credit; null until the balance sheet has answered. */
   availableBase: bigint | null;
   stakeBase: bigint;
+  /** Funded beside the stake on this order: the seat deposit on a first order in the Window (useSeatDeposit). Absent = 0. */
+  depositBase?: bigint;
   decimals: number;
   quote: Reading<Quote | null> | null;
   quoting: boolean;
@@ -62,7 +64,7 @@ export function commonBlocker(i: TicketBlockerInput): BlockerKind | null {
   if (i.side === null) return "no-side";
   if (i.stakeBase === 0n) return "no-stake";
   if (belowMinStake(i.stakeBase, i.decimals)) return "below-min-stake";
-  if (i.availableBase !== null && i.stakeBase > i.availableBase) return "over-balance";
+  if (i.availableBase !== null && i.stakeBase + (i.depositBase ?? 0n) > i.availableBase) return "over-balance";
   return fundingBlocker(i.funding);
 }
 

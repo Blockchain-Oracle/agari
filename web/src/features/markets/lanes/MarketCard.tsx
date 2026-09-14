@@ -2,12 +2,11 @@
 
 import { phase } from "@agari/core/lifecycle";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { formatOracleRaw } from "@agari/core/units";
 import { Countdown } from "@/components/data";
 import { formatCadence, HERO_HEAD, LANE_CARD, MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { AssetDisc } from "../hero/asset-mark";
-import { ORACLE_SCALE } from "../hero/units";
+import { usdLine } from "../hero/units";
 import { useChartSeries } from "../hero/useChartSeries";
 import { useTopOfBook } from "../hero/useTopOfBook";
 import { CardSpark } from "./CardSpark";
@@ -20,9 +19,6 @@ interface MarketCardProps {
   /** Opens this Window's Room. The sheet is mounted by the screen, not the card. */
   onOpenRoom: (market: EventMarket) => void;
 }
-
-/** Whole dollars, grouped — the card's own scale, as the hero headline uses. */
-const usd0 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 
 const price = (value: number | null, hydrating: boolean): string =>
   value === null ? (hydrating ? LANE_CARD.priceLoading : HERO_HEAD.noPrice) : `${value}¢`;
@@ -93,20 +89,20 @@ export function MarketCard({ market, nowMs, selected, onSelect, onOpenRoom }: Ma
             </>
           ) : (
             <>
-              {HERO_HEAD.holdsAbove(market.asset)} {usd0(openingRaw)}?<span className="strike-dot" aria-hidden />
+              {HERO_HEAD.holdsAbove(market.asset)} {usdLine(openingRaw)}?<span className="strike-dot" aria-hidden />
             </>
           )}
         </div>
 
         <div className="mc-pricebar">
           <div className="px">
-            <span className="big">{latestRaw === null ? HERO_HEAD.noPrice : usd0(latestRaw)}</span>
+            <span className="big">{latestRaw === null ? HERO_HEAD.noPrice : usdLine(latestRaw)}</span>
             {/* Against the line this Window settles on, not a 24h figure: it is the
                 only comparison that decides anything here. */}
             {openingRaw !== null && latestRaw !== null && (
               <span className={cn("chg", latestRaw >= openingRaw ? "up" : "down")}>
                 {latestRaw >= openingRaw ? "+" : "−"}
-                {usd0(latestRaw >= openingRaw ? latestRaw - openingRaw : openingRaw - latestRaw)}
+                {usdLine(latestRaw >= openingRaw ? latestRaw - openingRaw : openingRaw - latestRaw, openingRaw)}
               </span>
             )}
           </div>

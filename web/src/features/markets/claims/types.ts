@@ -1,6 +1,10 @@
-import type { Address, ClaimKind, Diagnosis, MarketId, OutcomeIdx, Signature } from "@agari/core/types";
+import type { Address, ClaimKind, ClaimLeg, Diagnosis, MarketId, OutcomeIdx, Signature } from "@agari/core/types";
 
-/** One redemption = one leg = one wallet signature; a void row contributes two items (canon #11). */
+/**
+ * One redemption = one Window = one wallet signature. `user_redeem` pays a seat in full (partial redeem is
+ * PROGRAM-only, engine §8.4), so a void Window's two legs settle in the same transaction and are one item
+ * (first-call.md §6); Masayume redeemed per outcome token, one item per leg.
+ */
 export type ClaimItemStatus = "pending" | "claiming" | "confirmed" | "reverted" | "unknown";
 
 export interface ClaimItem {
@@ -10,8 +14,12 @@ export interface ClaimItem {
   kind: ClaimKind;
   asset: string;
   intervalSec: number;
+  /** Every paying leg the one signature redeems, in the row's order. */
+  legs: readonly ClaimLeg[];
+  /** The first leg's outcome and contracts: informational on a full redeem, carried for the port's request shape. */
   outcomeIdx: OutcomeIdx;
   amountRaw: bigint;
+  /** The legs' payouts together. */
   payoutBase: bigint;
   decimals: number;
   status: ClaimItemStatus;

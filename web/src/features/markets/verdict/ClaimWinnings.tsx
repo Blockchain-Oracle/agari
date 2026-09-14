@@ -3,15 +3,19 @@
 import { isOk } from "@agari/core/schemas";
 import type { MarketId, Verdict } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
 import { useSubmitter } from "@agari/markets/react";
 import { invalidateAfterWrite, useClaimables } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, Loader2, Trophy } from "lucide-react";
 import { useState } from "react";
+import { Hash } from "@/components/data";
 import { itemsFromRows } from "@/features/markets/claims/claim-run";
 import { redeemOne } from "@/features/markets/claims/useClaimAll";
+import { useRedemption } from "@/features/markets/claims/useRedemption";
 import { useVenue } from "@/features/markets/useVenue";
 import { diagnosisCopy, VERDICT_UI } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
 import "./claim-winnings.css";
 
@@ -27,8 +31,9 @@ interface ClaimWinningsProps {
  * that collects it; a loser sees "Not this time" with no false cheer. Claiming was a page here (`/claims`);
  * the reference never had one, and the page is gone.
  *
- * One factual difference from the reference: Yosuku's keeper pays winners automatically and this button
- * only hurries it; on DreamDEX redemption is a call the wallet signs, so the footnote says that instead.
+ * Agari's venue works like the reference's keeper again: after a 300 s claim grace the settler's
+ * `redeem_for` pays every seat (D-032), so this button hurries it. A Window paid that way says
+ * "Paid automatically" with the payout transaction; one the wallet claimed says so with its own.
  */
 export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps) {
   const { address } = useWalletSession();
@@ -42,6 +47,10 @@ export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps)
 
   const rows = claimables && isOk(claimables) ? claimables.value.filter((row) => row.marketId === marketId) : [];
   const items = itemsFromRows(rows);
+  const won = verdict.outcome !== "loss" && verdict.payoutBase > 0n;
+  // Only once the claimables have answered with nothing left for this Window is there a payout to trace.
+  const settledOut = won && claimables !== null && isOk(claimables) && items.length === 0;
+  const redemption = useRedemption(address, marketId, settledOut);
   const money = (base: bigint) => formatBaseUnits(base, verdict.decimals);
   const stake = verdict.costBasisBase ?? 0n;
   const profit = verdict.pnlBase > 0n ? verdict.pnlBase : 0n;
@@ -81,7 +90,7 @@ export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps)
       <div className="cw-win-body">
         <div className="cw-win-eyebrow">
           <Trophy className="h-4 w-4" />
-          <span>{collected ? VERDICT_UI.claim.claimed : VERDICT_UI.claim.youWon}</span>
+          <span>{!collected ? VERDICT_UI.claim.youWon : redemption?.byCrank ? VERDICT_UI.claim.paidAuto : VERDICT_UI.claim.claimed}</span>
         </div>
         <div className="cw-win-hero">
           <div>
@@ -109,9 +118,16 @@ export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps)
         </div>
         {error && <p className="cw-error">{error}</p>}
         {collected ? (
-          <div className="cw-paid">
-            <Check className="h-4 w-4" /> {VERDICT_UI.claim.paid}
-          </div>
+          <>
+            <div className="cw-paid">
+              <Check className="h-4 w-4" /> {redemption?.byCrank ? VERDICT_UI.claim.paidAuto : VERDICT_UI.claim.paid}
+            </div>
+            {redemption && (
+              <p className="cw-foot">
+                {VERDICT_UI.claim.paidTx} <Hash value={redemption.txHash} href={txUrl(redemption.txHash, webEnv.markets.cluster)} />
+              </p>
+            )}
+          </>
         ) : (
           <>
             <button type="button" onClick={() => void collect()} disabled={claiming || !submitter} className="cw-collect" data-cursor="hover">

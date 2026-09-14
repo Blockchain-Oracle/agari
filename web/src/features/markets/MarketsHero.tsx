@@ -8,6 +8,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { HeroChart } from "./hero/HeroChart";
 import type { LanesState } from "./lanes";
+import { useMarketSession } from "./session";
 import type { MarketsSelection } from "./useMarketsSelection";
 
 export interface MarketsHeroProps {
@@ -37,9 +38,11 @@ export interface MarketsHeroProps {
  * they get three different faces: still loading, actually broken, genuinely empty.
  */
 function HeroPlaceholder({ lanes }: { lanes: LanesState }) {
+  const session = useMarketSession();
   if (lanes.reading === null) return <LoadingState shape="chart" label="Loading live Windows" />;
   if (!isOk(lanes.reading)) return <ErrorState diagnosis={lanes.reading.error} retry={lanes.retry} />;
-  return <EmptyState why={MARKETS.noLiveWindows.why} />;
+  // A stock venue is empty every night and weekend: that is the session, not a fault, and it says when it ends.
+  return <EmptyState why={session && !session.open ? MARKETS.closedWindows(session.label).why : MARKETS.noLiveWindows.why} />;
 }
 
 export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTicket }: MarketsHeroProps) {

@@ -24,6 +24,8 @@ interface AccountGateProps {
   /** What the chosen source can put behind a bet; null until the balance sheet has answered. */
   availableBase: bigint | null;
   stakeBase: bigint;
+  /** The seat deposit this order also funds (0 when the wallet already sits in the Window). */
+  depositBase: bigint;
   decimals: number;
   symbol: string;
   balanceSource: "wallet" | "vault" | "private";
@@ -39,11 +41,12 @@ interface AccountGateProps {
  * Wallet / Trading Balance choice when a Trading Balance exists, and the tap-trading chip. The faucet
  * used to appear only at exactly zero and *replaced* the bet button; now it is one of the top-up's actions.
  */
-export function AccountGate({ session, availableBase, stakeBase, decimals, symbol, balanceSource, route }: AccountGateProps) {
+export function AccountGate({ session, availableBase, stakeBase, depositBase, decimals, symbol, balanceSource, route }: AccountGateProps) {
   const faucet = useFaucet();
   const connected = session.isConnected;
-  const short = connected && availableBase !== null && (availableBase === 0n || (stakeBase > 0n && stakeBase > availableBase));
-  const needBase = availableBase !== null && stakeBase > availableBase ? stakeBase - availableBase : null;
+  const requiredBase = stakeBase > 0n ? stakeBase + depositBase : 0n;
+  const short = connected && availableBase !== null && (availableBase === 0n || (stakeBase > 0n && requiredBase > availableBase));
+  const needBase = availableBase !== null && requiredBase > availableBase ? requiredBase - availableBase : null;
   const minting = faucet.busy;
   const walletBalance = balanceSource === "wallet";
   const balanceLabel = walletBalance ? "Wallet" : balanceSource === "private" ? "Private balance" : "Trading Balance";
@@ -62,7 +65,9 @@ export function AccountGate({ session, availableBase, stakeBase, decimals, symbo
           <p className="tk-gate-line">
             {TICKET.gate.holds(formatBaseUnits(availableBase ?? 0n, decimals), symbol, balanceLabel)}
             {walletBalance
-              ? needBase !== null ? ` ${TICKET.gate.need(formatBaseUnits(needBase, decimals), symbol)}` : ` ${TICKET.gate.empty}`
+              ? needBase !== null
+                ? ` ${depositBase > 0n ? TICKET.gate.needWithDeposit(formatBaseUnits(needBase, decimals), symbol, formatBaseUnits(depositBase, decimals)) : TICKET.gate.need(formatBaseUnits(needBase, decimals), symbol)}`
+                : ` ${TICKET.gate.empty}`
               : balanceSource === "private" ? " Fund and authorize your private balance on Portfolio before placing a private bet." : " Add funds to your Trading Balance on Portfolio, or switch to Wallet."}
           </p>
           {faucet.state.diagnosis && <p className="tk-gate-line">{diagnosisCopy(faucet.state.diagnosis.kind).headline}</p>}

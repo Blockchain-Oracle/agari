@@ -2,14 +2,14 @@
 
 import type { EventMarket } from "@agari/core/types";
 import { formatCadence } from "@agari/core/market";
-import { formatOracleRaw } from "@agari/core/units";
-import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 import { useCallback, useState, type ReactNode } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { MarketRoom } from "@/features/room";
 import { HERO_HEAD, SECTIONS } from "@/lib/copy";
+import { usdLine } from "./hero/units";
 import { CadenceLanes, useLanesState } from "./lanes";
 import { MarketsHero } from "./MarketsHero";
+import { MarketSessionChip } from "./session";
 import { useChainNowMs } from "./useChainNow";
 import { useMarketsSelection, type MarketsSelection } from "./useMarketsSelection";
 import { SenseiDock } from "@/features/sensei";
@@ -20,7 +20,7 @@ import { WordMarketBoard } from "./word-board";
 function roomCallLabel(market: EventMarket): string {
   const cadence = formatCadence(market.intervalSec);
   if (market.openingPriceRaw === null) return `${market.asset} · ${cadence}`;
-  return `${HERO_HEAD.holdsAbove(market.asset)} $${formatOracleRaw(market.openingPriceRaw, ORACLE_PRICE_SCALE, 0)}? · ${cadence}`;
+  return `${HERO_HEAD.holdsAbove(market.asset)} ${usdLine(market.openingPriceRaw)}? · ${cadence}`;
 }
 
 export interface MarketsScreenProps {
@@ -42,7 +42,7 @@ export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProp
   const venue = useVenue();
   const nowMs = useChainNowMs();
   const lanes = useLanesState(venue.venueId);
-  const { selection, setSelection } = useMarketsSelection(lanes.laneSet, lanes.activeLane, nowMs);
+  const { selection, setSelection } = useMarketsSelection(lanes.laneSet, lanes.activeLane, lanes.ticker, nowMs);
   // The open Room is held here, not inside the hero or a card — the reference's own
   // reasoning (markets/page.tsx L893–895): mounted at the page, a cadence switch
   // cannot leave it open on a Window the page is no longer showing.
@@ -58,7 +58,7 @@ export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProp
           {renderVerdict(selection)}
 
           <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.lanes.title}>
-            <SectionHeader index={SECTIONS.lanes.index} title={SECTIONS.lanes.title} />
+            <SectionHeader index={SECTIONS.lanes.index} title={SECTIONS.lanes.title} aside={<MarketSessionChip />} />
             <CadenceLanes
               state={lanes}
               boot={venue.boot}
@@ -73,7 +73,7 @@ export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProp
           {/* §02, where the reference puts it: the same live Windows, said in plain language. */}
           <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.words.title}>
             <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
-            <WordMarketBoard laneSet={lanes.laneSet} failure={lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure} nowMs={nowMs} />
+            <WordMarketBoard laneSet={lanes.laneSet} failure={lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure} ticker={lanes.ticker} nowMs={nowMs} />
           </section>
         </div>
       </div>

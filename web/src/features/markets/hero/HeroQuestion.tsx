@@ -1,8 +1,7 @@
 import { neededMove } from "@agari/core/market";
-import { formatOracleRaw } from "@agari/core/units";
 import { HERO, HERO_HEAD } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { ORACLE_SCALE } from "./units";
+import { usdLine } from "./units";
 
 interface HeroQuestionProps {
   asset: string;
@@ -10,9 +9,6 @@ interface HeroQuestionProps {
   openingRaw: bigint | null;
   currentRaw: bigint | null;
 }
-
-/** Whole dollars, grouped — the headline's own scale (Yosuku's `fmtUsd0`). */
-const usd0 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 
 /**
  * How far the live price sits from the line, said once, about UP.
@@ -28,7 +24,7 @@ function HeroDistance({ openingRaw, currentRaw }: { openingRaw: bigint; currentR
   return (
     <div className="mh-distance">
       <span className={cn("mh-distance-value", winning ? "above" : "below")}>
-        {winning ? `${usd0(magnitude)} ${HERO_HEAD.aboveLine}` : `${HERO_HEAD.needs} +${usd0(magnitude)} ${HERO_HEAD.needsForUp}`}
+        {winning ? `${usdLine(magnitude, openingRaw)} ${HERO_HEAD.aboveLine}` : `${HERO_HEAD.needs} +${usdLine(magnitude, openingRaw)} ${HERO_HEAD.needsForUp}`}
       </span>
     </div>
   );
@@ -49,7 +45,7 @@ export function HeroQuestion({ asset, openingRaw, currentRaw }: HeroQuestionProp
           HERO_HEAD.pair(asset)
         ) : (
           <>
-            {HERO_HEAD.holdsAbove(asset)} <span className="mh-question-line">{usd0(openingRaw)}</span>?
+            {HERO_HEAD.holdsAbove(asset)} <span className="mh-question-line">{usdLine(openingRaw)}</span>?
           </>
         )}
       </h2>

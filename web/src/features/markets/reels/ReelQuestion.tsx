@@ -4,7 +4,7 @@ import { neededMove } from "@agari/core/market";
 import { formatOracleRaw } from "@agari/core/units";
 import { REELS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { ORACLE_SCALE } from "../hero/units";
+import { ORACLE_SCALE, usdLine } from "../hero/units";
 
 interface ReelQuestionProps {
   asset: string;
@@ -13,8 +13,6 @@ interface ReelQuestionProps {
   currentRaw: bigint | null;
 }
 
-/** Whole dollars, grouped — the reference's `usd0`. */
-const usd0 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 /** Two decimals — the reference's `usd2`, for the live price under the question. */
 const usd2 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 2)}`;
 
@@ -32,7 +30,7 @@ function ReelDistance({ openingRaw, currentRaw }: { openingRaw: bigint; currentR
   return (
     <span className={cn("reel-distance", above ? "above" : "below")}>
       {above ? "+" : "−"}
-      {usd0(magnitude)} {REELS.versusLine}
+      {usdLine(magnitude, openingRaw)} {REELS.versusLine}
     </span>
   );
 }
@@ -53,7 +51,7 @@ export function ReelQuestion({ asset, openingRaw, currentRaw }: ReelQuestionProp
         {openingRaw === null ? (
           <span className="reel-question-pending">{REELS.noLine}</span>
         ) : (
-          <span className="reel-question-line">{usd0(openingRaw)}</span>
+          <span className="reel-question-line">{usdLine(openingRaw)}</span>
         )}
         <span className="reel-question-mark">?</span>
       </h2>

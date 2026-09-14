@@ -4,4 +4,8 @@ export * from "./CardSpark";
 export * from "./LaneRows";
 export * from "./LaneTabs";
 export * from "./MarketCard";
+export * from "./PausedCard";
+export * from "./TickerLane";
+export * from "./TickerPicker";
 export * from "./useLanes";
+export * from "./useTickerPin";

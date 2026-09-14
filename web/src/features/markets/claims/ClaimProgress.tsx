@@ -1,11 +1,11 @@
 import { formatCadence } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import { Hash, Money } from "@/components/data";
 import { ErrorState } from "@/components/states";
 import { CLAIM, diagnosisCopy } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
-import { progressCounts } from "./claim-run";
+import { legWords, progressCounts } from "./claim-run";
 import type { ClaimItem, ClaimRun } from "./types";
 
 interface ClaimProgressProps {
@@ -26,13 +26,13 @@ function ItemLine({ item }: { item: ClaimItem }) {
     <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 type-caption text-ink-secondary">
       <span className="flex items-baseline gap-2">
         <span className="text-ink">
-          {item.asset} · {formatCadence(item.intervalSec)} · {CLAIM.leg[OUTCOME_TO_SIDE[item.outcomeIdx]]}
+          {item.asset} · {formatCadence(item.intervalSec)} · {legWords(item)}
         </span>
         <Money value={item.payoutBase} decimals={item.decimals} className="text-ink" />
       </span>
       <span className="flex items-baseline gap-2">
         <span className={cn(item.status === "claiming" && "text-accent", item.status === "confirmed" && "text-ink")}>{CLAIM.status[item.status]}</span>
-        {item.txHash && <Hash value={item.txHash} href={txUrl(item.txHash)} className="text-ink" />}
+        {item.txHash && <Hash value={item.txHash} href={txUrl(item.txHash, webEnv.markets.cluster)} className="text-ink" />}
         {failure && <span className="text-warning">{failure}</span>}
       </span>
     </li>

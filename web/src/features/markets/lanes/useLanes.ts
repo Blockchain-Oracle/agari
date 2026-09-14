@@ -2,12 +2,14 @@
 
 import { MARKETS_POLL_MS } from "@agari/core/constants";
 import { isOk, type Reading } from "@agari/core/schemas";
+import type { TickerSymbol } from "@agari/core/market";
 import type { Address, Lane, LaneSet } from "@agari/core/types";
 import { laneNextStart } from "@agari/markets";
 import { keys, useLanes, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { numberCodec, usePersistedState } from "@/lib/persisted";
+import { useTickerPin } from "./useTickerPin";
 
 const LANE_KEY = "agari.lane";
 const NO_PIN = 0;
@@ -21,6 +23,9 @@ export interface LanesState {
   /** The pinned cadence has no live Window right now — it stays selected and shows "Between rounds" instead of jumping. */
   pinnedMissing: boolean;
   pin: (intervalSec: number) => void;
+  /** The pinned ticker (`agari.ticker`); null lists every ticker. Lane pins stay keyed by cadence alone (S6 adds basis). */
+  ticker: TickerSymbol | null;
+  pinTicker: (ticker: TickerSymbol | null) => void;
   /** Refetches the lane list — the one action a failed lane read should offer. */
   retry: () => void;
 }
@@ -29,6 +34,7 @@ export function useLanesState(venueId: Address | null): LanesState {
   const reading = useLanes(venueId);
   const laneSet = reading && isOk(reading) ? reading.value : null;
   const [pinned, pin] = usePersistedState(LANE_KEY, NO_PIN, numberCodec);
+  const [ticker, pinTicker] = useTickerPin();
   const queryClient = useQueryClient();
   const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: keys.lanes(venueId) }), [queryClient, venueId]);
 
@@ -44,6 +50,8 @@ export function useLanesState(venueId: Address | null): LanesState {
     activeIntervalSec: pinnedMissing ? pinned : (activeLane?.intervalSec ?? null),
     pinnedMissing,
     pin,
+    ticker,
+    pinTicker,
     retry,
   };
 }

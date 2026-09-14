@@ -1,0 +1,62 @@
+/* The market-session chip. No Masayume counterpart exists (crypto never closes), so it is built from
+ * the reference's own quiet meta language rather than a new one: the `.cadence-note` type
+ * (yosuku/part-06.css — mono 10px, 0.16em, uppercase, gray-600) with the `.clock-dot` beside it, and
+ * the `.live-pill` pulse (`pulseDot`) only while the session is open. Gray and white tokens flip with
+ * the theme (part-13), so one set of rules serves both. */
+
+.mks-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--gray-500);
+}
+
+.mks-chip-dot {
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--gray-600);
+}
+
+.mks-chip-state {
+  color: var(--gray-400);
+}
+
+.mks-chip[data-state="open"] .mks-chip-dot {
+  background: var(--vermilion);
+  animation: pulseDot 1.6s var(--ease) infinite;
+}
+
+.mks-chip[data-state="open"] .mks-chip-state {
+  color: var(--vermilion);
+}
+
+/* In the hero head the chip trails the cadence tabs at their own 9px scale, so the row stays one voice. */
+.mh-asset-row .mks-chip {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+}
+
+/* A phone keeps Masayume's hero head as it was: the chip stays in the lanes header below, and there
+   the dot carries open or closed, so the label fits beside "Live windows" (the aria-label keeps the word). */
+@media (max-width: 639px) {
+  .mh-asset-row .mks-chip {
+    display: none;
+  }
+  .mks-chip-state,
+  .mks-chip-sep {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mks-chip[data-state="open"] .mks-chip-dot {
+    animation: none;
+  }
+}
