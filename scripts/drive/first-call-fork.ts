@@ -142,7 +142,7 @@ export async function forkDrive(d: Drive) {
   const open = await journal.listUnresolved(user.address as never);
   check(open.length === 1 && open[0]!.state === "sent" && !!open[0]!.txHash && open[0]!.lastValidBlockHeight !== undefined, `E journal holds one sent record with signature and lastValidBlockHeight`);
   const counting = hookedRpc();
-  const recovered = await recoverUnresolved(journal, user.address as never, chainReconcilerWith({ rpc: counting.rpc, evidence: indexEvidence(undefined, counting.rpc), nowMs: Date.now }), Date.now());
+  const recovered = await recoverUnresolved(journal, user.address as never, chainReconcilerWith({ rpc: counting.rpc, evidence: indexEvidence(counting.rpc), nowMs: Date.now }), Date.now());
   check(recovered.length === 1 && recovered[0]!.outcome === "landed", `E reconciled: ${recovered[0]?.outcome}`);
   check(counting.counts.send === 0 && counting.counts.simulate === 0, "E nothing re-simulated or re-sent during recovery");
   after = await hold(user);
