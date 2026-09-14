@@ -249,6 +249,36 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** stage-owner review within plan r2.
 
+### D-015 — `@agari/markets` is an honest not-deployed stub until S4
+- **Date / owner:** 2026-09-14 · S1 1b owner
+- **Evidence:** `docs/plan/specs/markets-surface.md` (every consumer import at `ef188d3`; 186 of 215 symbols compile against the stub); markets + core + ops typecheck; 982 tests; the removed EVM tree (≈ 10k lines: DreamDEX SDK, viem, Solidity ABIs).
+- **Rule:**
+  - **Reads.** A chain read returns `err(diagnosis("not-deployed", …))`, never a fabricated market, price, balance or clock. `nowMs()` is device time.
+  - **Known-without-chain answers keep Masayume's shapes:** no vault → `null` snapshot and zero holdings; settlement fee 0 (D-012); a product that isn't deployed → `null` state, empty lists, zero balances; a product quote or preview → its own `*_NOT_DEPLOYED` reason.
+  - **Writes.** Every write refuses before anything is journaled or signed: the submitter's lanes, `submit*Open`, `submitStrategyTx`, `openPrivateBet`. Plain-promise writes (`sendArenaIntent`, `getVaultGrant`, `readPoolTop`, `distributeSeasonPrizes`, faucet chain steps) throw the not-deployed reading.
+  - **Boot facts.** A read that needs a failed boot fact now resolves to that fact's error (was: null forever). Product reads declare `needs: []` because their first branch is the local deployment check, so `CapabilityPending` renders instead of an error.
+  - **Names.** A consumer symbol is kept when its concept exists on Solana (types reshaped per D-010…D-012) and removed when it's EVM-only (gas/wei, EIP-712/2771, ERC-6909 outcome ids, DreamDEX addresses, viem clients). The surface doc names each removal's owning stage.
+  - **Signers.** `SubmitterSession` signs with `{ wallet: WalletSession }` (D-014) or `{ secretKey }`, a 64-byte Solana keypair whose address is its last 32 bytes (`parseSecretKey` accepts the CLI JSON array or base58). Ops role keys use the same format. `session.contracts` = `{ signer, deployment }`.
+  - **Recovery.** Solana has no account nonce: recovery keys on the signature plus `readRecoveryCursor().fromSlot`. The strategy-attempt row stores `nonce: 0` until S9 reshapes it; `XReceipt.expectedNonce` is null.
+  - **Fees.** `submitter.checkGas(lane)` keeps its name (fee sufficiency in lamports, `FEE_RESERVE_LAMPORTS`).
+  - Masayume's Shannon spikes (`scripts/spike`, `services/ops/src/spike`) and season tools are deleted; S12 rebuilds the season tools.
+- **User-visible:** every chain surface shows "not deployed" states until the engine and adapter land.
+- **Approval:** within plan r2 S1 ("every route renders against a stub adapter returning honest unavailable Readings").
+
+### D-016 — Invariant rules for the Solana boundary
+- **Date / owner:** 2026-09-14 · S1 1b owner
+- **Evidence:** `scripts/invariants/{rules.mjs,lib/chain-rules.mjs}`; each new rule was shown to fire on a planted violation (EVM import, `@solana/*` outside markets, web3.js 1 outside `prices/legacy`, IDL `destination`/`recipient`, `declare_id!` ≠ Anchor.toml, stale allowlist entry), then reverted.
+- **Rule:**
+  - **Added:**
+    - `no-evm`: imports and manifests, with a shrinking `no-evm.allow.json` (35 entries at 1b: the 32 web files + 3 web deps). A stale entry fails; the S1 gate requires the file empty.
+    - `kit-import-boundary`: `web/src/providers` is exempt for the Privy island.
+    - `idl-no-destination`: AD-5 on `anchor/target/idl` and `packages/clients` IDLs; exceptions go in `idl-destination.allow.json` with a reason.
+    - `program-id-drift`: `declare_id!` vs Anchor.toml `[programs.*]` vs `addresses.devnet.json`.
+  - **Changed:** `write-boundary` now also bans `sendAndConfirmTransaction`/`signAndSendTransaction` outside markets, with `web/src/providers` exempt (the island wraps the wallet's own send for markets).
+  - **Removed:** `sdk-import-boundary`, `sdk-version-pin`, `address-drift`, `generated-abi`, `vault-abi-shape` (the DreamDEX SDK and Solidity ABIs are gone); `banned-wagmi-hooks` (subsumed by `no-evm`); `order-lane-ioc`, `status-gate-enum`, `expiry-from-headroom` (they asserted the EVM order-lane files; S4 re-adds them against the Solana lane). `file-length` already covered `.rs`.
+- **User-visible:** none.
+- **Approval:** within plan r2 S1 (Invariants deliverable).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
