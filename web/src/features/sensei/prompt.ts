@@ -1,5 +1,13 @@
 import type { SenseiRequest } from "./protocol";
 
+const WHOLE_DOLLARS_FROM = 1_000;
+
+/** The snapshot's dollars as the model reads them, on the display rule: "$1,234" from $1,000 up, "$251.37" below. */
+function usdText(usd: number): string {
+  const digits = usd < WHOLE_DOLLARS_FROM ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 };
+  return `$${usd.toLocaleString("en-US", digits)}`;
+}
+
 /**
  * Sensei's voice and rules — ported from `reference/yosuku/app/api/sensei/route.ts` L42–58.
  *
@@ -46,12 +54,12 @@ export function senseiTurnContext({ snapshot, restless }: SenseiRequest): string
   }
 
   const prices = Object.entries(snapshot.priceUsd)
-    .map(([asset, price]) => `${asset} $${price.toLocaleString("en-US")}`)
+    .map(([asset, price]) => `${asset} ${usdText(price)}`)
     .join(", ");
   lines.push(`Live prices, just read: ${prices || "none available"}.`);
   lines.push("Live Windows, just read:");
   for (const market of snapshot.markets) {
-    const line = market.lineUsd === null ? "no opening print yet" : `line $${market.lineUsd.toLocaleString("en-US")}`;
+    const line = market.lineUsd === null ? "no opening print yet" : `line ${usdText(market.lineUsd)}`;
     const up = market.upCents === null ? "UP unquoted" : `UP ${market.upCents}c`;
     const down = market.downCents === null ? "DOWN unquoted" : `DOWN ${market.downCents}c`;
     lines.push(`- ${market.asset} ${market.cadence}, closes in ${market.minsToClose} min, ${line}, ${up}, ${down}`);

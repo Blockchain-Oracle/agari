@@ -1,11 +1,11 @@
 "use client";
 
 import { formatCadence } from "@agari/core/copy";
-import { formatOracleRaw, secToMs } from "@agari/core/units";
+import { secToMs } from "@agari/core/units";
 import { addressUrl, marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { memo, type CSSProperties } from "react";
-import { ORACLE_SCALE } from "@/features/markets/hero/units";
+import { usdLine } from "@/features/markets/hero/units";
 import { timeAgo } from "@/features/markets/history/time-ago";
 import { addressHue } from "@/lib/address-hue";
 import { TAKES } from "./copy";
@@ -15,7 +15,7 @@ const shortAddress = (address: string): string => (address.length > 10 ? `${addr
 
 /** The call, from the stored fields: `▲ UP · BTC over $64,316` (reference `callParts`, L27–34). */
 function callParts(take: FeedTake): { glyph: string; dir: string; band: string } {
-  const line = take.lineRaw === null ? null : `$${formatOracleRaw(BigInt(take.lineRaw), ORACLE_SCALE, 0)}`;
+  const line = take.lineRaw === null ? null : usdLine(BigInt(take.lineRaw));
   const band = line === null ? TAKES.noLine(take.asset) : take.side === "up" ? TAKES.over(take.asset, line) : TAKES.under(take.asset, line);
   return take.side === "up" ? { glyph: "▲", dir: "UP", band } : { glyph: "▼", dir: "DOWN", band };
 }

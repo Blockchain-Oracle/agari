@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { type ChartPoint, useChartSeries } from "../markets/hero/useChartSeries";
 import { useTopOfBook } from "../markets/hero/useTopOfBook";
 import type { SenseiSnapshot } from "./protocol";
-import { oracleToWholeUsd } from "./units";
+import { oracleToUsd } from "./units";
 
 /** The reference reads the four nearest markets (`SenseiDock.tsx` L138). */
 const NEAREST = 4;
@@ -78,7 +78,7 @@ export function useSenseiSnapshot(laneSet: LaneSet | null, nowMs: number): Sense
   const snapshot = useMemo<SenseiSnapshot | null>(() => {
     if (nearestMarkets.length === 0 || nowMs === 0) return null;
     const priceUsd: Record<string, number> = {};
-    const latest = oracleToWholeUsd(latestRaw);
+    const latest = oracleToUsd(latestRaw);
     if (nearest !== null && latest !== null) priceUsd[nearest.asset] = latest;
 
     return {
@@ -87,7 +87,7 @@ export function useSenseiSnapshot(laneSet: LaneSet | null, nowMs: number): Sense
         asset: market.asset,
         cadence: formatCadence(market.intervalSec),
         minsToClose: Math.max(0, Math.round((market.expirySec * 1000 - nowMs) / 60_000)),
-        lineUsd: oracleToWholeUsd(market.openingPriceRaw),
+        lineUsd: oracleToUsd(market.openingPriceRaw),
         upCents: books[index]?.upCents ?? null,
         downCents: books[index]?.downCents ?? null,
       })),

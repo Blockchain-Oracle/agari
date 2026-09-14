@@ -16,7 +16,7 @@ export const senseiMarketSchema = z.object({
   asset: z.string().max(16),
   cadence: z.string().max(8),
   minsToClose: z.number().int().min(0).max(100_000),
-  /** The opening print this Window settles against, in whole dollars. */
+  /** The opening print this Window settles against, in dollars: whole from $1,000 up, cents below. */
   lineUsd: z.number().nullable(),
   /** Cents to buy $1 on each side, top of book. Null when nothing rests there. */
   upCents: z.number().int().min(0).max(100).nullable(),
