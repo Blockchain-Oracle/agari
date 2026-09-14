@@ -205,7 +205,8 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
     if (plan.kind === "open") lanes[seriesKey(s)] = await open(state, s, clock, notes);
     else lanes[seriesKey(s)] = plan.kind === "wait" && current ? current : plan.state;
     if ((plan.kind === "wait" || plan.kind === "paused") && plan.wakeSec < wakeSec) wakeSec = plan.wakeSec;
-    for (const b of bound) if (b.series.address === s.address) wakeSec = Math.min(wakeSec, Math.max(Number(b.market.data.lockAt), nowSec + 2));
+    // Wake at the next lock so the Book recycles promptly; an already-locked Book that failed waits for the normal cadence.
+    for (const b of bound) if (b.series.address === s.address && Number(b.market.data.lockAt) > nowSec) wakeSec = Math.min(wakeSec, Number(b.market.data.lockAt));
   }
   const counts = Object.values(lanes).reduce<Record<string, number>>((acc, v) => ((acc[v.split(/[: #]/)[0]!] = (acc[v.split(/[: #]/)[0]!] ?? 0) + 1), acc), {});
   const summary = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(", ");
