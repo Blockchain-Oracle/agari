@@ -194,11 +194,11 @@ export const NAV_ITEMS = {
     id: "download",
     name: "Download",
     href: "/download",
-    description: "Install Masayume as a web app.",
+    description: "Install Agari as a web app.",
     icon: Download,
   },
   demo: { id: "demo", name: "Demo", href: "/demo", description: "Walk through the complete product story.", icon: Clapperboard },
-  pitch: { id: "pitch", name: "Pitch", href: "/pitch", description: "Read the concise Masayume thesis.", icon: Presentation },
+  pitch: { id: "pitch", name: "Pitch", href: "/pitch", description: "Read the concise Agari thesis.", icon: Presentation },
   xRecovery: {
     id: "x-recovery",
     name: "X recovery",

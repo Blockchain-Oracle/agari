@@ -23,8 +23,10 @@ export interface WalletShellState {
 }
 
 export interface WalletShellActions {
-  /** Opens the wallet picker. */
+  /** Opens the connect modal. */
   openPicker(): void;
+  /** Opens the account modal for the connected wallet (Masayume's RainbowKit `openAccountModal`). */
+  openAccount(): void;
   disconnect(): Promise<void>;
 }
 
@@ -35,6 +37,7 @@ export const DISCONNECTED: WalletShellState = { status: "restoring", connecting:
 export const WalletShellContext = createContext<WalletShell>({
   ...DISCONNECTED,
   openPicker: () => undefined,
+  openAccount: () => undefined,
   disconnect: async () => undefined,
 });
 

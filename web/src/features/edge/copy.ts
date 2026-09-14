@@ -42,7 +42,7 @@ export const EDGE = {
     chartLabel: (net: string, settled: number) => `Cumulative result ${net} across ${settled} settled rounds`,
     firstClose: "FIRST CLOSE",
     latestClose: "LATEST CLOSE",
-    readoutLabel: "Masayume readout",
+    readoutLabel: "Agari readout",
     readoutFoot: "Patterns become more useful with a larger sample. This is a description of your record, not a promise about the next round.",
     readout: {
       moreRounds: (needed: number) => `${needed} more settled ${needed === 1 ? "round" : "rounds"} will reveal your first useful pattern.`,

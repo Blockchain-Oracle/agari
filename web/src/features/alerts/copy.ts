@@ -17,8 +17,8 @@ export const ALERTS = {
   remove: "Remove alert",
   /** Where an alert actually fires — a browser-side evaluator, so only while a tab is open. */
   foot: {
-    on: "Fires while Masayume is open in a tab",
-    off: "Browser notifications are off — alerts show here as a toast while Masayume is open",
+    on: "Fires while Agari is open in a tab",
+    off: "Browser notifications are off — alerts show here as a toast while Agari is open",
   },
   /** The notification and toast when a target is crossed. */
   fired: {

@@ -49,6 +49,13 @@ The ten MP3 effects in [`web/public/sounds`](web/public/sounds) originate from *
 
 The original filenames and encoding information are recorded in [`web/public/sounds/SOURCES.md`](web/public/sounds/SOURCES.md). These original-author terms are separate from the license status of the Flicky repository in which identical copies also appear.
 
+## Wallet modals
+
+Agari's connect and account modals (`web/src/providers/wallet/`) replicate the RainbowKit 2.2.11 modals that Masayume shipped, without the package:
+
+- **RainbowKit** ([rainbow-me/rainbowkit](https://github.com/rainbow-me/rainbowkit), MIT, Copyright (c) 2024 Rainbow): the close, back, copy, copied and disconnect glyph paths, the spinner outline, the emoji avatar palette, and the two "What is a Wallet?" illustrations (`web/public/wallet/assets.svg`, `login.svg`). Its English strings are reused with "Ethereum" replaced by "Solana".
+- **Solana Wallet Adapter** ([anza-xyz/wallet-adapter](https://github.com/anza-xyz/wallet-adapter), Apache-2.0): the Phantom, Solflare and Backpack icons (`web/public/wallet/phantom.svg`, `solflare.svg`, `backpack.png`), taken from the adapters' `icon` data. The names and marks belong to those wallets and identify them only.
+
 ## Agent portraits and packaged libraries
 
 Agent portraits use **Notionists by Zoish**, remixed through DiceBear. [The design is CC0 1.0](https://www.dicebear.com/styles/notionists/); the installed DiceBear code carries its own MIT license and copyright notice. The installed `@dicebear/notionists` package's `LICENSE` distinguishes design and code explicitly.

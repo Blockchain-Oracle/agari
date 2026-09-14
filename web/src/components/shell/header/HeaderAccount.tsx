@@ -40,16 +40,11 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
     );
   }
 
+  // As in the reference, the header control stays "Connect" while a connection is in flight: the modal shows progress.
   if (!session.isConnected || !session.address) {
     return (
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={session.connect}
-        disabled={session.connecting}
-        data-cursor="hover"
-      >
-        {session.connecting ? CONNECT.connecting : CONNECT.connect}
+      <button type="button" className="btn btn-primary" onClick={session.connect} data-cursor="hover">
+        {CONNECT.connect}
       </button>
     );
   }

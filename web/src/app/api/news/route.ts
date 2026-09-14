@@ -66,7 +66,7 @@ export async function GET() {
       FEEDS.map(async ({ url, source }) => {
         try {
           const res = await fetch(url, {
-            headers: { "User-Agent": "MasayumeNewsBot/1.0" },
+            headers: { "User-Agent": "AgariNewsBot/1.0" },
             next: { revalidate: REVALIDATE_SEC },
           });
           if (!res.ok) return [];

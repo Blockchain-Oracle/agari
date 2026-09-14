@@ -14,7 +14,7 @@ export const EARN = {
     live: "Live · maker vault",
     paused: "Paused · maker vault",
     noMaker: "No maker key · quotes off",
-    brand: "Masayume MM",
+    brand: "Agari MM",
     perShare: "/ share",
     sinceLaunch: "Up from 1.0000 at launch",
     belowLaunch: "Below 1.0000 — the vault is carrying a loss",

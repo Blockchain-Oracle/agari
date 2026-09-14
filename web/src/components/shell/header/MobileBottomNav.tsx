@@ -41,10 +41,10 @@ export function MobileBottomNav() {
       <SheetContent side="right" className="mobile-nav-drawer" overlayClassName="mobile-nav-overlay">
         <SheetHeader className="mobile-nav-header">
           <span className="mobile-nav-kicker">Navigate</span>
-          <SheetTitle>Everything in Masayume</SheetTitle>
+          <SheetTitle>Everything in Agari</SheetTitle>
           <SheetDescription>Build, trade, verify, or learn—every destination has one home.</SheetDescription>
         </SheetHeader>
-        <nav className="mobile-nav-groups" aria-label="All Masayume destinations">
+        <nav className="mobile-nav-groups" aria-label="All Agari destinations">
           {MOBILE_DRAWER_SECTIONS.map((section) => (
             <section className="mobile-nav-group" key={section.id} aria-labelledby={`mobile-nav-${section.id}`}>
               <div className="mobile-nav-group-title">
