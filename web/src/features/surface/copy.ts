@@ -8,12 +8,12 @@ import { HERO } from "@/lib/copy";
  * the term structure across the asset's live expiries. The words below say what the figures are.
  */
 export const SURFACE = {
-  crumbRoot: "Masayume",
+  crumbRoot: "Agari",
   crumb: "Surface",
   title: "Market Surface",
   intro: {
-    lead: "Every Masayume Window is priced by a ",
-    em: "live order book on DreamDEX",
+    lead: "Every Agari Window is priced by a ",
+    em: "live order book on Solana",
     rest: " — resting bids and asks, not a volatility model. The ticket uses one number, the top of that book; here you can read the whole structure back: how deep each side is, what a bigger stake would really pay, and how every live expiry of the asset is priced right now. Every figure is the chain's own book; nothing is estimated.",
   },
   chips: {

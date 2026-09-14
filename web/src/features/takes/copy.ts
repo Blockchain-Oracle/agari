@@ -28,7 +28,7 @@ export const TAKES = {
     title: "Post a take",
     close: "Close",
     /** The reference: "Your words go on Walrus (free) · your call, on-chain." */
-    where: "Your words are stored by Masayume · your call, signed by your wallet.",
+    where: "Your words are stored by Agari · your call, signed by your wallet.",
     up: "▲ Up",
     down: "▼ Down",
     range: "◆ Range",

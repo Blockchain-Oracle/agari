@@ -85,7 +85,7 @@ export const PRIVATE = {
     open: "open",
     settled: "settled",
     credited: "credited",
-    foot: "Keep your backup somewhere safe. Nobody at Masayume can rebuild these for you, which is the same reason nobody there can read them.",
+    foot: "Keep your backup somewhere safe. Nobody at Agari can rebuild these for you, which is the same reason nobody there can read them.",
     fileName: (date: string) => `agari-private-claims-${date}.json`,
     just: "just now",
     minutes: (m: number) => `${m}m ago`,

@@ -93,7 +93,7 @@ export const STRATEGIES = {
     show: (n: number) => `Show strategies · ${n}`,
     hide: "Hide strategies",
     reading: "reading the chain…",
-    ledger: "Masayume Ledger",
+    ledger: "Agari Ledger",
     noneTitle: "No strategies published yet",
     noTab: (tab: string) => `No strategies match “${tab}”`,
     noneBody: "Strategies appear here when their creators publish them. Review the runner, history, fee and hard risk caps before copying.",
@@ -133,7 +133,7 @@ export const STRATEGIES = {
     daily: "Most per day",
     feeLabel: "Subscription fee",
     hosting: {
-      house: ["Recommended", "Let Masayume run it", "Masayume runs it for you, hands-off. Your caps live in the vault contract: it can trade copiers' funds, never take them."],
+      house: ["Recommended", "Let Agari run it", "Agari runs it for you, hands-off. Your caps live in the vault contract: it can trade copiers' funds, never take them."],
       self: ["Advanced", "Run your own bot", "You host the agent and hold its key. Register its wallet; it copies under the same limits enforced on-chain."],
     },
     agentWallet: "Agent wallet",
@@ -245,7 +245,7 @@ export const STRATEGIES = {
 
 export const AGENTS = {
   title: "Agents",
-  crumb: { root: "Masayume", here: "Agents" },
+  crumb: { root: "Agari", here: "Agents" },
   headline: "Agent Leaderboard",
   intro:
     "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects on-chain copy-trades to date, read straight from the chain and the runner's receipts.",

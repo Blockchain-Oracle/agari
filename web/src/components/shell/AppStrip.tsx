@@ -68,7 +68,7 @@ export default function AppStrip() {
   if (isIslandRoute(pathname)) return null;
 
   return (
-    <div className={`appstrip ${shown ? "is-in" : ""}`} role="region" aria-label="Install Masayume">
+    <div className={`appstrip ${shown ? "is-in" : ""}`} role="region" aria-label={`Install ${BRAND.name}`}>
       <Link className="appstrip-msg" href="/download" data-cursor="hover">
         {/* A phone, not chevrons — the strip is about installing, so the mark is the thing
             itself. The pulse lives on the screen fill so it reads as a device waking up. */}

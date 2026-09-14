@@ -40,7 +40,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     title: "Your wallet signs",
     description:
-      "Sign in with email or connect a Solana wallet, then choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself.",
+      "Connect any Solana wallet and choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself.",
   },
   {
     title: "Where your money sits",
@@ -61,6 +61,6 @@ export const TUTORIAL_UI = {
   done: "Get started",
   lastStep: "Last step",
   connectTitle: "Connect to start trading",
-  connectNote: "Email sign-in or any Solana wallet. Devnet, so these are test funds — and you sign every transaction yourself.",
+  connectNote: "Any Solana wallet. Devnet, so these are test funds — and you sign every transaction yourself.",
   progress: (step: number, total: number) => `Step ${step} of ${total}`,
 } as const;
