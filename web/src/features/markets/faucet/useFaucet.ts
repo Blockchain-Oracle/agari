@@ -1,16 +1,15 @@
 "use client";
 
 import { FAUCET_UNITS, FEE_RESERVE_LAMPORTS } from "@agari/core/constants";
-import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
+import type { FaucetClaimView, FaucetStatus, TusdcFaucetClaimView } from "@agari/core/faucet";
 import type { WritePhase } from "@agari/core/ports";
 import type { Diagnosis, Signature } from "@agari/core/types";
-import { oneUnit } from "@agari/core/units";
-import { collateralOrNull, loadCollateral } from "@agari/markets";
+import { collateralOrNull } from "@agari/markets";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { announceCredit } from "@/features/funding/credited";
-import { FUNDING_STAGE_LABEL, readGasStatus, requestGas, type FundingStage } from "@/features/funding/gas-client";
+import { FUNDING_STAGE_LABEL, PendingClaimError, fundsRequest, readGasStatus, type FundingStage } from "@/features/funding/gas-client";
 import { FAUCET } from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
@@ -24,9 +23,12 @@ export interface FaucetState {
   stage: FundingStage;
   error: string | null;
   gasClaim: FaucetClaimView | null;
+  /** The server-sent tUSDC mint of this run (D-034). */
+  mintClaim: TusdcFaucetClaimView | null;
 }
-const IDLE: FaucetState = { phase: "composing", diagnosis: null, txHash: null, gasShort: false, checkingGas: false, stage: "idle", error: null, gasClaim: null };
+const IDLE: FaucetState = { phase: "composing", diagnosis: null, txHash: null, gasShort: false, checkingGas: false, stage: "idle", error: null, gasClaim: null, mintClaim: null };
 const running = new Set<string>();
+const rejected = (error: unknown) => error instanceof Error && /reject|denied|cancel/i.test(error.message);
 
 export function useFaucet() {
   const submitter = useSubmitter();
@@ -54,6 +56,7 @@ export function useFaucet() {
     } finally { clearTimeout(timer); if (currentBinding.current === binding) setState((s) => ({ ...s, checkingGas: false })); }
   }, [submitter, binding]);
 
+  /** One run: a free signature, the SOL top-up when eligible, then the server-sent tUSDC mint. No transaction popup. */
   const mint = useCallback(async () => {
     if (!address || !wallet.isRightChain || wallet.address !== address || running.has(address)) return;
     if (!submitter) { setState((s) => ({ ...s, error: "Your wallet connection is still getting ready. Please retry." })); return; }
@@ -71,56 +74,56 @@ export function useFaucet() {
       if (current()) setState((s) => ({ ...s, gasShort: !enough, diagnosis: null }));
       return enough;
     };
-    setState((s) => ({ ...s, error: null, diagnosis: null, stage: "checking" }));
+    let request: ReturnType<typeof fundsRequest> | null = null;
+    setState((s) => ({ ...s, error: null, diagnosis: null, stage: "checking", phase: s.phase === "unknown" ? "composing" : s.phase }));
     try {
-      if (state.phase === "unknown") throw new Error("The previous tUSDC mint is unconfirmed. Check its transaction before requesting another mint.");
       let funding = await readFunding();
       if (!current()) return;
+      if (!funding?.configured) {
+        await checkFundingGas(funding).catch(() => false);
+        throw new Error(funding?.message ?? "In-app test funds are unavailable. Use an external SOL faucet below.");
+      }
       let enoughGas = await checkFundingGas(funding);
       if (!current()) return;
-      const low = funding?.walletBalanceLamports != null && BigInt(funding.walletBalanceLamports) < BigInt(funding.thresholdLamports);
-      const cooling = funding?.claim && funding.claim.nextClaimAtMs > Date.now() && funding.claim.status !== "prepared";
-      if (funding?.configured && (funding.claim?.status === "prepared" || (low && funding.ready && !cooling))) {
+      request = fundsRequest({ wallet: address, status: funding, current, stage, sign: (message) => { if (!owner || owner.address !== address) throw new Error("Wallet changed. Open test funds again for the connected wallet."); return signText(owner, message); } });
+      const low = funding.walletBalanceLamports != null && BigInt(funding.walletBalanceLamports) < BigInt(funding.thresholdLamports);
+      const cooling = funding.claim && funding.claim.nextClaimAtMs > Date.now() && funding.claim.status !== "prepared";
+      let gasError: unknown = null;
+      let gasAdded = false;
+      if (funding.claim?.status === "prepared" || (low && funding.ready && !cooling)) {
         try {
-          await requestGas({ wallet: address, status: funding, current, stage, sign: (message) => { if (!owner || owner.address !== address) throw new Error("Wallet changed. Open test funds again for the connected wallet."); return signText(owner, message); }, onClaim: (gasClaim) => { if (current()) setState((s) => ({ ...s, gasClaim })); } });
+          await request.claim("sol", (gasClaim) => { if (current()) setState((s) => ({ ...s, gasClaim })); });
+          gasAdded = true;
         } catch (error) {
           if (!current()) return;
-          if (error instanceof Error && /reject|denied|cancel/i.test(error.message)) throw error;
-          // A lost acknowledgement can follow a confirmed transfer. Re-read before deciding whether minting can continue.
-          enoughGas = await checkFundingGas(await readFunding());
-          if (!enoughGas) throw error;
+          // A cancelled signature stops the run; any other SOL failure still lets the free tUSDC mint go ahead.
+          if (rejected(error)) throw error;
+          gasError = error;
         }
         if (!current()) return;
-        funding = await readFunding();
+        funding = (await readFunding()) ?? funding;
         enoughGas = await checkFundingGas(funding);
       }
-      if (!enoughGas) throw new Error(funding?.message ?? "You need SOL for fees. Our SOL service is unavailable; use an external faucet below.");
       if (!current()) return;
-      let collateral = collateralOrNull();
-      if (!collateral) {
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        try {
-          const reading = await Promise.race([loadCollateral(), new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), 15_000); })]);
-          if (reading?.ok) collateral = reading.value;
-        } finally { clearTimeout(timer); }
+      const tusdc = funding.tusdc;
+      const mintCooling = tusdc.claim && tusdc.claim.nextClaimAtMs > Date.now() && tusdc.claim.status !== "prepared";
+      if (!tusdc.configured || !(tusdc.claim?.status === "prepared" || (tusdc.ready && !mintCooling))) {
+        if (gasAdded) { setState((s) => ({ ...s, stage: "idle" })); return; }
+        throw gasError ?? new Error(tusdc.message);
       }
+      const mintClaim = await request.claim("tusdc", (claim) => { if (current()) setState((s) => ({ ...s, mintClaim: claim })); });
       if (!current()) return;
-      if (!collateral) throw new Error("Gas is available, but the tUSDC token details could not be read. Retry once the connection recovers; any confirmed SOL stays in your wallet.");
-      stage("minting");
-      const outcome = await submitter.submitTx({ kind: "faucet", amountBase: FAUCET_UNITS * oneUnit(collateral.decimals) }, (phase, detail) => { if (current()) setState((s) => ({ ...s, phase, txHash: detail?.txHash ?? s.txHash })); });
+      await invalidateAfterWrite(queryClient, { wallet: address });
+      await queryClient.invalidateQueries({ queryKey: ["faucet-status", wallet.address] });
       if (!current()) return;
-      if (outcome.status === "confirmed") {
-        await invalidateAfterWrite(queryClient, { wallet: address });
-        await queryClient.invalidateQueries({ queryKey: ["faucet-status", wallet.address] });
-        if (!current()) return;
-        setState((s) => ({ ...IDLE, phase: "confirmed", stage: "ready", txHash: outcome.txHash, gasClaim: s.gasClaim }));
-        announceCredit(address, String(FAUCET_UNITS), collateral.symbol);
-        notify.neutral(FAUCET.minted);
-      } else setState((s) => ({ ...s, stage: "idle", phase: outcome.status === "unknown" ? "unknown" : "composing", diagnosis: outcome.diagnosis, txHash: "txHash" in outcome ? outcome.txHash ?? null : null, gasShort: outcome.diagnosis.kind === "out-of-gas" }));
+      const gasMessage = gasError instanceof Error ? gasError.message : null;
+      setState((s) => ({ ...IDLE, phase: "confirmed", stage: "ready", txHash: mintClaim.txHash as Signature, gasClaim: s.gasClaim, mintClaim, gasShort: !enoughGas, error: gasMessage }));
+      announceCredit(address, String(FAUCET_UNITS), collateralOrNull()?.symbol ?? "tUSDC");
+      notify.neutral(FAUCET.minted);
     } catch (error) {
-      if (current()) setState((s) => ({ ...s, stage: "idle", error: error instanceof Error ? error.message : "The request could not finish. Please retry." }));
-    } finally { running.delete(address); }
-  }, [submitter, address, wallet.address, wallet.isRightChain, binding, state.phase, recheckGas, queryClient, owner]);
+      if (current()) setState((s) => ({ ...s, stage: "idle", phase: error instanceof PendingClaimError ? "unknown" : s.phase, error: error instanceof Error ? error.message : "The request could not finish. Please retry." }));
+    } finally { request?.finish(); running.delete(address); }
+  }, [submitter, address, wallet.address, wallet.isRightChain, binding, recheckGas, queryClient, owner]);
 
   const resetCompleted = useCallback(() => setState((s) => s.phase === "confirmed" ? IDLE : s), []);
   const retryGas = useCallback(async () => {

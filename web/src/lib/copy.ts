@@ -76,10 +76,10 @@ export const BANNER = {
 
 export const FAUCET = {
   title: "Fuel up",
-  intro: (amountText: string) => `Start with SOL for fees, then claim ${amountText} test tUSDC for trading. No starting balance is needed while SOL funding is available.`,
+  intro: (amountText: string) => `Start with SOL for fees, then get ${amountText} test tUSDC for trading. One free signature covers both, and no starting balance is needed while funding is available.`,
   cta: (_amountText: string) => "Get test funds",
   minted: "Minted — your balance updates on its own",
-  minting: "Minting…",
+  minting: "Adding test tUSDC…",
   gasTitle: "Get SOL for fees first",
   yourAddress: "Your address:",
   recheck: "I've got SOL — check again",

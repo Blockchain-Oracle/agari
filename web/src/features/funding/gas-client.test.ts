@@ -40,7 +40,7 @@ describe("gas funding browser recovery", () => {
     const run = input(); run.status = { ...status, claim: { ...claim, status: "prepared" } };
     await requestGas(run);
     expect(run.sign).not.toHaveBeenCalled(); expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch.mock.calls[0]).toEqual(["/api/faucet", expect.objectContaining({ body: JSON.stringify(saved) })]);
+    expect(fetch.mock.calls[0]).toEqual(["/api/faucet", expect.objectContaining({ body: JSON.stringify({ ...saved, asset: "sol" }) })]);
     expect(stored.size).toBe(0); expect(run.onClaim).toHaveBeenCalledWith(claim);
   });
 
