@@ -26,13 +26,13 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
   - The three invariants re-pointed (`optional: true`).
   - `sol-faucet` role key created and funded.
   - `web/.env.local` vars (Handoff).
-- [ ] Runtime + boot facts (4a.1, merged first): browser/server transport, `runtime/accounts.ts`, Book decode, pure mappers, venue, collateral, clock.
+- [x] Runtime + boot facts (4a.1, merged first as `17e61a6`; 69 runtime vitests incl. every Book vector and a captured devnet Book): browser/server transport, `runtime/accounts.ts`, Book decode, pure mappers, venue, collateral, clock.
 - [ ] Provider reads over chain + `/api/index/[...path]` (4a).
 - [ ] Hooks, names unchanged: coordinator Book subscriptions, shared spot stream, `useStakeQuote` over the coordinated Book (4a).
 - [ ] Submitter order lane: status gate → quote → expiry → funding → build (IOC) → simulate → journal → sign → send → confirm → book from `OrderExecuted` (4b).
 - [ ] Tx lane `redeem` (full redeem per Window, crank-paid reconcile) + journal reconcile by signature and `lastValidBlockHeight` (4b).
 - [ ] Signer seams: Wallet Standard signer (modify-and-sign, sending fallback) + keypair signer; no Privy (4b).
-- [ ] Faucet: SOL top-up chain adapter + server-side tUSDC mint claims, one challenge signature (4c).
+- [x] Faucet: SOL top-up chain adapter + server-side tUSDC mint claims, one challenge signature (4c, merged `b4aef58`; devnet claims wait for `sol-faucet` SOL).
 - [ ] Sponsor → S7 (D-023): `/api/sponsor` unchanged; gate row restated (stage owner D-entry).
 - [ ] Web rewiring: ticker picker, market-session chip, closed/paused/settling copy, verdict print-source labels, per-Window claims, seat-deposit note (4d).
 - [ ] Drive `scripts/drive/first-call.ts` on devnet: faucet → IOC up fill → ops settle → redeem or crank → `verify-index` (4b, finished by the stage owner).
@@ -56,6 +56,16 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 **Rows:** L-04, L-08, L-09, L-10, L-22, L-24, L-25, L-26, L-29…L-34; Partial L-44, L-46.
 
 ## Findings
+
+- **Lane 4c (faucet, merged `b4aef58` from `slice/S4c-faucet` @ 54f92c8), proven on a Surfpool fork with the real route handlers and adapter:**
+  - **One signature, both assets:** the challenge covers SOL and 10,000 tUSDC. The SOL top-up sent 20,000,000 lamports. tUSDC: 10,000,000,000 base units minted with fee payer `sol-faucet`, 10,000 lamports fee, `[createIdempotent, mintToChecked]`.
+  - **Quotas:** a bad signature gets 403; replaying the same id returns the same signature; cooldown 429 for both assets; the 11th tUSDC claim per connection gets 429.
+  - **Recovery:** a lost ack reconciles to confirmed without a re-broadcast; a process killed before send re-sends identical bytes once; a never-sent claim past its last valid block height goes to `reverted` with the quota kept.
+  - **Tests:** funding vitests 25/25; the Postgres script 6/6 (16 concurrent tUSDC claims mint once).
+  - **UI:** Masayume's funding components are unchanged apart from copy. The flow ran end to end with a scripted Wallet Standard wallet: one `signMessage`, zero transaction signatures.
+  - **Env:** `SOL_FAUCET_ENABLED` now accepts `1` (the old code needed `true`).
+  - **Local quota:** outside Vercel every local claim shares the connection bucket `local-development` (10 per day per asset), so clear `tusdc_faucet_claims`/`sol_faucet_claims` rows when testing repeatedly.
+  - **Postgres script:** accepts `FAUCET_TEST_DATABASE_URL` (loopback).
 
 ## Handoff
 
