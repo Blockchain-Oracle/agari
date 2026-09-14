@@ -74,7 +74,6 @@ export async function createSubmitterSession(config: SubmitterSessionConfig): Pr
     wallet: address,
     signer: transactionSigner,
     enqueue: guardedEnqueue,
-    ...(env.indexerUrl ? { indexerUrl: env.indexerUrl } : {}),
     ...(config.rpc ? { rpc: config.rpc } : {}),
     ...(config.journal ? { journal: config.journal } : {}),
     ...(config.stopGate ? { stopGate: config.stopGate } : {}),

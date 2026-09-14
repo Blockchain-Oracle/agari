@@ -24,8 +24,6 @@ export interface SubmitterDeps {
   enqueue: Enqueue;
   /** Defaults to the read runtime's RPC. */
   rpc?: WriteRpc;
-  /** The indexer API base (`/api/index`), for reconciling writes the chain alone can't answer. */
-  indexerUrl?: string;
   /** Defaults to the index with the Ledger's history as fallback. */
   evidence?: WriteEvidence;
   stopGate?: StopGate;
@@ -74,6 +72,6 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
 }
 
 /** The evidence a submitter reconciles with, from its deps. */
-export function evidenceOf(deps: Pick<SubmitterDeps, "evidence" | "indexerUrl">, rpc: WriteRpc): WriteEvidence {
-  return deps.evidence ?? indexEvidence(deps.indexerUrl, rpc);
+export function evidenceOf(deps: Pick<SubmitterDeps, "evidence">, rpc: WriteRpc): WriteEvidence {
+  return deps.evidence ?? indexEvidence(rpc);
 }

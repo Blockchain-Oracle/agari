@@ -1,5 +1,6 @@
 import type { Address, MarketId, Signature } from "@agari/core/types";
 import type { Signature as KitSignature } from "@solana/kit";
+import { indexRows, type ActionRow, type FillRow } from "../provider/index-api";
 import { fetchWriteEvents } from "./steps/book";
 import type { WriteRpc } from "./steps/message";
 
@@ -14,21 +15,10 @@ export interface WriteEvidence {
   redeemedBy(wallet: Address, marketId: MarketId, ledger: Address): Promise<Signature | null>;
 }
 
-type IdxRow = Record<string, unknown>;
-
 /** How many recent Ledger transactions the chain fallback reads before giving up (each is one `getTransaction`). */
 const LEDGER_SCAN = 10;
-
-async function indexRows(base: string, path: string): Promise<IdxRow[] | null> {
-  try {
-    const res = await fetch(`${base.replace(/\/$/, "")}/${path}`, { headers: { accept: "application/json" } });
-    if (!res.ok) return null;
-    const body = (await res.json()) as { rows?: unknown };
-    return Array.isArray(body.rows) ? (body.rows as IdxRow[]) : null;
-  } catch {
-    return null;
-  }
-}
+/** Actions scanned for a Window's `Redeemed`; a wallet's newest first. */
+const ACTIONS_PAGE = 200;
 
 /** A seat paid moments ago may not be indexed yet (lag < 10 s): the Ledger's own recent history answers too. */
 async function redeemedOnChain(rpc: WriteRpc, wallet: Address, marketId: MarketId, ledger: Address): Promise<Signature | null> {
@@ -45,17 +35,19 @@ async function redeemedOnChain(rpc: WriteRpc, wallet: Address, marketId: MarketI
   return null;
 }
 
-/** The indexer API (`/api/index/*`, first-call.md §5), with the Ledger's history as the fallback for redeems. */
-export function indexEvidence(indexerUrl: string | undefined, rpc: WriteRpc): WriteEvidence {
+/**
+ * The indexer API (`/api/index/*`, first-call.md §5, through the runtime's `indexRows`), with the Ledger's history as the
+ * fallback for redeems. An unreachable or unconfigured index answers `null` for fills, never "nothing filled".
+ */
+export function indexEvidence(rpc: WriteRpc): WriteEvidence {
   return {
     async filledSince(wallet, marketId, sinceSec) {
-      if (!indexerUrl) return null;
-      const rows = await indexRows(indexerUrl, `wallet/${wallet}/fills?market=${marketId}&since=${sinceSec}&limit=1`);
+      const rows = await indexRows<FillRow>(`wallet/${wallet}/fills`, { market: marketId, since: sinceSec, limit: 1 }).catch(() => null);
       return rows === null ? null : rows.length > 0;
     },
     async redeemedBy(wallet, marketId, ledger) {
-      const rows = indexerUrl ? await indexRows(indexerUrl, `wallet/${wallet}/actions?limit=200`) : null;
-      const row = rows?.find((r) => r.name === "Redeemed" && r.market === marketId && typeof r.signature === "string");
+      const rows = await indexRows<ActionRow>(`wallet/${wallet}/actions`, { limit: ACTIONS_PAGE }).catch(() => null);
+      const row = rows?.find((r) => r.name === "Redeemed" && r.market === (marketId as string));
       if (row) return row.signature as Signature;
       return redeemedOnChain(rpc, wallet, marketId, ledger);
     },

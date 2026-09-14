@@ -39,7 +39,7 @@ export const chainReconcilerWith =
 /** The chain reconciler: the transaction status when there is a signature, the Window's fills or `Redeemed` when there is not. */
 export const chainReconciler: Reconciler = (wallet, record) => {
   const rpc = solana().rpc;
-  return reconcileUnknown(wallet, record, { rpc, evidence: indexEvidence(undefined, rpc), nowMs: Date.now });
+  return reconcileUnknown(wallet, record, { rpc, evidence: indexEvidence(rpc), nowMs: Date.now });
 };
 
 async function recoverOne(journal: IntentJournal, wallet: Address, record: IntentRecord, reconcile: Reconciler, nowMs: number): Promise<RecoveryResult> {
