@@ -21,7 +21,10 @@ export function MarketSessionChip({ className }: { className?: string }) {
       <span className="mks-chip-state" aria-hidden>
         {word}
       </span>
-      <span aria-hidden>· {session.label}</span>
+      <span className="mks-chip-sep" aria-hidden>
+        ·
+      </span>
+      <span aria-hidden>{session.label}</span>
     </span>
   );
 }

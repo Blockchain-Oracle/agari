@@ -43,6 +43,18 @@
   letter-spacing: 0.14em;
 }
 
+/* A phone keeps Masayume's hero head as it was: the chip stays in the lanes header below, and there
+   the dot carries open or closed, so the label fits beside "Live windows" (the aria-label keeps the word). */
+@media (max-width: 639px) {
+  .mh-asset-row .mks-chip {
+    display: none;
+  }
+  .mks-chip-state,
+  .mks-chip-sep {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mks-chip[data-state="open"] .mks-chip-dot {
     animation: none;

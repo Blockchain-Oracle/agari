@@ -6,6 +6,7 @@ import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/take
 import { REELS } from "@/lib/copy";
 import { useChainNowMs } from "../useChainNow";
 import { useLanesState } from "../lanes";
+import { useMarketSession } from "../session";
 import { useVenue } from "../useVenue";
 import { ReelCard } from "./ReelCard";
 import { ReelHolding } from "./ReelHolding";
@@ -38,6 +39,7 @@ export function ReelsScreen() {
   const venue = useVenue();
   const nowMs = useChainNowMs();
   const lanes = useLanesState(venue.venueId);
+  const session = useMarketSession();
   const rounds = useReelRounds(lanes.laneSet, nowMs);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -68,7 +70,7 @@ export function ReelsScreen() {
         ) : venue.venueId === null ? (
           <ReelHolding>{REELS.noVenue}</ReelHolding>
         ) : !hasReel ? (
-          <ReelHolding>{REELS.betweenRounds}</ReelHolding>
+          <ReelHolding>{session && !session.open ? REELS.closed(session.label) : REELS.betweenRounds}</ReelHolding>
         ) : (
           reel.map((item, index) =>
             item.kind === "market" ? (

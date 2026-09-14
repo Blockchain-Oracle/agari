@@ -134,7 +134,7 @@ export const MARKETS = {
   fixedStrikeHidden: (n: number) => `${n} fixed-strike ${n === 1 ? "Window" : "Windows"} hidden — v1 lists up/down Windows only.`,
   noLiveWindows: { why: "No live Windows on this venue right now — Windows roll continuously, so this fills in as the next one opens." },
   /** Outside regular hours a stock lane has no Window at all; the session label says when that changes. */
-  closedWindows: (label: string) => ({ why: `The stock market is closed · ${label}. Windows roll through the regular session, 09:30–16:00 ET.` }),
+  closedWindows: (label: string) => ({ why: `The stock market is closed · ${label}. Windows roll through each regular NYSE session.` }),
   ticketPlaceholder: { why: "Choose a Window and a side to open your call." },
   /** The market-session chip: the NYSE state word, then core `sessionLabel`. */
   session: {
@@ -249,6 +249,8 @@ export const REELS = {
   down: "DOWN",
   reading: "reading the market…",
   betweenRounds: "between rounds. a new one rolls on the next cadence.",
+  /** Outside regular hours no stock Window runs at all; the session label says when that changes. */
+  closed: (label: string) => `the stock market is closed · ${label}.`,
   noVenue: "no live venue to read right now.",
   swipeHint: "Swipe up for the next market",
   /** The right-rail pill (reference L321–330): icon + label, opens the composer. */
