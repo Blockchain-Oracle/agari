@@ -1,7 +1,7 @@
 "use client";
 
-import { PINNED_TESTNET } from "@agari/markets";
 import Link from "next/link";
+import { webEnv } from "@/lib/env";
 import { PITCH } from "./copy";
 import { LogoCard, SomniaMark } from "./marks";
 import { FrozenPhone, PhoneMock, XBetCard } from "./mocks";
@@ -16,6 +16,8 @@ import type { Slide } from "./types";
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
+/** The one program every Window runs on; the deck says so honestly until it is deployed (S2 devnet, S15 story pass). */
+const EVENTS_PROGRAM = webEnv.markets.eventsProgramId ?? "not deployed";
 
 const C = PITCH.cover;
 const E = PITCH.engine;
@@ -225,7 +227,7 @@ export const SLIDES_A: Slide[] = [
         </div>
         <Rise i={5} className="pitch-provenance">
           <Mono tone="mute">
-            {P.provenance} {shortAddr(PINNED_TESTNET.addresses.marketsCore)}
+            {P.provenance} {shortAddr(EVENTS_PROGRAM)}
           </Mono>
           <span className="pitch-faint">·</span>
           <Link href="/status" className="pitch-link-verm" data-cursor="hover">

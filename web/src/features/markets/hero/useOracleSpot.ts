@@ -1,5 +1,6 @@
 "use client";
 
+import { isTickerSymbol } from "@agari/core/market";
 import { useAssetPrice } from "@agari/markets/react";
 import { basisRaw, feedRawToOracleRaw } from "./units";
 
@@ -12,7 +13,7 @@ import { basisRaw, feedRawToOracleRaw } from "./units";
  * you are looking at.
  */
 export function useOracleSpot(asset: string | null): bigint | null {
-  const price = useAssetPrice(asset);
+  const price = useAssetPrice(asset !== null && isTickerSymbol(asset) ? asset : null);
   if (!price?.ok || price.value === null) return null;
   return feedRawToOracleRaw(basisRaw(price.value), price.value.decimals);
 }

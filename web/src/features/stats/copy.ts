@@ -5,7 +5,7 @@ export const STATS = {
     eyebrow: "Live · on-chain · verifiable",
     titleLead: "Proof of",
     titleAccent: "demand",
-    lede: "Real wallets, read straight from the venue's fill tape. Every call is a fill on DreamDEX's book, so the chain itself proves each one — not a form we filled in. Every number links to the Shannon explorer.",
+    lede: "Real wallets, read straight from the venue's fill tape. Every call is a fill on DreamDEX's book, so the chain itself proves each one — not a form we filled in. Every number links to Solana Explorer.",
     headline: "Wallets that made a call · 24h",
     headlineCaption: "took a side on a live Window · read off the fill tape",
     headlineFoot: "Calls filled",
@@ -15,7 +15,7 @@ export const STATS = {
   sections: {
     growth: { index: "01", title: "Growth", tag: "cumulative · who showed up · last 24 hours" },
     adoption: { index: "02", title: "Adoption", tag: "real wallets · attributable" },
-    activity: { index: "03", title: "Live activity", tag: "click any row → Shannon explorer" },
+    activity: { index: "03", title: "Live activity", tag: "click any row → Solana Explorer" },
   },
   curve: {
     empty: "your growth curve starts with the first call. Drive one and watch it climb.",

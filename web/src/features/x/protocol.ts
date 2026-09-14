@@ -1,11 +1,14 @@
+import { messageSignatureSchema } from "@agari/core/auth";
+import { addressSchema } from "@agari/core/types";
 import type { XReceipt } from "@agari/core/x";
 import type { XRelayHealth } from "@agari/db";
 import { z } from "zod";
 
 export const X_RECEIPTS_LIMIT = 30;
 
-const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
-const signature = z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000);
+/** A base58 Solana wallet and its base58 ed25519 signature over the link text (D-010, D-012). */
+const address = addressSchema;
+const signature = messageSignatureSchema;
 
 /** The wallet proves it owns the address over the exact link message the route rebuilds. */
 export const xBindRequestSchema = z.object({ wallet: address, issuedAtMs: z.number().int().positive(), signature });

@@ -17,7 +17,7 @@ const signOff = `${BRAND.site} via ${BRAND.handle}`;
 export const SHARE = {
   ...BRAND,
   network: "SOMNIA TESTNET",
-  verifyOn: "VERIFY ON SHANNON EXPLORER",
+  verifyOn: "VERIFY ON SOLANA EXPLORER",
   scan: "SCAN TO MAKE YOUR CALL",
   shareCall: "Share this call",
   shareCard: "Share card",
@@ -41,7 +41,7 @@ export const SHARE = {
     leverageLine: (x: number) => `${x}× LEVERAGE · CAN KNOCK OUT BEFORE THE CLOSE`,
     settlesIn: "Settles in",
     settling: "Settling…",
-    verify: "verify on Shannon explorer ↗",
+    verify: "verify on Solana Explorer ↗",
     portfolio: "Portfolio",
     another: "Place another",
     stakeLine: "STAKE  →  RETURN IF IT LANDS",
@@ -51,7 +51,7 @@ export const SHARE = {
     /** The pre-filled post: real staked numbers only, framed as a live call. */
     /** The reference's text carries the multiple — `My call: ${band} (2×)` (`openBetShareCard.ts` L97–99). */
     tweet: (band: string, cadence: string, stake: string, win: string, symbol: string, utc: string, multiple = 1) =>
-      `My call: ${band} (${cadence} Window${multiple > 1 ? `, ${multiple}×` : ""}). Staked ${stake} to win ${win} ${symbol}, oracle-settles ${utc} on Somnia testnet. Will it land? ${signOff}`,
+      `My call: ${band} (${cadence} Window${multiple > 1 ? `, ${multiple}×` : ""}). Staked ${stake} to win ${win} ${symbol}, oracle-settles ${utc} on Solana devnet. Will it land? ${signOff}`,
   },
   trade: {
     settlement: "SETTLEMENT RECORD",
@@ -68,6 +68,6 @@ export const SHARE = {
     settlementTx: (short: string) => `SETTLEMENT ${short}`,
     noTx: "PROOF ON THE RECEIPT",
     tweet: (pnl: string, symbol: string, asset: string, band: string, how: string, stake: string, payout: string) =>
-      `${pnl} ${symbol} on ${asset} ${band}: ${how}. ${stake} → ${payout} ${symbol} (Somnia testnet). ${signOff}`,
+      `${pnl} ${symbol} on ${asset} ${band}: ${how}. ${stake} → ${payout} ${symbol} (Solana devnet). ${signOff}`,
   },
 } as const;

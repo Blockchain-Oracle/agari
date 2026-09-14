@@ -7,6 +7,8 @@
  * Sign-in is OAuth 1.0a (2026-09-05), so the app's consumer key pair is what the web needs — the
  * same "API Key / API Key Secret" the developer portal shows first; no OAuth 2.0 client.
  */
+
+import { isAddress } from "@agari/core/types";
 export interface XConfig {
   consumerKey: string;
   consumerSecret: string;
@@ -47,8 +49,8 @@ export function readXConfig(origin: string): XConfigReading {
   };
 }
 
-/** The executor address is public information (it is what the grant names), so either spelling works. */
+/** The executor address is public information (it is what the grant names), so either env name works. Base58, exactly as written. */
 export function executorAddress(): string | null {
   const value = process.env.X_EXECUTOR_ADDRESS || process.env.NEXT_PUBLIC_X_EXECUTOR_ADDRESS || "";
-  return /^0x[0-9a-fA-F]{40}$/.test(value) ? value.toLowerCase() : null;
+  return isAddress(value) ? value : null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type { OrderOutcome, OrderRequest, WritePhase } from "@agari/core/ports";
-import type { Address, Hex, Quote } from "@agari/core/types";
+import type { Address, Quote, Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,7 +14,7 @@ import { SIDE_WORD } from "../side-styles";
 export interface PlaceBetState {
   phase: WritePhase;
   outcome: OrderOutcome | null;
-  txHash: Hex | null;
+  txHash: Signature | null;
 }
 
 const IDLE: PlaceBetState = { phase: "composing", outcome: null, txHash: null };
@@ -33,7 +33,7 @@ function phaseOf(outcome: OrderOutcome): WritePhase {
   }
 }
 
-function txHashOf(outcome: OrderOutcome): Hex | null {
+function txHashOf(outcome: OrderOutcome): Signature | null {
   if (outcome.status === "confirmed") return outcome.booked.txHash;
   if ("txHash" in outcome) return outcome.txHash ?? null;
   return null;

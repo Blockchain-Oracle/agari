@@ -1,6 +1,6 @@
 "use client";
 
-import type { Hex } from "@agari/core/types";
+import type { Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
@@ -21,7 +21,7 @@ function formatContracts(contractsRaw: bigint, decimals: number): string {
   return formatBaseUnits(contractsRaw, decimals, { minDp: 0 });
 }
 
-function Line({ children, txHash }: { children: ReactNode; txHash?: Hex | null }) {
+function Line({ children, txHash }: { children: ReactNode; txHash?: Signature | null }) {
   return (
     <p role="status" className="flex flex-wrap items-center gap-2 rounded-md border border-hairline bg-surface-2 px-3 py-2 type-caption text-ink">
       <span>{children}</span>

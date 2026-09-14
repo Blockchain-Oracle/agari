@@ -1,4 +1,4 @@
-import { ensureMarkets, parseMarketsEnv, readVenueBoard, unwrap, type VenueBoard } from "@agari/markets";
+import { ensureMarkets, notDeployedReading, parseMarketsEnv, readVenueBoard, unwrap, type VenueBoard } from "@agari/markets";
 import type { LeaderboardPayload } from "./protocol";
 import { unstable_cache } from "next/cache";
 
@@ -46,6 +46,8 @@ function serialize(board: VenueBoard, computedAtMs: number): LeaderboardPayload 
 async function compute(nowMs: number): Promise<LeaderboardPayload> {
   const env = parseMarketsEnv();
   ensureMarkets(env);
+  // No venue until agari-events is deployed and configured: the board says so instead of ranking nothing.
+  if (!env.venueId) return unwrap(notDeployedReading("no Agari venue configured yet"));
   const board = unwrap(
     await readVenueBoard({ venueId: env.venueId, windowStartMs: nowMs - WINDOW_MS, windowEndMs: nowMs, lookbackSec: Math.floor((nowMs - LOOKBACK_MS) / 1000), top: TOP }),
   );
@@ -64,6 +66,6 @@ async function computeBoard(): Promise<LeaderboardPayload> {
 
 /** Key by the deployment's data source, never by a per-request timestamp. */
 export function readBoard(): Promise<LeaderboardPayload> {
-  const { chainId, venueId, indexerUrl } = parseMarketsEnv();
-  return unstable_cache(computeBoard, ["agari-venue-board-v2", String(chainId), venueId, indexerUrl], { revalidate: 180 })();
+  const { cluster, venueId, indexerUrl } = parseMarketsEnv();
+  return unstable_cache(computeBoard, ["agari-venue-board-v3", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer"], { revalidate: 180 })();
 }

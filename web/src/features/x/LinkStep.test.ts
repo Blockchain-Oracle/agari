@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { encodeBase58 } from "@agari/core/types";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { LinkStep } from "./LinkStep";
@@ -31,7 +32,7 @@ describe("X account linking availability", () => {
     }
   });
   it("keeps an established wallet binding visible even when new sign-in is unavailable", () => {
-    const html = render({ status: { ...status, configured: false, binding: { authorId: "99", handle: "caller", wallet: `0x${"ab".repeat(20)}`, since: 1 } } });
+    const html = render({ status: { ...status, configured: false, binding: { authorId: "99", handle: "caller", wallet: encodeBase58(new Uint8Array(32).fill(0xab)), since: 1 } } });
     expect(html).toContain("@caller routes to this wallet");
     expect(html).not.toContain("unavailable");
   });

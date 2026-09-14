@@ -1,7 +1,7 @@
 "use client";
 
 import type { PhaseListener, TxOutcome, VaultIntent, WritePhase } from "@agari/core/ports";
-import type { Diagnosis, Hex } from "@agari/core/types";
+import type { Diagnosis, Signature } from "@agari/core/types";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
@@ -15,7 +15,7 @@ export interface VaultWriteState {
   /** The intent in flight, so each control can say "Depositing" while the others wait. */
   busy: VaultWriteKind | null;
   phase: WritePhase;
-  txHash: Hex | null;
+  txHash: Signature | null;
   diagnosis: Diagnosis | null;
   gasShort: boolean;
 }

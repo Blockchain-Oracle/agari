@@ -85,7 +85,7 @@ export function TradingBalanceView(props: TradingBalanceViewProps) {
       <VaultGrants grants={grants} decimals={decimals} symbol={symbol} busy={busy} disabled={blocker !== null} onRevoke={onRevoke} />
 
       {poolCredit.map((credit) => (
-        <div key={credit.pool} className="vault-grant vault-grants">
+        <div key={credit.marketId} className="vault-grant vault-grants">
           <span className="type-caption text-ink-secondary">{VAULT.sweep.note(`${formatBaseUnits(credit.amountBase, decimals)} ${symbol ?? ""}`.trim())}</span>
           <button type="button" onClick={() => onSweep(credit)} disabled={blocker !== null || busy !== null} className="vault-btn vault-btn-outline" data-cursor="hover">
             {busy === "vault-sweep" ? VAULT.sweep.sweeping : VAULT.sweep.action}

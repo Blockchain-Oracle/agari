@@ -1,6 +1,7 @@
 "use client";
 
 import { noEntryCutoffSec } from "@agari/core/lifecycle";
+import { LAUNCH_TICKERS, TICKERS } from "@agari/core/market";
 import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
 import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
 import type { EventMarket } from "@agari/core/types";
@@ -9,12 +10,16 @@ import { marketsProvider } from "@agari/markets";
 import { useLanes, useTick } from "@agari/markets/react";
 import { ArrowDownRight, ArrowUpRight, Check, Copy } from "lucide-react";
 import { useState } from "react";
-import { BitcoinMark, EthereumMark } from "@/components/icons/AssetMarks";
 import { useVenue } from "@/features/markets/useVenue";
 import { X_HANDLE } from "./copy";
 import "./x-instruction.css";
 
-const ASSETS = [{ name: "BTC", label: "Bitcoin", Mark: BitcoinMark }, { name: "ETH", label: "Ethereum", Mark: EthereumMark }] as const;
+/** The launch tickers, each on its registry monogram (no company logos are drawn). */
+const ASSETS = LAUNCH_TICKERS.map((name) => ({
+  name,
+  label: TICKERS[name].name,
+  Mark: ({ className }: { className?: string }) => <span className={className} aria-hidden>{TICKERS[name].monogram}</span>,
+}));
 const AMOUNTS = ["5", "10", "25"] as const;
 
 interface BuilderProps {
@@ -36,7 +41,7 @@ export function XInstructionBuilder(props: BuilderProps) {
 export function XInstructionBuilderView({ enabled, balanceBase, decimals, symbol, markets, unavailable, nowMs }: BuilderProps & {
   markets: readonly EventMarket[] | null; unavailable: boolean; nowMs: number;
 }) {
-  const [asset, setAsset] = useState<XAsset>("BTC");
+  const [asset, setAsset] = useState<XAsset>("TSLA");
   const [side, setSide] = useState("up");
   const [amount, setAmount] = useState("5");
   const [cadence, setCadence] = useState<keyof typeof X_CADENCES>("5m");
@@ -49,8 +54,8 @@ export function XInstructionBuilderView({ enabled, balanceBase, decimals, symbol
   const canCopy = enabled && selection?.ok && !amountError;
   const amountInvalid = !stake || stake <= 0n;
   const maxAmount = balanceBase === null ? null : formatBaseUnits(balanceBase, decimals, { maxDp: decimals, minDp: 0, group: false });
-  const status = selection?.ok ? `Entries close at ${formatUtc(noEntryCutoffSec(selection.market.expirySec, selection.market.intervalSec) * 1000, { withSeconds: true })}.`
-    : selection ? xRefusalCopy({ refusalCode: selection.code, entryClosesAtSec: selection.market ? noEntryCutoffSec(selection.market.expirySec, selection.market.intervalSec) : null,
+  const status = selection?.ok ? `Entries close at ${formatUtc(noEntryCutoffSec(selection.market) * 1000, { withSeconds: true })}.`
+    : selection ? xRefusalCopy({ refusalCode: selection.code, entryClosesAtSec: selection.market ? noEntryCutoffSec(selection.market) : null,
       nextWindowAtSec: selection.code === "window-not-started" ? selection.market?.tradingStartSec : null }).detail
     : unavailable ? "Live Windows could not be checked. Try again shortly." : "Checking live Windows…";
   const copy = async () => {

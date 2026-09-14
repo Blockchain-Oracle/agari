@@ -6,21 +6,15 @@ import { formatBaseUnits } from "@agari/core/units";
 import type { VaultGrant } from "@agari/core/vault";
 import { X_GRANT, xGrantCaps, xPermissionState, type XPermissionState } from "@agari/core/x";
 import { getVaultSnapshot } from "@agari/markets";
-import { getClient } from "@agari/markets/runtime";
 import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
-import { decodeEventLog } from "viem";
 import { X_CARD, X_HANDLE } from "./copy";
 import { parseXUpdate, updateXPermission, type XUpdateProgress } from "./update-permission";
 
 export { X_GRANT } from "@agari/core/x";
-const PROGRESS_EVENT = "masayume:x-permission-update";
+const PROGRESS_EVENT = "agari:x-permission-update";
 const activeWrites = new Set<string>();
-const revokedEvent = [{ type: "event", name: "GrantRevoked", inputs: [
-  { name: "grantId", type: "uint256", indexed: true }, { name: "owner", type: "address", indexed: true },
-  { name: "returned", type: "uint256", indexed: false },
-] }] as const;
 function subscribeProgress(listener: () => void) {
   window.addEventListener("storage", listener);
   window.addEventListener(PROGRESS_EVENT, listener);
@@ -76,7 +70,8 @@ export function useXGrant(): XGrantState {
   const decimals = value?.decimals ?? 6;
   const grant = value?.grants.executor ?? null;
   const current = grant && !grant.revoked ? grant : null;
-  const storageKey = address && value ? `masayume:x-update:v1:${value.deployment.chainId}:${value.deployment.eventVault.toLowerCase()}:${address.toLowerCase()}` : null;
+  // Addresses are base58 and case-sensitive: the key keeps them exactly as written (D-010).
+  const storageKey = address && value ? `agari:x-update:v1:${value.deployment.chainId}:${value.deployment.eventVault}:${address}` : null;
   const readProgress = useCallback(() => { try { return storageKey ? localStorage.getItem(storageKey) : null; } catch { return null; } }, [storageKey]);
   const saved = useSyncExternalStore(subscribeProgress, readProgress, () => null);
   const pendingUpdate = parseXUpdate(saved);
@@ -171,19 +166,9 @@ export function useXGrant(): XGrantState {
           return fresh.ok && !fresh.stale && fresh.value ? { grant: fresh.value.grants.executor, availableBase: fresh.value.account.availableBase } : null;
         },
         submit: (intent) => submitter.submitTx(intent),
-        receipt: async (hash, oldGrantId) => {
-          const receipt = await getClient().getViemClient().getTransactionReceipt({ hash }).catch(() => null);
-          if (!receipt) return null;
-          let returnedBase: bigint | undefined;
-          for (const log of receipt.logs) {
-            if (log.address.toLowerCase() !== value.deployment.eventVault.toLowerCase()) continue;
-            try {
-              const event = decodeEventLog({ abi: revokedEvent, data: log.data, topics: log.topics });
-              if (event.args.grantId === oldGrantId && event.args.owner.toLowerCase() === address.toLowerCase()) returnedBase = event.args.returned;
-            } catch { /* A receipt can contain unrelated token/vault events. */ }
-          }
-          return { status: receipt.status, returnedBase };
-        },
+        // Reading a confirmed revoke's returned budget needs the transaction reader (S4) and the vault's events (S7);
+        // until then no receipt is readable, so an update stops honestly instead of guessing the refund.
+        receipt: async () => null,
         nowSec: () => Math.floor(Date.now() / 1000),
       });
       setOk(X_CARD.updated);

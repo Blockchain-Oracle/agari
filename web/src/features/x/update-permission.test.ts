@@ -1,14 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
-import { diagnosis, type Address, type Hex } from "@agari/core/types";
+import { diagnosis, encodeBase58, type Address, type Signature } from "@agari/core/types";
 import type { VaultGrant } from "@agari/core/vault";
 import type { TxOutcome } from "@agari/core/ports";
 import { isBalanceOnlyXGrant } from "@agari/core/x";
 import { parseXUpdate, updateXPermission, type XUpdateDependencies, type XUpdateProgress } from "./update-permission";
 
-const OWNER = `0x${"11".repeat(20)}` as Address;
-const ACTOR = `0x${"22".repeat(20)}` as Address;
-const REVOKE = `0x${"aa".repeat(32)}` as Hex;
-const GRANT = `0x${"bb".repeat(32)}` as Hex;
+const bytes = (n: number, length: number) => encodeBase58(new Uint8Array(length).fill(n));
+const OWNER = bytes(0x11, 32) as Address;
+const ACTOR = bytes(0x22, 32) as Address;
+const REVOKE = bytes(0xaa, 64) as Signature;
+const GRANT = bytes(0xbb, 64) as Signature;
 const old: VaultGrant = { grantId: 10n, owner: OWNER, actor: ACTOR, kind: "executor", revoked: false, expiresAtSec: 2000,
   spentDay: 0, spentTodayBase: 0n, openPositions: 0, caps: { maxStakePerTradeBase: 5_000_000n, maxDailySpendBase: 5_000_000n, maxOpenPositions: 8, maxPriceRaw: 0n }, budgetBase: 55_000_000n };
 
