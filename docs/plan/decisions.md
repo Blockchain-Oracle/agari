@@ -216,6 +216,22 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** sign-in and consent prompts say Agari and Solana devnet; "Out of SOL for fees" replaces "Out of STT gas".
 - **Approval:** within plan r2 S1.
 
+### D-014 — The wallet seam between web and markets
+- **Date / owner:** 2026-09-14 · S1 owner (before splitting 1b/1c)
+- **Evidence:** Context7 `/llmstxt/privy_io_llms_txt`:
+  - Privy v3 `useWallets` from `@privy-io/react-auth/solana` returns `ConnectedStandardSolanaWallet` (address, `signMessage({message}) → {signature}`, `standardWallet`).
+  - `useSignTransaction({transaction: Uint8Array, chain: "solana:devnet"})`.
+  - `useSignAndSendTransaction({…, options: {sponsor}})`.
+  - "fully compatible with @solana/kit".
+  - Masayume's seam was `SubmitterSessionProvider({ walletClient })` (viem).
+- **Rule:**
+  - `packages/markets/src/react/wallet-session.ts` `WalletSession { address, kind: embedded|external, signMessage(bytes), signTransaction(bytes), signAndSendTransaction(bytes, {sponsor}) }` replaces viem's `WalletClient` in `SubmitterSessionProvider`. It deals in wire bytes only.
+  - The web Privy island (1c) builds it from Privy's hooks and imports no `@solana/*`.
+  - Markets (1b) wraps it as a kit signer; the boundary stays "only markets imports `@solana/*`".
+  - Embedded wallets use Privy's `sponsor`; external wallets use the `api/sponsor` co-sign (P§3.2) or pay their own fee.
+- **User-visible:** none directly; social-login wallets don't need SOL for fees.
+- **Approval:** within plan r2 S1 (Privy + Wallet Standard through one seam).
+
 ### D-013 — S2 spec review amendments (core alignment)
 - **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
 - **Evidence:**
