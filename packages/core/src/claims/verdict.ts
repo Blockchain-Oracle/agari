@@ -15,8 +15,8 @@ export interface VerdictInput {
 }
 
 function legPayout(input: VerdictInput, outcomeIdx: OutcomeIdx, amountRaw: bigint): bigint {
-  if (input.settlement.isVoided) return estPayoutBase(amountRaw, "void", input.feeBps);
-  return input.settlement.winningOutcome === outcomeIdx ? estPayoutBase(amountRaw, "win", input.feeBps) : 0n;
+  if (input.settlement.isVoided) return estPayoutBase(amountRaw, "void");
+  return input.settlement.winningOutcome === outcomeIdx ? estPayoutBase(amountRaw, "win") : 0n;
 }
 
 function heldLegs(input: VerdictInput): ClaimLeg[] {

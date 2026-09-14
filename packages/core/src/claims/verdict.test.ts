@@ -17,11 +17,11 @@ const base = (overrides: Partial<VerdictInput>): VerdictInput => ({
 });
 
 describe("deriveVerdict", () => {
-  it("stamps a win with payout net of the fee against the cost basis", () => {
+  it("stamps a win at the full redeem against the cost basis: the engine charges no fee", () => {
     const verdict = deriveVerdict(base({ feeBps: 100 }));
     expect(verdict?.outcome).toBe("win");
-    expect(verdict?.payoutBase).toBe(9_900_000n);
-    expect(verdict?.pnlBase).toBe(4_900_000n);
+    expect(verdict?.payoutBase).toBe(10_000_000n);
+    expect(verdict?.pnlBase).toBe(5_000_000n);
   });
 
   it("stamps one net card when both sides were held, listing both legs", () => {

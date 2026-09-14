@@ -12,17 +12,17 @@ export interface SettleInput {
   source?: LedgerSource;
 }
 
-function legPayout(market: RoundMarket, outcomeIdx: OutcomeIdx, amountRaw: bigint, feeBps: number): bigint {
-  if (market.voided) return estPayoutBase(amountRaw, "void", feeBps);
-  return market.winningOutcome === outcomeIdx ? estPayoutBase(amountRaw, "win", feeBps) : 0n;
+function legPayout(market: RoundMarket, outcomeIdx: OutcomeIdx, amountRaw: bigint): bigint {
+  if (market.voided) return estPayoutBase(amountRaw, "void");
+  return market.winningOutcome === outcomeIdx ? estPayoutBase(amountRaw, "win") : 0n;
 }
 
-function heldLegs(ledger: MarketLedger, market: RoundMarket, feeBps: number): ClaimLeg[] {
+function heldLegs(ledger: MarketLedger, market: RoundMarket): ClaimLeg[] {
   const held: Array<[OutcomeIdx, bigint]> = [
     [0, ledger.heldUpRaw],
     [1, ledger.heldDownRaw],
   ];
-  return held.filter(([, amountRaw]) => amountRaw > 0n).map(([outcomeIdx, amountRaw]) => ({ outcomeIdx, amountRaw, payoutBase: legPayout(market, outcomeIdx, amountRaw, feeBps) }));
+  return held.filter(([, amountRaw]) => amountRaw > 0n).map(([outcomeIdx, amountRaw]) => ({ outcomeIdx, amountRaw, payoutBase: legPayout(market, outcomeIdx, amountRaw) }));
 }
 
 /** Mirrors `deriveVerdict`: a hedged Window gets one net stamp, and a payout that lost money is a loss. */
@@ -49,7 +49,7 @@ function claimStateOf(legs: ClaimLeg[], live: Holdings | null): ClaimState {
 /** One settled round, or null while the Window is still open — every figure is fills plus the settlement rule. */
 export function settleRound({ ledger, market, feeBps, liveHoldings, source }: SettleInput): SettledRound | null {
   if (!market.settled) return null;
-  const legs = heldLegs(ledger, market, feeBps);
+  const legs = heldLegs(ledger, market);
   const payoutBase = legs.reduce((sum, leg) => sum + leg.payoutBase, 0n);
   const feeBase = legs.reduce((sum, leg) => sum + (leg.payoutBase > 0n && !market.voided ? leg.amountRaw - leg.payoutBase : 0n), 0n);
   const pnlBase = ledger.proceedsBase + payoutBase - ledger.costBase;

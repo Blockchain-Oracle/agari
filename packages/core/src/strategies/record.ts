@@ -24,13 +24,13 @@ export interface StrategyRecordStats {
 }
 
 /** Scores one fill by the chain's rule: a winner pays one collateral per token, a void half, a loser nothing. */
-export function scoreFill(fill: StrategyFill, settlement: FillSettlement | null, feeBps: number): ScoredFill {
+export function scoreFill(fill: StrategyFill, settlement: FillSettlement | null, _feeBps: number): ScoredFill {
   if (!settlement || !settlement.settled) return { ...fill, settled: false, payoutBase: null, pnlBase: null };
   const outcomeIdx = fill.side === "up" ? 0 : 1;
   const payoutBase = settlement.voided
-    ? estPayoutBase(fill.tokenDeltaRaw, "void", feeBps)
+    ? estPayoutBase(fill.tokenDeltaRaw, "void")
     : settlement.winningOutcome === outcomeIdx
-      ? estPayoutBase(fill.tokenDeltaRaw, "win", feeBps)
+      ? estPayoutBase(fill.tokenDeltaRaw, "win")
       : 0n;
   return { ...fill, settled: true, payoutBase, pnlBase: payoutBase - fill.cashDeltaBase };
 }

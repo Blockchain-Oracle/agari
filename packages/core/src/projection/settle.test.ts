@@ -18,12 +18,12 @@ describe("settleRound", () => {
     expect(settleRound({ ledger: ledger({}), market: market({ settled: false, winningOutcome: null }), feeBps: 0, liveHoldings: null })).toBeNull();
   });
 
-  it("stamps a win net of the fee, with the fee itself on record, and reads a redeemed leg as paid", () => {
+  it("stamps a win at the full redeem with no fee on record, and reads a redeemed leg as paid", () => {
     const round = settleRound({ ledger: ledger({}), market: market({}), feeBps: 100, liveHoldings: { upRaw: 0n, downRaw: 0n } })!;
     expect(round.outcome).toBe("win");
-    expect(round.payoutBase).toBe(9_900_000n);
-    expect(round.feeBase).toBe(100_000n);
-    expect(round.pnlBase).toBe(5_900_000n);
+    expect(round.payoutBase).toBe(10_000_000n);
+    expect(round.feeBase).toBe(0n);
+    expect(round.pnlBase).toBe(6_000_000n);
     expect(round.claim).toBe("paid");
   });
 
