@@ -30,4 +30,4 @@ Stock-price Up/Down prediction market on Solana: a source-led port of Masayume (
 
 - **Fast:** `pnpm typecheck && pnpm invariants`
 - **Web:** `pnpm build`
-- **Programs:** `NO_DNA=1 anchor build` (from S0 scaffold on)
+- **Programs:** `NO_DNA=1 anchor build --arch v0` (from S0 scaffold on). Anchor 1.2 defaults to `--arch v3`, which devnet and mainnet reject until SBPFv3 activates (D-024).

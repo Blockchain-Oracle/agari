@@ -251,6 +251,17 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** anyone can crank a finished Window's payouts into each user's own ATA; a repeated redeem is refused by name. Finished Windows return their rent, and a donation to a Window's vault goes to the treasury without changing anyone's payout.
 - **Approval:** within plan r2 (S2 redeem and closure step).
 
+### D-024 — Programs build for SBPF v0 (Anchor 1.2 defaults to v3)
+- **Date / owner:** 2026-09-14 · S2 owner (devnet deploy)
+- **Evidence:**
+  - The first `solana program deploy` refused the binary locally, before sending anything: `ELF error: Detected sbpf_version required by the executable which are not enabled`. Its `e_flags` = 3 (SBPFv3).
+  - `anchor build --help` (1.2.0): `--tools-version [default: v1.57]`, `--arch [default: v3]`.
+  - `solana feature status --url devnet`: `BUwGLeF3…` "SIMD-0178/0179/0189: Enable deployment and execution of SBPFv3 programs" is **inactive**. LiteSVM enables every feature, which is why all tests had passed on v3.
+  - Rebuilt with `--arch v0`: `e_flags` = 0, 764,200 B (v3 was 726,056 B). All 33 LiteSVM tests pass on the v0 binary. Compute is within 0.4% of v3: 10-fill IOC 29,888 CU, RedStone 5-package print 148,406, redeem 13,991.
+- **Rule:** every program build uses `NO_DNA=1 anchor build --arch v0` (`pnpm anchor:build`, CLAUDE.md gate) until SBPFv3 is active on the target cluster. The platform tools stay at Anchor's v1.57. Compute and size figures in stage files are the v0 ones.
+- **User-visible:** none.
+- **Approval:** within plan r2 S2 (deploy step).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

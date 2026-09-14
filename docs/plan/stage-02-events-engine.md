@@ -107,6 +107,15 @@
   - **Cost (LiteSVM, legacy tx, 1 signer):** release book 5,326 CU / 310 B; close ledger 14,081 CU / 475 B; close market 9,125 CU / 376 B; grow +116 9,710 CU / 346 B.
   - **Rent returned:** LiteSVM charges the mainnet default of 6,960 lamports per byte, not devnet's measured 5,080. Measured: Ledger (96 seats) + mvault 62,452,080; Market 4,064,640 + MarketResult 2,672,640; +116 seats 71,047,680. Each equals `(bytes + 128) × 6,960`, i.e. `events-accounts.md` §3's devnet figures (44,094,400 + 1,488,440; 2,966,720 + 1,950,720; 51,856,640) at 6,960.
 
+- **Devnet deploy (2026-09-14, D-024).**
+  - **Program:** `agari-events` `cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH` (program data `2sSGMUci…qnzeD`, authority = deployer, slot 498,252,588), from `36f1384`, built for SBPF v0. The on-chain bytes equal the tested binary (764,200 B, sha256 `310e14d7…c44309`); rent 3.883 SOL.
+  - **Attempts:**
+    1. v3 binary, refused locally.
+    2. v0 upload via Helius `--use-rpc`: the buffer `9GZyxo…rftw` was created, then writes stopped at "Max retries exceeded".
+    3. Resumed into that buffer (keypair derived from its recovery phrase and matched to the address, then deleted), sending to validators directly: done in 17 s.
+  - **Balance:** deployer 10 → 6.112 SOL.
+  - **Still open in the deploy step:** `init-events` (config, tUSDC mint, TSLA/NVDA series, books), IDL publish, codegen.
+
 ## Handoff
 
 - **Next steps after redeem and closure (done, D-022):**
