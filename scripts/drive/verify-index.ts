@@ -28,7 +28,7 @@ try {
     const keys = [...new Set([...Object.keys(report.chain), ...Object.keys(report.index)])].sort();
     console.log(`\n${"metric".padEnd(26)} ${"chain".padStart(8)} ${"index".padStart(8)}`);
     for (const k of keys) console.log(`${k.padEnd(26)} ${String(report.chain[k] ?? "-").padStart(8)} ${String(report.index[k] ?? "-").padStart(8)}`);
-    console.log(`\nhead slot ${report.headSlot}; index behind chain head by ${report.lag.behindSec ?? "-"} s; newest indexed block is ${report.lag.ageSec ?? "-"} s old`);
+    console.log(`\nhead slot ${report.headSlot}; index behind chain head by ${report.lag.behindSlots ?? "-"} slot(s) / ${report.lag.behindSec ?? "-"} s of block time; newest indexed block is ${report.lag.ageSec ?? "-"} s old (block times are meaningless on Surfpool)`);
     console.log(report.ok ? "verify-index: OK — counts match" : `verify-index: MISMATCH\n  - ${report.mismatches.join("\n  - ")}`);
   }
   process.exitCode = report.ok ? 0 : 1;

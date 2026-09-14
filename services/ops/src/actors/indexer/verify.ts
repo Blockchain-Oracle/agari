@@ -20,7 +20,8 @@ export interface VerifyReport {
   chain: Record<string, number>;
   index: Record<string, number>;
   mismatches: string[];
-  lag: { chainLastBlockTimeSec: number | null; indexLastBlockTimeSec: number | null; behindSec: number | null; ageSec: number | null };
+  /** `behindSlots` works on any cluster; the block-time figures only where block times are real (devnet, not Surfpool). */
+  lag: { behindSlots: number | null; chainLastBlockTimeSec: number | null; indexLastBlockTimeSec: number | null; behindSec: number | null; ageSec: number | null };
 }
 
 export async function verifyIndex(input: VerifyInput): Promise<VerifyReport> {
@@ -94,6 +95,7 @@ export async function verifyIndex(input: VerifyInput): Promise<VerifyReport> {
     index,
     mismatches,
     lag: {
+      behindSlots: headSlot !== null && counts?.last_slot ? headSlot - Number(counts.last_slot) : null,
       chainLastBlockTimeSec: chainLast,
       indexLastBlockTimeSec: indexLast,
       behindSec: chainLast !== null && indexLast !== null ? chainLast - indexLast : null,

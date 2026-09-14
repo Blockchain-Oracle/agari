@@ -29,8 +29,11 @@ export async function runSubscription(ctx: IndexerContext, signal: AbortSignal):
           continue;
         }
         const result = await applyTransaction(ctx, tx, { commitment: "confirmed" });
-        if (result.inserted && tx.blockTimeSec !== null) {
-          const lag = Math.max(0, Date.now() / 1000 - tx.blockTimeSec);
+        if (result.inserted) {
+          // Block time → commit. A block time an hour off wall time (Surfpool reports ~1.79e6) can't measure lag, so the
+          // notification → commit time stands in for it.
+          const blockLag = tx.blockTimeSec === null ? null : Date.now() / 1000 - tx.blockTimeSec;
+          const lag = blockLag !== null && blockLag >= -5 && blockLag <= 3_600 ? Math.max(0, blockLag) : (Date.now() - item.seenMs) / 1000;
           ctx.stats.lastLagSec = Math.round(lag * 10) / 10;
           ctx.stats.maxLagSec = Math.max(ctx.stats.maxLagSec, ctx.stats.lastLagSec);
         }

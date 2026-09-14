@@ -113,7 +113,8 @@ export function indexReader(sql: Sql) {
           (SELECT count(*) FROM (SELECT market, count(DISTINCT seq) AS n, max(seq) AS mx FROM idx_events WHERE market IS NOT NULL GROUP BY market) g WHERE g.n < g.mx)::int AS markets_with_gaps,
           (SELECT count(*) FROM (SELECT signature, outer_ix, inner_ix FROM idx_events GROUP BY 1, 2, 3 HAVING count(*) > 1) d)::int AS duplicate_events,
           (SELECT json_object_agg(name, n) FROM (SELECT name, count(*)::int AS n FROM idx_events WHERE slot <= ${slot} GROUP BY name) c) AS by_name,
-          (SELECT max(block_time_sec) FROM idx_txs WHERE slot <= ${slot})::text AS last_block_time_sec`;
+          (SELECT max(block_time_sec) FROM idx_txs WHERE slot <= ${slot})::text AS last_block_time_sec,
+          (SELECT max(slot) FROM idx_txs WHERE slot <= ${slot})::text AS last_slot`;
       return row!;
     },
 
