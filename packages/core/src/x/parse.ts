@@ -1,12 +1,17 @@
+import { TICKERS, TICKER_SYMBOLS, type TickerSymbol } from "../market/tickers";
 import type { Side } from "../types/market";
 import { oneUnit } from "../units/decimals";
 
-/** Supported instructions; the live venue decides which Windows are available now. */
-export const X_CADENCES = { "1m": 60, "5m": 300, "15m": 900, "1h": 3_600, "4h": 14_400, "1d": 86_400 } as const;
+/** Supported instructions: the Regular lane cadences (plan §2.2). The live venue decides which Windows are available now. */
+export const X_CADENCES = { "5m": 300, "15m": 900, "1h": 3_600 } as const;
 export type XCadence = keyof typeof X_CADENCES;
 
-export type XAsset = "BTC" | "ETH";
-const ASSETS: Record<string, XAsset> = { btc: "BTC", bitcoin: "BTC", eth: "ETH", ethereum: "ETH", ether: "ETH" };
+export type XAsset = TickerSymbol;
+/** Every ticker by its symbol, and the company words people actually type. */
+const NAME_WORDS: Record<string, TickerSymbol> = { tesla: "TSLA", nvidia: "NVDA", apple: "AAPL", microsoft: "MSFT", amazon: "AMZN", google: "GOOGL", alphabet: "GOOGL" };
+const ASSETS: Record<string, XAsset> = { ...Object.fromEntries(TICKER_SYMBOLS.map((symbol) => [symbol.toLowerCase(), TICKERS[symbol].symbol])), ...NAME_WORDS };
+/** Words that name an asset Agari does not list: refused as unknown rather than ignored. */
+const UNLISTED_ASSET_RE = /^(btc|bitcoin|eth|ethereum|ether|sol|bnb|xrp|doge|ada|link|avax|coin|mstr|hood|amd|nflx)$/;
 /** Side words the parser understands; everything maps onto the venue's two outcomes. */
 const SIDES: Record<string, Side> = { up: "up", down: "down", long: "up", short: "down", yes: "up", no: "down", over: "up", under: "down" };
 /** Units that may trail a stake and mean nothing more than "collateral". */
@@ -38,8 +43,8 @@ export interface XInstruction {
 export type XParse = { ok: true; instruction: XInstruction } | { ok: false; reason: XRefusalReason; token?: string };
 
 /** The one sentence the UI shows as the grammar. */
-export const X_GRAMMAR = "@handle <btc|eth> <up|down> <stake> <1m|5m|15m|1h|4h|1d>";
-export const X_EXAMPLES = ["btc up 5 15m", "eth down $10 1h", "bitcoin long 25 5m"] as const;
+export const X_GRAMMAR = "@handle <ticker> <up|down> <stake> <5m|15m|1h>";
+export const X_EXAMPLES = ["tsla up 5 15m", "nvda down $10 1h", "tesla long 25 5m"] as const;
 
 const STAKE_RE = /^\$?(\d+(?:\.\d+)?)$/;
 const CADENCE_RE = /^(\d+)(m|h|d)$/;
@@ -101,7 +106,7 @@ export function parseInstruction(text: string, options: { decimals: number }): X
       stakeText = stakeMatch[1] as string;
       continue;
     }
-    if (/\d/.test(token) || /^(sol|bnb|xrp|doge|ada|link|avax)$/.test(token)) {
+    if (/\d/.test(token) || UNLISTED_ASSET_RE.test(token)) {
       return { ok: false, reason: /\d/.test(token) ? "unknown-token" : "unknown-asset", token };
     }
   }
@@ -126,9 +131,9 @@ export function describeRefusal(reason: XRefusalReason, token?: string): string 
     case "two-sides":
       return `one side only${near}`;
     case "no-asset":
-      return "name the asset: btc or eth";
+      return "name the stock, such as tsla or nvda";
     case "unknown-asset":
-      return `only btc and eth trade here${near}`;
+      return `that stock is not listed here${near}`;
     case "two-assets":
       return `one asset per call${near}`;
     case "no-stake":
@@ -140,7 +145,7 @@ export function describeRefusal(reason: XRefusalReason, token?: string): string 
     case "no-cadence":
       return "add a timeframe, such as 5m or 15m";
     case "cadence-not-listed":
-      return `use a supported timeframe${near}: 1m, 5m, 15m, 1h, 4h or 1d`;
+      return `use a supported timeframe${near}: 5m, 15m or 1h`;
     case "two-cadences":
       return `one Window per call${near}`;
     case "unknown-token":

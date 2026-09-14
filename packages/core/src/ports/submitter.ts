@@ -79,15 +79,8 @@ export type VaultIntent =
 
 export type TxIntent =
   | { kind: "faucet"; amountBase: bigint }
-  | { kind: "approve"; token: Address; spender: Address; amountBase: bigint }
-  | {
-      kind: "redeem";
-      marketId: MarketId;
-      outcomeIdx: OutcomeIdx;
-      amountRaw: bigint;
-      marketAddress: Address;
-      outcomeToken: Address;
-    }
+  /** `user_redeem` on a terminal Window: the outcome and lots to redeem (a PROGRAM seat may redeem part). */
+  | { kind: "redeem"; marketId: MarketId; outcomeIdx: OutcomeIdx; amountRaw: bigint }
   | VaultIntent
   | StrategyIntent
   | ParlayIntent

@@ -4,7 +4,8 @@ import { diagnosis } from "../types/diagnosis";
 import type { EventMarket } from "../types/market";
 import type { BookDepth, BookLevelView } from "../types/trading";
 import { termBand, termPoints } from "./term";
-import { testAddress, testMarketId } from "../testing/ids";
+import { testMarketId } from "../testing/ids";
+import { testEventMarket } from "../testing/market";
 
 const D = 6;
 const UNIT = 10n ** BigInt(D);
@@ -20,34 +21,8 @@ const book = (bid: number | null, ask: number | null): BookDepth => ({
 });
 const id = (n: number) => testMarketId(n);
 function market(n: number, intervalSec: number, expiresInSec: number): EventMarket {
-  return {
-    marketId: id(n),
-    venueId: null,
-    asset: "BTC",
-    question: "",
-    intervalSec,
-    strikeRaw: 0n,
-    isUpDown: true,
-    tradingStartSec: NOW_SEC + expiresInSec - intervalSec,
-    expirySec: NOW_SEC + expiresInSec,
-    poolAddress: testAddress(0xf1),
-    marketAddress: testAddress(0xf2),
-    nonce: null,
-    yesTokenId: 0n,
-    noTokenId: 0n,
-    collateral: testAddress(0xf3),
-    decimals: D,
-    status: "Trading",
-    winningOutcome: null,
-    voided: false,
-    finalized: null,
-    openingPriceRaw: 7_795_612n,
-    oracleQuestionId: null,
-    volumeQuoteRaw: 0n,
-    tradeCount: 0,
-    lastPriceRaw: null,
-    resolvedAtMs: null,
-  };
+  const expirySec = NOW_SEC + expiresInSec;
+  return testEventMarket(n, { intervalSec, tradingStartSec: expirySec - intervalSec, lockAtSec: expirySec, expirySec, decimals: D, openingPriceRaw: 7_795_612n });
 }
 
 describe("termPoints", () => {

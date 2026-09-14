@@ -7,9 +7,12 @@ export type XWindowSelection = { ok: true; market: EventMarket } | {
   market?: EventMarket;
 };
 
-/** Match the requested asset and duration exactly; never substitute another trade. */
+/**
+ * Match the requested stock and duration exactly on the Regular lane; never substitute another trade. A token
+ * lane Window with the same cadence prices the xStock token, not the stock, so it is never a match here.
+ */
 export function selectXWindow(markets: readonly EventMarket[], instruction: Pick<XInstruction, "asset" | "intervalSec">, nowMs: number): XWindowSelection {
-  const matching = markets.filter(m => m.asset === instruction.asset && m.intervalSec === instruction.intervalSec && m.isUpDown)
+  const matching = markets.filter(m => m.lane === "regular" && m.asset === instruction.asset && m.intervalSec === instruction.intervalSec)
     .sort((a, b) => a.expirySec - b.expirySec);
   const trading = matching.find(m => phase(m, nowMs) === "trading");
   if (trading) return { ok: true, market: trading };

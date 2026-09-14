@@ -15,6 +15,8 @@ export type MarketPhase =
 
 export interface PhaseInput {
   tradingStartSec: number;
+  /** Trading stops here; equal to `expirySec` except on the Gap lane. */
+  lockAtSec: number;
   expirySec: number;
   intervalSec: number;
   openingPriceRaw: bigint | null;
@@ -28,8 +30,8 @@ export interface PhaseInput {
 const ENTERABLE: ReadonlySet<MarketPhase> = new Set<MarketPhase>(["trading"]);
 
 function timePhase(m: PhaseInput, nowSec: number): MarketPhase {
-  if (nowSec >= m.expirySec) return "locked";
-  if (nowSec >= noEntryCutoffSec(m.expirySec, m.intervalSec)) return "noEntryBuffer";
+  if (nowSec >= m.lockAtSec) return "locked";
+  if (nowSec >= noEntryCutoffSec(m)) return "noEntryBuffer";
   if (nowSec < m.tradingStartSec) return "upcoming";
   if (m.openingPriceRaw === null) return "pendingOpeningPrint";
   return "trading";

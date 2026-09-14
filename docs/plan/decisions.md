@@ -103,6 +103,34 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none yet (the web still runs on EVM until 1d).
 - **Approval:** within plan r2 S1.
 
+### D-011 — Ticker registry, the Window read model and lock-aware entry
+- **Date / owner:** 2026-09-14 · S1 owner (steps 1a.2–1a.3)
+- **Evidence:** Hermes `/v2/price_feeds` fetched 2026-09-14 (TSLA/QQQ/VOO ids match S0's probe); `services/ops/config/price-sources.json` (xStock mints); plan P§2.2, P§3.1 `Series` seeds and `lock_at`; the session slice's tests (DST, early close, Gap).
+- **Rule:**
+  - **`core/market/tickers.ts` is the universe.** Permanent `seriesId` (the `ticker: u16` Series seed): TSLA 1, NVDA 2, AAPL 3, MSFT 4, META 5, AMZN 6, GOOGL 7, QQQ 8, VOO 9, SPY 10; 11 COIN and 12 MSTR are reserved. SPY is there only for the SPYx token lane. The registry says what a ticker *is*; whether a lane is live comes from policy coverage.
+  - **`EventMarket` is Solana-shaped:**
+    - Adds `lane` (`regular | gap | token`, the `basis: u8` seed), `lockAtSec`, `seriesAddress`, `policyVersion`, `printSource` and `voidReason`.
+    - Removes DreamDEX-only fields: `strikeRaw`, `isUpDown`, `yesTokenId`/`noTokenId`, `oracleQuestionId` (and `OnchainSnapshot.outcomeToken`/`yesId`/`noId`, `LaneSet.excludedFixedStrike`, the `approve` intent).
+    - `asset` keeps its name, typed `TickerSymbol`. Prints are normalized to `PRINT_EXPO = -8`.
+    - Renamed: `nativeWei` → `nativeLamports`, `blockTimestampSec` → `publishTimeSec`, `ClockSync.blockNumber` → `slot`; venue credit is per `marketId` (the Ledger seat), not per pool.
+  - **Gap lane cadence seed = 604,800** (`GAP_CADENCE_SEC`); the Window's real span varies with holidays.
+  - **Entry closes 30 s before `lock_at`, not expiry:**
+    - `noEntryCutoffSec`, `orderExpirySec` and `insideNoEntryBuffer` take `{ lockAtSec, intervalSec }`, so an expiry can't be passed positionally.
+    - `phase()` locks at `lockAtSec`.
+    - `countdown` stays on `expirySec` ("settles in").
+  - **Calendar (session slice):**
+    - Regular Windows align to the ET clock (60m runs 10:00–16:00) and none expires after the close.
+    - Gap = last session close before the weekend → first session open after it, locking Sunday 20:00 ET.
+    - The roller lists a date only when Alpaca and the Pyth schedule agree; halts are an input.
+    - Pyth schedule overrides carry no year, so only a recently fetched schedule is trusted.
+  - **X grammar** reads the registry (symbols + company words) with Regular cadences 5m/15m/1h. It matches Regular-lane Windows only; token-lane grammar is S11's call.
+  - **Left for their stages (they read the registry then):**
+    - Lucky's `LUCKY_ASSETS` (S12): changing it needs a policy-version bump and new golden vectors.
+    - Strategy copy defaults (S9).
+    - Range/moonshot pricing vectors (S10).
+- **User-visible:** stock tickers instead of BTC/ETH; Gap Windows stop taking entries at Sunday 20:00 ET.
+- **Approval:** within plan r2 S1.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

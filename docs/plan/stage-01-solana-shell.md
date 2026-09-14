@@ -10,8 +10,8 @@
 
 - [ ] 1a core (first; the other slices compile against it)
   - [x] 1a.1 `types/{primitives,ids}.ts`: base58 `Address`, `Signature`, `Hash32`; `MarketId` = Market PDA (D-010)
-  - [ ] 1a.2 `market/tickers.ts`: `Ticker` registry (Pyth feed id, RedStone feed id, Surge symbol, Alpaca symbol, xStock mint, mark); `asset` → `Ticker`
-  - [ ] 1a.3 `market/{session,lanes}.ts`: Pyth `schedule` parser, Alpaca calendar shape, session states, cadence alignment, `lock_at`, no-entry buffer, Regular/Gap/Token lanes
+  - [x] 1a.2 `market/tickers.ts`: `Ticker` registry (Pyth feed id, RedStone feed id, Surge symbol, Alpaca symbol, xStock mint, mark); `asset` → `Ticker` (D-011)
+  - [x] 1a.3 `market/{session,lanes}.ts`: Pyth `schedule` parser, Alpaca calendar shape, session states, cadence alignment, `lock_at`, no-entry buffer, Regular/Gap/Token lanes (D-011; session slice `8512da7`)
   - [ ] 1a.4 `auth/signed-message.ts`, `urls/explorer.ts`, `projection/settle.ts` (1e7 denominator), Somnia constants out of core
 - [ ] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed)
 - [ ] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted)
@@ -34,4 +34,6 @@
 ## Handoff
 
 - **1b–1d must:** never lowercase, uppercase or text-sort an `Address`/`MarketId`/`Signature` (Masayume web code does this for EVM ids); build test ids with `packages/core/src/testing/ids.ts`; treat `txHash` as a base58 `Signature`.
+- **1d must:** pass `{ lockAtSec, intervalSec }` to the entry helpers (`markets/submitter/steps/expiry.ts`, `ops/x-relay/execute.ts`, `web/features/x/XInstructionBuilder.tsx`); build `EventMarket` fixtures with `packages/core/src/testing/market.ts`; drop every reader of the removed DreamDEX fields (D-011).
+- **S2 must agree with core:** ticker `seriesId` values, Gap cadence seed 604,800, basis order `regular 0 · gap 1 · token 2` (confirm in the frozen spec).
 - **1a.4 still owns:** `private/protocol.ts` wire `signature` (still a 0x hex regex), the signed-message wording in `faucet`, `x/link`, `games/room-token`, `private/protocol`, and `urls/explorer.ts` / Somnia constants.
