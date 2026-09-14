@@ -12,14 +12,14 @@
 - [x] Calendar service (foundation) + roller plan, versions, recycle and grow (lane 3a, merged 2026-09-14)
 - [x] Policy versions and Series: `init-series` for 9 tickers × Regular 5/15/60 with rent accounting, `fund-roles` (lane 3a; the devnet run needs SOL, see Handoff)
 - [x] Roller (highest covering version; "paused: no signed source" when none) (lane 3a)
-- [ ] Pyth trial relay (TSLA/QQQ/VOO) + close update accounts; take over the S0 blob archive (lane 3b)
-- [ ] RedStone relay: all 5 signer packages at T + 10–15 s with retries; archive to `print_archive`; single names + TSLA check prints (lane 3b)
-- [ ] Attested relay (opt-in only; off by default) (lane 3b)
-- [ ] Spot feed + `/health` + `/prices/stream` SSE (lane 3b)
+- [x] Pyth trial relay (TSLA/QQQ/VOO) + close update accounts; take over the S0 blob archive (lane 3b)
+- [x] RedStone relay: all 5 signer packages at T + 10–15 s with retries; archive to `print_archive`; single names + TSLA check prints (lane 3b)
+- [x] Attested relay (opt-in only; off by default) (lane 3b; typechecked only, no attested primary is listed)
+- [x] Spot feed + `/health` + `/prices/stream` SSE (lane 3b)
 - [x] Settler (retries `CrossCheckPending` until the check bound; redeem_for, close ledger, close market) (lane 3c)
 - [x] Seed maker, `MAKER_MODE=seat` (lane 3c; real `SpotFeed` hookup at the main.ts step)
 - [x] Indexer + backfill + `verify-index` (lane 3d)
-- [ ] Register actors in `main.ts` (DRY_RUN default) + heartbeats (stage owner, after the lanes merge)
+- [x] Register actors in `main.ts` (DRY_RUN default) + heartbeats (stage owner; smoke on a Surfpool fork with every actor live, D-029)
 - [ ] Register series on devnet + rent accounting (stage owner; needs SOL)
 - [ ] One-session soak (stage owner)
 
@@ -97,6 +97,25 @@
   - **Where gaps surface:** a hole is noticed when a later event of the same Market is written.
   - **`idx_orders.filled_lots`** is the placement's own fill; maker-side fills show in `remaining_lots`/`status`.
   - **Wiring:** `startIndexer(deps)` needs `DATABASE_URL`; tuning `INDEXER_RPS` (3), `INDEXER_WALK_MS` (20,000), `INDEXER_START_SLOT`. `verify-index.ts` imports the comparison from `services/ops/src/actors/indexer/verify.ts` by relative path (resolves `@agari/db` through services/ops).
+- **Lane 3b (prices, merged from `slice/S3b-prices` @ c48b54a)**, proven on a Surfpool devnet fork during the 09-14 session:
+  - **Prints:** TSLA-5m and NVDA-5m #1–#4 back-to-back (16:00→16:20Z) had every slot filled. TSLA open/close were Pyth; TSLA checks and NVDA open/close were RedStone with 5 signers.
+    - Pyth was posted once per T at T + 5–7 s. That one post covers #n close and #n+1 open, and the account was closed right after.
+    - RedStone landed at T + 12–17 s, checks first.
+  - **Restart recovery:** a relay killed at 16:14:52 and restarted at 16:16:01 recorded all six 16:15 slots from history by 16:16:12, both checks inside T + 120.
+  - **Leftovers / DRY_RUN:** 0 leftover `PriceUpdateV2` accounts; DRY_RUN signed nothing.
+  - **Archive:** 35 boundaries × 7 RedStone + 3 Pyth feeds, including the boot backfill; a re-run inserted 0. Live T→stored was 13.6–20.1 s after fixes. Outliers came from Hermes 429s (a shared key with the S0 archiver) and an idle-delay bug fixed in S3b.3.
+  - **HTTP:** `/health` ok; `/prices/latest` serves 9 symbols (TSLA/QQQ/VOO Pyth, others RedStone); `/prices/stream` sends a snapshot plus ≈ 1 s Pyth ticks; the Pyth key is in no log.
+  - **TSLA cross-check** (Pyth vs RedStone median): 0.79, 1.54, 0.83, 0.67, 0.66 bps at 16:00–16:20Z (limit 25).
+  - **RedStone responses** are ≈ 1.9 MB with 954 feeds, and no filter parameter works. The relay fetches once per boundary and slices each feed's exact JSON array from the text; that substring is the archive payload.
+  - **Hermes limits:** 429s at ≈ 4 req/s. One shared gate spaces requests 1 s apart with 5→60 s backoff; recording goes before archiving.
+  - **Primary strict window:** primary RedStone slots need all 5 signers until T + 300 (strict 300). Spec §6.2 was amended (D-029). Unknown signers are filtered out, because one would refuse the whole print (D-007).
+  - **Kit signers:** Kit refuses two signer instances for one address; pass `client.payer` when the payer also signs.
+  - **Schema migration:** `schema-prints.ts` adds `archived_at_ms` with an idempotent `ALTER TABLE … ADD COLUMN IF NOT EXISTS`.
+- **Integration smoke (stage owner, 16:34Z+, one Surfpool fork on 8950, `pnpm ops:start` with every venue actor live, `MM_SYMBOLS=TSLA,NVDA`):**
+  - **Rolling and prints:** the calendar agreed and the roller released the S2 drive Books, then opened TSLA-5m/NVDA-5m #1 16:35–16:40Z. The relay recorded Pyth and RedStone slots at T + 12–17 s and closed the Pyth accounts.
+  - **Maker:** it quoted TSLA-5m, TSLA-15m and NVDA-5m, requoted on fair moves, and pulled at lock − 60.
+  - **Settler / indexer:** the settler closed the S2 drive Ledgers; the indexer lag was 0–0.7 s.
+  - **Bug found:** the fork proxies the devnet 60m Series that `init-series` had just registered. The roller opened TSLA-1h and NVDA-1h 16:00–17:00Z at 16:35, past their open deadline (16:15), so both voided at once (then drained and closed cleanly). TSLA-15m opened at T + 300 missed its check window. Fixed in `f237bfd`: a late Window must still admit its opening prints (spec §5.2, D-029).
 - **SOL for the devnet run** (5,080 lamports/B incl. header):
   - 25 missing Series × 0.0076 ≈ 0.2 SOL.
   - Books: 16 new 5m/15m Series × 2 × 0.2900 ≈ 9.3 SOL, plus 9 new 60m Series × 2 × 0.2276 ≈ 4.1 SOL, so ≈ 13.4 SOL of Books.

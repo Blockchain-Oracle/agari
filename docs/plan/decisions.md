@@ -486,6 +486,22 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none yet (the soak lists Windows on devnet).
 - **Approval:** within plan r2 S3; the pre-gate start follows the user's "continue building" (2026-09-14) and keeps `main` untouched.
 
+### D-029 — S3 lane merges: spec amendments, main.ts wiring, late-open rule
+- **Date / owner:** 2026-09-14 · S3 owner (lane merges + integration smoke)
+- **Evidence:**
+  - Lane 3c's live fill: a maker BUY_NO at `price_ticks = fair + half` filled against a taker BUY_YES at the same YES price. events-engine.md §2 quotes every kind in YES ticks, and a resting BUY_NO escrows `1000 − p`.
+  - Lane 3b's primary RedStone slots refused 3–4 signer sets before T + 300. prints.md §4.2: `required = now < T + strict_sec ? 5 : 3`, with primary `strict_sec` 300.
+  - Lane 3c releases the Book before waiting on PROGRAM seats. `public_redeem_for` takes `series`.
+  - Integration smoke: TSLA-1h/NVDA-1h 16:00–17:00Z were opened at 16:35, past `open_deadline` 16:15, and voided with `MissingPrint` immediately. TSLA-15m opened at T + 300 missed its check window (T + 120).
+- **Rule:**
+  - **§8.2:** the seed maker's ask is BUY_NO with `price_ticks = fair + half`.
+  - **§6.2:** RedStone needs all 5 configured signers until `T + strict_sec` (60 for checks, 300 for primaries), then ≥ `threshold`. Unknown signers are dropped before posting.
+  - **§7:** the settler releases the Book before any wait on PROGRAM seats. `public_redeem_for` carries `series`.
+  - **§5.2:** the roller's candidate Window must still admit its opening prints (`now + 45 ≤ open_deadline`, and `≤ T + check_admission_sec` when the version has a check). Otherwise the next Window is the candidate.
+  - **§2.5:** `OPS_ACTORS` defaults to the six venue actors (`relay, roller, settler, maker, indexer, http`); `all` adds the Masayume-era actors, which idle until their stages. `MAKER_MODE` defaults to `seat`.
+- **User-visible:** after downtime, a lane shows its next full Window instead of a Window that would void at once or settle without its cross-check.
+- **Approval:** within plan r2 S3 (spec corrections found by the lanes' live proofs).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

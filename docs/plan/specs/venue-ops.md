@@ -32,7 +32,7 @@
 Decisions about chain rules (deadlines, lock, retention) use the **chain clock**: `chainNowSec`, cached for at most 5 s per actor. Fetch scheduling uses the wall clock, because sources publish on wall time. They agree on devnet. On Surfpool after time travel they don't.
 
 ### 2.5 Wiring
-Actors export `start<Name>(deps: VenueDeps)`, where `VenueDeps = { env: OpsEnv; log: Log; sessions: SessionService; spot: SpotFeed | null }` (`runtime/deps.ts`). The stage owner registers them in `main.ts` behind `OPS_ACTORS` (comma list; default: every S3 actor). Each lane may add a dev runner `services/ops/src/dev/<actor>.ts` that builds `VenueDeps` and starts only its actor.
+Actors export `start<Name>(deps: VenueDeps)`, where `VenueDeps = { env: OpsEnv; log: Log; sessions: SessionService; spot: SpotFeed | null }` (`runtime/deps.ts`). The stage owner registers them in `main.ts` behind `OPS_ACTORS` (comma list of `relay, roller, settler, maker, indexer, http`; default: all six; `all` adds the Masayume-era actors). `MAKER_MODE` is `seat` (default) or `vault`. Each lane may add a dev runner `services/ops/src/dev/<actor>.ts` that builds `VenueDeps` and starts only its actor.
 
 ## 3. Chain access
 
@@ -53,7 +53,8 @@ Actors export `start<Name>(deps: VenueDeps)`, where `VenueDeps = { env: OpsEnv; 
 2. **Plan** (pure `plan.ts`, per Series). Planned Windows are core `regularWindows(session, cadence)` for today's session and the next. The candidate is the earliest planned `W` with:
    - `W.tradingStart ≥ series.lastExpiry`;
    - `W.lockAt − now ≥ ROLLER_MIN_TRADABLE_SEC` (default 60);
-   - `W.tradingStart − now ≤ ROLLER_LEAD_SEC` (default 120; must stay below the cadence so two Books suffice).
+   - `W.tradingStart − now ≤ ROLLER_LEAD_SEC` (default 120; must stay below the cadence so two Books suffice);
+   - when a version covers `W`: `now + 45 ≤ open_deadline` and, if the version has a check, `now + 45 ≤ T + check_admission_sec`, so a late open never voids at once or loses its cross-check (D-029).
 
    Then:
    - **Version** (`versions.ts`): the highest covering version (`coveringVersion`, prints.md §2.3). None → lane state `paused: no signed source`, and the Window is not opened.
@@ -78,7 +79,7 @@ Actors export `start<Name>(deps: VenueDeps)`, where `VenueDeps = { env: OpsEnv; 
    - the version's policy for the slot has this source (`open`/`close` → primary; `checkOpen`/`checkClose` → check, only when the version has one);
    - `T + min_delay_sec ≤ now ≤ deadline(slot)` (prints.md §3).
 2. **Schedule** (wall clock) for each 5-minute boundary T:
-   - **RedStone at T + 10 s.** One historical request returns every feed. Retry every 3 s until 5 distinct signers or T + 60; after that, ≥ `threshold` (3) is enough for primaries. Check slots (deadline T + 120) go first, then primaries.
+   - **RedStone at T + 10 s.** One historical request returns every feed. Retry every 3 s until all 5 configured signers are present. The engine requires all 5 while `now < T + strict_sec` (prints.md §4.2), so `threshold` (3) suffices only after that: T + 60 for check slots (strict 60), T + 300 for primaries (strict 300). Packages from unknown signers are dropped before posting. Check slots (deadline T + 120) go first, then primaries. (Amended at the 3b merge, D-029.)
    - **Pyth at T + 2 s.** One `/v2/updates/price/{T}` request covers every due Pyth feed; retry every 2 s. `postPythUpdates` runs once, the print is recorded into every due slot, then `closePythUpdates` runs on every account of that T, whether or not the records landed.
    - **Late slots.** A slot still admissible after a restart is fetched from history (RedStone keeps ≈ 24 h, Hermes by timestamp).
    - **Missed slots.** A slot past its deadline is logged `missed <slot> <market>: <reason>`; the settler voids.
