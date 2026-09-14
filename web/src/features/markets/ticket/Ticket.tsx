@@ -299,7 +299,6 @@ export function Ticket({ selection, drawer }: TicketProps) {
           <p className="tk-foot">
             {isRange ? RANGE.cta.footnote : routing.armed ? TICKET.footnoteArmed : TICKET.footnote}
             {isRange && rangeReserve?.paused ? ` ${RANGE.ticket.reservePaused}` : null}
-            {!isRange && !boosted && walletRoute && funding?.ok && funding.needsApproval ? ` ${TICKET.approvalNote}` : null}
             {!isRange && !boosted && walletRoute && funding?.ok && funding.venueCreditUsedBase > 0n ? ` ${TICKET.creditNote(`${formatBaseUnits(funding.venueCreditUsedBase, decimals)} ${symbol}`)}` : null}
           </p>
         </>

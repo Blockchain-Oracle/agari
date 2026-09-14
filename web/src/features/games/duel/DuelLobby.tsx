@@ -2,7 +2,7 @@
 
 import { STAKE_TIERS, type MatchState } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32 } from "@agari/core/types";
+import type { Address, Hash32 } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { useArenaMatch, useArenaState } from "@agari/markets/react";
 import type { CSSProperties } from "react";
@@ -25,8 +25,8 @@ import { useGameSponsor, type FundOutcome } from "./useGameSponsor";
  * fixed before you knew them".
  */
 export function DuelLobby({ state, wallet, dealing }: { state: Extract<MatchState, { matchId: string }>; wallet: string | null; dealing: DealingView | null }) {
-  const you = wallet?.toLowerCase() ?? null;
-  const isCreator = you !== null && state.players.creator.toLowerCase() === you;
+  const you = wallet ?? null;
+  const isCreator = you !== null && state.players.creator === you;
   const opponent = isCreator ? state.players.challenger : state.players.creator;
 
   const stage =
@@ -100,7 +100,7 @@ function Seat({ label, address }: { label: string; address: string | null }) {
  */
 function OnChain({ state, isCreator, wallet }: { state: Extract<MatchState, { phase: "committed" }>; isCreator: boolean; wallet: Address | null }) {
   const arena = useArenaState();
-  const onChain = useArenaMatch(state.matchId as Bytes32);
+  const onChain = useArenaMatch(state.matchId as Hash32);
   const { boot } = useVenue();
   const { create, join, busy, canSign, refusal, game } = useArenaWrites();
   const sponsor = useGameSponsor();
@@ -118,11 +118,11 @@ function OnChain({ state, isCreator, wallet }: { state: Extract<MatchState, { ph
   /** The entry confirmed: the arena now names the key, so the sponsor may fund it. Fire and forget; the stage reports a dry key on its own. */
   const afterEntry = (outcome: { status: string } | null) => {
     if (outcome?.status !== "confirmed" || !sponsor.ready || !game.key || !wallet) return;
-    void sponsor.fund(state.matchId as Bytes32, wallet, game.key).then(setFunded);
+    void sponsor.fund(state.matchId as Hash32, wallet, game.key).then(setFunded);
   };
   const fundedNote = funded ? (
     <p className={funded.ok ? "du-foot" : "du-refusal"}>
-      {funded.ok ? DUEL.lobby.sponsorFunded(formatWei(funded.amountWei, 18, { maxDp: 3, minDp: 0 })) : DUEL.lobby.sponsorDeclined(funded.error)}
+      {funded.ok ? DUEL.lobby.sponsorFunded(formatWei(funded.amountWei, 9, { maxDp: 6, minDp: 0 })) : DUEL.lobby.sponsorDeclined(funded.error)}
     </p>
   ) : null;
   const decimals = boot && isOk(boot) ? boot.value.collateral.decimals : null;
@@ -151,7 +151,7 @@ function OnChain({ state, isCreator, wallet }: { state: Extract<MatchState, { ph
             void grant()
               .then((agent) =>
                 create({
-                  matchId: state.matchId as Bytes32,
+                  matchId: state.matchId as Hash32,
                   challenger,
                   tier: state.tier,
                   deckHash: state.commitment.hash,
@@ -184,7 +184,7 @@ function OnChain({ state, isCreator, wallet }: { state: Extract<MatchState, { ph
         onClick={() =>
           potBase !== null &&
           void grant()
-            .then((agent) => join(state.matchId as Bytes32, potBase, agent ?? undefined))
+            .then((agent) => join(state.matchId as Hash32, potBase, agent ?? undefined))
             .then(afterEntry)
         }
       >

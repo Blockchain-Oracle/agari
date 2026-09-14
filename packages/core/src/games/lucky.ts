@@ -1,6 +1,6 @@
 import type { MarketId, Side } from "../types/market";
 import type { Hex } from "../types/primitives";
-import { concatWords, hexWord, uintWord } from "./commitment";
+import { addressWord, concatWords, uintWord } from "./commitment";
 import { INTERVAL_5M_SEC } from "./deck";
 
 /**
@@ -33,11 +33,12 @@ const BPS = 10_000;
 
 /**
  * The exact bytes hashed into a candidate-set commitment: the policy version, the count, and the market ids
- * sorted — so the same set in any order commits to the same hash, and no two different sets to one.
+ * sorted by their 32 decoded bytes — so the same set in any order commits to the same hash, and no two different
+ * sets to one. Base58 text is never lowercased or text-sorted: it is case-sensitive and varies in length.
  */
 export function luckyCandidatePreimage(marketIds: readonly MarketId[], policyVersion: number): Hex {
-  const sorted = [...new Set(marketIds.map((id) => id.toLowerCase() as MarketId))].sort();
-  return concatWords([uintWord(BigInt(policyVersion)), uintWord(BigInt(sorted.length)), ...sorted.map(hexWord)]);
+  const words = [...new Set(marketIds)].map(addressWord).sort();
+  return concatWords([uintWord(BigInt(policyVersion)), uintWord(BigInt(words.length)), ...words]);
 }
 
 /** A live Window as the eligibility scan sees it. */

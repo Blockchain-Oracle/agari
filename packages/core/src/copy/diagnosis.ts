@@ -8,11 +8,10 @@ export interface DiagnosisCopy {
 
 const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "signer-required": { headline: "Connect a wallet first", body: "Reading works without one; writing needs your signature." },
-  "wrong-chain": { headline: "Wrong network", body: "This app runs on Somnia Shannon. Switch and try again." },
+  "wrong-chain": { headline: "Wrong network", body: "This app runs on Solana devnet. Switch your wallet's network and try again." },
   "user-rejected": { headline: "You cancelled in your wallet", body: "Nothing was sent. Try again when you're ready." },
-  "out-of-gas": { headline: "Out of STT gas", body: OUT_OF_GAS },
+  "out-of-gas": { headline: "Out of SOL for fees", body: OUT_OF_GAS },
   "insufficient-collateral": { headline: "Not enough tUSDC", body: "Your stake exceeds what your wallet holds. Mint from the faucet or lower the stake." },
-  "insufficient-allowance": { headline: "Approval needed", body: "The venue needs permission to take your stake. It's absorbed into your next bet." },
   "market-not-trading": { headline: "The Window closed under you", body: "Your stake was never taken. The next Window is pre-armed." },
   "order-expired": { headline: "Order expired before it filled", body: "The book moved past your quote. Nothing was taken." },
   "post-only-would-cross": { headline: "Your price would fill immediately", body: "A backing order rests, it doesn't take. Adjust the level." },
@@ -31,7 +30,7 @@ const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "rpc-down": { headline: "The chain endpoint isn't answering", body: "We're rotating to the backup RPC. Last-good values stay on screen." },
   "contract-revert": { headline: "The contract refused", body: "Nothing moved. The technical details name the reason." },
   "grant-refused": { headline: "Outside the grant", body: "This order sits outside what the grant allows — its caps, expiry or actor. Adjust the grant or the size." },
-  "not-deployed": { headline: "Not on this network yet", body: "The Trading Balance contract is not deployed here. Wallet orders still work." },
+  "not-deployed": { headline: "Not live on this network yet", body: "Agari's markets aren't deployed on this network yet, so there is nothing to read or trade here. Nothing was sent." },
   "send-unknown": { headline: "Waiting for the chain to answer", body: "Your order is either in or it never left; we'll show you which." },
   unknown: { headline: "Something went sideways", body: "Nothing on-chain changed without a signature. Details below." },
 };

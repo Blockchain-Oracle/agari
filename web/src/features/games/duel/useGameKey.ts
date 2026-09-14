@@ -1,11 +1,10 @@
 "use client";
 
-import type { Address, Hex } from "@agari/core/types";
-import { generateSessionKey } from "@agari/markets";
+import { encodeBase58, type Address, type Signature } from "@agari/core/types";
 import { del, get, set } from "idb-keyval";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { privateKeyToAccount } from "viem/accounts";
 import { useWalletSession } from "@/lib/wallet-session";
+import { generateGameKeypair, parseStoredSecret, signWithGameKey } from "./game-keypair";
 
 /**
  * The browser's game key — one per wallet, in IndexedDB beside the tap-trade key's and under its own
@@ -19,23 +18,29 @@ import { useWalletSession } from "@/lib/wallet-session";
  * One record per wallet, shared by every hook instance through a module store rather than loaded per
  * instance: three components mounting at once used to race `loadOrCreate`, and two of them could have
  * generated a key each and kept the one the store did not.
+ *
+ * On Solana the key is an Ed25519 keypair made by WebCrypto (`game-keypair.ts`). The record keeps its 64-byte secret
+ * (seed ‖ public key) as base58, the Solana CLI's own layout, so the markets session can sign with it as `{ secretKey }`.
+ * A Masayume-era record (an EVM hex private key) doesn't parse and is replaced by a fresh key.
  */
 const KEY_PREFIX = "agari.gameKey.";
 
 export interface StoredGameKey {
   address: Address;
-  privateKey: Hex;
+  /** base58 of the 64-byte Solana secret key. */
+  secretKey: string;
   createdAtMs: number;
 }
 
 export interface GameKey {
   address: Address;
-  privateKey: Hex;
-  /** Signs as the key — a message, never a transaction, and never a prompt. */
-  signMessage: (message: string) => Promise<Hex>;
+  secretKey: Uint8Array;
+  /** Signs as the key — a message, never a transaction, and never a prompt. Returns the base58 signature. */
+  signMessage: (message: string) => Promise<Signature>;
 }
 
-const idFor = (owner: Address) => `${KEY_PREFIX}${owner.toLowerCase()}`;
+/** Base58 is case-sensitive, so the owner's address is the key id exactly as written (D-010). */
+const idFor = (owner: Address) => `${KEY_PREFIX}${owner}`;
 
 const records = new Map<string, StoredGameKey | null>();
 const loading = new Map<string, Promise<StoredGameKey | null>>();
@@ -56,9 +61,9 @@ function subscribe(listener: () => void): () => void {
 async function loadOrCreate(owner: Address): Promise<StoredGameKey | null> {
   try {
     const held = await get<StoredGameKey>(idFor(owner));
-    if (held?.privateKey) return held;
-    const fresh = generateSessionKey(owner);
-    const record: StoredGameKey = { address: fresh.address, privateKey: fresh.privateKey, createdAtMs: fresh.createdAtMs };
+    if (held && parseStoredSecret(held.secretKey)) return held;
+    const fresh = await generateGameKeypair();
+    const record: StoredGameKey = { address: fresh.address, secretKey: encodeBase58(fresh.secretKey), createdAtMs: Date.now() };
     await set(idFor(owner), record);
     return record;
   } catch {
@@ -109,8 +114,8 @@ export function useGameKey(): GameKey | null {
   }, [address]);
 
   return useMemo(() => {
-    if (!stored) return null;
-    const account = privateKeyToAccount(stored.privateKey);
-    return { address: stored.address, privateKey: stored.privateKey, signMessage: (message: string) => account.signMessage({ message }) };
+    const pair = stored ? parseStoredSecret(stored.secretKey) : null;
+    if (!pair) return null;
+    return { address: pair.address, secretKey: pair.secretKey, signMessage: (message: string) => signWithGameKey(pair.secretKey, message) };
   }, [stored]);
 }

@@ -34,21 +34,18 @@ function fromOutcome(outcome: TxOutcome): StepResult {
 
 /** One leg: gate on the head-fresh chain view (canon #1), then redeem with its explicit outcomeIdx (canon #11). */
 export async function redeemOne(submitter: MarketsSubmitter, item: ClaimItem): Promise<StepResult> {
-  let outcomeToken;
   try {
     const onchain = unwrap(await marketsProvider.getOnchain(item.marketId));
     if (!onchain.isResolved && !onchain.isVoided) return stopWith(diagnosis("not-settled", `${item.marketId} has no settlement on chain yet`));
-    outcomeToken = onchain.outcomeToken;
   } catch (error) {
     return stopWith(diagnose(error));
   }
+  // Outcome balances live in the Window's Ledger seat, not a token: the redeem names the Window and the outcome (D-011).
   const outcome = await submitter.submitTx({
     kind: "redeem",
     marketId: item.marketId,
     outcomeIdx: item.outcomeIdx,
     amountRaw: item.amountRaw,
-    marketAddress: item.marketAddress,
-    outcomeToken,
   });
   return fromOutcome(outcome);
 }

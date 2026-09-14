@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { addressSchema, bytes32Schema, type Address } from "../types/primitives";
+import { addressSchema, hash32Schema, type Address } from "../types/primitives";
 import type { MatchEvent } from "./lifecycle";
 import { decodeDeckCards, decodeMatchState, decodeOutcome, decodeReceipt, wireCommitmentSchema, wireDeckCardSchema, wireMatchStateSchema, wireOutcomeSchema, wireReceiptSchema } from "./wire";
 
@@ -42,7 +42,7 @@ export type Reaction = (typeof REACTIONS)[number];
 
 /** `chainId:arena:matchId` — one room per match per deployment, so two chains never share a room. */
 export function roomKey(chainId: number, arena: string, matchId: string): string {
-  return `${chainId}:${arena.toLowerCase()}:${matchId.toLowerCase()}`;
+  return `${chainId}:${arena}:${matchId.toLowerCase()}`;
 }
 
 export interface RoomRef {
@@ -53,7 +53,7 @@ export interface RoomRef {
 }
 
 export function roomRef(chainId: number, arena: Address, matchId: string): RoomRef {
-  return { key: roomKey(chainId, arena, matchId), chainId, arena: arena.toLowerCase() as Address, matchId: matchId.toLowerCase() };
+  return { key: roomKey(chainId, arena, matchId), chainId, arena, matchId: matchId.toLowerCase() };
 }
 
 /**
@@ -104,7 +104,7 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
     tier: tierSchema,
     region: z.string().min(1).max(24),
     /** `keccak256(seed)`, published before the deck exists — see `seed.reveal`. */
-    clientSeedCommitment: bytes32Schema,
+    clientSeedCommitment: hash32Schema,
   }),
   z.object({ type: z.literal("queue.leave") }),
   /**
@@ -115,7 +115,7 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
    * the commitment before it hashes anything, so neither a player nor the server can choose a seed after
    * seeing the other's — which is exactly the property `GameArena.revealDeck` re-checks on chain.
    */
-  z.object({ type: z.literal("seed.reveal"), matchId: matchIdSchema, seed: bytes32Schema }),
+  z.object({ type: z.literal("seed.reveal"), matchId: matchIdSchema, seed: hash32Schema }),
   z.object({ type: z.literal("pick.pending"), matchId: matchIdSchema, cardIndex: cardIndexSchema }),
   z.object({ type: z.literal("chat"), matchId: matchIdSchema, body: z.string().min(1).max(CHAT_MAX_CHARS * 2) }),
   z.object({ type: z.literal("reaction"), matchId: matchIdSchema, reaction: z.enum(REACTIONS) }),

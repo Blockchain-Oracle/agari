@@ -6,9 +6,9 @@ export const EDGE = {
   back: "Portfolio",
   intro: {
     title: "Know your edge.",
-    lede: "Your settled Masayume Windows, turned into a clear record of what pays, what costs, and when you trade best.",
+    lede: "Your settled Agari Windows, turned into a clear record of what pays, what costs, and when you trade best.",
     folio: "01",
-    source: { label: "Source", value: "DreamDEX on Somnia" },
+    source: { label: "Source", value: "Agari on Solana" },
     method: { label: "Method", value: "On-chain / in your browser" },
     detailsLabel: "Report details",
   },

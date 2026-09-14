@@ -27,7 +27,7 @@ const DEV = {
 const DRAFT: StudioDraft = { preset: "agent", lookback: 6, thresholdPct: "0.2", persona: "", posture: "balanced", cadences: [900, 3600], hosting: "house", agent: "", name: "", portraitSeed: "fixture-agent", maxPerTrade: "5", maxDaily: "50", subFee: "0", playbook: "" };
 
 const PULSES = [
-  { live: true, label: STRATEGIES.desk.status.watching("BTC") },
+  { live: true, label: STRATEGIES.desk.status.watching("TSLA") },
   { live: true, label: STRATEGIES.desk.status.signal("up") },
   { live: false, label: STRATEGIES.desk.status.offline },
   { live: false, label: STRATEGIES.desk.status.neverStarted },
@@ -59,7 +59,7 @@ export default function DevStrategiesPage() {
         <SectionHeader index="02" title={DEV.cards} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {[HOUSE, AGENT, YOUNG, FRESH].map((card) => (
-            <StrategyCard key={card.strategyId} card={card} sub={null} decimals={DECIMALS} symbol={SYMBOL} asset="BTC" onOpen={() => undefined} />
+            <StrategyCard key={card.strategyId} card={card} sub={null} decimals={DECIMALS} symbol={SYMBOL} asset="TSLA" onOpen={() => undefined} />
           ))}
         </div>
       </section>
@@ -84,16 +84,16 @@ export default function DevStrategiesPage() {
       <section className="flex flex-col gap-4">
         <SectionHeader index="05" title={DEV.studio} />
         <div className="strat-preview">
-          <StudioAgentFields form={draft} setForm={(update) => setDraft(update)} asset="BTC" decimals={DECIMALS} />
+          <StudioAgentFields form={draft} setForm={(update) => setDraft(update)} asset="TSLA" decimals={DECIMALS} />
         </div>
       </section>
 
       <section className="flex flex-col gap-4">
         <SectionHeader index="06" title={DEV.memory} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="strat-preview">{AGENT.agent && <AgentMemory agent={AGENT.agent} storeConnected asset="BTC" nowMs={FIXTURE_NOW_MS} />}</div>
+          <div className="strat-preview">{AGENT.agent && <AgentMemory agent={AGENT.agent} storeConnected asset="TSLA" nowMs={FIXTURE_NOW_MS} />}</div>
           <div className="strat-preview">
-            <AgentMemory agent={{ model: null, decisions: [] }} storeConnected={false} asset="BTC" nowMs={FIXTURE_NOW_MS} />
+            <AgentMemory agent={{ model: null, decisions: [] }} storeConnected={false} asset="TSLA" nowMs={FIXTURE_NOW_MS} />
           </div>
         </div>
       </section>

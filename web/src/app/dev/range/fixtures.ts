@@ -1,6 +1,9 @@
+import { fixtureWindow } from "../fixture-window";
+import { CLUSTER_ID } from "@agari/core/constants";
 import { classifyRangeBand, type RangeQuote, type RangeReserveState } from "@agari/core/range";
 import { diagnosis, toMarketId, type Address, type Diagnosis, type EventMarket, type MarketId } from "@agari/core/types";
 import type { RangeRoundView } from "@/features/range";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned readings; nothing here is a real round, address or deployment.
 const DECIMALS = 6;
@@ -8,14 +11,14 @@ const UNIT = 10n ** BigInt(DECIMALS);
 export const FIXTURE_SYMBOL = "tUSDC";
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 2, 10, 0, 0);
 const NOW_SEC = Math.floor(FIXTURE_NOW_MS / 1000);
-const OWNER = "0x000000000000000000000000000000000000d357" as Address;
-const id = (n: number): MarketId => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
+const OWNER = fixtureAddress("0x000000000000000000000000000000000000d357");
+const id = (n: number): MarketId => fixtureMarketId(n);
 
 /** 76,735.23 — the print Window 70535 settled at live (context/43). */
 export const OPENING = 7_673_523n;
 
 export const RESERVE: RangeReserveState = {
-  deployment: { chainId: 50312, rangeReserve: "0x00000000000000000000000000000000000000c8" as Address, fromBlock: 477_900_000n },
+  deployment: { chainId: CLUSTER_ID.devnet, rangeReserve: fixtureAddress("0x00000000000000000000000000000000000000c8"), fromBlock: 477_900_000n },
   params: {
     marginBps: 1_200,
     maxExposureBps: 6_000,
@@ -40,34 +43,7 @@ export const RESERVE: RangeReserveState = {
   decimals: DECIMALS,
 };
 
-export const WINDOW: EventMarket = {
-  marketId: id(0x11393),
-  venueId: null,
-  asset: "BTC",
-  question: "",
-  intervalSec: 300,
-  strikeRaw: 0n,
-  isUpDown: true,
-  tradingStartSec: NOW_SEC - 60,
-  expirySec: NOW_SEC + 240,
-  poolAddress: "0x00000000000000000000000000000000000000b0" as Address,
-  marketAddress: "0x00000000000000000000000000000000000000a0" as Address,
-  nonce: null,
-  yesTokenId: 1n,
-  noTokenId: 2n,
-  collateral: "0x70a86D8842FB63C4Ad2b7cdddF530eBf1BB25d8E" as Address,
-  decimals: DECIMALS,
-  status: "Trading",
-  winningOutcome: null,
-  voided: false,
-  finalized: null,
-  openingPriceRaw: OPENING,
-  oracleQuestionId: "49288",
-  volumeQuoteRaw: 0n,
-  tradeCount: 0,
-  lastPriceRaw: null,
-  resolvedAtMs: null,
-};
+export const WINDOW: EventMarket = fixtureWindow({ marketId: id(0x11393), intervalSec: 300, expirySec: NOW_SEC + 240, decimals: DECIMALS, openingPriceRaw: OPENING });
 
 /** The shared vector: ±$30 at even odds, four minutes out. */
 export const QUOTE: RangeQuote = {
@@ -102,7 +78,7 @@ function round(n: number, patch: Partial<RangeRoundView>): RangeRoundView {
     maxPayoutBase: 100n * UNIT,
     houseLockedBase: 64_614_048n,
     probRaw: 315_946n,
-    asset: "BTC",
+    asset: "TSLA",
     intervalSec: 300,
     settledOnchain: false,
     ...patch,

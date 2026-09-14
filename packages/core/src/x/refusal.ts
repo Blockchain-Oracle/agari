@@ -4,7 +4,7 @@ import { describeRefusal, type XRefusalReason } from "./parse";
 /** Safe, shared recovery copy for public replies and the app's receipt list. */
 export const X_REFUSAL_DETAILS: Record<XRefusalCode, string> = {
   "account-not-linked": "Link your X account to your wallet in the app.",
-  "instruction-invalid": "Use BTC or ETH, UP or DOWN, an amount, and a Window.",
+  "instruction-invalid": "Use a listed stock such as TSLA, UP or DOWN, an amount, and a Window.",
   "balance-unavailable": "Your X trading balance could not be checked. Try again shortly.",
   "not-deployed": "Trading is unavailable on this network.",
   "grant-missing": "Fund and enable X trading in the app.",
@@ -47,7 +47,7 @@ export function xRefusalCopy(receipt: XReceiptDetails): { title: string; detail:
   const title = Object.hasOwn(X_REFUSAL_TITLES, code) ? X_REFUSAL_TITLES[code as keyof typeof X_REFUSAL_TITLES] : "Order not confirmed";
   if (code === "instruction-invalid" && receipt.parseRefusal && PARSE_REASONS.includes(receipt.parseRefusal)) {
     const detail = describeRefusal(receipt.parseRefusal);
-    return { title, detail: `${detail[0]!.toUpperCase()}${detail.slice(1)}. Example: BTC UP 5 15m.` };
+    return { title, detail: `${detail[0]!.toUpperCase()}${detail.slice(1)}. Example: TSLA UP 5 15m.` };
   }
   const cutoff = time(receipt.entryClosesAtSec);
   if (code === "window-entry-closed" && cutoff) return { title, detail: `Entry closed at ${cutoff}. Check live Windows before sending a new instruction.` };

@@ -1,6 +1,6 @@
 "use client";
 
-import { SOMNIA_SHANNON } from "@agari/markets/chain";
+import { CLUSTER } from "@agari/markets/chain";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { del, get, set } from "idb-keyval";
 import { useEffect } from "react";
@@ -19,11 +19,11 @@ import { useEffect } from "react";
  * way for one wallet's data to be shown to another. That is a stronger guarantee than a purge,
  * because a purge is a thing that can fail to run.
  *
- * Bump `SCHEMA_VERSION` whenever a persisted value's shape changes; with the chain id it is
+ * Bump `SCHEMA_VERSION` whenever a persisted value's shape changes; with the cluster it is
  * the cache buster, and a namespace miss simply reads as "nothing stored".
  */
 const SCHEMA_VERSION = 1;
-const NAMESPACE = `agari.read-cache.v${SCHEMA_VERSION}.${SOMNIA_SHANNON.id}`;
+const NAMESPACE = `agari.read-cache.v${SCHEMA_VERSION}.${CLUSTER}`;
 const MAX_AGE_MS = 24 * 60 * 60 * 1_000;
 const WRITE_DEBOUNCE_MS = 1_000;
 

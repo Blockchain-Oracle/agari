@@ -1,6 +1,9 @@
 import { z } from "zod";
 import type { Side } from "../types/market";
-import { addressSchema, bytes32Schema } from "../types/primitives";
+import { marketIdSchema } from "../types/ids";
+import { SIGNED_MESSAGE_BRAND, messageSignatureSchema } from "../auth/signed-message";
+import { clusterLabelOfId } from "../constants/chain";
+import { addressSchema, hash32Schema } from "../types/primitives";
 
 /** A signed authorisation is only good for a few minutes, so a captured one cannot be replayed later. */
 export const PRIVATE_AUTH_TTL_MS = 5 * 60_000;
@@ -11,7 +14,7 @@ export const PRIVATE_HONESTY = "Kept separate from your wallet, so it is harder 
 
 export interface PrivateOpenMessageInput {
   owner: string;
-  /** The desk contract and its chain, so a signature for one deployment never opens a bet on another. */
+  /** The desk program and its cluster id (D-010), so a signature for one deployment never opens a bet on another. */
   contract: string;
   chainId: number;
   marketId: string;
@@ -28,18 +31,19 @@ export interface PrivateOpenMessageInput {
  * The exact text the wallet signs to authorise one private bet — the reference's `openAuthMessage`,
  * built to be READ, not just verified: the prompt names the actual bet ("UP, 10.00 tUSDC on BTC 5m")
  * rather than a hash. The browser and the desk build it from the same fields; any drift refuses loudly.
- * The signature is also the desk's secret seed for the bet's three keys, so it never leaves the two of them.
+ * The signature is also the desk's secret seed for the bet's three keys (ed25519 is deterministic, so the same text
+ * always yields the same seed), and it never leaves the two of them.
  */
 export function privateOpenMessage(input: PrivateOpenMessageInput): string {
   return [
-    "Masayume — private bet",
+    `${SIGNED_MESSAGE_BRAND} — private bet`,
     "",
     `Side: ${input.side.toUpperCase()}`,
     `Stake: ${input.stakeText} ${input.symbol}`,
     `Window: ${input.asset} ${input.cadenceText}, closes ${new Date(input.expirySec * 1000).toISOString()}`,
     `Market: ${input.marketId}`,
-    `Desk: ${input.contract.toLowerCase()} on chain ${input.chainId}`,
-    `Wallet: ${input.owner.toLowerCase()}`,
+    `Desk: ${input.contract} on ${clusterLabelOfId(input.chainId)}`,
+    `Wallet: ${input.owner}`,
     `Issued: ${new Date(input.issuedAtMs).toISOString()}`,
     "",
     `Signing lets the desk place this one bet from your private balance. It moves no funds by itself and costs nothing. ${PRIVATE_HONESTY}`,
@@ -52,13 +56,13 @@ export function privateAuthFresh(issuedAtMs: number, nowMs: number): boolean {
 }
 
 const decimalString = z.string().regex(/^\d+$/);
-const signatureSchema = z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000);
+const signatureSchema = messageSignatureSchema;
 
 export const privateClaimSchema = z.object({
   owner: addressSchema,
-  slotId: bytes32Schema,
-  creditKey: bytes32Schema,
-  marketId: bytes32Schema,
+  slotId: hash32Schema,
+  creditKey: hash32Schema,
+  marketId: marketIdSchema,
   outcomeIdx: z.union([z.literal(0), z.literal(1)]),
   stakeBase: decimalString,
   issuedAtMs: z.number().int().positive(),
@@ -71,7 +75,7 @@ export const privateClaimSchema = z.object({
  */
 export const privateOpenRequestSchema = z.object({
   owner: addressSchema,
-  marketId: bytes32Schema,
+  marketId: marketIdSchema,
   side: z.enum(["up", "down"]),
   stakeBase: decimalString,
   /** The owner's guard against a book that moved since the quote: fewer contracts than this and the desk refunds. */
@@ -88,7 +92,6 @@ export const privateCashoutRequestSchema = z.object({
 });
 export type PrivateCashoutRequest = z.infer<typeof privateCashoutRequestSchema>;
 
-const hexString = z.string().regex(/^0x[0-9a-fA-F]*$/);
 
 /** One stored claim, checked field by field on restore so a hand-edited backup can never brick the list that is the only record of unclaimed money. */
 export const privateTicketSchema = z.object({
@@ -102,13 +105,13 @@ export const privateTicketSchema = z.object({
   expirySec: z.number().int().positive(),
   quantityRaw: decimalString,
   costBase: decimalString,
-  txs: z.object({ charge: hexString, fund: hexString, mint: hexString }),
+  txs: z.object({ charge: signatureSchema, fund: signatureSchema, mint: signatureSchema }),
   openedAtMs: z.number().int().positive(),
   status: z.enum(["open", "settled", "credited"]),
   payoutBase: decimalString.optional(),
   creditedBase: decimalString.optional(),
   creditedAtMs: z.number().int().positive().optional(),
-  creditTx: hexString.optional(),
+  creditTx: signatureSchema.optional(),
 });
 
 /** The backup file: plain JSON on purpose — it has to survive a lost laptop, a new device, and this app going away. */

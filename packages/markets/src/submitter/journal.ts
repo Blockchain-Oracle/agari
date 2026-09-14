@@ -42,8 +42,8 @@ export function createJournal(store: IntentStore, nowMs: () => number = Date.now
       update(id, { state: "unknown" });
     },
     async listUnresolved(wallet) {
-      const owner = wallet.toLowerCase();
-      return store.load().filter((record) => record.wallet.toLowerCase() === owner && UNRESOLVED.has(record.state));
+      // Base58 is case-sensitive: an address matches only exactly as written (D-010).
+      return store.load().filter((record) => record.wallet === wallet && UNRESOLVED.has(record.state));
     },
   };
 }

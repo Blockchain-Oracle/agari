@@ -35,11 +35,29 @@ export const WORD_BOARD = {
   noLean: "no book on both sides yet",
 } as const;
 
+/** The wallet picker (D-023): Wallet Standard wallets installed in this browser. */
+export const WALLET_PICKER = {
+  title: "Connect a Solana wallet",
+  description: "Your wallet holds your keys and signs every transaction. Agari never sees them.",
+  detecting: "Looking for wallets in this browser…",
+  connecting: (name: string) => `Connecting ${name}…`,
+  failed: (name: string, why: string) => `${name} didn't connect: ${why}`,
+  none: "No Solana wallet found in this browser.",
+  noneHint: "Install one of these, then reload this page:",
+  installs: [
+    { name: "Phantom", href: "https://phantom.com/download" },
+    { name: "Solflare", href: "https://solflare.com/download" },
+    { name: "Backpack", href: "https://backpack.app/download" },
+  ],
+  devnet: "Agari runs on Solana devnet with test funds. Set your wallet to devnet so its previews match.",
+} as const;
+
 export const CONNECT = {
   connect: "Connect",
   connecting: "Connecting…",
   wrongChain: "Wrong network",
   disconnect: "Disconnect",
+  connected: "Connected wallet",
 } as const;
 
 /** The account menu — the reference's rows (`Header.tsx` L337–363), nothing more. */
@@ -58,29 +76,43 @@ export const BANNER = {
 
 export const FAUCET = {
   title: "Fuel up",
-  intro: (amountText: string) => `Start with STT for gas, then claim ${amountText} test tUSDC for trading. No starting balance is needed while gas funding is available.`,
+  intro: (amountText: string) => `Start with SOL for fees, then claim ${amountText} test tUSDC for trading. No starting balance is needed while SOL funding is available.`,
   cta: (_amountText: string) => "Get test funds",
   minted: "Minted — your balance updates on its own",
   minting: "Minting…",
-  gasTitle: "Get STT for gas first",
+  gasTitle: "Get SOL for fees first",
   yourAddress: "Your address:",
-  recheck: "I've got STT — check again",
+  recheck: "I've got SOL — check again",
 } as const;
 
 export const WALLET_DEV = {
   connection: "Connection",
   balances: "Balances",
   faucet: "Faucet",
+  signCheckTitle: "Signature check",
+  signCheck: {
+    connectFirst: "Connect a wallet to sign a check message.",
+    intro: (cluster: string) => `Signs a short text naming this wallet and ${cluster}, then asks the server to verify it with ed25519.`,
+    run: "Sign and verify",
+    signing: "Waiting for your wallet…",
+    exact: "exact text",
+    tampered: "one byte changed",
+    verified: "verified by the server",
+    rejected: "rejected: the signature did not verify",
+    rejectedAsExpected: "rejected, as it must be",
+    brokenVerifier: "accepted: the verifier is broken",
+    failed: (why: string) => `The check did not complete: ${why}`,
+  },
   address: "address",
   chain: "chain",
-  rightChain: "on Somnia Shannon",
-  wrongChain: "not on Somnia Shannon",
+  rightChain: "signs for this cluster",
+  wrongChain: "not signing for this cluster",
   signer: "signer",
-  signerBound: "bound to the venue SDK",
+  signerBound: "bound to the markets session",
   noSigner: "not bound",
   connectFirst: "Connect a wallet to read balances.",
   spendable: "Spendable tUSDC",
-  native: "STT for gas",
+  native: "SOL for fees",
   escrow: "Order escrow",
   credit: "Venue payout credit",
 } as const;
@@ -243,11 +275,11 @@ export const BALANCE = {
   spendable: "Spendable",
   headlineNote: "what you can bet right now — nothing else is added in",
   poolsLabel: "Other pools of your money",
-  rows: { escrow: "Order escrow", credit: "Venue payout credit", gas: "STT for gas" },
+  rows: { escrow: "Order escrow", credit: "Venue payout credit", gas: "SOL for fees" },
   escrowNote: "locked in your resting orders until they fill or you cancel",
   creditFirst: "spent first on your next buy in its window",
   creditFirstHint: "of venue credit is spent first on your next buy",
-  gasLow: "below the gas envelope — the next write needs more STT",
+  gasLow: "below the fee reserve — the next write needs more SOL",
   connect: { why: "Connect a wallet to see your money: one spendable number, every other pool labeled beneath it." },
   devTitle: "Balance plate",
   fixtures: {
@@ -275,9 +307,9 @@ export const VERDICT_UI = {
   closingPrint: "Closing print",
   settlementTx: "Settlement tx",
   pendingTx: "landing on chain…",
-  oracleGraph: "Oracle graph",
-  question: (id: string) => `question ${id}`,
-  noQuestion: "not on record",
+  oracleGraph: "Price source",
+  question: (source: string) => source,
+  noQuestion: "print proof not linked yet",
   settling: "the closing print lands a few seconds after expiry.",
   noPosition: { why: "You held nothing in this window — nothing to stamp." },
   connect: { why: "Connect a wallet to see your verdict." },
@@ -340,10 +372,10 @@ export const CLAIM = {
     title: "Claim receipt",
     figureLabel: "Paid to your wallet",
     settlement: "settlement tx",
-    oracle: "Oracle Graph",
+    oracle: "Price source",
     pending: "…",
     settlementDegraded: "settlement tx not indexed yet — redemption tx only",
-    oracleDegraded: "oracle question unknown — raw tx only",
+    oracleDegraded: "print proof not linked yet — raw tx only",
   },
   empty: { why: "Nothing to claim — winnings land here the moment a Window you're in settles." },
   disconnected: { why: "Connect a wallet to see what's waiting for it." },

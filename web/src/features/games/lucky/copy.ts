@@ -30,7 +30,7 @@ export const LUCKY = {
     dealing: "Dealing…",
     again: "Spin again",
     connect: "Connect a wallet to spin",
-    wrongChain: "Switch to Somnia Shannon to spin",
+    wrongChain: "Switch to Solana devnet to spin",
     noSigner: "Waiting for the wallet…",
     noStore: "This deployment has no games store, so a draw has nowhere to keep its seed.",
     failed: (why: string) => `The spin did not deal: ${why}`,
@@ -89,7 +89,7 @@ export const LUCKY = {
     },
     gas: {
       label: "Gas",
-      wallet: "You sign once from your wallet and pay the gas in STT.",
+      wallet: "You sign once from your wallet and pay the network fee in SOL.",
       key: "Your session key places it with no prompt; the gas is the sponsor's.",
       fallback: (why: string) => `${why} You sign from your wallet and pay the gas.`,
     },

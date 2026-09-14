@@ -1,4 +1,4 @@
-import type { Diagnosis, MarketId } from "@agari/core/types";
+import { isMarketId, type Diagnosis, type MarketId } from "@agari/core/types";
 import { formatOracleRaw } from "@agari/core/units";
 import { ORACLE_SCALE } from "../markets/hero/units";
 
@@ -53,13 +53,13 @@ export interface ThinBook {
 }
 
 /**
- * `ThinBook(marketId, filled, depth)` as the reserve reverts it (`ParlayPricing.sol` L122) —
+ * `ThinBook(marketId, filled, depth)` as the reserve refuses it (Masayume `ParlayPricing.sol` L122; `agari-parlay` in S10, base58 id) —
  * `diagnoseNamedRevert` prints the arguments into `technical`, so the leg and its two figures
  * can be named on the row instead of hidden in a tooltip.
  */
 export function parseThinBook(diagnosis: Diagnosis | null): ThinBook | null {
   if (!diagnosis || diagnosis.errorName !== "ThinBook") return null;
-  const match = /^ThinBook\((0x[0-9a-fA-F]+), (\d+), (\d+)\)$/.exec(diagnosis.technical);
-  if (!match) return null;
-  return { marketId: match[1] as MarketId, filledRaw: BigInt(match[2]!), depthRaw: BigInt(match[3]!) };
+  const match = /^ThinBook\(([1-9A-HJ-NP-Za-km-z]{32,44}), (\d+), (\d+)\)$/.exec(diagnosis.technical);
+  if (!match || !isMarketId(match[1])) return null;
+  return { marketId: match[1], filledRaw: BigInt(match[2]!), depthRaw: BigInt(match[3]!) };
 }

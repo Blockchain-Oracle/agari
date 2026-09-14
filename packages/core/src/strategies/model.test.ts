@@ -4,6 +4,7 @@ import { deriveRunnerHealth } from "./health";
 import { scoreFill, strategyRecord } from "./record";
 import { describeSpec, encodeSpec, parseStrategyMetadata } from "./spec";
 import type { StrategyFill } from "./types";
+import { testAddress, testMarketId, testSignature } from "../testing/ids";
 
 const spec = { preset: "momentum" as const, lookback: 6, thresholdBps: 20 };
 
@@ -26,11 +27,11 @@ describe("oracle-follow model", () => {
 
 describe("record", () => {
   const fill = (over: Partial<StrategyFill>): StrategyFill => ({
-    txHash: "0x01",
+    txHash: testSignature(1),
     strategyId: 1n,
     grantId: 1n,
-    owner: "0x0000000000000000000000000000000000000001",
-    marketId: "0x0000000000000000000000000000000000000000000000000000000000000001" as StrategyFill["marketId"],
+    owner: testAddress(1),
+    marketId: testMarketId(1),
     side: "up",
     cashDeltaBase: 60n,
     tokenDeltaRaw: 100n,
@@ -40,9 +41,9 @@ describe("record", () => {
   });
   it("scores a win, a loss and a void by the chain's rule and builds the curve", () => {
     const win = scoreFill(fill({ atSec: 1 }), { settled: true, voided: false, winningOutcome: 0 }, 0);
-    const loss = scoreFill(fill({ atSec: 2, txHash: "0x02" }), { settled: true, voided: false, winningOutcome: 1 }, 0);
-    const voided = scoreFill(fill({ atSec: 3, txHash: "0x03", cashDeltaBase: 50n }), { settled: true, voided: true, winningOutcome: null }, 0);
-    const open = scoreFill(fill({ atSec: 4, txHash: "0x04" }), null, 0);
+    const loss = scoreFill(fill({ atSec: 2, txHash: testSignature(2) }), { settled: true, voided: false, winningOutcome: 1 }, 0);
+    const voided = scoreFill(fill({ atSec: 3, txHash: testSignature(3), cashDeltaBase: 50n }), { settled: true, voided: true, winningOutcome: null }, 0);
+    const open = scoreFill(fill({ atSec: 4, txHash: testSignature(4) }), null, 0);
     const record = strategyRecord([win, loss, voided, open]);
     expect(win.pnlBase).toBe(40n);
     expect(loss.pnlBase).toBe(-60n);

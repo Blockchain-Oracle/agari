@@ -1,5 +1,5 @@
 import type { MarketId, OutcomeIdx } from "../types/market";
-import type { Address, Hex } from "../types/primitives";
+import type { Address, Signature } from "../types/primitives";
 import type { ClaimLeg, VerdictOutcome } from "../types/trading";
 
 /** Where a round's fills came from: the wallet's own orders, or the EventVault trading for it. */
@@ -16,7 +16,7 @@ export interface LedgerFill {
   /** Execution price in YES (UP) terms; a NO leg costs the complement (canon #20). */
   yesPriceRaw: bigint;
   atMs: number;
-  txHash: Hex;
+  txHash: Signature;
 }
 
 /** A complete-set mint or merge through the router — it touches both outcomes at once. */
@@ -25,7 +25,7 @@ export interface LedgerSetAction {
   kind: "mint" | "merge";
   amountRaw: bigint;
   atMs: number;
-  txHash: Hex;
+  txHash: Signature;
 }
 
 /** Everything a wallet did in one Window, replayed in order: what it holds now and what it paid and received. */
@@ -44,7 +44,7 @@ export interface MarketLedger {
   shortCount: number;
   firstAtMs: number;
   lastAtMs: number;
-  entryTxHash: Hex;
+  entryTxHash: Signature;
   /** Whose seat the fills sat in: the wallet's own venue orders, or the vault trading for it. */
   source?: LedgerSource;
 }
@@ -98,7 +98,7 @@ export interface SettledRound {
   source: LedgerSource;
   settledAtMs: number | null;
   openedAtMs: number;
-  entryTxHash: Hex;
+  entryTxHash: Signature;
   fillCount: number;
   shortCount: number;
 }

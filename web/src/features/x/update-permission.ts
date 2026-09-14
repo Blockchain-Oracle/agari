@@ -1,5 +1,5 @@
 import type { Submitter, TxOutcome } from "@agari/core/ports";
-import type { Address, Hex } from "@agari/core/types";
+import { isAddress, isSignature, type Address, type Signature } from "@agari/core/types";
 import type { VaultGrant } from "@agari/core/vault";
 import { X_GRANT, xGrantCaps } from "@agari/core/x";
 
@@ -10,16 +10,16 @@ export interface XUpdateProgress {
   oldGrantId: string;
   stage: "revoke-ready" | "revoke-pending" | "grant-ready" | "grant-pending";
   returnedBase?: string;
-  txHash?: Hex;
+  txHash?: Signature;
 }
 
 export function parseXUpdate(raw: string | null): XUpdateProgress | null {
   if (!raw) return null;
   try {
     const p = JSON.parse(raw) as XUpdateProgress;
-    if (p.version !== 1 || !/^0x[0-9a-fA-F]{40}$/.test(p.owner) || !/^0x[0-9a-fA-F]{40}$/.test(p.executor)
+    if (p.version !== 1 || !isAddress(p.owner) || !isAddress(p.executor)
       || !/^[1-9]\d{0,77}$/.test(p.oldGrantId) || !["revoke-ready", "revoke-pending", "grant-ready", "grant-pending"].includes(p.stage)
-      || (p.txHash !== undefined && !/^0x[0-9a-fA-F]{64}$/.test(p.txHash))
+      || (p.txHash !== undefined && !isSignature(p.txHash))
       || (p.returnedBase !== undefined && !/^(0|[1-9]\d{0,77})$/.test(p.returnedBase))
       || (p.stage.startsWith("grant") && p.returnedBase === undefined)) return null;
     return p;
@@ -31,7 +31,7 @@ export interface XUpdateDependencies {
   save: (progress: XUpdateProgress | null) => void;
   snapshot: () => Promise<{ grant: VaultGrant | null; availableBase: bigint } | null>;
   submit: Submitter["submitTx"];
-  receipt: (hash: Hex, oldGrantId: bigint) => Promise<{ status: "success" | "reverted"; returnedBase?: bigint } | null>;
+  receipt: (hash: Signature, oldGrantId: bigint) => Promise<{ status: "success" | "reverted"; returnedBase?: bigint } | null>;
   nowSec: () => number;
 }
 
@@ -43,7 +43,7 @@ export const X_UPDATE_PENDING = "Your update needs checking. Check wallet activi
  */
 export async function updateXPermission(owner: Address, executor: Address, deps: XUpdateDependencies): Promise<void> {
   let progress = deps.load();
-  if (progress && (progress.owner.toLowerCase() !== owner.toLowerCase() || progress.executor.toLowerCase() !== executor.toLowerCase())) {
+  if (progress && (progress.owner !== owner || progress.executor !== executor)) {
     throw new Error("Reconnect the wallet and X executor used to start this update.");
   }
   if (!progress) {

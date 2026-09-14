@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { err, ok, stale } from "../schemas/reading";
 import { diagnosis } from "../types/diagnosis";
-import { toMarketId, type EventMarket } from "../types/market";
+import type { EventMarket } from "../types/market";
 import type { BookDepth, BookLevelView } from "../types/trading";
 import { termBand, termPoints } from "./term";
+import { testMarketId } from "../testing/ids";
+import { testEventMarket } from "../testing/market";
 
 const D = 6;
 const UNIT = 10n ** BigInt(D);
@@ -17,36 +19,10 @@ const book = (bid: number | null, ask: number | null): BookDepth => ({
   downAsks: [],
   decimals: D,
 });
-const id = (n: number) => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
+const id = (n: number) => testMarketId(n);
 function market(n: number, intervalSec: number, expiresInSec: number): EventMarket {
-  return {
-    marketId: id(n),
-    venueId: null,
-    asset: "BTC",
-    question: "",
-    intervalSec,
-    strikeRaw: 0n,
-    isUpDown: true,
-    tradingStartSec: NOW_SEC + expiresInSec - intervalSec,
-    expirySec: NOW_SEC + expiresInSec,
-    poolAddress: "0x0000000000000000000000000000000000000001",
-    marketAddress: "0x0000000000000000000000000000000000000002",
-    nonce: null,
-    yesTokenId: 0n,
-    noTokenId: 0n,
-    collateral: "0x0000000000000000000000000000000000000003",
-    decimals: D,
-    status: "Trading",
-    winningOutcome: null,
-    voided: false,
-    finalized: null,
-    openingPriceRaw: 7_795_612n,
-    oracleQuestionId: null,
-    volumeQuoteRaw: 0n,
-    tradeCount: 0,
-    lastPriceRaw: null,
-    resolvedAtMs: null,
-  };
+  const expirySec = NOW_SEC + expiresInSec;
+  return testEventMarket(n, { intervalSec, tradingStartSec: expirySec - intervalSec, lockAtSec: expirySec, expirySec, decimals: D, openingPriceRaw: 7_795_612n });
 }
 
 describe("termPoints", () => {

@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 /**
  * The reveal material for a committed deck.
@@ -32,7 +33,7 @@ export async function putDeck(deck: SealedDeck): Promise<void> {
   await ensureSchema();
   await db`
     INSERT INTO duel_decks (match_id, chain_id, arena, policy_version, lane, cards, sealed)
-    VALUES (${deck.matchId}, ${deck.chainId}, ${deck.arena.toLowerCase()}, ${deck.policyVersion}, ${deck.lane},
+    VALUES (${deck.matchId}, ${deck.chainId}, ${storageKey(deck.arena)}, ${deck.policyVersion}, ${deck.lane},
             ${JSON.stringify(deck.cards)}::jsonb, ${deck.sealed})
     ON CONFLICT (match_id) DO NOTHING
   `;
@@ -43,7 +44,7 @@ export async function getDeck(matchId: string): Promise<SealedDeck | null> {
   if (!db) return null;
   await ensureSchema();
   const rows = await db<{ match_id: string; chain_id: number; arena: string; policy_version: number; lane: string; cards: string[]; sealed: string }[]>`
-    SELECT match_id, chain_id, arena, policy_version, lane, cards, sealed FROM duel_decks WHERE match_id = ${matchId.toLowerCase()}
+    SELECT match_id, chain_id, arena, policy_version, lane, cards, sealed FROM duel_decks WHERE match_id = ${storageKey(matchId)}
   `;
   const row = rows[0];
   if (!row) return null;
@@ -67,7 +68,7 @@ export async function markDeckRevealed(matchId: string): Promise<void> {
   const db = getDb();
   if (!db) return;
   await ensureSchema();
-  await db`UPDATE duel_decks SET revealed_at = COALESCE(revealed_at, now()) WHERE match_id = ${matchId.toLowerCase()}`;
+  await db`UPDATE duel_decks SET revealed_at = COALESCE(revealed_at, now()) WHERE match_id = ${storageKey(matchId)}`;
 }
 
 /** Decks committed but never opened — what an operator has to answer for after an outage. */
@@ -77,7 +78,7 @@ export async function listUnrevealedDecks(chainId: number, arena: string, limit 
   await ensureSchema();
   const rows = await db<{ match_id: string }[]>`
     SELECT match_id FROM duel_decks
-    WHERE chain_id = ${chainId} AND arena = ${arena.toLowerCase()} AND revealed_at IS NULL
+    WHERE chain_id = ${chainId} AND arena = ${storageKey(arena)} AND revealed_at IS NULL
     ORDER BY created_at ASC LIMIT ${limit}
   `;
   return rows.map((r) => r.match_id);

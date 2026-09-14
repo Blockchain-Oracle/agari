@@ -1,15 +1,15 @@
 "use client";
 
-import { formatCadence } from "@agari/core/market";
+import { formatCadence, type TickerSymbol } from "@agari/core/market";
 import type { EventMarket, MarketId } from "@agari/core/types";
 import { formatClock, remainingSec } from "@agari/core/units";
 import { cn } from "@/lib/utils";
 import { SURFACE } from "./copy";
 
 interface SurfaceChipsProps {
-  assets: readonly string[];
-  asset: string | null;
-  onAsset: (asset: string) => void;
+  assets: readonly TickerSymbol[];
+  asset: TickerSymbol | null;
+  onAsset: (asset: TickerSymbol) => void;
   windows: readonly EventMarket[];
   focalId: MarketId | null;
   onFocal: (marketId: MarketId) => void;

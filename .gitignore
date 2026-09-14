@@ -49,3 +49,6 @@ PROMPT.md
 
 # the deckmaster's reveal journal: the operator's own durable copy, never the repo's
 .agari/
+
+# Next.js 16 generated agent pointer (AGENTS.md is ignored above)
+web/CLAUDE.md

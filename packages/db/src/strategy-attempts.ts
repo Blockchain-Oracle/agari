@@ -1,6 +1,7 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
 import type { StrategyFillRecord } from "./strategies";
+import { storageKey } from "./keys";
 
 export type StrategyAttemptState = "attempting" | "filled" | "settled" | "nothing-filled" | "refused" | "reverted" | "unknown";
 export interface StrategyAttempt {
@@ -32,7 +33,7 @@ async function requiredDb() {
 
 export async function getStrategyAttempt(key: AttemptKey): Promise<StrategyAttempt | null> {
   const db = await requiredDb();
-  const rows = await db<Row[]>`SELECT * FROM strategy_attempts WHERE strategy_id = ${key.strategyId} AND market_id = ${key.marketId.toLowerCase()} AND owner = ${key.owner.toLowerCase()} AND kind = ${key.kind ?? "order"}`;
+  const rows = await db<Row[]>`SELECT * FROM strategy_attempts WHERE strategy_id = ${key.strategyId} AND market_id = ${storageKey(key.marketId)} AND owner = ${storageKey(key.owner)} AND kind = ${key.kind ?? "order"}`;
   return rows[0] ? fromRow(rows[0]) : null;
 }
 
@@ -40,7 +41,7 @@ export async function getStrategyAttempt(key: AttemptKey): Promise<StrategyAttem
 export async function beginStrategyAttempt(a: NewStrategyAttempt): Promise<boolean> {
   const db = await requiredDb();
   const rows = await db`INSERT INTO strategy_attempts (strategy_id, market_id, owner, runner, grant_id, side, stake_base, from_block, nonce, kind, state)
-    VALUES (${a.strategyId}, ${a.marketId.toLowerCase()}, ${a.owner.toLowerCase()}, ${a.runner.toLowerCase()}, ${a.grantId}, ${a.side}, ${a.stakeBase}, ${a.fromBlock}, ${a.nonce}, ${a.kind ?? "order"}, 'attempting')
+    VALUES (${a.strategyId}, ${storageKey(a.marketId)}, ${storageKey(a.owner)}, ${storageKey(a.runner)}, ${a.grantId}, ${a.side}, ${a.stakeBase}, ${a.fromBlock}, ${a.nonce}, ${a.kind ?? "order"}, 'attempting')
     ON CONFLICT (strategy_id, market_id, owner, kind) DO NOTHING RETURNING strategy_id`;
   return rows.length === 1;
 }
@@ -48,7 +49,7 @@ export async function beginStrategyAttempt(a: NewStrategyAttempt): Promise<boole
 export async function finishStrategyAttempt(key: AttemptKey, state: Exclude<StrategyAttemptState, "attempting" | "filled">, txHash: string | null, reason: string): Promise<void> {
   const db = await requiredDb();
   await db`UPDATE strategy_attempts SET state = ${state}, tx_hash = COALESCE(${txHash}, tx_hash), reason = ${reason}, updated_at = now()
-    WHERE strategy_id = ${key.strategyId} AND market_id = ${key.marketId.toLowerCase()} AND owner = ${key.owner.toLowerCase()} AND kind = ${key.kind ?? "order"} AND state NOT IN ('filled', 'settled')`;
+    WHERE strategy_id = ${key.strategyId} AND market_id = ${storageKey(key.marketId)} AND owner = ${storageKey(key.owner)} AND kind = ${key.kind ?? "order"} AND state NOT IN ('filled', 'settled')`;
 }
 
 /** Fill attribution and successful attempt commit together, including during restart recovery. */
@@ -56,18 +57,18 @@ export async function recordAttemptFill(fill: StrategyFillRecord): Promise<void>
   const db = await requiredDb();
   await db.begin(async (tx) => {
     await tx`INSERT INTO strategy_fills (tx_hash, strategy_id, grant_id, owner, market_id, side, cash_delta, token_delta, at_sec, dry_run)
-      VALUES (${fill.txHash}, ${fill.strategyId}, ${fill.grantId}, ${fill.owner.toLowerCase()}, ${fill.marketId.toLowerCase()}, ${fill.side}, ${fill.cashDelta}, ${fill.tokenDelta}, ${fill.atSec}, false)
+      VALUES (${fill.txHash}, ${fill.strategyId}, ${fill.grantId}, ${storageKey(fill.owner)}, ${storageKey(fill.marketId)}, ${fill.side}, ${fill.cashDelta}, ${fill.tokenDelta}, ${fill.atSec}, false)
       ON CONFLICT (tx_hash) DO NOTHING`;
     await tx`UPDATE strategy_attempts SET state = 'filled', tx_hash = ${fill.txHash}, reason = NULL, updated_at = now()
-      WHERE strategy_id = ${fill.strategyId} AND market_id = ${fill.marketId.toLowerCase()} AND owner = ${fill.owner.toLowerCase()} AND kind = 'order'`;
-    await tx`UPDATE strategy_decisions SET filled = (SELECT COUNT(*) FROM strategy_attempts WHERE strategy_id = ${fill.strategyId} AND market_id = ${fill.marketId.toLowerCase()} AND kind = 'order' AND state = 'filled')
-      WHERE strategy_id = ${fill.strategyId} AND market_id = ${fill.marketId.toLowerCase()} AND dry_run = false`;
+      WHERE strategy_id = ${fill.strategyId} AND market_id = ${storageKey(fill.marketId)} AND owner = ${storageKey(fill.owner)} AND kind = 'order'`;
+    await tx`UPDATE strategy_decisions SET filled = (SELECT COUNT(*) FROM strategy_attempts WHERE strategy_id = ${fill.strategyId} AND market_id = ${storageKey(fill.marketId)} AND kind = 'order' AND state = 'filled')
+      WHERE strategy_id = ${fill.strategyId} AND market_id = ${storageKey(fill.marketId)} AND dry_run = false`;
   });
 }
 
 export async function listUnresolvedStrategyAttempts(runner: string): Promise<StrategyAttempt[]> {
   const db = await requiredDb();
-  const rows = await db<Row[]>`SELECT * FROM strategy_attempts WHERE runner = ${runner.toLowerCase()} AND state IN ('attempting', 'unknown') ORDER BY from_block::numeric`;
+  const rows = await db<Row[]>`SELECT * FROM strategy_attempts WHERE runner = ${storageKey(runner)} AND state IN ('attempting', 'unknown') ORDER BY from_block::numeric`;
   return rows.map(fromRow);
 }
 
@@ -80,6 +81,6 @@ export async function listStrategyOwners(strategyId: string): Promise<string[]> 
 
 export async function listAttemptedStrategyIds(runner: string): Promise<string[]> {
   const db = await requiredDb();
-  const rows = await db<{ strategy_id: string }[]>`SELECT DISTINCT strategy_id FROM strategy_attempts WHERE runner = ${runner.toLowerCase()}`;
+  const rows = await db<{ strategy_id: string }[]>`SELECT DISTINCT strategy_id FROM strategy_attempts WHERE runner = ${storageKey(runner)}`;
   return rows.map((r) => r.strategy_id);
 }

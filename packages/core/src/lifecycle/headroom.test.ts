@@ -9,15 +9,21 @@ describe("headroomSec", () => {
 });
 
 describe("orderExpirySec", () => {
-  const expirySec = 10_000;
+  const window = { lockAtSec: 10_000, intervalSec: 300 };
 
-  it("is one headroom past now, never beyond the market", () => {
-    expect(orderExpirySec(9_000, expirySec, 300)).toBe(9_030);
-    expect(orderExpirySec(9_969, expirySec, 300)).toBe(9_999);
+  it("is one headroom past now, never beyond the lock", () => {
+    expect(orderExpirySec(9_000, window)).toBe(9_030);
+    expect(orderExpirySec(9_969, window)).toBe(9_999);
   });
 
   it("is null inside the no-entry buffer", () => {
-    expect(orderExpirySec(9_970, expirySec, 300)).toBeNull();
-    expect(orderExpirySec(expirySec, expirySec, 300)).toBeNull();
+    expect(orderExpirySec(9_970, window)).toBeNull();
+    expect(orderExpirySec(window.lockAtSec, window)).toBeNull();
+  });
+
+  it("closes a Gap Window at its Sunday lock, long before the Monday expiry", () => {
+    const gap = { lockAtSec: 10_000, intervalSec: 604_800 };
+    expect(orderExpirySec(9_990, gap)).toBeNull();
+    expect(orderExpirySec(9_000, gap)).toBe(9_030);
   });
 });

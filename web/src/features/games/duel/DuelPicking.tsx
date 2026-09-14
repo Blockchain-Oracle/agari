@@ -12,9 +12,9 @@ import {
   type Pick,
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32 } from "@agari/core/types";
+import { isTickerSymbol } from "@agari/core/market";
+import type { Address, Hash32 } from "@agari/core/types";
 import { formatBaseUnits, formatOracleRaw } from "@agari/core/units";
-import { keyGasBalance, requiredGasWei } from "@agari/markets";
 import { quoteArenaPick } from "@agari/markets/games";
 import { useArenaState, useAssetPrice, useOpeningPrice } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -25,7 +25,7 @@ import { webEnv } from "@/lib/env";
 import { clockUrgency, StageFace } from "../stage/StageFace";
 import { SwipeDeck, type DeckPlace } from "../stage/SwipeDeck";
 import { DUEL } from "./copy";
-import { deckGasWei } from "./gas";
+import { deckFeeLamports } from "./gas";
 import { useArenaOdds } from "./useArenaOdds";
 import { useArenaWrites } from "./useArenaWrites";
 import type { DuelRoom } from "./useDuelRoom";
@@ -72,7 +72,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   const autoRef = useRef<string | null>(null);
   const keyed = game.session !== null;
 
-  const you = wallet?.toLowerCase() ?? null;
+  const you = wallet ?? null;
   const params = arena && isOk(arena) ? arena.value?.params : undefined;
   const decimals = boot && isOk(boot) ? boot.value.collateral.decimals : null;
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "";
@@ -81,7 +81,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   // letting one player stake ten times the other would make the pot a bet on size, not on calls.
   const stakeBase = arena && isOk(arena) ? (arena.value?.tiers[STAKE_TIERS.findIndex((t) => t.id === state.tier)]?.perCardCapBase ?? null) : null;
 
-  const mine = useMemo(() => state.receipts.filter((r) => r.player.toLowerCase() === you), [state.receipts, you]);
+  const mine = useMemo(() => state.receipts.filter((r) => r.player === you), [state.receipts, you]);
   const playedSide = useCallback((cardIndex: number) => mine.find((r) => r.cardIndex === cardIndex)?.pick ?? null, [mine]);
   const active = state.cards.find((card) => !mine.some((r) => r.cardIndex === card.index)) ?? null;
 
@@ -90,7 +90,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   const leftSec = Math.max(0, endsSec - nowSec);
   const playable = active !== null && params !== undefined && cardPlayable(active, params, nowSec);
 
-  const seat = you !== null && state.players.creator.toLowerCase() === you ? SEAT_CREATOR : SEAT_CHALLENGER;
+  const seat = you !== null && state.players.creator === you ? SEAT_CREATOR : SEAT_CHALLENGER;
 
   const onPick = useCallback(
     (card: DeckCard, side: Pick) => {
@@ -98,7 +98,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
       setFailed(null);
       // Advisory only, and without the side: the opponent learns that you are on this card.
       room.send({ type: "pick.pending", matchId: state.matchId, cardIndex: card.index });
-      void pick({ matchId: state.matchId as Bytes32, cardIndex: card.index, marketId: card.marketId, side, stakeBase, deadlineSec: endsSec }).then((outcome) => {
+      void pick({ matchId: state.matchId as Hash32, cardIndex: card.index, marketId: card.marketId, side, stakeBase, deadlineSec: endsSec }).then((outcome) => {
         if (outcome.status !== "confirmed" && outcome.status !== "unknown") {
           setFailed(card.index);
           return;
@@ -149,41 +149,27 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   const odds = useArenaOdds(active?.marketId ?? null, stakeBase, decimals);
 
   /**
-   * The key's tank, checked on its own clock. A dry key used to be found out by the first throw, which
-   * read as a lost race; now the stage says so before a card is played, and clears the moment a sponsor's
-   * or the wallet's top-up lands.
+   * The key's tank. Masayume polled the key's balance so a dry key was named before a card was played; on Solana that
+   * read is the adapter's (S4) and the arena's (S12), so until then a dry key is known only from a refused pick
+   * (`refusal.gasShort`) and a top-up that lands clears it.
    */
   const keyAddress = game.key;
-  useEffect(() => {
-    if (!keyed || !keyAddress) return;
-    let alive = true;
-    const read = () =>
-      keyGasBalance(keyAddress)
-        .then((held) => alive && setKeyDry(held < requiredGasWei("arena")))
-        .catch(() => undefined);
-    void read();
-    const timer = setInterval(() => void read(), 8_000);
-    return () => {
-      alive = false;
-      clearInterval(timer);
-    };
-  }, [keyed, keyAddress]);
 
   const dry = keyed && (keyDry === true || refusal?.gasShort === true);
   const held = !canSign ? DUEL.lobby.noSigner : dry ? DUEL.picking.keyGasShort : active && params && !playable ? DUEL.picking.tooLate : null;
   const cardsLeft = Math.max(1, state.cards.length - mine.length);
-  const topUpWei = deckGasWei(cardsLeft);
+  const topUpLamports = deckFeeLamports(cardsLeft);
   const askSponsor = () => {
     if (!keyAddress || !you) return;
     setAsked(null);
-    void sponsor.fund(state.matchId as Bytes32, you as Address, keyAddress).then((outcome) => {
+    void sponsor.fund(state.matchId as Hash32, you as Address, keyAddress).then((outcome) => {
       setAsked(outcome);
       if (outcome.ok) setKeyDry(false);
     });
   };
   const fundFromWallet = () => {
     setAsked(null);
-    void fundKey(topUpWei).then((hash) => hash && setKeyDry(false));
+    void fundKey(topUpLamports).then((hash) => hash && setKeyDry(false));
   };
   const lastAuto = autoPlayed.length > 0 ? mine.find((r) => r.cardIndex === autoPlayed[autoPlayed.length - 1]) : undefined;
 
@@ -200,9 +186,9 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   // Flicky's dead-duel detection (`duel-view.tsx` L383–428): once the window has closed, stop pretending a
   // settlement is coming and name the way out — here the arena's own permissionless lock, which forfeits
   // the seat that never finished or refunds both.
-  const opponentAddress = you === null ? null : state.players.creator.toLowerCase() === you ? state.players.challenger : state.players.creator;
-  const opponentAway = opponentAddress !== null && room.presence.some((row) => row.wallet.toLowerCase() === opponentAddress.toLowerCase() && !row.online);
-  const opponentUnfinished = opponentAddress !== null && state.receipts.filter((r) => r.player.toLowerCase() === opponentAddress.toLowerCase()).length < state.cards.length;
+  const opponentAddress = you === null ? null : state.players.creator === you ? state.players.challenger : state.players.creator;
+  const opponentAway = opponentAddress !== null && room.presence.some((row) => row.wallet === opponentAddress && !row.online);
+  const opponentUnfinished = opponentAddress !== null && state.receipts.filter((r) => r.player === opponentAddress).length < state.cards.length;
   const dead = nowSec > 0 && leftSec === 0 && (active !== null || opponentUnfinished);
 
   if (dead) {
@@ -213,7 +199,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
           <p className="du-body">{active !== null && opponentUnfinished ? DUEL.picking.deadBoth : active !== null ? DUEL.picking.deadYou : DUEL.picking.deadOpponent}</p>
           <p className="du-foot">{DUEL.picking.deadNote}</p>
           {canSign && (
-            <button type="button" className="du-cta" disabled={busy !== null} onClick={() => void lock(state.matchId as Bytes32)}>
+            <button type="button" className="du-cta" disabled={busy !== null} onClick={() => void lock(state.matchId as Hash32)}>
               {busy === "lock" ? DUEL.picking.locking : DUEL.picking.lockCta}
             </button>
           )}
@@ -243,7 +229,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
               </button>
             )}
             <button type="button" className="du-quiet" disabled={busy !== null} onClick={fundFromWallet}>
-              {busy === "fund" ? DUEL.picking.funding : DUEL.picking.fundKey(formatBaseUnits(topUpWei, 18, { maxDp: 3, minDp: 0 }))}
+              {busy === "fund" ? DUEL.picking.funding : DUEL.picking.fundKey(formatBaseUnits(topUpLamports, 9, { maxDp: 6, minDp: 0 }))}
             </button>
           </div>
           {asked && <p className="du-foot">{asked.ok ? DUEL.lobby.sponsorFunded(formatBaseUnits(asked.amountWei, 18, { maxDp: 3, minDp: 0 })) : DUEL.lobby.sponsorDeclined(asked.error)}</p>}
@@ -320,7 +306,7 @@ const usd0 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}
 function DuelFace({ card, place, nowMs, stake }: { card: DeckCard; place: DeckPlace; nowMs: number | undefined; stake: string }) {
   const opening = useOpeningPrice(card.marketId);
   const lineRaw = opening?.ok ? opening.value : null;
-  const price = useAssetPrice(card.asset);
+  const price = useAssetPrice(isTickerSymbol(card.asset) ? card.asset : null);
   const spot = price?.ok ? price.value : null;
   return (
     <StageFace

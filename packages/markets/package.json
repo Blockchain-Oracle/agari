@@ -29,9 +29,8 @@
   },
   "dependencies": {
     "@agari/core": "workspace:*",
-    "@somnia-chain/markets-sdk": "0.28.1",
+    "@solana/kit": "^8.3.0",
     "@tanstack/react-query": "catalog:",
-    "viem": "catalog:",
     "zod": "catalog:"
   },
   "peerDependencies": {

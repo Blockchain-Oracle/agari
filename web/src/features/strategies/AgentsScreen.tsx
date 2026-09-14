@@ -1,6 +1,7 @@
 "use client";
 
 import { rankAgents, type StrategyRecord } from "@agari/core/strategies";
+import type { Address, Hex } from "@agari/core/types";
 import { addressUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -31,9 +32,9 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 function toRecord(w: StrategiesPayload["strategies"][number]): StrategyRecord {
   return {
     strategyId: BigInt(w.strategyId),
-    creator: w.creator as `0x${string}`,
-    runner: w.runner as `0x${string}`,
-    specHash: w.specHash as `0x${string}`,
+    creator: w.creator as Address,
+    runner: w.runner as Address,
+    specHash: w.specHash as Hex,
     metadata: w.metadata,
     envelope: { maxStakePerTradeBase: BigInt(w.envelope.maxStakePerTradeBase), maxDailySpendBase: BigInt(w.envelope.maxDailySpendBase), maxOpenPositions: w.envelope.maxOpenPositions, maxPriceRaw: BigInt(w.envelope.maxPriceRaw) },
     feeBase: BigInt(w.feeBase),
@@ -109,7 +110,7 @@ function Board({ payload, nowMs }: { payload: StrategiesPayload; nowMs: number }
             {rows.map((row, i) => {
               const rank = i + 1;
               const top = rank === 1;
-              const editions = strategies.filter((card) => card.runner.toLowerCase() === row.runner.toLowerCase());
+              const editions = strategies.filter((card) => card.runner === row.runner);
               const identity = editions.length === 1 ? strategyIdentity(editions[0]!) : { name: `Runner ${shortAddress(row.runner)}`, seed: `runner:${row.runner}` };
               return (
                 <div key={row.runner} className={cn("agents-row", top && "agents-row--top")}>

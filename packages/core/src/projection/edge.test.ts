@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
 import { computeBadges } from "./badges";
 import { roundsToCsv } from "./csv";
 import { computeTraderEdge } from "./edge";
@@ -7,15 +6,18 @@ import { equityCurve, maxDrawdownBase, winStreaks } from "./equity";
 import { rankTraders } from "./leaderboard";
 import { computeTier, reputationOf } from "./reputation";
 import type { SettledRound } from "./types";
+import { testAddress, testMarketId, testSignature } from "../testing/ids";
+
+const TX = testSignature(1);
 
 const ONE = 1_000_000n;
 const HOUR = 3_600_000;
 
 const round = (i: number, pnl: bigint, outcome: SettledRound["outcome"], stake = 5n * ONE): SettledRound => ({
-  marketId: toMarketId(`0x${i.toString(16).padStart(64, "0")}`), asset: "BTC", intervalSec: 300, expirySec: i * 3_600, decimals: 6,
+  marketId: testMarketId(i), asset: "BTC", intervalSec: 300, expirySec: i * 3_600, decimals: 6,
   outcome, legs: outcome === "closed" ? [] : [{ outcomeIdx: 0, amountRaw: stake * 2n, payoutBase: outcome === "win" ? stake * 2n : 0n }], sidesTraded: [0],
   stakeBase: stake, proceedsBase: 0n, payoutBase: outcome === "win" ? stake * 2n : 0n, feeBase: 0n, pnlBase: pnl, feeBps: 0, claim: "paid", source: "wallet",
-  settledAtMs: i * HOUR, openedAtMs: i * HOUR - 60_000, entryTxHash: "0x1", fillCount: 1, shortCount: 0,
+  settledAtMs: i * HOUR, openedAtMs: i * HOUR - 60_000, entryTxHash: TX, fillCount: 1, shortCount: 0,
 });
 
 const SERIES = [round(1, 5n * ONE, "win"), round(2, -5n * ONE, "loss"), round(3, -5n * ONE, "loss"), round(4, 5n * ONE, "win"), round(5, 5n * ONE, "win"), round(6, 0n, "void")];
@@ -62,8 +64,8 @@ describe("computeTraderEdge", () => {
 
 describe("rankTraders", () => {
   it("ranks by net over rounds closed inside the window; a loss never leaves the sum", () => {
-    const a = "0xaaaa" as const;
-    const b = "0xbbbb" as const;
+    const a = testAddress(0xaa);
+    const b = testAddress(0xbb);
     const byWallet = new Map([
       [a, [round(1, 5n * ONE, "win"), round(2, -5n * ONE, "loss"), round(9, 50n * ONE, "win")]],
       [b, [round(2, 3n * ONE, "win"), round(3, 0n, "void")]],
@@ -109,6 +111,6 @@ describe("roundsToCsv", () => {
     const csv = roundsToCsv([round(1, 5n * ONE, "win")]).split("\n");
     expect(csv).toHaveLength(2);
     expect(csv[1]).toContain(",BTC,5m,UP,");
-    expect(csv[1]).toContain(",5.00,0.00,10.00,5.00,win,paid,0x1");
+    expect(csv[1]).toContain(`,5.00,0.00,10.00,5.00,win,paid,${TX}`);
   });
 });

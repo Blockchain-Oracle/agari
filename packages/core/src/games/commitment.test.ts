@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import { testAddressFromHex, testMarketIdFromHex } from "../testing/ids";
+import type { Hash32 } from "../types/primitives";
 import { deckCommitmentPreimage, luckyDrawMessage, mapLuckyDraw, unbiasedIndex, verifyDeckCommitment, type DeckCommitmentInput } from "./commitment";
 
 const INPUT: DeckCommitmentInput = {
   chainId: 50_312,
-  arena: "0xaaaa000000000000000000000000000000000001" as Address,
-  matchId: `0x${"11".repeat(32)}` as Bytes32,
+  // The old left-padded 20-byte word, as a 32-byte key: the packed bytes (and GOLDEN) are unchanged.
+  arena: testAddressFromHex(`0x${"00".repeat(12)}aaaa${"00".repeat(17)}01`),
+  matchId: `0x${"11".repeat(32)}` as Hash32,
   policyVersion: 1,
-  serverSeed: `0x${"22".repeat(32)}` as Bytes32,
-  clientSeeds: [`0x${"33".repeat(32)}` as Bytes32, `0x${"44".repeat(32)}` as Bytes32],
-  cards: [toMarketId(`0x${"a1".repeat(32)}`), toMarketId(`0x${"b2".repeat(32)}`), toMarketId(`0x${"c3".repeat(32)}`)],
+  serverSeed: `0x${"22".repeat(32)}` as Hash32,
+  clientSeeds: [`0x${"33".repeat(32)}` as Hash32, `0x${"44".repeat(32)}` as Hash32],
+  cards: [testMarketIdFromHex("a1".repeat(32)), testMarketIdFromHex("b2".repeat(32)), testMarketIdFromHex("c3".repeat(32))],
 };
 
 /**
@@ -47,7 +48,7 @@ describe("deck commitment", () => {
   });
 
   it("cannot be made ambiguous by moving an element between the two arrays", () => {
-    const moved = deckCommitmentPreimage({ ...INPUT, clientSeeds: [...INPUT.clientSeeds, INPUT.cards[0] as Bytes32], cards: INPUT.cards.slice(1) });
+    const moved = deckCommitmentPreimage({ ...INPUT, clientSeeds: [...INPUT.clientSeeds, `0x${"a1".repeat(32)}` as Hash32], cards: INPUT.cards.slice(1) });
     // The explicit counts are what make this impossible; without them the words would concatenate the same.
     expect(moved).not.toBe(deckCommitmentPreimage(INPUT));
   });
@@ -57,11 +58,11 @@ describe("deck commitment", () => {
     const fakeKeccak = (p: string) => {
       let h = 0x811c9dc5;
       for (let i = 2; i < p.length; i++) h = Math.imul(h ^ p.charCodeAt(i), 0x01000193) >>> 0;
-      return `0x${h.toString(16).padStart(8, "0").repeat(8)}` as Bytes32;
+      return `0x${h.toString(16).padStart(8, "0").repeat(8)}` as Hash32;
     };
     const commitment = fakeKeccak(deckCommitmentPreimage(INPUT));
     expect(verifyDeckCommitment(INPUT, commitment, fakeKeccak)).toBe(true);
-    expect(verifyDeckCommitment(INPUT, commitment.toUpperCase().replace("0X", "0x") as Bytes32, fakeKeccak)).toBe(true);
+    expect(verifyDeckCommitment(INPUT, commitment.toUpperCase().replace("0X", "0x") as Hash32, fakeKeccak)).toBe(true);
     expect(verifyDeckCommitment({ ...INPUT, policyVersion: 2 }, commitment, fakeKeccak)).toBe(false);
   });
 

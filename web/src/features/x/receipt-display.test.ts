@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { encodeBase58 } from "@agari/core/types";
 import type { XReceipt, XReceiptStatus } from "@agari/core/x";
 import { receiptDisplay } from "./receipt-display";
 
 const receipt: XReceipt = {
   mentionId: "fixture", authorId: "fixture", handle: null, wallet: null, grantId: null, marketId: null,
   side: "up", stakeBase: "5000000", bookedCostBase: "4950000", status: "filled", reason: null,
-  txHash: `0x${"a".repeat(64)}`, instruction: "test fixture", atMs: 0,
+  txHash: encodeBase58(new Uint8Array(64).fill(0xaa)), instruction: "test fixture", atMs: 0,
 };
 
 describe("X receipt amounts and status", () => {
@@ -33,7 +34,7 @@ describe("X receipt amounts and status", () => {
   it("uses human-readable states and validates the entire transaction hash", () => {
     expect(receiptDisplay(receipt, 6, "tUSDC")).toMatchObject({ label: "Order filled", txHash: receipt.txHash });
     expect(receiptDisplay({ ...receipt, status: "unknown" }, 6, "tUSDC").label).toBe("Status needs checking");
-    for (const txHash of [null, "0x123", `${receipt.txHash}/evil`, `${receipt.txHash}?x=1`, `0x${"z".repeat(64)}`]) {
+    for (const txHash of [null, "0x123", `${receipt.txHash}/evil`, `${receipt.txHash}?x=1`, `0x${"a".repeat(128)}`, "0".repeat(88)]) {
       expect(receiptDisplay({ ...receipt, txHash }, 6, "tUSDC")).toMatchObject({ status: "unknown", label: "Status needs checking", summary: "UP · Requested 5 tUSDC", txHash: null });
     }
     expect(receiptDisplay({ ...receipt, status: "invalid" as XReceiptStatus }, 6, "tUSDC").label).toBe("Status needs checking");

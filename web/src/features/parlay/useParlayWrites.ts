@@ -5,16 +5,13 @@ import type { MarketId } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { submitParlayOpen, type ParlayOpenOutcome } from "@agari/markets/parlay";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { getClient } from "@agari/markets/runtime";
 import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import type { PublicClient } from "viem";
 import { diagnosisCopy } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
 import { notify } from "@/lib/toast";
-import { useWalletSession } from "@/lib/wallet-session";
-import { useOwnerWalletClient } from "@/providers/UserSessionProvider";
+import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { PARLAY } from "./copy";
 
 export type ParlayBusyKey = `open` | `claim:${string}` | `settle:${string}:${number}`;
@@ -26,15 +23,15 @@ export type ParlayBusyKey = `open` | `claim:${string}` | `settle:${string}:${num
  */
 export function useParlayWrites() {
   const submitter = useSubmitter();
-  const walletClient = useOwnerWalletClient();
+  const wallet = useOwnerWallet();
   const { address } = useWalletSession();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<ParlayBusyKey | null>(null);
 
   const contracts = useCallback((): VaultContracts | null => {
-    if (!walletClient) return null;
-    return { walletClient, publicClient: getClient().getViemClient() as PublicClient, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [walletClient]);
+    if (!wallet) return null;
+    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
+  }, [wallet]);
 
   const settle = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
@@ -88,5 +85,5 @@ export function useParlayWrites() {
     [submitter, settle],
   );
 
-  return { open, claim, settleLeg, busy, address, canSign: Boolean(submitter && walletClient) };
+  return { open, claim, settleLeg, busy, address, canSign: Boolean(submitter && wallet) };
 }

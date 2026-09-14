@@ -1,6 +1,7 @@
 "use client";
 
 import { MARKETS_POLL_MS } from "@agari/core/constants";
+import type { TickerSymbol } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
 import { type Address, type IndexedStatus, type MarketId } from "@agari/core/types";
 import { listVaultTallies, marketsProvider, tallyToLedger, withReading } from "@agari/markets";
@@ -10,7 +11,7 @@ import type { QueryClient } from "@tanstack/react-query";
 /** One open Window the vault holds for the wallet: what it holds and what it cost, never a mark it cannot read. */
 export interface VaultOpenBet {
   marketId: MarketId;
-  asset: string;
+  asset: TickerSymbol;
   intervalSec: number;
   expirySec: number;
   decimals: number;

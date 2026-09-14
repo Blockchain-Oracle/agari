@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
 import { settleRound, toVerdict } from "./settle";
 import type { MarketLedger, RoundMarket } from "./types";
+import { testMarketId, testSignature } from "../testing/ids";
 
 const ONE = 1_000_000n;
-const M = toMarketId(`0x${"b2".padStart(64, "0")}`);
+const M = testMarketId(0xb2);
 
 const ledger = (overrides: Partial<MarketLedger>): MarketLedger => ({
-  marketId: M, heldUpRaw: 10n * ONE, heldDownRaw: 0n, costBase: 4n * ONE, proceedsBase: 0n, sidesTraded: [0], fillCount: 1, shortCount: 0, firstAtMs: 1_000, lastAtMs: 1_000, entryTxHash: "0x1", ...overrides,
+  marketId: M, heldUpRaw: 10n * ONE, heldDownRaw: 0n, costBase: 4n * ONE, proceedsBase: 0n, sidesTraded: [0], fillCount: 1, shortCount: 0, firstAtMs: 1_000, lastAtMs: 1_000, entryTxHash: testSignature(1), ...overrides,
 });
 const market = (overrides: Partial<RoundMarket>): RoundMarket => ({
   marketId: M, asset: "BTC", intervalSec: 300, expirySec: 2_000, decimals: 6, settled: true, voided: false, winningOutcome: 0, resolvedAtMs: 2_001_000, ...overrides,
@@ -18,12 +18,12 @@ describe("settleRound", () => {
     expect(settleRound({ ledger: ledger({}), market: market({ settled: false, winningOutcome: null }), feeBps: 0, liveHoldings: null })).toBeNull();
   });
 
-  it("stamps a win net of the fee, with the fee itself on record, and reads a redeemed leg as paid", () => {
+  it("stamps a win at the full redeem with no fee on record, and reads a redeemed leg as paid", () => {
     const round = settleRound({ ledger: ledger({}), market: market({}), feeBps: 100, liveHoldings: { upRaw: 0n, downRaw: 0n } })!;
     expect(round.outcome).toBe("win");
-    expect(round.payoutBase).toBe(9_900_000n);
-    expect(round.feeBase).toBe(100_000n);
-    expect(round.pnlBase).toBe(5_900_000n);
+    expect(round.payoutBase).toBe(10_000_000n);
+    expect(round.feeBase).toBe(0n);
+    expect(round.pnlBase).toBe(6_000_000n);
     expect(round.claim).toBe("paid");
   });
 

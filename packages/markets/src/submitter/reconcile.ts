@@ -1,33 +1,13 @@
 import type { IntentRecord } from "@agari/core/ports";
 import type { Address } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
-import { getClient } from "../runtime/read-runtime";
 
 export type ReconcileVerdict = "confirmed" | "reverted" | "absent" | "unknown";
 
-const FILLS_PAGE = 20;
-
 /**
- * A send that timed out with no digest is never auto-retried: the chain is asked what happened first (AD-3).
- * With a digest the receipt decides — success or revert; without one, only an order can be reconciled
- * (through its fills on the pool it was aimed at).
+ * A send that timed out is never auto-retried: the chain is asked what happened first (AD-3). With a signature the
+ * transaction status decides; without one, an order is reconciled through the Window's fills. That needs the RPC
+ * client and the indexer (S4), so until then every open record stays "unknown" and is left untouched.
  */
-export async function reconcileUnknown(wallet: Address, record: IntentRecord, pool?: Address): Promise<ReconcileVerdict> {
-  const client = getClient();
-  if (record.txHash) {
-    const receipt = await client.getViemClient().getTransactionReceipt({ hash: record.txHash }).catch(() => null);
-    if (!receipt) return "unknown";
-    return receipt.status === "reverted" ? "reverted" : "confirmed";
-  }
-  const at = pool ?? record.pool;
-  if (record.kind !== "order" || !at) return "unknown";
-
-  const since = msToSec(record.createdAtMs);
-  const [fills, openOrderIds] = await Promise.all([
-    client.getUserFills(wallet, { pool: at, since, limit: FILLS_PAGE }),
-    client.getOwnOpenOrdersOnchain(at, wallet),
-  ]);
-  if (fills.length > 0) return "confirmed";
-  // Resting orders may predate this intent, so they are evidence of nothing either way.
-  return openOrderIds.length > 0 ? "unknown" : "absent";
+export async function reconcileUnknown(_wallet: Address, _record: IntentRecord, _pool?: Address): Promise<ReconcileVerdict> {
+  return "unknown";
 }

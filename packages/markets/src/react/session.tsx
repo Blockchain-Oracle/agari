@@ -2,20 +2,20 @@
 
 import type { Address } from "@agari/core/types";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { WalletClient } from "viem";
 import type { MarketsEnv } from "../env";
-import { createSubmitterSession, type SubmitterSession } from "../sessions";
 import { nowMs } from "../provider/clock";
-import { createLocalStorageJournal } from "../submitter/journal-local-storage";
+import { createSubmitterSession, type SubmitterSession } from "../sessions";
 import type { MarketsSubmitter } from "../submitter/create";
+import { createLocalStorageJournal } from "../submitter/journal-local-storage";
+import type { WalletSession } from "./wallet-session";
 
 const SessionContext = createContext<SubmitterSession | null>(null);
 
 export interface SubmitterSessionProviderProps {
   env: MarketsEnv;
-  /** The connected wallet client, or undefined when there is nothing to sign with. */
-  walletClient: WalletClient | undefined;
-  /** Gate the session on anything the app requires before signing is safe — the right chain, for example. */
+  /** The connected wallet through the byte-level seam (D-014), or undefined when there is nothing to sign with. */
+  wallet: WalletSession | undefined;
+  /** Gate the session on anything the app requires before signing is safe. */
   enabled?: boolean;
   children: ReactNode;
 }
@@ -23,16 +23,17 @@ export interface SubmitterSessionProviderProps {
 /**
  * Owns the user's signing session for the lifetime of one connected account.
  *
- * A new wallet client — connect, account switch, chain switch, disconnect — disposes the old
- * session and builds a new one. Nothing is rebound in place, so an in-flight write can never
- * find a different signer than the one it started with, and a stale session cannot sign after
- * the authority behind it is gone.
+ * A new wallet (connect, account switch, disconnect) disposes the old session and builds a new one. Nothing is
+ * rebound in place, so an in-flight write can never find a different signer than the one it started with, and a
+ * stale session can't sign after the authority behind it is gone. Keyed on the address: the wallet shell can hand back
+ * a fresh session object on re-render, and a re-render must not churn the session.
  */
-export function SubmitterSessionProvider({ env, walletClient, enabled = true, children }: SubmitterSessionProviderProps) {
+export function SubmitterSessionProvider({ env, wallet, enabled = true, children }: SubmitterSessionProviderProps) {
   const [session, setSession] = useState<SubmitterSession | null>(null);
+  const address = wallet?.address ?? null;
 
   useEffect(() => {
-    if (!walletClient || !enabled) {
+    if (!wallet || !enabled) {
       setSession(null);
       return;
     }
@@ -40,17 +41,10 @@ export function SubmitterSessionProvider({ env, walletClient, enabled = true, ch
     let cancelled = false;
     let created: SubmitterSession | null = null;
 
-    void createSubmitterSession({
-      env,
-      authority: "user-wallet",
-      signer: { walletClient },
-      journal: createLocalStorageJournal(nowMs),
-      nowMs,
-    })
+    void createSubmitterSession({ env, authority: "user-wallet", signer: { wallet }, journal: createLocalStorageJournal(nowMs), nowMs })
       .then((next) => {
         created = next;
-        // The effect was superseded while we were constructing: dispose rather than publish,
-        // otherwise a switched-away account keeps a live signer.
+        // Superseded while constructing: dispose rather than publish, or a switched-away account keeps a live signer.
         if (cancelled) return next.dispose();
         setSession(next);
         return undefined;
@@ -64,7 +58,9 @@ export function SubmitterSessionProvider({ env, walletClient, enabled = true, ch
       setSession(null);
       void created?.dispose();
     };
-  }, [env, walletClient, enabled]);
+    // The wallet object's identity is not its authority; the address is.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [env, address, enabled]);
 
   return <SessionContext.Provider value={session}>{children}</SessionContext.Provider>;
 }
@@ -84,7 +80,7 @@ export interface SignerState {
   hasSigner: boolean;
 }
 
-/** The account that will actually sign — the session's, not wagmi's; the two differ while a session is being built. */
+/** The account that will actually sign — the session's, not the wallet UI's; the two differ while a session is being built. */
 export function useSigner(): SignerState {
   const session = useUserSession();
   return { address: session?.address ?? null, hasSigner: session !== null };

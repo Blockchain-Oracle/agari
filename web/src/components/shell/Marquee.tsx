@@ -1,5 +1,6 @@
 "use client";
 
+import { diagnosisCopy } from "@agari/core/copy";
 import { isOk } from "@agari/core/schemas";
 import { remainingSec } from "@agari/core/units";
 import { useLanes } from "@agari/markets/react";
@@ -23,7 +24,7 @@ function mmss(totalSec: number): string {
 }
 
 export default function Marquee() {
-  const { venueId } = useVenue();
+  const { venueId, venueFailure } = useVenue();
   const lanes = useLanes(venueId);
   const nowMs = useNowMs();
 
@@ -58,8 +59,13 @@ export default function Marquee() {
     items.push({ label: "NEXT CLOSE", value: mmss(remainingSec(nowMs, nextExpirySec)), direction: "" });
   }
 
-  // An honest holding state: loading is a product state, invented prices are not.
-  if (items.length === 0) items.push({ label: "AGARI", value: "LOADING", direction: "" });
+  // An honest holding state: loading is a product state, invented prices are not. A read that failed is not
+  // loading, so it says why instead of spinning forever.
+  if (items.length === 0) {
+    const failure = lanes && !isOk(lanes) ? lanes.error : venueFailure;
+    const failed = failure ? diagnosisCopy(failure.kind).headline.toUpperCase() : null;
+    items.push({ label: "AGARI", value: failed ?? "LOADING", direction: "" });
+  }
 
   const renderCells = (keyPrefix: string) =>
     items.map((item, i) => (

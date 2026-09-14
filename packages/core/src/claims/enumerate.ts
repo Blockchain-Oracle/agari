@@ -16,16 +16,16 @@ export interface SettledHolding {
 
 function voidLegs(holdings: Holdings): ClaimLeg[] {
   const legs: ClaimLeg[] = [];
-  if (holdings.upRaw > 0n) legs.push({ outcomeIdx: 0, amountRaw: holdings.upRaw, payoutBase: estPayoutBase(holdings.upRaw, "void", 0) });
-  if (holdings.downRaw > 0n) legs.push({ outcomeIdx: 1, amountRaw: holdings.downRaw, payoutBase: estPayoutBase(holdings.downRaw, "void", 0) });
+  if (holdings.upRaw > 0n) legs.push({ outcomeIdx: 0, amountRaw: holdings.upRaw, payoutBase: estPayoutBase(holdings.upRaw, "void") });
+  if (holdings.downRaw > 0n) legs.push({ outcomeIdx: 1, amountRaw: holdings.downRaw, payoutBase: estPayoutBase(holdings.downRaw, "void") });
   return legs;
 }
 
-function winLegs(market: SettledMarket, holdings: Holdings, feeBps: number): ClaimLeg[] {
+function winLegs(market: SettledMarket, holdings: Holdings): ClaimLeg[] {
   if (market.winningOutcome === null) return [];
   const amountRaw = market.winningOutcome === 0 ? holdings.upRaw : holdings.downRaw;
   if (amountRaw === 0n) return [];
-  return [{ outcomeIdx: market.winningOutcome, amountRaw, payoutBase: estPayoutBase(amountRaw, "win", feeBps) }];
+  return [{ outcomeIdx: market.winningOutcome, amountRaw, payoutBase: estPayoutBase(amountRaw, "win") }];
 }
 
 /** Every claimable row for a wallet: voids redeem BOTH sides as one row with two legs; a losing side is never a row (canon #11). */
@@ -33,7 +33,7 @@ export function enumerateClaimables(settled: readonly SettledHolding[]): Claimab
   const rows: ClaimableRow[] = [];
   for (const { market, holdings, feeBps } of settled) {
     const kind = market.voided ? "void" : "win";
-    const legs = kind === "void" ? voidLegs(holdings) : winLegs(market, holdings, feeBps);
+    const legs = kind === "void" ? voidLegs(holdings) : winLegs(market, holdings);
     const netPayoutBase = legs.reduce((sum, leg) => sum + leg.payoutBase, 0n);
     if (netPayoutBase === 0n) continue;
     rows.push({

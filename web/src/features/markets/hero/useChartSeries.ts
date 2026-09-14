@@ -21,7 +21,7 @@ export interface ChartSeries {
 }
 
 function toChartPoint(point: PricePoint | AssetPrice, feedDecimals: number): ChartPoint {
-  return { timeSec: point.blockTimestampSec, valueRaw: feedRawToOracleRaw(basisRaw(point), feedDecimals) };
+  return { timeSec: point.publishTimeSec, valueRaw: feedRawToOracleRaw(basisRaw(point), feedDecimals) };
 }
 
 /** lightweight-charts needs strictly ascending, unique times; the last sample in a second wins. */

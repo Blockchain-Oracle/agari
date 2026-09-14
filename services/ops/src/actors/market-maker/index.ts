@@ -1,7 +1,7 @@
 import { phase } from "@agari/core/lifecycle";
 import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
 import { isOk } from "@agari/core/schemas";
-import type { Bytes32, EventMarket, MarketId } from "@agari/core/types";
+import type { Address, EventMarket, MarketId } from "@agari/core/types";
 import { oneUnit } from "@agari/core/units";
 import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, type SubmitterSession } from "@agari/markets";
 import { getMakerVaultState, listMakerOpenWindows, readPoolTop } from "@agari/markets/maker";
@@ -13,7 +13,7 @@ type Log = (why: string) => void;
 interface Maker {
   env: MakerEnv;
   session: SubmitterSession | null;
-  venueId: Bytes32;
+  venueId: Address;
   placed: Map<MarketId, Placed>;
   log: Log;
 }
@@ -99,7 +99,7 @@ async function cycle(maker: Maker): Promise<void> {
   if (!state.value) return maker.log("MarketMakerVault is not deployed on this network; idle");
   const vault = state.value;
   if (vault.paused) return maker.log("the vault is paused; tending open Windows only");
-  if (maker.session && vault.maker !== maker.session.address.toLowerCase()) {
+  if (maker.session && vault.maker !== maker.session.address) {
     return maker.log(`this key is ${maker.session.address}, the vault names ${vault.maker ?? "no maker"}; not quoting`);
   }
   const views = await listMakerOpenWindows();
@@ -123,7 +123,7 @@ export async function startMarketMaker(log: Log): Promise<void> {
 
   let session: SubmitterSession | null = null;
   if (env.privateKey) {
-    session = await createSubmitterSession({ env: marketsEnv, authority: "market-maker", signer: { privateKey: env.privateKey }, journal: createMemoryJournal() });
+    session = await createSubmitterSession({ env: marketsEnv, authority: "market-maker", signer: { secretKey: env.privateKey }, journal: createMemoryJournal() });
     log(`maker key ${session.address}${env.dryRun ? " (DRY RUN: nothing is sent)" : ""}`);
   } else {
     log("MAKER_PRIVATE_KEY is not set: scanning and reporting only, nothing can be sent");

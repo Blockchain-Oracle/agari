@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 export interface HeartbeatRecord {
   runner: string;
@@ -82,7 +83,7 @@ export async function recordHeartbeat(beat: NewHeartbeat): Promise<boolean> {
   await ensureSchema();
   await db`
     INSERT INTO runner_heartbeats (runner, strategy_id, interval_ms, why, scanned, closest_bps, dry_run)
-    VALUES (${beat.runner.toLowerCase()}, ${beat.strategyId}, ${beat.intervalMs}, ${beat.why}, ${beat.scanned}, ${beat.closestBps}, ${beat.dryRun})
+    VALUES (${storageKey(beat.runner)}, ${beat.strategyId}, ${beat.intervalMs}, ${beat.why}, ${beat.scanned}, ${beat.closestBps}, ${beat.dryRun})
   `;
   return true;
 }
@@ -120,7 +121,7 @@ export async function recordStrategyFill(fill: StrategyFillRecord): Promise<bool
   await ensureSchema();
   await db`
     INSERT INTO strategy_fills (tx_hash, strategy_id, grant_id, owner, market_id, side, cash_delta, token_delta, at_sec, dry_run)
-    VALUES (${fill.txHash}, ${fill.strategyId}, ${fill.grantId}, ${fill.owner.toLowerCase()}, ${fill.marketId}, ${fill.side}, ${fill.cashDelta}, ${fill.tokenDelta}, ${fill.atSec}, ${fill.dryRun})
+    VALUES (${fill.txHash}, ${fill.strategyId}, ${fill.grantId}, ${storageKey(fill.owner)}, ${fill.marketId}, ${fill.side}, ${fill.cashDelta}, ${fill.tokenDelta}, ${fill.atSec}, ${fill.dryRun})
     ON CONFLICT (tx_hash) DO NOTHING
   `;
   return true;
@@ -143,7 +144,7 @@ export async function upsertPlaybook(strategyId: string, creator: string, body: 
   if (!db) return false;
   await ensureSchema();
   await db`
-    INSERT INTO strategy_playbooks (strategy_id, creator, body) VALUES (${strategyId}, ${creator.toLowerCase()}, ${body})
+    INSERT INTO strategy_playbooks (strategy_id, creator, body) VALUES (${strategyId}, ${storageKey(creator)}, ${body})
     ON CONFLICT (strategy_id) DO UPDATE SET creator = EXCLUDED.creator, body = EXCLUDED.body, updated_at = now()
   `;
   return true;

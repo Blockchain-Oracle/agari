@@ -1,3 +1,6 @@
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
+import { DEFAULT_CLUSTER } from "@agari/core/constants";
+import { addressSchema } from "@agari/core/types";
 import { z } from "zod";
 
 export const ROOM_BODY_MAX = 280;
@@ -20,10 +23,12 @@ export const ROOM_TOKEN_TTL_MS = 60 * 60_000;
  */
 export function roomJoinMessage(marketId: string, address: string, issuedAtMs: number): string {
   return [
-    "Masayume — join the Room",
+    `${SIGNED_MESSAGE_BRAND} — join the Room`,
     "",
     `Market: ${marketId}`,
-    `Wallet: ${address.toLowerCase()}`,
+    // Base58 is case-sensitive: the wallet is named exactly as it signs (D-010).
+    `Wallet: ${address}`,
+    networkLine(DEFAULT_CLUSTER),
     `Issued: ${new Date(issuedAtMs).toISOString()}`,
     "",
     "Signing proves you own this wallet. It is not a transaction, it moves no funds, and it costs nothing.",
@@ -32,9 +37,9 @@ export function roomJoinMessage(marketId: string, address: string, issuedAtMs: n
 
 export const roomJoinRequestSchema = z.object({
   marketId: z.string().min(1).max(120),
-  address: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  address: addressSchema,
   issuedAtMs: z.number().int().positive(),
-  signature: z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000),
+  signature: messageSignatureSchema,
 });
 
 export const roomPostRequestSchema = z.object({

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EventMarket, LaneSet } from "../types/market";
 import { groupByHorizon, HORIZONS, WORD_BOARD_MIN_LEAD_MS } from "./horizons";
+import { testAddress } from "../testing/ids";
 
 const NOW_MS = 1_800_000_000_000;
 const NOW_SEC = NOW_MS / 1000;
@@ -11,7 +12,7 @@ function market(id: string, secondsOut: number): EventMarket {
 }
 
 function laneSet(...markets: EventMarket[]): LaneSet {
-  return { venueId: "0x0" as LaneSet["venueId"], excludedFixedStrike: 0, lanes: [{ intervalSec: 300, label: "5m", markets, nextStartSec: null }] };
+  return { venueId: testAddress(9), lanes: [{ basis: "regular", intervalSec: 300, label: "5m", markets, nextStartSec: null }] };
 }
 
 const ids = (laneSetIn: LaneSet) => groupByHorizon(laneSetIn, NOW_MS).map((g) => [g.key, g.markets.map((m) => m.marketId)]);
@@ -42,11 +43,10 @@ describe("groupByHorizon", () => {
 
   it("orders by close across every lane and omits empty bands", () => {
     const twoLanes: LaneSet = {
-      venueId: "0x0" as LaneSet["venueId"],
-      excludedFixedStrike: 0,
+      venueId: testAddress(9),
       lanes: [
-        { intervalSec: 3600, label: "1h", markets: [market("hourly", 120)], nextStartSec: null },
-        { intervalSec: 300, label: "5m", markets: [market("five", 60)], nextStartSec: null },
+        { basis: "regular", intervalSec: 3600, label: "1h", markets: [market("hourly", 120)], nextStartSec: null },
+        { basis: "regular", intervalSec: 300, label: "5m", markets: [market("five", 60)], nextStartSec: null },
       ],
     };
     // Only "soon" survives — the other two bands are dropped, not rendered empty.

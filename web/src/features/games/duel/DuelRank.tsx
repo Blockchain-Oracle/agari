@@ -57,7 +57,7 @@ export function DuelRank() {
     };
   }, [address]);
 
-  const you = address?.toLowerCase() ?? null;
+  const you = address ?? null;
   const remaining = season && nowMs > 0 ? seasonRemainingMs(season, nowMs) : null;
 
   return (

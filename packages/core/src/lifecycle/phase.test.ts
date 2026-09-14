@@ -10,6 +10,7 @@ const HEADROOM_SEC = 30;
 function market(overrides: Partial<PhaseInput> = {}): PhaseInput {
   return {
     tradingStartSec: START_SEC,
+    lockAtSec: EXPIRY_SEC,
     expirySec: EXPIRY_SEC,
     intervalSec: INTERVAL_SEC,
     openingPriceRaw: 1n,
@@ -30,6 +31,12 @@ describe("phase", () => {
     expect(phase(market(), at(EXPIRY_SEC - HEADROOM_SEC - 1))).toBe("trading");
     expect(phase(market(), at(EXPIRY_SEC - HEADROOM_SEC))).toBe("noEntryBuffer");
     expect(phase(market(), at(EXPIRY_SEC))).toBe("locked");
+  });
+
+  it("locks a Gap Window at lock_at while its closing print is still ahead", () => {
+    const gap = market({ lockAtSec: EXPIRY_SEC, expirySec: EXPIRY_SEC + 48 * 3_600 });
+    expect(phase(gap, at(EXPIRY_SEC - HEADROOM_SEC))).toBe("noEntryBuffer");
+    expect(phase(gap, at(EXPIRY_SEC + 60))).toBe("locked");
   });
 
   it("derives settlement phases from indexed and on-chain status", () => {

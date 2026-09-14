@@ -1,10 +1,11 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 export type BetRoute = "wallet" | "vault" | "leverage" | "private";
 
-/** Lowercased at the write, so the read's `lower()` always meets it — see games.ts for the row this rule cost. */
-const key = (value: string) => value.toLowerCase();
+/** One canonical form at the write and the read (`keys.ts`): base58 exact, hex folded — see games.ts for the row this rule cost. */
+const key = (value: string) => storageKey(value);
 
 /** Records a wallet as a bettor on a Window. Idempotent: the first fill keeps the seat; later ones change nothing. */
 export async function recordBettor(input: { chainId: number; marketId: string; wallet: string; txHash: string; route: BetRoute }): Promise<boolean> {

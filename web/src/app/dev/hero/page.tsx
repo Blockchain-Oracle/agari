@@ -1,7 +1,7 @@
 "use client";
 
 import type { LaneSet, MarketId } from "@agari/core/types";
-import { isBytes32, toMarketId } from "@agari/core/types";
+import { isMarketId } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { useLanes, useMarketsBoot } from "@agari/markets/react";
 import { useSearchParams } from "next/navigation";
@@ -24,7 +24,7 @@ function HeroPicker() {
   const boot = useMarketsBoot(webEnv.markets);
   const venueId = boot?.ok ? boot.value.venue.venueId : null;
   const lanes = useLanes(venueId);
-  const forced = requested && isBytes32(requested) ? toMarketId(requested) : null;
+  const forced = requested && isMarketId(requested) ? requested : null;
 
   if (forced) return <HeroMarket marketId={forced} />;
   return (

@@ -1,20 +1,19 @@
 "use client";
 
 import type { Reading } from "@agari/core/schemas";
-import type { Bytes32, EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
+import type { Address, EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
 import { ReadingBoundary } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { BetweenRounds } from "./BetweenRounds";
 import { LaneRows } from "./LaneRows";
 import { LaneTabs } from "./LaneTabs";
-import { StrikeDisclosure } from "./StrikeDisclosure";
 import type { LanesState } from "./useLanes";
 
 interface CadenceLanesProps {
   state: LanesState;
   /** The boot reading's error, when the venue could not even be resolved. */
   boot: Reading<unknown> | null;
-  venueId: Bytes32 | null;
+  venueId: Address | null;
   nowMs: number;
   selectedMarketId: MarketId | null;
   onSelect: (marketId: MarketId, side?: Side) => void;
@@ -47,7 +46,6 @@ export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, on
           ) : (
             <LaneRows lane={state.activeLane} nowMs={nowMs} selectedMarketId={selectedMarketId} onSelect={onSelect} onOpenRoom={onOpenRoom} />
           )}
-          <StrikeDisclosure count={laneSet.excludedFixedStrike} />
         </div>
       )}
     </ReadingBoundary>

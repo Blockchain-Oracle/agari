@@ -1,14 +1,14 @@
 import type { StrategyRecord } from "@agari/core/strategies";
-import type { Address, Bytes32 } from "@agari/core/types";
+import { encodeBase58, type Address } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { agentBootLine, createAgentState, scanVenueWithAgent, takeCall, type AgentState } from "./agent";
 import { readRunnerEnv } from "./env";
 
-const VENUE = `0x${"11".repeat(32)}` as Bytes32;
+const VENUE = encodeBase58(new Uint8Array(32).fill(0x11)) as Address;
 const strategy: StrategyRecord = {
   strategyId: 7n,
-  creator: "0xaaaa111111111111111111111111111111111111" as Address,
-  runner: "0xbbbb111111111111111111111111111111111111" as Address,
+  creator: encodeBase58(new Uint8Array(32).fill(0xaa)) as Address,
+  runner: encodeBase58(new Uint8Array(32).fill(0xbb)) as Address,
   specHash: `0x${"ab".repeat(32)}`,
   metadata: "{}",
   envelope: { maxStakePerTradeBase: 5_000_000n, maxDailySpendBase: 50_000_000n, maxOpenPositions: 2, maxPriceRaw: 0n },

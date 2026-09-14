@@ -1,5 +1,6 @@
 "use client";
 
+import { CLUSTER_LABEL } from "@agari/core/constants";
 import { useSigner } from "@agari/markets/react";
 import { SectionHeader } from "@/components/chrome";
 import { Hash } from "@/components/data";
@@ -7,7 +8,9 @@ import { BalancePlate } from "@/features/markets/balance";
 import { FaucetCard } from "@/features/markets/faucet";
 import { ConnectButton } from "@/features/markets/wallet";
 import { WALLET_DEV } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
+import { SignCheck } from "./SignCheck";
 
 export default function DevWalletPage() {
   const session = useWalletSession();
@@ -22,7 +25,7 @@ export default function DevWalletPage() {
           <dd className="text-ink">{session.address ? <Hash value={session.address} lead={10} tail={6} /> : "—"}</dd>
           <dt>{WALLET_DEV.chain}</dt>
           <dd className="text-ink">
-            <span className="numbers">{session.chainId ?? "—"}</span>
+            <span className="numbers">{CLUSTER_LABEL[webEnv.markets.cluster]}</span>
             {session.isConnected && ` · ${session.isRightChain ? WALLET_DEV.rightChain : WALLET_DEV.wrongChain}`}
           </dd>
           <dt>{WALLET_DEV.signer}</dt>
@@ -31,12 +34,17 @@ export default function DevWalletPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeader index="02" title={WALLET_DEV.balances} />
+        <SectionHeader index="02" title={WALLET_DEV.signCheckTitle} />
+        <SignCheck />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <SectionHeader index="03" title={WALLET_DEV.balances} />
         <BalancePlate />
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeader index="03" title={WALLET_DEV.faucet} />
+        <SectionHeader index="04" title={WALLET_DEV.faucet} />
         <FaucetCard />
       </section>
     </div>

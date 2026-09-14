@@ -30,7 +30,7 @@ BEGIN
 END $$;
 
 CREATE TABLE IF NOT EXISTS game_profiles (
-  -- Lowercased 0x address, verified from a signature before upsert.
+  -- Base58 address, stored exactly (case-sensitive), verified from a signature before upsert.
   wallet        TEXT        PRIMARY KEY,
   -- The accent the player picked for their stage and share cards; one of the shell's own tokens.
   accent        TEXT        NOT NULL DEFAULT 'default',
@@ -279,15 +279,15 @@ ALTER TABLE duel_matches ADD COLUMN IF NOT EXISTS refund_reason TEXT;
 ALTER TABLE duel_matches DROP CONSTRAINT IF EXISTS duel_matches_deck_size_check;
 ALTER TABLE duel_matches ADD CONSTRAINT duel_matches_deck_size_check CHECK (deck_size BETWEEN 2 AND 5);
 
--- Addresses were written in whatever case the decoder produced (viem checksums an address off a log)
--- and read back through lower(), so no query ever matched its own rows. The key() helper in games.ts
--- fixes the writes; these repair what a build before it wrote. Idempotent, and not applied to the
--- primary keys, which are hashes and were already lowercase by construction.
-UPDATE duel_matches SET arena = lower(arena) WHERE arena <> lower(arena);
-UPDATE duel_matches SET creator = lower(creator) WHERE creator <> lower(creator);
-UPDATE duel_matches SET challenger = lower(challenger) WHERE challenger IS NOT NULL AND challenger <> lower(challenger);
-UPDATE duel_matches SET winner = lower(winner) WHERE winner IS NOT NULL AND winner <> lower(winner);
-UPDATE duel_matches SET deck_hash = lower(deck_hash) WHERE deck_hash <> lower(deck_hash);
-UPDATE duel_cards SET player = lower(player) WHERE player <> lower(player);
-UPDATE duel_cards SET market_id = lower(market_id) WHERE market_id <> lower(market_id);
+-- Masayume wrote EVM addresses in whatever case the decoder produced and read them back lowercased, so
+-- these repaired its old rows. On Solana addresses and Market ids are base58 and case-sensitive (D-010): a
+-- blanket lower() here would corrupt every row on each boot. Each repair now touches only 0x-hex values
+-- (EVM-era rows, hex hashes); base58 never starts with "0x". Idempotent.
+UPDATE duel_matches SET arena = lower(arena) WHERE arena ~ '^0x[0-9A-Fa-f]*$' AND arena <> lower(arena);
+UPDATE duel_matches SET creator = lower(creator) WHERE creator ~ '^0x[0-9A-Fa-f]*$' AND creator <> lower(creator);
+UPDATE duel_matches SET challenger = lower(challenger) WHERE challenger ~ '^0x[0-9A-Fa-f]*$' AND challenger <> lower(challenger);
+UPDATE duel_matches SET winner = lower(winner) WHERE winner ~ '^0x[0-9A-Fa-f]*$' AND winner <> lower(winner);
+UPDATE duel_matches SET deck_hash = lower(deck_hash) WHERE deck_hash ~ '^0x[0-9A-Fa-f]*$' AND deck_hash <> lower(deck_hash);
+UPDATE duel_cards SET player = lower(player) WHERE player ~ '^0x[0-9A-Fa-f]*$' AND player <> lower(player);
+UPDATE duel_cards SET market_id = lower(market_id) WHERE market_id ~ '^0x[0-9A-Fa-f]*$' AND market_id <> lower(market_id);
 `;

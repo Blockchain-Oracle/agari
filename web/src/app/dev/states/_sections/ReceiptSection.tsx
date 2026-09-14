@@ -31,7 +31,7 @@ export function ReceiptSection() {
             settledAtMs={FIXED_NOW_MS}
             stamp={<StampPreview />}
           >
-            <ReceiptRow label="Window">BTC · 5m · UP</ReceiptRow>
+            <ReceiptRow label="Window">TSLA · 5m · UP</ReceiptRow>
             <ReceiptRow label="Stake">10.00 {SYMBOL}</ReceiptRow>
             <ReceiptRow label="Entry fill" href={TX_URL}>
               {SHORT_TX}

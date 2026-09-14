@@ -1,0 +1,7 @@
+{
+  "_doc": [
+    "S1 no-evm migration allowlist (D-015). Every entry is an EVM import or dependency that S1 step 1d removes.",
+    "The list only shrinks: the rule fails on a stale entry, and the S1 gate requires this file to be empty."
+  ],
+  "files": []
+}

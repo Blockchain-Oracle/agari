@@ -1,9 +1,9 @@
-import type { Bytes32, MarketId } from "@agari/core/types";
-import { QUERY_KEY_SCOPE, marketFeesKey, marketOnchainKey } from "@somnia-chain/markets-sdk";
+import type { Address, MarketId } from "@agari/core/types";
 
-const APP = "masayume";
+const QUERY_KEY_SCOPE = "agari";
+const APP = "markets";
 
-/** Query keys for every port read; SDK factories are reused where the SDK defines one so caches never fork. */
+/** Query keys for every port read, in one family so a write's invalidation reaches every read it can change. */
 export const keys = {
   /** The boot facts share this prefix, so invalidating it retries all three at once. */
   boot: () => [QUERY_KEY_SCOPE, APP, "boot"] as const,
@@ -23,7 +23,7 @@ export const keys = {
   positions: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet] as const,
   /** Nested under the wallet's positions so one invalidation after a write refreshes both. */
   holdings: (wallet: string | null, marketId: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet, "holdings", marketId] as const,
-  claimables: (wallet: string | null, venueId: Bytes32 | null) => [QUERY_KEY_SCOPE, APP, "claimables", wallet, venueId] as const,
+  claimables: (wallet: string | null, venueId: Address | null) => [QUERY_KEY_SCOPE, APP, "claimables", wallet, venueId] as const,
   /** The fill projection: settled rounds, equity, stats — one key, so a claim or an order refreshes all of it. */
   history: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "history", wallet] as const,
   /** The Trading Balance and its grants; holdings nest under it so one invalidation refreshes both. */
@@ -63,6 +63,6 @@ export const keys = {
   nextWindow: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "nextWindow", marketId] as const,
   /** Nested under the boot prefix so the boot fact and `useClock` are one cache entry, not two chain reads. */
   clock: () => [QUERY_KEY_SCOPE, APP, "boot", "clock"] as const,
-  onchain: (marketId: MarketId | null) => marketOnchainKey(marketId),
-  fee: (marketId: MarketId | null) => marketFeesKey(marketId),
+  onchain: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "onchain", marketId] as const,
+  fee: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "fee", marketId] as const,
 };

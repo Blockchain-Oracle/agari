@@ -1,5 +1,5 @@
 import type { MarketId } from "../types/market";
-import type { Address, Bytes32 } from "../types/primitives";
+import type { Address, Hash32 } from "../types/primitives";
 
 /**
  * The vocabulary every game surface, actor and contract adapter shares.
@@ -172,7 +172,7 @@ export interface MatchPlayers {
 
 /** The commitment a deck is published under, before any card is known to either player. */
 export interface DeckCommitment {
-  hash: Bytes32;
+  hash: Hash32;
   size: number;
   policyVersion: number;
 }

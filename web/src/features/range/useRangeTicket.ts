@@ -5,7 +5,7 @@ import type { MarketPhase } from "@agari/core/lifecycle";
 import type { RangeReserveState } from "@agari/core/range";
 import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import { belowMinStake, minStakeBase } from "@agari/core/sizing";
-import type { EventMarket, Hex } from "@agari/core/types";
+import type { EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
@@ -41,7 +41,7 @@ export interface RangeTicketApi {
   blocker: BlockerKind | null;
   ctx: BlockerContext;
   place: () => Promise<void>;
-  placed: { txHash: Hex; band: string } | null;
+  placed: { txHash: Signature; band: string } | null;
   reset: () => void;
   /** The reserve's stake with the headroom the open is sent with, for the caption. */
   upToText: string | null;
@@ -69,7 +69,7 @@ export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
   const spot = useOracleSpot(market.asset);
   const draft = useRangeDraft(spot, market.intervalSec);
   const writes = useRangeWrites();
-  const [placed, setPlaced] = useState<{ txHash: Hex; band: string } | null>(null);
+  const [placed, setPlaced] = useState<{ txHash: Signature; band: string } | null>(null);
   const band = draft.lowPrint !== null && draft.highPrint !== null ? { marketId: market.marketId, asset: market.asset, side: "inside" as const, lowPrint: draft.lowPrint, highPrint: draft.highPrint } : null;
   const quoteState = useRangeQuote({
     band,

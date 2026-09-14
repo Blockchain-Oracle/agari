@@ -44,7 +44,7 @@ export async function GET() {
     overall: overallOf(pipelines, maxLagSec),
     maxLagSec,
     maxLagPipeline: worst?.label ?? null,
-    blockNumber: rpc.blockNumber,
+    slot: rpc.slot,
     pipelines,
   };
   return NextResponse.json(payload, { headers: { "cache-control": "no-store" } });

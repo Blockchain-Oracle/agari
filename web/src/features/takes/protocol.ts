@@ -1,5 +1,7 @@
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
+import { DEFAULT_CLUSTER } from "@agari/core/constants";
 import { COMPOSER_PERMANENCE } from "@agari/core/copy";
-import type { Address, MarketId, Side } from "@agari/core/types";
+import { addressSchema, marketIdSchema, type Address, type MarketId, type Side } from "@agari/core/types";
 import { z } from "zod";
 
 /** One confident sentence, not an essay — the reference's own cap (`lib/sui/takes.ts` L23). */
@@ -27,12 +29,14 @@ export function normalizeCaption(raw: string): string {
  */
 export function takeMessage(input: { marketId: string; side: Side; caption: string; address: string; issuedAtMs: number }): string {
   return [
-    "Masayume — post a take",
+    `${SIGNED_MESSAGE_BRAND} — post a take`,
     "",
     `Market: ${input.marketId}`,
     `Call: ${input.side.toUpperCase()}`,
     `Words: ${input.caption || "(no note)"}`,
-    `Wallet: ${input.address.toLowerCase()}`,
+    // Base58 is case-sensitive: the wallet is named exactly as it signs (D-010).
+    `Wallet: ${input.address}`,
+    networkLine(DEFAULT_CLUSTER),
     `Issued: ${new Date(input.issuedAtMs).toISOString()}`,
     "",
     `Signing proves this take is yours. It is not a transaction, it moves no funds, and it costs nothing. ${COMPOSER_PERMANENCE}`,
@@ -40,15 +44,15 @@ export function takeMessage(input: { marketId: string; side: Side; caption: stri
 }
 
 export const takePostRequestSchema = z.object({
-  marketId: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+  marketId: marketIdSchema,
   side: z.enum(["up", "down"]),
   // Exactly the words that were signed: the row stores the caption verbatim so the
   // signature re-verifies from the row, so the client normalises before signing and
   // the route refuses anything it would have had to alter.
   caption: z.string().max(TAKE_MAX_CAPTION).refine((caption) => caption === normalizeCaption(caption)),
-  address: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  address: addressSchema,
   issuedAtMs: z.number().int().positive(),
-  signature: z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000),
+  signature: messageSignatureSchema,
 });
 
 export type TakePostRequest = z.infer<typeof takePostRequestSchema>;

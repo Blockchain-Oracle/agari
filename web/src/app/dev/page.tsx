@@ -13,7 +13,7 @@ const FIXTURES = [
   { href: "/dev/takes", label: "Takes", note: "the take card — backed, open, no note, closed Window" },
   { href: "/dev/share", label: "Share cards", note: "The Call on screen, then both PNG exports from canned records" },
   { href: "/dev/port", label: "Chain port", note: "live lanes as Reading<LaneSet>, venue and clock" },
-  { href: "/dev/boot", label: "Boot check", note: "zero-env round-trip to the Shannon indexer" },
+  { href: "/dev/boot", label: "Boot check", note: "the markets runtime's Solana config and the engine's deploy state" },
   { href: "/dev/strategies", label: "Strategies", note: "record card, archive tiers, runner pulse states, recent copy-trades, not-deployed" },
   { href: "/dev/x", label: "X rail", note: "the X-Predict wallet card in every link state, the claim ticket, receipts of every status" },
   { href: "/dev/session", label: "Session key", note: "tap-trading chip, manager, route control, enable sheet — canned states, then live" },

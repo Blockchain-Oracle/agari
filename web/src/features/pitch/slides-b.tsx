@@ -1,7 +1,7 @@
 "use client";
 
-import { PINNED_TESTNET } from "@agari/markets";
 import Link from "next/link";
+import { webEnv } from "@/lib/env";
 import AgariMark from "@/components/shell/AgariMark";
 import { PITCH } from "./copy";
 import { PhoneMock } from "./mocks";
@@ -16,6 +16,8 @@ import type { VenueUsage } from "./useVenueUsage";
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
+/** The one program every Window runs on; the deck says so honestly until it is deployed (S2 devnet, S15 story pass). */
+const EVENTS_PROGRAM = webEnv.markets.eventsProgramId ?? "not deployed";
 
 const A = PITCH.agents;
 const U = PITCH.demand;
@@ -132,9 +134,9 @@ export function slidesB(usage: VenueUsage): Slide[] {
             title={W.panelTitle}
             badge={W.panelBadge}
             rows={[
-              [W.labels.venue, `${W.labels.venueValue} · ${shortAddr(PINNED_TESTNET.addresses.marketsCore)}`, true],
-              [W.labels.settlement, shortAddr(PINNED_TESTNET.addresses.binarySettlement), true],
-              [W.labels.oracle, shortAddr(PINNED_TESTNET.addresses.oracleHub)],
+              [W.labels.venue, `${W.labels.venueValue} · ${shortAddr(EVENTS_PROGRAM)}`, true],
+              [W.labels.settlement, shortAddr(EVENTS_PROGRAM), true],
+              [W.labels.oracle, shortAddr(EVENTS_PROGRAM)],
               [W.labels.tokens, W.labels.tokensValue],
               [W.labels.indexer, W.labels.indexerValue],
               [W.labels.gas, W.labels.gasValue],

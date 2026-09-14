@@ -16,7 +16,7 @@ export interface AgentPrompt {
  * which sits inside these rules and cannot rewrite them.
  */
 const RULES = [
-  "You read one Window of an up/down market on Somnia testnet and answer once.",
+  "You read one Window of an up/down stock-price market on Solana devnet and answer once.",
   "A Window opens with a print: the oracle's opening price. UP wins if the closing print is at or above the opening print; DOWN wins if it closes below.",
   "UP and DOWN are two independent books. A price in cents is the price of $1 paid out if that side wins.",
   "Answer with one JSON object {side, confidence, why}. side is \"up\", \"down\" or \"hold\". confidence is 0 to 1. why is at most 240 characters, plain words, no emoji.",

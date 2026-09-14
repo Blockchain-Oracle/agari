@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { X_REFUSAL_TITLES, type XReceiptStatus } from "@agari/core/x";
+import { isSignature } from "@agari/core/types";
 
 /** Structural subset of ReplyPresentation. All facts come from the receipt formatter. */
 export interface ReplyCardInput {
@@ -125,7 +126,7 @@ export function renderReplyCardSvg(input: ReplyCardInput, options: ReplyCardOpti
   const context = plain(input.context, 180) || "Somnia Shannon testnet";
   const detail = plain(input.detail, 420) || "Open the receipt for details.";
   const sender = typeof input.sender === "string" && /^(@[A-Za-z0-9_]{1,15}|X user \d{1,30})$/.test(input.sender) ? input.sender : null;
-  const hash = typeof input.txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(input.txHash) ? input.txHash : null;
+  const hash = isSignature(input.txHash) ? input.txHash : null;
   const contextLines = lines(context, inter, 27, 690, 2);
   const detailLines = lines(detail, inter, 22, 690, 2);
   const titleSize = Math.min(72, 690 / width(sora, title, 1));

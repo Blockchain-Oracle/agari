@@ -24,9 +24,9 @@ export interface MatchFacts {
 }
 
 export function seatFor(facts: MatchFacts, player: Address): Seat | null {
-  const who = player.toLowerCase();
-  if (facts.creator.toLowerCase() === who) return 0;
-  if (facts.challenger?.toLowerCase() === who) return 1;
+  const who = player;
+  if (facts.creator === who) return 0;
+  if (facts.challenger === who) return 1;
   return null;
 }
 
@@ -45,7 +45,7 @@ export function receiptOfPick(event: Extract<ArenaEvent, { kind: "picked" }>, ct
   if (seat === null) return null;
   return {
     cardIndex: event.cardIndex,
-    player: event.player.toLowerCase() as Address,
+    player: event.player,
     pick: event.pick,
     quantity: event.quantity,
     costBase: event.costBase,

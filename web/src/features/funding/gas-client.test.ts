@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
+import { encodeBase58 } from "@agari/core/types";
 import { requestGas } from "./gas-client";
 
-const wallet = `0x${"ab".repeat(20)}`;
-const claim: FaucetClaimView = { id: "request-1", amountWei: "2000000000000000000", txHash: `0x${"cd".repeat(32)}`, status: "confirmed", nextClaimAtMs: 1_900_000_000_000 };
-const status: FaucetStatus = { configured: true, ready: true, address: wallet, fundingBalanceWei: "50000000000000000000", walletBalanceWei: "0", dailyRemainingWei: "40000000000000000000", targetWei: claim.amountWei, thresholdWei: "1000000000000000000", claim: null, message: "Eligible" };
+const wallet = encodeBase58(new Uint8Array(32).fill(0xab));
+const SIG = encodeBase58(new Uint8Array(64).fill(0x12));
+const claim: FaucetClaimView = { id: "request-1", amountLamports: "20000000", txHash: encodeBase58(new Uint8Array(64).fill(0xcd)), status: "confirmed", nextClaimAtMs: 1_900_000_000_000 };
+const status: FaucetStatus = { configured: true, ready: true, address: wallet, fundingBalanceLamports: "5000000000", walletBalanceLamports: "0", dailyRemainingLamports: "1000000000", targetLamports: claim.amountLamports, thresholdLamports: "5000000", claim: null, message: "Eligible" };
 const stored = new Map<string, string>();
 const storageKey = `agari.faucet.gas-request.${wallet}`;
 const response = (body: unknown, code = 200) => new Response(JSON.stringify(body), { status: code });
-const input = () => ({ wallet, status, current: () => true, sign: vi.fn(async () => "0x1234"), stage: vi.fn(), onClaim: vi.fn() });
+const input = () => ({ wallet, status, current: () => true, sign: vi.fn(async () => SIG), stage: vi.fn(), onClaim: vi.fn() });
 
 beforeEach(() => {
   stored.clear();
@@ -27,13 +29,13 @@ describe("gas funding browser recovery", () => {
   it("stops before submitting when the connected wallet changes during signing", async () => {
     const fetch = vi.fn(async () => response({ id: claim.id, message: "Verify" })); vi.stubGlobal("fetch", fetch);
     const run = input(); let current = true; run.current = () => current;
-    run.sign.mockImplementation(async () => { current = false; return "0x1234"; });
+    run.sign.mockImplementation(async () => { current = false; return SIG; });
     await expect(requestGas(run)).rejects.toThrow("Wallet changed");
     expect(fetch).toHaveBeenCalledTimes(1); expect(stored.size).toBe(0);
   });
 
   it("resumes the saved prepared request without another signature or new challenge", async () => {
-    const saved = { id: claim.id, signature: "0x1234" }; stored.set(storageKey, JSON.stringify(saved));
+    const saved = { id: claim.id, signature: SIG }; stored.set(storageKey, JSON.stringify(saved));
     const fetch = vi.fn(async () => response({ claim })); vi.stubGlobal("fetch", fetch);
     const run = input(); run.status = { ...status, claim: { ...claim, status: "prepared" } };
     await requestGas(run);
@@ -46,13 +48,13 @@ describe("gas funding browser recovery", () => {
     const fetch = vi.fn().mockResolvedValueOnce(response({ id: claim.id, message: "Verify" })).mockRejectedValueOnce(new Error("Network interrupted")); vi.stubGlobal("fetch", fetch);
     await expect(requestGas(input())).rejects.toThrow("Network interrupted");
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(stored.get(storageKey)!)).toEqual({ id: claim.id, signature: "0x1234" });
+    expect(JSON.parse(stored.get(storageKey)!)).toEqual({ id: claim.id, signature: SIG });
   });
 
   it("polls only the original transfer and reports uncertainty instead of requesting a second payout", async () => {
     vi.useFakeTimers();
     const pending = { ...claim, status: "prepared" as const };
-    stored.set(storageKey, JSON.stringify({ id: claim.id, signature: "0x1234" }));
+    stored.set(storageKey, JSON.stringify({ id: claim.id, signature: SIG }));
     const fetch = vi.fn().mockResolvedValueOnce(response({ claim: pending })).mockImplementation(async () => response({ ...status, claim: pending })); vi.stubGlobal("fetch", fetch);
     const run = input(); run.status = { ...status, claim: pending };
     const result = expect(requestGas(run)).rejects.toThrow("still confirming");

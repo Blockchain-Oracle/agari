@@ -1,6 +1,6 @@
 import { estPayoutBase } from "@agari/core/claims";
 import { formatCadence } from "@agari/core/copy";
-import type { Hex, Side } from "@agari/core/types";
+import type { Side, Signature } from "@agari/core/types";
 import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
 import { ORACLE_SCALE } from "@/features/markets/hero/units";
 import { CARD_MARGIN, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawSpark, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
@@ -36,7 +36,7 @@ export interface CallCard {
   /** Settlement fee in basis points; null when unread, in which case the return is gross and says so. */
   feeBps: number | null;
   expirySec: number;
-  txHash: Hex;
+  txHash: Signature;
   placedAtMs: number;
 }
 
@@ -54,7 +54,7 @@ const usd0 = (raw: bigint) => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 
 /** What a win returns — one unit per contract less the settlement fee when it is known, less the reserve's claim on a boost. */
 export function callWinBase(card: CallCard): bigint {
-  const net = card.feeBps === null ? card.contractsRaw : estPayoutBase(card.contractsRaw, "win", card.feeBps);
+  const net = card.feeBps === null ? card.contractsRaw : estPayoutBase(card.contractsRaw, "win");
   if (!card.leverage) return net;
   return net > card.leverage.frontedBase ? net - card.leverage.frontedBase : 0n;
 }
@@ -73,9 +73,9 @@ export function callDirLabel(card: CallCard): string {
   return card.side === "up" ? SHARE.call.up : SHARE.call.down;
 }
 
-/** Folio / filename id: first 6 hex of the entry tx, uppercased. */
+/** Folio / filename id: the first 6 characters of the entry signature, exactly as written (base58 is case-sensitive, D-010). */
 export function shortCallId(card: CallCard): string {
-  return card.txHash.replace(/^0x/i, "").slice(0, 6).toUpperCase();
+  return card.txHash.slice(0, 6);
 }
 
 const shortHash = (hash: string): string => (hash.length > 14 ? `${hash.slice(0, 14)}…` : hash);

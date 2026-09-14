@@ -4,8 +4,7 @@ import { isOk } from "@agari/core/schemas";
 import type { MarketId } from "@agari/core/types";
 import { usePositions } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
-import { useSignMessage } from "wagmi";
-import { useWalletSession } from "@/lib/wallet-session";
+import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { ROOM_ERRORS } from "./copy";
 import { type RoomComment, type RoomGate, roomJoinMessage } from "./protocol";
 import { clearRoomToken, readRoomToken, writeRoomToken } from "./room-session";
@@ -49,7 +48,7 @@ export interface Room {
  */
 export function useRoom(marketId: MarketId | null, open: boolean): Room {
   const { address } = useWalletSession();
-  const { signMessageAsync } = useSignMessage();
+  const wallet = useOwnerWallet();
   // The same read the server will make, made here so the sheet can say "you need a
   // position" *before* asking for a signature that would only be refused. This is
   // an affordance, never the gate: the authority is the server's own check.
@@ -155,12 +154,12 @@ export function useRoom(marketId: MarketId | null, open: boolean): Room {
   }, [gate, open, token, load]);
 
   const join = useCallback(async () => {
-    if (!marketId || !address) return;
+    if (!marketId || !address || !wallet) return;
     setError(null);
     setGate("joining");
     try {
       const issuedAtMs = Date.now();
-      const signature = await signMessageAsync({ message: roomJoinMessage(marketId, address, issuedAtMs) });
+      const signature = await signText(wallet, roomJoinMessage(marketId, address, issuedAtMs));
       const response = await fetch("/api/room/join", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -185,7 +184,7 @@ export function useRoom(marketId: MarketId | null, open: boolean): Room {
       setGate("joinable");
       if (!rejected) setError(String((cause as Error)?.message ?? "").slice(0, 200));
     }
-  }, [marketId, address, signMessageAsync, load]);
+  }, [marketId, address, wallet, load]);
 
   const post = useCallback(
     async (body: string) => {

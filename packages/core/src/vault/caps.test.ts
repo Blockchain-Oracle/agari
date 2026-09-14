@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { Address } from "../types/primitives";
 import { simulateCaps, utcDayOf } from "./caps";
 import type { VaultGrant } from "./types";
+import { testAddress } from "../testing/ids";
 
 const ONE = 1_000_000n;
 const FILL_YES = 600_000n;
@@ -30,8 +30,8 @@ function grantFor(v: Vector): VaultGrant {
   const priorSpend = v.prior ? charge(v.prior.outcomeIdx, BigInt(v.prior.priceRaw), BigInt(v.prior.quantityRaw)) : 0n;
   return {
     grantId: 1n,
-    owner: "0x0000000000000000000000000000000000000001" as Address,
-    actor: "0x0000000000000000000000000000000000000002" as Address,
+    owner: testAddress(1),
+    actor: testAddress(2),
     kind: "strategy",
     revoked: false,
     expiresAtSec: v.expired ? NOW_SEC - 1 : NOW_SEC + 86_400,

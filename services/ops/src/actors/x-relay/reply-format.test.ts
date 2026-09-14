@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { SHANNON_EXPLORER_URL } from "@agari/core/constants";
+import { encodeBase58 } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
 import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@agari/core/x";
 import { createReplyPresentation, REFUSAL_DETAILS, REPLY_LIMIT, replyText, TRADE_FROM_X_URL } from "./reply-format";
 
-const HASH = `0x${"ab".repeat(32)}`;
-const TX_URL = `${SHANNON_EXPLORER_URL}/tx/${HASH}`;
+const HASH = encodeBase58(new Uint8Array(64).fill(0xab));
+const TX_URL = txUrl(HASH as Parameters<typeof txUrl>[0]);
 const MAX_UINT256 = (2n ** 256n - 1n).toString();
 function receipt(over: Partial<XReceipt> = {}): XReceipt {
   return {

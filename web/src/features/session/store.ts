@@ -1,23 +1,32 @@
 "use client";
 
-import type { Address, Hex } from "@agari/core/types";
+import { isAddress, isBase58OfLength, type Address } from "@agari/core/types";
 import { del, get, set } from "idb-keyval";
 
 /** One key per owner, kept in IndexedDB: it survives reloads, and clearing site data deletes it — by design. */
 export interface StoredSessionKey {
   address: Address;
-  privateKey: Hex;
+  /** base58 of the 64-byte Solana secret key (seed ‖ public key), from `generateSessionKey`. */
+  secretKey: string;
   createdAtMs: number;
 }
 
 const KEY_PREFIX = "agari.sessionKey.";
 const DEVICE_KEY = "agari.device";
 
-const keyFor = (owner: Address) => `${KEY_PREFIX}${owner.toLowerCase()}`;
+// Base58 is case-sensitive: the owner key is stored exactly as written (D-010).
+const keyFor = (owner: Address) => `${KEY_PREFIX}${owner}`;
+
+/** Anything that isn't a Solana session key (an old or corrupted record) reads as no key. */
+function isStoredSessionKey(value: unknown): value is StoredSessionKey {
+  const v = value as Partial<StoredSessionKey> | null;
+  return !!v && isAddress(v.address) && isBase58OfLength(v.secretKey, 64) && typeof v.createdAtMs === "number";
+}
 
 export async function loadSessionKey(owner: Address): Promise<StoredSessionKey | null> {
   try {
-    return (await get<StoredSessionKey>(keyFor(owner))) ?? null;
+    const stored = await get<unknown>(keyFor(owner));
+    return isStoredSessionKey(stored) ? stored : null;
   } catch {
     return null;
   }

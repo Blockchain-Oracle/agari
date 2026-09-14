@@ -19,7 +19,7 @@ export type XPermissionState = "checking" | "unavailable" | "unfunded" | "update
 export function xPermissionState(grant: VaultGrant | null, executor: string | null, nowSec: number): XPermissionState {
   if (!executor) return "unavailable";
   if (!grant || grant.revoked) return "unfunded";
-  if (grant.actor.toLowerCase() !== executor.toLowerCase()) return "mismatch";
+  if (grant.actor !== executor) return "mismatch";
   if (grant.expiresAtSec <= nowSec) return "expired";
   if (!isBalanceOnlyXGrant(grant)) return "update";
   return grant.budgetBase > 0n ? "ready" : "unfunded";

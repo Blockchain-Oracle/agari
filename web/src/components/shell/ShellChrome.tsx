@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { BootNotice } from "@/providers/MarketsBoot";
 import CustomCursor from "./CustomCursor";
 import Footer from "./Footer";
 import GrainOverlay from "./GrainOverlay";
@@ -28,7 +29,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     return (
       <>
         <CustomCursor />
-        <main className="page-island">{children}</main>
+        <main className="page-island">
+          <BootNotice />
+          {children}
+        </main>
         <MobileBottomNav />
       </>
     );
@@ -39,7 +43,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
       <Header />
       <GrainOverlay />
       <CustomCursor />
-      <main className="page-shell">{children}</main>
+      <main className="page-shell">
+        <BootNotice />
+        {children}
+      </main>
       <Footer />
     </>
   );

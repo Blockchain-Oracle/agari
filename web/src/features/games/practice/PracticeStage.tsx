@@ -38,7 +38,7 @@ export function PracticeStage() {
   const renderFace = useCallback(
     (card: DeckCard, place: DeckPlace) => {
       const price = session.priceOf(card.asset);
-      const agedMs = price ? session.nowMs - secToMs(price.blockTimestampSec) : 0;
+      const agedMs = price ? session.nowMs - secToMs(price.publishTimeSec) : 0;
       const aged = price !== null && session.nowMs > 0 && agedMs > PRICE_STALE_AFTER_MS;
       return (
         <StageFace
@@ -53,7 +53,7 @@ export function PracticeStage() {
               value: price ? (
                 <>
                   {`$${formatOracleRaw(price.priceRaw, price.decimals, 0)}`}
-                  {aged && <StaleTick asOfMs={secToMs(price.blockTimestampSec)} reason="aged" compact />}
+                  {aged && <StaleTick asOfMs={secToMs(price.publishTimeSec)} reason="aged" compact />}
                 </>
               ) : (
                 <span className="st-question-pending">{PRACTICE.card.noPrice}</span>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
 import { DECK_MAX, DECK_MIN, INTERVAL_15M_SEC, INTERVAL_1H_SEC, INTERVAL_5M_SEC, nextDealableSec, selectDeck, type DeckCandidate, type DeckPolicy } from "./deck";
+import { testMarketId } from "../testing/ids";
 
 const NOW = 1_700_000_000;
 
@@ -13,7 +13,7 @@ const POLICY: DeckPolicy = {
 
 function candidate(n: number, overrides: Partial<DeckCandidate> = {}): DeckCandidate {
   return {
-    marketId: toMarketId(`0x${String(n).padStart(64, "0")}`),
+    marketId: testMarketId(n),
     asset: "BTC",
     intervalSec: INTERVAL_15M_SEC,
     expirySec: NOW + 900 + n * 60,

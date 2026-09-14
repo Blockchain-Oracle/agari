@@ -6,7 +6,7 @@ import { phase as phaseOf } from "@agari/core/lifecycle";
 import type { BookedOrder } from "@agari/core/ports";
 import { isOk } from "@agari/core/schemas";
 import { minStakeBase } from "@agari/core/sizing";
-import { toMarketId, type EventMarket, type Hex } from "@agari/core/types";
+import { toMarketId, type EventMarket, type Signature } from "@agari/core/types";
 import { bpsToOddsCents, formatBaseUnits, formatClock } from "@agari/core/units";
 import { useBalanceSheet, useMarket, useOnchain, useOpeningPrice, useSigner, useStakeQuote } from "@agari/markets/react";
 import { QUOTE_STALE_AFTER_MS } from "@agari/core/constants";
@@ -31,7 +31,7 @@ import { useLuckyCheck } from "./useLuckyCheck";
 export interface LuckyDealProps {
   deal: DealtLuckyWire;
   symbol: string;
-  onReport: (status: LuckyPlacedStatus, txHash: Hex | null, booked: BookedOrder | null) => void;
+  onReport: (status: LuckyPlacedStatus, txHash: Signature | null, booked: BookedOrder | null) => void;
   onSkip: () => void;
   skipping: boolean;
 }

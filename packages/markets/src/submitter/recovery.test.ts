@@ -1,12 +1,12 @@
 import type { IntentRecord } from "@agari/core/ports";
-import type { Address } from "@agari/core/types";
+import { encodeBase58, type Address } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { createJournal } from "./journal";
 import { createMemoryStore } from "./journal-memory";
 import type { ReconcileVerdict } from "./reconcile";
 import { RECOVERY_REASON, recoverUnresolved, UNVERIFIABLE_AFTER_MS } from "./recovery";
 
-const WALLET = "0x1111111111111111111111111111111111111111" as Address;
+const WALLET = encodeBase58(new Uint8Array(32).fill(0x11)) as Address;
 const NOW = 1_700_000_000_000;
 
 async function journalWith(entries: Array<{ summary: string; state: "recorded" | "unknown"; ageMs?: number }>) {

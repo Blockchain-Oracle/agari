@@ -4,21 +4,20 @@
  *  - pattern rules: { scopes, exts, exclude?, pattern } — every non-comment line matching `pattern` is a finding
  *  - file rules:    { file, mustMatch?, mustNotMatch?, optional? } — a single file's content is asserted
  *  - check rules:   { check(ctx) } — arbitrary logic returning findings
+ *
+ * Removed in S1 1b (D-015): the DreamDEX SDK rules (`sdk-import-boundary`, `sdk-version-pin`, `address-drift`,
+ * `generated-abi`, `vault-abi-shape`) — the SDK, its pinned addresses and the Solidity ABIs are gone; `banned-wagmi-hooks`
+ * — `no-evm` bans wagmi outright; and the EVM order-lane file rules (`order-lane-ioc`, `status-gate-enum`,
+ * `expiry-from-headroom`) — their files were the EVM lane; S4 re-adds them against the Solana order lane.
  */
-import { readFileSync, existsSync } from "node:fs";
-import { createRequire } from "node:module";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { readText, walkFiles } from "./lib/walk.mjs";
 import { finding } from "./lib/report.mjs";
-import { walkFiles, readText } from "./lib/walk.mjs";
+import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
 
 const TS = [".ts", ".tsx"];
-const VAULT_ABI = "packages/markets/src/contracts/event-vault.abi.ts";
-const OUTSIDE_MARKETS = ["web", "packages/core", "packages/db", "services", "scripts"];
+const OUTSIDE_MARKETS = ["web", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 const MAX_FILE_LINES = 400;
-export const SDK_NAME = "@somnia-chain/markets-sdk";
-export const SDK_PINNED_VERSION = "0.28.1";
 
 function fileLength(rule, ctx) {
   const findings = [];
@@ -31,91 +30,18 @@ function fileLength(rule, ctx) {
   return findings;
 }
 
-function sdkVersionPin(rule, ctx) {
-  const findings = [];
-  const pkg = JSON.parse(readFileSync(join(ctx.root, "packages/markets/package.json"), "utf8"));
-  const declared = pkg.dependencies?.[SDK_NAME];
-  if (declared !== SDK_PINNED_VERSION) {
-    findings.push(finding(rule, `packages/markets declares ${SDK_NAME}@${declared}, expected exact ${SDK_PINNED_VERSION}`));
-  }
-  const lockPath = join(ctx.root, "pnpm-lock.yaml");
-  if (!existsSync(lockPath)) return [finding(rule, "pnpm-lock.yaml missing")];
-  const lock = readFileSync(lockPath, "utf8");
-  const versions = new Set([...lock.matchAll(/@somnia-chain\/markets-sdk@([0-9][^\s(:'"]*)/g)].map((m) => m[1]));
-  for (const v of versions) {
-    if (v !== SDK_PINNED_VERSION) findings.push(finding(rule, `lockfile resolves ${SDK_NAME}@${v}`));
-  }
-  return findings;
-}
-
-/** The vault's ABI, parsed from the generated module so the rule reads what the app reads. */
-function vaultAbi(ctx) {
-  const text = readFileSync(join(ctx.root, VAULT_ABI), "utf8");
-  const start = text.indexOf("[");
-  const end = text.lastIndexOf("]");
-  // The generated module writes one entry per line with a trailing comma; JSON does not allow one.
-  return JSON.parse(text.slice(start, end + 1).replace(/,\s*\]$/, "]"));
-}
-
-/** AD-10 at the ABI: no event of the vault carries a pool address; AD-5: no withdrawal names a destination. */
-function vaultAbiShape(rule, ctx) {
-  if (!existsSync(join(ctx.root, VAULT_ABI))) return [];
-  const findings = [];
-  for (const entry of vaultAbi(ctx)) {
-    if (entry.type === "event") {
-      for (const input of entry.inputs) {
-        if (input.type === "address" && /pool/i.test(input.name)) findings.push(finding(rule, `event ${entry.name} carries ${input.name}: address`, VAULT_ABI));
-      }
-    }
-    if (entry.type === "function" && /^withdraw/.test(entry.name)) {
-      if (entry.inputs.some((input) => input.type === "address")) findings.push(finding(rule, `${entry.name} takes an address — a payout destination`, VAULT_ABI));
-    }
-  }
-  return findings;
-}
-
-async function addressDrift(rule, ctx) {
-  const pinnedPath = join(ctx.root, "packages/markets/src/addresses.pinned.json");
-  const pinned = JSON.parse(readFileSync(pinnedPath, "utf8"));
-  const require = createRequire(join(ctx.root, "packages/markets/package.json"));
-  const sdk = await import(pathToFileURL(require.resolve(SDK_NAME)).href);
-  const live = sdk.SOMNIA_TESTNET_ADDRESSES;
-  const findings = [];
-  for (const [key, expected] of Object.entries(pinned.addresses)) {
-    const actual = live[key];
-    if (typeof actual !== "string" || actual.toLowerCase() !== expected.toLowerCase()) {
-      findings.push(finding(rule, `${key}: pinned ${expected}, SDK ships ${String(actual)}`));
-    }
-  }
-  for (const key of Object.keys(live)) {
-    if (key !== "lend" && !(key in pinned.addresses)) findings.push(finding(rule, `SDK ships ${key}=${live[key]} which is not pinned`));
-  }
-  if (pinned.sdkVersion !== SDK_PINNED_VERSION) findings.push(finding(rule, `pinned file says SDK ${pinned.sdkVersion}`));
-  return findings;
-}
-
 export const rules = [
-  {
-    id: "sdk-import-boundary",
-    description: "only packages/markets may import the SDK (AD-1)",
-    scopes: OUTSIDE_MARKETS,
-    exts: [...TS, ".mjs", ".js"],
-    exclude: ["scripts/invariants"],
-    pattern: /from\s+["']@somnia-chain\//,
-  },
+  { id: "no-evm", description: "no EVM library in any workspace source or manifest (shrinking allowlist, empty at the S1 gate)", check: noEvm },
+  { id: "kit-import-boundary", description: "only packages/markets imports the Solana/oracle SDKs; web3.js 1 only under prices/legacy (plan §6)", check: kitImportBoundary },
+  { id: "idl-no-destination", description: "no program instruction takes a caller-chosen payout destination (AD-5)", check: idlNoDestination },
+  { id: "program-id-drift", description: "declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json", check: programIdDrift },
   {
     id: "write-boundary",
-    description: "no chain writes outside packages/markets (AD-3)",
+    description: "no transaction sends outside packages/markets (AD-3); the wallet island only wraps the wallet's own send for markets",
     scopes: OUTSIDE_MARKETS,
     exts: TS,
-    pattern: /\b(writeContract|sendTransaction|sendRawTransaction)\s*\(/,
-  },
-  {
-    id: "banned-wagmi-hooks",
-    description: "wagmi read hooks are banned in product code; reads come through the port (AD-14)",
-    scopes: ["web/src", "services"],
-    exts: TS,
-    pattern: /\b(useBalance|useReadContract|useReadContracts|usePublicClient|useClient|useBlockNumber|useWatchContractEvent)\b/,
+    exclude: ["web/src/providers"],
+    pattern: /\b(writeContract|sendTransaction|sendRawTransaction|sendAndConfirmTransaction|signAndSendTransaction)\s*\(/,
   },
   {
     id: "design-literals",
@@ -142,41 +68,9 @@ export const rules = [
   {
     id: "file-length",
     description: `no source file over ${MAX_FILE_LINES} lines`,
-    scopes: ["web/src", "packages", "services", "scripts", "anchor", "contracts/src", "contracts/test", "contracts/script"],
-    exts: [...TS, ".mjs", ".css", ".sol", ".rs"],
+    scopes: ["web/src", "packages", "services", "scripts", "anchor"],
+    exts: [...TS, ".mjs", ".css", ".rs"],
     check: fileLength,
   },
-  {
-    id: "generated-abi",
-    description: "contract ABIs reach the app only through the generated module (AD-10)",
-    file: VAULT_ABI,
-    mustMatch: /^\/\/ Generated by contracts\/export\.mjs/,
-    optional: true,
-  },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
-  { id: "vault-abi-shape", description: "no pool address in a vault event; no withdrawal takes a destination (AD-10, AD-5)", check: vaultAbiShape },
-  { id: "sdk-version-pin", description: `${SDK_NAME} is pinned to exactly ${SDK_PINNED_VERSION}`, check: sdkVersionPin },
-  { id: "address-drift", description: "pinned protocol addresses match the installed SDK", check: addressDrift },
-  {
-    id: "order-lane-ioc",
-    description: "takers send IOC — the order lane never rests a remainder (canon #7)",
-    file: "packages/markets/src/submitter/steps/send.ts",
-    mustMatch: /ORDER_TYPE\.MARKET/,
-    mustNotMatch: /ORDER_TYPE\.(LIMIT|POST_ONLY|FILL_OR_KILL)/,
-    optional: true,
-  },
-  {
-    id: "status-gate-enum",
-    description: "every order gates on the on-chain Trading status (canon #1)",
-    file: "packages/markets/src/submitter/steps/status-gate.ts",
-    mustMatch: /ONCHAIN_STATUS\.Trading/,
-    optional: true,
-  },
-  {
-    id: "expiry-from-headroom",
-    description: "order expiry always derives from the headroom formula (canon #6, #9)",
-    file: "packages/markets/src/submitter/steps/expiry.ts",
-    mustMatch: /orderExpirySec\(/,
-    optional: true,
-  },
 ];

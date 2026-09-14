@@ -2,7 +2,7 @@
 
 import { formatCadence } from "@agari/core/market";
 import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@agari/core/range";
-import type { Diagnosis, EventMarket, Hex } from "@agari/core/types";
+import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import type { MoonshotQuote, RangeCapacity } from "@agari/markets/range";
@@ -43,7 +43,7 @@ export interface MoonshotTicketProps {
   step: PlaceStep;
   errorTitle: string;
   errorDetail: string;
-  txHash: Hex | null;
+  txHash: Signature | null;
   onPlace: () => void;
   onReset: () => void;
 }

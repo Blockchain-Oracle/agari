@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS x_links (
   -- X's immutable numeric user id; the handle is display metadata and may change.
   author_id     TEXT        NOT NULL,
   handle        TEXT,
-  -- Lowercased 0x address, verified from the wallet's signature over the link message.
+  -- Base58 wallet address, stored exactly (case-sensitive), verified from the wallet's ed25519 signature over the link message.
   wallet        TEXT        NOT NULL,
   signature     TEXT        NOT NULL,
   issued_at_ms  BIGINT      NOT NULL,

@@ -3,12 +3,14 @@
 import { isOk } from "@agari/core/schemas";
 import type { MarketId } from "@agari/core/types";
 import { shortHex } from "@agari/core/units";
-import { oracleGraphUrl, txUrl } from "@agari/core/urls";
+import { txUrl } from "@agari/core/urls";
 import { useResolution } from "@agari/markets/react";
 import { ReceiptRow } from "@/components/receipt";
 import { CLAIM } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
+import { printSourceText } from "../verdict/print-source";
 
-/** Settlement tx and Oracle Graph for one Window; an unreachable proof degrades in place, never disappears (FR-21). */
+/** Settlement tx and the signed price source for one Window; a proof not yet linked degrades in place, never disappears (FR-21). */
 export function MarketProofRows({ marketId }: { marketId: MarketId }) {
   const reading = useResolution(marketId);
   if (reading === null) {
@@ -21,14 +23,15 @@ export function MarketProofRows({ marketId }: { marketId: MarketId }) {
   }
   const resolution = isOk(reading) ? reading.value : null;
   const settlementHash = resolution?.settlementTxHash ?? null;
-  const questionId = resolution?.oracleQuestionId ?? null;
+  // The per-source print proof page (publish time, signers) comes with the proof replay; until then the row names the source.
+  const source = printSourceText(resolution);
   return (
     <>
-      <ReceiptRow label={CLAIM.receipt.settlement} href={settlementHash ? txUrl(settlementHash) : null} degradedLabel={CLAIM.receipt.settlementDegraded}>
+      <ReceiptRow label={CLAIM.receipt.settlement} href={settlementHash ? txUrl(settlementHash, webEnv.markets.cluster) : null} degradedLabel={CLAIM.receipt.settlementDegraded}>
         {settlementHash ? shortHex(settlementHash) : shortHex(marketId)}
       </ReceiptRow>
-      <ReceiptRow label={CLAIM.receipt.oracle} href={questionId ? oracleGraphUrl(questionId) : null} degradedLabel={CLAIM.receipt.oracleDegraded}>
-        {questionId ? `#${questionId}` : shortHex(marketId)}
+      <ReceiptRow label={CLAIM.receipt.oracle} href={null} degradedLabel={CLAIM.receipt.oracleDegraded}>
+        {source ?? shortHex(marketId)}
       </ReceiptRow>
     </>
   );

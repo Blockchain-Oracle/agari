@@ -1,4 +1,4 @@
-import type { Address, Hex, MarketId } from "@agari/core/types";
+import type { Address, MarketId, Signature } from "@agari/core/types";
 import { z } from "zod";
 
 /** Wire shape of the traction slice — base units travel as decimal strings, never floats. */
@@ -49,7 +49,7 @@ export interface TractionEvent {
   asset: string;
   marketId: MarketId;
   stakeBase: bigint;
-  txHash: Hex;
+  txHash: Signature;
   atMs: number;
 }
 
@@ -71,7 +71,7 @@ export function toTractionData(payload: TractionPayload): TractionData {
   return {
     ...traction,
     stakedBase: BigInt(traction.stakedBase),
-    recent: traction.recent.map((event) => ({ ...event, wallet: event.wallet as Address, marketId: event.marketId as MarketId, txHash: event.txHash as Hex, stakeBase: BigInt(event.stakeBase) })),
+    recent: traction.recent.map((event) => ({ ...event, wallet: event.wallet as Address, marketId: event.marketId as MarketId, txHash: event.txHash as Signature, stakeBase: BigInt(event.stakeBase) })),
     meta,
   };
 }

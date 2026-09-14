@@ -1,51 +1,44 @@
-import { SDK_MAX_FEE_PER_GAS_WEI } from "@agari/core/constants";
-import { requiredGasWei } from "@agari/markets";
+import { FEE_RESERVE_LAMPORTS, LAMPORTS_PER_SIGNATURE } from "@agari/core/constants";
 
 /**
- * What a seat's key needs in its tank, and what a sponsor may put there — pure, so the entry, the
- * sponsor route and the pick screen all size the same envelope.
+ * What a seat's key needs to pay its own picks, and what a sponsor may send it — pure, so the entry, the sponsor route
+ * and the pick screen all size the same envelope. Amounts are SOL in lamports.
  *
- * Two different numbers are in it, and conflating them was slice 8a's mistake. The gas gate refuses a
- * send unless the sender HOLDS the lane's whole ceiling at the SDK's max fee (Somnia rejects a
- * transaction whose sender cannot cover `gasLimit × maxFeePerGas`, whatever it will actually burn); that
- * is a floor the key must sit on, not a cost, and it is paid once. What a pick actually BURNS is a few
- * hundred thousand gas — 276k measured on the fork duel — so the spend is that, at the max fee, once per
- * card and once more for a retry, because both seats draw on the same book and a lost race is normal.
- * Funding the ceiling per card sent a five-card key 5.76 STT with no way back; the floor plus the spend
- * is under one.
+ * Masayume's envelope was a Somnia gas floor plus per-pick burn at the SDK's max fee. On Solana a pick is one
+ * transaction the key signs and pays for: the base fee per signature, once per card and once more for a retry (both
+ * seats draw on the same book, so a lost race is normal), on top of the fee reserve the submitter's check demands
+ * before any send. The rent-exempt minimum a fresh key account must hold to exist, and any priority fee, are the arena
+ * program's to size when it lands (S12).
  *
- * It is what an entry sends the key when the player pays, and what the sponsor tops the key up to when
- * it does; the two never overlap, because a sponsored entry carries no value at all.
+ * It is what an entry sends the key when the player pays, and what the sponsor tops the key up to when it does; the two
+ * never overlap, because a sponsored entry carries no value at all.
  */
 export const PICK_ATTEMPTS_FUNDED = 2;
-/** What one pick burns, with room over the 276k measured on the fork duel (context/56 §3). */
-export const PICK_GAS_USED = 320_000n;
 
 /** The widest deck the policy deals, so a cap sized off it covers any match. */
 const WIDEST_DECK = 5;
 
-/** The fee one attempt can cost at the fee the gate assumes. */
-export function pickFeeWei(): bigint {
-  return PICK_GAS_USED * SDK_MAX_FEE_PER_GAS_WEI;
+/** The fee one pick attempt costs: one signature, the key's. */
+export function pickFeeLamports(): bigint {
+  return LAMPORTS_PER_SIGNATURE;
 }
 
-/** The floor the gate demands before any send, plus the spend of every card and its retry. */
-export function deckGasWei(deckSize: number): bigint {
-  return requiredGasWei("arena") + pickFeeWei() * BigInt(deckSize * PICK_ATTEMPTS_FUNDED);
+/** The reserve the fee check demands before any send, plus every card's pick and its retry. */
+export function deckFeeLamports(deckSize: number): bigint {
+  return FEE_RESERVE_LAMPORTS + pickFeeLamports() * BigInt(deckSize * PICK_ATTEMPTS_FUNDED);
 }
 
 /** The most a sponsor sends one key for one match unless the operator says otherwise: one full deck's envelope. */
-export function sponsorDefaultCapWei(): bigint {
-  return deckGasWei(WIDEST_DECK);
+export function sponsorDefaultCapLamports(): bigint {
+  return deckFeeLamports(WIDEST_DECK);
 }
 
 /**
- * What a sponsor sends a key: the deck's envelope less what the key already holds, never above the cap,
- * never negative. A key that already holds its envelope is sent nothing, so a re-ask is free of cost as
- * well as of prompts.
+ * What a sponsor sends a key: the deck's envelope less what the key already holds, never above the cap, never negative.
+ * A key that already holds its envelope is sent nothing, so a re-ask is free of cost as well as of prompts.
  */
-export function sponsorTopUpWei(deckSize: number, heldWei: bigint, capWei: bigint): bigint {
-  const need = deckGasWei(deckSize) - heldWei;
+export function sponsorTopUpLamports(deckSize: number, heldLamports: bigint, capLamports: bigint): bigint {
+  const need = deckFeeLamports(deckSize) - heldLamports;
   if (need <= 0n) return 0n;
-  return need > capWei ? capWei : need;
+  return need > capLamports ? capLamports : need;
 }

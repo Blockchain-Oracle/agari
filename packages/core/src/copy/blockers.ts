@@ -53,7 +53,7 @@ export interface BlockerContext {
   privateCapText?: string;
 }
 
-const DEFAULT_CHAIN = "Somnia Shannon";
+const DEFAULT_CHAIN = "Solana devnet";
 const DEFAULT_MIN_STAKE = "1 tUSDC";
 
 /** The blocker IS the control's label — one derived string for the CTA and its accessible name. */
@@ -88,7 +88,7 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "no-funds":
       return "No tUSDC yet — mint from the faucet";
     case "out-of-gas":
-      return "Out of STT gas — fuel up first";
+      return "Out of SOL for fees — top up first";
     case "no-side":
       return "Pick UP or DOWN";
     case "no-stake":

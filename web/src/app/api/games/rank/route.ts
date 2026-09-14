@@ -1,10 +1,11 @@
 import { isEligible } from "@agari/core/games";
 import { countRankedFinalized, gamesStoreConfigured, ladderRankOf, listTopRatings, readRatings } from "@agari/db";
+import { isAddress } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { seasonConfig } from "@/features/games/season.server";
 
 /**
- * `GET /api/games/rank?address=0x…` — the ladder (Flicky's `/leaderboard`), each row annotated with its
+ * `GET /api/games/rank?address=<base58>` — the ladder (Flicky's `/leaderboard`), each row annotated with its
  * finished ranked duels and whether that clears the season's floor; and the asking wallet's own row with
  * its 1-based place even when it sits below the cut (Flicky's `/leaderboard/me`). Ranking itself is the
  * settler's rating alone; eligibility only gates prizes, and with no season configured it gates nothing.
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
   const floor = season?.minStakedDuels ?? 0;
 
   const rows = await listTopRatings(LIMIT);
-  const asked = address && /^0x[0-9a-fA-F]{40}$/.test(address) ? address.toLowerCase() : null;
+  const asked = address && isAddress(address) ? address : null;
   const wallets = asked ? [...rows.map((r) => r.wallet), asked] : rows.map((r) => r.wallet);
   const staked = await countRankedFinalized(wallets);
   const annotate = (row: { wallet: string; rating: number; verifiedMatches: number }): RankRowWire => {

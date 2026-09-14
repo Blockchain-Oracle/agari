@@ -22,11 +22,12 @@ interface StoredRoomToken {
 
 /** A little under the server's TTL, so a token is dropped here before it can age out mid-poll. */
 const EXPIRY_MARGIN_MS = 30_000;
-const PREFIX = "masayume:room:";
+const PREFIX = "agari:room:";
 
 const memory = new Map<string, StoredRoomToken>();
 
-const keyFor = (address: string, marketId: string) => `${address.toLowerCase()}:${marketId}`;
+/** The wallet is part of the key exactly as written: base58 is case-sensitive (D-010). */
+const keyFor = (address: string, marketId: string) => `${address}:${marketId}`;
 
 function readStore(key: string): StoredRoomToken | null {
   try {

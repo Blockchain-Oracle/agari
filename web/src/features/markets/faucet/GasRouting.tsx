@@ -1,4 +1,4 @@
-import { STT_FAUCETS } from "@agari/core/constants";
+import { SOL_FAUCETS } from "@agari/core/constants";
 import type { Address } from "@agari/core/types";
 import { Hash } from "@/components/data";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ interface GasRoutingProps {
   checking: boolean;
 }
 
-/** Shown BEFORE any signing when the STT tank is empty: where to fuel, in preference order, with fallbacks. */
+/** Shown BEFORE any signing when the wallet can't pay fees: where to get devnet SOL, in preference order, with fallbacks. */
 export function GasRouting({ address, onRecheck, checking }: GasRoutingProps) {
   return (
     <div role="status" className="flex flex-col gap-3 rounded-md border border-hairline bg-surface-2 p-3">
@@ -20,7 +20,7 @@ export function GasRouting({ address, onRecheck, checking }: GasRoutingProps) {
         {FAUCET.yourAddress} <Hash value={address} lead={10} tail={6} className="text-ink" />
       </p>
       <ul className="flex flex-col gap-2">
-        {STT_FAUCETS.map((faucet) => (
+        {SOL_FAUCETS.map((faucet) => (
           <li key={faucet.url}>
             <a
               href={faucet.url}

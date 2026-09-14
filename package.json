@@ -20,7 +20,8 @@
     "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",
     "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "contracts:export": "node contracts/export.mjs",
-    "contracts:test": "forge test --root contracts --no-match-contract Fork"
+    "contracts:test": "forge test --root contracts --no-match-contract Fork",
+    "archive:start": "bash scripts/archive/start.sh"
   },
   "devDependencies": {
     "tsx": "catalog:",

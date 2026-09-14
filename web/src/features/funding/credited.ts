@@ -1,4 +1,4 @@
-import { CREDITED_EVENT } from "./copy";
+import { CREDITED_EVENT, OPEN_FUNDS_EVENT } from "./copy";
 
 export interface CreditedDetail {
   amountText: string;
@@ -6,7 +6,8 @@ export interface CreditedDetail {
   firstTime: boolean;
 }
 
-const WELCOMED_KEY = (address: string) => `agari.welcomed.${address.toLowerCase()}`;
+// Base58 is case-sensitive: the address is keyed exactly as written (D-010).
+const WELCOMED_KEY = (address: string) => `agari.welcomed.${address}`;
 
 /**
  * Announces a credit. The FIRST for an address is the celebratory moment (`CreditWelcome`); the rest are
@@ -25,5 +26,5 @@ export function announceCredit(address: string, amountText: string, symbol: stri
 }
 
 export function openFunds(): void {
-  window.dispatchEvent(new Event("masayume:open-funds"));
+  window.dispatchEvent(new Event(OPEN_FUNDS_EVENT));
 }

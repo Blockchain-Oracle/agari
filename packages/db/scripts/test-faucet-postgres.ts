@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { setTimeout as pause } from "node:timers/promises";
-import type { FaucetClaim } from "../../core/src/faucet/index";
+import { SOL_FAUCET_POLICY as POLICY, type FaucetClaim } from "../../core/src/faucet/index";
+import { encodeBase58 } from "../../core/src/types/base58";
 import type { FaucetChain } from "../../markets/src/faucet/index";
 import { createFaucetService } from "../../../web/src/features/funding/faucet-service.server";
 import { getDb } from "../src/client";
@@ -14,9 +15,11 @@ import { readFaucetStore } from "../src/faucet";
 const name = `agari-faucet-test-${randomUUID().slice(0, 10)}`;
 const password = randomUUID();
 const docker = (...args: string[]) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
-const FUNDER = `0x${"aa".repeat(20)}`;
-const wallet = (n: number) => `0x${n.toString(16).padStart(40, "0")}`;
-const ETH = 1_000_000_000_000_000_000n;
+const key = (n: number, length = 32) => encodeBase58(new Uint8Array(length).fill(n));
+const FUNDER = key(0xaa);
+const wallet = (n: number) => key(n);
+const SIG = key(0xab, 64);
+const SOL = 1_000_000_000n;
 let container: string | undefined;
 let db: ReturnType<typeof getDb> = null;
 let passed = 0;
@@ -33,58 +36,61 @@ async function main() {
   await sql.unsafe(SCHEMA_SQL);
   const balances = new Map<string, bigint>();
   const landed = new Set<string>();
-  let nonce = 0; let sends = 0; let interrupt = false;
+  let prepared = 0; let sends = 0; let interrupt = false;
   const chain: FaucetChain = {
-    address: FUNDER,
-    balance: async (w) => w === FUNDER ? 100n * ETH : balances.get(w) ?? 0n,
+    address: FUNDER as FaucetChain["address"],
+    cluster: "devnet",
+    balance: async (w) => w === FUNDER ? 100n * SOL : balances.get(w) ?? 0n,
     verify: async () => true,
-    prepare: async () => { const n = nonce++; return { nonce: n, feeWei: "1000", txHash: `0x${String(n).padStart(64, "0")}` as `0x${string}`, rawTransaction: `0x${n.toString(16).padStart(2, "0")}` as `0x${string}` }; },
+    prepare: async () => { const n = ++prepared; return { lastValidBlockHeight: 1_000 + n, feeLamports: "5000", txHash: key(n, 64), rawTransaction: `raw-${n}` }; },
     inspect: async (c) => landed.has(c.txHash) ? "confirmed" : "prepared",
     broadcast: async (c) => {
       // A separate connection must see the row before the chain can see the bytes.
       assert.equal((await (await readFaucetStore()).claim(c.id))?.txHash, c.txHash);
       if (interrupt) throw new Error("interrupted before broadcast");
-      if (!landed.has(c.txHash)) { sends++; landed.add(c.txHash); balances.set(c.wallet, (balances.get(c.wallet) ?? 0n) + BigInt(c.amountWei)); }
+      if (!landed.has(c.txHash)) { sends++; landed.add(c.txHash); balances.set(c.wallet, (balances.get(c.wallet) ?? 0n) + BigInt(c.amountLamports)); }
     },
   };
-  let service = createFaucetService(chain);
-  const request = async (n: number, ip = `ip-${n}`) => { const c = await service.challenge(wallet(n), ip, "https://masayume.app"); return service.claim(c.id, "0xab", ip); };
+  const deps = { verify: async () => true };
+  let service = createFaucetService(chain, deps);
+  const request = async (n: number, ip = `ip-${n}`) => { const c = await service.challenge(wallet(n), ip, "https://agari.xyz"); return service.claim(c.id, SIG, ip); };
   async function check(label: string, run: () => Promise<void>) {
-    await sql`TRUNCATE faucet_claims, faucet_challenges`;
-    balances.clear(); landed.clear(); nonce = 0; sends = 0; interrupt = false;
+    await sql`TRUNCATE sol_faucet_claims, faucet_challenges`;
+    balances.clear(); landed.clear(); prepared = 0; sends = 0; interrupt = false;
     await run(); passed++; console.log(`PASS ${label}`);
   }
   await check("32 requests across service instances reserve and pay exactly once", async () => {
-    const c = await service.challenge(wallet(1), "ip-1", "https://masayume.app");
-    const all = await Promise.all(Array.from({ length: 32 }, () => createFaucetService(chain).claim(c.id, "0xab", "ip-1")));
+    const c = await service.challenge(wallet(1), "ip-1", "https://agari.xyz");
+    const all = await Promise.all(Array.from({ length: 32 }, () => createFaucetService(chain, deps).claim(c.id, SIG, "ip-1")));
     assert.equal(new Set(all.map((r) => r.txHash)).size, 1); assert.equal(sends, 1);
-    assert.equal(Number((await sql`SELECT count(*) AS count FROM faucet_claims`)[0]!.count), 1);
+    assert.equal(Number((await sql`SELECT count(*) AS count FROM sol_faucet_claims`)[0]!.count), 1);
   });
   await check("competing challenges cannot bypass one-wallet cooldown", async () => {
-    const challenges = await Promise.all([service.challenge(wallet(2), "ip-2", "https://masayume.app"), service.challenge(wallet(2), "ip-2", "https://masayume.app")]);
-    const results = await Promise.allSettled(challenges.map((c) => service.claim(c.id, "0xab", "ip-2")));
+    const challenges = await Promise.all([service.challenge(wallet(2), "ip-2", "https://agari.xyz"), service.challenge(wallet(2), "ip-2", "https://agari.xyz")]);
+    const results = await Promise.allSettled(challenges.map((c) => service.claim(c.id, SIG, "ip-2")));
     assert.equal(results.filter((r) => r.status === "fulfilled").length, 1); assert.equal(sends, 1);
   });
-  await check("rolling 40 STT allocation cannot be exceeded by another wallet", async () => {
-    for (let n = 1; n <= 20; n++) await request(n);
-    await assert.rejects(request(21), (e: unknown) => (e as { code: string }).code === "daily-limit");
+  await check("the rolling daily SOL allocation cannot be exceeded by another wallet", async () => {
+    const perWallet = Number(POLICY.dailyLamports / POLICY.targetLamports);
+    for (let n = 1; n <= perWallet; n++) await request(n);
+    await assert.rejects(request(perWallet + 1), (e: unknown) => (e as { code: string }).code === "daily-limit");
     const used = await (await readFaucetStore()).used(Date.now() - 86_400_000, "");
-    assert.equal(used.amountWei, 40n * ETH); assert.equal(sends, 20);
+    assert.equal(used.amountLamports, POLICY.dailyLamports); assert.equal(sends, perWallet);
   });
   await check("a failed insert rolls back and never broadcasts", async () => {
-    await sql.unsafe(`CREATE FUNCTION fail_faucet_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'deliberate fixture failure'; END $$; CREATE TRIGGER fail_faucet_insert BEFORE INSERT ON faucet_claims FOR EACH ROW EXECUTE FUNCTION fail_faucet_insert();`);
-    try { await assert.rejects(request(1)); assert.equal(sends, 0); assert.equal((await sql`SELECT id FROM faucet_claims`).length, 0); }
-    finally { await sql.unsafe("DROP TRIGGER fail_faucet_insert ON faucet_claims; DROP FUNCTION fail_faucet_insert();"); }
+    await sql.unsafe(`CREATE FUNCTION fail_faucet_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'deliberate fixture failure'; END $$; CREATE TRIGGER fail_faucet_insert BEFORE INSERT ON sol_faucet_claims FOR EACH ROW EXECUTE FUNCTION fail_faucet_insert();`);
+    try { await assert.rejects(request(1)); assert.equal(sends, 0); assert.equal((await sql`SELECT id FROM sol_faucet_claims`).length, 0); }
+    finally { await sql.unsafe("DROP TRIGGER fail_faucet_insert ON sol_faucet_claims; DROP FUNCTION fail_faucet_insert();"); }
   });
   await check("restart resumes committed bytes and does not allocate twice", async () => {
     interrupt = true;
     const first = await request(1); assert.equal(first.status, "prepared");
     const before = await (await readFaucetStore()).claim(first.id); assert.ok(before?.rawTransaction);
-    interrupt = false; service = createFaucetService(chain);
-    const after = await service.claim(first.id, "0xab", "new-ip");
+    interrupt = false; service = createFaucetService(chain, deps);
+    const after = await service.claim(first.id, SIG, "new-ip");
     assert.equal(after.txHash, first.txHash); assert.equal(after.status, "confirmed"); assert.equal(sends, 1);
     assert.equal((await (await readFaucetStore()).claim(first.id))?.rawTransaction, before.rawTransaction);
-    await sql.unsafe(SCHEMA_SQL); assert.equal((await sql`SELECT id FROM faucet_claims`).length, 1);
+    await sql.unsafe(SCHEMA_SQL); assert.equal((await sql`SELECT id FROM sol_faucet_claims`).length, 1);
   });
   console.log(`${passed} real Postgres checks passed. No chain transactions sent.`);
 }

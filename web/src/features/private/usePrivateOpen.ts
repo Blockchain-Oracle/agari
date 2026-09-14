@@ -8,9 +8,8 @@ import { sizePrivateForStake } from "@agari/markets/private";
 import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import { useSignMessage } from "wagmi";
 import { diagnosisCopy } from "@/lib/copy";
-import { useWalletSession } from "@/lib/wallet-session";
+import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { recordBet } from "@/features/room/record-bet";
 import { upsertPrivateTicket } from "./claims-store";
 
@@ -31,7 +30,7 @@ function readPending(owner: string | null): PendingOpen | null {
   if (!owner || typeof window === "undefined") return null;
   try {
     const all = JSON.parse(window.localStorage.getItem(PENDING_KEY) ?? "{}") as Record<string, PendingOpen>;
-    return all[owner.toLowerCase()] ?? null;
+    return all[owner] ?? null;
   } catch {
     return null;
   }
@@ -41,8 +40,9 @@ function writePending(owner: string, pending: PendingOpen | null): void {
   if (typeof window === "undefined") return;
   try {
     const all = JSON.parse(window.localStorage.getItem(PENDING_KEY) ?? "{}") as Record<string, PendingOpen>;
-    if (pending) all[owner.toLowerCase()] = pending;
-    else delete all[owner.toLowerCase()];
+    // Keyed by the base58 owner exactly as written: re-casing would alias or split owners (D-010).
+    if (pending) all[owner] = pending;
+    else delete all[owner];
     window.localStorage.setItem(PENDING_KEY, JSON.stringify(all));
   } catch {
     // storage unavailable — the in-memory copy still drives this session
@@ -73,7 +73,7 @@ async function post(body: PrivateOpenRequest): Promise<PrivateOpenResult> {
  * reply that never arrived leaves the authorisation pending; the next open re-sends it instead of signing anew.
  */
 export function usePrivateOpen() {
-  const { signMessageAsync } = useSignMessage();
+  const wallet = useOwnerWallet();
   const { address } = useWalletSession();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -132,7 +132,10 @@ export function usePrivateOpen() {
         symbol,
         issuedAtMs,
       });
-      const signature = await signMessageAsync({ message });
+      if (!wallet) return null;
+      // ed25519 is deterministic (RFC 8032): the same text always yields the same signature, so a re-sent
+      // authorisation still seeds the same slot.
+      const signature = await signText(wallet, message);
       // The signature covers the stake, never the size, so the guard is taken from a sizing read now — after the
       // wallet popup — instead of the ticket's polled quote, which is up to REQUOTE_MS old before the popup even
       // opens. On a thin Window the size a stake affords moves a sixth in three seconds (measured on the 15m lane),
@@ -143,7 +146,7 @@ export function usePrivateOpen() {
       const request: PrivateOpenRequest = { owner: address, marketId: market.marketId, side, stakeBase: stakeBase.toString(), minQuantityRaw: minQuantityRaw.toString(), issuedAtMs, signature };
       return send({ request, asset: market.asset, intervalSec: market.intervalSec });
     },
-    [address, signMessageAsync, send],
+    [address, wallet, send],
   );
 
   /** Re-sends the pending authorisation, if any — the only way a lost reply is ever answered. */

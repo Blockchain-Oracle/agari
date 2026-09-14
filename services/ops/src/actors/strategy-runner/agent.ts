@@ -3,7 +3,7 @@ import { formatCadence } from "@agari/core/copy";
 import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import { agentPrompt, decisionSlot, gateAgentVerdict, type AgentSpec, type StrategyRecord } from "@agari/core/strategies";
-import type { Bytes32, EventMarket } from "@agari/core/types";
+import type { Address, EventMarket } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { beginStrategyDecision, getStrategyDecision, listStrategyDecisions, recordStrategyDecision } from "@agari/db";
 import { marketsProvider } from "@agari/markets";
@@ -60,7 +60,7 @@ export function takeCall(state: AgentState, maxPerHour: number, nowMs: number): 
 
 export interface AgentRunner {
   env: RunnerEnv;
-  venueId: Bytes32;
+  venueId: Address;
   runnerKey: string;
   agent: AgentState;
   log: (why: string) => void;

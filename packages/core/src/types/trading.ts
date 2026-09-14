@@ -85,18 +85,19 @@ export interface ClaimableRow {
   settledAtMs: number | null;
 }
 
+/** Cash credited to the wallet's seat in one Window's Ledger (fills, refunds, evictions), withdrawable any time. */
 export interface VenueCredit {
-  pool: Address;
+  marketId: MarketId;
   amountBase: bigint;
 }
 
 export interface BalanceSheet {
   decimals: number;
   spendableBase: bigint;
-  nativeWei: bigint;
+  nativeLamports: bigint;
   orderEscrowBase: bigint;
   venueCreditBase: bigint;
-  venueCreditByPool: VenueCredit[];
+  venueCreditByMarket: VenueCredit[];
   /** null until the EventVault exists (Epic 6). */
   vaultBase: bigint | null;
 }

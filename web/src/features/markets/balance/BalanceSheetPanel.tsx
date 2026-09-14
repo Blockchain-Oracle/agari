@@ -1,6 +1,5 @@
+import { FEE_RESERVE_LAMPORTS } from "@agari/core/constants";
 import type { BalanceSheet } from "@agari/core/types";
-import { requiredGasWei } from "@agari/markets";
-import { SOMNIA_SHANNON } from "@agari/markets/chain";
 import { Money } from "@/components/data";
 import { StaleTick, type ReadingMeta } from "@/components/states";
 import type { ReactNode } from "react";
@@ -9,7 +8,8 @@ import { BALANCE } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { PoolRow } from "./PoolRow";
 
-const NATIVE = SOMNIA_SHANNON.nativeCurrency;
+/** The cluster's native currency: SOL, 9 decimals (1 SOL = 10⁹ lamports). */
+const NATIVE = { symbol: "SOL", decimals: 9 } as const;
 const GAS_DP = 4;
 
 interface BalanceSheetPanelProps {
@@ -25,8 +25,8 @@ interface BalanceSheetPanelProps {
 /** The headline is wallet-spendable collateral only; every other pool is a labeled row beneath it, never summed (FR-5). */
 export function BalanceSheetPanel({ sheet, symbol, stale, panels, className }: BalanceSheetPanelProps) {
   const collateral = symbol ?? undefined;
-  // An order is the dearest lane a bettor signs; below its envelope the next write is refused before any popup.
-  const gasLow = sheet.nativeWei < requiredGasWei("order");
+  // Below the fee reserve a self-paying wallet's next write is refused before any popup (sponsored sends need none).
+  const gasLow = sheet.nativeLamports < FEE_RESERVE_LAMPORTS;
 
   return (
     <div className={cn("flex flex-col gap-3 rounded-(--balance-plate-radius) bg-(--balance-plate-surface) p-4", className)}>
@@ -50,7 +50,7 @@ export function BalanceSheetPanel({ sheet, symbol, stale, panels, className }: B
         )}
         <PoolRow
           label={BALANCE.rows.gas}
-          value={sheet.nativeWei}
+          value={sheet.nativeLamports}
           decimals={NATIVE.decimals}
           symbol={NATIVE.symbol}
           maxDp={GAS_DP}

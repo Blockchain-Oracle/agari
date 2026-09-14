@@ -2,6 +2,7 @@
 
 import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
 import type { VaultGrant } from "@agari/core/vault";
+import type { Address } from "@agari/core/types";
 import { addressUrl, txUrl } from "@agari/core/urls";
 import { XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -83,19 +84,19 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
   };
   const confirm = () => {
     if (!valid || currentFee.fee === null) return;
-    void perform(() => writes.join({ strategyId: BigInt(card.strategyId), runner: card.runner as `0x${string}`, depositBase: topUp, budgetBase: targetBase, caps, feeBase: currentFee.fee! }));
+    void perform(() => writes.join({ strategyId: BigInt(card.strategyId), runner: card.runner as Address, depositBase: topUp, budgetBase: targetBase, caps, feeBase: currentFee.fee! }));
   };
   return <div className="strat-drawer-root" onClick={onClose}>
     <div className="strat-drawer-scrim" />
     <div ref={panel} tabIndex={-1} className="strat-drawer" role="dialog" aria-modal="true" aria-labelledby="copy-strategy-title" onClick={(e) => e.stopPropagation()}>
       <button type="button" onClick={onClose} aria-label="Close strategy" className="strat-drawer-close"><XIcon aria-hidden="true" /></button>
-      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as `0x${string}`)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on Somnia ↗</a></div></div>
+      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on Solana ↗</a></div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>
       <RecordCard record={card.record} decimals={decimals} symbol={symbol} />
       <div className="strat-drawer-rule mt-5"><p className="strat-meta mb-2 text-vermilion">{COPY_STATE_LABEL[state]}</p><p className="strat-drawer-body">{state === "copying" ? "Your permission is active. A trade still needs a signal and fresh risk checks." : state === "checking" ? "Checking your current vault permission and registry consent before making changes." : state === "inactive" ? "This strategy is not accepting new subscriptions. Existing consent can be paused." : "Review a new permission to start or resume. Publishing alone does not fund or activate a copy."}</p></div>
       <StrategyActivity state={state} grant={grant && sub?.grantId === grant.grantId ? grant : null} health={health ?? null} nowMs={nowMs} />
       {result && <div className={result.ok ? "copy-progress mb-5" : "agent-builder-error mb-5"} role="status"><p>{result.ok ? "Confirmed. Your balances and permissions are refreshing." : result.reason}</p>{result.txHash && <a href={txUrl(result.txHash)} target="_blank" rel="noreferrer">View transaction ↗</a>}</div>}
-      {pending && <div className="copy-progress mb-5"><strong>{writes.busy ? "Copy setup in progress." : pending.stage === "subscribe-ready" ? "Permission saved. Subscription remains." : "An interrupted step needs checking."}</strong><p>{writes.busy ? "Waiting for wallet and chain confirmations. Your progress is saved." : "We will check this setup before continuing. The deposit will not be repeated."}</p>{pending.grantTx && <a className="block mt-2" href={txUrl(pending.grantTx as `0x${string}`)} target="_blank" rel="noreferrer">Permission transaction ↗</a>}{pending.subscribeTx && <a className="block mt-2" href={txUrl(pending.subscribeTx as `0x${string}`)} target="_blank" rel="noreferrer">Subscription transaction ↗</a>}<button className="desk-pill mt-3" disabled={disabled} onClick={() => void perform(writes.releasePending)}>{pending.releasePending ? "Check permission release" : "Release this permission"}</button></div>}
+      {pending && <div className="copy-progress mb-5"><strong>{writes.busy ? "Copy setup in progress." : pending.stage === "subscribe-ready" ? "Permission saved. Subscription remains." : "An interrupted step needs checking."}</strong><p>{writes.busy ? "Waiting for wallet and chain confirmations. Your progress is saved." : "We will check this setup before continuing. The deposit will not be repeated."}</p>{pending.grantTx && <a className="block mt-2" href={txUrl(pending.grantTx)} target="_blank" rel="noreferrer">Permission transaction ↗</a>}{pending.subscribeTx && <a className="block mt-2" href={txUrl(pending.subscribeTx)} target="_blank" rel="noreferrer">Subscription transaction ↗</a>}<button className="desk-pill mt-3" disabled={disabled} onClick={() => void perform(writes.releasePending)}>{pending.releasePending ? "Check permission release" : "Release this permission"}</button></div>}
       {!writes.address ? <ConnectButton /> : <>
         {anotherPending && <p className="agent-builder-error mb-4">Finish or release strategy #{writes.pending?.strategyId} from Your strategies first.</p>}
         {card.active && <div className="space-y-4">

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { Address } from "../types/primitives";
 import { arenaPickKey } from "./arena";
 import { cardPnl, playerPnl, scoreForCreator, settleMatch } from "./scoring";
 import type { CardReceipt, Pick } from "./types";
+import { testAddress } from "../testing/ids";
+import type { Address } from "../types/primitives";
 
-const CREATOR = "0xaaaa111111111111111111111111111111111111" as Address;
-const CHALLENGER = "0xbbbb111111111111111111111111111111111111" as Address;
+const CREATOR = testAddress(0xaa);
+const CHALLENGER = testAddress(0xbb);
 const MATCH_ID = `0x${"11".repeat(32)}`;
 const POT = 5_000_000n; // 5 tUSDC at six decimals.
 

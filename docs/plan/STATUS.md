@@ -1,12 +1,12 @@
-# STATUS — updated 2026-09-14 by Claude (S1/S2 session)
+# STATUS — updated 2026-09-14 ~10:00 UTC by Claude (S1/S2 session, after a restart)
 
-Current stage: S1 and S2 (in progress, parallel)   Sub-slices: S1 1a in-progress (branch stage/S1-solana-shell, main worktree) · S2 spec in-progress (branch stage/S2-events-engine, wt ../agari-wt/s2)
+Current stage: S1 and S2 (in progress, parallel)   Sub-slices: S1 all steps ✅ incl. browser pass + Wallet Standard replacing Privy (stage/S1-solana-shell, main worktree); S1 gate waits on a Phantom check in the user's browser · S2 engine complete (29 instructions) and deployed to devnet (main @ 7c370df, wt ../agari-wt/s2) · S2 next: init-events (config, tUSDC mint, TSLA/NVDA series, books), IDL publish, codegen, Surfpool CU profile + drive, devnet drive
 Last green commit (gate passed): see `git log --grep "S0 gate passed"`      Last commit: see `git log -1` on each branch
-In-flight step: S1 1a.1 core primitives (packages/core/src/types/**; chain side-effects: none) · S2 spec (docs/plan/specs/**; chain side-effects: none). Price archivers run detached (pids in data/archive/*.pid, logs in data/archive/logs/)
+In-flight step: none running. Build rule: `NO_DNA=1 anchor build --arch v0` (D-024; Anchor 1.2 defaults to v3, which devnet rejects). Archivers: `pnpm archive:start` (idempotent, detached; RedStone ≈ 24 h retention). After a disk cleanup, check `solana-keygen pubkey anchor/target/deploy/agari_events-keypair.json` == cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH (restore from ~/.config/agari/programs/, never regenerate)
 Done: S0 ✅ | Milestones: M0 ✅ M1 ☐
-Blockers: none for S1. S2 devnet deploy needs the deployer funded (user: faucet.solana.com → AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F). X API keys (S11 live test). Stork reply (QQQ/VOO after 09-25).
-Env readiness (presence only): PYTH ✅(trial → ≈09-27) ALPACA ✅ FINNHUB ✅ HELIUS ✅ PRIVY ✅ OPENAI ✅ DATABASE_URL ✅(local) X_API ☐ STORK ☐ role keys ✅ (~/.config/agari/devnet)
+Blockers: none for code. User: S1 gate check in a real browser with Phantom on devnet at /dev/wallet (Connect → Sign and verify). X API keys (S11). Stork reply (QQQ/VOO after 09-25).
+Env readiness (presence only): PYTH ✅(trial → ≈09-27) ALPACA ✅ FINNHUB ✅ HELIUS ✅ OPENAI ✅ DATABASE_URL ✅(local) X_API ☐ STORK ☐ role keys ✅ (~/.config/agari/devnet)
 Toolchain: anchor-cli 1.2.0 (avm) · anchor-lang =1.2.0 · host rustc 1.98.1 (anchor/rust-toolchain.toml) · solana-cli 3.1.10 · surfpool 1.5.0 · pnpm 11.24
 Price sources: TSLA pyth+redstone(check) · QQQ/VOO pyth (until 09-25 close) · single names redstone · token switchboard (S6) — services/ops/config/price-sources.json
-Devnet addresses: none yet (deployer 0 SOL)
-Next action: S1 → first unchecked box in docs/plan/stage-01-solana-shell.md (on its branch); S2 → first unchecked box in docs/plan/stage-02-events-engine.md (in its worktree). Main-worktree STATUS edits belong to the S1 owner; S2 reports through its stage file.
+Devnet addresses: agari-events cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH deployed 2026-09-14 (SBPF v0, from 36f1384; scripts/deploy/addresses.devnet.json on main @ 7c370df). Deployer 6.112 SOL.
+Next action: S2 → codegen (packages/clients/agari-events via Codama) and ensure-style `scripts/deploy/init-events.mjs` (config with D-002 RedStone signers, tUSDC mint + faucet authority, TSLA/NVDA Regular 5m series + D-003 policy versions + 2 books each), then IDL publish and the Surfpool drive. S1 → merge S1 into main after the Phantom check (it also carries node_modules-era fixes: S2 scripts need the S1 tree's dependencies).

@@ -1,3 +1,5 @@
+import { SIGNED_MESSAGE_BRAND } from "../auth/signed-message";
+import { clusterLabelOfId } from "../constants/chain";
 import type { Address } from "../types/primitives";
 import { isAddress } from "../types/primitives";
 import type { RoomErrorCode } from "./protocol";
@@ -20,8 +22,8 @@ import type { RoomErrorCode } from "./protocol";
  *
  * Three properties are deliberate.
  *
- * **It is bound to one arena on one chain.** A token minted for the Shannon deployment cannot open a room
- * on another, which is the same rule the deck commitment enforces on-chain.
+ * **It is bound to one arena on one cluster.** A token minted for the devnet deployment cannot open a room
+ * on another (`chainId` holds the numeric cluster id, D-010), which is the same rule the deck commitment enforces on-chain.
  *
  * **It carries two clocks.** `issuedAtMs` bounds how long one token is good for — fifteen minutes, so a
  * copied URL is not a durable credential — while `sessionEndsAtMs` bounds how long the *signature* behind
@@ -63,11 +65,11 @@ export interface RoomTokenClaims {
 /** The exact text the key signs. It names the wallet it claims, the arena, and what it is not, because people read these. */
 export function roomAuthMessage(claims: Pick<RoomTokenClaims, "wallet" | "key" | "chainId" | "arena"> & { issuedAtMs: number }): string {
   return [
-    "Masayume — open the duel room",
+    `${SIGNED_MESSAGE_BRAND} — open the duel room`,
     "",
-    `Wallet: ${claims.wallet.toLowerCase()}`,
-    `Key: ${claims.key.toLowerCase()}`,
-    `Arena: ${claims.arena.toLowerCase()} on chain ${claims.chainId}`,
+    `Wallet: ${claims.wallet}`,
+    `Key: ${claims.key}`,
+    `Arena: ${claims.arena} on ${clusterLabelOfId(claims.chainId)}`,
     `Issued: ${new Date(claims.issuedAtMs).toISOString()}`,
     "",
     "This browser's own key signs this, not the wallet. It opens the wallet's duel rooms; the entry transaction is what names the key on chain. It is not a transaction, it moves no funds, and it costs nothing.",
@@ -82,10 +84,10 @@ export function roomAuthFresh(issuedAtMs: number, nowMs: number): boolean {
 /** Claims for a key that has just signed for a wallet: a fresh token on a session ending twelve hours out. */
 export function roomSessionClaims(wallet: Address, key: Address, chainId: number, arena: Address, nowMs: number): RoomTokenClaims {
   return {
-    wallet: wallet.toLowerCase() as Address,
-    key: key.toLowerCase() as Address,
+    wallet,
+    key,
     chainId,
-    arena: arena.toLowerCase() as Address,
+    arena,
     issuedAtMs: nowMs,
     sessionEndsAtMs: nowMs + ROOM_SESSION_MS,
   };
@@ -93,7 +95,7 @@ export function roomSessionClaims(wallet: Address, key: Address, chainId: number
 
 /** The dot-joined claims a MAC is taken over. Addresses lowercased, numbers decimal — no field may contain a dot. */
 export function roomTokenPayload(claims: RoomTokenClaims): string {
-  return [VERSION, claims.wallet.toLowerCase(), claims.key.toLowerCase(), claims.chainId, claims.arena.toLowerCase(), claims.issuedAtMs, claims.sessionEndsAtMs].join(".");
+  return [VERSION, claims.wallet, claims.key, claims.chainId, claims.arena, claims.issuedAtMs, claims.sessionEndsAtMs].join(".");
 }
 
 export type SignPayload = (payload: string) => string;
@@ -137,10 +139,10 @@ export function parseRoomToken(token: string): ParsedRoomToken | null {
     payload: parts.slice(0, 7).join("."),
     mac,
     claims: {
-      wallet: wallet.toLowerCase() as Address,
-      key: key.toLowerCase() as Address,
+      wallet,
+      key,
       chainId: Number(chainId),
-      arena: arena.toLowerCase() as Address,
+      arena,
       issuedAtMs: Number(issuedAtMs),
       sessionEndsAtMs: Number(sessionEndsAtMs),
     },
@@ -170,7 +172,7 @@ export function verifyRoomToken(token: string, expect: RoomTokenExpectation, now
   if (!verifyMac(parsed.payload, parsed.mac)) return refuse("unauthenticated", "the room token is not ours");
 
   const { claims } = parsed;
-  if (claims.chainId !== expect.chainId || claims.arena !== expect.arena.toLowerCase()) {
+  if (claims.chainId !== expect.chainId || claims.arena !== expect.arena) {
     return refuse("forbidden", "this room token was minted for another arena");
   }
   if (claims.issuedAtMs - nowMs > ROOM_CLOCK_SLACK_MS) return refuse("unauthenticated", "the room token is not valid yet");

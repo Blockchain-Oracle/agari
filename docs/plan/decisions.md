@@ -68,7 +68,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **Date / owner:** 2026-09-13 · user
 - **Rule:**
   - Brand **Agari (上がり)**.
-  - **Privy** sign-in from S1.
+  - ~~**Privy** sign-in from S1.~~ Replaced by Wallet Standard via the Kit wallet plugin (D-023, user, 2026-09-14).
   - **Own Anchor CLOB** rebuilding DreamDEX Event Contracts.
   - **Masayume** is the design authority; Yosuku is lineage only.
   - **Nine programs:** agari-{events, vault, strategy, parlay, range, leverage, maker, private, arena}.
@@ -162,6 +162,60 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** a Window whose opening price never arrives voids early (0.5/0.5) and stops trading; users can always cancel and redeem.
 - **Approval:** within plan r2 PD-6/PD-7/PD-8 (planner, S2 spec step).
 
+### D-010 — Solana primitives in `@agari/core`, and what S1 renames
+- **Date / owner:** 2026-09-14 · S1 owner (step 1a.1)
+- **Evidence:** plan P§5 "Primitives" and "hook names unchanged"; the blast radius in `stage-01-solana-shell.md` Findings; core typecheck + 757 core tests after the change.
+- **Rule:**
+  - `Address` = branded base58 of 32 bytes; `Signature` = branded base58 of 64 bytes (a transaction's id, or an ed25519 message signature); `MarketId` = branded `Address` of the Market PDA (`types/ids.ts`). Validation decodes exactly (`types/base58.ts`, vector-tested); core still imports no chain SDK.
+  - `Hex` stays for bytes that really are hex (keccak commitments, RedStone's 20-byte signer ids). `Bytes32` → `Hash32` (0x + 64 hex) for hashes, feed ids, match ids and desk keys. The venue id is the events `GlobalConfig` `Address`.
+  - **Addresses are never lowercased or text-sorted.** Base58 is case-sensitive, so every EVM-era `toLowerCase()` on an address was removed. Hex values keep case-folding. Commitments pack an address as its 32 decoded bytes, and the Lucky candidate set sorts by those bytes.
+  - **Names:** fields keep Masayume's names when the concept maps 1:1: `txHash` (now a `Signature`), `poolAddress` (the recycled Book), port and hook names. They're renamed only when the concept changed (`asset` → ticker, token ids, the oracle question id, wei/STT).
+  - **Scope:** product-family types (vault, parlay, range, maker, leverage, private, arena, strategies) keep fields like `chainId` until their own stage ports the program. In S1 they only need to compile behind `CapabilityPending`.
+  - Golden vectors are unchanged: the test wallet and arena are the old left-padded words as 32-byte keys, so the packed bytes are identical.
+- **User-visible:** none yet (the web still runs on EVM until 1d).
+- **Approval:** within plan r2 S1.
+
+### D-011 — Ticker registry, the Window read model and lock-aware entry
+- **Date / owner:** 2026-09-14 · S1 owner (steps 1a.2–1a.3)
+- **Evidence:** Hermes `/v2/price_feeds` fetched 2026-09-14 (TSLA/QQQ/VOO ids match S0's probe); `services/ops/config/price-sources.json` (xStock mints); plan P§2.2, P§3.1 `Series` seeds and `lock_at`; the session slice's tests (DST, early close, Gap).
+- **Rule:**
+  - **`core/market/tickers.ts` is the universe.** Permanent `seriesId` (the `ticker: u16` Series seed): TSLA 1, NVDA 2, AAPL 3, MSFT 4, META 5, AMZN 6, GOOGL 7, QQQ 8, VOO 9, SPY 10; 11 COIN and 12 MSTR are reserved. SPY is there only for the SPYx token lane. The registry says what a ticker *is*; whether a lane is live comes from policy coverage.
+  - **`EventMarket` is Solana-shaped:**
+    - Adds `lane` (`regular | gap | token`, the `basis: u8` seed), `lockAtSec`, `seriesAddress`, `policyVersion`, `printSource` and `voidReason`.
+    - Removes DreamDEX-only fields: `strikeRaw`, `isUpDown`, `yesTokenId`/`noTokenId`, `oracleQuestionId` (and `OnchainSnapshot.outcomeToken`/`yesId`/`noId`, `LaneSet.excludedFixedStrike`, the `approve` intent).
+    - `asset` keeps its name, typed `TickerSymbol`. Prints are normalized to `PRINT_EXPO = -8`.
+    - Renamed: `nativeWei` → `nativeLamports`, `blockTimestampSec` → `publishTimeSec`, `ClockSync.blockNumber` → `slot`; venue credit is per `marketId` (the Ledger seat), not per pool.
+  - **Gap lane cadence seed = 604,800** (`GAP_CADENCE_SEC`); the Window's real span varies with holidays.
+  - **Entry closes 30 s before `lock_at`, not expiry:**
+    - `noEntryCutoffSec`, `orderExpirySec` and `insideNoEntryBuffer` take `{ lockAtSec, intervalSec }`, so an expiry can't be passed positionally.
+    - `phase()` locks at `lockAtSec`.
+    - `countdown` stays on `expirySec` ("settles in").
+  - **Calendar (session slice):**
+    - Regular Windows align to the ET clock (60m runs 10:00–16:00) and none expires after the close.
+    - Gap = last session close before the weekend → first session open after it, locking Sunday 20:00 ET.
+    - The roller lists a date only when Alpaca and the Pyth schedule agree; halts are an input.
+    - Pyth schedule overrides carry no year, so only a recently fetched schedule is trusted.
+  - **X grammar** reads the registry (symbols + company words) with Regular cadences 5m/15m/1h. It matches Regular-lane Windows only; token-lane grammar is S11's call.
+  - **Left for their stages (they read the registry then):**
+    - Lucky's `LUCKY_ASSETS` (S12): changing it needs a policy-version bump and new golden vectors.
+    - Strategy copy defaults (S9).
+    - Range/moonshot pricing vectors (S10).
+- **User-visible:** stock tickers instead of BTC/ETH; Gap Windows stop taking entries at Sunday 20:00 ET.
+- **Approval:** within plan r2 S1.
+
+### D-012 — Signed messages, cluster ids and fees on Solana
+- **Date / owner:** 2026-09-14 · S1 owner (step 1a.4)
+- **Evidence:** Wallet Standard `solana:signMessage` and Privy `signMessage` sign raw bytes with ed25519 (no EIP-191 prefix); RFC 8032 (deterministic signatures); plan P§3.2 sponsor policy (compute ≤ 400k, simulate first); S0 Handoff (signed-message wording deferred to S1).
+- **Rule:**
+  - A signed text is its exact UTF-8 bytes; the browser and server build it from the same fields. It names "Agari" and the cluster (`Network: Solana devnet`, or `on Solana devnet`). The signature travels as base58 (64 bytes).
+  - `verifySignedMessage(text, signature, signer, verify)` takes the ed25519 verifier as an argument (core stays crypto-free) and returns false, never throws, on malformed input.
+  - Numeric cluster ids replace EVM chain ids wherever a number was bound into a signature or commitment: mainnet-beta 101, devnet 103 (the SPL token-list convention), localnet 104. Fields keep the name `chainId` (D-010).
+  - No per-lane gas table: compute limit = simulated units × 1.1, capped at 400,000; a self-paying wallet needs `FEE_RESERVE_LAMPORTS` (4 × 5,000).
+  - Faucet: devnet SOL top-up to 0.02 when below 0.005 SOL, 1 SOL/day, 2 SOL reserve; a prepared claim is reconciled against `lastValidBlockHeight`.
+  - The `insufficient-allowance` diagnosis is gone (there's no token approval on Solana).
+- **User-visible:** sign-in and consent prompts say Agari and Solana devnet; "Out of SOL for fees" replaces "Out of STT gas".
+- **Approval:** within plan r2 S1.
+
 ### D-013 — S2 spec review amendments (core alignment)
 - **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
 - **Evidence:**
@@ -178,6 +232,77 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - D-006…D-009 are accepted as written, including the CancelTaker revert and refusing duplicate RedStone signers.
 - **User-visible:** none.
 - **Approval:** stage-owner review within plan r2.
+
+### D-014 — The wallet seam between web and markets
+- **Date / owner:** 2026-09-14 · S1 owner (before splitting 1b/1c)
+- **Evidence:** Context7 `/llmstxt/privy_io_llms_txt`:
+  - Privy v3 `useWallets` from `@privy-io/react-auth/solana` returns `ConnectedStandardSolanaWallet` (address, `signMessage({message}) → {signature}`, `standardWallet`).
+  - `useSignTransaction({transaction: Uint8Array, chain: "solana:devnet"})`.
+  - `useSignAndSendTransaction({…, options: {sponsor}})`.
+  - "fully compatible with @solana/kit".
+  - Masayume's seam was `SubmitterSessionProvider({ walletClient })` (viem).
+- **Rule:**
+  - `packages/markets/src/react/wallet-session.ts` `WalletSession { address, kind: embedded|external, signMessage(bytes), signTransaction(bytes), signAndSendTransaction(bytes, {sponsor}) }` replaces viem's `WalletClient` in `SubmitterSessionProvider`. It deals in wire bytes only.
+  - The web Privy island (1c) builds it from Privy's hooks and imports no `@solana/*`.
+  - Markets (1b) wraps it as a kit signer; the boundary stays "only markets imports `@solana/*`".
+  - Embedded wallets use Privy's `sponsor`; external wallets use the `api/sponsor` co-sign (P§3.2) or pay their own fee.
+- **User-visible:** none directly; social-login wallets don't need SOL for fees.
+- **Approval:** within plan r2 S1 (Privy + Wallet Standard through one seam).
+
+### D-015 — `@agari/markets` is an honest not-deployed stub until S4
+- **Date / owner:** 2026-09-14 · S1 1b owner
+- **Evidence:** `docs/plan/specs/markets-surface.md` (every consumer import at `ef188d3`; 186 of 215 symbols compile against the stub); markets + core + ops typecheck; 982 tests; the removed EVM tree (≈ 10k lines: DreamDEX SDK, viem, Solidity ABIs).
+- **Rule:**
+  - **Reads.** A chain read returns `err(diagnosis("not-deployed", …))`, never a fabricated market, price, balance or clock. `nowMs()` is device time.
+  - **Known-without-chain answers keep Masayume's shapes:** no vault → `null` snapshot and zero holdings; settlement fee 0 (D-012); a product that isn't deployed → `null` state, empty lists, zero balances; a product quote or preview → its own `*_NOT_DEPLOYED` reason.
+  - **Writes.** Every write refuses before anything is journaled or signed: the submitter's lanes, `submit*Open`, `submitStrategyTx`, `openPrivateBet`. Plain-promise writes (`sendArenaIntent`, `getVaultGrant`, `readPoolTop`, `distributeSeasonPrizes`, faucet chain steps) throw the not-deployed reading.
+  - **Boot facts.** A read that needs a failed boot fact now resolves to that fact's error (was: null forever). Product reads declare `needs: []` because their first branch is the local deployment check, so `CapabilityPending` renders instead of an error.
+  - **Names.** A consumer symbol is kept when its concept exists on Solana (types reshaped per D-010…D-012) and removed when it's EVM-only (gas/wei, EIP-712/2771, ERC-6909 outcome ids, DreamDEX addresses, viem clients). The surface doc names each removal's owning stage.
+  - **Signers.** `SubmitterSession` signs with `{ wallet: WalletSession }` (D-014) or `{ secretKey }`, a 64-byte Solana keypair whose address is its last 32 bytes (`parseSecretKey` accepts the CLI JSON array or base58). Ops role keys use the same format. `session.contracts` = `{ signer, deployment }`.
+  - **Recovery.** Solana has no account nonce: recovery keys on the signature plus `readRecoveryCursor().fromSlot`. The strategy-attempt row stores `nonce: 0` until S9 reshapes it; `XReceipt.expectedNonce` is null.
+  - **Fees.** `submitter.checkGas(lane)` keeps its name (fee sufficiency in lamports, `FEE_RESERVE_LAMPORTS`).
+  - Masayume's Shannon spikes (`scripts/spike`, `services/ops/src/spike`) and season tools are deleted; S12 rebuilds the season tools.
+- **User-visible:** every chain surface shows "not deployed" states until the engine and adapter land.
+- **Approval:** within plan r2 S1 ("every route renders against a stub adapter returning honest unavailable Readings").
+
+### D-016 — Invariant rules for the Solana boundary
+- **Date / owner:** 2026-09-14 · S1 1b owner
+- **Evidence:** `scripts/invariants/{rules.mjs,lib/chain-rules.mjs}`; each new rule was shown to fire on a planted violation (EVM import, `@solana/*` outside markets, web3.js 1 outside `prices/legacy`, IDL `destination`/`recipient`, `declare_id!` ≠ Anchor.toml, stale allowlist entry), then reverted.
+- **Rule:**
+  - **Added:**
+    - `no-evm`: imports and manifests, with a shrinking `no-evm.allow.json` (35 entries at 1b: the 32 web files + 3 web deps). A stale entry fails; the S1 gate requires the file empty.
+    - `kit-import-boundary`: `web/src/providers` is exempt for the Privy island.
+    - `idl-no-destination`: AD-5 on `anchor/target/idl` and `packages/clients` IDLs; exceptions go in `idl-destination.allow.json` with a reason.
+    - `program-id-drift`: `declare_id!` vs Anchor.toml `[programs.*]` vs `addresses.devnet.json`.
+  - **Changed:** `write-boundary` now also bans `sendAndConfirmTransaction`/`signAndSendTransaction` outside markets, with `web/src/providers` exempt (the island wraps the wallet's own send for markets).
+  - **Removed:** `sdk-import-boundary`, `sdk-version-pin`, `address-drift`, `generated-abi`, `vault-abi-shape` (the DreamDEX SDK and Solidity ABIs are gone); `banned-wagmi-hooks` (subsumed by `no-evm`); `order-lane-ioc`, `status-gate-enum`, `expiry-from-headroom` (they asserted the EVM order-lane files; S4 re-adds them against the Solana lane). `file-length` already covered `.rs`.
+- **User-visible:** none.
+- **Approval:** within plan r2 S1 (Invariants deliverable).
+
+### D-017 — Privy wallet shell: a lazy Solana-only island
+- **Date / owner:** 2026-09-14 · S1 1c owner
+- **Evidence:**
+  - Context7 `/llmstxt/privy_io_llms_txt` (Solana getting-started, configuring networks, migrating to 3.0): `appearance.walletChainType: "solana-only"`, `embeddedWallets.solana.createOnLogin`, `externalWallets.solana.connectors: toSolanaWalletConnectors()`, and `solana.rpcs` (needed only for embedded-wallet UIs). Peers are `@solana/kit` + `@solana-program/{memo,system,token}`. `useSignAndSendTransaction` takes `options.sponsor`.
+  - Installed types (`@privy-io/react-auth` 3.42.0): `ConnectedStandardSolanaWallet`, and hook signatures that satisfy the seam without a cast.
+  - Node 25 WebCrypto `Ed25519` (32-byte raw keys).
+- **Rule:**
+  - **Island.** `web/src/providers/privy.tsx` is the only web file that value-imports Privy or `@solana/kit`, reached solely through `next/dynamic` (`ssr: false`).
+    - `WalletShellProvider` loads it on first connect intent (warmed on hover/focus) or at once when `agari.wallet.remembered` marks a returning session.
+    - The island renders no children: it publishes state into a Privy-free context, so loading it never remounts the app.
+  - **Config.** Solana-only; `createOnLogin: "users-without-wallets"`; external wallets via Privy's Wallet Standard connectors; `solana.rpcs["solana:devnet"]` from `NEXT_PUBLIC_SOLANA_RPC_URL`/`_WS_URL` (public devnet by default, never Helius).
+    - Login methods are the dashboard's (no `loginMethods` override).
+    - The accent is read from the `--vermilion` token (AD-12: no hex literals).
+  - **Seam.** The active wallet is Privy's most recently connected Solana wallet, while authenticated.
+    - `kind = embedded` when its address is the user's `walletClientType: "privy"` Solana linked account.
+    - `signAndSendTransaction` asks for `sponsor` only on embedded wallets (D-014).
+  - **`useWalletSession()`** keeps `address/isConnected/isConnecting/isRightChain/switching`.
+    - `isRightChain === isConnected`: no wallet-side chain exists on Solana.
+    - `switchToShannon` and `chainId` are removed; `kind`, `available`, `login`, `logout`, `prefetch` are added.
+    - `useOwnerWalletClient` (viem) → `useOwnerWallet()` (the seam); `signText(wallet, text)` returns the base58 signature for core's signed texts.
+  - **Server.** `web/src/lib/auth/verify-signed-message.server.ts` `verifyWalletMessage` = core `verifySignedMessage` + WebCrypto Ed25519.
+  - **Removed:** `wagmi.ts`, `rainbowkit-theme.ts`, `NetworkBanner`, `@rainbow-me/rainbowkit`, `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. The Privy-pulled `@reown/appkit` build script is denied in `allowBuilds`.
+- **User-visible:** "Connect" opens Privy (email/social login creates a Solana wallet; Phantom, Backpack and Solflare connect directly); the header shows a truncated base58 address; no "Wrong network" state; without a Privy app id the control reads "Sign-in unavailable".
+- **Approval:** within plan r2 S1 (Privy from S1, D-004).
 
 ### D-019 — S2 admin and roller implementation choices
 - **Date / owner:** 2026-09-14 · S2 owner (step S2.4)
@@ -250,6 +375,26 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - `user_release_seat` (§4.4) isn't built: closure doesn't need it, because redeem refunds the bond. It stays open for mid-Window seat reuse.
 - **User-visible:** anyone can crank a finished Window's payouts into each user's own ATA; a repeated redeem is refused by name. Finished Windows return their rent, and a donation to a Window's vault goes to the treasury without changing anyone's payout.
 - **Approval:** within plan r2 (S2 redeem and closure step).
+
+### D-023 — Wallet Standard via the Kit wallet plugin replaces Privy
+- **Date / owner:** 2026-09-14 · user decision (reverses the Privy line of D-004), researched and implemented by the S1 owner
+- **Evidence:**
+  - **npm weekly downloads (2026-09-14):** `@solana/kit` 1.80M; `@wallet-standard/app` 1.32M and `@solana/wallet-standard-features` 1.23M (the protocol Phantom, Solflare and Backpack implement); `@solana/wallet-adapter-react` 783k; `@privy-io/react-auth` 296k; `@reown/appkit-adapter-solana` 46k; `@dynamic-labs/solana` 28k.
+  - **Guidance:** the solana-dev skill (Kit-first) recommends `@solana/kit-plugin-wallet` + `@solana/react` for new apps, and advises against `@solana/wallet-adapter-*` (web3.js v1 peer, which our Kit-only boundary forbids) and `@solana/client`/`@solana/react-hooks` (stale).
+  - **Package:** `@solana/kit-plugin-wallet` 0.20.0 (Anza, released 2026-09-10; peers `@solana/kit` ^8.2, `@solana/react` ^8.2, React ^19.2, all of which match ours). Its README covers Wallet Standard discovery, connect/disconnect, localStorage auto-reconnect, `signMessage`, the connected account's Kit `TransactionSigner`, and SSR safety.
+  - **Fidelity:** Masayume, the design authority, connected wallets only (RainbowKit), with no social login.
+  - **Browser check (production build):** with no wallet installed, the picker states it and links Phantom/Solflare/Backpack. A spec-conformant Wallet Standard test wallet (real WebCrypto Ed25519) was discovered, connected (header shows the base58 address, the markets session binds its signer, and `agari.wallet` persists it) and signed the `/dev/wallet` text: the server verified it and rejected the one-byte-tampered copy.
+- **Rule:**
+  - **Web:** `web/src/providers/wallet/kit-wallet.ts` creates one `createClient().use(walletWithoutSigner({ chain, storageKey: "agari.wallet" }))`. Markets keeps fee payers and sends; the wallet client only discovers, connects, remembers and signs. `WalletShellProvider` reads the plugin's hooks, and `WalletPicker` (a sheet above the fixed chrome, z 1000) lists installed wallets.
+  - **Seam (amends D-014):** `WalletSession = { address, signer: TransactionSigner, signMessage(bytes) }`. The byte-level transaction methods, `kind` and the `sponsor` option are gone, and the markets session re-keys on the address only.
+  - **Fees:** a wallet pays its own fee in devnet SOL from the faucet top-up (D-012), or through the `api/sponsor` fee-payer co-sign (S7).
+  - **Removed:** `@privy-io/react-auth` (448 transitive packages, including MetaMask/WalletConnect EVM SDKs), `@solana-program/{memo,system,token}` in web (Privy peers), `NEXT_PUBLIC_PRIVY_APP_ID`, `PRIVY_APP_SECRET`, and the `@reown/appkit` build entry. `useWalletSession()` now exposes `connect()`/`disconnect()`/`connecting` instead of `login`/`logout`/`prefetch`/`available`/`kind`.
+  - **S1 gate wording:** "Privy embedded wallet shows a base58 address" becomes "a Wallet Standard wallet (Phantom) connects and shows a base58 address". "Phantom connects" and "signed-message verify works" stand.
+- **User-visible:**
+  - **Sign-in:** there is no email/Google sign-in or embedded wallet. "Connect" opens a list of the Solana wallets installed in the browser (Phantom, Solflare, Backpack, …), and the last one reconnects silently.
+  - **Phones:** users open Agari in their wallet app's browser. Solana Mobile Wallet Adapter for Android Chrome is an optional add-on under Q-006.
+  - **No dashboard:** nothing needs setting up with a vendor.
+- **Approval:** user, 2026-09-14 ("we have to replace Privy").
 
 ### D-024 — Programs build for SBPF v0 (Anchor 1.2 defaults to v3)
 - **Date / owner:** 2026-09-14 · S2 owner (devnet deploy)

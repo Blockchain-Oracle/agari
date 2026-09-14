@@ -1,5 +1,5 @@
-import type { Bytes32 } from "../types/primitives";
-import type { EventMarket, Lane, LaneSet } from "../types/market";
+import type { Address } from "../types/primitives";
+import { GAP_CADENCE_SEC, type EventMarket, type Lane, type LaneBasis, type LaneSet } from "../types/market";
 
 const SEC_PER_MIN = 60;
 const SEC_PER_HOUR = 3_600;
@@ -12,26 +12,33 @@ export function formatCadence(intervalSec: number): string {
   return `${intervalSec}s`;
 }
 
-/** Lanes derive from the live `intervalSec` values — never a hardcoded list (FR-6). Fixed-strike markets are excluded and counted. */
-export function groupIntoLanes(markets: readonly EventMarket[], venueId: Bytes32): LaneSet {
-  const byInterval = new Map<number, EventMarket[]>();
-  let excludedFixedStrike = 0;
+/** Board order: the in-session lanes, then the weekend Gap, then the 24/7 token lanes. */
+const BASIS_ORDER: Record<LaneBasis, number> = { regular: 0, gap: 1, token: 2 };
+
+export function laneLabel(basis: LaneBasis, intervalSec: number): string {
+  return basis === "gap" && intervalSec === GAP_CADENCE_SEC ? "Gap" : formatCadence(intervalSec);
+}
+
+/**
+ * Lanes derive from the live Windows — never a hardcoded list (FR-6). A lane is one (basis, cadence) pair,
+ * so a 5m stock lane and a 5m token lane stay apart: they price different things.
+ */
+export function groupIntoLanes(markets: readonly EventMarket[], venueId: Address): LaneSet {
+  const byLane = new Map<string, { basis: LaneBasis; intervalSec: number; markets: EventMarket[] }>();
   for (const market of markets) {
-    if (!market.isUpDown) {
-      excludedFixedStrike += 1;
-      continue;
-    }
-    const lane = byInterval.get(market.intervalSec) ?? [];
-    lane.push(market);
-    byInterval.set(market.intervalSec, lane);
+    const key = `${market.lane}:${market.intervalSec}`;
+    const lane = byLane.get(key) ?? { basis: market.lane, intervalSec: market.intervalSec, markets: [] };
+    lane.markets.push(market);
+    byLane.set(key, lane);
   }
-  const lanes: Lane[] = [...byInterval.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([intervalSec, laneMarkets]) => ({
+  const lanes: Lane[] = [...byLane.values()]
+    .sort((a, b) => BASIS_ORDER[a.basis] - BASIS_ORDER[b.basis] || a.intervalSec - b.intervalSec)
+    .map(({ basis, intervalSec, markets: laneMarkets }) => ({
+      basis,
       intervalSec,
-      label: formatCadence(intervalSec),
+      label: laneLabel(basis, intervalSec),
       markets: laneMarkets.sort((a, b) => a.expirySec - b.expirySec),
       nextStartSec: null,
     }));
-  return { venueId, lanes, excludedFixedStrike };
+  return { venueId, lanes };
 }

@@ -107,7 +107,7 @@ export function usePracticeRound(): PracticeSession {
   const reportPrice = useCallback((price: AssetPrice) => {
     setPrices((prior) => {
       const held = prior.get(price.asset);
-      if (held && held.priceRaw === price.priceRaw && held.blockTimestampSec === price.blockTimestampSec) return prior;
+      if (held && held.priceRaw === price.priceRaw && held.publishTimeSec === price.publishTimeSec) return prior;
       const next = new Map(prior);
       next.set(price.asset, price);
       return next;

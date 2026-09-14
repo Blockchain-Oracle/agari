@@ -1,18 +1,10 @@
 import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
-import { toMarketId, type Address, type Hex, type MarketId } from "@agari/core/types";
+import { encodeBase58, type Address, type MarketId, type Signature } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
-import type { PublicClient } from "viem";
-import { MULTICALL3_ADDRESS } from "../chain";
-import { eventVaultAbi } from "../contracts/event-vault.abi";
-import { getClient, getVaultDeployment } from "../runtime/read-runtime";
+import { getVaultDeployment } from "../runtime/read-runtime";
 
-const PAGE = 200;
-const MAX_MARKETS = 1_000;
-const MULTICALL_CHUNK = 100;
-/** A vault round has no single transaction to link: the fills are the vault's, attributed by tally. */
-export const VAULT_TX_SENTINEL = `0x${"0".repeat(64)}` as Hex;
-
-type Tally = readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint, number];
+/** A vault round has no single transaction to link: the fills are the vault seat's, attributed by tally. */
+export const VAULT_TX_SENTINEL = encodeBase58(new Uint8Array(64)) as Signature;
 
 export interface VaultTally {
   marketId: MarketId;
@@ -34,47 +26,10 @@ export interface VaultTallies {
   complete: boolean;
 }
 
-function toTally(marketId: MarketId, t: Tally): VaultTally {
-  return {
-    marketId,
-    costBase: t[0],
-    proceedsBase: t[1],
-    payoutBase: t[2],
-    boughtUpRaw: t[3],
-    boughtDownRaw: t[4],
-    soldUpRaw: t[5],
-    soldDownRaw: t[6],
-    firstAtSec: Number(t[7]),
-    lastAtSec: Number(t[8]),
-    settledAtSec: Number(t[9]),
-    fillCount: t[10],
-  };
-}
-
-/** Every Window the wallet traded through the vault, with its tally — the vault's own record, no events replayed. */
-export async function listVaultTallies(wallet: Address, options: { complete?: boolean } = {}): Promise<VaultTallies> {
-  const deployment = getVaultDeployment();
-  if (!deployment) return { tallies: [], complete: true };
-  const client = getClient().getViemClient() as PublicClient;
-  const contract = { address: deployment.eventVault, abi: eventVaultAbi } as const;
-  const count = Number(await client.readContract({ ...contract, functionName: "marketCountOf", args: [wallet] }));
-  const wanted = options.complete ? count : Math.min(count, MAX_MARKETS);
-  const ids: MarketId[] = [];
-  for (let offset = 0; offset < wanted; offset += PAGE) {
-    const page = await client.readContract({ ...contract, functionName: "marketsOf", args: [wallet, BigInt(offset), BigInt(Math.min(PAGE, wanted - offset))] });
-    ids.push(...page.map((id) => toMarketId(id)));
-  }
-  const tallies: VaultTally[] = [];
-  for (let i = 0; i < ids.length; i += MULTICALL_CHUNK) {
-    const chunk = ids.slice(i, i + MULTICALL_CHUNK);
-    const rows = await client.multicall({
-      multicallAddress: MULTICALL3_ADDRESS,
-      allowFailure: false,
-      contracts: chunk.map((id) => ({ ...contract, functionName: "tallyOf", args: [wallet, id] }) as const),
-    });
-    rows.forEach((row, j) => tallies.push(toTally(chunk[j] as MarketId, row as Tally)));
-  }
-  return { tallies, complete: wanted === count };
+/** Every Window the wallet traded through the vault, with its tally — the vault's own record. Empty until S7. */
+export async function listVaultTallies(_wallet: Address, _options: { complete?: boolean } = {}): Promise<VaultTallies> {
+  if (!getVaultDeployment()) return { tallies: [], complete: true };
+  return { tallies: [], complete: false };
 }
 
 /** The vault never shorts (a sale needs inventory), so held is simply bought minus sold per side. */

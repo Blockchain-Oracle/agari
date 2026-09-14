@@ -10,6 +10,7 @@ import "@/features/parlay/parlay-ticket.css";
 import "@/features/range/range-band.css";
 import "@/features/range/range-page.css";
 import { FIXTURE_NOW_MS, FIXTURE_SYMBOL, OPENING, QUOTE, QUOTE_ERROR, RESERVE, ROUNDS, WINDOW } from "./fixtures";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 const noop = () => undefined;
 
@@ -48,19 +49,19 @@ const TICKET_STATES: Array<{ label: string; props: Partial<RangeTicketProps> }> 
   { label: "The reserve refused the quote", props: { quote: null, quoteError: QUOTE_ERROR } },
   { label: "Not enough in the wallet", props: { walletSpendableBase: 3n * 10n ** 6n } },
   { label: "Placing", props: { step: "placing" } },
-  { label: "Placed", props: { step: "success", txHash: "0x8d8a1b56b7c2e9d3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7" } },
+  { label: "Placed", props: { step: "success", txHash: fixtureSignature("0x8d8a1b56b7c2e9d3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7") } },
   { label: "Requote after the basis moved", props: { step: "error", errorTitle: "The book moved", errorDetail: RANGE.ticket.requote("36.10", FIXTURE_SYMBOL) } },
   { label: "Reserve paused", props: { reserve: { ...RESERVE, paused: true } } },
 ];
 
 function Band() {
   const draft = useRangeDraft(OPENING + 1_200n, 300);
-  return <BandControl asset="BTC" intervalSec={300} draft={draft} side="inside" onSide={noop} />;
+  return <BandControl asset="TSLA" intervalSec={300} draft={draft} side="inside" onSide={noop} />;
 }
 
 function BandWaiting() {
   const draft = useRangeDraft(null, 3600);
-  return <BandControl asset="ETH" intervalSec={3600} draft={draft} side="inside" />;
+  return <BandControl asset="NVDA" intervalSec={3600} draft={draft} side="inside" />;
 }
 
 /** `/dev/range` — the band control, the ticket's states and the slip's cards on canned readings. Scaffolding: never linked from the app. */

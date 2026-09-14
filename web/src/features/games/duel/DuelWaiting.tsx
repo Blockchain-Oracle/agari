@@ -1,6 +1,6 @@
 "use client";
 
-import { STT_FAUCETS } from "@agari/core/constants";
+import { SOL_FAUCETS } from "@agari/core/constants";
 import type { Address, Diagnosis } from "@agari/core/types";
 import { useNowMs } from "@/components/data";
 import { shortHex } from "@agari/core/units";
@@ -64,7 +64,7 @@ export function RefusalPlate({ diagnosis, gasShort, wallet }: { diagnosis: Diagn
           <p className="du-body">{DUEL.entry.gasShort}</p>
           {wallet && <p className="du-foot du-mono">{shortHex(wallet, 10, 6)}</p>}
           <ul className="du-faucets">
-            {STT_FAUCETS.map((faucet) => (
+            {SOL_FAUCETS.map((faucet) => (
               <li key={faucet.url}>
                 <a href={faucet.url} target="_blank" rel="noreferrer">
                   {faucet.name} →

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "../types/market";
+import { testMarketId } from "../testing/ids";
 import {
   PRACTICE_CARD_MIN_LIFE_SEC,
   PRACTICE_IDLE,
@@ -22,7 +22,7 @@ const NOW_MS = NOW_SEC * 1_000;
 
 function candidate(n: number, overrides: Partial<PracticeCandidate> = {}): PracticeCandidate {
   return {
-    marketId: toMarketId(`0x${String(n).padStart(64, "0")}`),
+    marketId: testMarketId(n),
     asset: "BTC",
     intervalSec: 900,
     expirySec: NOW_SEC + 300 + n * 60,

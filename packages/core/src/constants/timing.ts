@@ -25,7 +25,7 @@ export const ENTRY_BUFFER_SEC = 30;
 export const URGENT_MAX_SEC = 60;
 export const URGENT_FRACTION = 0.4;
 
-/** Windows are back-to-back on Shannon (next tradingStart == previous expiry, Story 1.4); a gap > 0 is a skipped window, not a schedule. */
+/** Windows are back-to-back within a lane (next tradingStart == previous expiry); a gap > 0 is a skipped window, not a schedule. */
 export const ROLL_GAP_SEC = 0;
 
 /** A price tick older than this is shown frozen with a staleness tick, never as live. */

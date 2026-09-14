@@ -3,7 +3,7 @@
 import type { BookedOrder } from "@agari/core/ports";
 import { isOk } from "@agari/core/schemas";
 import { belowMinStake, minStakeBase } from "@agari/core/sizing";
-import type { Hex } from "@agari/core/types";
+import type { Signature } from "@agari/core/types";
 import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet, useSigner } from "@agari/markets/react";
 import { useCallback, useState } from "react";
@@ -78,7 +78,7 @@ export function LuckyStage() {
     void draw.spin(address, stakeBase);
   };
 
-  const onReport = useCallback((status: LuckyPlacedStatus, txHash: Hex | null, booked: BookedOrder | null) => void draw.report(status, txHash, booked), [draw]);
+  const onReport = useCallback((status: LuckyPlacedStatus, txHash: Signature | null, booked: BookedOrder | null) => void draw.report(status, txHash, booked), [draw]);
   const onSkip = async () => {
     setSkipping(true);
     await draw.report("declined", null, null);

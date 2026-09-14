@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { toMarketId } from "../types/market";
-import { addressSchema, bytes32Schema, type Address } from "../types/primitives";
+import { marketIdSchema } from "../types/ids";
+import { addressSchema, hash32Schema, type Address } from "../types/primitives";
 import type { MatchOutcome, MatchState } from "./lifecycle";
 import type { CardReceipt, DeckCard } from "./types";
 
@@ -32,7 +33,7 @@ const pickSchema = z.enum(["up", "down"]);
 
 export const wireDeckCardSchema = z.object({
   index: z.number().int().min(0).max(7),
-  marketId: bytes32Schema,
+  marketId: marketIdSchema,
   asset: z.string().min(1).max(16),
   intervalSec: z.number().int().positive(),
   expirySec: z.number().int().positive(),
@@ -50,7 +51,7 @@ export const wireReceiptSchema = z.object({
 });
 
 export const wireCommitmentSchema = z.object({
-  hash: bytes32Schema,
+  hash: hash32Schema,
   size: z.number().int().min(2).max(5),
   policyVersion: z.number().int().min(0),
 });

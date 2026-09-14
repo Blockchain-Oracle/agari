@@ -1,6 +1,6 @@
 import type { Diagnosis } from "../types/diagnosis";
 import type { EventMarket, MarketId, OutcomeIdx, Side } from "../types/market";
-import type { Address, Hex } from "../types/primitives";
+import type { Address, Signature } from "../types/primitives";
 import type { Quote } from "../types/trading";
 import type { ArenaIntent } from "../games/arena";
 import type { ParlayIntent } from "../parlay/types";
@@ -14,7 +14,7 @@ import type { GrantKind, VaultCaps } from "../vault/types";
 /** The write-path state machine every surface renders (EXPERIENCE.md). */
 export type WritePhase = "composing" | "submitted" | "confirming" | "confirmed" | "reverted" | "unknown";
 
-export type PhaseListener = (phase: WritePhase, detail?: { txHash?: Hex }) => void;
+export type PhaseListener = (phase: WritePhase, detail?: { txHash?: Signature }) => void;
 
 /**
  * The order lane's third dimension (AD-3): the wallet signs its own venue order, or the same
@@ -40,19 +40,19 @@ export interface BookedOrder {
   contractsRaw: bigint;
   costBase: bigint;
   avgPriceBps: number;
-  txHash: Hex;
+  txHash: Signature;
   fillCount: number;
 }
 
 export type OrderOutcome =
   | { status: "confirmed"; booked: BookedOrder }
   /** The tx mined but crossed nothing: the book moved before the IOC landed; the stake was never taken. */
-  | { status: "nothingFilled"; txHash: Hex }
+  | { status: "nothingFilled"; txHash: Signature }
   /** The fresh quote's `maxCostBase` exceeds the confirmed one — the surface shows the new cost and asks again. */
   | { status: "requote"; quote: Quote }
   | { status: "refused"; diagnosis: Diagnosis }
-  | { status: "reverted"; diagnosis: Diagnosis; txHash: Hex }
-  | { status: "unknown"; diagnosis: Diagnosis; txHash?: Hex };
+  | { status: "reverted"; diagnosis: Diagnosis; txHash: Signature }
+  | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
 
 export interface GrantTerms {
   kind: GrantKind;
@@ -79,15 +79,8 @@ export type VaultIntent =
 
 export type TxIntent =
   | { kind: "faucet"; amountBase: bigint }
-  | { kind: "approve"; token: Address; spender: Address; amountBase: bigint }
-  | {
-      kind: "redeem";
-      marketId: MarketId;
-      outcomeIdx: OutcomeIdx;
-      amountRaw: bigint;
-      marketAddress: Address;
-      outcomeToken: Address;
-    }
+  /** `user_redeem` on a terminal Window: the outcome and lots to redeem (a PROGRAM seat may redeem part). */
+  | { kind: "redeem"; marketId: MarketId; outcomeIdx: OutcomeIdx; amountRaw: bigint }
   | VaultIntent
   | StrategyIntent
   | ParlayIntent
@@ -130,10 +123,10 @@ export function isArenaIntent(intent: TxIntent): intent is ArenaIntent {
 }
 
 export type TxOutcome =
-  | { status: "confirmed"; txHash: Hex }
-  | { status: "reverted"; diagnosis: Diagnosis; txHash?: Hex }
+  | { status: "confirmed"; txHash: Signature }
+  | { status: "reverted"; diagnosis: Diagnosis; txHash?: Signature }
   | { status: "refused"; diagnosis: Diagnosis }
-  | { status: "unknown"; diagnosis: Diagnosis; txHash?: Hex };
+  | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
 
 /** The ONE write pipeline, two lanes (AD-3). */
 export interface Submitter {
@@ -166,7 +159,7 @@ export interface IntentRecord {
   wallet: Address;
   createdAtMs: number;
   state: IntentState;
-  txHash?: Hex;
+  txHash?: Signature;
   summary: string;
   /** The pool and Window an order was aimed at — what a send with no digest is reconciled against. */
   pool?: Address;
@@ -176,7 +169,7 @@ export interface IntentRecord {
 /** Intent is journaled before send so a no-digest timeout can be reconciled instead of retried (AD-3). */
 export interface IntentJournal {
   record(entry: Omit<IntentRecord, "id" | "state" | "createdAtMs">): Promise<IntentRecord>;
-  markSent(id: string, txHash: Hex): Promise<void>;
+  markSent(id: string, txHash: Signature): Promise<void>;
   markConfirmed(id: string): Promise<void>;
   markFailed(id: string, reason: string): Promise<void>;
   markUnknown(id: string): Promise<void>;

@@ -1,4 +1,5 @@
 import { X_RECEIPT_STATUSES, type XReceipt, type XReceiptStatus } from "@agari/core/x";
+import { isSignature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 
 const LABELS: Record<XReceiptStatus, string> = {
@@ -18,7 +19,7 @@ function amount(value: string | null | undefined, decimals: number): string | nu
 
 /** A requested stake is never evidence of what a filled order actually spent. */
 export function receiptDisplay(receipt: XReceipt, decimals: number, symbol: string) {
-  const txHash = typeof receipt.txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(receipt.txHash) ? receipt.txHash : null;
+  const txHash = isSignature(receipt.txHash) ? receipt.txHash : null;
   let status = X_RECEIPT_STATUSES.includes(receipt.status) ? receipt.status : "unknown";
   // Match the public reply: historical chain-result rows need a usable receipt link.
   if (!txHash && (status === "filled" || status === "nothing-filled" || status === "reverted")) status = "unknown";

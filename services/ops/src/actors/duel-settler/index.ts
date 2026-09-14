@@ -1,10 +1,11 @@
 import type { ArenaIntent } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Bytes32, Hex, MarketId } from "@agari/core/types";
+import type { Hash32, Hex, MarketId } from "@agari/core/types";
 import { getDeck, isDbConfigured, listLiveMatches, markDeckRevealed } from "@agari/db";
 import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, type SubmitterSession } from "@agari/markets";
 import { getArenaMatch, getArenaState, resolveArenaDeployment, sendArenaIntent } from "@agari/markets/games";
 import { deckKey, fromJournal, open } from "../matchmaker/seal";
+import { readSecretKey } from "../secret-key";
 import { decideMatch, isDone, type SettlerAction } from "./decide";
 
 type Log = (why: string) => void;
@@ -25,7 +26,8 @@ type Log = (why: string) => void;
 const DEFAULT_REFRESH_MS = 30_000;
 
 interface SettlerEnv {
-  privateKey: Hex | null;
+  /** The settler role's 64-byte Solana keypair. */
+  privateKey: Uint8Array | null;
   refreshMs: number;
   dryRun: boolean;
 }
@@ -34,7 +36,7 @@ export function readSettlerEnv(env: NodeJS.ProcessEnv = process.env): SettlerEnv
   const key = env.GAME_SETTLER_PRIVATE_KEY;
   const refresh = Number(env.GAME_SETTLER_REFRESH_MS);
   return {
-    privateKey: key && /^0x[0-9a-fA-F]{64}$/.test(key) ? (key as Hex) : null,
+    privateKey: readSecretKey(key),
     refreshMs: Number.isFinite(refresh) && refresh >= 5_000 ? refresh : DEFAULT_REFRESH_MS,
     dryRun: !(env.DRY_RUN === "0" || env.DRY_RUN === "false"),
   };
@@ -46,7 +48,7 @@ export function readSettlerEnv(env: NodeJS.ProcessEnv = process.env): SettlerEnv
  * reveal deadline turns the match into a refund. That is the designed failure: an operator who loses a
  * deck returns both pots rather than deciding a duel nobody could play.
  */
-async function revealIntent(matchId: Bytes32, log: Log): Promise<ArenaIntent | null> {
+async function revealIntent(matchId: Hash32, log: Log): Promise<ArenaIntent | null> {
   const key = deckKey();
   if (!key) return null;
   const sealed = (await getDeck(matchId))?.sealed ?? fromJournal(matchId);
@@ -59,8 +61,8 @@ async function revealIntent(matchId: Bytes32, log: Log): Promise<ArenaIntent | n
     return {
       kind: "arena-reveal",
       matchId,
-      serverSeed: material.serverSeed as Bytes32,
-      clientSeeds: material.clientSeeds as readonly Bytes32[],
+      serverSeed: material.serverSeed as Hash32,
+      clientSeeds: material.clientSeeds as readonly Hash32[],
       cards: material.cards as readonly MarketId[],
     };
   } catch (error) {
@@ -110,7 +112,7 @@ async function crank(session: SubmitterSession | null, dryRun: boolean, action: 
   }
   try {
     const sent = await sendArenaIntent(session.contracts, intent);
-    log(`${label}: ${action.why} · ${sent.hash} · gas ${sent.receipt.gasUsed}`);
+    log(`${label}: ${action.why} · ${sent.txHash}`);
     if (action.kind === "arena-reveal") await markDeckRevealed(action.matchId);
     return true;
   } catch (error) {
@@ -138,7 +140,7 @@ export async function startDuelSettler(log: Log): Promise<void> {
 
   let session: SubmitterSession | null = null;
   if (env.privateKey) {
-    session = await createSubmitterSession({ env: marketsEnv, authority: "game-settler", signer: { privateKey: env.privateKey }, journal: createMemoryJournal() });
+    session = await createSubmitterSession({ env: marketsEnv, authority: "game-settler", signer: { secretKey: env.privateKey }, journal: createMemoryJournal() });
     log(`settler key ${session.address}${env.dryRun ? " (DRY RUN: nothing is sent)" : ""}`);
   } else {
     log("no GAME_SETTLER_PRIVATE_KEY; watching and reporting, never sending");
@@ -155,7 +157,7 @@ export async function startDuelSettler(log: Log): Promise<void> {
     const nowSec = Math.floor(marketsProvider.nowMs() / 1_000);
     let cranked = 0;
     for (const matchId of live) {
-      const reading = await getArenaMatch(matchId as Bytes32);
+      const reading = await getArenaMatch(matchId as Hash32);
       if (!isOk(reading) || !reading.value) continue;
       const view = reading.value;
       if (isDone(view.match)) continue;

@@ -1,15 +1,8 @@
-import { isBytes32, type Address, type Bytes32 } from "./primitives";
+import type { TickerSymbol } from "../market/tickers";
+import type { MarketId } from "./ids";
+import type { Address } from "./primitives";
 
-declare const marketIdBrand: unique symbol;
-
-/** The venue's bytes32 market id — the identity of a market everywhere off-chain. Never a pool address (NFR-3). */
-export type MarketId = Bytes32 & { readonly [marketIdBrand]: true };
-
-export function toMarketId(value: string): MarketId {
-  const lower = value.toLowerCase();
-  if (!isBytes32(lower)) throw new Error(`not a bytes32 market id: ${value}`);
-  return lower as MarketId;
-}
+export { toMarketId, type MarketId } from "./ids";
 
 export type Side = "up" | "down";
 export type OutcomeIdx = 0 | 1;
@@ -20,31 +13,58 @@ export const OUTCOME_TO_SIDE: Record<OutcomeIdx, Side> = { 0: "up", 1: "down" };
 /** Indexer lifecycle status — event-derived, so it lags the timestamp-implicit transitions (canon #1). */
 export type IndexedStatus = "Listed" | "Trading" | "Locked" | "Settling" | "Resolved" | "Voided" | "Finalized";
 
+/**
+ * A Series' basis (the `basis: u8` seed in agari-events):
+ * - `regular`: in-session Windows on the ET clock, signed stock prints at exact T;
+ * - `gap`: one "Monday Gap" per weekend, Friday close → next session open;
+ * - `token`: 24/7 Windows on the xStock token price.
+ */
+export type LaneBasis = "regular" | "gap" | "token";
+
+/** The Gap lane's nominal cadence (its `cadence: u32` seed): one Window a week. The Window's own span varies with holidays. */
+export const GAP_CADENCE_SEC = 604_800;
+
+/** Which signed source recorded a print (plan PD-1). Every verdict names it. */
+export type PrintSource = "pyth" | "redstone" | "switchboard" | "attested";
+
+/** Why a Window voided at 0.5/0.5 instead of paying Up or Down (stored in `MarketResult`). */
+export type VoidReason = "missing-print" | "cross-check-divergence";
+
+/** One Window: the `Market` PDA, its Series and the recycled Book it trades on. */
 export interface EventMarket {
   marketId: MarketId;
-  venueId: Bytes32 | null;
-  asset: string;
+  /** The agari-events `GlobalConfig` the Window belongs to. */
+  venueId: Address | null;
+  asset: TickerSymbol;
+  lane: LaneBasis;
   question: string;
+  /** The Series cadence: 300 / 900 / 3,600, or `GAP_CADENCE_SEC` on the Gap lane. */
   intervalSec: number;
-  strikeRaw: bigint;
-  /** strike 0 = "close at or above open"; fixed-strike markets are excluded from v1 lanes (FR-6). */
-  isUpDown: boolean;
   tradingStartSec: number;
+  /** Trading stops here (`lock_at`): equal to `expirySec` except on the Gap lane, which locks Sunday 20:00 ET. */
+  lockAtSec: number;
+  /** The closing print's boundary T. */
   expirySec: number;
-  /** Recycled across windows — a display detail, never a key. */
+  /** The recycled Book account — a display detail, never a key. */
   poolAddress: Address;
+  /** The Market PDA; always equal to `marketId`. */
   marketAddress: Address;
+  seriesAddress: Address;
+  /** The Window's index within its Series. */
   nonce: bigint | null;
-  yesTokenId: bigint;
-  noTokenId: bigint;
+  /** The frozen price-policy version both prints must come from (PD-1). */
+  policyVersion: number;
+  /** The policy's primary source, known at listing. */
+  printSource: PrintSource;
   collateral: Address;
   decimals: number;
   status: IndexedStatus;
   winningOutcome: OutcomeIdx | null;
   voided: boolean;
+  voidReason: VoidReason | null;
   finalized: boolean | null;
+  /** The opening print normalized to `PRINT_EXPO` (× 10⁻⁸); null until recorded. */
   openingPriceRaw: bigint | null;
-  oracleQuestionId: string | null;
   volumeQuoteRaw: bigint;
   tradeCount: number;
   lastPriceRaw: bigint | null;
@@ -55,15 +75,15 @@ export interface EventMarket {
 export interface OnchainSnapshot {
   marketId: MarketId;
   marketAddress: Address;
-  outcomeToken: Address;
-  yesId: bigint;
-  noId: bigint;
   pool: Address;
+  ledger: Address;
   nonce: bigint;
   collateral: Address;
   status: number;
+  /** Complete pairs in existence: ΣYES == ΣNO == backing. */
   backing: bigint;
   finalized: boolean;
+  lockAtSec: number;
   expirySec: number;
   decimals: number;
   winningOutcome: OutcomeIdx | null;
@@ -72,6 +92,7 @@ export interface OnchainSnapshot {
 }
 
 export interface Lane {
+  basis: LaneBasis;
   intervalSec: number;
   label: string;
   markets: EventMarket[];
@@ -80,7 +101,6 @@ export interface Lane {
 }
 
 export interface LaneSet {
-  venueId: Bytes32;
+  venueId: Address;
   lanes: Lane[];
-  excludedFixedStrike: number;
 }

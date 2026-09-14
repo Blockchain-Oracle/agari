@@ -6,15 +6,15 @@ import { useCallback, useEffect, useState } from "react";
 
 export const SPONSOR_ENDPOINT = "/api/sponsor";
 
-interface SponsorWire {
+/** `GET /api/sponsor` on the wire: lamports as a decimal string. The route answers with exactly this shape. */
+export interface SponsorWire {
   configured: boolean;
   sponsor: Address | null;
-  balanceWei: string | null;
-  forwarder: Address | null;
+  balanceLamports: string | null;
   allowlist: SponsorStatus["allowlist"];
 }
 
-/** Asks the relayer once whether it exists and what it will pay for; null until it has answered. */
+/** Asks the fee-payer co-signer once whether it exists and what it will pay for; null until it has answered. */
 export function useSponsorStatus(): { status: SponsorStatus | null; refresh: () => void } {
   const [status, setStatus] = useState<SponsorStatus | null>(null);
   const [nonce, setNonce] = useState(0);
@@ -24,10 +24,10 @@ export function useSponsorStatus(): { status: SponsorStatus | null; refresh: () 
       .then((r) => r.json() as Promise<SponsorWire>)
       .then((wire) => {
         if (cancelled) return;
-        setStatus({ ...wire, balanceWei: wire.balanceWei === null ? null : BigInt(wire.balanceWei) });
+        setStatus({ configured: wire.configured, sponsor: wire.sponsor, allowlist: wire.allowlist ?? [], balanceLamports: wire.balanceLamports === null ? null : BigInt(wire.balanceLamports) });
       })
       .catch(() => {
-        if (!cancelled) setStatus({ configured: false, sponsor: null, balanceWei: null, forwarder: null, allowlist: [] });
+        if (!cancelled) setStatus({ configured: false, sponsor: null, balanceLamports: null, allowlist: [] });
       });
     return () => {
       cancelled = true;

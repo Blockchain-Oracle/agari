@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { enumerateClaimables, type SettledMarket } from "./enumerate";
 import { estPayoutBase } from "./payout";
+import { testAddress, testMarketId } from "../testing/ids";
 
 const market: SettledMarket = {
-  marketId: `0x${"1".padStart(64, "0")}` as SettledMarket["marketId"],
-  marketAddress: `0x${"2".padStart(40, "0")}`,
-  asset: "BTC",
+  marketId: testMarketId(1),
+  marketAddress: testAddress(2),
+  asset: "TSLA",
   intervalSec: 300,
   expirySec: 1_000,
   decimals: 6,
@@ -15,13 +16,14 @@ const market: SettledMarket = {
 };
 
 describe("estPayoutBase", () => {
-  it("pays a win net of the settlement fee", () => {
-    expect(estPayoutBase(1_000_000n, "win", 0)).toBe(1_000_000n);
-    expect(estPayoutBase(1_000_000n, "win", 250)).toBe(975_000n);
+  it("mirrors user_redeem on the spec's worked numbers: 4,000 lots × 1,000 base units", () => {
+    expect(estPayoutBase(4_000_000n, "win")).toBe(4_000_000n);
+    expect(estPayoutBase(4_000_000n, "void")).toBe(2_000_000n);
   });
 
-  it("pays a void at half, gross — no fee is skimmed on a void", () => {
-    expect(estPayoutBase(1_000_000n, "void", 250)).toBe(500_000n);
+  it("floors once, never charges a fee", () => {
+    expect(estPayoutBase(1_000_001n, "win")).toBe(1_000_001n);
+    expect(estPayoutBase(1_001n, "void")).toBe(500n);
   });
 });
 
