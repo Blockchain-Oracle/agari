@@ -11,5 +11,6 @@ pub mod fixtures;
 pub mod harness;
 pub mod ix;
 pub mod read;
+pub mod trade;
 
 pub use harness::{Harness, Sent};

@@ -18,6 +18,10 @@ path = "src/lib.rs"
 name = "events_admin"
 path = "events_admin.rs"
 
+[[test]]
+name = "events_orders"
+path = "events_orders.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
