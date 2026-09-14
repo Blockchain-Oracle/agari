@@ -47,7 +47,7 @@ export const hex = (bytes: ArrayLike<number>) => Array.from(bytes, (b) => b.toSt
 
 export async function send(ctx: SendContext, step: string, instructions: Instruction[], note: string): Promise<string> {
   try {
-    const result = await ctx.client.sendTransaction(instructions);
+    const result = await ctx.client.sendTransaction(instructions, { abortSignal: AbortSignal.timeout(120_000) });
     const signature = String(result.context.signature);
     ctx.log({ step, signature, note });
     return signature;

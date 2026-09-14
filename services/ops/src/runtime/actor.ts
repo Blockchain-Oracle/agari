@@ -39,6 +39,7 @@ export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat }
     spec.log(spec.dryRun ? "start (DRY RUN: nothing is signed)" : "start");
     while (!stopped) {
       let delay = spec.everyMs;
+      beat.passStartedMs = Date.now();
       try {
         const result = await spec.pass(beat);
         beat.lastOkMs = Date.now();
@@ -54,6 +55,7 @@ export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat }
         delay = Math.min(spec.everyMs * 2 ** beat.failures, MAX_BACKOFF_MS);
       }
       beat.lastPassMs = Date.now();
+      beat.passStartedMs = null;
       await sleep(Math.max(0, delay));
     }
   })();

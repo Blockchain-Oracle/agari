@@ -4,6 +4,8 @@ export interface Heartbeat {
   dryRun: boolean;
   startedMs: number;
   lastPassMs: number | null;
+  /** When the running pass started; null between passes. The main watchdog exits the process on a stuck pass. */
+  passStartedMs: number | null;
   lastOkMs: number | null;
   lastWhy: string;
   /** Consecutive failed passes. */
@@ -15,7 +17,7 @@ export interface Heartbeat {
 const beats = new Map<string, Heartbeat>();
 
 export function registerHeartbeat(actor: string, dryRun: boolean): Heartbeat {
-  const beat: Heartbeat = { actor, dryRun, startedMs: Date.now(), lastPassMs: null, lastOkMs: null, lastWhy: "starting", failures: 0, detail: {} };
+  const beat: Heartbeat = { actor, dryRun, startedMs: Date.now(), lastPassMs: null, passStartedMs: null, lastOkMs: null, lastWhy: "starting", failures: 0, detail: {} };
   beats.set(actor, beat);
   return beat;
 }

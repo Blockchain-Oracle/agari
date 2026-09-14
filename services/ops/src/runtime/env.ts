@@ -47,4 +47,13 @@ export function redact(text: string, env: NodeJS.ProcessEnv = process.env): stri
   return out;
 }
 
-export const errorText = (error: unknown): string => redact(error instanceof Error ? error.message : String(error));
+/** The error's message plus its root cause and code (e.g. `fetch failed ← other side closed [UND_ERR_SOCKET]`), redacted. */
+export function errorText(error: unknown): string {
+  const top = error instanceof Error ? error.message : String(error);
+  let root: unknown = error;
+  for (let depth = 0; depth < 8 && (root as { cause?: unknown })?.cause; depth++) root = (root as { cause: unknown }).cause;
+  if (root === error || !(root instanceof Error)) return redact(top);
+  const code = (root as { code?: unknown }).code;
+  const detail = `${root.message}${typeof code === "string" && !root.message.includes(code) ? ` [${code}]` : ""}`;
+  return redact(top.includes(root.message) ? top : `${top} ← ${detail}`);
+}

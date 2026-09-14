@@ -177,6 +177,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.102.8(react@19.2.8)
+      undici:
+        specifier: 7.29.0
+        version: 7.29.0
       zod:
         specifier: 'catalog:'
         version: 4.5.4

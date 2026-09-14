@@ -77,10 +77,16 @@ export class OpsSendError extends Error {
   }
 }
 
-/** Sends one transaction and waits for confirmation. Throws `OpsSendError`. */
+/**
+ * A send that hasn't confirmed by then is abandoned (a stalled confirmation subscription once hung a roller pass for
+ * 50 minutes). The transaction may still land: the actor's next pass re-reads chain state before acting.
+ */
+export const SEND_TIMEOUT_MS = 120_000;
+
+/** Sends one transaction and waits for confirmation, at most `SEND_TIMEOUT_MS`. Throws `OpsSendError`. */
 export async function sendOps(client: OpsClient, instructions: Instruction[], label: string): Promise<{ signature: string }> {
   try {
-    const result = await client.sendTransaction(instructions);
+    const result = await client.sendTransaction(instructions, { abortSignal: AbortSignal.timeout(SEND_TIMEOUT_MS) });
     return { signature: String(result.context.signature) };
   } catch (error) {
     throw new OpsSendError(label, error);
