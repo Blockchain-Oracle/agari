@@ -2,8 +2,8 @@
  * The shared read runtime (one per browser tab or server process).
  *
  * It holds the configured cluster, endpoints and program ids, and has no signer. Every signer lives in its own
- * `SubmitterSession` (../sessions), so a read-endpoint change can never move a write's authority. In S1 it opens
- * no connection: nothing is deployed to read from, and the `@solana/kit` client arrives with the adapter (S4).
+ * `SubmitterSession` (../sessions), so a read-endpoint change can never move a write's authority. It is a descriptor:
+ * the Kit RPC and subscriptions are built from it lazily (`solana.ts`) and rebuilt when it is reconfigured.
  */
 import type { Cluster } from "@agari/core/constants";
 import type { ArenaDeployment } from "@agari/core/games";
@@ -17,7 +17,7 @@ import type { VaultDeployment } from "@agari/core/vault";
 import type { MarketsEnv } from "../env";
 import { mark } from "../perf/milestones";
 
-/** What the runtime is pointed at. A descriptor, not a connection: the kit RPC client is built in S4. */
+/** What the runtime is pointed at. A descriptor, not a connection (`solana()` builds the Kit clients from it). */
 export interface ReadClient {
   cluster: Cluster;
   rpcHttpUrl: string;
@@ -51,6 +51,11 @@ export function ensureMarkets(env: MarketsEnv): void {
 
 export function getClient(): ReadClient {
   if (!client) throw new Error("markets port not configured — call configureMarkets(env) first");
+  return client;
+}
+
+/** The configured runtime, or null before `configureMarkets` (a script or test reading with the devnet defaults). */
+export function peekClient(): ReadClient | null {
   return client;
 }
 
