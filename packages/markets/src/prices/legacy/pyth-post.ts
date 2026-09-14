@@ -50,6 +50,14 @@ function receiverFor(connection: Connection, payer: Keypair): PythSolanaReceiver
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** One web3.js Connection per RPC URL for the process (each opens its own websocket for confirmations). */
+const connections = new Map<string, Connection>();
+function connectionFor(rpcUrl: string): Connection {
+  let connection = connections.get(rpcUrl);
+  if (!connection) connections.set(rpcUrl, (connection = new Connection(rpcUrl, "confirmed")));
+  return connection;
+}
+
 /** Signs with a fresh blockhash, sends, and re-sends until confirmed; throws on a failed or expired transaction. */
 async function sendConfirmed(connection: Connection, payer: Keypair, tx: VersionedTransaction, signers: Signer[]): Promise<string> {
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
@@ -95,12 +103,13 @@ async function sendBatched(
 export async function postPythUpdates(config: PythPostConfig & { updatesBase64: string[] }): Promise<PythPostResult> {
   if (config.updatesBase64.length === 0) return { priceUpdates: [], signatures: [] };
   const payer = payerKeypair(config.payerSecret);
-  const receiver = receiverFor(new Connection(config.rpcUrl, "confirmed"), payer);
+  const receiver = receiverFor(connectionFor(config.rpcUrl), payer);
   const built = await receiver.buildPostPriceUpdateInstructions(config.updatesBase64);
   // closeInstructions mixes receiver `reclaim_rent` (price updates, kept open) and Wormhole encoded-VAA closes (sent now).
   const vaaCloses = built.closeInstructions.filter((ix) => !ix.instruction.programId.equals(receiver.receiver.programId));
-  // Every post and VAA-close instruction carries its SDK compute budget, so a tight limit is safe here.
-  const signatures = await sendBatched(receiver, payer, [...built.postInstructions, ...vaaCloses], config.computeUnitPriceMicroLamports ?? 0, true);
+  // The SDK's per-instruction budgets undershoot `post_update` for a 3-feed update now and then (the S3 soak saw
+  // "Computational budget exceeded" on rec5EK…), so posts keep the generous default limit; at a 0 priority fee it costs nothing.
+  const signatures = await sendBatched(receiver, payer, [...built.postInstructions, ...vaaCloses], config.computeUnitPriceMicroLamports ?? 0, false);
   const priceUpdates = Object.entries(built.priceFeedIdToPriceUpdateAccount).map(([feedId, account]) => ({
     feedIdHex: feedId.replace(/^0x/, "").toLowerCase(),
     address: account.toBase58(),
@@ -112,7 +121,7 @@ export async function postPythUpdates(config: PythPostConfig & { updatesBase64: 
 export async function closePythUpdates(config: PythPostConfig & { addresses: string[] }): Promise<string[]> {
   if (config.addresses.length === 0) return [];
   const payer = payerKeypair(config.payerSecret);
-  const receiver = receiverFor(new Connection(config.rpcUrl, "confirmed"), payer);
+  const receiver = receiverFor(connectionFor(config.rpcUrl), payer);
   const closes = await Promise.all(config.addresses.map((a) => receiver.buildClosePriceUpdateInstruction(new PublicKey(a))));
   // `reclaim_rent` instructions carry no compute budget: a tight limit would be 0, so keep the default per instruction.
   return sendBatched(receiver, payer, closes, config.computeUnitPriceMicroLamports ?? 0, false);

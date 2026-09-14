@@ -30,13 +30,24 @@ export async function keypairSigner(secret: Uint8Array): Promise<KeyPairSigner> 
   return createKeyPairSignerFromBytes(secret);
 }
 
+/**
+ * One RPC Subscriptions instance per URL for the whole process: Kit pools every client's confirmation subscriptions
+ * onto shared websockets instead of one socket per role client (Helius refused extra connections in the S3 soak).
+ */
+const subscriptionsByUrl = new Map<string, ReturnType<typeof createSolanaRpcSubscriptions>>();
+function sharedSubscriptions(url: string) {
+  let subscriptions = subscriptionsByUrl.get(url);
+  if (!subscriptions) subscriptionsByUrl.set(url, (subscriptions = createSolanaRpcSubscriptions(url)));
+  return subscriptions;
+}
+
 export async function createDeployClient(config: DeployClientConfig) {
   const payer = await keypairSigner(config.payerSecret);
   return createClient()
     .use(signer(payer))
     // `solanaRpc`'s own composition (kit-plugin-rpc 0.19), with the retrying transport in place of the default one.
     .use(rpcConnection(createSolanaRpcFromTransport(retryingRpcTransport(config.rpcUrl))))
-    .use(rpcSubscriptionsConnection(createSolanaRpcSubscriptions(config.rpcSubscriptionsUrl)))
+    .use(rpcSubscriptionsConnection(sharedSubscriptions(config.rpcSubscriptionsUrl)))
     .use(rpcGetMinimumBalance())
     .use(rpcTransactionPlanner())
     .use(rpcTransactionPlanSigningExecutor())
