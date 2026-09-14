@@ -1,6 +1,6 @@
 import { bandProbE6, floorStake, rungHolds, sideProbRaw, solveStrike, type RangeParams } from "@agari/core/range";
 import { err, ok } from "@agari/core/schemas";
-import { diagnosis, toMarketId } from "@agari/core/types";
+import { diagnosis, encodeBase58, toMarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { solveMoonshotQuote, type MoonshotReads } from "./moonshot";
 import type { RangeBand, RangePreview } from "./read";
@@ -10,7 +10,7 @@ const DECIMALS = 6;
 const OPEN = 7_673_523n;
 const SIGMA = 6_200n;
 const TAU_SEC = 240;
-const WINDOW = { marketId: toMarketId(`0x${"ab".repeat(32)}`), asset: "BTC" };
+const WINDOW = { marketId: toMarketId(encodeBase58(new Uint8Array(32).fill(0xab))), asset: "TSLA" as const };
 const PARAMS: RangeParams = {
   marginBps: 1_200,
   maxExposureBps: 6_000,

@@ -1,10 +1,11 @@
 import { err, type Reading } from "@agari/core/schemas";
 import type { DiagnosisKind } from "@agari/core/types";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { diagnose } from "../errors/error-map";
 import { ReadingError } from "../errors/reading-error";
 import { BOOT_FACTS, type BootFact } from "./boot-fact";
-import { useBootFacts } from "./boot-facts-context";
+import { useBootFactState } from "./boot-facts-context";
 
 const DEFAULT_STALE_MS = 5_000;
 const MAX_READ_RETRIES = 2;
@@ -68,8 +69,11 @@ export function useReadingQuery<T>(
   options: ReadingQueryOptions<T> = {},
 ): Reading<T> | null {
   const { pollMs, enabled = true, staleTimeMs, needs = BOOT_FACTS } = options;
-  const facts = useBootFacts();
-  const needsMet = needs.every((fact) => facts[fact]);
+  const facts = useBootFactState();
+  const needsMet = needs.every((fact) => facts.ready[fact]);
+  // A needed fact that has failed is the read's answer: waiting on it would show "loading" forever.
+  const failedNeed = needs.map((fact) => facts.failed[fact]).find((failure) => failure !== undefined);
+  const failedReading = useMemo(() => (failedNeed ? err(failedNeed) : null), [failedNeed]);
   const query = useQuery({
     queryKey,
     queryFn: async () => {
@@ -87,6 +91,7 @@ export function useReadingQuery<T>(
 
   const data = query.data ?? null;
   if (data) return data;
+  if (enabled && !needsMet && failedReading) return failedReading;
   if (query.isError) return err(diagnose(query.error));
   return null;
 }

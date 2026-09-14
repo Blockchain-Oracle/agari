@@ -28,7 +28,7 @@ export interface RecoveryResult {
 
 export type Reconciler = (wallet: Address, record: IntentRecord) => Promise<ReconcileVerdict>;
 
-/** The real reconciler: the receipt when there is a digest, the pool's fills when there is not. */
+/** The chain reconciler: the transaction status when there is a signature, the Window's fills when there is not (S4). */
 export const chainReconciler: Reconciler = (wallet, record) => reconcileUnknown(wallet, record, record.pool);
 
 async function recoverOne(journal: IntentJournal, wallet: Address, record: IntentRecord, reconcile: Reconciler, nowMs: number): Promise<RecoveryResult> {

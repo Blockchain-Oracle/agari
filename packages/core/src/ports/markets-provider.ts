@@ -1,4 +1,5 @@
 import type { WalletHistory } from "../projection/types";
+import type { TickerSymbol } from "../market/tickers";
 import type { Reading } from "../schemas/reading";
 import type { AssetPrice, ClockSync, PricePoint, Resolution } from "../types/feeds";
 import type { EventMarket, LaneSet, MarketId, OnchainSnapshot, Side } from "../types/market";
@@ -28,8 +29,8 @@ export interface MarketsProvider {
   /** Watch-free quote straight off the chain book — what the Submitter re-quotes with at click time. */
   freshQuoteStake(target: QuoteTarget, side: Side, stakeBase: bigint): Promise<Reading<Quote | null>>;
   getOpeningPrice(marketId: MarketId): Promise<Reading<bigint | null>>;
-  getAssetPrice(asset: string): Promise<Reading<AssetPrice | null>>;
-  getPriceHistory(asset: string, fromSec: number, toSec: number): Promise<Reading<PricePoint[]>>;
+  getAssetPrice(asset: TickerSymbol): Promise<Reading<AssetPrice | null>>;
+  getPriceHistory(asset: TickerSymbol, fromSec: number, toSec: number): Promise<Reading<PricePoint[]>>;
   settlementFeeBps(marketId: MarketId): Promise<Reading<number>>;
   listOpenPositions(wallet: Address): Promise<Reading<OpenPosition[]>>;
   getHoldings(wallet: Address, onchain: OnchainSnapshot): Promise<Reading<Holdings>>;

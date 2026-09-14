@@ -1,15 +1,13 @@
-import { addressSchema, bytes32Schema } from "@agari/core/types";
+import { CLUSTER_ID, DEFAULT_CLUSTER, type Cluster } from "@agari/core/constants";
+import { addressSchema } from "@agari/core/types";
 import { z } from "zod";
-import { RPC_HTTP_URLS, RPC_WS_URLS, SOMNIA_SHANNON_ID } from "./chain";
 
-export const SHANNON_DEFAULTS = {
-  chainId: SOMNIA_SHANNON_ID,
-  indexerUrl: "https://dev.smk.somnia.host/v1/graphql",
-  rpcWsUrls: [...RPC_WS_URLS],
-  rpcHttpUrls: [...RPC_HTTP_URLS],
-  venueId: "0x679795a0195a1b76cdebb7c51d74e058aee92919b8c3389af86ef24535e8a28c" as const,
-  priceFeedQuote: "USDC",
-};
+/** Public Solana devnet endpoints: rate-limited but keyless, so a deploy with no env still boots (a Helius key stays server-side). */
+export const DEVNET_DEFAULTS = {
+  cluster: DEFAULT_CLUSTER,
+  rpcHttpUrls: ["https://api.devnet.solana.com"],
+  rpcWsUrls: ["wss://api.devnet.solana.com"],
+} as const;
 
 const urlList = z.preprocess(
   (raw) => (typeof raw === "string" ? raw.split(",").map((s) => s.trim()).filter(Boolean) : raw),
@@ -17,42 +15,44 @@ const urlList = z.preprocess(
 );
 
 export const marketsEnvSchema = z.object({
-  chainId: z.coerce.number().int().default(SHANNON_DEFAULTS.chainId),
-  indexerUrl: z.url().default(SHANNON_DEFAULTS.indexerUrl),
-  rpcWsUrls: urlList.default(SHANNON_DEFAULTS.rpcWsUrls),
-  rpcHttpUrls: urlList.default(SHANNON_DEFAULTS.rpcHttpUrls),
-  venueId: bytes32Schema.default(SHANNON_DEFAULTS.venueId),
+  cluster: z.enum(["mainnet-beta", "devnet", "localnet"]).default(DEVNET_DEFAULTS.cluster),
+  rpcHttpUrls: urlList.default([...DEVNET_DEFAULTS.rpcHttpUrls]),
+  rpcWsUrls: urlList.default([...DEVNET_DEFAULTS.rpcWsUrls]),
+  /** The Agari indexer API (S3); absent until it runs. */
+  indexerUrl: z.url().optional(),
+  /** The agari-events `GlobalConfig` address; absent until S2 deploys (D-010). */
+  venueId: addressSchema.optional(),
+  /** The agari-events program id; absent until S2 deploys. `program-id-drift` checks it against the IDL once present. */
+  eventsProgramId: addressSchema.optional(),
+  /** price-relay's spot SSE endpoint (S3). */
   priceFeedUrl: z.url().optional(),
-  priceFeedQuote: z.string().default(SHANNON_DEFAULTS.priceFeedQuote),
-  /** Local-fork overrides for the EventVault; production reads the generated addresses module (AD-10). */
-  eventVaultAddress: addressSchema.optional(),
-  forwarderAddress: addressSchema.optional(),
-  eventVaultFromBlock: z.coerce.bigint().optional(),
-  /** Local-fork overrides for the ParlayReserve, the same way. */
-  parlayReserveAddress: addressSchema.optional(),
-  parlayReserveFromBlock: z.coerce.bigint().optional(),
-  /** Local-fork overrides for the RangeReserve, the same way. */
-  rangeReserveAddress: addressSchema.optional(),
-  rangeReserveFromBlock: z.coerce.bigint().optional(),
-  /** Local-fork overrides for the MarketMakerVault, the same way. */
-  marketMakerVaultAddress: addressSchema.optional(),
-  marketMakerVaultFromBlock: z.coerce.bigint().optional(),
-  /** A local fork's LeverageReserve; production reads the generated module (AD-10). */
-  leverageReserveAddress: addressSchema.optional(),
-  leverageReserveFromBlock: z.coerce.bigint().optional(),
-  /** A local fork's PrivateDesk; production reads the generated module (AD-10). */
-  privateDeskAddress: addressSchema.optional(),
-  privateDeskFromBlock: z.coerce.bigint().optional(),
-  /** A local fork's GameArena; production reads the generated module (AD-10). */
-  gameArenaAddress: addressSchema.optional(),
-  gameArenaFromBlock: z.coerce.bigint().optional(),
 });
 
-export type MarketsEnv = z.infer<typeof marketsEnvSchema>;
+export type MarketsEnvParsed = z.infer<typeof marketsEnvSchema>;
+
+/** The chain-port config. `chainId` is the numeric cluster id product types still bind (D-012), derived, never configured. */
+export type MarketsEnv = MarketsEnvParsed & { chainId: number };
 export type MarketsEnvInput = z.input<typeof marketsEnvSchema>;
 
-/** Parses the chain-port config with baked Shannon defaults: every field is optional, so a deploy with no env still boots. */
+/** Parses the chain-port config with devnet defaults: every field is optional. */
 export function parseMarketsEnv(raw: Partial<Record<keyof MarketsEnvInput, unknown>> = {}): MarketsEnv {
   const defined = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined && v !== ""));
-  return marketsEnvSchema.parse(defined);
+  const parsed = marketsEnvSchema.parse(defined);
+  return { ...parsed, chainId: CLUSTER_ID[parsed.cluster as Cluster] };
+}
+
+/**
+ * The env-var names a web or ops process maps into `parseMarketsEnv`. Kept as literal property reads so Next.js
+ * inlines the `NEXT_PUBLIC_*` values into client bundles.
+ */
+export function marketsEnvInputFrom(source: Record<string, string | undefined>): Partial<Record<keyof MarketsEnvInput, unknown>> {
+  return {
+    cluster: source.NEXT_PUBLIC_SOLANA_CLUSTER,
+    rpcHttpUrls: source.NEXT_PUBLIC_SOLANA_RPC_URL,
+    rpcWsUrls: source.NEXT_PUBLIC_SOLANA_WS_URL,
+    indexerUrl: source.NEXT_PUBLIC_AGARI_INDEXER_URL,
+    venueId: source.NEXT_PUBLIC_AGARI_VENUE_ID,
+    eventsProgramId: source.NEXT_PUBLIC_AGARI_EVENTS_PROGRAM_ID,
+    priceFeedUrl: source.NEXT_PUBLIC_PRICE_FEED_URL,
+  };
 }

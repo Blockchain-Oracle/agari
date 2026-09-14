@@ -14,23 +14,21 @@ import {
   type RangeQuote,
 } from "@agari/core/range";
 import { err, ok, type Reading } from "@agari/core/schemas";
+import type { TickerSymbol } from "@agari/core/market";
+import { RANGE_NOT_DEPLOYED } from "@agari/core/range";
 import { diagnosis, type Diagnosis, type MarketId } from "@agari/core/types";
 import { oneUnit } from "@agari/core/units";
-import { getCollateral } from "../collateral";
-import { nowMs } from "../provider/clock";
-import { diagnoseRange } from "./errors";
-import { previewRangeBasis, previewRangeOpen, reserveClient, reserveContract, toRangeQuote, type RangeBand, type RangePreview, type RangeWindowBasis } from "./read";
-
-const NOT_DEPLOYED = "RangeReserve is not deployed on this network yet";
+import { unavailableFor } from "../stub/product";
+import { toRangeQuote, type RangeBand, type RangePreview, type RangeWindowBasis } from "./read";
 
 export interface MoonshotWindow {
   marketId: MarketId;
-  asset: string;
+  asset: TickerSymbol;
 }
 
 /** The chain's two answers a Moonshot quote is built from; injectable so the solve can be driven without a chain. */
 export interface MoonshotReads {
-  previewBasis: (marketId: MarketId, asset: string) => Promise<Reading<RangeWindowBasis>>;
+  previewBasis: (marketId: MarketId, asset: TickerSymbol) => Promise<Reading<RangeWindowBasis>>;
   previewOpen: (band: RangeBand, maxPayoutBase: bigint) => Promise<Reading<RangePreview>>;
 }
 
@@ -130,37 +128,21 @@ export async function solveMoonshotQuote(
   return ok({ call, band, rangeBand, openingPrint: preview.value.openingPrint, basis: preview.value.basis, quote, houseLockedBase: payout - quote.stakeBase, payoutCapBase: capBase }, preview.asOfMs);
 }
 
-const LIVE_READS: MoonshotReads = { previewBasis: previewRangeBasis, previewOpen: previewRangeOpen };
-
-export function quoteMoonshotOnchain(window: MoonshotWindow, call: MoonshotCall, mode: RangeMode, params: RangeParams, tauSec: number): Promise<Reading<MoonshotQuote>> {
-  return solveMoonshotQuote(LIVE_READS, window, call, mode, params, tauSec, getCollateral().decimals);
+/** The live quote needs the Range program's previews (S10); the solve above stays, driven by injected reads in tests. */
+export function quoteMoonshotOnchain(_window: MoonshotWindow, _call: MoonshotCall, _mode: RangeMode, _params: RangeParams, _tauSec: number): Promise<Reading<MoonshotQuote>> {
+  return unavailableFor(RANGE_NOT_DEPLOYED);
 }
 
 export interface RangeCapacity {
   /** Whether the reserve would accept a round locking `houseLockedBase` on this expiry right now. */
   fits: boolean;
-  /** The reserve's own refusal — `OverExpiryCap`, `InsufficientLiquidity`, `OverExposure` — when it would not. */
+  /** The reserve's own refusal when it would not. */
   refusal: Diagnosis | null;
   /** What the expiry already has locked against it, for the liability line. */
   lockedByExpiryBase: bigint;
 }
 
-/** The reserve's caps for a round, asked before the popup: `checkCapacity` is the exact check `openRange` runs after pricing. */
-export async function readRangeCapacity(houseLockedBase: bigint, expirySec: number): Promise<Reading<RangeCapacity>> {
-  const contract = reserveContract();
-  if (!contract) return err(diagnosis("not-deployed", NOT_DEPLOYED));
-  const client = reserveClient();
-  const expiry = BigInt(expirySec);
-  try {
-    const [lockedByExpiryBase, refusal] = await Promise.all([
-      client.readContract({ ...contract, functionName: "lockedByExpiry", args: [expiry] }),
-      client.readContract({ ...contract, functionName: "checkCapacity", args: [houseLockedBase, expiry] }).then(
-        () => null,
-        (error: unknown) => diagnoseRange(error),
-      ),
-    ]);
-    return ok({ fits: refusal === null, refusal, lockedByExpiryBase }, nowMs());
-  } catch (error) {
-    return err(diagnoseRange(error));
-  }
+/** The reserve's caps for a round, asked before the popup (S10). */
+export function readRangeCapacity(_houseLockedBase: bigint, _expirySec: number): Promise<Reading<RangeCapacity>> {
+  return unavailableFor(RANGE_NOT_DEPLOYED);
 }

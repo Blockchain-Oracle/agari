@@ -1,21 +1,20 @@
+import type { Cluster } from "@agari/core/constants";
 import type { AttributionHook, IntentJournal, StopGate } from "@agari/core/ports";
 import type { Address } from "@agari/core/types";
-import { SomniaMarkets } from "@somnia-chain/markets-sdk";
-import { createPublicClient, createWalletClient, http, type Account, type Hex, type WalletClient } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { resolveVaultDeployment } from "../vault/deployment";
-import type { SponsorTransport } from "../vault/sponsor";
-import type { VaultContracts } from "../vault/write";
-import { resolveAddresses } from "../addresses";
-import { SOMNIA_SHANNON } from "../chain";
 import type { MarketsEnv } from "../env";
+import type { WalletSession } from "../react/wallet-session";
 import { createSubmitter, type MarketsSubmitter } from "../submitter/create";
+import type { VaultContracts } from "../vault/contracts";
 import type { AuthorityKind } from "./authority";
+import { keypairAddress } from "./keypair";
 import { createNonceQueue } from "./nonce-queue";
-import type { SessionTrader } from "./trader";
 
-/** Exactly one of these — a session signs one way, decided once, at construction. */
-export type SessionSigner = { walletClient: WalletClient } | { privateKey: Hex } | { account: Account };
+/**
+ * Exactly one of these — a session signs one way, decided once, at construction:
+ * - `wallet`: the person's Privy embedded or external wallet, through the byte-level seam (D-014);
+ * - `secretKey`: a server role's 64-byte Solana keypair (ops actors, the desk, the settler).
+ */
+export type SessionSigner = { wallet: WalletSession } | { secretKey: Uint8Array };
 
 export interface SubmitterSessionConfig {
   env: MarketsEnv;
@@ -26,28 +25,20 @@ export interface SubmitterSessionConfig {
   stopGate?: StopGate;
   attribution?: AttributionHook;
   nowMs?: () => number;
-  /** A relayer that pays for this session's allowlisted vault calls (the sponsorship policy). */
-  sponsor?: SponsorTransport;
 }
 
 export interface SubmitterSession {
   readonly authority: AuthorityKind;
   readonly address: Address;
+  readonly cluster: Cluster;
+  /** The numeric cluster id product intents still bind (D-012). */
   readonly chainId: number;
   readonly submitter: MarketsSubmitter;
-  readonly trader: SessionTrader;
-  /** The same signer as viem clients, for Masayume's own contracts — what the open lane and the spikes hand to `submitParlayOpen`. */
+  /** Who signs product writes, and against which deployment. */
   readonly contracts: VaultContracts;
   readonly disposed: boolean;
-  /** Releases the session's own SDK instance. A disposed session can never sign again. */
+  /** A disposed session can never sign again. */
   dispose(): Promise<void>;
-}
-
-/** The same signer, as a viem wallet client, for Masayume's own contracts. */
-function walletClientFor(signer: SessionSigner, env: MarketsEnv): WalletClient {
-  if ("walletClient" in signer) return signer.walletClient;
-  const account = "privateKey" in signer ? privateKeyToAccount(signer.privateKey) : signer.account;
-  return createWalletClient({ account, chain: SOMNIA_SHANNON, transport: http(env.rpcHttpUrls[0]) });
 }
 
 export class SessionDisposedError extends Error {
@@ -58,57 +49,25 @@ export class SessionDisposedError extends Error {
 }
 
 /**
- * One account, one chain, one authority, one writer.
+ * One account, one cluster, one authority, one writer.
  *
- * The session builds its OWN SomniaMarkets with the signer supplied in the constructor and
- * never calls `setSigner`, so its authority cannot be swapped underneath an in-flight write.
- * That is the whole difference from a process-wide mutable signer: two actors using the same
- * RPC endpoint no longer share a signing identity just because they share a transport.
- *
- * No `wsRpcUrl` is passed. The SDK only opens a socket when one is configured, so sessions
- * stay indexer-only and every subscription remains on the single shared read runtime.
- *
- * Disposal is required on disconnect, account switch, chain switch, grant expiry, or
- * revocation — the session is the unit that stops existing when authority ends.
+ * The signer is fixed at construction and never swapped, so an in-flight write can't find a different authority
+ * than the one it started with. Disposal is required on disconnect, account switch, grant expiry or revocation.
+ * In S1 the session's submitter refuses every write with the not-deployed diagnosis (D-015).
  */
 export async function createSubmitterSession(config: SubmitterSessionConfig): Promise<SubmitterSession> {
   const { env, authority, signer } = config;
-
-  const exchange = new SomniaMarkets({
-    indexerUrl: env.indexerUrl,
-    chain: SOMNIA_SHANNON,
-    addresses: resolveAddresses(),
-    ...signer,
-  });
-
-  const address = exchange.walletAddress;
-  if (!address) {
-    await exchange.close().catch(() => undefined);
-    throw new Error(`${authority} session was given a signer that resolves to no address`);
-  }
+  const address = "wallet" in signer ? signer.wallet.address : keypairAddress(signer.secretKey);
 
   let disposed = false;
   const enqueue = createNonceQueue();
   const guardedEnqueue = <T>(task: () => Promise<T>): Promise<T> =>
-    enqueue(() => {
-      if (disposed) return Promise.reject(new SessionDisposedError(authority));
-      return task();
-    });
+    enqueue(() => (disposed ? Promise.reject(new SessionDisposedError(authority)) : task()));
 
-  const contracts: VaultContracts = {
-    walletClient: walletClientFor(signer, env),
-    // Our own HTTP client on the configured RPC: the SDK's viem client is WebSocket-only and, with no
-    // socket configured, would answer from the chain's default endpoint — and a session opens no socket.
-    publicClient: createPublicClient({ chain: SOMNIA_SHANNON, transport: http(env.rpcHttpUrls[0]) }),
-    deployment: resolveVaultDeployment(env),
-    ...(config.sponsor ? { sponsor: config.sponsor } : {}),
-  };
-
+  const contracts: VaultContracts = { signer: address, deployment: null };
   const submitter = createSubmitter({
-    trader: exchange.trader,
-    wallet: address as Address,
+    wallet: address,
     enqueue: guardedEnqueue,
-    contracts,
     ...(config.journal ? { journal: config.journal } : {}),
     ...(config.stopGate ? { stopGate: config.stopGate } : {}),
     ...(config.attribution ? { attribution: config.attribution } : {}),
@@ -117,18 +76,16 @@ export async function createSubmitterSession(config: SubmitterSessionConfig): Pr
 
   return {
     authority,
-    address: address as Address,
-    chainId: SOMNIA_SHANNON.id,
+    address,
+    cluster: env.cluster,
+    chainId: env.chainId,
     submitter,
-    trader: exchange.trader,
     contracts,
     get disposed() {
       return disposed;
     },
     async dispose() {
-      if (disposed) return;
       disposed = true;
-      await exchange.close().catch(() => undefined);
     },
   };
 }

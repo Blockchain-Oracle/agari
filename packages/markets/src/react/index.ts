@@ -22,7 +22,7 @@ export {
   type MarketsBoot,
 } from "./useMarketsBoot";
 export { BOOT_FACTS, type BootFact } from "./boot-fact";
-export { useBootFacts, type BootFactReadiness } from "./boot-facts-context";
+export { useBootFacts, useBootFactState, type BootFactFailures, type BootFactReadiness, type BootFactState } from "./boot-facts-context";
 export { useReadingQuery, type PollInterval, type ReadingQueryOptions } from "./useReadingQuery";
 export {
   useArenaCredit,
@@ -64,3 +64,4 @@ export {
 export { invalidateAfterWrite, type WriteScope } from "./invalidate";
 export { useStakeQuote, type StakeQuoteInput } from "./useStakeQuote";
 export { useTick } from "./useTick";
+export type { WalletSession } from "./wallet-session";

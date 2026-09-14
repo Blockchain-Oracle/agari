@@ -4,7 +4,7 @@ import { loadCollateral, type CollateralInfo } from "../collateral";
 import type { MarketsEnv } from "../env";
 import { mark, type Milestone } from "../perf/milestones";
 import { resolveVenueId, type VenueResolution } from "../venue";
-import { syncClock } from "./clock-sync";
+import { syncClock } from "./reads";
 
 export interface MarketsBoot {
   clock: ClockSync;

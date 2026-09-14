@@ -9,7 +9,7 @@ import { openingOnFeedScale } from "./price-basis";
 const MAX_SAMPLES = 12;
 
 function toSample(p: PricePoint): AgentSample {
-  return { atSec: p.blockTimestampSec, priceRaw: p.priceRaw };
+  return { atSec: p.publishTimeSec, priceRaw: p.priceRaw };
 }
 
 /** Evenly spaced, first and last kept, so a long Window reads as a shape rather than a wall of ticks. */
