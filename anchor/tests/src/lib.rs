@@ -17,3 +17,6 @@ pub use harness::{Harness, Sent};
 
 // S2 lane P: prints, settle and void helpers.
 pub mod prints;
+
+// S2.12–S2.13: redeem and closure.
+pub mod settlement;

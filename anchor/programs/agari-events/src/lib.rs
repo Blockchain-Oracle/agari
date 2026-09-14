@@ -110,4 +110,12 @@ pub mod agari_events {
     pub fn public_void_expired(ctx: Context<PublicResolveWindow>) -> Result<()> {
         instructions::resolve_window::public_void_expired(ctx)
     }
+
+    pub fn user_redeem(ctx: Context<UserRedeem>, seat_idx: u16, outcome: Option<u8>, lots: Option<u64>) -> Result<()> {
+        instructions::redeem::user_redeem(ctx, seat_idx, outcome, lots)
+    }
+
+    pub fn public_redeem_for(ctx: Context<PublicRedeemFor>, seat_idx: u16) -> Result<()> {
+        instructions::redeem::public_redeem_for(ctx, seat_idx)
+    }
 }

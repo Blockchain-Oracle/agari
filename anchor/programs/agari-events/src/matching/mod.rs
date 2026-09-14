@@ -7,6 +7,7 @@ pub mod evict;
 pub mod orders;
 pub mod paths;
 pub mod place;
+pub mod redeem;
 pub mod seats;
 pub mod sets;
 

@@ -30,6 +30,11 @@ path = "events_prints.rs"
 name = "events_settle"
 path = "events_settle.rs"
 
+[[test]]
+name = "events_redeem"
+path = "events_redeem.rs"
+
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }

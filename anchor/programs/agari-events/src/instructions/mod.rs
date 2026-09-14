@@ -34,3 +34,8 @@ pub mod resolve_window;
 pub use copy_open_from_prev::*;
 pub use record_print_sources::*;
 pub use resolve_window::*;
+
+// S2.12–S2.13: redeem and closure.
+pub mod redeem;
+
+pub use redeem::*;

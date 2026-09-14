@@ -234,3 +234,21 @@ pub struct WindowResolved {
     pub check_close: PrintData,
     pub resolved_ts: i64,
 }
+
+// S2.12–S2.13: redeem and closure (events-accounts.md §5).
+
+#[event]
+pub struct Redeemed {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub owner: Pubkey,
+    pub seat: u16,
+    pub yes_lots: u64,
+    pub no_lots: u64,
+    pub payout: u64,
+    pub credit: u64,
+    pub bond: u64,
+    pub total: u64,
+    pub partial: bool,
+    pub by_crank: bool,
+}

@@ -4,5 +4,6 @@ mod edges;
 mod examples;
 mod paths;
 mod random;
+mod redeem;
 mod support;
 mod walk;

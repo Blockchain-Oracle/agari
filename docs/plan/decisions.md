@@ -229,6 +229,21 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** within plan r2 S2 (closes the D-002 receiver open item).
 
+### D-022 — S2 redeem and closure implementation choices
+- **Date / owner:** 2026-09-14 · S2 owner (redeem + closure step)
+- **Evidence:**
+  - Spec: `docs/plan/specs/events-engine.md` §8.4–8.5 and `events-instructions.md` §5.2–5.7 and §4.5.
+  - Native tests: `matching/tests/redeem.rs` (example 8 under Up, Down and void with a 250,000 bond; refusals; PROGRAM partial redeem), plus the post-settlement randomized run in `matching/tests/random.rs` (12 seeds, a mutation check caught a one-unit overpayment in all four tests).
+  - LiteSVM: `anchor/tests/events_redeem.rs`.
+- **Rule (redeem):**
+  - `user_redeem(seat_idx, outcome, lots)` and `public_redeem_for(seat_idx)` also take `series` (read-only) for `cash_unit`, as the cancels do (D-020). Everything else follows the spec's account lists and check order.
+  - Full redeem folds `locked_cash`, `yes_locked` and `no_locked` into what it pays. §8.3 makes them zero once `open_orders == 0`, so the result equals the spec; the fold only guarantees escrow can never be stranded if that invariant ever broke.
+  - A redeemed non-PROGRAM seat is cleared, so a second redeem (or crank) is refused with `SeatMismatch` instead of paying 0. A PROGRAM seat keeps its owner and only the `PROGRAM` flag after a full redeem, so a paid bond can't keep the Ledger from closing.
+  - Partial redeem: exactly one `Some` → `InvalidOrderArgs`; non-PROGRAM → `PartialRedeemNotAllowed`; `outcome > 1` → `InvalidOrderArgs`; `lots == 0` → `InvalidQuantity`; `lots > free` → `InsufficientOutcome`.
+  - `public_redeem_for` refuses the empty key as owner, derives the ATA with `config.token_program`, and also checks `owner_ata.owner == owner`. A crank creates the ATA idempotently in the same transaction.
+- **User-visible:** anyone can crank a finished Window's payouts into each user's own ATA; a repeated redeem is refused by name.
+- **Approval:** within plan r2 (S2 redeem step).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

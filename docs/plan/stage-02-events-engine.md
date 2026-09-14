@@ -93,6 +93,11 @@
   - `program_autofixer`: no issues.
   - **Prints box not ticked:** the devnet evidence (a real Pyth trial post and a RedStone 5-signer print in `acceptance.md`) and the real archived RedStone fixture remain; `data/archive/redstone/` was still empty at 08:22Z, before the 13:30Z open.
 
+- **Redeem (S2.12, D-022).** `user_redeem` and `public_redeem_for`, with the money core pure in `matching/redeem.rs`.
+  - Native: example 8 pays to the base unit under Up (A 7,970,000 / D 250,000), Down (3,970,000 / 4,250,000) and void (5,970,000 / 2,250,000) with a 250,000 bond; Σ == mvault. The post-settlement randomized run (12 seeds × 1,500 trading ops, then a drain, a random outcome and every seat redeemed in random order, some PROGRAM partials first) redeemed 72 seats and paid 9,143,962 base units with the mvault model equal to what is still owed after every redeem and exactly 0 at the end. A planted one-unit overpayment failed all four tests.
+  - LiteSVM (`events_redeem.rs`, 3 tests): the same three outcomes with real tokens plus a product's partial redeem on PROGRAM seat 5 (the mvault ends at 0); refusals `MarketNotTerminal`, `OpenOrdersRemain`, `InvalidOrderArgs`, `PartialRedeemNotAllowed`, `SeatMismatch` (another's seat, and a second redeem); a crank pays A only to A's ATA (a non-ATA account → `WrongTokenOwner`, a PROGRAM seat → `ProgramSeatNotPublic`) with the ATA created in the same transaction.
+  - **Cost (LiteSVM, legacy tx, 1 signer):** `user_redeem` full 13,936 CU / 480 B; partial 13,644 CU / 489 B; create ATA + `public_redeem_for` 28,988 CU / 584 B.
+
 ## Handoff
 
 - **Next step:** settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault, close market + result (lane P's settle/void merge first).
