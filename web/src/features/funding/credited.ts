@@ -1,4 +1,4 @@
-import { CREDITED_EVENT } from "./copy";
+import { CREDITED_EVENT, OPEN_FUNDS_EVENT } from "./copy";
 
 export interface CreditedDetail {
   amountText: string;
@@ -26,5 +26,5 @@ export function announceCredit(address: string, amountText: string, symbol: stri
 }
 
 export function openFunds(): void {
-  window.dispatchEvent(new Event("masayume:open-funds"));
+  window.dispatchEvent(new Event(OPEN_FUNDS_EVENT));
 }

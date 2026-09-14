@@ -33,5 +33,5 @@ export const FUNDING = {
 } as const;
 
 /** The reference's `yosuku:open-funds` / `yosuku:credited`, under our name. Anything may open the modal; only a credit fires the welcome. */
-export const OPEN_FUNDS_EVENT = "masayume:open-funds";
-export const CREDITED_EVENT = "masayume:credited";
+export const OPEN_FUNDS_EVENT = "agari:open-funds";
+export const CREDITED_EVENT = "agari:credited";
