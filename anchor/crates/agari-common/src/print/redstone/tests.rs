@@ -149,3 +149,49 @@ fn malformed_payloads_never_reach_crypto() {
     metadata[len - 10] = 1; // unsigned metadata size
     assert_eq!(verify(&metadata, T + 10), Err(PrintError::BadRedStonePackage));
 }
+
+// ---- Real archived packages (anchor/tests/vectors/prints/README.md) ----
+
+/// TSLA at 2026-09-14 14:40:00Z from the RedStone gateway; the same payload printed on devnet (acceptance.md).
+const REAL_T: i64 = 1_789_396_800;
+const REAL_HEX: &str = include_str!("../../../../../tests/vectors/prints/redstone-tsla-1789396800.hex");
+const REAL_JSON: &str = include_str!("../../../../../tests/vectors/prints/redstone-tsla-1789396800.json");
+
+/// D-002: the RedStone Solana adapter's production signers, in `price-sources.json` order.
+const PRODUCTION_SIGNERS: [&str; 5] = [
+    "deb22f54738d54976c4c0fe5ce6d408e40d88499",
+    "dd682daec5a90dd295d14da4b0bec9281017b5be",
+    "51ce04be4b3e32572c4ec9135221d0691ba7d202",
+    "9c5ae89c4af6aa32ce58588dbaf90d18a855b6de",
+    "8bb8f32df04c8b654987daaed53d6b6091e3b774",
+];
+
+fn unhex(s: &str) -> Vec<u8> {
+    let s = s.trim();
+    (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap()).collect()
+}
+
+fn verify_real(payload: &[u8], t: i64, now: i64) -> Result<RawPrint, PrintError> {
+    let signers: Vec<[u8; 20]> = PRODUCTION_SIGNERS.iter().map(|h| unhex(h).try_into().unwrap()).collect();
+    verify_redstone(payload, &RedStonePolicy { feed_id: TSLA, strict_sec: STRICT }, RedStoneSigners { signers: &signers, threshold: 3 }, t, now)
+}
+
+#[test]
+fn the_real_archived_tsla_packages_verify_against_the_production_signers() {
+    let payload = unhex(REAL_HEX);
+    let fixture: serde_json::Value = serde_json::from_str(REAL_JSON).unwrap();
+    let median: i64 = fixture["medianE8"].as_str().unwrap().parse().unwrap();
+    assert_eq!(payload.len(), 5 * PACKAGE_LEN + 14);
+    for signer in fixture["signers"].as_array().unwrap() {
+        assert!(PRODUCTION_SIGNERS.contains(&signer.as_str().unwrap().trim_start_matches("0x")));
+    }
+    assert_eq!(verify_real(&payload, REAL_T, REAL_T + 15), Ok(RawPrint { price: median, expo: -8, source_ts: REAL_T, signers: 5 }));
+    assert_eq!(median, 35_818_500_933);
+    // Same packages, wrong boundary: the timestamps are exact to the millisecond.
+    assert_eq!(verify_real(&payload, REAL_T - 10, REAL_T + 15), Err(PrintError::RedStoneTimestampMismatch));
+    assert_eq!(verify_real(&payload, REAL_T + 10, REAL_T + 25), Err(PrintError::RedStoneTimestampMismatch));
+    // A single flipped value byte breaks that signer's recovery, dropping the count below the 5 posted.
+    let mut tampered = payload.clone();
+    tampered[63] ^= 1;
+    assert_eq!(verify_real(&tampered, REAL_T, REAL_T + 15), Err(PrintError::InsufficientRedStoneSigners));
+}

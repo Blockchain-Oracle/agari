@@ -12,7 +12,7 @@
 - [x] Workspace, common grid, seeds (start from `docs/plan/spikes/d002/`; pin `solana-program` 3.0.0)
 - [x] State accounts; `Book` as keypair + `#[account(zero)]`; `Ledger` PDA
 - [x] Admin instructions incl. `admin_add_policy_version` + `roller_open_window` (PROGRAM seats, version coverage check) (D-019)
-- [ ] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons
+- [x] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons (D-021, D-027)
 - [x] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot` (D-020)
 - [x] Cancel, reduce, cancel-all, sweep-expired (D-020)
 - [x] Complete sets; withdraw credit
@@ -156,11 +156,13 @@
     | Pyth `post_update` | 31,823 | 830 |
 
   - **Cost:** payer 0.3915 SOL (Series 900 + Book 0.2352). The three Windows' Market/Ledger/mvault rent is refundable through the closure instructions. Deployer 4.481 SOL left.
+- **Prints box closed (2026-09-14):**
+  - **Real RedStone fixture:** `redstone-tsla-1789396800.{json,hex}` (the 14:40Z devnet boundary) verifies in `agari-common` against the D-002 production signers. `cargo test -p agari-common --all-features --lib redstone` runs 8 tests, all green. The print tests need `--all-features` (the oracle crates are feature-gated); without it the filter silently runs 0.
+  - **Devnet evidence** (acceptance.md): a real Pyth trial post to `rec5EK…` + `public_record_print_pyth` (the receiver choice holds on devnet itself, not just a fork), and the RedStone 5-signer print at 149,097 CU / 1,082 B.
 
 ## Handoff
 
 - **Next (after both drives, D-027):**
-  - **Prints box:** the devnet evidence now exists (Pyth trial post + print, RedStone 5-signer print, measured). Still missing: the real archived RedStone fixture as a LiteSVM vector (`anchor/tests/vectors/prints/README.md`); `data/archive/redstone/2026-09-14.jsonl` in the main worktree has today's TSLA/NVDA packages. Parse them with `parseGatewayJson` (exact decimals) or reuse the drive's payload bytes.
   - **CU profile box:** Surfpool `profileTransaction`. The devnet table in Findings is the measured baseline; the 10-fill IOC is still only measured in LiteSVM (29,888 CU).
   - **Targeted-tests box:** check the P§8 list against what exists (Findings) and add only what's missing.
   - **Closure on devnet:** the three drive Windows still hold Market/Ledger/mvault rent. A settler pass (`public_release_book` for TSLA/TEST/NVDA; the drive recycles Books before opening, not after), then `public_close_ledger`, and `public_close_market` after 6 h, reclaims it. It belongs to the S3 settler; run it by hand only if SOL gets tight.
