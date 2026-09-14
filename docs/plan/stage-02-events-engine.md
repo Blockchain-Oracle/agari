@@ -17,7 +17,7 @@
 - [ ] Cancel, reduce, cancel-all, sweep-expired
 - [ ] Complete sets; withdraw credit
 - [ ] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention
-- [ ] `book_walk` + TS mirror + vectors
+- [x] `book_walk` + TS mirror + vectors
 - [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
 - [ ] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
 - [ ] Codegen
@@ -62,6 +62,10 @@
   - Tests: 15 program unit tests (policy validation, window rules incl. the D-003 split, authority rules, layouts) + 6 LiteSVM integration tests, all green: upgrade-authority init (`NotAdmin`), admin-only mode/authorities and `InvalidMode`, append-only validated versions (`PolicyVersionImmutable`, `UnknownPolicyVersion`, `BadPolicy` ×3), highest-covering version (Fri 19:55→20:00Z on v1, the 09-25 Gap on v2 only with `open_deadline = lock_at`, QQQ after 20:00Z → `SourceNotCovered`), PROGRAM seats 0/3 + bound Book (`generation 1`, free list emptied, `NoFreeBook`, second Book binds), `NotRoller` / partial 60 m and off-clock `BadAlignment` / Gap span `BadHorizon` / ReduceOnly `InvalidMode`.
   - `program_autofixer`: no issues.
 
+- **Pure print verifiers (S2.5)** in `agari-common::print::{pyth, redstone, attested, median, normalize}` pass 21 targeted tests: the real archived Pyth trial update (TSLA 2026-09-11 16:00:00 ET accepts T, refuses T ± 1 s, a wrong feed, partial verification and a 1 bp cap), synthetic 5-key RedStone packages through the SDK's real recovery path (strict window, threshold after strict, duplicate → refused, unknown/malleated → below N, timestamp/feed/value exactness, malformed payloads refused before crypto), and the attested 158 B golden plus every offsets attack. **Remaining for the Prints box:** the instruction handlers (§4.0 slot/deadline rules, sysvar loading), the real RedStone fixture (`anchor/tests/vectors/prints/README.md`), the Pyth receiver-feature devnet post, and CU/transaction-size measurement.
+
+- **Book walks (S2.6).** `agari-common::book_walk` (`levels`, `top_of_book`, `outcome_levels`, `vwap_over_depth`, `exit_walk`, `quote_stake`) and `packages/core/src/market/book-math.ts` agree on 49 shared vectors (`anchor/tests/vectors/book.vectors.json`: 9 hand-checked cases asserted by the generator, 40 seeded random books). Walks follow FIFO node refs, jump between bitmap bits, and stop after `nodes.len()` steps on a corrupt or cyclic level. The crate stays engine-free: walks are generic over `WalkLevel`/`WalkNode`.
+
 ## Handoff
 
 - **Next step:** matching (four paths, order types, self-match, caps, eviction, funding) on the harness.
@@ -75,6 +79,9 @@
   - Anchor account validation (signer, owner/type, `init`, `#[account(zero)]`) runs before handler checks; tests assert the spec's handler codes, not Anchor's (D-019).
   - The IDL now lists Book/Ledger/Market/Series/GlobalConfig as accounts; Codama still decodes Book nodes and Ledger seats by hand from `events-accounts.md` §3.8–3.9 (2d).
   - A fresh worktree's cold `anchor build` takes ≈ 10.5 min; a first `cargo test` in `anchor/tests` ≈ 1.5 min.
+- **Engine must add** (state/book.rs, a few lines): `impl agari_common::book_walk::WalkLevel for Level { head }` and `impl WalkNode for OrderNode { lots, expire_ts, placed_slot, is_live = flags & NODE_FLAG_LIVE != 0, next }`, then build `BookSide { bits: &book.bid_bits / &book.ask_bits, levels: &book.bids / &book.asks, nodes }`. Regenerate vectors with `node anchor/tests/vectors/gen-book-vectors.mjs` whenever walk semantics change.
+- **Prints handlers** convert `agari_common::print::PrintError` 1:1 into `EventsError`, build `PythPolicy`/`RedStonePolicy`/`AttestedPolicy` from the version's `PrintPolicy`, and normalize with `print::normalize::normalize`.
+
 - **Earlier handoff (S2.1), done in S2.2/S2.3:** workspace, common grid, seeds.
   - Start from `docs/plan/spikes/d002/`.
   - Add the oracle crates, then `cargo update -p solana-program@5.0.0 --precise 3.0.0`.
