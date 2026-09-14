@@ -252,3 +252,42 @@ pub struct Redeemed {
     pub partial: bool,
     pub by_crank: bool,
 }
+
+#[event]
+pub struct BookReleased {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub book: Pubkey,
+    pub series: Pubkey,
+}
+
+#[event]
+pub struct LedgerGrown {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub payer: Pubkey,
+    pub capacity: u16,
+}
+
+#[event]
+pub struct LedgerClosed {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub residue: u64,
+}
+
+#[event]
+pub struct DependentChanged {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub program_authority: Pubkey,
+    pub added: bool,
+    pub dependents: u32,
+}
+
+#[event]
+pub struct MarketClosed {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub result: Pubkey,
+}

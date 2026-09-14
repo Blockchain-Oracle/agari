@@ -241,8 +241,15 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - A redeemed non-PROGRAM seat is cleared, so a second redeem (or crank) is refused with `SeatMismatch` instead of paying 0. A PROGRAM seat keeps its owner and only the `PROGRAM` flag after a full redeem, so a paid bond can't keep the Ledger from closing.
   - Partial redeem: exactly one `Some` → `InvalidOrderArgs`; non-PROGRAM → `PartialRedeemNotAllowed`; `outcome > 1` → `InvalidOrderArgs`; `lots == 0` → `InvalidQuantity`; `lots > free` → `InsufficientOutcome`.
   - `public_redeem_for` refuses the empty key as owner, derives the ATA with `config.token_program`, and also checks `owner_ata.owner == owner`. A crank creates the ATA idempotently in the same transaction.
-- **User-visible:** anyone can crank a finished Window's payouts into each user's own ATA; a repeated redeem is refused by name.
-- **Approval:** within plan r2 (S2 redeem step).
+- **Rule (closure, S2.13; LiteSVM `anchor/tests/events_closure.rs`):**
+  - `public_release_book` follows §5.2 and doesn't zero the ladders: `order_count == 0` already means every level and bitmap bit is empty under §8.3. The free list and `next_seq` persist, so every handle into the old generation is stale after the next bind (tested on a recycled Book).
+  - `public_close_ledger` sends the residue (`mvault.amount`, the only place accounting reads it) to the treasury, emits `LedgerClosed`, closes the mvault with a Market-PDA-signed `CloseAccount` to `rent_payer`, and closes the Ledger on exit (`close = rent_payer`). PROGRAM seats must be redeemed by their products first.
+  - `public_close_market` takes the result as a typed `["result", market]` PDA, so a missing or look-alike result fails Anchor's account validation before the handler (D-019 precedence). A terminal Window always has one, since settle and void create it atomically. `result.market != market` → `MarketNotTerminal`.
+  - `product_add_dependent` / `product_release_dependent`: the signer must be in `config.program_authorities`; releasing at 0 → `MathOverflow`.
+  - `public_grow_ledger` reallocates by hand after the spec's checks rather than with Anchor's `realloc` constraint (which would run before them): a System transfer of the rent delta from the payer, then `AccountInfo::resize`, then `capacity`. 8 calls take 96 → 1,024 seats.
+  - `user_release_seat` (§4.4) isn't built: closure doesn't need it, because redeem refunds the bond. It stays open for mid-Window seat reuse.
+- **User-visible:** anyone can crank a finished Window's payouts into each user's own ATA; a repeated redeem is refused by name. Finished Windows return their rent, and a donation to a Window's vault goes to the treasury without changing anyone's payout.
+- **Approval:** within plan r2 (S2 redeem and closure step).
 
 ## Open questions
 

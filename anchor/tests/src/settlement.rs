@@ -1,9 +1,11 @@
 //! Redeem and closure (S2.12–S2.13): builders for every instruction, and a world that trades example 3 on an
 //! attested 5m Window (plus a product minting on PROGRAM seat 5), then settles it Up, Down or void.
 
-use agari_common::seeds::event_authority_address;
+use agari_common::seeds::{event_authority_address, result_address};
+use agari_events::constants::LEDGER_HEADER_LEN;
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::solana_program::instruction::Instruction;
+use anchor_lang::solana_program::system_program;
 use anchor_lang::{InstructionData, ToAccountMetas};
 use anchor_spl::associated_token::{get_associated_token_address, spl_associated_token_account::instruction::create_associated_token_account_idempotent};
 use anchor_spl::token::spl_token;
@@ -73,6 +75,17 @@ impl Harness {
         token.pubkey()
     }
 
+    /// Mints `tusdc` straight into `token` (a donation when `token` is an mvault).
+    pub fn donate(&mut self, token: &Pubkey, tusdc: u64) {
+        let admin = key(1);
+        let mint_to = spl_token::instruction::mint_to(&spl_token::ID, &self.mint, token, &admin.pubkey(), &[], tusdc).unwrap();
+        self.ok(&[mint_to], &[&admin]);
+    }
+
+    pub fn lamports(&self, address: &Pubkey) -> u64 {
+        self.svm.get_account(address).map(|a| a.lamports).unwrap_or(0)
+    }
+
     pub fn redeem_ix(&self, win: &Window, authority: &Pubkey, token: &Pubkey, seat_idx: u16, outcome: Option<u8>, lots: Option<u64>) -> Instruction {
         let accounts = agari_events::accounts::UserRedeem {
             authority: *authority,
@@ -114,6 +127,66 @@ impl Harness {
         (vec![create, self.redeem_for_ix(win, owner, &ata, seat_idx)], ata)
     }
 
+    pub fn release_book_ix(&self, win: &Window) -> Instruction {
+        let accounts = agari_events::accounts::PublicReleaseBook { series: win.series, market: win.market, book: win.book, event_authority: event_authority(), program: agari_events::ID };
+        ix(accounts, agari_events::instruction::PublicReleaseBook {})
+    }
+
+    pub fn close_ledger_ix(&self, win: &Window, treasury: &Pubkey, rent_payer: &Pubkey) -> Instruction {
+        let accounts = agari_events::accounts::PublicCloseLedger {
+            config: config(),
+            market: win.market,
+            ledger: win.ledger,
+            mvault: win.mvault,
+            treasury: *treasury,
+            rent_payer: *rent_payer,
+            collateral_mint: self.mint,
+            token_program: spl_token::ID,
+            event_authority: event_authority(),
+            program: agari_events::ID,
+        };
+        ix(accounts, agari_events::instruction::PublicCloseLedger {})
+    }
+
+    pub fn close_market_ix(&self, market: &Pubkey, market_rent_payer: &Pubkey, result_rent_payer: &Pubkey) -> Instruction {
+        let accounts = agari_events::accounts::PublicCloseMarket {
+            market: *market,
+            result: result_address(&agari_events::ID, market).0,
+            market_rent_payer: *market_rent_payer,
+            result_rent_payer: *result_rent_payer,
+            config: config(),
+            event_authority: event_authority(),
+            program: agari_events::ID,
+        };
+        ix(accounts, agari_events::instruction::PublicCloseMarket {})
+    }
+
+    pub fn dependent_ix(&self, authority: &Pubkey, market: &Pubkey, added: bool) -> Instruction {
+        let accounts = agari_events::accounts::ProductDependent { program_authority: *authority, config: config(), market: *market, event_authority: event_authority(), program: agari_events::ID };
+        if added {
+            ix(accounts, agari_events::instruction::ProductAddDependent {})
+        } else {
+            ix(accounts, agari_events::instruction::ProductReleaseDependent {})
+        }
+    }
+
+    pub fn grow_ledger_ix(&self, win: &Window, payer: &Pubkey, extra_seats: u16) -> Instruction {
+        let accounts = agari_events::accounts::PublicGrowLedger {
+            payer: *payer,
+            config: config(),
+            market: win.market,
+            ledger: win.ledger,
+            system_program: system_program::ID,
+            event_authority: event_authority(),
+            program: agari_events::ID,
+        };
+        ix(accounts, agari_events::instruction::PublicGrowLedger { extra_seats })
+    }
+
+    /// Seats a Ledger's account bytes hold (0 once it is closed).
+    pub fn ledger_seat_bytes(&self, ledger: &Pubkey) -> usize {
+        self.account_data(ledger).len().saturating_sub(8 + LEDGER_HEADER_LEN)
+    }
 }
 
 impl Traded {

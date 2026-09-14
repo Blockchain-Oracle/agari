@@ -118,4 +118,28 @@ pub mod agari_events {
     pub fn public_redeem_for(ctx: Context<PublicRedeemFor>, seat_idx: u16) -> Result<()> {
         instructions::redeem::public_redeem_for(ctx, seat_idx)
     }
+
+    pub fn public_release_book(ctx: Context<PublicReleaseBook>) -> Result<()> {
+        instructions::closure::public_release_book(ctx)
+    }
+
+    pub fn public_close_ledger(ctx: Context<PublicCloseLedger>) -> Result<()> {
+        instructions::closure::public_close_ledger(ctx)
+    }
+
+    pub fn public_close_market(ctx: Context<PublicCloseMarket>) -> Result<()> {
+        instructions::closure::public_close_market(ctx)
+    }
+
+    pub fn product_add_dependent(ctx: Context<ProductDependent>) -> Result<()> {
+        instructions::ledger_growth::product_add_dependent(ctx)
+    }
+
+    pub fn product_release_dependent(ctx: Context<ProductDependent>) -> Result<()> {
+        instructions::ledger_growth::product_release_dependent(ctx)
+    }
+
+    pub fn public_grow_ledger(ctx: Context<PublicGrowLedger>, extra_seats: u16) -> Result<()> {
+        instructions::ledger_growth::public_grow_ledger(ctx, extra_seats)
+    }
 }

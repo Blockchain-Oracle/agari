@@ -34,6 +34,9 @@ path = "events_settle.rs"
 name = "events_redeem"
 path = "events_redeem.rs"
 
+[[test]]
+name = "events_closure"
+path = "events_closure.rs"
 
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }

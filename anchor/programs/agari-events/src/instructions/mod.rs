@@ -36,6 +36,10 @@ pub use record_print_sources::*;
 pub use resolve_window::*;
 
 // S2.12–S2.13: redeem and closure.
+pub mod closure;
+pub mod ledger_growth;
 pub mod redeem;
 
+pub use closure::*;
+pub use ledger_growth::*;
 pub use redeem::*;

@@ -16,7 +16,7 @@
 - [x] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot` (D-020)
 - [x] Cancel, reduce, cancel-all, sweep-expired (D-020)
 - [x] Complete sets; withdraw credit
-- [ ] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention
+- [x] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention (D-021, D-022)
 - [x] `book_walk` + TS mirror + vectors
 - [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
 - [ ] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
@@ -98,9 +98,25 @@
   - LiteSVM (`events_redeem.rs`, 3 tests): the same three outcomes with real tokens plus a product's partial redeem on PROGRAM seat 5 (the mvault ends at 0); refusals `MarketNotTerminal`, `OpenOrdersRemain`, `InvalidOrderArgs`, `PartialRedeemNotAllowed`, `SeatMismatch` (another's seat, and a second redeem); a crank pays A only to A's ATA (a non-ATA account → `WrongTokenOwner`, a PROGRAM seat → `ProgramSeatNotPublic`) with the ATA created in the same transaction.
   - **Cost (LiteSVM, legacy tx, 1 signer):** `user_redeem` full 13,936 CU / 480 B; partial 13,644 CU / 489 B; create ATA + `public_redeem_for` 28,988 CU / 584 B.
 
+- **Closure (S2.13, D-022).** `public_release_book`, `public_close_ledger`, `public_close_market`, `product_add_dependent`/`product_release_dependent`, `public_grow_ledger`. The IDL now has 29 instructions and 20 events; `.so` 726,056 B.
+  - LiteSVM (`events_closure.rs`, 4 tests):
+    - **Ledger close:** refused before terminal, with unredeemed seats (`LedgerNotEmpty`), with the wrong rent payer (`LedgerMarketMismatch`) or treasury (`WrongTokenOwner`). A 123,456 donation to the mvault changes no payout, goes to the treasury at close, and the Ledger and mvault rent returns exactly to the roller's payer.
+    - **Market close:** a product dependent registers (a stranger can't: `NotProgramAuthority`); release refused while trading (`MarketNotLocked`) and with orders (`OpenOrdersRemain`); close refused without the release (`BookNotReleased`), the ledger close (`LedgerNotClosed`), with dependents (`DependentsRemain`), one second early (`RetentionNotElapsed`) and with swapped payers. A second dependent release → `MathOverflow`. After everything, Market and MarketResult close to their own payers with exact lamport deltas, and a product claiming afterwards finds no MarketResult (PD-7).
+    - **Recycling:** the released Book binds Window 1 with `generation + 1`, a new order reuses node 0 with a larger seq, and A's old handle is skipped.
+    - **Growth:** `+117` and `+0` → `BadGrowAmount`; `+116` × 8 reaches 1,024 and `+1` more is refused; the payer funds exactly the rent delta; seat 1,000 is claimable by hint; growth after `lock_at` → `MarketNotTrading`.
+  - **Cost (LiteSVM, legacy tx, 1 signer):** release book 5,326 CU / 310 B; close ledger 14,081 CU / 475 B; close market 9,125 CU / 376 B; grow +116 9,710 CU / 346 B.
+  - **Rent returned:** LiteSVM charges the mainnet default of 6,960 lamports per byte, not devnet's measured 5,080. Measured: Ledger (96 seats) + mvault 62,452,080; Market 4,064,640 + MarketResult 2,672,640; +116 seats 71,047,680. Each equals `(bytes + 128) × 6,960`, i.e. `events-accounts.md` §3's devnet figures (44,094,400 + 1,488,440; 2,966,720 + 1,950,720; 51,856,640) at 6,960.
+
 ## Handoff
 
-- **Next step:** settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault, close market + result (lane P's settle/void merge first).
+- **Next steps after redeem and closure (done, D-022):**
+  - **Targeted-tests box:** check the P§8 engine list against what exists (native: worked examples, fill matrix, edges, two randomized runs; LiteSVM: admin, orders, prints, settle, redeem, closure; PD-6 races per source). Add only what is missing.
+  - **CU profile box:** the Surfpool `profileTransaction` pass (the LiteSVM numbers in Findings are the baseline).
+  - **Codegen** (2d): Codama client for the 29 instructions; Book nodes and Ledger seats still decoded by hand.
+  - **Devnet deploy + `init-events`** (needs the deployer funded), then the Surfpool and devnet drives, which now have every instruction they need.
+  - **Not built:** `user_release_seat` (§4.4; closure doesn't need it, D-022).
+  - **Harness for redeem/closure:** `anchor/tests/src/settlement.rs` `Traded::new()` (example 3 on an attested 5m Window + a product on PROGRAM seat 5, `key(40)`), `resolve(Outcome::{Up,Down,Void})`, `sweep()`, `crank_send`, and builders `redeem_ix`, `redeem_for_ix`, `crank_redeem_ixs` (ATA + redeem), `release_book_ix`, `close_ledger_ix`, `close_market_ix`, `dependent_ix`, `grow_ledger_ix`.
+- **Earlier next step (done):** settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault, close market + result (lane P's settle/void merge first).
   - **Harness** (`anchor/tests`, own `Cargo.lock`, litesvm 0.16.0; D-019). Run `NO_DNA=1 anchor build` first, then `cargo test --manifest-path anchor/tests/Cargo.toml`.
     - Admin/roller: `Harness::new()`, `setup_config`, `register_series`, `add_policy`, `add_book`, `open_window`, `warp_to`, `fresh_key`, `create_token_account`; `send`/`ok` → `Sent { compute_units, tx_bytes }` or the custom code; readers `config_state`, `series_state`, `market_state`, `book_state`, `ledger_state`, `token_account`.
     - Trading (`tests/src/trade.rs`, S2.7–S2.9): `trading_window()` (NVDA 5m RedStone Window 0, clock 10 s into trading, seat bond 250,000), `funded_user(tusdc)` → `(key, token account)`, `place(&w, &user, &token, order_args(..))` → `(PlaceResult, Sent)`, `send_returning`, `token_amount`, and builders `place_order_ix`, `cancel_orders_ix`, `cancel_all_ix`, `reduce_ix`, `sweep_ix`, `mint_set_ix`, `merge_set_ix`, `withdraw_credit_ix`.
