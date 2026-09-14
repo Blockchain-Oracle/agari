@@ -82,9 +82,9 @@ export async function seatHintFor(ctx: SendContext, w: OpenedWindow, authority: 
   return seat ? seat.index : ANY_SEAT;
 }
 
-export async function placeOrder(ctx: SendContext, w: OpenedWindow, user: KeyPairSigner, userToken: Address, order: OrderInput): Promise<string> {
+export async function placeOrderInstruction(ctx: SendContext, w: OpenedWindow, user: KeyPairSigner, userToken: Address, order: OrderInput) {
   const seatHint = order.seatHint ?? (await seatHintFor(ctx, w, user.address));
-  const ix = await getUserPlaceOrderInstructionAsync({
+  return getUserPlaceOrderInstructionAsync({
     authority: user,
     series: w.series,
     market: w.market,
@@ -105,6 +105,10 @@ export async function placeOrder(ctx: SendContext, w: OpenedWindow, user: KeyPai
     ...order,
     seatHint,
   });
+}
+
+export async function placeOrder(ctx: SendContext, w: OpenedWindow, user: KeyPairSigner, userToken: Address, order: OrderInput): Promise<string> {
+  const ix = await placeOrderInstruction(ctx, w, user, userToken, order);
   const kind = Object.entries(KIND).find(([, v]) => v === order.kind)?.[0];
   return send(ctx, "place order", [ix], `${user.address.slice(0, 6)} ${kind} ${order.lots} @ ${order.priceTicks}`);
 }

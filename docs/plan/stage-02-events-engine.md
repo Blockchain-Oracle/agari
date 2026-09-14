@@ -19,7 +19,7 @@
 - [x] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention (D-021, D-022)
 - [x] `book_walk` + TS mirror + vectors
 - [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
-- [ ] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
+- [x] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
 - [x] Codegen (D-025)
 - [x] Devnet deploy + `init-events` (D-024, D-026)
 - [x] Surfpool drive (time travel): open → mint-pair → print (Pyth + RedStone check) → settle → redeem; plus a divergence void and a missing-print void (D-027)
@@ -159,11 +159,14 @@
 - **Prints box closed (2026-09-14):**
   - **Real RedStone fixture:** `redstone-tsla-1789396800.{json,hex}` (the 14:40Z devnet boundary) verifies in `agari-common` against the D-002 production signers. `cargo test -p agari-common --all-features --lib redstone` runs 8 tests, all green. The print tests need `--all-features` (the oracle crates are feature-gated); without it the filter silently runs 0.
   - **Devnet evidence** (acceptance.md): a real Pyth trial post to `rec5EK…` + `public_record_print_pyth` (the receiver choice holds on devnet itself, not just a fork), and the RedStone 5-signer print at 149,097 CU / 1,082 B.
+- **CU profile (2026-09-14).** `pnpm drive:events --cluster localnet --phases profile` on a fresh Surfpool devnet fork: 10 makers rest `BUY_NO 1,000 @ 500…509` on TSLA-5m Window #2, then one `BUY_YES 10,000 @ 600 IOC` (max_fills 16) is profiled with `surfnet_profileTransaction` and sent.
+  - **Result:** **29,938 CU, 642 B** for **10 fills** (the Market's `trade_count` +10), a third of the plan's 60–90k budget. It agrees with LiteSVM (29,888 CU).
+  - **Surfpool 1.5.0 quirk:** `surfnet_profileTransaction` takes `[tx]` or `[tx, tag: string]`. The documented config object as the second parameter is refused ("expected a string").
+  - The devnet table above covers every other instruction the drives send.
 
 ## Handoff
 
 - **Next (after both drives, D-027):**
-  - **CU profile box:** Surfpool `profileTransaction`. The devnet table in Findings is the measured baseline; the 10-fill IOC is still only measured in LiteSVM (29,888 CU).
   - **Targeted-tests box:** check the P§8 list against what exists (Findings) and add only what's missing.
   - **Closure on devnet:** the three drive Windows still hold Market/Ledger/mvault rent. A settler pass (`public_release_book` for TSLA/TEST/NVDA; the drive recycles Books before opening, not after), then `public_close_ledger`, and `public_close_market` after 6 h, reclaims it. It belongs to the S3 settler; run it by hand only if SOL gets tight.
   - **Re-running the drive:** `set -a; source ../../stocklana/.env.local; set +a; pnpm exec tsx scripts/drive/events-cycle.ts --cluster devnet | sed "s/$HELIUS_API_KEY/<redacted>/g"` (PYTH_API_KEY and HELIUS_API_KEY live in the main worktree's `.env.local`). It must run in NYSE hours; the Pyth trial covers TSLA until the 09-25 close.

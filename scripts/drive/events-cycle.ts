@@ -5,7 +5,8 @@
 //         is 1% off RedStone → CrossCheckDivergence void → redeem.
 //   void: an NVDA Window with a resting order and no prints → past close_deadline → MissingPrint void → redeem.
 //         On Surfpool the clock jumps there; on devnet it waits ≈ 20 minutes.
-// Run:  pnpm drive:events [--cluster localnet|devnet] [--phases live,void]
+//   profile (Surfpool only): a 10-fill IOC through surfnet_profileTransaction, then sent and counted.
+// Run:  pnpm drive:events [--cluster localnet|devnet] [--phases live,void,profile]
 // Env:  PYTH_API_KEY (Hermes trial). Keys from ~/.config/agari/devnet (deployer pays; roller, faucet, attestor sign).
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -15,6 +16,7 @@ import {
 import { ensureRole } from "../deploy/roles.mjs";
 import { liveCycle } from "./live";
 import { voidCycle } from "./void";
+import { profileCycle } from "./profile";
 import { timeTravel, wallSec } from "./sources";
 
 type Cluster = "devnet" | "localnet";
@@ -97,6 +99,7 @@ if (phases.has("live")) {
   await liveCycle(env, testSeries);
 }
 if (phases.has("void")) await voidCycle(env);
+if (phases.has("profile")) await profileCycle(env);
 
 const after = (await client.rpc.getBalance(client.payer.address).send()).value;
 console.log(`drive done: payer spent ${Number(before - after) / 1e9} SOL, ${evidence.filter((e) => e.signature).length} transactions`);

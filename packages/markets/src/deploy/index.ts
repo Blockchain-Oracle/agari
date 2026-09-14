@@ -19,7 +19,8 @@ export { BOOK_CAPACITY, BOOKS_PER_SERIES, DRIVE_ATTESTED_FEED, driveTestSeries, 
 export { ensureBooks, ensureSeries } from "./ensure-series";
 export { chainNowSec, readSeats, windowAddresses, type Seat } from "./cycle/accounts";
 export { DRIVE_TEST_TICKER } from "./venue-spec";
-export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
+export { profileOnSurfpool, type TransactionProfile } from "./cycle/profile";
+export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, placeOrderInstruction, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
 export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
 export { attestedMessage, ed25519Instruction } from "../prices/attested";
 export { packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, redstonePayload, decimalToE8, type RedStonePackage } from "../prices/redstone";
