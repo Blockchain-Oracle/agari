@@ -224,3 +224,5 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 | `6d90995` | this audit, first version |
 | `a337a64` | C-01 connect modal, C-02 account modal + `openAccount`, C-22 header hydration, C-23 header label; wallet artwork in `web/public/wallet/`; notices |
 | `3787560` | C-08, C-09, C-15, C-19 copy; brand-only strings in alerts, takes, private, edge, earn, surface, strategies, native-auth, news UA |
+| stage `dd74b14` | C-02 button: the connected ticket/portfolio button opens the account modal |
+| stage (S4 merge review) | P-04 and P-05 were measured on a base without lane 4a. On `stage/S4-first-call` `useAssetPrice` subscribes to the ops spot stream (`runtime/spot-stream.ts`, SSE push, poll only as fallback) and `subscribeBook` is a ref-counted `accountNotifications` coordinator (`runtime/coordinator.ts`): both resolved. Masayume's endpoint `health.ts` (multi-RPC failover) has no Agari equivalent yet: deferred to S16 (one public devnet endpoint in S4, D-035). P-09: the dead `@coinbase/cdp-sdk` resolve alias and its stub removed from `web/next.config.ts`; build green |

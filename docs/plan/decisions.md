@@ -583,6 +583,22 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** the first call needs a little devnet SOL from the faucet top-up.
 - **Approval:** stage owner, following the user's D-023.
 
+### D-036 — Masayume visual fidelity is exact; the wallet connect is a RainbowKit-replica modal
+- **Date / owner:** 2026-09-14 · user instruction (voice, while testing the S1 connect), S4 lane 4e audit
+- **Evidence:**
+  - The user: "exact replica … same colors everywhere … the modals, the header, the footer, nothing is left out"; the only intended difference is asset logos; performance with TanStack Query caching as Masayume does.
+  - The audit `docs/plan/audits/ui-fidelity-2026-09-14.md` (36 findings) found styles, layout, UI kit, fonts and the query client byte-identical. The visible drift was:
+    - empty data surfaces;
+    - the connect picker as a right-side shadcn Sheet on `--color-surface-3` (#404040) instead of RainbowKit's centred compact modal;
+    - leftover Masayume/Somnia copy.
+- **Rule:**
+  - **Replica standard:** every web surface is built and reviewed against Masayume's source and live app (masayume.app) at 390/768/1440 in both themes. Drift is fixed, not waived, except asset logos, D-entried product differences, and states whose programs are not deployed.
+  - **Wallet connect (amends D-023's UI wording):** it is a centred modal (a bottom sheet on phones) replicating RainbowKit's compact modal and account modal, over the same Wallet Standard seam. `useWalletSession()` adds `openAccount()`; `connect()` opens the connect modal. Wallet artwork lives in `web/public/wallet/` (attributions in `THIRD_PARTY_NOTICES.md`).
+  - **Performance:** Masayume's query-client defaults, persisted read cache, lazy chart bundle and fonts stay byte-identical. Live prices and Books are push subscriptions (spot SSE, ref-counted `accountNotifications`). Endpoint failover (`health.ts`) is S16.
+  - **Audit upkeep:** the audit doc is updated at each stage that touches web.
+- **User-visible:** "Connect" opens the same modal Masayume users know; the app looks like Masayume except for stock logos.
+- **Approval:** user, 2026-09-14.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

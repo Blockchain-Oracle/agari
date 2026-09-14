@@ -35,7 +35,7 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 - [x] Faucet: SOL top-up chain adapter + server-side tUSDC mint claims, one challenge signature (4c, merged `b4aef58`; devnet claims wait for `sol-faucet` SOL).
 - [ ] Sponsor → S7 (D-023): `/api/sponsor` unchanged; gate row restated (stage owner D-entry).
 - [x] Web rewiring: ticker picker, market-session chip, closed/paused/settling copy, verdict print-source labels, per-Window claims, seat-deposit note (4d, merged `09753ec`; full gate incl. `pnpm build` green, 198 vitests).
-- [ ] Masayume fidelity audit + shared chrome fixes, incl. the centered connect modal (4e, D-036 pending; the user's 2026-09-14 instruction).
+- [x] Masayume fidelity audit + shared chrome fixes, incl. the centered connect modal (4e, merged through `80342e6`; D-036). Data-gated rows re-checked at the 09-15 open.
 - [ ] Drive `scripts/drive/first-call.ts` on devnet: faucet → IOC up fill → ops settle → redeem or crank → `verify-index` (4b, finished by the stage owner).
 - [ ] Browser pass at 390/768/1440 in both themes: signed-out, first-run, unfunded, quote moved (requote), fill, nothing filled, unknown send (kill the tab mid-send), win/loss/void, claim and crank-paid, closed, paused.
 - [ ] Tag `m1-first-call`.
@@ -58,6 +58,25 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 
 ## Findings
 
+- **Lane 4e (audit, merged through `80342e6`):**
+  - **Audit:** 36 findings in `docs/plan/audits/ui-fidelity-2026-09-14.md`.
+    - **By severity:** S1 5, S2 11, S3 9, S4 11.
+    - **By owner:** 4e 10 (all fixed), 4d 3, 4a/SO 6, later stages 15.
+  - **Already identical:** `styles/**` (59 files), `app/layout.tsx`, `components/ui/**`, fonts and the query client are byte-identical to Masayume. The header, pill nav, drawer, Sensei drawer and how-it-works match at 390/768/1440 apart from data and words.
+  - **What caused the drift the user saw:**
+    1. Data surfaces empty before 4a.
+    2. The connect sheet (shadcn Sheet, `bg-popover` #404040 in dark), now a pixel-matched RainbowKit compact modal (368 px panel, blurred scrim, 350 ms overshoot, phone bottom sheet).
+    3. Leftover Masayume/Somnia copy.
+  - **Performance:**
+    - Query client, persisted cache, lazy chart and fonts match Masayume.
+    - `/markets` loads 34 JS files / 1,952 KB decoded vs Masayume's 58 / 3,492 KB. Agari's empty state skipped the ≈ 160 KB chart chunk, so the real gap is smaller.
+    - P-04/P-05 are resolved on stage by 4a.
+    - Endpoint failover (`health.ts`) → S16.
+  - **Open, data-gated (09-15 open):**
+    - `/markets` with no live Window should keep Masayume's hero + ticket-rail layout (4d).
+    - `/reels` empty card.
+    - `?note=moved` in populated lanes.
+    - The account modal's SOL balance read (4a/SO).
 - **Lane 4e (partial merge `68129f6` @ 3787560) + `dd74b14`:**
   - **Merged:** the audit doc `docs/plan/audits/ui-fidelity-2026-09-14.md`; Masayume's RainbowKit connect and account modals over Wallet Standard (replacing the right-side sheet the user saw); shell and copy fixes.
   - **Connected ticket button:** now opens the account modal (`session.openAccount`).
