@@ -13,7 +13,11 @@ pub use admin_series::*;
 pub use admin_set_authorities::*;
 pub use args::*;
 pub use roller_open_window::*;
+pub mod user_cancel_orders;
 pub mod user_place_order;
+pub mod user_reduce_order;
 pub mod venue_io;
 
+pub use user_cancel_orders::*;
 pub use user_place_order::*;
+pub use user_reduce_order::*;

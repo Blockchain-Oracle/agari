@@ -12,6 +12,7 @@ pub mod instructions;
 pub mod matching;
 pub mod state;
 
+use events::OrderHandle;
 use instructions::*;
 
 declare_id!("cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH");
@@ -51,4 +52,20 @@ pub mod agari_events {
     pub fn user_place_order(ctx: Context<UserPlaceOrder>, args: PlaceOrderArgs) -> Result<()> {
         instructions::user_place_order::user_place_order(ctx, args)
     }
+    pub fn user_cancel_orders(ctx: Context<UserCancelOrders>, handles: Vec<OrderHandle>, seat_idx: u16, withdraw: bool) -> Result<()> {
+        instructions::user_cancel_orders::user_cancel_orders(ctx, handles, seat_idx, withdraw)
+    }
+
+    pub fn user_reduce_order(ctx: Context<UserReduceOrder>, handle: OrderHandle, seat_idx: u16, new_lots: u64) -> Result<()> {
+        instructions::user_reduce_order::user_reduce_order(ctx, handle, seat_idx, new_lots)
+    }
+
+    pub fn user_cancel_all(ctx: Context<UserCancelOrders>, seat_idx: u16, max_scan: u16, withdraw: bool) -> Result<()> {
+        instructions::user_cancel_orders::user_cancel_all(ctx, seat_idx, max_scan, withdraw)
+    }
+
+    pub fn public_sweep_expired(ctx: Context<PublicSweepExpired>, max: u8) -> Result<()> {
+        instructions::user_reduce_order::public_sweep_expired(ctx, max)
+    }
+
 }

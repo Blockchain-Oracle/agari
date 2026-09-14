@@ -202,6 +202,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Seat hint `u16::MAX`.** An authority that already holds a seat gets `SeatMismatch` (it passes its index); the empty-seat scan covers `0..capacity`, the existing-owner scan `0..seats_used`.
   - **Taker proceeds.** `cash_received` is credited before funding, so `use_credit` can spend it; `withdraw_proceeds` then sweeps the whole credit (§4.3).
   - **Stop reason.** A PostOnly that rests reports `PostOnlyRested`; everything else reports the loop's reason.
+  - **`series` in the cancel family and the sweep.** `user_cancel_orders`, `user_cancel_all` and `public_sweep_expired` also take `series` (read-only, bound to the market). events-instructions.md §3.2/§3.5 omit it, but a cancelled buy refunds `lots × ticks × cash_unit`, and only the Series stores the cash unit. `user_reduce_order` already listed it.
   - **Handles in the IDL.** Events and instruction args use the program's own `events::OrderHandle` (same layout as `agari_common::Handle`, which has no IDL build); `PlaceResult` return data keeps `agari_common::Handle`.
 - **User-visible:** none beyond the spec.
 - **Approval:** within plan r2 (spec-conformant implementation detail).
