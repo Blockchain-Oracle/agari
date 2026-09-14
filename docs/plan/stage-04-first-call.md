@@ -58,6 +58,10 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 
 ## Findings
 
+- **Lane 4e (partial merge `68129f6` @ 3787560) + `dd74b14`:**
+  - **Merged:** the audit doc `docs/plan/audits/ui-fidelity-2026-09-14.md`; Masayume's RainbowKit connect and account modals over Wallet Standard (replacing the right-side sheet the user saw); shell and copy fixes.
+  - **Connected ticket button:** now opens the account modal (`session.openAccount`).
+  - **Browser check (lane 4d, two fresh Chrome contexts, no wallet extension):** header and portfolio Connect are visible from first paint at 1440 and 390, with no hydration badge. `/dev/wallet` Connect opens the new modal. The ticket button is checked at the 09-15 open (no live Windows off-hours).
 - **Lane 4d (markets surfaces, merged `09753ec` from `slice/S4d-surfaces` @ fc9b093):**
   - **Session chip:** reads ops `/session` once a minute, shared (hero + lanes header; hidden in the 390 hero to keep Masayume's phone layout).
   - **Closed / paused:** closed copy on hero, lanes, word board, between-rounds and reels. A paused ticker gets Yosuku's between-rounds card with "Paused: no signed price source".
