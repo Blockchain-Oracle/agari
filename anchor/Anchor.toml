@@ -7,8 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
+agari_events = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
 
 [programs.devnet]
+agari_events = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
 
 [provider]
 cluster = "localnet"

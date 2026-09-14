@@ -1,11 +1,21 @@
 [package]
 name = "agari-common"
 version = "0.1.0"
-description = "Grid, seeds, place results, checked views and book walks shared by Agari programs"
+description = "Grid, seeds, place results, checked views, book walks and print verifiers shared by Agari programs"
 edition = "2021"
 publish = false
 
 [lib]
 crate-type = ["lib"]
 
+[features]
+default = []
+# Print verifiers (S2 prints step) link the oracle crates only where a program enables them.
+pyth = ["dep:pyth-solana-receiver-sdk"]
+redstone = ["dep:redstone"]
+
 [dependencies]
+anchor-lang = { workspace = true }
+bytemuck = { workspace = true }
+pyth-solana-receiver-sdk = { workspace = true, optional = true }
+redstone = { workspace = true, optional = true }

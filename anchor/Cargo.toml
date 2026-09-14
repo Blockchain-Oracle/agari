@@ -22,3 +22,5 @@ redstone = { git = "https://github.com/redstone-finance/rust-sdk", rev = "05e3c9
 switchboard-on-demand = { version = "=0.13.0", default-features = false, features = ["solana-v3"] }
 solana-instructions-sysvar = "=3.0.1"
 getrandom = { version = "0.2", features = ["custom"] }
+# zero_copy derives `::bytemuck::Pod`; `min_const_generics` covers arrays like `[Level; 1000]`.
+bytemuck = { version = "1.25", features = ["derive", "min_const_generics"] }

@@ -9,7 +9,7 @@
 ## Steps
 
 - [x] Spec, frozen at the end of the step: `docs/plan/specs/{events-engine,events-accounts,events-instructions,prints}.md` (D-006…D-009)
-- [ ] Workspace, common grid, seeds (start from `docs/plan/spikes/d002/`; pin `solana-program` 3.0.0)
+- [x] Workspace, common grid, seeds (start from `docs/plan/spikes/d002/`; pin `solana-program` 3.0.0)
 - [ ] State accounts; `Book` as keypair + `#[account(zero)]`; `Ledger` PDA
 - [ ] Admin instructions incl. `admin_add_policy_version` + `roller_open_window` (PROGRAM seats, version coverage check)
 - [ ] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons
@@ -42,6 +42,12 @@
 - **DreamDEX self-match (D-008).** CancelTaker **reverts** `SelfMatchCancelTaker` per DreamDEX docs, overriding C:08 #10.
 - **Return data** is cleared before every CPI, so `set_return_data(PlaceResult)` must run after `emit_cpi!` and the transfers.
 - **Trial blob grounding.** Pyth equities use expo −5, conf ≈ 1.6 bps (TSLA), `prev_publish_time == T − 1`.
+- **S2.2 workspace (2026-09-14):**
+  - Program id `cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH`; keypair ensure-created at `~/.config/agari/programs/agari-events.json` and copied to gitignored `anchor/target/deploy/`.
+  - Resolved: anchor-lang/anchor-spl 1.2.0, bytemuck 1.25.2 (`derive`, `min_const_generics`, required because `#[account(zero_copy)]` derives `::bytemuck::Pod` from the program crate), pyth-solana-receiver-sdk 2.0.0, redstone rev `05e3c9f` (both behind `agari-common` features), borsh 1.8.1; `solana-program` pinned 3.0.0 (the only version in `Cargo.lock`).
+  - **Explicit error discriminants work in Anchor 1.2:** `anchor-syn` parses `Variant = N` and adds `ERROR_CODE_OFFSET`. The IDL lists 85 errors: InvalidMode 6000, NotProgramAuthority 6021, MarketNotTrading 6100, InvalidOrderArgs 6120, WrongPrintSource 6200, BadPrintSlot 6233, InsufficientCredit 6300, BadGrowAmount 6307.
+  - `agari-common` stays engine-type-agnostic: `view::load_checked<T: Pod + Discriminator>` (owner → length → discriminator → alignment), `load_slice_checked`, and key-only binding checks. Products get engine types from `agari-events` with the `cpi` feature.
+  - Cold `anchor build` ≈ 10.5 min in a fresh worktree (IDL host build included); `.so` 51,568 B with no instructions yet.
 - **Size estimate.** A RedStone 5-package print transaction is ≈ 1,080 B of 1,232, so no ALT is needed (to be measured).
 
 ## Handoff

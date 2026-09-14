@@ -1,0 +1,30 @@
+[package]
+name = "agari-events"
+version = "0.1.0"
+description = "DreamDEX Event Contracts rebuilt as an Anchor CLOB: Windows, books, ledgers, prints, settlement"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_events"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["event-cpi"] }
+anchor-spl = { workspace = true }
+bytemuck = { workspace = true }
+agari-common = { path = "../../crates/agari-common", features = ["pyth", "redstone"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
