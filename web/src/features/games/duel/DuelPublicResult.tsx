@@ -2,7 +2,7 @@
 
 import { cardsInMask } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Bytes32 } from "@agari/core/types";
+import type { Hash32 } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { useArenaMatch } from "@agari/markets/react";
 import { useState, type CSSProperties } from "react";
@@ -19,7 +19,7 @@ import { DuelResultModal } from "./DuelResultModal";
  * Read straight off the arena, so a link to a match works with no wallet and no room. Nothing here
  * is a projection's opinion; the PnL is the contract's own sum.
  */
-export function DuelPublicResult({ matchId }: { matchId: Bytes32 }) {
+export function DuelPublicResult({ matchId }: { matchId: Hash32 }) {
   const reading = useArenaMatch(matchId);
   const { boot } = useVenue();
   const [modalOpen, setModalOpen] = useState(false);

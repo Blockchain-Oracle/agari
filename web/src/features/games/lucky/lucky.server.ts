@@ -11,10 +11,10 @@ import {
 import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import { minStakeBase } from "@agari/core/sizing";
-import { toMarketId, type Address, type Bytes32, type EventMarket, type Quote, type Side } from "@agari/core/types";
+import { toMarketId, type Address, type Hash32, type EventMarket, type Quote, type Side } from "@agari/core/types";
 import { createLuckyDraw, gamesStoreConfigured, getLuckyDraw, revealLuckyDraw, type LuckyDrawRow } from "@agari/db";
 import { ensureMarkets, loadCollateral, marketsProvider, resolveVenueId } from "@agari/markets";
-import { keccak256 } from "viem";
+import { keccak256 } from "../keccak";
 import { gate, marketsEnvFromProcess } from "@/features/session/sponsor.server";
 import { freshSeed, luckyDigest } from "./lucky-digest.server";
 import type { LuckyCommitWire, LuckyDealWire, LuckyQuoteWire, LuckyWindowWire } from "./lucky-wire";
@@ -64,8 +64,8 @@ export async function commitDraw(input: { wallet: Address; stakeBase: bigint; de
   return {
     ok: true,
     wire: {
-      drawId: created.drawId as Bytes32,
-      wallet: input.wallet.toLowerCase() as Address,
+      drawId: created.drawId as Hash32,
+      wallet: input.wallet as Address,
       commitment,
       nonce: created.nonce,
       policyVersion: LUCKY_POLICY_VERSION,
@@ -75,7 +75,7 @@ export async function commitDraw(input: { wallet: Address; stakeBase: bigint; de
 }
 
 export interface Scanned {
-  candidateHash: Bytes32;
+  candidateHash: Hash32;
   candidateCount: number;
   /** How many eligible Windows the book actually answered for on the drawn side. Zero with candidates present is a read failure, not a thin book. */
   quotedCount: number;
@@ -142,18 +142,18 @@ async function dealFromRow(row: LuckyDrawRow): Promise<LuckyDealWire> {
   const market = row.marketId ? await marketsProvider.getMarket(toMarketId(row.marketId)) : null;
   const value = market && isOk(market) ? market.value : null;
   return {
-    drawId: row.drawId as Bytes32,
+    drawId: row.drawId as Hash32,
     wallet: row.wallet as Address,
     nonce: row.nonce,
     policyVersion: row.policyVersion,
     stakeBase: row.stakeBase,
-    commitment: row.commitment as Bytes32,
-    serverSeed: row.serverSeed as Bytes32,
-    clientSeed: row.clientSeed as Bytes32,
+    commitment: row.commitment as Hash32,
+    serverSeed: row.serverSeed as Hash32,
+    clientSeed: row.clientSeed as Hash32,
     assets: LUCKY_ASSETS,
     multipliers: LUCKY_MULTIPLIERS,
     draw: { asset: row.asset ?? "", side: row.side ?? "up", multiplier: row.multiplier ?? 0 },
-    candidateHash: (row.candidateHash ?? "0x") as Bytes32,
+    candidateHash: (row.candidateHash ?? "0x") as Hash32,
     candidateCount: 0,
     window: value ? toWindow(value) : null,
     quote: null,
@@ -163,7 +163,7 @@ async function dealFromRow(row: LuckyDrawRow): Promise<LuckyDealWire> {
   };
 }
 
-export async function revealDraw(input: { drawId: Bytes32; clientSeed: Bytes32 }): Promise<RevealOutcome> {
+export async function revealDraw(input: { drawId: Hash32; clientSeed: Hash32 }): Promise<RevealOutcome> {
   const row = await getLuckyDraw(input.drawId);
   if (!row) return { ok: false, status: 404, error: "no draw by that id" };
   if (row.clientSeed !== null) {
@@ -172,7 +172,7 @@ export async function revealDraw(input: { drawId: Bytes32; clientSeed: Bytes32 }
   }
 
   const wallet = row.wallet as Address;
-  const digest = luckyDigest(row.serverSeed as Bytes32, { clientSeed: input.clientSeed, wallet, nonce: row.nonce, policyVersion: row.policyVersion });
+  const digest = luckyDigest(row.serverSeed as Hash32, { clientSeed: input.clientSeed, wallet, nonce: row.nonce, policyVersion: row.policyVersion });
   const draw = mapLuckyDraw(digest, { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS });
   const scanned = await scanLuckyWindows(draw.asset, draw.side, draw.multiplier, BigInt(row.stakeBase));
 
@@ -194,18 +194,18 @@ export async function revealDraw(input: { drawId: Bytes32; clientSeed: Bytes32 }
   return {
     ok: true,
     wire: {
-      drawId: row.drawId as Bytes32,
+      drawId: row.drawId as Hash32,
       wallet,
       nonce: row.nonce,
       policyVersion: row.policyVersion,
       stakeBase: row.stakeBase,
-      commitment: row.commitment as Bytes32,
-      serverSeed: row.serverSeed as Bytes32,
-      clientSeed: input.clientSeed.toLowerCase() as Bytes32,
+      commitment: row.commitment as Hash32,
+      serverSeed: row.serverSeed as Hash32,
+      clientSeed: input.clientSeed.toLowerCase() as Hash32,
       assets: LUCKY_ASSETS,
       multipliers: LUCKY_MULTIPLIERS,
       draw,
-      candidateHash: scanned?.candidateHash ?? ("0x" as Bytes32),
+      candidateHash: scanned?.candidateHash ?? ("0x" as Hash32),
       candidateCount: scanned?.candidateCount ?? 0,
       window: chosen ? toWindow(chosen.market) : null,
       quote: chosen ? toQuote(chosen.quote) : null,

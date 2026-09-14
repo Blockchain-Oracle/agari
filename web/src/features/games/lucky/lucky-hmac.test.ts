@@ -1,11 +1,12 @@
 import { LUCKY_ASSETS, LUCKY_MULTIPLIERS, LUCKY_POLICY_VERSION, mapLuckyDraw } from "@agari/core/games";
-import type { Address, Bytes32 } from "@agari/core/types";
+import { encodeBase58, toAddress, type Hash32 } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { luckyDigest } from "./lucky-digest.server";
 
-const SERVER_SEED = `0x${"22".repeat(32)}` as Bytes32;
-const CLIENT_SEED = `0x${"33".repeat(32)}` as Bytes32;
-const WALLET = "0xaaaa000000000000000000000000000000000001" as Address;
+const SERVER_SEED = `0x${"22".repeat(32)}` as Hash32;
+const CLIENT_SEED = `0x${"33".repeat(32)}` as Hash32;
+/** The old left-padded 20-byte word as a 32-byte Solana key: the message bytes, and so the golden digest, are unchanged (D-010). */
+const WALLET = toAddress(encodeBase58(Uint8Array.from((`${"00".repeat(12)}aaaa${"00".repeat(17)}01`.match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16)))));
 
 /** The other half of core's golden vector (`packages/core/src/games/lucky.test.ts`): the digest node:crypto produces. */
 const GOLDEN_DIGEST = "0x24fba7527be1e82474ae75357b23615d5585e1038d487d3f8ebde5b99ec0af26";
@@ -31,7 +32,7 @@ describe("the server's HMAC", () => {
   it("changes the whole draw when the nonce or the client seed changes", () => {
     const base = { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_VERSION };
     expect(toHex(luckyDigest(SERVER_SEED, { ...base, nonce: 8 }))).not.toBe(GOLDEN_DIGEST);
-    expect(toHex(luckyDigest(SERVER_SEED, { ...base, clientSeed: `0x${"34".repeat(32)}` as Bytes32 }))).not.toBe(GOLDEN_DIGEST);
-    expect(toHex(luckyDigest(`0x${"23".repeat(32)}` as Bytes32, base))).not.toBe(GOLDEN_DIGEST);
+    expect(toHex(luckyDigest(SERVER_SEED, { ...base, clientSeed: `0x${"34".repeat(32)}` as Hash32 }))).not.toBe(GOLDEN_DIGEST);
+    expect(toHex(luckyDigest(`0x${"23".repeat(32)}` as Hash32, base))).not.toBe(GOLDEN_DIGEST);
   });
 });

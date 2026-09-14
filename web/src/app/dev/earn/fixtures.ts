@@ -1,6 +1,8 @@
+import { CLUSTER_ID } from "@agari/core/constants";
 import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
 import { toMarketId, type Address, type EventMarket, type MarketId } from "@agari/core/types";
 import { WINDOW } from "@/app/dev/range/fixtures";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned readings; nothing here is a real vault, address or deployment.
 const DECIMALS = 6;
@@ -8,10 +10,10 @@ const UNIT = 10n ** BigInt(DECIMALS);
 export const FIXTURE_SYMBOL = "tUSDC";
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 2, 10, 0, 0);
 const NOW_SEC = Math.floor(FIXTURE_NOW_MS / 1000);
-const id = (n: number): MarketId => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
+const id = (n: number): MarketId => fixtureMarketId(n);
 
 export const VAULT: MakerVaultState = {
-  deployment: { chainId: 50312, marketMakerVault: "0x00000000000000000000000000000000000000c9" as Address, fromBlock: 478_000_000n },
+  deployment: { chainId: CLUSTER_ID.devnet, marketMakerVault: fixtureAddress("0x00000000000000000000000000000000000000c9"), fromBlock: 478_000_000n },
   params: {
     maxExposureBps: 6_000,
     minSpreadRaw: 20_000n,
@@ -22,7 +24,7 @@ export const VAULT: MakerVaultState = {
     maxOpenWindows: 8,
     minTimeLeftSec: 45,
   },
-  maker: "0x0000000000000000000000000000000000000a7e" as Address,
+  maker: fixtureAddress("0x0000000000000000000000000000000000000a7e"),
   paused: false,
   liquidBase: 4_961n * UNIT + 260_000n,
   deployedBase: 38n * UNIT + 960_000n,
@@ -69,12 +71,12 @@ export const HISTORY: MakerWindowView[] = [
 export const MARKETS: ReadonlyMap<MarketId, EventMarket> = new Map<MarketId, EventMarket>(
   (
     [
-      [0x11542, "BTC", 300, 240],
-      [0x11541, "ETH", 900, 600],
-      [0x11540, "BTC", 3_600, -30],
-      [0x1153f, "ETH", 300, -900],
-      [0x1153e, "BTC", 300, -1_800],
-      [0x1153d, "BTC", 900, -3_600],
+      [0x11542, "TSLA", 300, 240],
+      [0x11541, "NVDA", 900, 600],
+      [0x11540, "TSLA", 3_600, -30],
+      [0x1153f, "NVDA", 300, -900],
+      [0x1153e, "TSLA", 300, -1_800],
+      [0x1153d, "TSLA", 900, -3_600],
     ] as const
   ).map(([n, asset, intervalSec, leftSec]) => [id(n), { ...WINDOW, marketId: id(n), asset, intervalSec, tradingStartSec: NOW_SEC + leftSec - intervalSec, expirySec: NOW_SEC + leftSec }]),
 );

@@ -2,11 +2,11 @@
 
 import type { ArenaAgentGrant } from "@agari/core/games";
 import type { Address } from "@agari/core/types";
-import { createLocalStorageJournal, createSessionKeySession, keyGasBalance, nowMs, type SubmitterSession } from "@agari/markets";
+import { createLocalStorageJournal, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
 import { useCallback, useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
-import { deckGasWei } from "./gas";
+import { deckFeeLamports } from "./gas";
 import { forgetGameKey, useGameKey } from "./useGameKey";
 
 /**
@@ -52,8 +52,8 @@ export function useGameSession(): GameSession {
     }
     let cancelled = false;
     let created: SubmitterSession | null = null;
-    void createSessionKeySession({ env: webEnv.markets, privateKey: stored.privateKey, journal: createLocalStorageJournal(nowMs), nowMs, authority: "game-session" })
-      .then((next) => {
+    void createSubmitterSession({ env: webEnv.markets, authority: "game-session", signer: { secretKey: stored.secretKey }, journal: createLocalStorageJournal(nowMs), nowMs })
+      .then((next: SubmitterSession) => {
         created = next;
         if (cancelled) return next.dispose();
         setSession(next);
@@ -74,14 +74,10 @@ export function useGameSession(): GameSession {
       if (!stored) return null;
       const budgetBase = perCardCapBase * BigInt(deckSize);
       if (sponsored) return { agent: stored.address, ttlSec: MATCH_AGENT_TTL_SEC, budgetBase, gasWei: 0n };
-      const needed = deckGasWei(deckSize);
-      let held = 0n;
-      try {
-        held = await keyGasBalance(stored.address);
-      } catch {
-        // An unreadable balance funds the whole envelope: over-sending stays the player's own STT, under-sending loses a card.
-      }
-      return { agent: stored.address, ttlSec: MATCH_AGENT_TTL_SEC, budgetBase, gasWei: held >= needed ? 0n : needed - held };
+      // `gasWei` keeps its product name until S12 (D-010) and carries lamports. The key's own balance isn't readable
+      // until the Solana adapter lands (S4), and an unreadable balance funds the whole envelope: over-sending stays the
+      // player's own SOL, under-sending loses a card.
+      return { agent: stored.address, ttlSec: MATCH_AGENT_TTL_SEC, budgetBase, gasWei: deckFeeLamports(deckSize) };
     },
     [stored],
   );

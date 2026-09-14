@@ -35,7 +35,7 @@ export default async function PortPage() {
         <h2 className="font-semibold">Boot: {describe(boot)}</h2>
         {isOk(boot) ? (
           <ul>
-            <li>clock: offset {boot.value.clock.offsetMs} ms · rtt {boot.value.clock.rttMs} ms · block {boot.value.clock.blockNumber}</li>
+            <li>clock: offset {boot.value.clock.offsetMs} ms · rtt {boot.value.clock.rttMs} ms · slot {boot.value.clock.slot}</li>
             <li>collateral: {boot.value.collateral.symbol} ({boot.value.collateral.decimals} dp) {boot.value.collateral.address}</li>
             <li>venue: source={boot.value.venue.source} · {boot.value.venue.venueId ?? "none"} · {boot.value.venue.liveCount} live</li>
             <li>now (chain-corrected): {new Date(nowMs).toISOString()}</li>
@@ -47,9 +47,9 @@ export default async function PortPage() {
           <h2 className="font-semibold">Lanes: {describe(lanes)}</h2>
           {isOk(lanes) ? (
             <div className="flex flex-col gap-4">
-              <p>{lanes.value.lanes.length} lanes · {lanes.value.excludedFixedStrike} fixed-strike markets hidden</p>
+              <p>{lanes.value.lanes.length} lanes</p>
               {lanes.value.lanes.map((lane) => (
-                <div key={lane.intervalSec}>
+                <div key={`${lane.basis}:${lane.intervalSec}`}>
                   <h3 className="font-semibold">{lane.label} ({lane.intervalSec}s) — {lane.markets.length} live</h3>
                   <ul>
                     {lane.markets.map((market) => (

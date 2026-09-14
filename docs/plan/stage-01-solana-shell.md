@@ -58,8 +58,37 @@
     - **X:** the X receipt `executionActor`/`poolAddress`/`txHash` checks expect base58, and the SQL `lower(details->>'executionActor')` is gone.
     - **Indexes:** no index or constraint used `lower()`.
     - **Verified** on a throwaway local Postgres database: exact round-trip, re-cased wallet misses, hex match id folds, schema re-run leaves base58 rows untouched. There are no db unit tests, and none were added (tests aren't a deliverable).
-
+- **1d-D1 (games, room, takes, `/dev`):**
+  - **Errors:** 91 → 12 in the lane's folders. The last 12 belong to others:
+    - 10 are fixtures now passing a base58 `Signature` into components D2/D3 still type as `Hex`: `features/markets/claims` `ClaimItem.txHash`, `features/share` `CallCard`/`TradeCard`, and the parlay/range ticket props.
+    - 2 are `features/games/keccak.ts` waiting on the `@noble/hashes` web dependency. With it added locally the file typechecks, and 14 tests pass across games, room, takes and auth.
+  - **Game key:**
+    - `useGameKey` makes a WebCrypto Ed25519 keypair (`duel/game-keypair.ts`).
+    - IndexedDB `agari.gameKey.<owner>` stores `{ address, secretKey: base58(seed ‖ pubkey, 64 B), createdAtMs }`. That is the Solana CLI layout the markets session takes as `{ secretKey }`; a Masayume EVM record doesn't parse and is replaced.
+    - It signs room texts as base58 ed25519, verified server-side by `verifyWalletMessage`. A test round-trips it.
+  - **Fees:**
+    - `duel/gas.ts` is lamports: `FEE_RESERVE_LAMPORTS` + `LAMPORTS_PER_SIGNATURE` × cards × 2.
+    - The key balance poll is gone; the key-balance read is S4/S12's.
+    - The sponsor route runs every gate, then refuses the SOL transfer honestly ("lands with the arena program").
+    - `fundKey` refuses with `ARENA_NOT_DEPLOYED`.
+    - Route wire names (`amountWei`, `capWei`, …) are kept and now carry lamports (D-010).
+  - **Signed texts:**
+    - Room join and take post read "Agari", name the wallet exactly, carry `Network: Solana devnet`, and validate `addressSchema` + `messageSignatureSchema` (+ `marketIdSchema` for takes).
+    - The duel room token verifies the key's ed25519 signature.
+  - **Base58 hazards removed:** 40 address `toLowerCase()` comparisons across duel/lucky/arcade surfaces, room token and session storage keys, and the Lucky placement's txHash. Hex values (match ids, seeds, commitments) still fold case. The room session prefix `masayume:room:` became `agari:room:`.
+  - **Lucky golden vector unchanged:** the web HMAC test's wallet is the old left-padded word as a 32-byte key (D-010).
+  - **`/dev` fixtures:**
+    - `app/dev/fixture-ids.ts` maps each old hex literal to base58 of the same bytes; `app/dev/fixture-window.ts` is one complete `EventMarket`.
+    - BTC/ETH → TSLA/NVDA; cent prices → 8-dp prints; explorer links use `txUrl`; the boot page shows the Solana config and the engine's deploy state.
+    - The private desk tickets carry placeholder signatures until S10's ed25519 claim (PD-4), never a faked "Verified".
 ## Handoff
+
+- **1d-D1 needs from the parent:**
+  - `pnpm --filter web add @noble/hashes@1.8.0` (same version as ops) for `features/games/keccak.ts`.
+  - D2/D3 retype `txHash` props to `Signature` (claims, share cards, parlay/range tickets).
+  - D3's `app/api/games/*` and `app/api/{room,takes}` routes still import `bytes32Schema`/`hexSchema`: `api/games/sponsor` → `hash32Schema` for `matchId`; `api/games/lucky/placed` → `signatureSchema` for `txHash`.
+- **1d-D1 depends on D2's `features/session/sponsor.server.ts` exports:** `gate`, `marketsEnvFromProcess`, `sponsorConfig` (`config.sponsor`, `maxPerDevicePerHour`, `maxPerAddressPerHour`). If D2 renames them, `features/games/sponsor.server.ts` follows.
+- **S12 (games):** size a fresh key's rent-exempt minimum and priority fees into `deckFeeLamports`, read key/sponsor SOL balances, restore the dry-key poll, and send the sponsor's top-up. `ArenaAgentGrant.gasWei` carries lamports until then.
 
 - **1b–1d must:** never lowercase, uppercase or text-sort an `Address`/`MarketId`/`Signature` (Masayume web code does this for EVM ids); build test ids with `packages/core/src/testing/ids.ts`; treat `txHash` as a base58 `Signature`.
 - **1d must:** pass `{ lockAtSec, intervalSec }` to the entry helpers (`markets/submitter/steps/expiry.ts`, `ops/x-relay/execute.ts`, `web/features/x/XInstructionBuilder.tsx`); build `EventMarket` fixtures with `packages/core/src/testing/market.ts`; drop every reader of the removed DreamDEX fields (D-011).

@@ -4,7 +4,7 @@ import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@agari/
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { useArenaState, useBalanceSheet } from "@agari/markets/react";
-import { STT_FAUCETS } from "@agari/core/constants";
+import { SOL_FAUCETS } from "@agari/core/constants";
 import { useVenue } from "@/features/markets";
 import { useWalletSession } from "@/lib/wallet-session";
 import { DUEL } from "./copy";
@@ -122,7 +122,7 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
         <div className="du-refusal" role="status">
           <p className="du-body">{sponsor.ready ? DUEL.entry.gasShortSponsored : DUEL.entry.gasShort}</p>
           <ul className="du-faucets">
-            {STT_FAUCETS.map((faucet) => (
+            {SOL_FAUCETS.map((faucet) => (
               <li key={faucet.url}>
                 <a href={faucet.url} target="_blank" rel="noreferrer">
                   {faucet.name} →

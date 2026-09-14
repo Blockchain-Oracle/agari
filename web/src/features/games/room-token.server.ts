@@ -11,10 +11,10 @@ import {
   verifyRoomToken,
   type RoomTokenClaims,
 } from "@agari/core/games";
-import type { Address } from "@agari/core/types";
+import { isSignature, type Address } from "@agari/core/types";
+import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { parseMarketsEnv } from "@agari/markets";
 import { resolveArenaDeployment } from "@agari/markets/games";
-import { verifyMessage } from "viem";
 
 /**
  * Minting the duel room's credential — server only. Nothing here may be imported by a component.
@@ -78,7 +78,7 @@ export async function mintFromSignature(wallet: Address, key: Address, issuedAtM
   if (!roomAuthFresh(issuedAtMs, nowMs)) return { ok: false, status: 400, error: "That signature is too old." };
 
   const message = roomAuthMessage({ wallet, key, chainId: target.chainId, arena: target.arena, issuedAtMs });
-  const verified = await verifyMessage({ address: key, message, signature: signature as `0x${string}` }).catch(() => false);
+  const verified = isSignature(signature) && (await verifyWalletMessage({ text: message, signature, signer: key }));
   if (!verified) return { ok: false, status: 401, error: "That signature is not this key's." };
 
   return { ok: true, grant: grant(roomSessionClaims(wallet, key, target.chainId, target.arena, nowMs)) };
@@ -94,7 +94,7 @@ export function renewFromToken(token: string, nowMs: number): MintOutcome {
   if (!canRenewRoomToken(parsed.claims, nowMs)) return { ok: false, status: 401, error: "That room session has ended." };
 
   const target = roomArena();
-  if (!target || parsed.claims.chainId !== target.chainId || parsed.claims.arena !== target.arena.toLowerCase()) {
+  if (!target || parsed.claims.chainId !== target.chainId || parsed.claims.arena !== target.arena) {
     return { ok: false, status: 403, error: "That room token was minted for another arena." };
   }
 

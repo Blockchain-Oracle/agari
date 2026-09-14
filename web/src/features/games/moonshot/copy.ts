@@ -27,7 +27,7 @@ export const MOONSHOT = {
     why: RANGE_NOT_DEPLOYED,
     dependency: "the RangeReserve contract — deploy with contracts/script/DeployRangeReserve.s.sol, then pnpm contracts:export",
   },
-  connect: { title: "Connect your wallet to take aim", sub: "Any wallet on Somnia Shannon. Test funds are free" },
+  connect: { title: "Connect your wallet to take aim", sub: "Any Solana wallet, on devnet. Test funds are free" },
   aim: {
     label: "Aim",
     /** Pips' first-run line, in the ladder's own terms. */
@@ -86,7 +86,7 @@ export const MOONSHOT = {
     reservePaused: "The reserve is paused: no new rounds until it reopens. Settlement and claims still run.",
     technical: "technical details",
     tryAgain: "Try again",
-    viewTx: "View on the Shannon explorer",
+    viewTx: "View on Solana Explorer",
     toast: (target: string, stake: string, payout: string, symbol: string) => `Moonshot placed. ${target}: ${stake} to ${payout} ${symbol} if it lands.`,
     requote: (stake: string, symbol: string) => `The basis moved — this call now costs ${stake} ${symbol}. Confirm again to place it at the new price.`,
   },

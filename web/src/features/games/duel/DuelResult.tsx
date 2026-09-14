@@ -2,7 +2,7 @@
 
 import { STAKE_TIERS, cardPnl, everyCardSettled, picksComplete, type CardReceipt, type MatchState } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32, MarketId } from "@agari/core/types";
+import type { Address, Hash32, MarketId } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { useArenaCredit, useArenaState, useMarketsLite } from "@agari/markets/react";
 import { useEffect, useRef, useState } from "react";
@@ -38,7 +38,7 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "";
   const money = (base: bigint | null) => (base === null || decimals === null ? DUEL.result.unsettled : formatBaseUnits(base, decimals, { maxDp: 4, minDp: 2 }));
 
-  const you = wallet?.toLowerCase() ?? null;
+  const you = wallet ?? null;
   const receipts = "receipts" in state ? state.receipts : [];
   const cards = "cards" in state ? state.cards : [];
   const settled = receipts.filter((r) => r.payoutBase !== null).length;
@@ -46,8 +46,8 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
 
   const owed = credit && isOk(credit) ? credit.value : null;
 
-  const mine = receipts.filter((r) => r.player.toLowerCase() === you);
-  const theirs = receipts.filter((r) => r.player.toLowerCase() !== you);
+  const mine = receipts.filter((r) => r.player === you);
+  const theirs = receipts.filter((r) => r.player !== you);
 
   /**
    * Which cards the venue has already decided — one read for the whole deck, and the exact
@@ -64,14 +64,14 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
   const canFinalize = state.phase !== "finalized" && receipts.length > 0 && receipts.every((r) => r.payoutBase !== null);
 
   const outcome = state.phase === "finalized" ? state.outcome : null;
-  const yourPnl = outcome && you ? (Object.entries(outcome.pnlBase).find(([addr]) => addr.toLowerCase() === you)?.[1] ?? null) : null;
-  const theirPnl = outcome && you ? (Object.entries(outcome.pnlBase).find(([addr]) => addr.toLowerCase() !== you)?.[1] ?? null) : null;
+  const yourPnl = outcome && you ? (Object.entries(outcome.pnlBase).find(([addr]) => addr === you)?.[1] ?? null) : null;
+  const theirPnl = outcome && you ? (Object.entries(outcome.pnlBase).find(([addr]) => addr !== you)?.[1] ?? null) : null;
   const verdict =
     outcome === null
       ? null
       : outcome.winner === null
         ? DUEL.result.tied
-        : outcome.winner.toLowerCase() === you
+        : outcome.winner === you
           ? DUEL.result.won
           : DUEL.result.lost;
 
@@ -98,7 +98,7 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
     if (!outcome || sounded.current === state.matchId) return;
     sounded.current = state.matchId;
     setModalOpen(true);
-    feedback(outcome.winner === null ? "modal-open" : outcome.winner.toLowerCase() === you ? "duel-win" : "duel-lose");
+    feedback(outcome.winner === null ? "modal-open" : outcome.winner === you ? "duel-win" : "duel-lose");
   }, [outcome, state.matchId, you, feedback]);
 
   // What the modal and its share card say: the chain's figures, and the pot the tier priced.
@@ -108,10 +108,10 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
     outcome && decimals !== null
       ? {
           matchId: state.matchId,
-          verdict: outcome.winner === null ? "tied" : outcome.winner.toLowerCase() === you ? "won" : "lost",
+          verdict: outcome.winner === null ? "tied" : outcome.winner === you ? "won" : "lost",
           returnPct: state.tier === "free" || yourPnl === null || costBase === 0n ? null : Number((yourPnl * 100n) / costBase),
           you,
-          opponent: you === null ? null : state.players.creator.toLowerCase() === you ? state.players.challenger : state.players.creator,
+          opponent: you === null ? null : state.players.creator === you ? state.players.challenger : state.players.creator,
           hits: mine.filter((r) => r.payoutBase !== null && r.payoutBase > r.costBase).length,
           total: cards.length,
           pnlBase: yourPnl,
@@ -151,7 +151,7 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
       )}
 
       {verdict && (
-        <div className={`du-verdict${outcome?.winner === null ? "" : outcome?.winner?.toLowerCase() === you ? " du-verdict--won" : " du-verdict--lost"}`}>
+        <div className={`du-verdict${outcome?.winner === null ? "" : outcome?.winner === you ? " du-verdict--won" : " du-verdict--lost"}`}>
           <p className="du-verdict-line">{verdict}</p>
           <div className="du-facts">
             <div className="du-fact">
@@ -183,7 +183,7 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
           <span className="du-k">{DUEL.result.cards}</span>
           <ul className="du-picked-list">
             {[...mine, ...theirs]
-              .sort((a, b) => a.cardIndex - b.cardIndex || (a.player.toLowerCase() === you ? -1 : 1))
+              .sort((a, b) => a.cardIndex - b.cardIndex || (a.player === you ? -1 : 1))
               .map((receipt) => (
                 <Row key={receipt.pickKey} receipt={receipt} cards={cards} you={you} money={money} symbol={symbol} />
               ))}
@@ -202,13 +202,13 @@ export function DuelResult({ state, wallet }: { state: Extract<MatchState, { pha
                 type="button"
                 className="du-quiet"
                 disabled={busy !== null}
-                onClick={() => void settleCard(state.matchId as Bytes32, card.index)}
+                onClick={() => void settleCard(state.matchId as Hash32, card.index)}
               >
                 {busy === `settle:${card.index}` ? DUEL.settling.settling : DUEL.settling.settleCard(card.asset)}
               </button>
             ))}
             {canFinalize && (
-              <button type="button" className="du-quiet" disabled={busy !== null} onClick={() => void finalize(state.matchId as Bytes32)}>
+              <button type="button" className="du-quiet" disabled={busy !== null} onClick={() => void finalize(state.matchId as Hash32)}>
                 {busy === "finalize" ? DUEL.settling.finalizing : DUEL.settling.finalize}
               </button>
             )}
@@ -267,7 +267,7 @@ function Row({
       {settled ? <span className={`du-dot du-dot--${receipt.pick}`} aria-hidden /> : <span className="du-live-dot" aria-hidden />}
       <span className="du-v">{card?.asset ?? "—"}</span>
       <span className="du-k">{card ? cadenceLabel(card.intervalSec) : ""}</span>
-      <span className="du-k">{receipt.player.toLowerCase() === you ? DUEL.result.you : DUEL.result.opponent}</span>
+      <span className="du-k">{receipt.player === you ? DUEL.result.you : DUEL.result.opponent}</span>
       <span className="du-foot">
         {DUEL.result.cost} {money(receipt.costBase)} · {DUEL.result.payout} {receipt.payoutBase === null ? DUEL.result.unsettled : money(receipt.payoutBase)} {symbol}
       </span>

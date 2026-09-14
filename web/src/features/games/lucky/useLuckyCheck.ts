@@ -3,7 +3,7 @@
 import { luckyDrawMessage, mapLuckyDraw } from "@agari/core/games";
 import type { Hex } from "@agari/core/types";
 import { useEffect, useState } from "react";
-import { keccak256 } from "viem";
+import { keccak256 } from "../keccak";
 import type { LuckyDealWire } from "./lucky-wire";
 
 /**

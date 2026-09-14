@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address, Bytes32, Hex } from "@agari/core/types";
+import type { Address, Hash32, Signature } from "@agari/core/types";
 import { useCallback, useEffect, useState } from "react";
 import { deviceId } from "@/features/session/store";
 
@@ -16,7 +16,8 @@ export interface GameSponsorStatus {
   ready: boolean;
 }
 
-export type FundOutcome = { ok: true; hash: Hex | null; amountWei: bigint; why: string } | { ok: false; error: string };
+/** `amountWei` is lamports: the route's wire name, kept until S12 (D-010). */
+export type FundOutcome = { ok: true; hash: Signature | null; amountWei: bigint; why: string } | { ok: false; error: string };
 
 export interface GameSponsor {
   /** Null until the route has answered. */
@@ -24,7 +25,7 @@ export interface GameSponsor {
   /** True only when the sponsor exists and can pay right now: the entry's payer decision. */
   ready: boolean;
   /** Asks the sponsor to fund one seat's key, once the arena has named it for `player`. Never throws. */
-  fund: (matchId: Bytes32, player: Address, agent: Address) => Promise<FundOutcome>;
+  fund: (matchId: Hash32, player: Address, agent: Address) => Promise<FundOutcome>;
   refresh: () => void;
 }
 
@@ -60,14 +61,14 @@ export function useGameSponsor(): GameSponsor {
     };
   }, [nonce]);
 
-  const fund = useCallback(async (matchId: Bytes32, player: Address, agent: Address): Promise<FundOutcome> => {
+  const fund = useCallback(async (matchId: Hash32, player: Address, agent: Address): Promise<FundOutcome> => {
     try {
       const response = await fetch(ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json", "x-agari-device": deviceId() },
         body: JSON.stringify({ matchId, player, agent }),
       });
-      const body = (await response.json().catch(() => ({}))) as { hash?: Hex | null; amountWei?: string; why?: string; error?: string };
+      const body = (await response.json().catch(() => ({}))) as { hash?: Signature | null; amountWei?: string; why?: string; error?: string };
       if (!response.ok) return { ok: false, error: body.error ?? `the sponsor answered ${response.status}` };
       return { ok: true, hash: body.hash ?? null, amountWei: BigInt(body.amountWei ?? "0"), why: body.why ?? "" };
     } catch (error) {

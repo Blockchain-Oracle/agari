@@ -1,5 +1,6 @@
 "use client";
 
+import { CLUSTER_ID, LAMPORTS_PER_SOL } from "@agari/core/constants";
 import type { TxOutcome } from "@agari/core/ports";
 import { diagnosis, type Address } from "@agari/core/types";
 import type { VaultGrant } from "@agari/core/vault";
@@ -8,12 +9,13 @@ import { SectionHeader } from "@/components/chrome";
 import { RouteControl, SESSION, SessionChip, SessionControl, SessionManagerBody, type FundingSource, type SessionKeyView, type SessionStatus } from "@/features/session";
 import { SessionModalShell } from "@/features/session/SessionModal";
 import { CapabilityReceipt } from "@/features/session/CapabilityReceipt";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 const ONE = 1_000_000n;
-const OWNER = "0xd357019E2c55375477802A047dB7bC1A77819358" as Address;
-const KEY = "0x00000000000000000000000000000000000000aa" as Address;
-const OTHER_KEY = "0x00000000000000000000000000000000000000bb" as Address;
-const VAULT = "0x0000000000000000000000000000000000000ee1" as Address;
+const OWNER = fixtureAddress("0xd357019E2c55375477802A047dB7bC1A77819358");
+const KEY = fixtureAddress("0x00000000000000000000000000000000000000aa");
+const OTHER_KEY = fixtureAddress("0x00000000000000000000000000000000000000bb");
+const VAULT = fixtureAddress("0x0000000000000000000000000000000000000ee1");
 const NOW_SEC = 1_788_400_000;
 const SYMBOL = "tUSDC";
 
@@ -39,10 +41,10 @@ function view(status: SessionStatus, extra: Partial<SessionKeyView> = {}): Sessi
     owner: OWNER,
     key: { address: KEY },
     grant: null,
-    deployment: { chainId: 50312, eventVault: VAULT, forwarder: VAULT, collateral: VAULT, fromBlock: 0n },
+    deployment: { chainId: CLUSTER_ID.devnet, eventVault: VAULT, forwarder: VAULT, collateral: VAULT, fromBlock: 0n },
     decimals: 6,
     nowSec: NOW_SEC,
-    sponsor: { configured: false, sponsor: null, balanceWei: null, forwarder: null, allowlist: [] },
+    sponsor: { configured: false, sponsor: null, balanceLamports: null, allowlist: [] },
     sponsorRefusal: null,
     keyGasWei: 720_000_000_000_000_000n,
     vaultAvailableBase: 40n * ONE,
@@ -66,14 +68,14 @@ const VIEWS: Array<{ label: string; view: SessionKeyView }> = [
   { label: "armed · key pays", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600) }) },
   {
     label: "armed · sponsor on",
-    view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), sponsor: { configured: true, sponsor: VAULT, balanceWei: 5n * 10n ** 18n, forwarder: VAULT, allowlist: ["placeFor"] }, keyGasWei: 0n }),
+    view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), sponsor: { configured: true, sponsor: VAULT, balanceLamports: 5n * LAMPORTS_PER_SOL, allowlist: ["agari-vault:place_for"] }, keyGasWei: 0n }),
   },
   { label: "armed · key empty", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), keyGasWei: 0n }) },
   {
     label: "armed · sponsor declined",
     view: view("armed", {
       grant: grant(KEY, NOW_SEC + 6 * 3600),
-      sponsor: { configured: true, sponsor: VAULT, balanceWei: 0n, forwarder: VAULT, allowlist: ["placeFor"] },
+      sponsor: { configured: true, sponsor: VAULT, balanceLamports: 0n, allowlist: ["agari-vault:place_for"] },
       sponsorRefusal: "The sponsorship allowance for this transaction has been exhausted. The browser key must cover the network fee.",
     }),
   },

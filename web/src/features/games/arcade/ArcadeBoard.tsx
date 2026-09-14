@@ -15,7 +15,7 @@ export function ArcadeBoard({ board, you, post, ability }: { board: BoardWire | 
   const words = ARCADE.board;
   const banner = post.kind === "posted" ? (post.isBest ? ARCADE.over.newBest : ARCADE.over.ranked(post.rank)) : null;
   const rows = board?.rows ?? [];
-  const mine = you?.toLowerCase() ?? null;
+  const mine = you ?? null;
 
   return (
     <div className="ar-note ar-board">

@@ -3,8 +3,7 @@
 import type { MarketId, Side } from "@agari/core/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { useSignMessage } from "wagmi";
-import { useWalletSession } from "@/lib/wallet-session";
+import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { TAKE_ERRORS } from "./copy";
 import { TAKES_FEED_LIMIT, takeMessage, type FeedTake, type TakesFeed } from "./protocol";
 
@@ -45,23 +44,23 @@ export interface PostTake {
  * Publishing a call: sign the exact message the route will verify, send it, and
  * refresh the reel with the server's own row rather than a local echo — what is on
  * screen is what was stored. The reference signs a transaction through its gas
- * sponsor; a `personal_sign` is the same proof without a chain write.
+ * sponsor; an ed25519 message signature is the same proof without a chain write.
  */
 export function usePostTake(): PostTake {
   const { address } = useWalletSession();
-  const { signMessageAsync } = useSignMessage();
+  const wallet = useOwnerWallet();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const post = useCallback<PostTake["post"]>(
     async ({ marketId, side, caption }) => {
-      if (!address) return null;
+      if (!address || !wallet) return null;
       setBusy(true);
       setError(null);
       try {
         const issuedAtMs = Date.now();
-        const signature = await signMessageAsync({ message: takeMessage({ marketId, side, caption, address, issuedAtMs }) });
+        const signature = await signText(wallet, takeMessage({ marketId, side, caption, address, issuedAtMs }));
         const response = await fetch("/api/takes", {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -84,7 +83,7 @@ export function usePostTake(): PostTake {
         setBusy(false);
       }
     },
-    [address, signMessageAsync, queryClient],
+    [address, wallet, queryClient],
   );
 
   return { post, busy, error };
