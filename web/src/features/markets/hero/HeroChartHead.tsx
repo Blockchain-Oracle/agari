@@ -5,6 +5,7 @@ import { AssetDisc } from "./asset-mark";
 import { HeroCadenceTabs } from "./HeroCadenceTabs";
 import { HeroQuestion } from "./HeroQuestion";
 import { HeroSettlesIn } from "./HeroSettlesIn";
+import { MarketSessionChip } from "../session";
 
 export interface HeroChartHeadProps {
   market: EventMarket;
@@ -40,6 +41,7 @@ export function HeroChartHead({
             pinnedMissingIntervalSec={pinnedMissingIntervalSec}
             onPin={onPin}
           />
+          <MarketSessionChip />
         </div>
         <HeroQuestion asset={market.asset} openingRaw={openingRaw} currentRaw={currentRaw} />
       </div>

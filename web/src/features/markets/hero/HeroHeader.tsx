@@ -2,6 +2,7 @@ import type { MarketPhase } from "@agari/core/lifecycle";
 import type { EventMarket } from "@agari/core/types";
 import { Badge } from "@/components/ui/badge";
 import { HERO, formatCadence } from "@/lib/copy";
+import { MarketSessionChip } from "../session";
 
 interface HeroHeaderProps {
   market: EventMarket;
@@ -17,6 +18,7 @@ export function HeroHeader({ market, phase }: HeroHeaderProps) {
           {formatCadence(market.intervalSec)}
         </Badge>
         {phase !== "trading" && <span className="type-label-micro text-ink-secondary">{HERO.phase[phase]}</span>}
+        <MarketSessionChip />
       </div>
       <p className="type-body text-ink-secondary">{HERO.question(market.asset)}</p>
     </header>

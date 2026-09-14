@@ -5,8 +5,9 @@ import type { Address, EventMarket, LaneSet, MarketId, Side } from "@agari/core/
 import { ReadingBoundary } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { BetweenRounds } from "./BetweenRounds";
-import { LaneRows } from "./LaneRows";
+import { useMarketSession } from "../session";
 import { LaneTabs } from "./LaneTabs";
+import { TickerLane } from "./TickerLane";
 import type { LanesState } from "./useLanes";
 
 interface CadenceLanesProps {
@@ -26,12 +27,13 @@ function laneReading(state: LanesState, boot: Reading<unknown> | null): Reading<
 }
 
 export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, onSelect, onOpenRoom }: CadenceLanesProps) {
+  const session = useMarketSession();
   return (
     <ReadingBoundary
       reading={laneReading(state, boot)}
       shape="row"
       isEmpty={(laneSet) => laneSet.lanes.length === 0 && !state.pinnedMissing}
-      empty={MARKETS.noLiveWindows}
+      empty={session && !session.open ? MARKETS.closedWindows(session.label) : MARKETS.noLiveWindows}
     >
       {(laneSet) => (
         <div className="flex flex-col gap-4">
@@ -42,9 +44,18 @@ export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, on
             onPin={state.pin}
           />
           {state.activeLane === null || state.activeLane.markets.length === 0 ? (
-            <BetweenRounds venueId={venueId} intervalSec={state.activeIntervalSec ?? 0} nowMs={nowMs} />
+            <BetweenRounds venueId={venueId} intervalSec={state.activeIntervalSec ?? 0} nowMs={nowMs} session={session} />
           ) : (
-            <LaneRows lane={state.activeLane} nowMs={nowMs} selectedMarketId={selectedMarketId} onSelect={onSelect} onOpenRoom={onOpenRoom} />
+            <TickerLane
+              lane={state.activeLane}
+              ticker={state.ticker}
+              onPick={state.pinTicker}
+              session={session}
+              nowMs={nowMs}
+              selectedMarketId={selectedMarketId}
+              onSelect={onSelect}
+              onOpenRoom={onOpenRoom}
+            />
           )}
         </div>
       )}

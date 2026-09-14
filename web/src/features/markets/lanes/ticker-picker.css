@@ -1,0 +1,34 @@
+/* The ticker picker and the paused slot.
+ *
+ * Masayume lists two assets and needs neither. Both are drawn in markup the reference already
+ * styles rather than new looks: the picker is the leaderboard's `.asset-tabs` / `.asset-tab`
+ * (yosuku/part-08.css — mono caps, the `.glyph` disc, a vermilion underline on the active tab),
+ * and a paused ticker is Yosuku's own between-rounds slot, `.market-card-pending` + `.mc-pending`
+ * (part-06.css, `RailPlaceholder` in reference/yosuku/app/markets/page.tsx L74–95). Only what
+ * those rules cannot know is here: nine tabs overflowing a phone, and the pending card on cream. */
+
+/* Nine tickers outrun 390px: the row scrolls sideways instead of wrapping into a second rail. */
+.tkp {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tkp::-webkit-scrollbar {
+  display: none;
+}
+
+/* A thumb-sized target; the underline stays on the tab's own bottom edge. */
+.tkp .asset-tab {
+  flex: none;
+  min-height: 32px;
+}
+
+/* A ticker the roller has paused stays in its place, a step quieter — like a cadence between rounds. */
+.tkp .asset-tab[data-paused="true"]:not(.active) {
+  color: var(--gray-600);
+}
+
+/* part-06 paints the pending slot with white alphas only; on cream they vanish (part-14 re-inks .market-card). */
+[data-theme="light"] .market-card.market-card-pending {
+  border-color: rgba(20, 18, 16, 0.16);
+  background: rgba(20, 18, 16, 0.015);
+}

@@ -133,7 +133,28 @@ export const MARKETS = {
   trades: (n: number) => `${n} ${n === 1 ? "trade" : "trades"}`,
   fixedStrikeHidden: (n: number) => `${n} fixed-strike ${n === 1 ? "Window" : "Windows"} hidden — v1 lists up/down Windows only.`,
   noLiveWindows: { why: "No live Windows on this venue right now — Windows roll continuously, so this fills in as the next one opens." },
+  /** Outside regular hours a stock lane has no Window at all; the session label says when that changes. */
+  closedWindows: (label: string) => ({ why: `The stock market is closed · ${label}. Windows roll through the regular session, 09:30–16:00 ET.` }),
   ticketPlaceholder: { why: "Choose a Window and a side to open your call." },
+  /** The market-session chip: the NYSE state word, then core `sessionLabel`. */
+  session: {
+    aria: (state: string, label: string) => `Stock market ${state}: ${label}`,
+    open: "Open",
+    closed: "Closed",
+  },
+  /** A ticker whose `/session` lane reads `paused:` lists nothing while the rest of its cadence runs. */
+  paused: {
+    noSource: "Paused: no signed price source",
+    corporateAction: "Paused: corporate action",
+    clock: "paused",
+    why: (asset: string, cadence: string) => `No ${cadence} ${asset} Window opens until a signed print can settle it. The other tickers keep rolling.`,
+  },
+  /** The ticker picker over a lane that carries up to nine tickers. */
+  tickers: {
+    group: "Ticker",
+    all: "All",
+    none: (asset: string, cadence: string) => `No live ${cadence} ${asset} Window right now.`,
+  },
   notes: {
     moved: "That page moved — here are the live Windows.",
     gone: "That Window is gone — showing the live Windows instead.",
@@ -144,13 +165,13 @@ export const MARKETS = {
 export const HERO = {
   question: (asset: string) => `Will ${asset} close at or above its opening print?`,
   openingPrint: "opening print",
-  livePrice: "live · feed EMA",
+  livePrice: "live · spot",
   pendingPrint: "waiting for the opening print",
   pendingDistance: "No opening print yet — nothing to measure against.",
   noLivePrice: "No live price right now.",
   needs: { before: "needs", after: (side: string) => `for ${side}` },
   leading: (side: string) => `${side} is winning right now`,
-  source: "Settles on the Prophecy oracle median · chart follows the feed EMA",
+  source: "Settles on signed Pyth/RedStone prints at open and close · chart follows spot",
   depthTitle: "Top of book",
   buyUp: "Buy UP",
   buyDown: "Buy DOWN",
@@ -293,100 +314,5 @@ export const BALANCE = {
   },
 } as const;
 
-export const VERDICT_UI = {
-  title: "Verdict",
-  netPnl: "Net P&L",
-  paidOut: "Paid out",
-  costUnknown: "No entry cost on record for this wallet — showing the payout.",
-  legs: "Your legs",
-  contracts: "contracts",
-  payout: "payout",
-  receiptTitle: "Settlement receipt",
-  window: "Window",
-  openingPrint: "Opening print",
-  closingPrint: "Closing print",
-  settlementTx: "Settlement tx",
-  pendingTx: "landing on chain…",
-  oracleGraph: "Price source",
-  question: (source: string) => source,
-  noQuestion: "print proof not linked yet",
-  settling: "the closing print lands a few seconds after expiry.",
-  noPosition: { why: "You held nothing in this window — nothing to stamp." },
-  connect: { why: "Connect a wallet to see your verdict." },
-  notFound: { why: "This window is gone.", nextAction: { label: "Pick a live window", href: "/markets" } },
-  /** The claim card's words — reference `ClaimWinnings.tsx`; the footnote states our fact, not its keeper's. */
-  claim: {
-    notThisTime: "Not this time",
-    lossBody: "The Window closed on the other side of your line.",
-    youWon: "You won",
-    claimed: "Claimed",
-    profit: "Profit",
-    ret: "return",
-    stake: "Stake",
-    payout: "Payout",
-    collect: "Collect it now",
-    collecting: "Collecting…",
-    paid: "Paid to your wallet",
-    foot: "Redemption is a call you sign. The payout waits in the venue until you do.",
-  },
-  devTitle: "Verdict moment",
-  devEyebrow: "?m=<marketId> stamps a live window for the connected wallet",
-  fixtures: {
-    win: "Win — 正夢 in vermilion; the P&L figure is the only green",
-    loss: "Loss — 逆夢 in neutral ink; a fact, not a scare",
-    void: "Void — 無効; no reliable print, both sides pay 0.5",
-    both: "Both sides held — one card, net P&L, both legs listed",
-  },
-} as const;
-
-export const CLAIM = {
-  claimable: "claimable",
-  claimAll: "Claim all",
-  retry: "Claim the rest",
-  title: "Claim everything",
-  pageIntro: "Winnings are claimed, never sent. Each redemption is one signature, paid to your wallet only.",
-  waiting: (n: number) => (n === 0 ? "Nothing waiting right now" : `${n} settled ${n === 1 ? "Window" : "Windows"} waiting`),
-  netLabel: "net of the settlement fee",
-  feeNote: (bps: number) => (bps === 0 ? "fee 0% — read from chain" : `fee ${(bps / 100).toString()}% — read from chain`),
-  oneSignatureEach: "One signature per redemption — the venue has no batch claim, so each item reports its own outcome.",
-  contracts: "contracts",
-  closed: "closed",
-  settled: "settled",
-  kind: {
-    win: "Win",
-    void: "Void — no reliable print, both sides pay 0.5",
-    "vault-credit": "Vault credit — withdrawal",
-  },
-  leg: { up: "UP leg", down: "DOWN leg" },
-  status: {
-    pending: "waiting",
-    claiming: "claiming…",
-    confirmed: "claimed",
-    reverted: "reverted — nothing moved",
-    unknown: "unknown — check the explorer",
-  },
-  progress: (current: number, total: number) => `claiming ${current} of ${total}`,
-  finished: (claimed: number, total: number) => (claimed === total ? `Claimed ${claimed} of ${total}` : `${claimed} of ${total} claimed — the rest stayed put`),
-  stopped: "Stopped early — every remaining item is untouched.",
-  receipt: {
-    title: "Claim receipt",
-    figureLabel: "Paid to your wallet",
-    settlement: "settlement tx",
-    oracle: "Price source",
-    pending: "…",
-    settlementDegraded: "settlement tx not indexed yet — redemption tx only",
-    oracleDegraded: "print proof not linked yet — raw tx only",
-  },
-  empty: { why: "Nothing to claim — winnings land here the moment a Window you're in settles." },
-  disconnected: { why: "Connect a wallet to see what's waiting for it." },
-  dev: {
-    title: "Claim-all plate",
-    intro: "Canned rows for every claim state, then the live plate for the connected wallet.",
-    plate: "Plate, idle",
-    progress: "Mid-run — one reverted, one signing",
-    receipt: "Success receipt",
-    live: "Live — your wallet",
-  },
-} as const;
-
+export { CLAIM, VERDICT_UI } from "./copy-verdict";
 export { TICKET, TICKET_PENDING } from "./copy-ticket";

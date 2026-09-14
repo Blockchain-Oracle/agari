@@ -1,9 +1,11 @@
 "use client";
 
-import { groupByHorizon } from "@agari/core/market";
+import { groupByHorizon, type TickerSymbol } from "@agari/core/market";
 import { diagnosisCopy } from "@agari/core/copy";
 import type { Diagnosis, LaneSet } from "@agari/core/types";
-import { WORD_BOARD } from "@/lib/copy";
+import { useMemo } from "react";
+import { MARKETS, WORD_BOARD } from "@/lib/copy";
+import { useMarketSession } from "../session";
 import { WordCard } from "./WordCard";
 
 interface WordMarketBoardProps {
@@ -11,7 +13,14 @@ interface WordMarketBoardProps {
   laneSet: LaneSet | null;
   /** Why there is no lane set, when the read failed rather than is still in flight. */
   failure: Diagnosis | null;
+  /** The rail's pinned ticker: nine tickers in three cadences is 27 questions, so the board narrows with the rail. */
+  ticker: TickerSymbol | null;
   nowMs: number;
+}
+
+function forTicker(laneSet: LaneSet | null, ticker: TickerSymbol | null): LaneSet | null {
+  if (laneSet === null || ticker === null) return laneSet;
+  return { ...laneSet, lanes: laneSet.lanes.map((lane) => ({ ...lane, markets: lane.markets.filter((market) => market.asset === ticker) })) };
 }
 
 /**
@@ -29,13 +38,15 @@ interface WordMarketBoardProps {
  * out of the server render — so "reading the board…" is also the pre-hydration state,
  * exactly as the reference's `now === 0` guard makes it.
  */
-export function WordMarketBoard({ laneSet, failure, nowMs }: WordMarketBoardProps) {
+export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: WordMarketBoardProps) {
+  const laneSet = useMemo(() => forTicker(allLanes, ticker), [allLanes, ticker]);
+  const session = useMarketSession();
   const groups = groupByHorizon(laneSet, nowMs);
 
   if (laneSet === null && failure) return <div className="words-empty">{diagnosisCopy(failure.kind).body}</div>;
 
   if (laneSet === null || nowMs === 0) return <div className="words-empty">{WORD_BOARD.reading}</div>;
-  if (groups.length === 0) return <div className="words-empty">{WORD_BOARD.between}</div>;
+  if (groups.length === 0) return <div className="words-empty">{session && !session.open ? MARKETS.closedWindows(session.label).why : WORD_BOARD.between}</div>;
 
   return (
     <>

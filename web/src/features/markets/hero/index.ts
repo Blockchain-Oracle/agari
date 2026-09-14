@@ -16,4 +16,4 @@ export { DepthStrip } from "./DepthStrip";
 export { OraclePrice, oraclePriceText } from "./OraclePrice";
 export { PriceSourceNote } from "./PriceSourceNote";
 export { useChartSeries, type ChartPoint, type ChartSeries } from "./useChartSeries";
-export { feedRawToOracleRaw, FEED_DECIMALS_DEFAULT, ORACLE_SCALE } from "./units";
+export { feedRawToOracleRaw, FEED_DECIMALS_DEFAULT, ORACLE_SCALE, PRICE_DISPLAY_DP, usdLine } from "./units";

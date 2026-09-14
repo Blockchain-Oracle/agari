@@ -16,7 +16,7 @@ import { useEffect, useRef } from "react";
 import { HERO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import type { ChartPoint } from "./useChartSeries";
-import { ORACLE_SCALE } from "./units";
+import { ORACLE_SCALE, PRICE_DISPLAY_DP } from "./units";
 
 interface PriceChartClientProps {
   points: ChartPoint[];
@@ -34,7 +34,8 @@ interface Built {
 
 /** Floats exist only here, at the canvas boundary. */
 const toValue = (raw: bigint): number => Number(raw) / 10 ** ORACLE_SCALE;
-const MIN_MOVE = 1 / 10 ** ORACLE_SCALE;
+/** The axis and last-value labels read in cents, as the reference's cents-scale oracle drew them. */
+const MIN_MOVE = 1 / 10 ** PRICE_DISPLAY_DP;
 
 /**
  * Theme comes from the token surfaces at mount, never from literals in this file.
@@ -69,7 +70,7 @@ function buildChart(container: HTMLDivElement): Built {
     lineWidth: 2,
     priceLineVisible: false,
     lastValueVisible: true,
-    priceFormat: { type: "price", precision: ORACLE_SCALE, minMove: MIN_MOVE },
+    priceFormat: { type: "price", precision: PRICE_DISPLAY_DP, minMove: MIN_MOVE },
   });
   return { chart, series, priceLine: null, pointCount: 0 };
 }

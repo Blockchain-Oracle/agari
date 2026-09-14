@@ -1,5 +1,6 @@
 "use client";
 
+import type { TickerSymbol } from "@agari/core/market";
 import type { EventMarket, Lane, LaneSet, MarketId, Side } from "@agari/core/types";
 import { marketDeepLink } from "@agari/core/urls";
 import { useCallback, useState } from "react";
@@ -31,11 +32,12 @@ export interface MarketsSelectionApi {
   setSelection: (marketId: MarketId, side?: Side) => void;
 }
 
-/** Deep link → pinned lane's soonest Window → first live Window. */
-export function useMarketsSelection(lanes: LaneSet | null, activeLane: Lane | null, nowMs: number): MarketsSelectionApi {
+/** Deep link → the pinned ticker's soonest Window in the pinned lane → the pinned lane's soonest → first live Window. */
+export function useMarketsSelection(lanes: LaneSet | null, activeLane: Lane | null, ticker: TickerSymbol | null, nowMs: number): MarketsSelectionApi {
   const resolved = useResolveDeepLink(lanes, nowMs);
   const [sessionId, setSessionId] = useState(0);
-  const fallback = activeLane?.markets[0] ?? lanes?.lanes[0]?.markets[0] ?? null;
+  const pinnedTicker = ticker === null ? undefined : activeLane?.markets.find((m) => m.asset === ticker);
+  const fallback = pinnedTicker ?? activeLane?.markets[0] ?? lanes?.lanes[0]?.markets[0] ?? null;
   const market = resolved.market ?? findMarket(lanes, resolved.marketId) ?? fallback;
 
   /**
