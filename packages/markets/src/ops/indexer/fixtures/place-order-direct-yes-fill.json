@@ -1,0 +1,114 @@
+{
+ "_doc": "devnet getTransaction(5eyinbbRXKEW2nYYHRVJLBpqiQrU2hKDu36KVjEAUEUn6QeYsLQyy2bZANgdmuHJZPoaYbbmJwyUdJAPLGy62hCn, json, v0, confirmed): S2 drive, D buys YES 1,000 @ 710 into A's resting SELL_YES @ 700 (TSLA-5m #0). Balances and logs trimmed.",
+ "transaction": {
+  "blockTime": "1789396861",
+  "meta": {
+   "computeUnitsConsumed": "17614",
+   "costUnits": "21098",
+   "err": null,
+   "fee": "10000",
+   "innerInstructions": [
+    {
+     "index": 1,
+     "instructions": [
+      {
+       "accounts": [
+        6,
+        8,
+        5,
+        1
+       ],
+       "data": "hLKiubXHNeK4y",
+       "programIdIndex": 13,
+       "stackHeight": 2
+      },
+      {
+       "accounts": [
+        9
+       ],
+       "data": "7tYaguf5gsbEsEVMSthe7mjo6yxiTG8tG4gLhxHfnEZpLCfLKHHtfbc6K9j3RCQKfuswKSxp9GpCnVvZjBwjRtSKRCdPuFNNDh5Yu83BRy7Q8MaMJfrmFYHXinou3FFXo6urbprXqvCZf64A7fkTyGrzgxzxee2nAx4YRzpcDFSmtAFGboLZtvJRvDmZMsk33tLJWuFRsbFH2bGXg21XswcZgG5azHA7avZPRkj361Tu7eCA4vapj4G1iqXkGJKwFYQDRD6dEZoRMDDQdFmV8ZCLLAskiHCv4F8KkbSSXrx43G1Z33h7PNFaSgeeobiHH6xB8N3BghW4bW11R7ycf2rNtgmSkyxE4DCpVMxCZiPxTMok2UYJvhQH214fsFodxcdqZ8DFx8e7pLQ8pw",
+       "programIdIndex": 10,
+       "stackHeight": 2
+      }
+     ]
+    }
+   ],
+   "loadedAddresses": {
+    "readonly": [],
+    "writable": []
+   },
+   "returnData": {
+    "data": [
+     "6AMAAAAAAABgrgoAAAAAAAAAAAAAAAAAAAAAAAAAAABgrgoAAAAAAAAAAAAAAAAAECcAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/////wAAAAAAAAAAAQABAAAAAQ==",
+     "base64"
+    ],
+    "programId": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+   },
+   "rewards": [],
+   "status": {
+    "Ok": null
+   }
+  },
+  "slot": "498288417",
+  "transaction": {
+   "message": {
+    "accountKeys": [
+     "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+     "5jVoTHRN6uydxNEbxXDvNm5gbkyV5Y7oypgRureA3wjU",
+     "4SCCa1z6oYARC8BNPHsuCaaTdycuN6wuYGADgeBBMgki",
+     "8xPqjTVYdsu2f4fZo2EDuhkSxFrioZECnypZKfqW97m2",
+     "BKxq6xHKVbzef17SmABjZLsCh6jr2a7yAemPj3RHjGbB",
+     "G6DM5wqiwyLAfQqUedyN8WZoxjBP9X5xHRW8D3x7wdvg",
+     "GT7QW4ctWKcZ1RnruEGTbLkKYbwsJheYmsTKJK3ZBV9B",
+     "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3",
+     "5i61C4kHUGjRiRoeSuRXY49bkpyCaHq5FYBjT8q82DpA",
+     "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2",
+     "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH",
+     "ComputeBudget111111111111111111111111111111",
+     "FK9jirQBjhCLMEgzKvPNNtMXBrxSA6aWerMcWz9WVXvZ",
+     "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+    ],
+    "addressTableLookups": [],
+    "header": {
+     "numReadonlySignedAccounts": 1,
+     "numReadonlyUnsignedAccounts": 7,
+     "numRequiredSignatures": 2
+    },
+    "instructions": [
+     {
+      "accounts": [],
+      "data": "HKJHuq",
+      "programIdIndex": 11,
+      "stackHeight": 1
+     },
+     {
+      "accounts": [
+       1,
+       7,
+       12,
+       2,
+       3,
+       4,
+       5,
+       6,
+       8,
+       13,
+       9,
+       10
+      ],
+      "data": "ALUsotZkqTcGsVauBmy1p7Q5mMdsy2jtfeBwnTwiEfXTz2u2R27kVjrEZ3u",
+      "programIdIndex": 10,
+      "stackHeight": 1
+     }
+    ],
+    "recentBlockhash": "J2qoyxtZxJXjC1AdYqZzLNqCsdkzLCXG6wv5rxjqg4px"
+   },
+   "signatures": [
+    "5eyinbbRXKEW2nYYHRVJLBpqiQrU2hKDu36KVjEAUEUn6QeYsLQyy2bZANgdmuHJZPoaYbbmJwyUdJAPLGy62hCn",
+    "67mQpTbnSk9nQuN32Uaz2VgQtMvq41wREwxEEyBztSEFjLtkPJjQ5qqwN2gLDcrqVKFp3RLx6XANUHj2GTKCAKPk"
+   ]
+  },
+  "transactionIndex": "16",
+  "version": 0
+ }
+}
