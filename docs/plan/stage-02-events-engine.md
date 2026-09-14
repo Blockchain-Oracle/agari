@@ -31,6 +31,10 @@
 
 **Rows:** resolves `C:05` §6 Q1 (market primitive); enables L-29…L-34.
 
+**Gate passed 2026-09-14 15:35Z** (acceptance.md). The rebuilt `.so` equals the deployed bytes. Tests: 52 native, 32 common, 34 LiteSVM. Codegen is clean, and the fast + web gates pass. Both drives and every listed devnet signature are recorded.
+- **Parity:** no rows advance; S2 owns none, and L-29…L-34 advance when S4/S6 build their UI.
+- **Main:** this branch contains S1 (7203d64), so it merges to `main` after S1's gate (the user's Phantom check).
+
 ## Findings
 
 - **Spec split.** Four files: semantics (`events-engine.md`), layouts/errors/events (`events-accounts.md`), per-instruction checks (`events-instructions.md`), prints (`prints.md`). All engine accounts are zero-copy; every layout was computed by script with explicit padding.
