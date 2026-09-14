@@ -24,3 +24,5 @@ export * from "./strategies";
 export * from "./strategy-decisions";
 export * from "./strategy-attempts";
 export * from "./faucet";
+export * from "./print-archive";
+export * from "./index-store";

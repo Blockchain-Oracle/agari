@@ -467,6 +467,25 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none (drive tooling). Series 900 is visible on-chain on devnet but never listed.
 - **Approval:** within plan r2 S2 (Surfpool and devnet drive steps).
 
+### D-028 — S3 starts before S1's Phantom check; the venue-ops contract and lanes
+- **Date / owner:** 2026-09-14 · S3 owner (foundation step)
+- **Evidence:**
+  - Plan §7.2 S3 preconditions are "S1 (session types), S2 (IDL, clients, addresses)". S1's code is complete (every step ticked); its only open gate item is the manual Phantom check at `/dev/wallet`, which no S3 deliverable touches. `stage/S1-solana-shell` is ahead of `stage/S2-events-engine` only in `STATUS.md`.
+  - The user asked to continue building on 2026-09-14 while the Phantom check was still pending.
+  - Hermes `/v2/price_feeds` returns the `schedule` attribute without a key; Alpaca `/v2/calendar` answered with the root keys; the first agreed calendar (09-07..09-28) had no disputed dates.
+  - The `kit-import-boundary` rule forbids `@solana/*` and `@agari/clients` in `services/`, and a wildcard subpath export (`./ops/*`) resolves under `moduleResolution: Bundler` (typecheck green).
+  - Role keys `roller`, `price-relay`, `settler`, `maker` hold 0 SOL and the deployer 4.48; S3's devnet run needs ≈ 21 SOL (stage-03 Findings).
+- **Rule:**
+  - **Branching:** `stage/S3-venue-ops` is cut from `stage/S2-events-engine` plus S1's STATUS commit. `main` still receives S1, then S2, then S3, and only after S1's gate passes.
+  - **Contract:** `docs/plan/specs/venue-ops.md` is the S3 contract (roles and payers, runtime, chain access, discovery, each actor's rules, lane file ownership).
+  - **Chain surface:** `@agari/markets/ops` (shared client, `sendOps` + `ENGINE_ERROR`, venue reads) and per-lane `@agari/markets/ops/<lane>`. `services/ops` never imports the chain SDKs.
+  - **Payers:** each actor's own role key pays its transactions and rent and receives the refunds (roller: Market/Ledger/mvault; settler: MarketResult). Nothing signs with `deployer` at runtime.
+  - **Runtime:** actors run `runActor` loops with heartbeats, DRY_RUN by default, and a shared `SessionService` (Alpaca ∩ Pyth schedule) and `SpotFeed` injected through `VenueDeps`.
+  - **Scope held for S6:** Gap and token lanes, Switchboard, the Jupiter attested fallback. S3 actors act on Regular Series of core-registry tickers only.
+  - **Lanes:** 3a roller, 3b prices, 3c settler + seed maker, 3d indexer, in parallel worktrees with disjoint file ownership. The stage owner alone edits `main.ts`, the shared runtime, package manifests and the lockfile.
+- **User-visible:** none yet (the soak lists Windows on devnet).
+- **Approval:** within plan r2 S3; the pre-gate start follows the user's "continue building" (2026-09-14) and keeps `main` untouched.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

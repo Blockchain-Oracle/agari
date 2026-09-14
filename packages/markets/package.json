@@ -24,7 +24,9 @@
     "./vault": "./src/vault/index.ts",
     "./x": "./src/x/index.ts",
     "./deploy": "./src/deploy/index.ts",
-    "./prices/legacy": "./src/prices/legacy/index.ts"
+    "./prices/legacy": "./src/prices/legacy/index.ts",
+    "./ops": "./src/ops/index.ts",
+    "./ops/*": "./src/ops/*/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

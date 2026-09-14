@@ -23,7 +23,12 @@
     "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "contracts:export": "node contracts/export.mjs",
     "contracts:test": "forge test --root contracts --no-match-contract Fork",
-    "archive:start": "bash scripts/archive/start.sh"
+    "archive:start": "bash scripts/archive/start.sh",
+    "deploy:init-series": "tsx --env-file-if-exists=.env.local scripts/deploy/init-series.ts",
+    "deploy:fund-roles": "tsx --env-file-if-exists=.env.local scripts/deploy/fund-roles.ts",
+    "drive:roller-plan": "tsx --env-file-if-exists=.env.local scripts/drive/roller-plan.ts",
+    "drive:verify-index": "tsx --env-file-if-exists=.env.local scripts/drive/verify-index.ts",
+    "ops:start": "pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/main.ts"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "1.5.5",

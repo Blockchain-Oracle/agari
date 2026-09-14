@@ -3,6 +3,8 @@ import { STRATEGIES_SCHEMA_SQL } from "./schema-strategies";
 import { X_SCHEMA_SQL } from "./schema-x";
 import { X_DELIVERY_SCHEMA_SQL } from "./schema-x-delivery";
 import { FAUCET_SCHEMA_SQL } from "./schema-faucet";
+import { INDEX_SCHEMA_SQL } from "./schema-index";
+import { PRINTS_SCHEMA_SQL } from "./schema-prints";
 
 /**
  * The social store's schema. Social records only; chain truth is never stored here.
@@ -99,4 +101,4 @@ CREATE TABLE IF NOT EXISTS bettors (
 );
 `;
 
-export const SCHEMA_SQL = `${BETTORS_SCHEMA_SQL}\n${ROOM_SCHEMA_SQL}\n${TAKES_SCHEMA_SQL}\n${STRATEGIES_SCHEMA_SQL}\n${X_SCHEMA_SQL}\n${X_DELIVERY_SCHEMA_SQL}\n${GAMES_SCHEMA_SQL}\n${FAUCET_SCHEMA_SQL}`;
+export const SCHEMA_SQL = `${BETTORS_SCHEMA_SQL}\n${ROOM_SCHEMA_SQL}\n${TAKES_SCHEMA_SQL}\n${STRATEGIES_SCHEMA_SQL}\n${X_SCHEMA_SQL}\n${X_DELIVERY_SCHEMA_SQL}\n${GAMES_SCHEMA_SQL}\n${FAUCET_SCHEMA_SQL}\n${PRINTS_SCHEMA_SQL}\n${INDEX_SCHEMA_SQL}`;
