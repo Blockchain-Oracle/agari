@@ -216,6 +216,23 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** sign-in and consent prompts say Agari and Solana devnet; "Out of SOL for fees" replaces "Out of STT gas".
 - **Approval:** within plan r2 S1.
 
+### D-013 — S2 spec review amendments (core alignment)
+- **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
+- **Evidence:**
+  - Hand re-derivation of all eight fill rows and the eight worked examples: cash pairs sum to `1000·q`; `mvault` reconciles under Up and void.
+  - Every layout offset, size and rent figure recomputed (GlobalConfig 856, Series 1,368, Market 456, MarketResult 256, Seat 88, Book 32,384 + 48·n).
+  - The PD-6 inequalities checked for exclusivity.
+  - Core D-011 (`GAP_CADENCE_SEC`, clock-aligned Windows) and D-012 (`CLUSTER_ID`).
+- **Rule:**
+  - **Gap Series seed:** `cadence_sec = 604,800` (not 0), shared with core, so no consumer divides by a zero interval.
+  - **Series cadence:** Regular/Token cadences must divide 3,600.
+  - **`roller_open_window` alignment:** `trading_start % cadence == 0` and `expiry − trading_start == cadence`, with no partial Windows. The chain is at least as strict as the calendar that generates them.
+  - **`cluster_tag`:** values = core `CLUSTER_ID` (101 mainnet-beta, 103 devnet, 104 localnet), one numbering for attested prints and signed texts.
+  - **RedStone check policy:** `strict_sec < check_admission_sec` (launch value 60 s inside the 120 s window).
+  - D-006…D-009 are accepted as written, including the CancelTaker revert and refusing duplicate RedStone signers.
+- **User-visible:** none.
+- **Approval:** stage-owner review within plan r2.
+
 ### D-014 — The wallet seam between web and markets
 - **Date / owner:** 2026-09-14 · S1 owner (before splitting 1b/1c)
 - **Evidence:** Context7 `/llmstxt/privy_io_llms_txt`:
@@ -256,23 +273,6 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Removed:** `wagmi.ts`, `rainbowkit-theme.ts`, `NetworkBanner`, `@rainbow-me/rainbowkit`, `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. The Privy-pulled `@reown/appkit` build script is denied in `allowBuilds`.
 - **User-visible:** "Connect" opens Privy (email/social login creates a Solana wallet; Phantom, Backpack and Solflare connect directly); the header shows a truncated base58 address; no "Wrong network" state; without a Privy app id the control reads "Sign-in unavailable".
 - **Approval:** within plan r2 S1 (Privy from S1, D-004).
-
-### D-013 — S2 spec review amendments (core alignment)
-- **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
-- **Evidence:**
-  - Hand re-derivation of all eight fill rows and the eight worked examples: cash pairs sum to `1000·q`; `mvault` reconciles under Up and void.
-  - Every layout offset, size and rent figure recomputed (GlobalConfig 856, Series 1,368, Market 456, MarketResult 256, Seat 88, Book 32,384 + 48·n).
-  - The PD-6 inequalities checked for exclusivity.
-  - Core D-011 (`GAP_CADENCE_SEC`, clock-aligned Windows) and D-012 (`CLUSTER_ID`).
-- **Rule:**
-  - **Gap Series seed:** `cadence_sec = 604,800` (not 0), shared with core, so no consumer divides by a zero interval.
-  - **Series cadence:** Regular/Token cadences must divide 3,600.
-  - **`roller_open_window` alignment:** `trading_start % cadence == 0` and `expiry − trading_start == cadence`, with no partial Windows. The chain is at least as strict as the calendar that generates them.
-  - **`cluster_tag`:** values = core `CLUSTER_ID` (101 mainnet-beta, 103 devnet, 104 localnet), one numbering for attested prints and signed texts.
-  - **RedStone check policy:** `strict_sec < check_admission_sec` (launch value 60 s inside the 120 s window).
-  - D-006…D-009 are accepted as written, including the CancelTaker revert and refusing duplicate RedStone signers.
-- **User-visible:** none.
-- **Approval:** stage-owner review within plan r2.
 
 ## Open questions
 
