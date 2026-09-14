@@ -232,6 +232,31 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none directly; social-login wallets don't need SOL for fees.
 - **Approval:** within plan r2 S1 (Privy + Wallet Standard through one seam).
 
+### D-017 — Privy wallet shell: a lazy Solana-only island
+- **Date / owner:** 2026-09-14 · S1 1c owner
+- **Evidence:**
+  - Context7 `/llmstxt/privy_io_llms_txt` (Solana getting-started, configuring networks, migrating to 3.0): `appearance.walletChainType: "solana-only"`, `embeddedWallets.solana.createOnLogin`, `externalWallets.solana.connectors: toSolanaWalletConnectors()`, and `solana.rpcs` (needed only for embedded-wallet UIs). Peers are `@solana/kit` + `@solana-program/{memo,system,token}`. `useSignAndSendTransaction` takes `options.sponsor`.
+  - Installed types (`@privy-io/react-auth` 3.42.0): `ConnectedStandardSolanaWallet`, and hook signatures that satisfy the seam without a cast.
+  - Node 25 WebCrypto `Ed25519` (32-byte raw keys).
+- **Rule:**
+  - **Island.** `web/src/providers/privy.tsx` is the only web file that value-imports Privy or `@solana/kit`, reached solely through `next/dynamic` (`ssr: false`).
+    - `WalletShellProvider` loads it on first connect intent (warmed on hover/focus) or at once when `agari.wallet.remembered` marks a returning session.
+    - The island renders no children: it publishes state into a Privy-free context, so loading it never remounts the app.
+  - **Config.** Solana-only; `createOnLogin: "users-without-wallets"`; external wallets via Privy's Wallet Standard connectors; `solana.rpcs["solana:devnet"]` from `NEXT_PUBLIC_SOLANA_RPC_URL`/`_WS_URL` (public devnet by default, never Helius).
+    - Login methods are the dashboard's (no `loginMethods` override).
+    - The accent is read from the `--vermilion` token (AD-12: no hex literals).
+  - **Seam.** The active wallet is Privy's most recently connected Solana wallet, while authenticated.
+    - `kind = embedded` when its address is the user's `walletClientType: "privy"` Solana linked account.
+    - `signAndSendTransaction` asks for `sponsor` only on embedded wallets (D-014).
+  - **`useWalletSession()`** keeps `address/isConnected/isConnecting/isRightChain/switching`.
+    - `isRightChain === isConnected`: no wallet-side chain exists on Solana.
+    - `switchToShannon` and `chainId` are removed; `kind`, `available`, `login`, `logout`, `prefetch` are added.
+    - `useOwnerWalletClient` (viem) → `useOwnerWallet()` (the seam); `signText(wallet, text)` returns the base58 signature for core's signed texts.
+  - **Server.** `web/src/lib/auth/verify-signed-message.server.ts` `verifyWalletMessage` = core `verifySignedMessage` + WebCrypto Ed25519.
+  - **Removed:** `wagmi.ts`, `rainbowkit-theme.ts`, `NetworkBanner`, `@rainbow-me/rainbowkit`, `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. The Privy-pulled `@reown/appkit` build script is denied in `allowBuilds`.
+- **User-visible:** "Connect" opens Privy (email/social login creates a Solana wallet; Phantom, Backpack and Solflare connect directly); the header shows a truncated base58 address; no "Wrong network" state; without a Privy app id the control reads "Sign-in unavailable".
+- **Approval:** within plan r2 S1 (Privy from S1, D-004).
+
 ### D-013 — S2 spec review amendments (core alignment)
 - **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
 - **Evidence:**

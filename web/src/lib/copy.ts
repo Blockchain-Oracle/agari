@@ -40,6 +40,9 @@ export const CONNECT = {
   connecting: "Connecting…",
   wrongChain: "Wrong network",
   disconnect: "Disconnect",
+  /** No Privy app id is configured, so sign-in can't open; said plainly instead of a dead modal. */
+  unavailable: "Sign-in unavailable",
+  connected: "Connected wallet",
 } as const;
 
 /** The account menu — the reference's rows (`Header.tsx` L337–363), nothing more. */

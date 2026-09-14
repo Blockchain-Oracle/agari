@@ -15,7 +15,7 @@
   - [x] 1a.4 `auth/signed-message.ts` (ed25519, verifier injected), `urls/explorer.ts` (Solana Explorer + cluster), Somnia constants out of core (`constants/{chain,fees,faucet}.ts`, SOL faucet policy, copy)
   - [x] 1a.5 `claims/payout.ts` + `projection/settle.ts`: mirror the engine's redeem (1e7 payout vector, zero fee, floor) from the frozen S2 spec
 - [ ] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed)
-- [ ] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted)
+- [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017)
 - [ ] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending`
 - [ ] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify
 - [ ] Browser pass: 37 product routes at 390 and 1440, both themes
@@ -32,6 +32,20 @@
 
 - **1a.1:** only 40 type errors surfaced in core; the real hazards compiled silently. `txHash: Hex` still type-checked, and 30 `toLowerCase()` calls on addresses would have merged or corrupted base58 keys. Both were swept by hand (D-010). Core tests: 757 pass.
 
+- **1c:**
+  - **Lazy island.** Privy, `@solana/kit` and the `@solana-program/*` peers are value-imported only by `providers/privy.tsx`, reached through `next/dynamic`; everything else reads a Privy-free context. The bundle effect can't be measured until `pnpm build` is green (1d); check it there.
+  - **Hooks match the seam.** Privy's hook types satisfy `PrivySigners` directly, with no cast.
+  - **Out-of-scope edit.** The shared `features/markets/wallet/ConnectButton.tsx` was ported with the header, since it is the plan's "ConnectButton on Privy" deliverable and about 20 features render it. The dead `NetworkBanner` was deleted.
+  - **Remaining web type errors attributable to 1b:**
+    - `@agari/markets/react` doesn't yet export `WalletSession`, which also leaves the implicit `any` params in `privy-session.ts`.
+    - `SubmitterSessionProvider` still takes `walletClient`, not `wallet`.
+    - With both in place locally, the 1c scope type-checks clean.
+  - **Left for 1d:**
+    - wagmi `useSignMessage` in `features/{markets/faucet/useFaucet,private/usePrivateOpen,room/useRoom,takes/useTakes,x/useXStatus}.ts` → `signText(useOwnerWallet(), text)`.
+    - `useOwnerWalletClient` in 7 feature write hooks and `SessionKeyProvider` → `useOwnerWallet`.
+    - 20 viem importers in `features/**`/`app/**`.
+    - wagmi and viem stay in `web/package.json` until then.
+
 ## Handoff
 
 - **1b–1d must:** never lowercase, uppercase or text-sort an `Address`/`MarketId`/`Signature` (Masayume web code does this for EVM ids); build test ids with `packages/core/src/testing/ids.ts`; treat `txHash` as a base58 `Signature`.
@@ -42,3 +56,9 @@
 - **1d must:** verify signed texts with `verifySignedMessage` + a server ed25519 (`faucet`, `x/link`, `room-token`, `private/protocol` now read "Agari" and name the Solana cluster); message signatures travel as base58; the faucet is SOL in lamports (`SOL_FAUCET_POLICY`, `lastValidBlockHeight` instead of an EVM nonce).
 - **Numeric cluster ids (D-012):** fields still named `chainId` hold `CLUSTER_ID` (devnet 103).
 - **Left for S10 (private):** `PRIVATE_CLAIM_TYPES`/`PRIVATE_CLAIM_DOMAIN_NAME` are EIP-712 and still say Masayume; PD-4 needs an ed25519 claim over a canonical encoding. **S15:** `copy/verdict.ts` "Masayume — it came true", provenance comments in `games/{deck,picking}.ts`.
+- **1b must:** export `type WalletSession` from `@agari/markets/react` and rename `SubmitterSessionProvider`'s `walletClient` prop to `wallet?: WalletSession` (1c already passes `wallet`).
+- **Merge note (1b + 1c):** both slices touch `pnpm-lock.yaml`; resolve by taking either side, then run `pnpm install`.
+- **User action (Privy dashboard, before the `/dev/wallet` fixture):**
+  - Enable **Solana** embedded wallets and the login methods you want (email, Google, X…) on the app for `NEXT_PUBLIC_PRIVY_APP_ID`.
+  - Add `http://localhost:3000` (and the deploy origin in S16) to allowed origins.
+  - Turn on **gas sponsorship for Solana** if embedded sends should be fee-free.
