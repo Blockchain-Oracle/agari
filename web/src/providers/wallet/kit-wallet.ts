@@ -10,6 +10,9 @@ import { WALLET_CHAIN } from "../solana-client";
  * client only discovers, connects, remembers the last wallet (auto-reconnect) and exposes the connected account's
  * signer. It is safe on the server, where its status stays `pending` and no storage or registry is touched.
  */
-export const walletClient = createClient().use(walletWithoutSigner({ chain: WALLET_CHAIN, storageKey: "agari.wallet" }));
+/** Where the plugin remembers `wallet name:address` for auto-reconnect; present only after a connection. */
+export const WALLET_STORAGE_KEY = "agari.wallet";
+
+export const walletClient = createClient().use(walletWithoutSigner({ chain: WALLET_CHAIN, storageKey: WALLET_STORAGE_KEY }));
 
 export type WalletClient = typeof walletClient;

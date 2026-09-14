@@ -31,16 +31,9 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const amount = (value: bigint | null) =>
     sheet && value !== null ? formatBaseUnits(value, sheet.decimals, { maxDp: AMOUNT_DP, minDp: AMOUNT_DP }) : "—";
 
-  // Before hydration, and while the last wallet silently reconnects, server and client must agree: the control is present but inert.
-  if (session.isConnecting) {
-    return (
-      <button type="button" className="btn btn-primary invisible" aria-hidden="true" tabIndex={-1}>
-        {CONNECT.connect}
-      </button>
-    );
-  }
-
-  // As in the reference, the header control stays "Connect" while a connection is in flight: the modal shows progress.
+  // As in the reference once mounted, the header says "Connect" until an account is connected. That covers the first
+  // paint (server and hydration agree on it), a remembered wallet still reconnecting, and a connection in flight
+  // (the modal shows that progress).
   if (!session.isConnected || !session.address) {
     return (
       <button type="button" className="btn btn-primary" onClick={session.connect} data-cursor="hover">

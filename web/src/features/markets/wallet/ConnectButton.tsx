@@ -6,24 +6,19 @@ import { CONNECT } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
 
 /**
- * The connect ladder: restoring → disconnected (opens the wallet picker: every Wallet Standard wallet in this browser,
- * D-023) → connected. There is no wrong-chain rung on Solana; the cluster is the app's, not the wallet's.
+ * The connect ladder: disconnected (opens the connect modal: every Wallet Standard wallet in this browser, D-023) →
+ * connecting → connected. There is no wrong-chain rung on Solana; the cluster is the app's, not the wallet's.
  */
 export function ConnectButton() {
   const session = useWalletSession();
 
-  // Before hydration, and while a remembered session restores, the server and client must agree: present but inert.
-  if (session.isConnecting) {
-    return (
-      <Button variant="secondary" className="invisible" aria-hidden="true" tabIndex={-1}>
-        {CONNECT.connect}
-      </Button>
-    );
-  }
+  // Masayume's rung: "Connecting…" while a remembered wallet restores or a connection is in flight, "Connect" otherwise.
+  // The server render and hydration are always "Connect" (the wallet shell is not restoring there).
   if (!session.isConnected || !session.address) {
+    const busy = session.isConnecting || session.connecting;
     return (
-      <Button onClick={session.connect} disabled={session.connecting}>
-        {session.connecting ? CONNECT.connecting : CONNECT.connect}
+      <Button onClick={session.connect} disabled={busy}>
+        {busy ? CONNECT.connecting : CONNECT.connect}
       </Button>
     );
   }

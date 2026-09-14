@@ -1,6 +1,6 @@
 "use client";
 
-import { useConnect, useIsWalletReady, useWallets } from "@solana/kit-plugin-wallet/react";
+import { useConnect, useWallets } from "@solana/kit-plugin-wallet/react";
 import { useCallback, useMemo, useState } from "react";
 import { KNOWN_WALLETS, type KnownWallet } from "./copy";
 import { walletClient } from "./kit-wallet";
@@ -28,11 +28,9 @@ function writeRecent(name: string): void {
 }
 
 export interface WalletChoices {
-  /** Discovery has settled; before it, absent wallets are not offered, so nothing flashes "not installed". */
-  ready: boolean;
   /** Wallet Standard wallets in this browser for the app's chain, the recent one first (RainbowKit's "Installed"). */
   installed: ReadonlyArray<{ wallet: DiscoveredWallet; recent: boolean }>;
-  /** Phantom, Solflare and Backpack when this browser doesn't have them (Masayume's "Browser" group). */
+  /** Phantom, Solflare and Backpack when this browser doesn't have them (Masayume's "Browser" group), even while discovery is still settling, so the modal never opens empty. */
   browser: readonly KnownWallet[];
   connect(wallet: DiscoveredWallet): Promise<ConnectOutcome>;
 }
@@ -40,7 +38,6 @@ export interface WalletChoices {
 /** The connect modal's data: the Kit wallet plugin's discovery and connect (D-023), shaped as RainbowKit listed wallets. */
 export function useWalletChoices(): WalletChoices {
   const wallets = useWallets(walletClient);
-  const ready = useIsWalletReady(walletClient);
   const { dispatchAsync } = useConnect(walletClient);
   const [recent, setRecent] = useState<string | null>(readRecent);
 
@@ -54,8 +51,8 @@ export function useWalletChoices(): WalletChoices {
 
   const browser = useMemo(() => {
     const present = new Set(wallets.map((wallet) => wallet.name.toLowerCase()));
-    return ready ? KNOWN_WALLETS.filter((known) => !present.has(known.name.toLowerCase())) : [];
-  }, [wallets, ready]);
+    return KNOWN_WALLETS.filter((known) => !present.has(known.name.toLowerCase()));
+  }, [wallets]);
 
   const connect = useCallback(
     async (wallet: DiscoveredWallet): Promise<ConnectOutcome> => {
@@ -71,5 +68,5 @@ export function useWalletChoices(): WalletChoices {
     [dispatchAsync],
   );
 
-  return { ready, installed, browser, connect };
+  return { installed, browser, connect };
 }
