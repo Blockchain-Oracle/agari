@@ -18,11 +18,14 @@ import { pnpmOnly } from "./lib/pnpm-only.mjs";
 const TS = [".ts", ".tsx"];
 const OUTSIDE_MARKETS = ["web", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 const MAX_FILE_LINES = 400;
+/** Codama output is regenerated, never edited (`pnpm codegen && git diff --exit-code packages/clients`), so the cap skips it. */
+const GENERATED = /^packages\/clients\/[^/]+\/src\/generated\//;
 
 function fileLength(rule, ctx) {
   const findings = [];
   for (const scope of rule.scopes) {
     for (const { rel, abs } of walkFiles(ctx.root, scope, rule.exts)) {
+      if (GENERATED.test(rel)) continue;
       const lines = readText(abs).split("\n").length;
       if (lines > MAX_FILE_LINES) findings.push(finding(rule, `${lines} lines (max ${MAX_FILE_LINES})`, rel));
     }

@@ -20,7 +20,7 @@
 - [x] `book_walk` + TS mirror + vectors
 - [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
 - [ ] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
-- [ ] Codegen
+- [x] Codegen (D-025)
 - [ ] Devnet deploy + `init-events` (needs the deployer funded: see STATUS blockers)
 - [ ] Surfpool drive (time travel): open → mint-pair → print (Pyth + RedStone check) → settle → redeem; plus a divergence void and a missing-print void
 - [ ] The same drive on devnet in market hours with real Pyth trial (TSLA) and RedStone (NVDA) prints, plus one attested print on a test series
@@ -115,6 +115,8 @@
     3. Resumed into that buffer (keypair derived from its recovery phrase and matched to the address, then deleted), sending to validators directly: done in 17 s.
   - **Balance:** deployer 10 → 6.112 SOL.
   - **Still open in the deploy step:** `init-events` (config, tUSDC mint, TSLA/NVDA series, books), IDL publish, codegen.
+
+- **Codegen (S2 codegen, D-025).** `pnpm codegen` renders `@agari/clients/agari-events` from the checked-in `packages/clients/agari-events/idl.json`: 29 instruction builders, 6 account decoders, 21 events, 5 PDAs, the 85 errors. Program sources are unchanged since the deployed `36f1384`, so the IDL matches the chain.
 
 ## Handoff
 

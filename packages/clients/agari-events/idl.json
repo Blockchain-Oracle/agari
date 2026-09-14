@@ -1,0 +1,5067 @@
+{
+  "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH",
+  "metadata": {
+    "name": "agari_events",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "DreamDEX Event Contracts rebuilt as an Anchor CLOB: Windows, books, ledgers, prints, settlement"
+  },
+  "instructions": [
+    {
+      "name": "admin_add_book",
+      "discriminator": [
+        157,
+        176,
+        72,
+        15,
+        62,
+        96,
+        92,
+        110
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "docs": [
+            "Created earlier in the same transaction by System `createAccount` (owner = this program)."
+          ],
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "capacity",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "admin_add_policy_version",
+      "discriminator": [
+        127,
+        30,
+        232,
+        122,
+        109,
+        128,
+        177,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u8"
+        },
+        {
+          "name": "version",
+          "type": {
+            "defined": {
+              "name": "PolicyVersionArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_init_config",
+      "discriminator": [
+        231,
+        149,
+        184,
+        6,
+        150,
+        168,
+        5,
+        161
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "treasury"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "cluster_tag",
+          "type": "u8"
+        },
+        {
+          "name": "result_retention_sec",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "admin_register_series",
+      "discriminator": [
+        185,
+        106,
+        57,
+        168,
+        151,
+        210,
+        207,
+        28
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "RegisterSeriesArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_authorities",
+      "discriminator": [
+        11,
+        98,
+        199,
+        26,
+        17,
+        35,
+        160,
+        142
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SetAuthoritiesArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_mode",
+      "discriminator": [
+        96,
+        81,
+        2,
+        27,
+        171,
+        84,
+        196,
+        90
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "mode",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "product_add_dependent",
+      "discriminator": [
+        167,
+        111,
+        216,
+        189,
+        10,
+        125,
+        173,
+        87
+      ],
+      "accounts": [
+        {
+          "name": "program_authority",
+          "docs": [
+            "A product's seat PDA listed in `config.program_authorities`."
+          ],
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "product_release_dependent",
+      "discriminator": [
+        194,
+        96,
+        97,
+        255,
+        157,
+        51,
+        138,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "program_authority",
+          "docs": [
+            "A product's seat PDA listed in `config.program_authorities`."
+          ],
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_close_ledger",
+      "discriminator": [
+        179,
+        131,
+        165,
+        235,
+        65,
+        157,
+        184,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_close_market",
+      "discriminator": [
+        74,
+        69,
+        255,
+        93,
+        35,
+        22,
+        214,
+        91
+      ],
+      "accounts": [
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "result",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market_rent_payer",
+          "writable": true
+        },
+        {
+          "name": "result_rent_payer",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_copy_open_from_prev",
+      "discriminator": [
+        248,
+        74,
+        220,
+        205,
+        116,
+        42,
+        75,
+        60
+      ],
+      "accounts": [
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "prev_market"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_grow_ledger",
+      "discriminator": [
+        69,
+        159,
+        222,
+        168,
+        61,
+        132,
+        65,
+        7
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "extra_seats",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "public_record_print_attested",
+      "discriminator": [
+        110,
+        110,
+        63,
+        161,
+        118,
+        80,
+        129,
+        116
+      ],
+      "accounts": [
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "which",
+          "type": "u8"
+        },
+        {
+          "name": "price",
+          "type": "i64"
+        },
+        {
+          "name": "expo",
+          "type": "i32"
+        },
+        {
+          "name": "bar_start_ts",
+          "type": "i64"
+        },
+        {
+          "name": "fetched_at_ts",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "public_record_print_pyth",
+      "discriminator": [
+        73,
+        110,
+        24,
+        19,
+        191,
+        215,
+        79,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "price_update",
+          "docs": [
+            "Anchor's owner check pins the receiver compiled into `pyth-solana-receiver-sdk` (default feature, D-021)."
+          ]
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "which",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "public_record_print_redstone",
+      "discriminator": [
+        10,
+        182,
+        113,
+        45,
+        107,
+        225,
+        191,
+        95
+      ],
+      "accounts": [
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "which",
+          "type": "u8"
+        },
+        {
+          "name": "payload",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "public_redeem_for",
+      "discriminator": [
+        0,
+        133,
+        231,
+        161,
+        59,
+        173,
+        253,
+        160
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "owner_ata",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "public_release_book",
+      "discriminator": [
+        142,
+        198,
+        178,
+        141,
+        153,
+        181,
+        130,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "series",
+          "writable": true
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_settle_window",
+      "discriminator": [
+        6,
+        137,
+        58,
+        205,
+        196,
+        188,
+        202,
+        81
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "result",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_sweep_expired",
+      "discriminator": [
+        14,
+        10,
+        235,
+        106,
+        19,
+        40,
+        243,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "max",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "public_void_expired",
+      "discriminator": [
+        73,
+        223,
+        126,
+        129,
+        207,
+        153,
+        169,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "result",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "roller_open_window",
+      "discriminator": [
+        252,
+        45,
+        134,
+        83,
+        192,
+        58,
+        129,
+        247
+      ],
+      "accounts": [
+        {
+          "name": "roller",
+          "signer": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series",
+          "writable": true
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "series"
+              },
+              {
+                "kind": "arg",
+                "path": "args.index"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ledger",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  100,
+                  103,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mvault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "OpenWindowArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "user_cancel_all",
+      "discriminator": [
+        28,
+        249,
+        235,
+        84,
+        123,
+        48,
+        175,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "collateral_mint",
+          "optional": true
+        },
+        {
+          "name": "token_program",
+          "optional": true,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        },
+        {
+          "name": "max_scan",
+          "type": "u16"
+        },
+        {
+          "name": "withdraw",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "user_cancel_orders",
+      "discriminator": [
+        180,
+        245,
+        141,
+        198,
+        146,
+        159,
+        178,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "collateral_mint",
+          "optional": true
+        },
+        {
+          "name": "token_program",
+          "optional": true,
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "handles",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "OrderHandle"
+              }
+            }
+          }
+        },
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        },
+        {
+          "name": "withdraw",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "user_merge_complete_set",
+      "discriminator": [
+        97,
+        121,
+        219,
+        87,
+        26,
+        49,
+        198,
+        83
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "lots",
+          "type": "u64"
+        },
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        },
+        {
+          "name": "withdraw",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "user_mint_complete_set",
+      "discriminator": [
+        255,
+        33,
+        130,
+        217,
+        63,
+        47,
+        118,
+        12
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "lots",
+          "type": "u64"
+        },
+        {
+          "name": "seat_hint",
+          "type": "u16"
+        },
+        {
+          "name": "use_credit",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "user_place_order",
+      "discriminator": [
+        126,
+        188,
+        106,
+        186,
+        196,
+        82,
+        162,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "PlaceOrderArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "user_redeem",
+      "discriminator": [
+        203,
+        196,
+        149,
+        55,
+        97,
+        98,
+        24,
+        87
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        },
+        {
+          "name": "outcome",
+          "type": {
+            "option": "u8"
+          }
+        },
+        {
+          "name": "lots",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "user_reduce_order",
+      "discriminator": [
+        252,
+        96,
+        175,
+        33,
+        41,
+        221,
+        137,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "handle",
+          "type": {
+            "defined": {
+              "name": "OrderHandle"
+            }
+          }
+        },
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        },
+        {
+          "name": "new_lots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "user_withdraw_credit",
+      "discriminator": [
+        66,
+        95,
+        18,
+        118,
+        142,
+        232,
+        41,
+        221
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "authority_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "seat_idx",
+          "type": "u16"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Book",
+      "discriminator": [
+        121,
+        34,
+        121,
+        35,
+        91,
+        62,
+        85,
+        222
+      ]
+    },
+    {
+      "name": "GlobalConfig",
+      "discriminator": [
+        149,
+        8,
+        156,
+        202,
+        160,
+        252,
+        176,
+        217
+      ]
+    },
+    {
+      "name": "Ledger",
+      "discriminator": [
+        43,
+        41,
+        21,
+        213,
+        180,
+        176,
+        95,
+        32
+      ]
+    },
+    {
+      "name": "Market",
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ]
+    },
+    {
+      "name": "MarketResult",
+      "discriminator": [
+        228,
+        116,
+        192,
+        234,
+        125,
+        54,
+        69,
+        142
+      ]
+    },
+    {
+      "name": "Series",
+      "discriminator": [
+        240,
+        97,
+        8,
+        183,
+        139,
+        77,
+        250,
+        162
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AuthoritiesSet",
+      "discriminator": [
+        19,
+        70,
+        118,
+        88,
+        8,
+        9,
+        226,
+        144
+      ]
+    },
+    {
+      "name": "BookAdded",
+      "discriminator": [
+        9,
+        104,
+        246,
+        251,
+        16,
+        32,
+        209,
+        34
+      ]
+    },
+    {
+      "name": "BookReleased",
+      "discriminator": [
+        201,
+        178,
+        152,
+        22,
+        162,
+        11,
+        73,
+        231
+      ]
+    },
+    {
+      "name": "CompleteSet",
+      "discriminator": [
+        140,
+        114,
+        177,
+        27,
+        25,
+        26,
+        114,
+        116
+      ]
+    },
+    {
+      "name": "ConfigInitialized",
+      "discriminator": [
+        181,
+        49,
+        200,
+        156,
+        19,
+        167,
+        178,
+        91
+      ]
+    },
+    {
+      "name": "CreditWithdrawn",
+      "discriminator": [
+        139,
+        168,
+        232,
+        108,
+        145,
+        249,
+        85,
+        58
+      ]
+    },
+    {
+      "name": "DependentChanged",
+      "discriminator": [
+        67,
+        112,
+        9,
+        221,
+        0,
+        116,
+        35,
+        85
+      ]
+    },
+    {
+      "name": "LedgerClosed",
+      "discriminator": [
+        22,
+        212,
+        40,
+        108,
+        223,
+        155,
+        10,
+        194
+      ]
+    },
+    {
+      "name": "LedgerGrown",
+      "discriminator": [
+        175,
+        106,
+        135,
+        18,
+        182,
+        203,
+        165,
+        191
+      ]
+    },
+    {
+      "name": "MarketClosed",
+      "discriminator": [
+        86,
+        91,
+        119,
+        43,
+        94,
+        0,
+        217,
+        113
+      ]
+    },
+    {
+      "name": "ModeSet",
+      "discriminator": [
+        69,
+        75,
+        205,
+        201,
+        23,
+        196,
+        156,
+        48
+      ]
+    },
+    {
+      "name": "OrderExecuted",
+      "discriminator": [
+        74,
+        135,
+        231,
+        5,
+        168,
+        106,
+        194,
+        117
+      ]
+    },
+    {
+      "name": "OrderReduced",
+      "discriminator": [
+        81,
+        8,
+        114,
+        37,
+        168,
+        101,
+        152,
+        32
+      ]
+    },
+    {
+      "name": "OrdersCancelled",
+      "discriminator": [
+        7,
+        134,
+        210,
+        3,
+        65,
+        222,
+        254,
+        188
+      ]
+    },
+    {
+      "name": "PolicyVersionAdded",
+      "discriminator": [
+        196,
+        216,
+        71,
+        70,
+        182,
+        141,
+        238,
+        187
+      ]
+    },
+    {
+      "name": "PrintRecorded",
+      "discriminator": [
+        216,
+        197,
+        19,
+        15,
+        132,
+        21,
+        33,
+        137
+      ]
+    },
+    {
+      "name": "Redeemed",
+      "discriminator": [
+        14,
+        29,
+        183,
+        71,
+        31,
+        165,
+        107,
+        38
+      ]
+    },
+    {
+      "name": "SeriesRegistered",
+      "discriminator": [
+        86,
+        144,
+        81,
+        8,
+        158,
+        119,
+        149,
+        174
+      ]
+    },
+    {
+      "name": "WindowOpened",
+      "discriminator": [
+        159,
+        141,
+        177,
+        171,
+        68,
+        255,
+        97,
+        133
+      ]
+    },
+    {
+      "name": "WindowResolved",
+      "discriminator": [
+        47,
+        76,
+        205,
+        251,
+        23,
+        89,
+        219,
+        73
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidMode",
+      "msg": "operation not allowed in the current mode"
+    },
+    {
+      "code": 6001,
+      "name": "NotAdmin",
+      "msg": "signer is not the admin"
+    },
+    {
+      "code": 6002,
+      "name": "NotRoller",
+      "msg": "signer is not a configured roller"
+    },
+    {
+      "code": 6003,
+      "name": "BadGrid",
+      "msg": "grid is not exact for the collateral decimals"
+    },
+    {
+      "code": 6004,
+      "name": "BadWindowIndex",
+      "msg": "window index is not the series' next index"
+    },
+    {
+      "code": 6005,
+      "name": "WindowOverlap",
+      "msg": "window overlaps the previous window"
+    },
+    {
+      "code": 6006,
+      "name": "BadAlignment",
+      "msg": "window is not aligned to the series cadence"
+    },
+    {
+      "code": 6007,
+      "name": "BadHorizon",
+      "msg": "window times or listing horizon are out of range"
+    },
+    {
+      "code": 6008,
+      "name": "NoFreeBook",
+      "msg": "book is not free for this series"
+    },
+    {
+      "code": 6009,
+      "name": "BookMarketMismatch",
+      "msg": "book and market are not bound to each other"
+    },
+    {
+      "code": 6010,
+      "name": "LedgerMarketMismatch",
+      "msg": "ledger and market are not bound to each other"
+    },
+    {
+      "code": 6011,
+      "name": "UnknownPolicyVersion",
+      "msg": "policy version does not exist"
+    },
+    {
+      "code": 6012,
+      "name": "PolicyVersionImmutable",
+      "msg": "policy versions are immutable once written"
+    },
+    {
+      "code": 6013,
+      "name": "SourceNotCovered",
+      "msg": "no policy version covers both boundaries, or a higher one does"
+    },
+    {
+      "code": 6014,
+      "name": "BadPolicy",
+      "msg": "policy version fails validation"
+    },
+    {
+      "code": 6015,
+      "name": "BadSeriesParams",
+      "msg": "series parameters are out of range"
+    },
+    {
+      "code": 6016,
+      "name": "BadBookSize",
+      "msg": "book account size does not match its capacity"
+    },
+    {
+      "code": 6017,
+      "name": "TooManyBooks",
+      "msg": "series already has the maximum number of books"
+    },
+    {
+      "code": 6018,
+      "name": "BadAuthorities",
+      "msg": "authority arrays are malformed"
+    },
+    {
+      "code": 6019,
+      "name": "SeriesMarketMismatch",
+      "msg": "market does not belong to this series"
+    },
+    {
+      "code": 6020,
+      "name": "MvaultMarketMismatch",
+      "msg": "mvault does not belong to this market"
+    },
+    {
+      "code": 6021,
+      "name": "NotProgramAuthority",
+      "msg": "signer is not a configured program authority"
+    },
+    {
+      "code": 6100,
+      "name": "MarketNotTrading",
+      "msg": "market is not trading"
+    },
+    {
+      "code": 6101,
+      "name": "MarketNotLocked",
+      "msg": "market is not locked"
+    },
+    {
+      "code": 6102,
+      "name": "MarketNotTerminal",
+      "msg": "market is not resolved or voided"
+    },
+    {
+      "code": 6103,
+      "name": "MarketAlreadyTerminal",
+      "msg": "market is already resolved or voided"
+    },
+    {
+      "code": 6104,
+      "name": "InvalidPrice",
+      "msg": "price must be 1..=999 ticks"
+    },
+    {
+      "code": 6105,
+      "name": "InvalidQuantity",
+      "msg": "quantity must be positive"
+    },
+    {
+      "code": 6106,
+      "name": "BelowMinLots",
+      "msg": "quantity is below the series minimum"
+    },
+    {
+      "code": 6107,
+      "name": "OrderAlreadyExpired",
+      "msg": "order expiry is not in the future"
+    },
+    {
+      "code": 6108,
+      "name": "ExpiryAfterLock",
+      "msg": "order expiry is after lock_at"
+    },
+    {
+      "code": 6109,
+      "name": "PostOnlyWouldCross",
+      "msg": "post-only order would cross"
+    },
+    {
+      "code": 6110,
+      "name": "ImmediateOrCancelNoFill",
+      "msg": "immediate-or-cancel order filled nothing"
+    },
+    {
+      "code": 6111,
+      "name": "FillOrKillNotFillable",
+      "msg": "fill-or-kill order could not fill completely"
+    },
+    {
+      "code": 6112,
+      "name": "BookFull",
+      "msg": "book has no free order node"
+    },
+    {
+      "code": 6113,
+      "name": "LedgerFull",
+      "msg": "ledger has no free seat"
+    },
+    {
+      "code": 6114,
+      "name": "TooManyOpenOrders",
+      "msg": "seat has too many open orders"
+    },
+    {
+      "code": 6115,
+      "name": "SeatMismatch",
+      "msg": "seat does not belong to this authority"
+    },
+    {
+      "code": 6116,
+      "name": "UnknownOrder",
+      "msg": "order handle is stale"
+    },
+    {
+      "code": 6117,
+      "name": "NotOrderOwner",
+      "msg": "order belongs to another seat"
+    },
+    {
+      "code": 6118,
+      "name": "ReduceNotSmaller",
+      "msg": "reduced size must be smaller and at least the minimum"
+    },
+    {
+      "code": 6119,
+      "name": "SelfMatchCancelTaker",
+      "msg": "order would trade against the taker's own resting order"
+    },
+    {
+      "code": 6120,
+      "name": "InvalidOrderArgs",
+      "msg": "order arguments are out of range"
+    },
+    {
+      "code": 6200,
+      "name": "WrongPrintSource",
+      "msg": "print source does not match the window's policy"
+    },
+    {
+      "code": 6201,
+      "name": "PrintAlreadyRecorded",
+      "msg": "print slot already recorded"
+    },
+    {
+      "code": 6202,
+      "name": "FeedIdMismatch",
+      "msg": "feed id does not match the policy"
+    },
+    {
+      "code": 6203,
+      "name": "InsufficientVerification",
+      "msg": "price update is not fully verified"
+    },
+    {
+      "code": 6204,
+      "name": "PrintTooEarly",
+      "msg": "print is too early for its boundary"
+    },
+    {
+      "code": 6205,
+      "name": "PrintNotUnique",
+      "msg": "price update is not the unique update at the boundary"
+    },
+    {
+      "code": 6206,
+      "name": "PrintTooLate",
+      "msg": "print admission deadline has passed"
+    },
+    {
+      "code": 6207,
+      "name": "ConfidenceTooWide",
+      "msg": "price confidence is too wide"
+    },
+    {
+      "code": 6208,
+      "name": "BadAttestation",
+      "msg": "attestation or signed quote is malformed"
+    },
+    {
+      "code": 6209,
+      "name": "UnknownAttestor",
+      "msg": "attestor is not configured"
+    },
+    {
+      "code": 6210,
+      "name": "BadRedStonePackage",
+      "msg": "RedStone payload is malformed"
+    },
+    {
+      "code": 6211,
+      "name": "RedStoneTimestampMismatch",
+      "msg": "RedStone package timestamp is not the boundary"
+    },
+    {
+      "code": 6212,
+      "name": "UnknownRedStoneSigner",
+      "msg": "RedStone signer is not configured"
+    },
+    {
+      "code": 6213,
+      "name": "InsufficientRedStoneSigners",
+      "msg": "not enough distinct RedStone signers"
+    },
+    {
+      "code": 6214,
+      "name": "SwitchboardFeedMismatch",
+      "msg": "Switchboard feed does not match the policy"
+    },
+    {
+      "code": 6215,
+      "name": "SwitchboardQueueMismatch",
+      "msg": "Switchboard queue does not match the config"
+    },
+    {
+      "code": 6216,
+      "name": "DuplicateOracle",
+      "msg": "oracle index repeated in the quote"
+    },
+    {
+      "code": 6217,
+      "name": "TooFewOracles",
+      "msg": "too few distinct oracles in the quote"
+    },
+    {
+      "code": 6218,
+      "name": "QuoteSlotStale",
+      "msg": "quote slot is too old"
+    },
+    {
+      "code": 6219,
+      "name": "CrossCheckPending",
+      "msg": "cross-check prints are still admissible"
+    },
+    {
+      "code": 6220,
+      "name": "RetentionNotElapsed",
+      "msg": "result retention period has not elapsed"
+    },
+    {
+      "code": 6221,
+      "name": "CpiNotAllowed",
+      "msg": "instruction cannot be called by CPI"
+    },
+    {
+      "code": 6222,
+      "name": "PrintsMissing",
+      "msg": "required prints are missing"
+    },
+    {
+      "code": 6223,
+      "name": "SettlementWindowOpen",
+      "msg": "print admission is still open or nothing is missing"
+    },
+    {
+      "code": 6224,
+      "name": "OpenOrdersRemain",
+      "msg": "seat still has open orders"
+    },
+    {
+      "code": 6225,
+      "name": "ProgramSeatNotPublic",
+      "msg": "program seats cannot be redeemed by a crank"
+    },
+    {
+      "code": 6226,
+      "name": "LedgerNotEmpty",
+      "msg": "ledger still holds balances"
+    },
+    {
+      "code": 6227,
+      "name": "InvalidPrintValue",
+      "msg": "print value is out of range"
+    },
+    {
+      "code": 6228,
+      "name": "PrintNotAdjacent",
+      "msg": "previous window is not adjacent or uses another policy"
+    },
+    {
+      "code": 6229,
+      "name": "DependentsRemain",
+      "msg": "products still depend on this market"
+    },
+    {
+      "code": 6230,
+      "name": "BookNotReleased",
+      "msg": "book has not been released"
+    },
+    {
+      "code": 6231,
+      "name": "LedgerNotClosed",
+      "msg": "ledger has not been closed"
+    },
+    {
+      "code": 6232,
+      "name": "PartialRedeemNotAllowed",
+      "msg": "partial redeem is for program seats only"
+    },
+    {
+      "code": 6233,
+      "name": "BadPrintSlot",
+      "msg": "print slot is out of range"
+    },
+    {
+      "code": 6300,
+      "name": "InsufficientCredit",
+      "msg": "seat credit is insufficient"
+    },
+    {
+      "code": 6301,
+      "name": "InsufficientOutcome",
+      "msg": "seat outcome balance is insufficient"
+    },
+    {
+      "code": 6302,
+      "name": "WrongMint",
+      "msg": "token mint is not the collateral mint"
+    },
+    {
+      "code": 6303,
+      "name": "WrongTokenProgram",
+      "msg": "token program is not SPL Token"
+    },
+    {
+      "code": 6304,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflow"
+    },
+    {
+      "code": 6305,
+      "name": "WrongTokenOwner",
+      "msg": "token account is not owned by the authority"
+    },
+    {
+      "code": 6306,
+      "name": "SeatNotEmpty",
+      "msg": "seat still holds balances or orders"
+    },
+    {
+      "code": 6307,
+      "name": "BadGrowAmount",
+      "msg": "ledger growth amount is out of range"
+    }
+  ],
+  "types": [
+    {
+      "name": "AuthoritiesSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "config",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Book",
+      "docs": [
+        "32,384 B fixed part."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "docs": [
+              "`Pubkey::default()` = free."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "next_seq",
+            "docs": [
+              "Never reset, so `(node, seq)` handles stay ABA-safe across recycling."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "generation",
+            "type": "u32"
+          },
+          {
+            "name": "capacity",
+            "type": "u32"
+          },
+          {
+            "name": "order_count",
+            "type": "u32"
+          },
+          {
+            "name": "free_head",
+            "type": "u32"
+          },
+          {
+            "name": "high_water",
+            "docs": [
+              "Nodes `≥ high_water` have never been used."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "_pad0",
+            "type": "u32"
+          },
+          {
+            "name": "bid_bits",
+            "docs": [
+              "Bit `p` set iff bid level `p` is non-empty."
+            ],
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          },
+          {
+            "name": "ask_bits",
+            "type": {
+              "array": [
+                "u64",
+                16
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "bids",
+            "docs": [
+              "Indexed by price ticks; index 0 unused."
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "Level"
+                  }
+                },
+                1000
+              ]
+            }
+          },
+          {
+            "name": "asks",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "Level"
+                  }
+                },
+                1000
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "BookAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "book",
+            "type": "pubkey"
+          },
+          {
+            "name": "capacity",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BookReleased",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "book",
+            "type": "pubkey"
+          },
+          {
+            "name": "series",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompleteSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u16"
+          },
+          {
+            "name": "minted",
+            "type": "bool"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "cash",
+            "type": "u64"
+          },
+          {
+            "name": "credit_used",
+            "type": "u64"
+          },
+          {
+            "name": "transferred_in",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "backing_lots",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfigInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "config",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "cluster_tag",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreditWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u16"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DependentChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "program_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "added",
+            "type": "bool"
+          },
+          {
+            "name": "dependents",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FillRecord",
+      "docs": [
+        "One fill against a resting maker (66 B)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "maker",
+            "type": "pubkey"
+          },
+          {
+            "name": "maker_seat",
+            "type": "u16"
+          },
+          {
+            "name": "maker_node",
+            "type": "u32"
+          },
+          {
+            "name": "maker_seq",
+            "type": "u64"
+          },
+          {
+            "name": "maker_kind",
+            "type": "u8"
+          },
+          {
+            "name": "path",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "type": "u16"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "maker_remaining",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalConfig",
+      "docs": [
+        "848 B struct, 856 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "Must equal the program upgrade authority at init."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "docs": [
+              "SPL Token mint; Token-2022 is rejected."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "docs": [
+              "Collateral token account that receives donated residue at ledger close."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "rollers",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "attestors",
+            "docs": [
+              "ed25519 keys allowed to sign attested prints."
+            ],
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "program_authorities",
+            "docs": [
+              "Product seat PDAs; index `i` owns Ledger seat `i` in every Window."
+            ],
+            "type": {
+              "array": [
+                "pubkey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "switchboard_queue",
+            "type": "pubkey"
+          },
+          {
+            "name": "redstone_signers",
+            "docs": [
+              "20-byte EVM addresses from RedStone's adapter config (D-002)."
+            ],
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    20
+                  ]
+                },
+                5
+              ]
+            }
+          },
+          {
+            "name": "redstone_signer_count",
+            "type": "u8"
+          },
+          {
+            "name": "redstone_threshold",
+            "docs": [
+              "Liveness threshold after `strict_sec`."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "switchboard_min_oracles",
+            "type": "u8"
+          },
+          {
+            "name": "mode",
+            "type": "u8"
+          },
+          {
+            "name": "collateral_decimals",
+            "type": "u8"
+          },
+          {
+            "name": "cluster_tag",
+            "docs": [
+              "Core `CLUSTER_ID` (101 / 103 / 104), bound into attested messages."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": "u8"
+          },
+          {
+            "name": "result_retention_sec",
+            "type": "u32"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Ledger",
+      "docs": [
+        "96 B header."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "rent_payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat_bond",
+            "docs": [
+              "Refundable bond a new seat posts; copied from the Series at open."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "capacity",
+            "type": "u16"
+          },
+          {
+            "name": "seats_used",
+            "docs": [
+              "Scan high-water mark: seats `≥ seats_used` have never been claimed."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LedgerClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "residue",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LedgerGrown",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "capacity",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Level",
+      "docs": [
+        "One price level: FIFO list of node refs (oldest → newest) and the lots resting there. 16 B."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "head",
+            "type": "u32"
+          },
+          {
+            "name": "tail",
+            "type": "u32"
+          },
+          {
+            "name": "live_lots",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Market",
+      "docs": [
+        "448 B struct, 456 B account. `MarketId` = this account's address."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "book",
+            "type": "pubkey"
+          },
+          {
+            "name": "ledger",
+            "type": "pubkey"
+          },
+          {
+            "name": "mvault",
+            "type": "pubkey"
+          },
+          {
+            "name": "rent_payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "trading_start",
+            "docs": [
+              "The open boundary T."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "lock_at",
+            "type": "i64"
+          },
+          {
+            "name": "expiry",
+            "docs": [
+              "The close boundary T."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "open_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "close_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "open",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "close",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "check_open",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "check_close",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "backing_lots",
+            "type": "u64"
+          },
+          {
+            "name": "volume_cash",
+            "type": "u64"
+          },
+          {
+            "name": "volume_lots",
+            "type": "u64"
+          },
+          {
+            "name": "trade_count",
+            "type": "u64"
+          },
+          {
+            "name": "last_trade_ts",
+            "type": "i64"
+          },
+          {
+            "name": "event_seq",
+            "type": "u64"
+          },
+          {
+            "name": "resolved_ts",
+            "type": "i64"
+          },
+          {
+            "name": "payout_yes",
+            "type": "u32"
+          },
+          {
+            "name": "payout_no",
+            "type": "u32"
+          },
+          {
+            "name": "dependents",
+            "type": "u32"
+          },
+          {
+            "name": "last_price",
+            "type": "u16"
+          },
+          {
+            "name": "policy_version",
+            "type": "u8"
+          },
+          {
+            "name": "open_kind",
+            "type": "u8"
+          },
+          {
+            "name": "close_kind",
+            "type": "u8"
+          },
+          {
+            "name": "basis",
+            "type": "u8"
+          },
+          {
+            "name": "state",
+            "type": "u8"
+          },
+          {
+            "name": "void_reason",
+            "type": "u8"
+          },
+          {
+            "name": "flags",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "ledger_bump",
+            "type": "u8"
+          },
+          {
+            "name": "mvault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "result",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketResult",
+      "docs": [
+        "248 B struct, 256 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "rent_payer",
+            "docs": [
+              "The settler or voider who paid this account's rent, refunded at close."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "open",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "close",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "check_open",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "check_close",
+            "type": {
+              "defined": {
+                "name": "Print"
+              }
+            }
+          },
+          {
+            "name": "resolved_ts",
+            "type": "i64"
+          },
+          {
+            "name": "payout_yes",
+            "type": "u32"
+          },
+          {
+            "name": "payout_no",
+            "type": "u32"
+          },
+          {
+            "name": "policy_version",
+            "type": "u8"
+          },
+          {
+            "name": "void_reason",
+            "type": "u8"
+          },
+          {
+            "name": "single_source",
+            "docs": [
+              "bool: settled on the primary source alone because the check prints missed their window."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "winner",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ModeSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mode",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OpenWindowArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "trading_start",
+            "type": "i64"
+          },
+          {
+            "name": "lock_at",
+            "type": "i64"
+          },
+          {
+            "name": "expiry",
+            "type": "i64"
+          },
+          {
+            "name": "policy_version",
+            "type": "u8"
+          },
+          {
+            "name": "open_kind",
+            "type": "u8"
+          },
+          {
+            "name": "close_kind",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OrderExecuted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "taker",
+            "type": "pubkey"
+          },
+          {
+            "name": "taker_seat",
+            "type": "u16"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "order_type",
+            "type": "u8"
+          },
+          {
+            "name": "self_match",
+            "type": "u8"
+          },
+          {
+            "name": "limit_price",
+            "type": "u16"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "expire_ts",
+            "type": "i64"
+          },
+          {
+            "name": "client_id",
+            "type": "u64"
+          },
+          {
+            "name": "filled_lots",
+            "type": "u64"
+          },
+          {
+            "name": "cash_spent",
+            "type": "u64"
+          },
+          {
+            "name": "cash_received",
+            "type": "u64"
+          },
+          {
+            "name": "credit_used",
+            "type": "u64"
+          },
+          {
+            "name": "transferred_in",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "rested",
+            "type": {
+              "defined": {
+                "name": "OrderHandle"
+              }
+            }
+          },
+          {
+            "name": "rested_lots",
+            "type": "u64"
+          },
+          {
+            "name": "cancelled_lots",
+            "type": "u64"
+          },
+          {
+            "name": "stop_reason",
+            "type": "u8"
+          },
+          {
+            "name": "backing_lots",
+            "type": "u64"
+          },
+          {
+            "name": "fills",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "FillRecord"
+                }
+              }
+            }
+          },
+          {
+            "name": "removed",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "RemovedRecord"
+                }
+              }
+            }
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OrderHandle",
+      "docs": [
+        "A handle in events and instruction args: 0-based node index + sequence (`u32::MAX` = none)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "node",
+            "type": "u32"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OrderReduced",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u16"
+          },
+          {
+            "name": "handle",
+            "type": {
+              "defined": {
+                "name": "OrderHandle"
+              }
+            }
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "type": "u16"
+          },
+          {
+            "name": "old_lots",
+            "type": "u64"
+          },
+          {
+            "name": "new_lots",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OrdersCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "caller",
+            "docs": [
+              "`Pubkey::default()` for a permissionless sweep."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "reason",
+            "type": "u8"
+          },
+          {
+            "name": "removed",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "RemovedRecord"
+                }
+              }
+            }
+          },
+          {
+            "name": "skipped",
+            "type": "u8"
+          },
+          {
+            "name": "withdrawn",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlaceOrderArgs",
+      "docs": [
+        "`user_place_order` arguments (events-instructions.md §3.1; 35 B + discriminator)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "price_ticks",
+            "type": "u16"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "expire_ts",
+            "type": "i64"
+          },
+          {
+            "name": "order_type",
+            "type": "u8"
+          },
+          {
+            "name": "self_match",
+            "type": "u8"
+          },
+          {
+            "name": "max_fills",
+            "type": "u8"
+          },
+          {
+            "name": "max_evictions",
+            "type": "u8"
+          },
+          {
+            "name": "seat_hint",
+            "docs": [
+              "A seat the authority owns or an empty one to claim; `u16::MAX` = the first empty seat."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "use_credit",
+            "type": "bool"
+          },
+          {
+            "name": "withdraw_proceeds",
+            "type": "bool"
+          },
+          {
+            "name": "client_id",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyVersion",
+      "docs": [
+        "One dated policy version of a Series. 136 B, align 8."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "valid_from_ts",
+            "docs": [
+              "Inclusive."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "valid_until_ts",
+            "docs": [
+              "Inclusive; `i64::MAX` = open-ended."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "primary",
+            "type": {
+              "defined": {
+                "name": "PrintPolicy"
+              }
+            }
+          },
+          {
+            "name": "check",
+            "docs": [
+              "`source == None` means no check."
+            ],
+            "type": {
+              "defined": {
+                "name": "PrintPolicy"
+              }
+            }
+          },
+          {
+            "name": "max_divergence_bps",
+            "type": "u16"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
+          },
+          {
+            "name": "check_admission_sec",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyVersionAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u8"
+          },
+          {
+            "name": "valid_from_ts",
+            "type": "i64"
+          },
+          {
+            "name": "valid_until_ts",
+            "type": "i64"
+          },
+          {
+            "name": "primary_source",
+            "type": "u8"
+          },
+          {
+            "name": "check_source",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyVersionArgs",
+      "docs": [
+        "Borsh mirror of `PolicyVersion` (events-accounts.md §3.3) without padding."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "valid_from_ts",
+            "type": "i64"
+          },
+          {
+            "name": "valid_until_ts",
+            "type": "i64"
+          },
+          {
+            "name": "primary",
+            "type": {
+              "defined": {
+                "name": "PrintPolicyArgs"
+              }
+            }
+          },
+          {
+            "name": "check",
+            "type": {
+              "defined": {
+                "name": "PrintPolicyArgs"
+              }
+            }
+          },
+          {
+            "name": "max_divergence_bps",
+            "type": "u16"
+          },
+          {
+            "name": "check_admission_sec",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceFeedMessage",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "feed_id",
+            "docs": [
+              "`FeedId` but avoid the type alias because of compatibility issues with Anchor's `idl-build` feature."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "price",
+            "type": "i64"
+          },
+          {
+            "name": "conf",
+            "type": "u64"
+          },
+          {
+            "name": "exponent",
+            "type": "i32"
+          },
+          {
+            "name": "publish_time",
+            "docs": [
+              "The timestamp of this price update in seconds"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "prev_publish_time",
+            "docs": [
+              "The timestamp of the previous price update. This field is intended to allow users to",
+              "identify the single unique price update for any moment in time:",
+              "for any time t, the unique update is the one such that prev_publish_time < t <= publish_time.",
+              "",
+              "Note that there may not be such an update while we are migrating to the new message-sending logic,",
+              "as some price updates on pythnet may not be sent to other chains (because the message-sending",
+              "logic may not have triggered). We can solve this problem by making the message-sending mandatory",
+              "(which we can do once publishers have migrated over).",
+              "",
+              "Additionally, this field may be equal to publish_time if the message is sent on a slot where",
+              "where the aggregation was unsuccesful. This problem will go away once all publishers have",
+              "migrated over to a recent version of pyth-agent."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "ema_price",
+            "type": "i64"
+          },
+          {
+            "name": "ema_conf",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceUpdateV2",
+      "docs": [
+        "A price update account. This account is used by the Pyth Receiver program to store a verified price update from a Pyth price feed.",
+        "It contains:",
+        "- `write_authority`: The write authority for this account. This authority can close this account to reclaim rent or update the account to contain a different price update.",
+        "- `verification_level`: The [`VerificationLevel`] of this price update. This represents how many Wormhole guardian signatures have been verified for this price update.",
+        "- `price_message`: The actual price update.",
+        "- `posted_slot`: The slot at which this price update was posted."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "write_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "verification_level",
+            "type": {
+              "defined": {
+                "name": "VerificationLevel"
+              }
+            }
+          },
+          {
+            "name": "price_message",
+            "type": {
+              "defined": {
+                "name": "PriceFeedMessage"
+              }
+            }
+          },
+          {
+            "name": "posted_slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Print",
+      "docs": [
+        "A recorded print, normalized to expo −8. 24 B, align 8. `source == 0` means the slot is empty."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "price",
+            "type": "i64"
+          },
+          {
+            "name": "source_ts",
+            "type": "i64"
+          },
+          {
+            "name": "expo",
+            "type": "i32"
+          },
+          {
+            "name": "source",
+            "type": "u8"
+          },
+          {
+            "name": "signers",
+            "type": "u8"
+          },
+          {
+            "name": "flags",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrintData",
+      "docs": [
+        "Borsh mirror of the zero-copy `Print` (events-accounts.md §3.5) for event payloads."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "price",
+            "type": "i64"
+          },
+          {
+            "name": "source_ts",
+            "type": "i64"
+          },
+          {
+            "name": "expo",
+            "type": "i32"
+          },
+          {
+            "name": "source",
+            "type": "u8"
+          },
+          {
+            "name": "signers",
+            "type": "u8"
+          },
+          {
+            "name": "flags",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrintPolicy",
+      "docs": [
+        "How one source must prove a print. 56 B, align 4."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "source",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": "u8"
+          },
+          {
+            "name": "grace_sec",
+            "type": "u16"
+          },
+          {
+            "name": "feed_id",
+            "docs": [
+              "Pyth feed id / RedStone ASCII id left-aligned zero-padded / Switchboard feed hash / attested source hash."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "min_delay_sec",
+            "type": "u16"
+          },
+          {
+            "name": "bar_len_sec",
+            "type": "u16"
+          },
+          {
+            "name": "max_conf_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_slot_age",
+            "type": "u16"
+          },
+          {
+            "name": "open_admission_sec",
+            "docs": [
+              "`ADMIT_UNTIL_LOCK` allowed for the Gap open."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "close_admission_sec",
+            "type": "u32"
+          },
+          {
+            "name": "strict_sec",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrintPolicyArgs",
+      "docs": [
+        "Borsh mirror of `PrintPolicy` (events-accounts.md §3.2) without padding."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "source",
+            "type": "u8"
+          },
+          {
+            "name": "grace_sec",
+            "type": "u16"
+          },
+          {
+            "name": "feed_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "min_delay_sec",
+            "type": "u16"
+          },
+          {
+            "name": "bar_len_sec",
+            "type": "u16"
+          },
+          {
+            "name": "max_conf_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_slot_age",
+            "type": "u16"
+          },
+          {
+            "name": "open_admission_sec",
+            "type": "u32"
+          },
+          {
+            "name": "close_admission_sec",
+            "type": "u32"
+          },
+          {
+            "name": "strict_sec",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrintRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "which",
+            "type": "u8"
+          },
+          {
+            "name": "source",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "type": "i64"
+          },
+          {
+            "name": "expo",
+            "type": "i32"
+          },
+          {
+            "name": "source_ts",
+            "type": "i64"
+          },
+          {
+            "name": "signers",
+            "type": "u8"
+          },
+          {
+            "name": "copied",
+            "type": "bool"
+          },
+          {
+            "name": "recorded_ts",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Redeemed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u16"
+          },
+          {
+            "name": "yes_lots",
+            "type": "u64"
+          },
+          {
+            "name": "no_lots",
+            "type": "u64"
+          },
+          {
+            "name": "payout",
+            "type": "u64"
+          },
+          {
+            "name": "credit",
+            "type": "u64"
+          },
+          {
+            "name": "bond",
+            "type": "u64"
+          },
+          {
+            "name": "total",
+            "type": "u64"
+          },
+          {
+            "name": "partial",
+            "type": "bool"
+          },
+          {
+            "name": "by_crank",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RegisterSeriesArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticker",
+            "type": "u16"
+          },
+          {
+            "name": "cadence_sec",
+            "type": "u32"
+          },
+          {
+            "name": "basis",
+            "type": "u8"
+          },
+          {
+            "name": "lot_base",
+            "type": "u64"
+          },
+          {
+            "name": "tick_base",
+            "type": "u64"
+          },
+          {
+            "name": "min_lots",
+            "type": "u64"
+          },
+          {
+            "name": "seat_bond",
+            "type": "u64"
+          },
+          {
+            "name": "min_rest_slots",
+            "type": "u32"
+          },
+          {
+            "name": "max_lead_sec",
+            "type": "u32"
+          },
+          {
+            "name": "fills_cap",
+            "type": "u8"
+          },
+          {
+            "name": "evictions_cap",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemovedRecord",
+      "docs": [
+        "One order removed from the book: evicted, self-match-cancelled, cancelled or swept (58 B)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u16"
+          },
+          {
+            "name": "node",
+            "type": "u32"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "type": "u16"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "reason",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Series",
+      "docs": [
+        "1,360 B struct, 1,368 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticker",
+            "docs": [
+              "Core registry id (`packages/core/src/market/tickers.ts` `seriesId`)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "basis",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "cadence_sec",
+            "docs": [
+              "`GAP_CADENCE_SEC` for the Gap lane (D-013)."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "lot_base",
+            "type": "u64"
+          },
+          {
+            "name": "tick_base",
+            "type": "u64"
+          },
+          {
+            "name": "cash_unit",
+            "type": "u64"
+          },
+          {
+            "name": "min_lots",
+            "type": "u64"
+          },
+          {
+            "name": "seat_bond",
+            "type": "u64"
+          },
+          {
+            "name": "next_index",
+            "type": "u64"
+          },
+          {
+            "name": "last_expiry",
+            "type": "i64"
+          },
+          {
+            "name": "min_rest_slots",
+            "type": "u32"
+          },
+          {
+            "name": "max_lead_sec",
+            "type": "u32"
+          },
+          {
+            "name": "fills_cap",
+            "type": "u8"
+          },
+          {
+            "name": "evictions_cap",
+            "type": "u8"
+          },
+          {
+            "name": "version_count",
+            "type": "u8"
+          },
+          {
+            "name": "free_book_count",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "free_books",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "policy_versions",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "PolicyVersion"
+                  }
+                },
+                8
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeriesRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticker",
+            "type": "u16"
+          },
+          {
+            "name": "cadence_sec",
+            "type": "u32"
+          },
+          {
+            "name": "basis",
+            "type": "u8"
+          },
+          {
+            "name": "cash_unit",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetAuthoritiesArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "rollers",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "attestors",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "redstone_signers",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u8",
+                    20
+                  ]
+                },
+                5
+              ]
+            }
+          },
+          {
+            "name": "redstone_signer_count",
+            "type": "u8"
+          },
+          {
+            "name": "redstone_threshold",
+            "type": "u8"
+          },
+          {
+            "name": "switchboard_queue",
+            "type": "pubkey"
+          },
+          {
+            "name": "switchboard_min_oracles",
+            "type": "u8"
+          },
+          {
+            "name": "program_authorities",
+            "type": {
+              "array": [
+                "pubkey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "result_retention_sec",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VerificationLevel",
+      "docs": [
+        "Pyth price updates are bridged to all blockchains via Wormhole.",
+        "Using the price updates on another chain requires verifying the signatures of the Wormhole guardians.",
+        "The usual process is to check the signatures for two thirds of the total number of guardians, but this can be cumbersome on Solana because of the transaction size limits,",
+        "so we also allow for partial verification.",
+        "",
+        "This enum represents how much a price update has been verified:",
+        "- If `Full`, we have verified the signatures for two thirds of the current guardians.",
+        "- If `Partial`, only `num_signatures` guardian signatures have been checked.",
+        "",
+        "# Warning",
+        "Using partially verified price updates is dangerous, as it lowers the threshold of guardians that need to collude to produce a malicious price update."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Partial",
+            "fields": [
+              {
+                "name": "num_signatures",
+                "type": "u8"
+              }
+            ]
+          },
+          {
+            "name": "Full"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WindowOpened",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "series",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "trading_start",
+            "type": "i64"
+          },
+          {
+            "name": "lock_at",
+            "type": "i64"
+          },
+          {
+            "name": "expiry",
+            "type": "i64"
+          },
+          {
+            "name": "open_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "close_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "policy_version",
+            "type": "u8"
+          },
+          {
+            "name": "open_kind",
+            "type": "u8"
+          },
+          {
+            "name": "close_kind",
+            "type": "u8"
+          },
+          {
+            "name": "basis",
+            "type": "u8"
+          },
+          {
+            "name": "book",
+            "type": "pubkey"
+          },
+          {
+            "name": "ledger",
+            "type": "pubkey"
+          },
+          {
+            "name": "mvault",
+            "type": "pubkey"
+          },
+          {
+            "name": "generation",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WindowResolved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "state",
+            "type": "u8"
+          },
+          {
+            "name": "winner",
+            "type": "u8"
+          },
+          {
+            "name": "payout_yes",
+            "type": "u32"
+          },
+          {
+            "name": "payout_no",
+            "type": "u32"
+          },
+          {
+            "name": "void_reason",
+            "type": "u8"
+          },
+          {
+            "name": "single_source",
+            "type": "bool"
+          },
+          {
+            "name": "open",
+            "type": {
+              "defined": {
+                "name": "PrintData"
+              }
+            }
+          },
+          {
+            "name": "close",
+            "type": {
+              "defined": {
+                "name": "PrintData"
+              }
+            }
+          },
+          {
+            "name": "check_open",
+            "type": {
+              "defined": {
+                "name": "PrintData"
+              }
+            }
+          },
+          {
+            "name": "check_close",
+            "type": {
+              "defined": {
+                "name": "PrintData"
+              }
+            }
+          },
+          {
+            "name": "resolved_ts",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@agari/clients",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./agari-events": "./agari-events/src/generated/index.ts",
+    "./agari-events/idl.json": "./agari-events/idl.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@solana/kit": "^8.3.0"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

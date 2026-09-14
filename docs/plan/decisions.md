@@ -407,6 +407,23 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** within plan r2 S2 (deploy step).
 
+### D-025 — Codama client shape (S2 codegen)
+- **Date / owner:** 2026-09-14 · S2 owner (codegen step)
+- **Evidence:**
+  - Context7 `/codama-idl/codama` and the installed `@codama/renderers-js` 2.4.0 README: `renderVisitor(packageFolder, { generatedFolder, kitImportStrategy, syncPackageJson })`.
+  - Pinned: `codama` 1.10.2, `@codama/nodes-from-anchor` 1.5.5, `@codama/renderers-js` 2.4.0 (root devDependencies).
+  - The default `preferRoot` output imports `@solana/program-client-core`. `@solana/kit` 8.3.0 exports the same module as `./program-client-core`.
+  - The first render failed typecheck: Codama names every type X's encoder input `XArgs`, so the program's Borsh `PrintPolicyArgs` collided with zero-copy `PrintPolicy`'s generated `PrintPolicyArgs`.
+  - The decoders' fixed sizes equal `events-accounts.md` §3: GlobalConfig 856, Series 1,368, Market 456, MarketResult 256. Two consecutive renders are byte-identical.
+- **Rule:**
+  - **One package, one subpath per program:** `@agari/clients` at `packages/clients`, with `@agari/clients/agari-events` → `agari-events/src/generated/index.ts`. The only dependency is `@solana/kit` (`kitImportStrategy: "rootOnly"`).
+  - **The IDL is checked in** at `packages/clients/<program>/idl.json`. `pnpm codegen` copies a fresh `anchor/target/idl` over it first, so the codegen diff gate also catches IDL drift. The IDL publish reads the same file.
+  - **Collisions:** a defined type `XArgs` next to a type `X` renders as `XInput` (codegen visitor). The program and its IDL keep their names.
+  - **File cap:** `file-length` skips `packages/clients/*/src/generated/**`. Generated code is never edited by hand.
+  - Book nodes and Ledger seats are past the fixed headers the IDL describes. Their hand decoders are S4's (`events-accounts.md` §3.8–3.9).
+- **User-visible:** none.
+- **Approval:** within plan r2 S2 (codegen step).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

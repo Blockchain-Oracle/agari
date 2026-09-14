@@ -24,6 +24,9 @@
     "archive:start": "bash scripts/archive/start.sh"
   },
   "devDependencies": {
+    "@codama/nodes-from-anchor": "1.5.5",
+    "@codama/renderers-js": "2.4.0",
+    "codama": "1.10.2",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

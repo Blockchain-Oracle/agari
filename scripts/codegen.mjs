@@ -1,32 +1,45 @@
 #!/usr/bin/env node
 // Generates the Codama kit client for every Anchor program IDL (plan §6 Clients).
-// Run: pnpm codegen   (after `pnpm anchor:build`)
-// Reads anchor/target/idl/<program>.json and writes packages/clients/<program>/src/generated.
-// Until S2 builds the first program there are no IDLs, and this exits cleanly. S2 adds the Codama
-// packages (codama, @codama/nodes-from-anchor, @codama/renderers-js) after checking their docs in Context7.
+// Run: pnpm codegen   (after `pnpm anchor:build`; gate: `pnpm codegen && git diff --exit-code packages/clients`)
+// A fresh build's anchor/target/idl/<program>.json is copied to packages/clients/<program>/idl.json, which is checked in,
+// so the client and the published IDL regenerate from the repo alone. Output: packages/clients/<program>/src/generated.
 
-import { existsSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { rootNodeFromAnchor } from "@codama/nodes-from-anchor";
+import { renderVisitor } from "@codama/renderers-js";
+import { createFromRoot, updateDefinedTypesVisitor } from "codama";
 
-const IDL_DIR = "anchor/target/idl";
-const idls = existsSync(IDL_DIR) ? readdirSync(IDL_DIR).filter((f) => f.endsWith(".json")) : [];
+const BUILD_IDLS = "anchor/target/idl";
+const CLIENTS = "packages/clients";
 
-if (idls.length === 0) {
-  console.log("codegen: no program IDLs yet (anchor/target/idl is empty); nothing to generate.");
+for (const file of existsSync(BUILD_IDLS) ? readdirSync(BUILD_IDLS).filter((f) => f.endsWith(".json")) : []) {
+  const program = file.replace(/\.json$/, "").replaceAll("_", "-");
+  mkdirSync(join(CLIENTS, program), { recursive: true });
+  copyFileSync(join(BUILD_IDLS, file), join(CLIENTS, program, "idl.json"));
+}
+
+const programs = readdirSync(CLIENTS).filter((name) => existsSync(join(CLIENTS, name, "idl.json")));
+if (programs.length === 0) {
+  console.log("codegen: no program IDLs (build with `pnpm anchor:build`); nothing to generate.");
   process.exit(0);
 }
 
-const [{ createFromRoot }, { rootNodeFromAnchor }, { renderVisitor }] = await Promise.all([
-  import("codama"),
-  import("@codama/nodes-from-anchor"),
-  import("@codama/renderers-js"),
-]);
-const { readFileSync } = await import("node:fs");
+/** Codama names every type X's encoder input `XArgs`, so a program type `XArgs` next to `X` collides: render it as `XInput`. */
+function argsCollisions(root) {
+  const names = new Set(root.program.definedTypes.map((t) => t.name));
+  const stems = [...names].filter((n) => n.endsWith("Args") && names.has(n.slice(0, -4)));
+  return Object.fromEntries(stems.map((n) => [n, { name: `${n.slice(0, -4)}Input` }]));
+}
 
-for (const file of idls) {
-  const program = file.replace(/\.json$/, "").replaceAll("_", "-");
-  const idl = JSON.parse(readFileSync(join(IDL_DIR, file), "utf8"));
-  const out = join("packages", "clients", program, "src", "generated");
-  createFromRoot(rootNodeFromAnchor(idl)).accept(renderVisitor(out));
-  console.log(`codegen: ${file} -> ${out}`);
+for (const program of programs) {
+  const idl = JSON.parse(readFileSync(join(CLIENTS, program, "idl.json"), "utf8"));
+  const generatedFolder = `${program}/src/generated`;
+  const codama = createFromRoot(rootNodeFromAnchor(idl));
+  codama.update(updateDefinedTypesVisitor(argsCollisions(codama.getRoot())));
+  // rootOnly: every import comes from @solana/kit (incl. its program-client-core subpath), the one chain dependency.
+  await codama.accept(
+    renderVisitor(CLIENTS, { generatedFolder, kitImportStrategy: "rootOnly", syncPackageJson: false }),
+  );
+  console.log(`codegen: ${program}/idl.json -> ${CLIENTS}/${generatedFolder}`);
 }
