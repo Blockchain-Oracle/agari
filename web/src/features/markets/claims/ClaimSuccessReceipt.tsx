@@ -1,18 +1,19 @@
 import { formatCadence } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE, type MarketId } from "@agari/core/types";
+import type { MarketId } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
 import { Money } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import { CLAIM } from "@/lib/copy";
-import { confirmedItems, distinctMarketIds, paidTotal } from "./claim-run";
+import { webEnv } from "@/lib/env";
+import { confirmedItems, distinctMarketIds, legWords, paidTotal } from "./claim-run";
 import type { ClaimItem } from "./types";
 
 interface ClaimSuccessReceiptProps {
   items: readonly ClaimItem[];
   decimals: number;
   finishedAtMs: number;
-  /** Settlement tx + Oracle Graph rows for one market — live from the port, or canned in fixtures. */
+  /** Settlement tx + price source rows for one market — live from the port, or canned in fixtures. */
   marketRows: (marketId: MarketId) => ReactNode;
   className?: string;
 }
@@ -31,7 +32,7 @@ export function ClaimSuccessReceipt({ items, decimals, finishedAtMs, marketRows,
       className={className}
     >
       {confirmed.map((item) => (
-        <ReceiptRow key={item.key} label={`${item.asset} · ${formatCadence(item.intervalSec)} · ${CLAIM.leg[OUTCOME_TO_SIDE[item.outcomeIdx]]}`} href={item.txHash ? txUrl(item.txHash) : null}>
+        <ReceiptRow key={item.key} label={`${item.asset} · ${formatCadence(item.intervalSec)} · ${legWords(item)}`} href={item.txHash ? txUrl(item.txHash, webEnv.markets.cluster) : null}>
           <Money value={item.payoutBase} decimals={item.decimals} />
         </ReceiptRow>
       ))}

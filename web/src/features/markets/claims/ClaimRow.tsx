@@ -4,6 +4,7 @@ import { secToMs } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { Hash, Money, UtcTime } from "@/components/data";
 import { CLAIM, diagnosisCopy } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { itemKey } from "./claim-run";
 import type { ClaimItem } from "./types";
@@ -29,14 +30,14 @@ function LegLine({ row, leg, item }: { row: ClaimableRow; leg: ClaimLeg; item: C
       </span>
       <span className="flex items-baseline gap-2">
         <span className={cn(status === "confirmed" && "text-ink")}>{item ? CLAIM.status[status] : CLAIM.status.pending}</span>
-        {item?.txHash && <Hash value={item.txHash} href={txUrl(item.txHash)} className="text-ink" />}
+        {item?.txHash && <Hash value={item.txHash} href={txUrl(item.txHash, webEnv.markets.cluster)} className="text-ink" />}
         {failure && <span className="text-warning">{failure}</span>}
       </span>
     </li>
   );
 }
 
-/** One settled Window: a void is ONE row whose two legs each carry their own state; a Vault credit reads as a withdrawal. */
+/** One settled Window: a void is ONE row whose two legs share the Window's one redemption; a Vault credit reads as a withdrawal. */
 export function ClaimRow({ row, items, className }: ClaimRowProps) {
   const cadence = formatCadence(row.intervalSec);
   const timeLabel = row.settledAtMs === null ? CLAIM.closed : CLAIM.settled;
@@ -57,7 +58,7 @@ export function ClaimRow({ row, items, className }: ClaimRowProps) {
       </div>
       <ul className="flex flex-col gap-1">
         {row.legs.map((leg) => (
-          <LegLine key={leg.outcomeIdx} row={row} leg={leg} item={items?.find((item) => item.key === itemKey(row.marketId, leg.outcomeIdx))} />
+          <LegLine key={leg.outcomeIdx} row={row} leg={leg} item={items?.find((item) => item.key === itemKey(row.marketId))} />
         ))}
       </ul>
     </li>

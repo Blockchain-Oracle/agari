@@ -1,31 +1,33 @@
-import type { ClaimableRow, MarketId, OutcomeIdx } from "@agari/core/types";
+import { OUTCOME_TO_SIDE, type ClaimableRow, type MarketId } from "@agari/core/types";
+import { CLAIM } from "@/lib/copy";
 import type { ClaimItem, ClaimRun } from "./types";
 
 export const IDLE_RUN: ClaimRun = { status: "idle", items: [], diagnosis: null, gasShort: false, finishedAtMs: null };
 
-export function itemKey(marketId: MarketId, outcomeIdx: OutcomeIdx): string {
-  return `${marketId}:${outcomeIdx}`;
+export function itemKey(marketId: MarketId): string {
+  return marketId;
 }
 
-/** Flattens rows into the per-leg items the wallet will sign for, in the order they are shown. */
+/** One item per Window, in the order the rows are shown: the wallet signs once for all of a Window's legs. */
 export function itemsFromRows(rows: readonly ClaimableRow[]): ClaimItem[] {
-  return rows.flatMap((row) =>
-    row.legs.map((leg) => ({
-      key: itemKey(row.marketId, leg.outcomeIdx),
+  return rows
+    .filter((row) => row.legs.length > 0)
+    .map((row) => ({
+      key: itemKey(row.marketId),
       marketId: row.marketId,
       marketAddress: row.marketAddress,
       kind: row.kind,
       asset: row.asset,
       intervalSec: row.intervalSec,
-      outcomeIdx: leg.outcomeIdx,
-      amountRaw: leg.amountRaw,
-      payoutBase: leg.payoutBase,
+      legs: row.legs,
+      outcomeIdx: row.legs[0]?.outcomeIdx ?? 0,
+      amountRaw: row.legs[0]?.amountRaw ?? 0n,
+      payoutBase: row.legs.reduce((sum, leg) => sum + leg.payoutBase, 0n),
       decimals: row.decimals,
       status: "pending" as const,
       txHash: null,
       diagnosis: null,
-    })),
-  );
+    }));
 }
 
 export function confirmedItems(items: readonly ClaimItem[]): ClaimItem[] {
@@ -60,4 +62,9 @@ export function itemsByMarket(items: readonly ClaimItem[]): Map<MarketId, ClaimI
 
 export function distinctMarketIds(items: readonly ClaimItem[]): MarketId[] {
   return [...new Set(items.map((item) => item.marketId))];
+}
+
+/** "UP leg", or "UP leg + DOWN leg" for a void Window redeemed in one signature. */
+export function legWords(item: Pick<ClaimItem, "legs">): string {
+  return item.legs.map((leg) => CLAIM.leg[OUTCOME_TO_SIDE[leg.outcomeIdx]]).join(" + ");
 }

@@ -63,7 +63,7 @@ export function VerdictCard({ verdict, market, resolution, symbol, provenance }:
   const announced = useAnnounceOnce(verdictAnnouncement(verdict.outcome, `${formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })} ${symbol}`));
   const settledAtMs = verdict.settledAtMs ?? resolution?.settledAtMs ?? secToMs(market.expirySec);
   const settlementTx = resolution?.settlementTxHash ?? null;
-  const source = printSourceText(resolution);
+  const source = printSourceText(resolution, market.expirySec);
 
   return (
     <article

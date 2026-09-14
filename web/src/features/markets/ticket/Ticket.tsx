@@ -28,6 +28,7 @@ import { PlacedCall } from "./PlacedCall";
 import { PublicPrivate } from "./PublicPrivate";
 import { boostCells, plainCells, privateCells, rangeCells } from "./readout-cells";
 import { ReadoutStrip } from "./ReadoutStrip";
+import { useSeatDeposit } from "./seat-deposit";
 import { SideSegments } from "./SideSegments";
 import { deriveBlocker, deriveBoostBlocker, type TicketBlockerInput } from "./ticket-guards";
 import { TicketCta } from "./TicketCta";
@@ -109,6 +110,9 @@ export function Ticket({ selection, drawer }: TicketProps) {
   const displayed = bet.requoted ?? quoteState.quote;
   const walletRoute = routing.route.kind === "wallet" && !privateMode;
   const funding = useFundingCheck(walletRoute ? address : null, onchain?.ok ? onchain.value : null, displayed);
+  // A plain wallet order also funds the seat deposit on its first order in the Window; the guard and the top-up leave room for it.
+  const seatDeposit = useSeatDeposit(walletRoute ? address : null, onchain?.ok ? onchain.value : null);
+  const depositBase = walletRoute && !boosted && !isRange ? seatDeposit : 0n;
 
   const base: TicketBlockerInput = {
     session,
@@ -118,6 +122,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     side,
     availableBase,
     stakeBase,
+    depositBase,
     decimals,
     quote: quoteState.reading,
     quoting: quoteState.pending,
@@ -285,6 +290,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
             balanceSource={privateMode ? "private" : source}
             availableBase={privateMode ? (priv.budget?.spendableBase ?? null) : availableBase}
             stakeBase={stakeBase}
+            depositBase={privateMode ? 0n : depositBase}
             decimals={decimals}
             symbol={symbol}
             route={privateMode ? null : { show: showRoute, source, onChange: chooseSource, vaultAvailableBase: routing.vaultAvailableBase, armed: routing.armed, deployed: routing.deployed }}
@@ -300,6 +306,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
             {isRange ? RANGE.cta.footnote : routing.armed ? TICKET.footnoteArmed : TICKET.footnote}
             {isRange && rangeReserve?.paused ? ` ${RANGE.ticket.reservePaused}` : null}
             {!isRange && !boosted && walletRoute && funding?.ok && funding.venueCreditUsedBase > 0n ? ` ${TICKET.creditNote(`${formatBaseUnits(funding.venueCreditUsedBase, decimals)} ${symbol}`)}` : null}
+            {session.isConnected && depositBase > 0n ? ` ${TICKET.seatDeposit(`${formatBaseUnits(depositBase, decimals)} ${symbol}`)}` : null}
           </p>
         </>
       )}

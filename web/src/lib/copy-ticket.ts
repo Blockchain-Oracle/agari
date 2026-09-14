@@ -17,6 +17,8 @@ export const TICKET = {
   noLiquidity: "No liquidity at this size — nobody is on the other side right now.",
   partial: (fillableText: string) => `Fills up to ${fillableText} at this size — the rest stays in your wallet.`,
   creditNote: (creditText: string) => `${creditText} comes from your venue payout credit first.`,
+  /** agari-events holds a seat bond on a wallet's first order in a Window and returns it at redeem. */
+  seatDeposit: (bondText: string) => `${bondText} refundable seat deposit on your first order in a Window.`,
   approvalNote: "Two signatures this first time: approve tUSDC, then your order.",
   advanced: (fromCadence: string, toCadence: string) =>
     `That ${fromCadence} Window closed for entries — moved you to the next ${toCadence} Window. Side and stake kept.`,
@@ -25,7 +27,7 @@ export const TICKET = {
   booked: (contractsText: string, side: string, avgPriceBps: number) => `Bought ${contractsText} ${side} contracts at ${Math.round(avgPriceBps / 100)}¢`,
   bookedPrefix: "Bought",
   bookedAt: "at",
-  nothingFilled: "Nothing filled — the book moved before your order landed. Your stake was never taken.",
+  nothingFilled: "The book moved before your order landed; nothing was taken.",
   requotePrefix: "The book moved — it now costs up to",
   requoteSuffix: "Confirm again to buy at the new price.",
   txLabel: "entry tx",
@@ -59,6 +61,8 @@ export const TICKET = {
     topUp: "Top up to place this",
     holds: (have: string, symbol: string, source: string) => `${source} holds ${have} ${symbol}.`,
     need: (need: string, symbol: string) => `Add ${need} ${symbol} more to place this — grab test funds from the faucet if you're short.`,
+    /** The top-up line when the shortfall is only the refundable seat deposit. */
+    needWithDeposit: (need: string, symbol: string, bond: string) => `Add ${need} ${symbol} more to place this, counting the ${bond} ${symbol} seat deposit — grab test funds from the faucet if you're short.`,
     empty: "Grab test funds from the faucet to place one.",
     addMoney: "Add money",
   },
