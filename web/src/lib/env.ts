@@ -2,7 +2,11 @@ import { parseMarketsEnv, type MarketsEnv } from "@agari/markets/env";
 import { z } from "zod";
 
 const webOnlySchema = z.object({
-  walletConnectProjectId: z.string().min(1).optional(),
+  /** Privy app id (public). Absent → sign-in shows an honest "unavailable" state instead of a broken modal. */
+  privyAppId: z.string().min(1).optional(),
+  /** Browser RPC. Never the Helius key: S4 decides between a proxy and an allowlisted endpoint. */
+  solanaRpcUrl: z.url().default("https://api.devnet.solana.com"),
+  solanaWsUrl: z.url().default("wss://api.devnet.solana.com"),
   appOrigin: z.url().default("http://localhost:3000"),
 });
 
@@ -11,7 +15,7 @@ export interface WebEnv extends z.infer<typeof webOnlySchema> {
 }
 
 // Every NEXT_PUBLIC_* variable is referenced literally so Next can inline it into the client bundle.
-// Each one is optional: with no .env at all the app boots against Somnia Shannon from baked defaults.
+// Each one is optional: with no .env at all the app boots against Solana devnet from baked defaults.
 export const webEnv: WebEnv = {
   markets: parseMarketsEnv({
     chainId: process.env.NEXT_PUBLIC_CHAIN_ID,
@@ -37,7 +41,9 @@ export const webEnv: WebEnv = {
     privateDeskFromBlock: process.env.NEXT_PUBLIC_PRIVATE_DESK_FROM_BLOCK,
   }),
   ...webOnlySchema.parse({
-    walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || undefined,
+    privyAppId: process.env.NEXT_PUBLIC_PRIVY_APP_ID || undefined,
+    solanaRpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || undefined,
+    solanaWsUrl: process.env.NEXT_PUBLIC_SOLANA_WS_URL || undefined,
     appOrigin: process.env.NEXT_PUBLIC_APP_ORIGIN || undefined,
   }),
 };
