@@ -7,6 +7,7 @@ import { noopAttribution } from "./attribution";
 import { indexEvidence, type WriteEvidence } from "./evidence";
 import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
+import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
 import { submitOrder } from "./order-lane";
 import type { WriteContext } from "./settle-write";
@@ -39,6 +40,8 @@ export interface MarketsSubmitter extends Submitter {
   readonly stopGate: StopGate;
   readonly attribution: AttributionHook;
   readonly wallet: Address;
+  /** Recovery's reconciler over this session's RPC and indexer: what `recoverUnresolved` asks about open intents. */
+  readonly reconciler: Reconciler;
   checkGas(lane: FeeLane): Promise<GasCheck>;
 }
 
@@ -62,6 +65,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     stopGate,
     attribution,
     wallet,
+    reconciler: (owner, record) => chainReconcilerWith(context())(owner, record),
     hasSigner: () => true,
     submitTx: (intent, onPhase) => enqueue(() => submitTx(context(), intent, onPhase)),
     submitOrder: (request, onPhase) => enqueue(() => submitOrder({ ...context(), stopGate, attribution }, request, onPhase)),
