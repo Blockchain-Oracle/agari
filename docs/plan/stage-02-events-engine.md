@@ -11,7 +11,7 @@
 - [x] Spec, frozen at the end of the step: `docs/plan/specs/{events-engine,events-accounts,events-instructions,prints}.md` (D-006…D-009)
 - [x] Workspace, common grid, seeds (start from `docs/plan/spikes/d002/`; pin `solana-program` 3.0.0)
 - [x] State accounts; `Book` as keypair + `#[account(zero)]`; `Ledger` PDA
-- [ ] Admin instructions incl. `admin_add_policy_version` + `roller_open_window` (PROGRAM seats, version coverage check)
+- [x] Admin instructions incl. `admin_add_policy_version` + `roller_open_window` (PROGRAM seats, version coverage check) (D-019)
 - [ ] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons
 - [ ] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot`
 - [ ] Cancel, reduce, cancel-all, sweep-expired
@@ -55,14 +55,26 @@
   - Enums are `#[repr(u8)]` with `TryFrom<u8>`; `MarketStatus` is derived, never stored.
   - `program_autofixer`: no issues on step 1 and state sources.
 - **Size estimate.** A RedStone 5-package print transaction is ≈ 1,080 B of 1,232, so no ALT is needed (to be measured).
+- **S2.4 admin + roller (2026-09-14):**
+  - Instructions: `admin_init_config`, `admin_set_authorities`, `admin_set_mode`, `admin_register_series`, `admin_add_book`, `admin_add_policy_version`, `roller_open_window`. `lib.rs` is dispatch only; handlers in `instructions/{admin_init_config,admin_set_authorities,admin_series,roller_open_window}.rs`, pure rules in `instructions/{policy_rules,window_rules}.rs` (unit-tested), Borsh args in `instructions/args.rs`.
+  - **`roller_open_window`: 31,385 CU, 641 transaction bytes** (LiteSVM 0.16, 13 accounts, 2 signers). `.so` 347,656 B.
+  - IDL: 7 instructions; zero-copy accounts Book, GlobalConfig, Ledger, Market, Series; 7 events; 85 errors.
+  - Tests: 15 program unit tests (policy validation, window rules incl. the D-003 split, authority rules, layouts) + 6 LiteSVM integration tests, all green: upgrade-authority init (`NotAdmin`), admin-only mode/authorities and `InvalidMode`, append-only validated versions (`PolicyVersionImmutable`, `UnknownPolicyVersion`, `BadPolicy` ×3), highest-covering version (Fri 19:55→20:00Z on v1, the 09-25 Gap on v2 only with `open_deadline = lock_at`, QQQ after 20:00Z → `SourceNotCovered`), PROGRAM seats 0/3 + bound Book (`generation 1`, free list emptied, `NoFreeBook`, second Book binds), `NotRoller` / partial 60 m and off-clock `BadAlignment` / Gap span `BadHorizon` / ReduceOnly `InvalidMode`.
+  - `program_autofixer`: no issues.
 
 ## Handoff
 
-- **Next step:** admin instructions + `roller_open_window`.
-  - The IDL lists zero-copy accounts only once an instruction references them (it has none yet). Codama sees Book/Ledger headers only, so the TS client decodes the node and seat slices by hand from `events-accounts.md` §3.8–3.9 (2d).
-  - Zero-copy structs don't derive Borsh. `admin_add_policy_version` needs a Borsh args mirror of `PolicyVersion` (or a byte-array arg cast with `bytemuck`); keep the IDL honest either way.
-  - Reach Book and Ledger through `state::{book_parts_mut, ledger_parts_mut}` on `try_borrow_mut_data()`, never `AccountLoader::load_mut` (it would borrow the slices too). `admin_add_book` can still use `#[account(zero)]` for the create-then-bind check.
-  - A fresh worktree's cold `anchor build` takes ≈ 10.5 min; incremental builds take seconds.
+- **Next step:** matching (four paths, order types, self-match, caps, eviction, funding) on the harness.
+  - **Harness** (`anchor/tests`, isolated workspace + own `Cargo.lock`, litesvm 0.16.0; D-019). Run `NO_DNA=1 anchor build` first, then `cargo test --manifest-path anchor/tests/Cargo.toml`.
+    - `Harness::new()` deploys agari-events **upgradeable** (authority = `admin` key 1), funds `admin`/`roller` (key 2)/`stranger` (key 3), creates the 6-dp mint and a treasury.
+    - Flows: `setup_config(fixtures::authorities())`, `register_series(fixtures::series_args(ticker, cadence, basis))`, `add_policy(series, index, version)`, `add_book(series, 256|512)`, `open_window(series, book, fixtures::regular_window(..) | gap_window_0925(..))`, `warp_to(unix_ts)`, `fresh_key()`, `create_token_account(..)`.
+    - `send(ixs, signers)` → `Ok(Sent { compute_units, tx_bytes })` or `Err(custom_code)` (panics with logs on a non-custom failure); `ok(..)` expects success.
+    - Readers: `config_state`, `series_state`, `market_state`, `book_state`, `ledger_state` (header + seats), `token_account`; `ix::window_accounts(series, index)`.
+    - Fixtures: D-003 timestamps (`FRI_1950`, `CLOSE_0925`, `GAP_LOCK_0927`, `OPEN_0928`), `tsla_v1/v2`, `qqq_v1`, `gap_version`, PROGRAM seats at 0 and 3.
+  - Matching adds book/ledger slice helpers: reach Book nodes and Ledger seats through `state::{book_parts_mut, ledger_parts_mut}` on `try_borrow_mut_data()` (the discriminator is written, so those checks pass after listing), never `AccountLoader::load_mut` for slices. Add `user_place_order` builders and mint/fund helpers (`spl_token::instruction::mint_to` from the admin mint authority) to the harness.
+  - Anchor account validation (signer, owner/type, `init`, `#[account(zero)]`) runs before handler checks; tests assert the spec's handler codes, not Anchor's (D-019).
+  - The IDL now lists Book/Ledger/Market/Series/GlobalConfig as accounts; Codama still decodes Book nodes and Ledger seats by hand from `events-accounts.md` §3.8–3.9 (2d).
+  - A fresh worktree's cold `anchor build` takes ≈ 10.5 min; a first `cargo test` in `anchor/tests` ≈ 1.5 min.
 - **Earlier handoff (S2.1), done in S2.2/S2.3:** workspace, common grid, seeds.
   - Start from `docs/plan/spikes/d002/`.
   - Add the oracle crates, then `cargo update -p solana-program@5.0.0 --precise 3.0.0`.

@@ -1,0 +1,15 @@
+//! Shared LiteSVM harness for agari-events integration tests (S2).
+//!
+//! - `harness`: a fresh VM with agari-events deployed upgradeable (so `admin_init_config`'s upgrade-authority
+//!   check is real), a 6-dp collateral mint, a treasury, deterministic keys, clock warps and a `send` that
+//!   returns CU, transaction bytes or the program error code.
+//! - `ix`: instruction builders for every agari-events instruction built so far.
+//! - `fixtures`: launch timestamps, Series args and D-003 policy versions.
+//! - `read`: zero-copy account readers (unaligned copies of the on-chain layouts).
+
+pub mod fixtures;
+pub mod harness;
+pub mod ix;
+pub mod read;
+
+pub use harness::{Harness, Sent};

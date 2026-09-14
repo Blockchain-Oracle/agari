@@ -179,6 +179,21 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** stage-owner review within plan r2.
 
+### D-019 — S2 admin and roller implementation choices
+- **Date / owner:** 2026-09-14 · S2 owner (step S2.4)
+- **Evidence:**
+  - `cargo metadata` against anchor-lang 1.2: litesvm 0.8.2 fails (`solana-sdk-ids ~3.0` vs anchor's `^3.1`); 0.12/0.15/0.16 resolve, and 0.16 shares `solana-instruction 3.4.1` and `solana-address 2.6.1` (behind `solana-pubkey 3.0`'s 1.1 shim) with Anchor, so `Pubkey`/`Instruction` types unify.
+  - LiteSVM 0.16 loads `bpf_loader_upgradeable` programs from a Program + ProgramData pair (`accounts_db::load_program`).
+  - `events-instructions.md` §1 account lists (no `+E` on admin instructions); Anchor 1.2 `#[account(zero)]`/`init` codegen runs before the handler.
+- **Rule:**
+  - **Test harness:** `anchor/tests` is an isolated Cargo workspace with its own lock (never moves the program's `solana-program 3.0.0` pin), on **litesvm 0.16.0**, loading `target/deploy/agari_events.so` deployed upgradeable so `admin_init_config`'s upgrade-authority check is exercised.
+  - **Arguments:** `admin_add_policy_version(index, version: PolicyVersionArgs)`, a Borsh mirror without padding (zero-copy state has no Borsh); the IDL names it `PolicyVersionArgs`.
+  - **Events:** admin instructions emit with `emit!` (their account lists carry no event-CPI accounts, and they carry no `seq`); `roller_open_window` and every later Market-scoped instruction use `emit_cpi!`.
+  - **Error precedence:** the spec's check order governs handler checks. Anchor's account validation (signer, owner/discriminator, `init` of the Market/Ledger/mvault PDAs, `#[account(zero)]`) runs first, so a malformed account fails with Anchor's own code before e.g. `NotRoller`; every such failure still reverts. `admin_init_config` maps unparsable mint or treasury data to `WrongMint`.
+  - **Check policy:** a check follows the same per-source rules as a primary (source ∈ 1..4, non-zero feed id) and `check_admission_sec ≠ ADMIT_UNTIL_LOCK` (a check deadline is always `T + check_admission_sec`).
+- **User-visible:** none.
+- **Approval:** within plan r2 S2 (implementation of the frozen spec).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
