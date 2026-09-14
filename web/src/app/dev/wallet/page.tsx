@@ -10,6 +10,7 @@ import { ConnectButton } from "@/features/markets/wallet";
 import { WALLET_DEV } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
+import { SignCheck } from "./SignCheck";
 
 export default function DevWalletPage() {
   const session = useWalletSession();
@@ -33,12 +34,17 @@ export default function DevWalletPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeader index="02" title={WALLET_DEV.balances} />
+        <SectionHeader index="02" title={WALLET_DEV.signCheckTitle} />
+        <SignCheck />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <SectionHeader index="03" title={WALLET_DEV.balances} />
         <BalancePlate />
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeader index="03" title={WALLET_DEV.faucet} />
+        <SectionHeader index="04" title={WALLET_DEV.faucet} />
         <FaucetCard />
       </section>
     </div>

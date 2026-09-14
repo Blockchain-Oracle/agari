@@ -17,7 +17,7 @@
 - [x] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed) (D-015, D-016)
 - [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017)
 - [x] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending` (lanes D1–D3 merged; viem/wagmi removed; `no-evm` allowlist empty)
-- [ ] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify
+- [x] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify (`/api/dev/verify-message`; server half proven with real Ed25519 keys; the interactive Privy login is a gate item pending the user's dashboard setup)
 - [ ] Browser pass: 37 product routes at 390 and 1440, both themes
 
 ## Gate
@@ -96,6 +96,10 @@
   - **Env:** `lib/env.ts` reads `NEXT_PUBLIC_SOLANA_{CLUSTER,RPC_URL,WS_URL}`, `NEXT_PUBLIC_AGARI_{INDEXER_URL,VENUE_ID,EVENTS_PROGRAM_ID}` and `NEXT_PUBLIC_PRICE_FEED_URL` as literal `process.env.X` reads. `marketsEnvInputFrom(process.env)` does not inline in client bundles, so its doc comment is wrong for browsers.
 
 - **1d merge (S1 owner):** the cross-lane seams closed in the merge (the `/dev/private` tx ids became `fixtureSignature`; `/dev/session` moved to `keyFeeLamports`/`topUpLamports`; the Sensei units test was ported to the 10⁻⁸ print scale). `viem` and `wagmi` were removed from `web/package.json` and `no-evm.allow.json` is empty. Gates: `pnpm typecheck` 0 errors (web was 313), `pnpm invariants` 0, `pnpm build` green, `pnpm test` 1,090/1,090 across 91 files.
+
+- **`/dev/wallet` round trip:** section 02 signs `Agari wallet check` (wallet, `Network: Solana devnet`, issued time) through `signText(useOwnerWallet())` and POSTs it to `/api/dev/verify-message`, which returns the ed25519 verdict on the exact text **and** on a copy with one byte appended.
+  - **Checked against the dev server with WebCrypto Ed25519 keys:** a genuine signature gives `{ valid: true, tamperedValid: false }`; a wrong signer gives `valid: false`; a hex signature is HTTP 400.
+  - **Other fixes:** the page's copy no longer says "Somnia Shannon". Next 16 now writes `web/CLAUDE.md` (a one-line `@AGENTS.md` pointer) on `pnpm dev`, so it's gitignored like `web/AGENTS.md`.
 
 ## Handoff
 
