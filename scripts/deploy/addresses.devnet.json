@@ -51,6 +51,256 @@
         "books": [
           "7vBcM7kGj1tLqKtZc1wJMRvZSQt7gBT9MVg4Lss1ksiM"
         ]
+      },
+      "TSLA-15m": {
+        "address": "GzcQMb42oxk2Cb6CEEeBvM5mpGSTmcvzPt5GeyQLu5Cs",
+        "ticker": 1,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "DfNHFBRg1qvNMWrNv39n19JhMtQMXwRYXh5vqu4VUR9C",
+          "53uunYBTuWYHzGw5okGoZfQNrg64NduwHCxXizBdCXvs"
+        ]
+      },
+      "TSLA-60m": {
+        "address": "8X22gGRSZBo3o1tiqRggu2nev7z7KSm4nYnN4iPTW7Ho",
+        "ticker": 1,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "Bxwjse8nM5ZRKPyGXLYwTB1FYjbjWPgkCboqi9AhizLk",
+          "3npGhWVfwuUe6xYoGV1zpKeswSLHz1ygRRZzBaJh9r6U"
+        ]
+      },
+      "NVDA-15m": {
+        "address": "DNEdoPwRUkvQ8xVnWUED6rFAQjVEJYUzCS1qjLZ7TmzZ",
+        "ticker": 2,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "B83N1bRBS2VnEKKjo3fNiB7xgQh4MDgHjrGuk4pMWCZK",
+          "3k64wUsfsBueqGCMYphGpJbRNcvw6FZMmbMDo3VVZVY1"
+        ]
+      },
+      "NVDA-60m": {
+        "address": "8Txd5AkxhBy8iLT7vv5MYPPEH7Mf4TkAhRDZ1HPixSFx",
+        "ticker": 2,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "HfZcabA63graEFwq92rPukaeyRZ5oJ3f3MQZgSZcHWYB",
+          "BHfp9jxGYw7emCQsrSbD1SexpSYNktzD1mvo77ZgdPnH"
+        ]
+      },
+      "AAPL-5m": {
+        "address": "EWnP78Q3jzqd1wP2Z5g2UxbBnMLD3W3MEZuhtyzvaKKs",
+        "ticker": 3,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "2HSXARhCx9yZU14x8JtZq6WQPPVJZkCqeZ3RrZgn3eg1",
+          "HSbYHEjyRHP6QtquJAo4U9K5ADpXBWLdhfnJsXkjoLch"
+        ]
+      },
+      "AAPL-15m": {
+        "address": "bwFYj3E1oJTGcx7huRqCw1BhizM76D9cFaMJNydwRaW",
+        "ticker": 3,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "FbGrZF9UgrXNTzVacrg2e3iPXLUZEC6d7bQATUAaH5vg",
+          "7VvMVcaEFXy9k6mapYfmAMyRLCPtpjVxCz71nTi2MPb2"
+        ]
+      },
+      "AAPL-60m": {
+        "address": "C1dVmsN1xriNtho37PbCZsCT8h9ow3Ztto4U1ait2g61",
+        "ticker": 3,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "5KcPkF4AoY32YKKbmxdhxasH9BPSnprtUy45ZkE4Bztj",
+          "84TKPV8fMAjsffEgrb1tUsqr6kGJG2mw6oCbsidzGsk4"
+        ]
+      },
+      "MSFT-5m": {
+        "address": "5ijFdq85dwTjBTeaJzx99uyZHiEJH1zjvMRHuepFJi1h",
+        "ticker": 4,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "BEZpiwCNQ4WpQHukpdXu9voz6LFjwCCyLRtVcDaYE8hJ",
+          "2izZBqHxYcxTxQX9Pkc7EABeXXjhZWihQZyHdckF8BjD"
+        ]
+      },
+      "MSFT-15m": {
+        "address": "HftDmWYugYBHUsdsL28ximMxDmAc9FuKENuMBywzpkws",
+        "ticker": 4,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "7iva6CJsEHJ2i63SowDDN2hpg2Mvx37UYMuvL8Dymkks",
+          "8DGPBX3E7SENvV1gXMv2smvMkaRpGdWhQGdQAMKZeZMk"
+        ]
+      },
+      "MSFT-60m": {
+        "address": "5BcqayyBchNXoQ9mp57oQELH6fBRfgqGL4ZTo8nhe1az",
+        "ticker": 4,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "HjTJkd1DjZtYUgxvhv8tJNghDHPXKfoAbLNXzM9DfwrY",
+          "8qP9auJ6YTQNxGsRuk16UgKcVDFLKgUETdmnDjgdDpNx"
+        ]
+      },
+      "META-5m": {
+        "address": "4AQh6QPZ3nF3LYQqsreqKNDXsgD62RgNipxHNJD2ZpkN",
+        "ticker": 5,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "fp4gmwpkrL6iheCTWDxJyNJVYWawoRngyvwcLQSH8Ft",
+          "5ifgxkyi9piUp86APM1tU14E8mgbGV6MgGAqNfRMDteB"
+        ]
+      },
+      "META-15m": {
+        "address": "3Pton95UerBDushoKQ4jwno75tgEgHDuYFY4xgsJds6W",
+        "ticker": 5,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "5CuuxZEaEVrrW6BbxT287h1mKvwL6LrFH24MVEow8sFd",
+          "2jTY71aT8B8THspvUbYtaT6WedXsdfeP1DyNJhZHT8um"
+        ]
+      },
+      "META-60m": {
+        "address": "3t5DzHuq6iH5dPVZdJvwvDBuNopP3VopjcB1Dht58o6Y",
+        "ticker": 5,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "4jNb5neMLfuMu3JWrVd91PKxAKHNtQTF6Zd3uPkcMhyw",
+          "5mQBWUaDMCY397AVV76ytFvoNy5xg2hbcCZS3o3rsosB"
+        ]
+      },
+      "AMZN-5m": {
+        "address": "3am7gViCSLQSKiobcgc9MoV5mcP77CfFbDm7aTZkz9eh",
+        "ticker": 6,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "FgPhbRVJtDzHBvGdPDQgGeqsM2bvssPEEfkTZd4pPJzA",
+          "8jX699FoUWmChRUqMNrddDRiRUNQp4CyDAxscfgpu9nu"
+        ]
+      },
+      "AMZN-15m": {
+        "address": "8oRF5g15ENro46emZQziJGVcUzb2hyTpbhjjLVQpKhFK",
+        "ticker": 6,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "8wDfyXxSj5KdHBhsye9HC3PJUAP5sUSdLMwHVC3pbvTB",
+          "BJSpqvN5dFu9BUdtK4qLJDg7DjooCG9f8Za3m88tn4im"
+        ]
+      },
+      "AMZN-60m": {
+        "address": "HeJzfWkUH4MfaPXnmqJwYAPKFAyRJVARE9gjKBiuZcem",
+        "ticker": 6,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "Hn9YHrkNDjGdkeydnY7vHja89duVouDgqBt1XeACFFcq",
+          "8csrgXV8ejZcpKYAjcczV5WP59Y65LSqJZAzuQ7KBPGU"
+        ]
+      },
+      "GOOGL-5m": {
+        "address": "4YPt6Gxw7MvpMAju42oZCeVEnDVJRMRwsgKHXWWU4Uk5",
+        "ticker": 7,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "FWot6Avca3q8emnD6BSd5R75tgCMY1oXgobR6kH5gGHg",
+          "FAkpRJvLvXKcp2xDdoajH49FrsScnYeViXMVQnWR5HGN"
+        ]
+      },
+      "GOOGL-15m": {
+        "address": "GKLtwdV8YR1EUnUP1sckKa8sr9MFHvVm7UcKzmkvLVGF",
+        "ticker": 7,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "3dwn3DmTMomX16rxv9X7sywYd5H9vyP2uhAmvJ66xDP3",
+          "32LjntNA5jECUrXMYPctLKAsJQhosbdpye3eJkjhkxXV"
+        ]
+      },
+      "GOOGL-60m": {
+        "address": "i3oZB7QgHzUSG1MjsGaA2uf5BFJh1pU5gfKjhGBPHTy",
+        "ticker": 7,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "6RFUUCHDxhfgA9T19VaoyfyfNkhsLxYGcYAQejurfvYS",
+          "2gUrutGNCyTA1a1Fz5NgWLzLZBTzdpAbMR2dVhWePHfV"
+        ]
+      },
+      "QQQ-5m": {
+        "address": "6xcuXjaVuZEgmwACCB2UZGPDArF3Yv5DkpmVerHXyfnk",
+        "ticker": 8,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "2L9K18EDcfhKUX5R23YoYQv3BTMKmWxNjJhbgWAXTXZX",
+          "DxsAUcL2RKq82XzMo6PCJrfU28jbHc3KMbcJx77vN77w"
+        ]
+      },
+      "QQQ-15m": {
+        "address": "4YA2uMbZC9CdBby9DPwTxTmFvhjZ2wXtzXRPMwCM2ZL1",
+        "ticker": 8,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "EAzxN9PuzCBFgKnRojChdsdH6AWyPRUNoyr8zxxmgZAz",
+          "6i1hPeWgp6jc8pUdurXWoj7gnVj2ing9uFEppA6yvtSY"
+        ]
+      },
+      "QQQ-60m": {
+        "address": "G8EQqpgMj8YaS554tnierrPwXckBnn4JbPy9u5yiterz",
+        "ticker": 8,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "2rQck6cHtCqPjYUQCPosLu6BeWUvYHRcEaufoGVL92X8",
+          "35Wk2W3Gw9awijw4UWivP1SVr6mwqcFSfmdVugYCeWCB"
+        ]
+      },
+      "VOO-5m": {
+        "address": "HbUKkTYTQpnhxLrQRgWLMQFuYs7XV9t958nqj44sQ61m",
+        "ticker": 9,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "ZMWc2eANC8x2wZJcrA7MQQurMXRGuug3pcEseKwqS5i",
+          "Anj2NJF11etyo6dQTUbAeUfXb1MQFqstcXpKGmdZTadE"
+        ]
+      },
+      "VOO-15m": {
+        "address": "CRW9TkEjRfcbpfhxngut1cYSpGjp9V2R2WmqxRNfJiGh",
+        "ticker": 9,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "2bDb23HmuLymCCEMVKS4thkSgiXiRBzDz1YkeZ2iqxXq",
+          "2viRiS64nwVWidbQn6wAhaCHysp66dQMKsQ2Hm9ci93J"
+        ]
+      },
+      "VOO-60m": {
+        "address": "FgFa6Jxu8Sxs7ebz42faqXxjd95nVwxFBHQfu9ziHftc",
+        "ticker": 9,
+        "cadenceSec": 3600,
+        "basis": 0,
+        "books": [
+          "BDUcPeoNrmUYVmZ8wPCjQSh16WeQ2b1YSjfdk1SDb4BX",
+          "6qFesgnBweHWpHY71GQrfoXQcUdFB4JwguKfdxj5Rd2P"
+        ]
       }
     }
   }
