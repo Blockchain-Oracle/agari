@@ -24,7 +24,7 @@ import {
   syncClock,
 } from "./reads";
 
-/** The one read port every surface plugs into (AD-1). S1: the not-deployed stub (D-015). */
+/** The one read port every surface plugs into (AD-1): chain, indexer and ops behind one shape (first-call.md §2). */
 export const marketsProvider: MarketsProvider = {
   listLiveLanes,
   getMarket,
@@ -52,10 +52,9 @@ export const marketsProvider: MarketsProvider = {
 
 export { bootMarkets, type MarketsBoot } from "./boot";
 export { applyClockSync, lastClockSync, nowMs, nowSec } from "./clock";
-export { laneNextStart, readRecoveryCursor, syncClock } from "./reads";
+export { getMarketsLite, getWalletCollateral, laneNextStart, listWalletFills, readRecoveryCursor, syncClock, type WalletFillsQuery } from "./reads";
 export { forgetReading, unwrap, withReading, type Unwrap } from "./reading";
 export {
-  listWalletFills,
   mapPool,
   readVenueBoard,
   toRoundMarket,
@@ -65,5 +64,4 @@ export {
   type TractionPoint,
   type VenueBoard,
   type VenueTraction,
-  type WalletFillsQuery,
 } from "./tape";

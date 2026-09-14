@@ -13,7 +13,7 @@ const NOW = 1_789_416_000;
 const series: SeriesFacts = {
   address: "FK9jirQBjhCLMEgzKvPNNtMXBrxSA6aWerMcWz9WVXvZ" as Address,
   symbol: "TSLA", basis: 0, cadenceSec: 300, lotBase: 1_000n, tickBase: 1_000n, cashUnit: 1n, minLots: 1_000n,
-  seatBond: 250_000n, fillsCap: 16, evictionsCap: 16, minRestSlots: 50n,
+  seatBond: 250_000n, fillsCap: 16, evictionsCap: 16, minRestSlots: 50n, policySources: [{ primary: 1, check: 2 }],
 };
 const target: QuoteTarget = { marketId: MARKET as MarketId, poolAddress: "8xPqjTVYdsu2f4fZo2EDuhkSxFrioZECnypZKfqW97m2" as QuoteTarget["poolAddress"], decimals: 6, intervalSec: 300 };
 const order = (price: number, lots: bigint, expireTs = BigInt(NOW + 60)) => ({ price, lots, expireTs, placedSlot: 400_000_000n, live: true });

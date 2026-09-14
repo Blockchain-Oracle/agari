@@ -2,7 +2,8 @@
  * Chain reads of the venue's accounts for the browser and server (first-call.md §2.1; signatures frozen there).
  * Decoders are lifted from `ops/venue.ts`, `ops/settle/ledger.ts` and `deploy/cycle/accounts.ts`, which stay
  * server-only. Every read goes through the batching loader. Immutable facts are cached for the runtime's life:
- * registration parameters, the collateral mint and its decimals. Venue `mode` is re-read at most every 15 s.
+ * registration parameters, the collateral mint and its decimals. Venue `mode` is re-read at most every 15 s. Reads
+ * are whole accounts so they share batches; the Book (57 KB) is the only large one.
  */
 import {
   AGARI_EVENTS_PROGRAM_ADDRESS,
@@ -50,13 +51,13 @@ export interface SeriesFacts {
   fillsCap: number;
   evictionsCap: number;
   minRestSlots: bigint;
+  /** `Source` of each policy version's primary and check (0 none, 1 Pyth, 2 RedStone, 3 Switchboard, 4 attested). */
+  policySources: readonly { primary: number; check: number }[];
 }
 
 const VENUE_MODE_TTL_MS = 15_000;
-/** `GlobalConfig.mode` (struct offset 775 + the discriminator). */
-const CONFIG_MODE_SLICE = { offset: 8 + 775, length: 1 } as const;
 /** SPL token account `amount` u64. */
-const TOKEN_AMOUNT_SLICE = { offset: 64, length: 8 } as const;
+const TOKEN_AMOUNT_OFFSET = 64;
 const SYMBOL_BY_SERIES_ID = new Map<number, TickerSymbol>(TICKER_SYMBOLS.map((s) => [TICKERS[s].seriesId, s]));
 
 let generation = -1;
@@ -64,6 +65,8 @@ let configPda: Promise<Address> | null = null;
 let venue: { facts: VenueFacts; readAtMs: number } | null = null;
 let venueRead: Promise<VenueFacts> | null = null;
 const seriesByAddress = new Map<string, Promise<SeriesFacts>>();
+/** ATA derivations (async hashing): cached so a repeat read joins the same turn's batch as its siblings. */
+const ataByOwnerMint = new Map<string, Promise<Address>>();
 
 /** Drops every cached fact when the read runtime is rebuilt onto other endpoints. */
 function fresh(): void {
@@ -87,13 +90,9 @@ export function configAddress(): Promise<Address> {
   return configPda;
 }
 
+/** Whole accounts, not slices: a full read joins the same batch as every other read this turn (856 B here). */
 async function readVenueFacts(): Promise<VenueFacts> {
   const config = await configAddress();
-  if (venue) {
-    const { bytes } = await loadAccount(config, CONFIG_MODE_SLICE);
-    if (!bytes) throw new Error(`GlobalConfig ${config} not found`);
-    return { ...venue.facts, mode: bytes[0] as VenueFacts["mode"] };
-  }
   const { bytes } = await loadAccount(config);
   if (!bytes) throw new Error(`GlobalConfig ${config} not found`);
   const data = getGlobalConfigDecoder().decode(bytes);
@@ -112,6 +111,12 @@ export async function readVenue(): Promise<VenueFacts> {
       venueRead = null;
     });
   return venueRead;
+}
+
+/** The venue's immutable facts (mint, decimals, treasury) without a mode refresh: lists never pay for `mode`. */
+export function readVenueStatic(): Promise<VenueFacts> {
+  fresh();
+  return venue ? Promise.resolve(venue.facts) : readVenue();
 }
 
 export function readSeries(series: AnyAddress): Promise<SeriesFacts> {
@@ -134,6 +139,7 @@ export function readSeries(series: AnyAddress): Promise<SeriesFacts> {
       fillsCap: data.fillsCap,
       evictionsCap: data.evictionsCap,
       minRestSlots: BigInt(data.minRestSlots),
+      policySources: data.policyVersions.slice(0, data.versionCount).map((v) => ({ primary: v.primary.source, check: v.check.source })),
     };
   });
   seriesByAddress.set(series, read);
@@ -162,8 +168,14 @@ export async function readBook(book: AnyAddress): Promise<BookState | null> {
 
 /** `amountBase` null = no associated token account yet. */
 export async function readTokenBalance(owner: AnyAddress, mint: AnyAddress): Promise<{ ata: Address; amountBase: bigint | null }> {
-  const [ata] = await findAssociatedTokenPda({ owner: kit(owner), mint: kit(mint), tokenProgram: TOKEN_PROGRAM_ADDRESS });
-  const { bytes } = await loadAccount(ata, TOKEN_AMOUNT_SLICE);
-  if (!bytes || bytes.byteLength < 8) return { ata, amountBase: null };
-  return { ata, amountBase: new DataView(bytes.buffer, bytes.byteOffset, 8).getBigUint64(0, true) };
+  const key = `${owner}:${mint}`;
+  let derived = ataByOwnerMint.get(key);
+  if (!derived) {
+    derived = findAssociatedTokenPda({ owner: kit(owner), mint: kit(mint), tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(([pda]) => pda);
+    ataByOwnerMint.set(key, derived);
+  }
+  const ata = await derived;
+  const { bytes } = await loadAccount(ata);
+  if (!bytes || bytes.byteLength < TOKEN_AMOUNT_OFFSET + 8) return { ata, amountBase: null };
+  return { ata, amountBase: new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getBigUint64(TOKEN_AMOUNT_OFFSET, true) };
 }

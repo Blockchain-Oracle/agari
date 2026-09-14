@@ -1,5 +1,6 @@
 /** The shared read runtime. No account, no signer: everything that signs lives in ../sessions. */
-export { bookSnapshot, CANONICAL_BOOK_DEPTH, resetCoordinator, subscribeBook } from "./coordinator";
+export { bookSnapshot, bookStateSnapshot, CANONICAL_BOOK_DEPTH, resetCoordinator, subscribeBook, type BookStateView } from "./coordinator";
+export { liveSpot, spotView, subscribeSpot, type SpotTick, type SpotView } from "./spot-stream";
 export {
   closeRuntime,
   configureMarkets,
@@ -24,6 +25,7 @@ export {
   readSeries,
   readTokenBalance,
   readVenue,
+  readVenueStatic,
   SEAT_FLAG,
   type BookState,
   type LedgerSeat,
