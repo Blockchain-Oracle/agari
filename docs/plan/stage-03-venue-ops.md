@@ -16,8 +16,8 @@
 - [ ] RedStone relay: all 5 signer packages at T + 10–15 s with retries; archive to `print_archive`; single names + TSLA check prints (lane 3b)
 - [ ] Attested relay (opt-in only; off by default) (lane 3b)
 - [ ] Spot feed + `/health` + `/prices/stream` SSE (lane 3b)
-- [ ] Settler (retries `CrossCheckPending` until the check bound; redeem_for, close ledger, close market) (lane 3c)
-- [ ] Seed maker, `MAKER_MODE=seat` (lane 3c)
+- [x] Settler (retries `CrossCheckPending` until the check bound; redeem_for, close ledger, close market) (lane 3c)
+- [x] Seed maker, `MAKER_MODE=seat` (lane 3c; real `SpotFeed` hookup at the main.ts step)
 - [ ] Indexer + backfill + `verify-index` (lane 3d)
 - [ ] Register actors in `main.ts` (DRY_RUN default) + heartbeats (stage owner, after the lanes merge)
 - [ ] Register series on devnet + rent accounting (stage owner; needs SOL)
@@ -52,6 +52,26 @@
   - **Codama names vs `time-suffix`:** Codama argument names like `tradingStart:` trip the rule; pass them as shorthand locals.
   - **Late opens:** with the 60 s minimum tradable time, a restarted roller opens a Window already under way (TSLA-15m 15:45–16:00Z at 15:55). This is spec-conformant, but revisit if it wastes rent after downtime.
   - **Self-match:** a user's BUY_NO @ 300 against their own resting BUY_YES @ 400 reverts `SelfMatchCancelTaker` (DreamDEX semantics, D-008). S4's ticket must not rely on crossing one's own order.
+- **Lane 3c (settler + seed maker, merged from `slice/S3c-settler-maker` @ 153da7e), proven on a Surfpool devnet fork with real RedStone and Pyth prints:**
+  - **Happy path** (NVDA-5m W1 16:05–16:10Z):
+    - The maker quoted fair 453 → 423/483 × 5,000 and requoted on fair moves (22 PostOnly posts, 11 `cancel_all`, pulled at lock − 60). A taker IOC BUY_YES @ 483 filled against the maker's BUY_NO via the mint pair.
+    - The settler ran settle (Down) → `redeem_for` both seats with ATA creation → release Book → close Ledger. Payouts equalled the seat-derived amounts: maker 1,250,000, taker 250,000. The roller got back exactly the Ledger + mvault rent.
+  - **Cross-check wait:** TSLA-5m W3 (Pyth open/close, only the RedStone check open) settled at T1 + 124, never before the T1 + 120 bound, with the single-source flag set.
+  - **Void path:** a Window with no prints and a resting bid → time travel past the open deadline → void → sweep → redeem 750,000 (500,000 escrow + bond) → release → close Ledger.
+  - **Closure:** after the retention time travel, six Markets + Results closed, including the three S2 devnet-drive Windows it drained at boot.
+  - **CU / bytes:**
+    - settle 14,893/386 · void 12,978/386
+    - `redeem_for` 2 seats + 2 ATA creates 49,016/724 (4 seats ≈ 98k/≈ 920 B)
+    - release 5,497/352 · close Ledger 12,297/517 · close Market 9,298/386
+    - PostOnly 16,410/586 · `cancel_all` 15,838/556
+  - **Tests:** 26 vitests (settler decide 14, maker quote 12).
+  - **Spec amendments at merge:**
+    - §8.2 BUY_NO carries `price_ticks = fair + half` (YES-quoted book).
+    - §7 releases the Book before waiting on PROGRAM seats.
+    - `public_redeem_for` also takes `series`.
+  - **Series 900:** `SETTLER_ALL_SERIES=1` lets the settler also close the drive-only Series 900 Windows; on devnet this reclaims the S2 drive rent.
+  - **Surfpool gPA:** Surfpool's `getProgramAccounts` still lists Markets closed on the fork. Steady-state reads are by address, so actors are unaffected.
+  - **Maker RPC budget:** at 10 s passes, near-expiry fair moves requote often (≈ 11 per 5m Window). For devnet, raise `MM_REQUOTE_TICKS` or narrow `MM_SYMBOLS`/`MM_CADENCES` to stay within ≈ 1 RPS.
 - **SOL for the devnet run** (5,080 lamports/B incl. header):
   - 25 missing Series × 0.0076 ≈ 0.2 SOL.
   - Books: 16 new 5m/15m Series × 2 × 0.2900 ≈ 9.3 SOL, plus 9 new 60m Series × 2 × 0.2276 ≈ 4.1 SOL, so ≈ 13.4 SOL of Books.

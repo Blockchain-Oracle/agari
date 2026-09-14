@@ -104,9 +104,9 @@ Actors export `start<Name>(deps: VenueDeps)`, where `VenueDeps = { env: OpsEnv; 
    - Otherwise → wait until the earliest deadline.
 2. **Terminal**, in order:
    - Book bound with `order_count > 0` → `sweep`.
-   - Any non-PROGRAM seat with an owner → `redeemFor`: up to 4 seats per transaction, each preceded by an idempotent ATA create (payer settler).
+   - Any non-PROGRAM seat with an owner → `redeemFor`: up to 4 seats per transaction, each preceded by an idempotent ATA create (payer settler). `public_redeem_for` also takes `series` (as the cancel family does, D-020).
+   - Book not released → `releaseBook`. This happens before any wait on PROGRAM seats, so a product's seat never holds a Book the next Window needs (amended at the 3c merge).
    - A PROGRAM seat not drained → wait (products, S7+).
-   - Book not released → `releaseBook`.
    - Ledger not closed and every seat drained → `closeLedger`.
    - Released, closed, `dependents == 0` and `now ≥ resolved_ts + retention` → `closeMarket`. The account being gone means done.
 3. **Codes:**
@@ -123,7 +123,7 @@ Purpose: the books carry quotes during the soak and the demo. Vault mode (S8) st
    - σ is per ticker from `MM_SIGMA_BPS` (default single names 4,500, ETFs 2,000 annualized).
    - Floats are allowed only inside this probability function; its output is integer YES ticks, clamped to `[MM_MIN_TICK, 1000 − MM_MIN_TICK]` (default 20).
 2. **Quotes** (`seat/quote.ts`):
-   - PostOnly buy YES at `fair − half` and buy NO at `1000 − (fair + half)` (the ask through the NO side, the mint-pair path, so no inventory is needed). `half` = `MM_HALF_SPREAD_TICKS` (default 30).
+   - PostOnly BUY_YES at `price_ticks = fair − half` (bid) and BUY_NO at `price_ticks = fair + half` (ask). The book is YES-quoted, so a BUY_NO rests on the ask side at that YES price and escrows `1000 − (fair + half)` per lot. A crossing BUY_YES fills it through the mint-pair path, so no inventory is needed. `half` = `MM_HALF_SPREAD_TICKS` (default 30). (Amended at the 3c merge; the first wording put the escrow amount in the price field.)
    - Size: `MM_QUOTE_LOTS` (default 5,000).
    - `expire_ts = min(now + MM_QUOTE_TTL_SEC (120), lock_at − 30)`.
    - Requote when fair moves ≥ `MM_REQUOTE_TICKS` (10) or the quote is within 20 s of expiry: `user_cancel_all` first, then place.
