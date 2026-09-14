@@ -14,7 +14,7 @@ const AMOUNT_DP = 2;
 /**
  * The address pill and its menu — the reference's (`Header.tsx` L322–364), whole: the `addr-dot` avatar
  * and the short address; a menu of exactly two balance rows (Trading account, Wallet), Portfolio, and
- * Disconnect (a Privy logout). The links to Claims, Add funds and X recovery that had grown in here are gone: the money
+ * Disconnect (the Wallet Standard disconnect). The links to Claims, Add funds and X recovery that had grown in here are gone: the money
  * pill beside this opens Add money, claiming is on the Window's own result, and X recovery is reached
  * from `/trade-from-x` as in the reference. A balance that has not been read yet shows an em dash.
  */
@@ -31,7 +31,7 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const amount = (value: bigint | null) =>
     sheet && value !== null ? formatBaseUnits(value, sheet.decimals, { maxDp: AMOUNT_DP, minDp: AMOUNT_DP }) : "—";
 
-  // Before hydration, and while Privy restores a remembered session, server and client must agree: the control is present but inert.
+  // Before hydration, and while the last wallet silently reconnects, server and client must agree: the control is present but inert.
   if (session.isConnecting) {
     return (
       <button type="button" className="btn btn-primary invisible" aria-hidden="true" tabIndex={-1}>
@@ -45,14 +45,11 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
       <button
         type="button"
         className="btn btn-primary"
-        onClick={session.login}
-        onPointerEnter={session.prefetch}
-        onFocus={session.prefetch}
-        disabled={!session.available}
-        title={session.available ? undefined : CONNECT.unavailable}
+        onClick={session.connect}
+        disabled={session.connecting}
         data-cursor="hover"
       >
-        {CONNECT.connect}
+        {session.connecting ? CONNECT.connecting : CONNECT.connect}
       </button>
     );
   }
@@ -95,7 +92,7 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
             className="header-account-link header-account-link--danger"
             role="menuitem"
             onClick={() => {
-              void session.logout();
+              void session.disconnect();
               setOpen(false);
             }}
           >

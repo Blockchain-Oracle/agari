@@ -26,7 +26,7 @@ export function devCheckText(address: Address, cluster: Cluster, issuedAtMs: num
   ].join("\n");
 }
 
-/** Privy sign-in → the wallet signs → the server verifies with ed25519 (and refuses a tampered copy). */
+/** Wallet connect → the wallet signs → the server verifies with ed25519 (and refuses a tampered copy). */
 export function SignCheck() {
   const wallet = useOwnerWallet();
   const [check, setCheck] = useState<Check>({ phase: "idle" });

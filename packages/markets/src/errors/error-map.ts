@@ -1,7 +1,7 @@
 import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
 import { ReadingError } from "./reading-error";
 
-/** EIP-1193 and Wallet Standard wallets (Privy, Phantom) use 4001 for a user's refusal. */
+/** Wallet Standard wallets (Phantom, Solflare, Backpack) use 4001 for a user's refusal, as EIP-1193 did. */
 const USER_REJECTED_CODE = 4001;
 
 /** Chain-agnostic message patterns. Anchor program error codes map here once the Solana adapter exists (S4). */

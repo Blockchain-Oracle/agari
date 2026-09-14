@@ -7,7 +7,7 @@ export type FeeLane = "order" | "faucet" | "redeem" | "vault" | "vault-order" | 
 
 /**
  * Whether the signer can pay this write's network fee. Named `GasCheck` for its call sites; it is SOL in lamports.
- * A sponsored send (Privy embedded wallets, the `api/sponsor` co-sign) needs no balance at all.
+ * A sponsored send (the `api/sponsor` fee-payer co-sign) needs no balance at all.
  */
 export type GasCheck =
   | { ok: true; lane: FeeLane; balanceLamports: bigint; requiredLamports: bigint }

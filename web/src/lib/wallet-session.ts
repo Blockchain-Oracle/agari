@@ -8,7 +8,7 @@ import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 export interface WalletSession {
   address: Address | null;
   isConnected: boolean;
-  /** Privy is restoring a remembered session, or the page hasn't hydrated: controls stay inert rather than flash "Connect". */
+  /** Before hydration, or while the last wallet silently reconnects: controls stay inert rather than flash "Connect". */
   isConnecting: boolean;
   /**
    * Always equal to `isConnected` on Solana. The cluster is the app's, not the wallet's: nothing in a Solana wallet can
@@ -17,37 +17,33 @@ export interface WalletSession {
   isRightChain: boolean;
   /** Kept for the surfaces that disable a control while a switch runs; there is never a switch on Solana. */
   switching: false;
-  /** `embedded` (social login, Privy-sponsored fees) or `external` (Phantom, Backpack, Solflare); null when disconnected. */
-  kind: "embedded" | "external" | null;
-  /** Sign-in is configured (a Privy app id is present). */
-  available: boolean;
-  login(): void;
-  logout(): Promise<void>;
-  prefetch(): void;
+  /** A user-initiated connection is in flight. */
+  connecting: boolean;
+  /** Opens the wallet picker (Wallet Standard wallets installed in this browser, D-023). */
+  connect(): void;
+  disconnect(): Promise<void>;
 }
 
 /** The sole wallet surface in product code: session only, never chain reads (AD-14). Base58 is case-sensitive: never re-case `address`. */
 export function useWalletSession(): WalletSession {
   const shell = useWalletShell();
-  const isConnected = shell.authenticated && shell.address !== null && shell.wallet !== null;
+  const isConnected = shell.status === "ready" && shell.address !== null && shell.wallet !== null;
   return {
     address: isConnected ? shell.address : null,
     isConnected,
-    isConnecting: !shell.hydrated || shell.status === "restoring",
+    isConnecting: shell.status === "restoring",
     isRightChain: isConnected,
     switching: false,
-    kind: isConnected ? shell.kind : null,
-    available: shell.status !== "unavailable",
-    login: shell.login,
-    logout: shell.logout,
-    prefetch: shell.prefetch,
+    connecting: shell.connecting,
+    connect: shell.openPicker,
+    disconnect: shell.disconnect,
   };
 }
 
 /** The connected owner's wallet (the D-014 seam), or null: what owner-signed flows (session-key funding, signed texts) use. */
 export function useOwnerWallet(): MarketsWalletSession | null {
   const shell = useWalletShell();
-  return shell.authenticated ? shell.wallet : null;
+  return shell.status === "ready" ? shell.wallet : null;
 }
 
 /**

@@ -15,14 +15,14 @@
   - [x] 1a.4 `auth/signed-message.ts` (ed25519, verifier injected), `urls/explorer.ts` (Solana Explorer + cluster), Somnia constants out of core (`constants/{chain,fees,faucet}.ts`, SOL faucet policy, copy)
   - [x] 1a.5 `claims/payout.ts` + `projection/settle.ts`: mirror the engine's redeem (1e7 payout vector, zero fee, floor) from the frozen S2 spec
 - [x] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed) (D-015, D-016)
-- [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017)
+- [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017; Privy later replaced by Wallet Standard via the Kit wallet plugin, D-023)
 - [x] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending` (lanes D1–D3 merged; viem/wagmi removed; `no-evm` allowlist empty)
 - [x] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify (`/api/dev/verify-message`; server half proven with real Ed25519 keys; the interactive Privy login is a gate item pending the user's dashboard setup)
 - [x] Browser pass: 37 product routes at 390 and 1440, both themes (30 static product routes × 390/1440 × dark/light = 120 checks + a settled-state sweep + the dynamic duel and market routes; fixes in `fix(S1.7/web)`)
 
 ## Gate
 
-`pnpm typecheck && pnpm invariants && pnpm build` · no EVM imports · Privy embedded wallet shows a base58 address · Phantom connects · signed-message verify works.
+`pnpm typecheck && pnpm invariants && pnpm build` · no EVM imports · a Wallet Standard wallet connects and shows a base58 address (D-023; was "Privy embedded wallet") · Phantom connects · signed-message verify works.
 
 **Rows:** Shell L-01, 02, 03, 05, 06, 07, 21; Partial L-10, L-24, L-72.
 
@@ -117,8 +117,7 @@
 
 ## Handoff
 
-- **S1 gate status:** `pnpm typecheck && pnpm invariants && pnpm build` green; no EVM imports (`no-evm` allowlist empty); signed-message verify proven server-side with real Ed25519 keys. **Still open, needs the user:** "Privy embedded wallet shows a base58 address" and "Phantom connects" require the Privy dashboard setup (Solana embedded wallets + login methods, `http://localhost:3000` allowed origin). Then run `/dev/wallet` (sign and verify) in a real browser session.
-
+- **S1 gate status:** `pnpm typecheck && pnpm invariants && pnpm build` green; no EVM imports (`no-evm` allowlist empty). Wallet connect and signed-message verify are proven in a production build with a spec-conformant Wallet Standard test wallet (D-023). **Still open, needs the user's browser:** with Phantom (devnet) installed, open `http://localhost:3000/dev/wallet`, Connect → Phantom, then "Sign and verify" should show "verified by the server" and "rejected, as it must be". No vendor dashboard is involved any more.
 - **1d-D1 needs from the parent:**
   - `pnpm --filter web add @noble/hashes@1.8.0` (same version as ops) for `features/games/keccak.ts`.
   - D2/D3 retype `txHash` props to `Signature` (claims, share cards, parlay/range tickets).

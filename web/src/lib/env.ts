@@ -2,8 +2,6 @@ import { parseMarketsEnv, type MarketsEnv } from "@agari/markets/env";
 import { z } from "zod";
 
 const webOnlySchema = z.object({
-  /** Privy app id (public). Absent → sign-in shows an honest "unavailable" state instead of a broken modal. */
-  privyAppId: z.string().min(1).optional(),
   /** Browser RPC. Never the Helius key: S4 decides between a proxy and an allowlisted endpoint. */
   solanaRpcUrl: z.url().default("https://api.devnet.solana.com"),
   solanaWsUrl: z.url().default("wss://api.devnet.solana.com"),
@@ -27,7 +25,6 @@ export const webEnv: WebEnv = {
     priceFeedUrl: process.env.NEXT_PUBLIC_PRICE_FEED_URL,
   }),
   ...webOnlySchema.parse({
-    privyAppId: process.env.NEXT_PUBLIC_PRIVY_APP_ID || undefined,
     solanaRpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || undefined,
     solanaWsUrl: process.env.NEXT_PUBLIC_SOLANA_WS_URL || undefined,
     appOrigin: process.env.NEXT_PUBLIC_APP_ORIGIN || undefined,

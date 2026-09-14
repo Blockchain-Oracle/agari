@@ -6,7 +6,7 @@ import { isSignature, type Address, type Signature } from "../types/primitives";
 /**
  * Every text Agari asks a wallet (or a browser key) to sign, and how a server checks it.
  *
- * A Solana wallet signs raw bytes with ed25519 (Wallet Standard `solana:signMessage`, Privy `signMessage`). There is
+ * A Solana wallet signs raw bytes with ed25519 (Wallet Standard `solana:signMessage`). There is
  * no EIP-191 prefix: the signature covers exactly the UTF-8 bytes of the text. So the browser and the server must
  * build the same string from the same fields, byte for byte, and the text must be written to be READ: it names what
  * the signature allows and what it doesn't, because people sign what they can understand.

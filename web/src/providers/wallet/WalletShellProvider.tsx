@@ -1,89 +1,57 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { webEnv } from "@/lib/env";
-import type { IslandHandle } from "../privy";
-import { DISCONNECTED, WalletShellContext, type WalletShell, type WalletShellState } from "./wallet-shell-context";
-
-/** Set while a Privy session exists, so a returning visitor's island loads at once; absent, it loads on first intent. */
-const REMEMBERED_KEY = "agari.wallet.remembered";
-
-const loadIsland = () => import("../privy");
-const PrivyIsland = dynamic(() => loadIsland().then((m) => m.PrivyIsland), { ssr: false });
-
-function readRemembered(): boolean {
-  try {
-    return window.localStorage.getItem(REMEMBERED_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeRemembered(on: boolean): void {
-  try {
-    if (on) window.localStorage.setItem(REMEMBERED_KEY, "1");
-    else window.localStorage.removeItem(REMEMBERED_KEY);
-  } catch {
-    // storage blocked: the island simply loads on intent next visit
-  }
-}
+import { isAddress, type Address } from "@agari/core/types";
+import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
+import { useConnectedWallet, useDisconnect, useWalletStatus } from "@solana/kit-plugin-wallet/react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { walletClient } from "./kit-wallet";
+import { WalletPicker } from "./WalletPicker";
+import { WalletShellContext, type WalletShell } from "./wallet-shell-context";
 
 /**
- * Owns the lazy Privy island (D-017). The island renders no children, so loading it never remounts the app:
- * it only publishes state up into this context and hands back its actions. A click that arrives before the
- * island is ready is queued and replayed once Privy reports ready.
+ * Owns the wallet connection (D-023). State comes from the Kit wallet plugin's `useSyncExternalStore` hooks, whose
+ * server snapshot is `pending`, so the server and the first client render agree on an inert control.
  */
 export function WalletShellProvider({ children }: { children: ReactNode }) {
-  const configured = Boolean(webEnv.privyAppId);
-  const [state, setState] = useState<WalletShellState>({ ...DISCONNECTED, status: configured ? "idle" : "unavailable" });
-  const [load, setLoad] = useState(false);
-  const island = useRef<IslandHandle | null>(null);
-  const pendingLogin = useRef(false);
+  const status = useWalletStatus(walletClient);
+  const connected = useConnectedWallet(walletClient);
+  const { dispatchAsync: disconnectWallet } = useDisconnect(walletClient);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
-  useEffect(() => {
-    const remembered = configured && readRemembered();
-    setState((prev) => ({ ...prev, hydrated: true, status: remembered ? "restoring" : prev.status }));
-    if (remembered) setLoad(true);
-  }, [configured]);
+  const rawAddress = connected?.account.address ?? null;
+  const address: Address | null = rawAddress !== null && isAddress(rawAddress) ? rawAddress : null;
+  const signer = connected?.signer ?? null;
 
-  const onReady = useCallback((handle: IslandHandle) => {
-    island.current = handle;
-    if (pendingLogin.current) {
-      pendingLogin.current = false;
-      handle.login();
+  const wallet = useMemo<MarketsWalletSession | null>(() => {
+    if (address === null || signer === null) return null;
+    return { address, signer, signMessage: (message) => walletClient.wallet.signMessage(message) };
+  }, [address, signer]);
+
+  const openPicker = useCallback(() => setPickerOpen(true), []);
+  const disconnect = useCallback(async () => {
+    try {
+      await disconnectWallet();
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") throw error;
     }
-  }, []);
+  }, [disconnectWallet]);
 
-  const onState = useCallback((next: Omit<WalletShellState, "hydrated">) => {
-    writeRemembered(next.authenticated);
-    setState({ ...next, hydrated: true });
-  }, []);
-
-  const login = useCallback(() => {
-    if (!configured) return;
-    if (island.current) island.current.login();
-    else {
-      pendingLogin.current = true;
-      setLoad(true);
-    }
-  }, [configured]);
-
-  const logout = useCallback(async () => {
-    writeRemembered(false);
-    await island.current?.logout();
-  }, []);
-
-  const prefetch = useCallback(() => {
-    if (configured) void loadIsland();
-  }, [configured]);
-
-  const value = useMemo<WalletShell>(() => ({ ...state, login, logout, prefetch }), [state, login, logout, prefetch]);
+  const value = useMemo<WalletShell>(
+    () => ({
+      status: status === "pending" || status === "reconnecting" ? "restoring" : "ready",
+      connecting: status === "connecting",
+      address,
+      wallet,
+      openPicker,
+      disconnect,
+    }),
+    [status, address, wallet, openPicker, disconnect],
+  );
 
   return (
     <WalletShellContext.Provider value={value}>
-      {load && configured && <PrivyIsland appId={webEnv.privyAppId!} onState={onState} onReady={onReady} />}
       {children}
+      <WalletPicker open={pickerOpen} onOpenChange={setPickerOpen} />
     </WalletShellContext.Provider>
   );
 }

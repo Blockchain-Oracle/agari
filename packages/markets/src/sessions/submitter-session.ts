@@ -11,7 +11,7 @@ import { createNonceQueue } from "./nonce-queue";
 
 /**
  * Exactly one of these — a session signs one way, decided once, at construction:
- * - `wallet`: the person's Privy embedded or external wallet, through the byte-level seam (D-014);
+ * - `wallet`: the person's Wallet Standard wallet, as a Kit signer (D-014, D-023);
  * - `secretKey`: a server role's 64-byte Solana keypair (ops actors, the desk, the settler).
  */
 export type SessionSigner = { wallet: WalletSession } | { secretKey: Uint8Array };

@@ -68,7 +68,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **Date / owner:** 2026-09-13 · user
 - **Rule:**
   - Brand **Agari (上がり)**.
-  - **Privy** sign-in from S1.
+  - ~~**Privy** sign-in from S1.~~ Replaced by Wallet Standard via the Kit wallet plugin (D-023, user, 2026-09-14).
   - **Own Anchor CLOB** rebuilding DreamDEX Event Contracts.
   - **Masayume** is the design authority; Yosuku is lineage only.
   - **Nine programs:** agari-{events, vault, strategy, parlay, range, leverage, maker, private, arena}.
@@ -303,6 +303,26 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Removed:** `wagmi.ts`, `rainbowkit-theme.ts`, `NetworkBanner`, `@rainbow-me/rainbowkit`, `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. The Privy-pulled `@reown/appkit` build script is denied in `allowBuilds`.
 - **User-visible:** "Connect" opens Privy (email/social login creates a Solana wallet; Phantom, Backpack and Solflare connect directly); the header shows a truncated base58 address; no "Wrong network" state; without a Privy app id the control reads "Sign-in unavailable".
 - **Approval:** within plan r2 S1 (Privy from S1, D-004).
+
+### D-023 — Wallet Standard via the Kit wallet plugin replaces Privy
+- **Date / owner:** 2026-09-14 · user decision (reverses the Privy line of D-004), researched and implemented by the S1 owner
+- **Evidence:**
+  - **npm weekly downloads (2026-09-14):** `@solana/kit` 1.80M; `@wallet-standard/app` 1.32M and `@solana/wallet-standard-features` 1.23M (the protocol Phantom, Solflare and Backpack implement); `@solana/wallet-adapter-react` 783k; `@privy-io/react-auth` 296k; `@reown/appkit-adapter-solana` 46k; `@dynamic-labs/solana` 28k.
+  - **Guidance:** the solana-dev skill (Kit-first) recommends `@solana/kit-plugin-wallet` + `@solana/react` for new apps, and advises against `@solana/wallet-adapter-*` (web3.js v1 peer, which our Kit-only boundary forbids) and `@solana/client`/`@solana/react-hooks` (stale).
+  - **Package:** `@solana/kit-plugin-wallet` 0.20.0 (Anza, released 2026-09-10; peers `@solana/kit` ^8.2, `@solana/react` ^8.2, React ^19.2, all of which match ours). Its README covers Wallet Standard discovery, connect/disconnect, localStorage auto-reconnect, `signMessage`, the connected account's Kit `TransactionSigner`, and SSR safety.
+  - **Fidelity:** Masayume, the design authority, connected wallets only (RainbowKit), with no social login.
+  - **Browser check (production build):** with no wallet installed, the picker states it and links Phantom/Solflare/Backpack. A spec-conformant Wallet Standard test wallet (real WebCrypto Ed25519) was discovered, connected (header shows the base58 address, the markets session binds its signer, and `agari.wallet` persists it) and signed the `/dev/wallet` text: the server verified it and rejected the one-byte-tampered copy.
+- **Rule:**
+  - **Web:** `web/src/providers/wallet/kit-wallet.ts` creates one `createClient().use(walletWithoutSigner({ chain, storageKey: "agari.wallet" }))`. Markets keeps fee payers and sends; the wallet client only discovers, connects, remembers and signs. `WalletShellProvider` reads the plugin's hooks, and `WalletPicker` (a sheet above the fixed chrome, z 1000) lists installed wallets.
+  - **Seam (amends D-014):** `WalletSession = { address, signer: TransactionSigner, signMessage(bytes) }`. The byte-level transaction methods, `kind` and the `sponsor` option are gone, and the markets session re-keys on the address only.
+  - **Fees:** a wallet pays its own fee in devnet SOL from the faucet top-up (D-012), or through the `api/sponsor` fee-payer co-sign (S7).
+  - **Removed:** `@privy-io/react-auth` (448 transitive packages, including MetaMask/WalletConnect EVM SDKs), `@solana-program/{memo,system,token}` in web (Privy peers), `NEXT_PUBLIC_PRIVY_APP_ID`, `PRIVY_APP_SECRET`, and the `@reown/appkit` build entry. `useWalletSession()` now exposes `connect()`/`disconnect()`/`connecting` instead of `login`/`logout`/`prefetch`/`available`/`kind`.
+  - **S1 gate wording:** "Privy embedded wallet shows a base58 address" becomes "a Wallet Standard wallet (Phantom) connects and shows a base58 address". "Phantom connects" and "signed-message verify works" stand.
+- **User-visible:**
+  - **Sign-in:** there is no email/Google sign-in or embedded wallet. "Connect" opens a list of the Solana wallets installed in the browser (Phantom, Solflare, Backpack, …), and the last one reconnects silently.
+  - **Phones:** users open Agari in their wallet app's browser. Solana Mobile Wallet Adapter for Android Chrome is an optional add-on under Q-006.
+  - **No dashboard:** nothing needs setting up with a vendor.
+- **Approval:** user, 2026-09-14 ("we have to replace Privy").
 
 ## Open questions
 

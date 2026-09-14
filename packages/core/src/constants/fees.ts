@@ -14,6 +14,6 @@ export const LAMPORTS_PER_SIGNATURE = 5_000n;
 
 /**
  * A wallet paying its own fees must hold this before signing: two signatures (wallet + a co-signer) with room for
- * a retry. Sponsored sends (Privy embedded wallets, the `api/sponsor` co-sign) need none.
+ * a retry. Sponsored sends (the `api/sponsor` fee-payer co-sign) need none.
  */
 export const FEE_RESERVE_LAMPORTS = 4n * LAMPORTS_PER_SIGNATURE;

@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@agari/core": "workspace:*",
+    "@solana/kit": "^8.3.0",
     "@tanstack/react-query": "catalog:",
     "zod": "catalog:"
   },

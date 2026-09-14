@@ -7,8 +7,8 @@ import { webEnv } from "@/lib/env";
 import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 
 /**
- * Hands the connected Privy wallet (the D-014 seam) to a signing session, and only while a user is signed in with a
- * usable Solana wallet.
+ * Hands the connected Wallet Standard wallet (the D-014 seam) to a signing session, and only while an account that can
+ * sign is connected.
  *
  * Switching account or logging out disposes the session rather than swapping a signer inside a shared object, so
  * authority ends when the session ends. Owner-signed flows outside the venue (session-key funding, signed texts)

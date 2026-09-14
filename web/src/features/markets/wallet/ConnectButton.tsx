@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { useWalletSession } from "@/lib/wallet-session";
 
 /**
- * The connect ladder on Privy: restoring → disconnected (opens Privy sign-in: social login or an external Solana wallet)
- * → connected. There is no wrong-chain rung on Solana; the cluster is the app's, not the wallet's.
+ * The connect ladder: restoring → disconnected (opens the wallet picker: every Wallet Standard wallet in this browser,
+ * D-023) → connected. There is no wrong-chain rung on Solana; the cluster is the app's, not the wallet's.
  */
 export function ConnectButton() {
   const session = useWalletSession();
@@ -23,8 +23,8 @@ export function ConnectButton() {
   }
   if (!session.isConnected || !session.address) {
     return (
-      <Button onClick={session.login} onPointerEnter={session.prefetch} onFocus={session.prefetch} disabled={!session.available}>
-        {session.available ? CONNECT.connect : CONNECT.unavailable}
+      <Button onClick={session.connect} disabled={session.connecting}>
+        {session.connecting ? CONNECT.connecting : CONNECT.connect}
       </Button>
     );
   }

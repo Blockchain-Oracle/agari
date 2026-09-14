@@ -37,7 +37,7 @@ export const rules = [
   { id: "program-id-drift", description: "declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json", check: programIdDrift },
   {
     id: "write-boundary",
-    description: "no transaction sends outside packages/markets (AD-3); the Privy island only wraps the wallet's own send for markets",
+    description: "no transaction sends outside packages/markets (AD-3); the wallet island only wraps the wallet's own send for markets",
     scopes: OUTSIDE_MARKETS,
     exts: TS,
     exclude: ["web/src/providers"],

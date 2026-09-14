@@ -1,20 +1,17 @@
 import type { Address } from "@agari/core";
+import type { TransactionSigner } from "@solana/kit";
 
 /**
- * The one wallet seam the web hands to markets (D-014). Raw bytes in, raw bytes out, so the Privy provider island
- * never needs a chain SDK, and markets adapts it to a `@solana/kit` signer inside the chain boundary.
+ * The one wallet seam the web hands to markets (D-014, reshaped by D-023).
  *
- * Privy's `ConnectedStandardSolanaWallet` satisfies it for both embedded wallets and external Wallet Standard
- * wallets (Phantom, Backpack, Solflare) connected through Privy's Solana connectors.
+ * The web's wallet island connects a Wallet Standard wallet (Phantom, Solflare, Backpack, …) through Anza's
+ * `@solana/kit-plugin-wallet` and hands over the connected account as a Kit `TransactionSigner`, the type Kit's own
+ * transaction pipeline signs with, so markets builds, signs and sends every transaction without an adapter layer.
  */
 export interface WalletSession {
   address: Address;
-  /** `embedded` sends can ask Privy to sponsor the fee; `external` sends go through the `api/sponsor` co-sign or pay their own. */
-  kind: "embedded" | "external";
+  /** The connected account's Kit signer (Wallet Standard `solana:signTransaction` / `solana:signAndSendTransaction`). */
+  signer: TransactionSigner;
   /** ed25519 over exactly these bytes (Wallet Standard `solana:signMessage`); returns the 64 signature bytes. */
   signMessage(message: Uint8Array): Promise<Uint8Array>;
-  /** Signs a wire-encoded transaction (possibly already signed by a fee-payer co-signer) and returns the signed wire bytes. */
-  signTransaction(transaction: Uint8Array): Promise<Uint8Array>;
-  /** Signs and broadcasts; `sponsor` asks Privy to pay the fee (embedded wallets only). Returns the 64 signature bytes. */
-  signAndSendTransaction(transaction: Uint8Array, options: { sponsor: boolean }): Promise<Uint8Array>;
 }

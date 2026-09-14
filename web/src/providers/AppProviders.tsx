@@ -14,7 +14,7 @@ import { createQueryClient } from "./query-client";
 import { UserSessionProvider } from "./UserSessionProvider";
 import { WalletShellProvider } from "./wallet/WalletShellProvider";
 
-/** Client composition root: wallet shell (lazy Privy island) → query cache → shared read runtime → isolated signing session → boot gate → session key. */
+/** Client composition root: wallet shell (Wallet Standard via the Kit wallet plugin) → query cache → shared read runtime → isolated signing session → boot gate → session key. */
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(createQueryClient);
   usePersistedReadCache(queryClient);

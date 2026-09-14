@@ -1,7 +1,7 @@
 /**
  * The Solana-era chain boundary rules (plan §6, D-015):
  *  - no-evm:              no EVM library anywhere, with a shrinking allowlist that S1 1d empties;
- *  - kit-import-boundary: only packages/markets imports the chain SDKs (the Privy provider island is exempt);
+ *  - kit-import-boundary: only packages/markets imports the chain SDKs (the web wallet provider island is exempt);
  *  - idl-no-destination:  AD-5 checked against the IDLs — no instruction takes a caller-chosen payout destination;
  *  - program-id-drift:    declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json.
  */
