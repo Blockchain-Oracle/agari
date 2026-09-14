@@ -6,7 +6,9 @@ import type { WalletSession } from "../react/wallet-session";
 import { createSubmitter, type MarketsSubmitter } from "../submitter/create";
 import type { VaultContracts } from "../vault/contracts";
 import type { AuthorityKind } from "./authority";
+import type { WriteRpc } from "../submitter/steps/message";
 import { keypairAddress } from "./keypair";
+import { keypairSigner } from "./keypair-signer";
 import { createNonceQueue } from "./nonce-queue";
 
 /**
@@ -25,6 +27,8 @@ export interface SubmitterSessionConfig {
   stopGate?: StopGate;
   attribution?: AttributionHook;
   nowMs?: () => number;
+  /** A server or script session's own RPC; a browser session uses the read runtime's. */
+  rpc?: WriteRpc;
 }
 
 export interface SubmitterSession {
@@ -53,11 +57,12 @@ export class SessionDisposedError extends Error {
  *
  * The signer is fixed at construction and never swapped, so an in-flight write can't find a different authority
  * than the one it started with. Disposal is required on disconnect, account switch, grant expiry or revocation.
- * In S1 the session's submitter refuses every write with the not-deployed diagnosis (D-015).
+ * A wallet session signs with the wallet's Kit signer; a `{ secretKey }` session with a Kit keypair signer (§3.4).
  */
 export async function createSubmitterSession(config: SubmitterSessionConfig): Promise<SubmitterSession> {
   const { env, authority, signer } = config;
   const address = "wallet" in signer ? signer.wallet.address : keypairAddress(signer.secretKey);
+  const transactionSigner = "wallet" in signer ? signer.wallet.signer : await keypairSigner(signer.secretKey);
 
   let disposed = false;
   const enqueue = createNonceQueue();
@@ -67,7 +72,10 @@ export async function createSubmitterSession(config: SubmitterSessionConfig): Pr
   const contracts: VaultContracts = { signer: address, deployment: null };
   const submitter = createSubmitter({
     wallet: address,
+    signer: transactionSigner,
     enqueue: guardedEnqueue,
+    ...(env.indexerUrl ? { indexerUrl: env.indexerUrl } : {}),
+    ...(config.rpc ? { rpc: config.rpc } : {}),
     ...(config.journal ? { journal: config.journal } : {}),
     ...(config.stopGate ? { stopGate: config.stopGate } : {}),
     ...(config.attribution ? { attribution: config.attribution } : {}),

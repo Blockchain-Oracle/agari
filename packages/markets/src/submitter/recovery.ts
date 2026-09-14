@@ -1,6 +1,8 @@
 import type { IntentJournal, IntentRecord } from "@agari/core/ports";
 import type { Address } from "@agari/core/types";
-import { reconcileUnknown, type ReconcileVerdict } from "./reconcile";
+import { indexEvidence } from "./evidence";
+import { reconcileUnknown, type ReconcileDeps, type ReconcileVerdict } from "./reconcile";
+import { writeRpc } from "./write-rpc";
 
 /**
  * Recovery of writes the journal still holds open — a send that timed out, a tab closed
@@ -28,8 +30,17 @@ export interface RecoveryResult {
 
 export type Reconciler = (wallet: Address, record: IntentRecord) => Promise<ReconcileVerdict>;
 
-/** The chain reconciler: the transaction status when there is a signature, the Window's fills when there is not (S4). */
-export const chainReconciler: Reconciler = (wallet, record) => reconcileUnknown(wallet, record, record.pool);
+/** A reconciler over explicit chain and index access (scripts, ops, the drive). */
+export const chainReconcilerWith =
+  (deps: ReconcileDeps): Reconciler =>
+  (wallet, record) =>
+    reconcileUnknown(wallet, record, deps);
+
+/** The chain reconciler: the transaction status when there is a signature, the Window's fills or `Redeemed` when there is not. */
+export const chainReconciler: Reconciler = (wallet, record) => {
+  const rpc = writeRpc();
+  return reconcileUnknown(wallet, record, { rpc, evidence: indexEvidence(undefined, rpc), nowMs: Date.now });
+};
 
 async function recoverOne(journal: IntentJournal, wallet: Address, record: IntentRecord, reconcile: Reconciler, nowMs: number): Promise<RecoveryResult> {
   let verdict: ReconcileVerdict;
