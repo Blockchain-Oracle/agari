@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (!(await verifyLinkSignature("link", gate.session.authorId, wallet, issuedAtMs, signature))) return refuse(X_ERRORS.signatureMismatch, 401);
 
   const existing = await xLinkByAuthor(gate.session.authorId);
-  if (existing && existing.wallet !== wallet.toLowerCase()) return refuse(X_ERRORS.alreadyLinkedOther, 409, { boundWallet: existing.wallet });
+  if (existing && existing.wallet !== wallet) return refuse(X_ERRORS.alreadyLinkedOther, 409, { boundWallet: existing.wallet });
 
   const link = await xLinkUpsert({ authorId: gate.session.authorId, handle: gate.session.handle, wallet, signature, issuedAtMs });
   if (!link) return refuse(X_ERRORS.linkFailed, 502);

@@ -1,3 +1,4 @@
+import { messageSignatureSchema } from "@agari/core/auth";
 import { addressSchema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -37,7 +38,7 @@ const requestSchema = z.union([
     wallet: addressSchema,
     key: addressSchema,
     issuedAtMs: z.number().int().positive(),
-    signature: z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000),
+    signature: messageSignatureSchema,
   }),
   z.object({ token: z.string().min(16).max(400) }),
 ]);

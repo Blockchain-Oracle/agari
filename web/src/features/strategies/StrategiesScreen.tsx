@@ -57,7 +57,7 @@ function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPay
   const { strategies, fills, decimals, symbol } = payload;
   const vault = writes.snapshot && isOk(writes.snapshot) ? writes.snapshot.value : null;
   const available = vault?.account.availableBase ?? 0n;
-  const own = strategies.filter((s) => s.creator.toLowerCase() === writes.address?.toLowerCase() || desk.subscriptionOf(s.strategyId) || writes.pending?.strategyId === s.strategyId);
+  const own = strategies.filter((s) => s.creator === writes.address || desk.subscriptionOf(s.strategyId) || writes.pending?.strategyId === s.strategyId);
   const visible = view === "yours" ? own : strategies;
   const drawer = strategies.find((s) => s.strategyId === drawerId) ?? null;
   useEffect(() => {
@@ -69,11 +69,11 @@ function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPay
       {view === "yours" && own.length > 0 && <div className="agent-selection mt-6"><label htmlFor="selected-strategy">Manage a strategy</label><select id="selected-strategy" value={selected ?? ""} onChange={(e) => setSelected(e.target.value)}><option value="">Choose a strategy</option>{own.map((card) => <option key={card.strategyId} value={card.strategyId}>{strategyIdentity(card).name} · #{card.strategyId}</option>)}</select></div>}
       {view === "yours" && selected && <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} />}
       {writes.pending && <button type="button" className="desk-btn-primary mt-5" onClick={() => setDrawerId(writes.pending!.strategyId)}>Review unfinished copy of #{writes.pending.strategyId} →</button>}
-      {view === "yours" && !desk.readable && <p className="copy-progress">Your subscriptions and permissions have not been verified yet. Connect on Somnia Shannon and retry if this continues.</p>}
+      {view === "yours" && !desk.readable && <p className="copy-progress">Your subscriptions and permissions have not been verified yet. Reconnect your wallet and retry if this continues.</p>}
       {view === "yours" && desk.readable && own.length === 0 && <div className="strat-empty"><h2 className="strat-h2">No strategies here yet.</h2><p className="my-3 text-ink-secondary">Publish a strategy, or copy one with this wallet.</p><button type="button" className="desk-btn-primary" onClick={onCreate}>Create your first strategy →</button></div>}
       <StrategyGrid strategies={visible} subscriptionOf={desk.subscriptionOf} decimals={decimals} symbol={symbol} asset={STRATEGY_MARKETS} loadError={false} onOpen={(card) => { setSelected(card.strategyId); setDrawerId(card.strategyId); }} />
     </>}
-    <RecentCopyTrades fills={view === "yours" ? fills.filter((f) => f.owner.toLowerCase() === writes.address?.toLowerCase()) : fills} strategies={strategies} storeConnected={payload.stores.fills} decimals={decimals} symbol={symbol} nowMs={nowMs} />
+    <RecentCopyTrades fills={view === "yours" ? fills.filter((f) => f.owner === writes.address) : fills} strategies={strategies} storeConnected={payload.stores.fills} decimals={decimals} symbol={symbol} nowMs={nowMs} />
     <details className="mt-10"><summary className="strat-h2 cursor-pointer">Memory market and shared playbooks</summary><MemoryMarket /></details>
     <p className="strat-mono-10 mt-8 max-w-2xl text-ink-muted">{STRATEGIES.disclosure(STRATEGY_MARKETS)}</p>
     {drawer && <CopyDrawer card={drawer} sub={desk.subscriptionOf(drawer.strategyId)} grant={vault?.grants.strategy ?? null} readable={desk.readable} writes={writes} availableBase={available} decimals={decimals} symbol={symbol} asset={STRATEGY_MARKETS} nowMs={nowMs} decisionsStore={payload.stores.decisions} onClose={() => setDrawerId(null)} />}

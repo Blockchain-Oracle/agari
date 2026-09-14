@@ -2,18 +2,15 @@
 
 import type { TxOutcome } from "@agari/core/ports";
 import type { StrategyIntent } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
+import type { Signature } from "@agari/core/types";
 import { isOk } from "@agari/core/schemas";
 import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
-import { getClient } from "@agari/markets/runtime";
 import { getStrategy, listSubscriptionsOf, submitStrategyTx } from "@agari/markets/strategies";
 import { getVaultGrant, getVaultSnapshot, resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PublicClient } from "viem";
 import { webEnv } from "@/lib/env";
-import { useOwnerWalletClient } from "@/providers/UserSessionProvider";
-import { useWalletSession } from "@/lib/wallet-session";
+import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { useRefreshStrategies } from "./useStrategies";
 import { copyProgressKey, parseCopyProgress, type CopyProgress } from "./copy-progress";
 import { completeCopySetup, type CopySetupInput, type CopyWriteResult } from "./copy-setup";
@@ -23,19 +20,27 @@ export type DeskBusy = "join" | "add" | "withdraw" | "caps" | "pause" | "resume"
 
 export type DeskWriteResult = CopyWriteResult;
 
+/**
+ * Whether an uncertain send landed. Reading a transaction's status is the Solana adapter's (S4); until then it is
+ * unknown, which the copy flows already treat as "still being reconciled, never resent" (D-015).
+ */
+async function transactionStatus(_signature: Signature): Promise<"success" | "reverted" | null> {
+  return null;
+}
+
 function failed(outcome: TxOutcome): DeskWriteResult {
   if (outcome.status === "confirmed") return { ok: true, txHash: outcome.txHash };
   return { ok: false, unknown: outcome.status === "unknown", reason: outcome.diagnosis.technical, ...("txHash" in outcome && outcome.txHash ? { txHash: outcome.txHash } : {}) };
 }
 
 /**
- * Every desk action, each its own small transaction. Joining is two signatures on this chain —
- * the vault's `depositAndGrant` (fund + limits, one call) and the registry's `subscribe` — the
- * reference composed both into one PTB, which the EVM cannot do without a batching contract.
+ * Every desk action, each its own small transaction. Joining is two signatures today — the vault's
+ * deposit-and-grant (fund + limits) and the registry's subscribe — and stays two here until the vault and
+ * registry programs land (S7, S9), when Solana can fold both instructions into one transaction.
  */
 export function useDeskWrites() {
   const submitter = useSubmitter();
-  const walletClient = useOwnerWalletClient();
+  const wallet = useOwnerWallet();
   const { address } = useWalletSession();
   const snapshot = useVaultSnapshot(address);
   const queryClient = useQueryClient();
@@ -57,15 +62,15 @@ export function useDeskWrites() {
   }, [storageKey]);
 
   const contracts = useCallback((): VaultContracts | null => {
-    if (!walletClient) return null;
-    return { walletClient, publicClient: getClient().getViemClient() as PublicClient, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [walletClient]);
+    if (!wallet) return null;
+    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
+  }, [wallet]);
 
   const registry = useCallback(
     async (intent: StrategyIntent): Promise<DeskWriteResult> => {
       if (!submitter || !address) return { ok: false, reason: "connect a wallet first" };
       const c = contracts();
-      if (!c) return { ok: false, reason: "wallet is not on Somnia Shannon" };
+      if (!c) return { ok: false, reason: "connect a wallet first" };
       return failed(await submitStrategyTx({ journal: submitter.journal, wallet: address, contracts: c }, intent));
     },
     [submitter, address, contracts],
@@ -112,7 +117,7 @@ export function useDeskWrites() {
         return failed(await submitter.submitTx(input.depositBase > 0n ? { kind: "vault-deposit-and-grant", amountBase: input.depositBase, terms } : { kind: "vault-grant", terms }));
       },
       subscribed: async (grantId) => { const reading = await listSubscriptionsOf(address, [input.strategyId]); return isOk(reading) && !reading.stale && reading.value.some((s) => s.active && s.grantId.toString() === grantId); },
-      receipt: async (hash) => (await getClient().getViemClient().getTransactionReceipt({ hash }).catch(() => null))?.status ?? null,
+      receipt: transactionStatus,
       subscribe: (grantId) => registry({ kind: "strategy-subscribe", strategyId: input.strategyId, grantId, feeBase: input.feeBase }),
       nowSec: Math.floor(Date.now() / 1000),
     });
@@ -181,11 +186,11 @@ export function useDeskWrites() {
     return releaseCopyPermission(pending, address, {
       current: async () => { const reading = await getVaultSnapshot(address); if (!isOk(reading) || reading.stale || !reading.value) throw new Error("Your current permission could not be checked."); return reading.value.grants.strategy; },
       historical: getVaultGrant,
-      receipt: async (hash) => (await getClient().getViemClient().getTransactionReceipt({ hash }).catch(() => null))?.status ?? null,
+      receipt: transactionStatus,
       revoke: async (grantId) => failed(await submitter.submitTx({ kind: "vault-revoke", grantId })),
       save: remember,
     });
   }), [run, pending, address, submitter, remember]);
 
-  return { busy, join, pause, addMoney, fundBudget, withdraw, publish, pending, releasePending, snapshot, address, canSign: Boolean(submitter && walletClient) };
+  return { busy, join, pause, addMoney, fundBudget, withdraw, publish, pending, releasePending, snapshot, address, canSign: Boolean(submitter && wallet) };
 }

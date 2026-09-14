@@ -1,7 +1,7 @@
 "use client";
 
 import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
-import type { Diagnosis, EventMarket, Hex } from "@agari/core/types";
+import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { AlertCircle, Loader2, Trophy } from "lucide-react";
@@ -37,7 +37,7 @@ export interface ParlayTicketProps {
   step: PlaceStep;
   errorTitle: string;
   errorDetail: string;
-  txHash: Hex | null;
+  txHash: Signature | null;
   onPlace: () => void;
   onReset: () => void;
 }
@@ -48,7 +48,7 @@ export function ParlayTicket(props: ParlayTicketProps) {
   const { stakeInput, onStakeInput, payoutInput, onPayoutInput, walletSpendableBase, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
   // The reserve's ThinBook names a Window; the row it belongs to and its two figures go on the line, not in a tooltip.
   const thin = parseThinBook(quoteError);
-  const thinLeg = thin ? legs.findIndex((leg) => leg.marketId.toLowerCase() === thin.marketId.toLowerCase()) : -1;
+  const thinLeg = thin ? legs.findIndex((leg) => leg.marketId === thin.marketId) : -1;
   const contracts = (raw: bigint) => formatBaseUnits(raw, reserve.decimals, { minDp: 0, maxDp: 2 });
   const { ticket } = PARLAY;
   const { decimals } = reserve;

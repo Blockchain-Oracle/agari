@@ -1,8 +1,8 @@
-import type { Address, Hex } from "@agari/core/types";
+import type { Address, Signature } from "@agari/core/types";
 import type { VaultCaps, VaultGrant } from "@agari/core/vault";
 import { matchesProgressGrant, type CopyProgress } from "./copy-progress";
 
-export interface CopyWriteResult { ok: boolean; txHash?: Hex; reason?: string; stage?: "grant" | "subscribe"; unknown?: boolean }
+export interface CopyWriteResult { ok: boolean; txHash?: Signature; reason?: string; stage?: "grant" | "subscribe"; unknown?: boolean }
 export interface CopySetupInput { strategyId: bigint; runner: Address; depositBase: bigint; budgetBase: bigint; caps: VaultCaps; feeBase: bigint }
 export interface CopySetupPorts {
   load: () => CopyProgress | null;
@@ -11,7 +11,7 @@ export interface CopySetupPorts {
   grant: () => Promise<{ current: VaultGrant | null } | null>;
   createGrant: (expiresAtSec: number) => Promise<CopyWriteResult>;
   subscribed: (grantId: string) => Promise<boolean>;
-  receipt: (hash: Hex) => Promise<"success" | "reverted" | null>;
+  receipt: (hash: Signature) => Promise<"success" | "reverted" | null>;
   subscribe: (grantId: bigint) => Promise<CopyWriteResult>;
   nowSec: number;
 }
@@ -25,10 +25,10 @@ export async function completeCopySetup(input: CopySetupInput, ports: CopySetupP
     if (progress?.stage === "subscribe-pending") {
       if (progress.grantId && await ports.subscribed(progress.grantId)) {
         ports.save(null);
-        return { ok: true, ...(progress.subscribeTx ? { txHash: progress.subscribeTx as Hex } : {}) };
+        return { ok: true, ...(progress.subscribeTx ? { txHash: progress.subscribeTx } : {}) };
       }
       if (!progress.subscribeTx) return { ok: false, reason: "The subscription result is unknown. Check your wallet activity before another subscription; it has not been resent.", stage: "subscribe" };
-      const receipt = await ports.receipt(progress.subscribeTx as Hex);
+      const receipt = await ports.receipt(progress.subscribeTx);
       if (receipt !== "reverted") return { ok: false, reason: "The subscription is still being reconciled. It has not been resent.", stage: "subscribe" };
       progress = { ...progress, stage: "subscribe-ready", subscribeTx: null };
       ports.save(progress);
@@ -36,7 +36,7 @@ export async function completeCopySetup(input: CopySetupInput, ports: CopySetupP
     const current = await ports.strategy();
     if (!current) return { ok: false, reason: "The current strategy fee and runner could not be checked. No new transaction was requested." };
     if (!current.active) return { ok: false, reason: "This strategy is inactive." };
-    if (current.runner.toLowerCase() !== input.runner.toLowerCase() || (progress && progress.runner.toLowerCase() !== input.runner.toLowerCase())) return { ok: false, reason: "The runner changed. Review and release the old permission before starting a new setup." };
+    if (current.runner !== input.runner || (progress && progress.runner !== input.runner)) return { ok: false, reason: "The runner changed. Review and release the old permission before starting a new setup." };
     if (current.feeBase !== input.feeBase) return { ok: false, reason: "The subscription fee changed. Review the current fee and confirm again." };
     const fresh = await ports.grant();
     if (!fresh) return { ok: false, reason: "Your current trading permission could not be checked." };
@@ -54,17 +54,17 @@ export async function completeCopySetup(input: CopySetupInput, ports: CopySetupP
       grant = (await ports.grant())?.current ?? null;
     }
     if (!matchesProgressGrant(progress, grant)) {
-      if (progress.stage === "grant-pending" && progress.grantTx && await ports.receipt(progress.grantTx as Hex) === "reverted") {
+      if (progress.stage === "grant-pending" && progress.grantTx && await ports.receipt(progress.grantTx) === "reverted") {
         ports.save(null);
-        return { ok: false, reason: "The permission transaction reverted. Its deposit did not take effect; review the setup before trying again.", stage: "grant", txHash: progress.grantTx as Hex };
+        return { ok: false, reason: "The permission transaction reverted. Its deposit did not take effect; review the setup before trying again.", stage: "grant", txHash: progress.grantTx };
       }
-      return { ok: false, reason: "The permission transaction needs checking, or its grant was replaced. No funds were deposited again.", stage: "grant", ...(progress.grantTx ? { txHash: progress.grantTx as Hex } : {}) };
+      return { ok: false, reason: "The permission transaction needs checking, or its grant was replaced. No funds were deposited again.", stage: "grant", ...(progress.grantTx ? { txHash: progress.grantTx } : {}) };
     }
     if (grant!.expiresAtSec <= ports.nowSec) return { ok: false, reason: "The saved permission expired. Release it before creating a new one.", stage: "grant" };
     progress = { ...progress, stage: "subscribe-ready", grantId: grant!.grantId.toString(), feeBase: input.feeBase.toString() };
     ports.save(progress);
     const feeCheck = await ports.strategy();
-    if (!feeCheck?.active || feeCheck.feeBase !== input.feeBase || feeCheck.runner.toLowerCase() !== progress.runner.toLowerCase()) return { ok: false, reason: "Review the current subscription fee and runner before completing the second step.", stage: "subscribe" };
+    if (!feeCheck?.active || feeCheck.feeBase !== input.feeBase || feeCheck.runner !== progress.runner) return { ok: false, reason: "Review the current subscription fee and runner before completing the second step.", stage: "subscribe" };
     ports.save({ ...progress, stage: "subscribe-pending" });
     const subscribed = await ports.subscribe(grant!.grantId);
     ports.save(subscribed.ok ? null : { ...progress, stage: subscribed.unknown ? "subscribe-pending" : "subscribe-ready", subscribeTx: subscribed.txHash ?? null });

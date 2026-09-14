@@ -1,6 +1,7 @@
 "use client";
 
 import { describeSpec, isSpec, PRESETS } from "@agari/core/strategies";
+import { isAddress, type Address } from "@agari/core/types";
 import { parseDecimalToBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { useEffect, useState } from "react";
@@ -44,7 +45,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
   const daily = parseDecimalToBaseUnits(form.maxDaily, decimals);
   const fee = parseDecimalToBaseUnits(form.subFee, decimals);
   const behaviorValid = isSpec(spec) && perTrade !== null && perTrade > 0n && daily !== null && daily >= perTrade;
-  const runnerValid = Boolean(runner && /^0x[0-9a-fA-F]{40}$/.test(runner));
+  const runnerValid = isAddress(runner);
   const summary = spec.preset === "agent" ? describeSpec(spec, asset) : `Follows the EMA move from each Window’s opening print when it reaches ${form.thresholdPct}%. Considers all live venue assets.`;
   const canPublish = behaviorValid && runnerValid && fee !== null && fee >= 0n;
   const advance = () => {
@@ -59,7 +60,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
     if (!canPublish || !runner || perTrade === null || daily === null || fee === null || published) return;
     setProblem(null);
     const metadata = { name, portraitSeed: form.portraitSeed, description: summary, spec, ...(form.playbook.trim() ? { playbook: form.playbook.trim() } : {}) };
-    const result = await writes.publish({ kind: "strategy-publish", runner: runner as `0x${string}`, spec, metadata, envelope: { maxStakePerTradeBase: perTrade, maxDailySpendBase: daily, maxOpenPositions: 2, maxPriceRaw: 0n }, feeBase: fee });
+    const result = await writes.publish({ kind: "strategy-publish", runner: runner as Address, spec, metadata, envelope: { maxStakePerTradeBase: perTrade, maxDailySpendBase: daily, maxOpenPositions: 2, maxPriceRaw: 0n }, feeBase: fee });
     if (result.ok || result.unknown) setPublished(result);
     else setProblem(result.reason ?? "Publishing did not complete. Your draft is still here.");
     if (result.ok) notify.neutral("Strategy published. Set up a funded copy to enable trading.");
@@ -68,7 +69,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
   if (published) return (
     <section className="agent-builder agent-published" aria-live="polite">
       <AgentPortrait seed={form.portraitSeed} name={name} />
-      <div><p className="strat-micro text-vermilion">{published.ok ? "Published on Somnia" : "Publication needs checking"}</p><h2 className="strat-h2 mt-2 text-ink">{name}</h2></div>
+      <div><p className="strat-micro text-vermilion">{published.ok ? "Published on Solana" : "Publication needs checking"}</p><h2 className="strat-h2 mt-2 text-ink">{name}</h2></div>
       <p className="strat-choice-body">{published.ok ? "Your strategy is registered. Publishing has not deposited money or enabled trades from your wallet." : "The transaction result is uncertain. Check the receipt and Your strategies before publishing again."}</p>
       {published.txHash && <a className="strat-sensei" href={txUrl(published.txHash)} target="_blank" rel="noopener noreferrer">View publication transaction ↗</a>}
       <ol className="agent-next-steps"><li>Open Your strategies and select this agent.</li><li>Choose a copy budget, review the fee and approve its bounded permission.</li><li>Wait for the runner’s first real decision. A held call is a valid result; a fill has its own transaction.</li></ol>

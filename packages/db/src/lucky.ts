@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 /**
  * Lucky's rows: one per spin, from the commitment a browser saw before it chose a seed to the verdict the
@@ -11,14 +12,14 @@ import { ensureSchema } from "./migrate";
  * describe them (`tx_hash`, `cost_base`, `quantity_raw`, the result from `pending` on) are written only from
  * a read of the tape or the chain, by the server, never from a browser's claim.
  *
- * Every address is lowercased at the write (`key`), for the reason `games.ts` records: a table whose reads
- * lowercase and whose writes do not answers every query with zero rows.
+ * Every identifier takes one canonical form at the write (`key` → `keys.ts`: base58 exact, hex lowercase), for the
+ * reason `games.ts` records: a table whose reads and writes disagree on form answers every query with zero rows.
  */
 
 export type LuckyRowResult = "drawn" | "placed" | "pending" | "won" | "lost" | "void" | "cashed-out" | "refused" | "unknown";
 
 function key(value: string): string {
-  return value.toLowerCase();
+  return storageKey(value);
 }
 
 export interface LuckyDrawRow {

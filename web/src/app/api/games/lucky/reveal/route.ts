@@ -1,4 +1,4 @@
-import { bytes32Schema } from "@agari/core/types";
+import { hash32Schema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { revealDraw } from "@/features/games/lucky/lucky.server";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /** The scan quotes both sides of every eligible Window from the chain book; it is a few dozen reads. */
 export const maxDuration = 60;
 
-const requestSchema = z.object({ drawId: bytes32Schema, clientSeed: bytes32Schema });
+const requestSchema = z.object({ drawId: hash32Schema, clientSeed: hash32Schema });
 
 export async function POST(req: Request) {
   const parsed = requestSchema.safeParse(await req.json().catch(() => null));

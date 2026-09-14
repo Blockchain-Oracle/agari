@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { RunnerHealth } from "@agari/core/strategies";
+import { encodeBase58, toAddress } from "@agari/core/types";
 import type { VaultGrant } from "@agari/core/vault";
 import { strategyActivityOf } from "./activity";
 import { copyStateOf, type CopyState } from "./lifecycle";
 
 const NOW = 1_783_814_400_000;
-const RUNNER = "0x1111111111111111111111111111111111111111";
+const RUNNER = toAddress(encodeBase58(new Uint8Array(32).fill(0x11)));
 const GRANT: VaultGrant = { grantId: 8n, owner: RUNNER, actor: RUNNER, kind: "strategy", revoked: false, expiresAtSec: NOW / 1000 + 100, spentDay: 0, spentTodayBase: 0n, openPositions: 0, caps: { maxStakePerTradeBase: 1n, maxDailySpendBase: 5n, maxOpenPositions: 1, maxPriceRaw: 0n }, budgetBase: 5n };
 const HEALTH: RunnerHealth = { kind: "alive", lastTickMs: NOW - 1_000, intervalMs: 30_000, why: "scanned 6 markets, closest trigger 8 bps away; 1 live subscriber" };
 const activity = (patch: Partial<Parameters<typeof strategyActivityOf>[0]> = {}) => strategyActivityOf({ state: "copying", grant: GRANT, health: HEALTH, nowMs: NOW, ...patch });

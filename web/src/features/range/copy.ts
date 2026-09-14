@@ -26,7 +26,7 @@ export const RANGE = {
     why: RANGE_NOT_DEPLOYED,
     dependency: "the RangeReserve contract — deploy with contracts/script/DeployRangeReserve.s.sol, then pnpm contracts:export",
   },
-  connect: { title: "Connect your wallet to call a band", sub: "Any wallet on Somnia Shannon. Test funds are free" },
+  connect: { title: "Connect your wallet to call a band", sub: "Any Solana wallet, or sign in with email. Test funds are free" },
   band: {
     /** The reference: "Winning range" · "BTC must finish inside". */
     label: "Winning range",
@@ -99,7 +99,7 @@ export const RANGE = {
     basis: (opening: string, centerPct: string) => `Opening print ${opening} · the book puts ${centerPct}% on a close above it`,
     tryAgain: "Try again",
     technical: "technical details",
-    viewTx: "View on the Shannon explorer",
+    viewTx: "View on Solana Explorer",
     toast: (band: string, stake: string, payout: string, symbol: string) => `Range placed. ${band}: ${stake} to ${payout} ${symbol} if it lands.`,
     requote: (stake: string, symbol: string) => `The basis moved — this band now costs ${stake} ${symbol}. Confirm again to place it at the new price.`,
   },

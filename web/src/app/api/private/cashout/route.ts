@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   if (!desk) return refuse(503, "no desk key is configured on this deployment (PRIVATE_DESK_PRIVATE_KEY)");
   try {
     const claim: PrivateClaim = { ...parsed.data.claim, marketId: toMarketId(parsed.data.claim.marketId) };
-    return NextResponse.json(await cashOutPrivateBet(desk, claim, parsed.data.signature as `0x${string}`));
+    return NextResponse.json(await cashOutPrivateBet(desk, claim, parsed.data.signature));
   } catch (error) {
     if (error instanceof ClaimRefusedError) return refuse(403, error.message);
     return refuse(502, publicReason(error instanceof Error ? error.message : String(error)));

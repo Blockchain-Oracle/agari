@@ -1,6 +1,7 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
 import { z } from "zod";
+import { BASE58_ADDRESS_RE, BASE58_SIGNATURE_RE, storageKey } from "./keys";
 
 export interface XLinkRecord {
   authorId: string;
@@ -31,8 +32,8 @@ const receiptDetailsSchema = z.object({
   parseRefusal: z.enum(["empty", "no-side", "two-sides", "no-asset", "unknown-asset", "two-assets", "no-stake", "bad-stake", "two-stakes", "no-cadence", "cadence-not-listed", "two-cadences", "unknown-token"]).nullish(),
   entryClosesAtSec: z.number().int().nonnegative().nullish(),
   nextWindowAtSec: z.number().int().nonnegative().nullish(),
-  executionActor: z.string().regex(/^0x[0-9a-fA-F]{40}$/).nullish(),
-  poolAddress: z.string().regex(/^0x[0-9a-fA-F]{40}$/).nullish(),
+  executionActor: z.string().regex(BASE58_ADDRESS_RE).nullish(),
+  poolAddress: z.string().regex(BASE58_ADDRESS_RE).nullish(),
   collateralDecimals: z.number().int().min(0).max(18).nullish(),
   intentRecordedAtMs: z.number().int().nonnegative().nullish(),
   journalState: z.enum(["recorded", "sent", "confirmed", "failed", "unknown"]).nullish(),
@@ -132,7 +133,7 @@ export async function xLinkByWallet(wallet: string): Promise<XLinkRecord | null>
   const db = getDb();
   if (!db) return null;
   await ensureSchema();
-  const [row] = await db<LinkRow[]>`SELECT ${db.unsafe(LINK_COLUMNS)} FROM x_links WHERE wallet = ${wallet.toLowerCase()} AND revoked_at IS NULL ORDER BY created_at DESC LIMIT 1`;
+  const [row] = await db<LinkRow[]>`SELECT ${db.unsafe(LINK_COLUMNS)} FROM x_links WHERE wallet = ${storageKey(wallet)} AND revoked_at IS NULL ORDER BY created_at DESC LIMIT 1`;
   return row ? toLink(row) : null;
 }
 
@@ -145,7 +146,7 @@ export async function xLinkUpsert(link: Omit<XLinkRecord, "createdAtMs">): Promi
   const db = getDb();
   if (!db) return null;
   await ensureSchema();
-  const wallet = link.wallet.toLowerCase();
+  const wallet = storageKey(link.wallet);
   const [row] = await db.begin(async (tx) => {
     await tx`UPDATE x_links SET revoked_at = now() WHERE revoked_at IS NULL AND (wallet = ${wallet} OR author_id = ${link.authorId})`;
     return tx<LinkRow[]>`
@@ -161,7 +162,7 @@ export async function xLinkRevoke(authorId: string, wallet: string): Promise<boo
   const db = getDb();
   if (!db) return false;
   await ensureSchema();
-  const rows = await db`UPDATE x_links SET revoked_at = now() WHERE author_id = ${authorId} AND wallet = ${wallet.toLowerCase()} AND revoked_at IS NULL RETURNING id`;
+  const rows = await db`UPDATE x_links SET revoked_at = now() WHERE author_id = ${authorId} AND wallet = ${storageKey(wallet)} AND revoked_at IS NULL RETURNING id`;
   return rows.length > 0;
 }
 
@@ -201,7 +202,7 @@ export async function xRecordExecutionJournal(mentionId: string, patch: XReceipt
   const db = getDb();
   if (!db) throw new Error("X execution requires a database");
   await ensureSchema();
-  if (txHash !== undefined && !/^0x[0-9a-fA-F]{64}$/.test(txHash)) throw new Error("Invalid transaction hash");
+  if (txHash !== undefined && !BASE58_SIGNATURE_RE.test(txHash)) throw new Error("Invalid transaction signature");
   const rows = await db`
     UPDATE x_receipts SET
       details = (CASE WHEN jsonb_typeof(details) = 'object' THEN details ELSE '{}'::jsonb END) || ${db.json(receiptDetailsSchema.parse(patch))}::jsonb,
@@ -250,7 +251,7 @@ export async function xHasUnresolvedBroadcast(actor: string): Promise<boolean> {
   await ensureSchema();
   const [row] = await db<{ blocked: boolean }[]>`
     SELECT EXISTS (SELECT 1 FROM x_receipts WHERE status IN ('submitted', 'unknown') AND tx_hash IS NULL
-      AND lower(details->>'executionActor') = ${actor.toLowerCase()} AND details->>'intentRecordedAtMs' IS NOT NULL) AS blocked
+      AND details->>'executionActor' = ${storageKey(actor)} AND details->>'intentRecordedAtMs' IS NOT NULL) AS blocked
   `;
   return row?.blocked ?? true;
 }
@@ -262,7 +263,7 @@ export async function xReceiptsByWallet(wallet: string, limit: number): Promise<
   // A historical relay reply can have a receipt from the old recursive poller. Keep its audit row,
   // but do not present that bot output as an instruction from this wallet.
   const rows = await db<ReceiptRow[]>`
-    SELECT ${db.unsafe(RECEIPT_COLUMNS)} FROM x_receipts r WHERE r.wallet = ${wallet.toLowerCase()}
+    SELECT ${db.unsafe(RECEIPT_COLUMNS)} FROM x_receipts r WHERE r.wallet = ${storageKey(wallet)}
       AND NOT EXISTS (SELECT 1 FROM x_reply_delivery d WHERE d.reply_id = r.mention_id)
     ORDER BY r.at_ms DESC LIMIT ${limit}
   `;

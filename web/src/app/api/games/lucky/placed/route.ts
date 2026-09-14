@@ -1,4 +1,4 @@
-import { bytes32Schema, hexSchema } from "@agari/core/types";
+import { hash32Schema, signatureSchema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { confirmPlacement } from "@/features/games/lucky/lucky-settle.server";
@@ -14,9 +14,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 const requestSchema = z.object({
-  drawId: bytes32Schema,
+  drawId: hash32Schema,
   status: z.enum(["confirmed", "nothingFilled", "refused", "reverted", "unknown", "declined"]),
-  txHash: hexSchema.optional(),
+  txHash: signatureSchema.optional(),
 });
 
 export async function POST(req: Request) {

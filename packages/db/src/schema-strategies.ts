@@ -8,7 +8,7 @@
 export const STRATEGIES_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS runner_heartbeats (
   id            BIGSERIAL PRIMARY KEY,
-  -- Lowercased runner key.
+  -- Base58 runner key, stored exactly.
   runner        TEXT        NOT NULL,
   strategy_id   TEXT        NOT NULL,
   tick_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS strategy_fills (
   tx_hash       TEXT        PRIMARY KEY,
   strategy_id   TEXT        NOT NULL,
   grant_id      TEXT        NOT NULL,
-  -- Lowercased subscriber address: the position's owner, by construction.
+  -- Base58 subscriber address, stored exactly: the position's owner, by construction.
   owner         TEXT        NOT NULL,
   market_id     TEXT        NOT NULL,
   side          TEXT        NOT NULL CHECK (side IN ('up', 'down')),
@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS strategy_fills_strategy_idx
 
 CREATE TABLE IF NOT EXISTS strategy_playbooks (
   strategy_id   TEXT        PRIMARY KEY,
-  -- Lowercased creator address that wrote it, verified from a signature before upsert.
+  -- Base58 creator address that wrote it, stored exactly, verified from a signature before upsert.
   creator       TEXT        NOT NULL,
   body          TEXT        NOT NULL CHECK (length(body) <= 4000),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -54,9 +54,9 @@ CREATE TABLE IF NOT EXISTS strategy_playbooks (
 CREATE TABLE IF NOT EXISTS strategy_decisions (
   id            BIGSERIAL PRIMARY KEY,
   strategy_id   TEXT        NOT NULL,
-  -- Lowercased bytes32 market id; with strategy_id, the one read per Window.
+  -- Base58 Market id, stored exactly; with strategy_id, the one read per Window.
   market_id     TEXT        NOT NULL,
-  -- Lowercased runner key.
+  -- Base58 runner key, stored exactly.
   runner        TEXT        NOT NULL,
   decided_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   -- provider/model as the provider reported it, e.g. anthropic/claude-opus-5-20260101.

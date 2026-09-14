@@ -123,7 +123,7 @@ export function usePrivateTicket({ market, side, stakeBase, enabled, symbol, wal
         const contractsRaw = BigInt(t.quantityRaw);
         const costBase = BigInt(t.costBase);
         const bookedSide: Side = t.claim.outcomeIdx === 0 ? "up" : "down";
-        if (t.txs.mint === "0x" || t.txs.mint.length < 10) {
+        if (t.txs.mint.length < 10) {
           notify.neutral(PRIVATE.toasts.resumed(window));
           return;
         }

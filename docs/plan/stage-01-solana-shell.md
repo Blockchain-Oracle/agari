@@ -45,6 +45,20 @@
 - **1b surface:** 215 consumer symbols across 17 subpaths (`docs/plan/specs/markets-surface.md`); 186 kept (names unchanged, types per D-010…D-012) and 29 EVM-only removed with owner stages. `packages/markets` went from ≈ 10.7k to ≈ 3.8k lines (−9,974 net), with no `viem`, no DreamDEX SDK and no `@solana/kit` yet.
 - **1b gates:** `@agari/core`, `@agari/markets`, `@agari/db`, `@agari/brain`, `services/ops` typecheck green; invariants 10/10 green (`no-evm` allowlist 35 = the plan's 32 web files + 3 web deps); 982 tests pass (core + markets + ops). **`web` is red by design: 313 type errors in 145 files** until 1c/1d.
 - **1b hazards found outside `packages/core`:** 20 address `toLowerCase()` calls in ops actors (removed) and the intent journal's `listUnresolved` (fixed). `packages/db` still lowercases addresses and market ids on write (`strategy-attempts.ts` and others): out of 1b's scope, but base58-corrupting.
+- **1d-D3 (products, api, db):**
+  - **Type errors:** 75 → 1 in `features/{strategies,range,private,parlay,leverage}` + `app/api`. Web overall 313 → 253, with the rest in D1/D2's paths. The one left is a cross-lane seam: `app/api/games/lucky/placed` now sends a base58 `Signature` into D1's `confirmPlacement(txHash: Hex)`.
+  - **Writes:** the range, parlay, leverage and desk write hooks build `{ signer, deployment }` from `useOwnerWallet()`. The desk's receipt read is unknown until S4, which the copy flows already treat as "reconciling, never resent".
+  - **Verifiers:** private open, strategies playbook and the faucet claim schema use ed25519 over base58 (`verifyWalletMessage`, `messageSignatureSchema`). Playbook text reads "Agari playbook" with the exact creator.
+  - **`api/sponsor`** keeps its GET keys and refuses POST with 503. Room bet registration refuses until S4 reads the fill's transaction.
+  - **Base58 sweep:** 30+ address `toLowerCase()`/`0x{40}` checks removed from features and routes (games history/rank/arcade, X receipts/bind/unlink, faucet). Somnia chain wording in range/parlay/strategies copy now says Solana.
+  - **Private (primitive-forced, D-010):** core `PrivateTicket.txs`, `creditTx` and the open/cashout result `txs` are now `Signature` (types + wire schema). The desk's EIP-712 claim `signature: Hex` is untouched.
+  - **`packages/db`:**
+    - **Hazard:** `ensureSchema()` ran `UPDATE … SET arena/creator/challenger/winner/player/market_id = lower(…)` on every boot, which would rewrite every base58 duel row. Each repair now matches only `^0x[0-9A-Fa-f]*$`.
+    - **One rule:** `src/keys.ts` `storageKey()` folds only 0x hex, which is safe everywhere because base58 never starts with "0x". Every former `toLowerCase()` in `bettors/games/decks/lucky/arcade/x/strategies/strategy-attempts/strategy-decisions/comments/takes` routes through it.
+    - **X:** the X receipt `executionActor`/`poolAddress`/`txHash` checks expect base58, and the SQL `lower(details->>'executionActor')` is gone.
+    - **Indexes:** no index or constraint used `lower()`.
+    - **Verified** on a throwaway local Postgres database: exact round-trip, re-cased wallet misses, hex match id folds, schema re-run leaves base58 rows untouched. There are no db unit tests, and none were added (tests aren't a deliverable).
+
 ## Handoff
 
 - **1b–1d must:** never lowercase, uppercase or text-sort an `Address`/`MarketId`/`Signature` (Masayume web code does this for EVM ids); build test ids with `packages/core/src/testing/ids.ts`; treat `txHash` as a base58 `Signature`.
@@ -61,3 +75,13 @@
   - Enable **Solana** embedded wallets and the login methods you want (email, Google, X…) on the app for `NEXT_PUBLIC_PRIVY_APP_ID`.
   - Add `http://localhost:3000` (and the deploy origin in S16) to allowed origins.
   - Turn on **gas sponsorship for Solana** if embedded sends should be fee-free.
+- **1d-D3 seams for the merge:**
+  - D1's `features/games/lucky/lucky-settle.server.ts` should take `txHash: Signature | null` (the route sends base58) and stop lowercasing fill signatures.
+  - D1's `sponsor.server.ts`/`room-token.server.ts` receive `hash32Schema` match ids and base58 message signatures from the routes.
+  - `app/api/private/open` still imports `gate` from D2's `features/session/sponsor.server.ts`; keep that export.
+  - `app/api/games/sponsor` still returns `amountWei` from D1's `fundSeatKey`.
+- **1d-D3 left for later stages:**
+  - **S10 private:** the ed25519 claim format (PD-4) and `verifyTicket` (returns false until then); `ParlayBuilder` still filters Windows by `asset === "BTC"`.
+  - **S7:** the `api/sponsor` spending policy.
+  - **S4:** room bet registration's transaction read; the desk copy flows' `transactionStatus`.
+  - **S15:** "Masayume" brand copy (`private/copy.ts`, `strategies/copy.ts`, the claims backup kind, the news bot User-Agent).

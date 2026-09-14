@@ -1,11 +1,12 @@
 import { expect, it, vi } from "vitest";
+import { encodeBase58, toAddress, toSignature } from "@agari/core/types";
 import type { VaultGrant } from "@agari/core/vault";
 import { releaseCopyPermission } from "./copy-release";
 import { completeCopySetup } from "./copy-setup";
 import type { CopyProgress } from "./copy-progress";
 
-const OWNER = "0x1111111111111111111111111111111111111111";
-const TX = `0x${"a".repeat(64)}` as const;
+const OWNER = toAddress(encodeBase58(new Uint8Array(32).fill(0x11)));
+const TX = toSignature(encodeBase58(new Uint8Array(64).fill(0xaa)));
 const CAPS = { maxStakePerTradeBase: 1n, maxDailySpendBase: 5n, maxOpenPositions: 1, maxPriceRaw: 0n };
 const GRANT: VaultGrant = { grantId: 8n, owner: OWNER, actor: OWNER, kind: "strategy", revoked: false, expiresAtSec: 200, spentDay: 0, spentTodayBase: 0n, openPositions: 0, caps: CAPS, budgetBase: 5n };
 const PROGRESS: CopyProgress = { strategyId: "1", runner: OWNER, stage: "subscribe-ready", previousGrantId: null, grantId: "8", grantTx: null, subscribeTx: null, budgetBase: "5", feeBase: "0", expiresAtSec: 200, caps: { maxStakePerTradeBase: "1", maxDailySpendBase: "5", maxOpenPositions: 1, maxPriceRaw: "0" } };

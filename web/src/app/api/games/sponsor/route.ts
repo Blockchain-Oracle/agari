@@ -1,4 +1,4 @@
-import { addressSchema, bytes32Schema } from "@agari/core/types";
+import { addressSchema, hash32Schema } from "@agari/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fundSeatKey, gameSponsorStatus } from "@/features/games/sponsor.server";
@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 90;
 
-const requestSchema = z.object({ matchId: bytes32Schema, player: addressSchema, agent: addressSchema });
+const requestSchema = z.object({ matchId: hash32Schema, player: addressSchema, agent: addressSchema });
 
 export async function GET() {
   return NextResponse.json(await gameSponsorStatus());

@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 export type TakeSide = "up" | "down";
 
@@ -78,7 +79,7 @@ export async function insertTake(take: NewTake): Promise<TakeRecord | null> {
   const [row] = await db<TakeRow[]>`
     INSERT INTO takes (market_id, author, side, caption, asset, interval_sec, expiry_sec, line_raw, backed, signature, issued_at_ms)
     VALUES (
-      ${take.marketId}, ${take.author.toLowerCase()}, ${take.side}, ${take.caption}, ${take.asset},
+      ${take.marketId}, ${storageKey(take.author)}, ${take.side}, ${take.caption}, ${take.asset},
       ${take.intervalSec}, ${take.expirySec}, ${take.lineRaw}, ${take.backed}, ${take.signature}, ${take.issuedAtMs}
     )
     RETURNING ${db.unsafe(COLUMNS)}

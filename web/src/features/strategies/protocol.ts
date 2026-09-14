@@ -1,4 +1,6 @@
+import { SIGNED_MESSAGE_BRAND, messageSignatureSchema } from "@agari/core/auth";
 import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, type RunnerHealthKind } from "@agari/core/strategies";
+import { addressSchema } from "@agari/core/types";
 import { z } from "zod";
 
 /** Wire shape of `/api/strategies` — base units travel as decimal strings, never floats. */
@@ -94,17 +96,17 @@ export const healthPayloadSchema = z.object({
 });
 export type HealthPayload = z.infer<typeof healthPayloadSchema>;
 
-/** The creator signs this exact text to publish a plain-text playbook; the route re-derives it. */
+/** The creator signs this exact text (ed25519 over its UTF-8 bytes, D-012) to publish a plain-text playbook; the route re-derives it. The creator is base58 and kept exactly as written. */
 export function playbookMessage(strategyId: string, creator: string, issuedAtMs: number, body: string): string {
-  return ["Masayume playbook", `Strategy: ${strategyId}`, `Creator: ${creator.toLowerCase()}`, `Issued: ${issuedAtMs}`, "", body].join("\n");
+  return [`${SIGNED_MESSAGE_BRAND} playbook`, `Strategy: ${strategyId}`, `Creator: ${creator}`, `Issued: ${issuedAtMs}`, "", body].join("\n");
 }
 
 export const playbookRequestSchema = z.object({
   strategyId: z.string().regex(/^\d+$/),
-  creator: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+  creator: addressSchema,
   issuedAtMs: z.number().int(),
   body: z.string().min(1).max(4000),
-  signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  signature: messageSignatureSchema,
 });
 
 /** The studio's dry read: the draft's brief, posture and cadences, and the per-trade stake the books are quoted at. */

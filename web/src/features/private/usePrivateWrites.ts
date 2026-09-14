@@ -2,7 +2,7 @@
 
 import type { PhaseListener, TxOutcome, WritePhase } from "@agari/core/ports";
 import type { PrivateIntent } from "@agari/core/private";
-import type { Diagnosis, Hex } from "@agari/core/types";
+import type { Diagnosis, Signature } from "@agari/core/types";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
@@ -15,7 +15,7 @@ export type PrivateWriteKind = PrivateIntent["kind"];
 export interface PrivateWriteState {
   busy: PrivateWriteKind | null;
   phase: WritePhase;
-  txHash: Hex | null;
+  txHash: Signature | null;
   diagnosis: Diagnosis | null;
   gasShort: boolean;
 }

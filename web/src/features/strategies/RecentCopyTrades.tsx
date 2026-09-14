@@ -1,5 +1,6 @@
 "use client";
 
+import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import { useMemo } from "react";
 import { AgentPortrait } from "./AgentPortrait";
@@ -58,7 +59,7 @@ export function RecentCopyTrades({ fills, strategies, storeConnected, decimals, 
           grouped.slice(0, RECENT_LIMIT).map((t) => {
             const { name, seed } = strategyIdentity(strategyOf.get(t.strategyId) ?? { strategyId: t.strategyId, runner: "", metadata: "" });
             return (
-              <a key={`${t.strategyId}:${t.owner}`} href={txUrl(t.txHash as `0x${string}`)} target="_blank" rel="noreferrer" className="strat-row block">
+              <a key={`${t.strategyId}:${t.owner}`} href={txUrl(t.txHash as Signature)} target="_blank" rel="noreferrer" className="strat-row block">
                 <AgentPortrait seed={seed} name={name} size="small" />
                 <span className="strat-row-name text-ink">{name}</span>
                 <span className="strat-mono-12 hidden text-ink/40 sm:inline">{shortAddress(t.owner)}</span>
