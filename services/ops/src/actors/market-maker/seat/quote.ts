@@ -1,0 +1,69 @@
+/**
+ * Quote math for the seat-mode seed maker (venue-ops.md §8.2–8.3). Pure and integer: YES ticks, lots and base units.
+ *
+ * The book is YES-quoted (events-engine.md §2). The bid is a PostOnly BUY_YES at `bid`; the ask is a PostOnly BUY_NO
+ * at YES price `ask`, which escrows `1000 − ask` per lot and fills through the mint-pair path, so the maker never needs
+ * inventory to offer YES.
+ */
+
+export type QuotePair = { bidTicks: number | null; askTicks: number | null };
+
+export interface PairInput {
+  fairTicks: number;
+  halfSpreadTicks: number;
+  minTick: number;
+  bestBidTicks: number | null;
+  bestAskTicks: number | null;
+}
+
+/** Bid `fair − half`, ask `fair + half`, pulled strictly inside the opposite best so PostOnly can't cross; out-of-range sides drop. */
+export function quotePair(i: PairInput): QuotePair {
+  let bid = i.fairTicks - i.halfSpreadTicks;
+  let ask = i.fairTicks + i.halfSpreadTicks;
+  if (i.bestAskTicks !== null && bid >= i.bestAskTicks) bid = i.bestAskTicks - 1;
+  if (i.bestBidTicks !== null && ask <= i.bestBidTicks) ask = i.bestBidTicks + 1;
+  const inRange = (t: number) => t >= i.minTick && t <= 1000 - i.minTick;
+  const bidTicks = inRange(bid) ? bid : null;
+  let askTicks = inRange(ask) ? ask : null;
+  if (bidTicks !== null && askTicks !== null && askTicks <= bidTicks) askTicks = null;
+  return { bidTicks, askTicks };
+}
+
+/** Cash a resting BUY_YES at `bidTicks` escrows per lot (cash unit `cu`). */
+export const bidEscrowPerLot = (bidTicks: number, cu: bigint) => BigInt(bidTicks) * cu;
+/** Cash a resting BUY_NO at YES price `askTicks` escrows per lot: the NO price, `1000 − ask`. */
+export const askEscrowPerLot = (askTicks: number, cu: bigint) => BigInt(1000 - askTicks) * cu;
+
+/** Lots per side: `wantLots`, cut so both sides together stay inside `budget`; 0 when that falls below `minLots`. */
+export function sizeLots(i: { wantLots: bigint; pair: QuotePair; cu: bigint; budget: bigint; minLots: bigint }): bigint {
+  const perLot = (i.pair.bidTicks !== null ? bidEscrowPerLot(i.pair.bidTicks, i.cu) : 0n) + (i.pair.askTicks !== null ? askEscrowPerLot(i.pair.askTicks, i.cu) : 0n);
+  if (perLot === 0n) return 0n;
+  const affordable = i.budget / perLot;
+  const lots = affordable < i.wantLots ? affordable : i.wantLots;
+  return lots >= i.minLots ? lots : 0n;
+}
+
+/** A quote lives `ttl` seconds but never past 30 s before lock (entry closes there, D-011). */
+export const quoteExpirySec = (nowSec: number, lockAtSec: number, ttlSec: number) => Math.min(nowSec + ttlSec, lockAtSec - 30);
+
+export type Placed = { fairTicks: number; expireSec: number };
+
+/** Requote when nothing rests, the fair moved `requoteTicks` or more, or the resting pair is within 20 s of expiring. */
+export function needsRequote(i: { placed: Placed | null; fairTicks: number; nowSec: number; requoteTicks: number }): boolean {
+  if (!i.placed) return true;
+  if (Math.abs(i.fairTicks - i.placed.fairTicks) >= i.requoteTicks) return true;
+  return i.placed.expireSec - i.nowSec <= 20;
+}
+
+export type MakerPhase = "quote" | "stop" | "pull";
+
+/**
+ * `pull`: out of session, halted, stale spot, or within 120 s of the close: cancel everything.
+ * `stop`: within 60 s of the Window's lock: cancel and quote no more. Otherwise `quote`.
+ */
+export function makerPhase(i: { nowSec: number; lockAtSec: number; inSession: boolean; closesAtSec: number | null; spotFresh: boolean }): MakerPhase {
+  if (!i.inSession || !i.spotFresh) return "pull";
+  if (i.closesAtSec !== null && i.nowSec >= i.closesAtSec - 120) return "pull";
+  if (i.nowSec >= i.lockAtSec - 60) return "stop";
+  return "quote";
+}
