@@ -6,6 +6,7 @@
 import { diagnosis } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { peekClient } from "../runtime/read-runtime";
+import { indexerBase } from "./indexer-base";
 
 /** A u64/i64/NUMERIC column, as the API sends it. */
 export type Dec = string;
@@ -148,7 +149,7 @@ export function indexRows<T>(path: string, query: Record<string, string | number
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) if (value !== undefined) params.set(key, String(value));
   const search = params.toString() ? `?${params}` : "";
-  const url = `${base.replace(/\/$/, "")}/${path}${search}`;
+  const url = `${indexerBase(base)}/${path}${search}`;
   const now = Date.now();
   const hit = inflight.get(url);
   if (hit && (hit.doneAtMs === null || now - hit.doneAtMs < MEMO_MS)) return hit.rows as Promise<T[]>;

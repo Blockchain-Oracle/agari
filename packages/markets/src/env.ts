@@ -18,8 +18,15 @@ export const marketsEnvSchema = z.object({
   cluster: z.enum(["mainnet-beta", "devnet", "localnet"]).default(DEVNET_DEFAULTS.cluster),
   rpcHttpUrls: urlList.default([...DEVNET_DEFAULTS.rpcHttpUrls]),
   rpcWsUrls: urlList.default([...DEVNET_DEFAULTS.rpcWsUrls]),
-  /** The Agari indexer API (S3); absent until it runs. */
-  indexerUrl: z.url().optional(),
+  /**
+   * The Agari indexer API (S3): an absolute URL, or a same-origin path such as `/api/index` (the default in web). A path
+   * resolves against the page's origin in the browser, so any host or port works, and against this server over
+   * loopback on the server (`indexer-base.ts`).
+   */
+  indexerUrl: z
+    .string()
+    .refine((value) => value.startsWith("/") || URL.canParse(value), "an absolute URL or a same-origin path like /api/index")
+    .optional(),
   /** The agari-events `GlobalConfig` address; absent until S2 deploys (D-010). */
   venueId: addressSchema.optional(),
   /** The agari-events program id; absent until S2 deploys. `program-id-drift` checks it against the IDL once present. */
