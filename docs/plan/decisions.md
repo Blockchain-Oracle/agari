@@ -131,6 +131,19 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** stock tickers instead of BTC/ETH; Gap Windows stop taking entries at Sunday 20:00 ET.
 - **Approval:** within plan r2 S1.
 
+### D-012 — Signed messages, cluster ids and fees on Solana
+- **Date / owner:** 2026-09-14 · S1 owner (step 1a.4)
+- **Evidence:** Wallet Standard `solana:signMessage` and Privy `signMessage` sign raw bytes with ed25519 (no EIP-191 prefix); RFC 8032 (deterministic signatures); plan P§3.2 sponsor policy (compute ≤ 400k, simulate first); S0 Handoff (signed-message wording deferred to S1).
+- **Rule:**
+  - A signed text is its exact UTF-8 bytes; the browser and server build it from the same fields. It names "Agari" and the cluster (`Network: Solana devnet`, or `on Solana devnet`). The signature travels as base58 (64 bytes).
+  - `verifySignedMessage(text, signature, signer, verify)` takes the ed25519 verifier as an argument (core stays crypto-free) and returns false, never throws, on malformed input.
+  - Numeric cluster ids replace EVM chain ids wherever a number was bound into a signature or commitment: mainnet-beta 101, devnet 103 (the SPL token-list convention), localnet 104. Fields keep the name `chainId` (D-010).
+  - No per-lane gas table: compute limit = simulated units × 1.1, capped at 400,000; a self-paying wallet needs `FEE_RESERVE_LAMPORTS` (4 × 5,000).
+  - Faucet: devnet SOL top-up to 0.02 when below 0.005 SOL, 1 SOL/day, 2 SOL reserve; a prepared claim is reconciled against `lastValidBlockHeight`.
+  - The `insufficient-allowance` diagnosis is gone (there's no token approval on Solana).
+- **User-visible:** sign-in and consent prompts say Agari and Solana devnet; "Out of SOL for fees" replaces "Out of STT gas".
+- **Approval:** within plan r2 S1.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

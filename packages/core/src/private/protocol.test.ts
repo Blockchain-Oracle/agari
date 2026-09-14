@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { testAddress, testMarketIdFromHex } from "../testing/ids";
+import { CLUSTER_ID } from "../constants/chain";
+import { testAddress, testMarketIdFromHex, testSignature } from "../testing/ids";
 import { PRIVATE_AUTH_TTL_MS, privateAuthFresh, privateCashoutRequestSchema, privateOpenMessage, privateOpenRequestSchema } from "./protocol";
 
 const INPUT = {
   owner: testAddress(0xd3),
   contract: testAddress(0x43),
-  chainId: 50312,
+  chainId: CLUSTER_ID.devnet,
   marketId: testMarketIdFromHex("11".repeat(32)),
   asset: "BTC",
   cadenceText: "5m",
@@ -20,13 +21,13 @@ describe("privateOpenMessage", () => {
   it("names the actual bet, in a fixed order the desk rebuilds byte for byte", () => {
     expect(privateOpenMessage(INPUT)).toBe(
       [
-        "Masayume — private bet",
+        "Agari — private bet",
         "",
         "Side: UP",
         "Stake: 10.00 tUSDC",
         "Window: BTC 5m, closes 2026-09-03T01:51:40.000Z",
         `Market: ${INPUT.marketId}`,
-        `Desk: ${INPUT.contract} on chain 50312`,
+        `Desk: ${INPUT.contract} on Solana devnet`,
         `Wallet: ${INPUT.owner}`,
         "Issued: 2026-09-03T01:46:40.000Z",
         "",
@@ -40,7 +41,7 @@ describe("privateOpenMessage", () => {
     expect(privateOpenMessage({ ...INPUT, side: "down" })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, stakeText: "10.01" })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, issuedAtMs: INPUT.issuedAtMs + 1 })).not.toBe(base);
-    expect(privateOpenMessage({ ...INPUT, chainId: 1 })).not.toBe(base);
+    expect(privateOpenMessage({ ...INPUT, chainId: CLUSTER_ID["mainnet-beta"] })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, contract: testAddress(0xab) })).not.toBe(base);
   });
 });
@@ -56,15 +57,16 @@ describe("privateAuthFresh", () => {
 });
 
 describe("the wire schemas", () => {
+  const SIG = testSignature(0xab);
   it("refuse a claim with a stake that is not a decimal string or an outcome that is not 0/1", () => {
     const claim = { owner: INPUT.owner, slotId: `0x${"aa".repeat(32)}`, creditKey: `0x${"bb".repeat(32)}`, marketId: INPUT.marketId, outcomeIdx: 0, stakeBase: "10000000", issuedAtMs: 1 };
-    expect(privateCashoutRequestSchema.safeParse({ claim, signature: "0xab" }).success).toBe(true);
-    expect(privateCashoutRequestSchema.safeParse({ claim: { ...claim, stakeBase: "10.5" }, signature: "0xab" }).success).toBe(false);
-    expect(privateCashoutRequestSchema.safeParse({ claim: { ...claim, outcomeIdx: 2 }, signature: "0xab" }).success).toBe(false);
+    expect(privateCashoutRequestSchema.safeParse({ claim, signature: SIG }).success).toBe(true);
+    expect(privateCashoutRequestSchema.safeParse({ claim: { ...claim, stakeBase: "10.5" }, signature: SIG }).success).toBe(false);
+    expect(privateCashoutRequestSchema.safeParse({ claim: { ...claim, outcomeIdx: 2 }, signature: SIG }).success).toBe(false);
   });
 
   it("accepts the open request the browser sends", () => {
-    const parsed = privateOpenRequestSchema.safeParse({ owner: INPUT.owner, marketId: INPUT.marketId, side: "up", stakeBase: "10000000", minQuantityRaw: "15000000", issuedAtMs: INPUT.issuedAtMs, signature: "0xab" });
+    const parsed = privateOpenRequestSchema.safeParse({ owner: INPUT.owner, marketId: INPUT.marketId, side: "up", stakeBase: "10000000", minQuantityRaw: "15000000", issuedAtMs: INPUT.issuedAtMs, signature: SIG });
     expect(parsed.success).toBe(true);
   });
 });

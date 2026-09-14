@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CLUSTER_ID } from "../constants/chain";
 import { testAddress } from "../testing/ids";
 import type { Address } from "../types/primitives";
 import {
@@ -22,7 +23,7 @@ const KEY = testAddress(0xa1);
 const ARENA = testAddress(0xec);
 const OTHER_ARENA = testAddress(0x4d);
 const STRANGER = testAddress(0xbb);
-const CHAIN = 50312;
+const CHAIN = CLUSTER_ID.devnet;
 const NOW = 1_756_900_000_000;
 
 /**
@@ -47,7 +48,7 @@ describe("the duel room token", () => {
     expect(message).toContain(WALLET);
     expect(message).toContain(KEY);
     expect(message).toContain(ARENA);
-    expect(message).toContain(`chain ${CHAIN}`);
+    expect(message).toContain("on Solana devnet");
     expect(message).toContain("moves no funds");
     expect(message).toContain("not the wallet");
     // The prompt for another arena, or from another key, is a different string, so a signature cannot be carried across.
@@ -95,7 +96,7 @@ describe("the duel room token", () => {
   });
 
   it("refuses a token minted for another chain", () => {
-    const token = mintRoomToken(roomSessionClaims(WALLET, KEY, 1, ARENA, NOW), sign);
+    const token = mintRoomToken(roomSessionClaims(WALLET, KEY, CLUSTER_ID["mainnet-beta"], ARENA, NOW), sign);
     const verdict = verifyRoomToken(token, EXPECT, NOW, verify);
     expect(verdict.ok).toBe(false);
     if (!verdict.ok) expect(verdict.code).toBe("forbidden");

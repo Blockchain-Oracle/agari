@@ -7,7 +7,6 @@ export const DIAGNOSIS_KINDS = [
   "user-rejected",
   "out-of-gas",
   "insufficient-collateral",
-  "insufficient-allowance",
   "market-not-trading",
   "order-expired",
   "post-only-would-cross",

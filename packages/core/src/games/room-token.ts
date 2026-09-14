@@ -1,3 +1,5 @@
+import { SIGNED_MESSAGE_BRAND } from "../auth/signed-message";
+import { clusterLabelOfId } from "../constants/chain";
 import type { Address } from "../types/primitives";
 import { isAddress } from "../types/primitives";
 import type { RoomErrorCode } from "./protocol";
@@ -20,8 +22,8 @@ import type { RoomErrorCode } from "./protocol";
  *
  * Three properties are deliberate.
  *
- * **It is bound to one arena on one chain.** A token minted for the Shannon deployment cannot open a room
- * on another, which is the same rule the deck commitment enforces on-chain.
+ * **It is bound to one arena on one cluster.** A token minted for the devnet deployment cannot open a room
+ * on another (`chainId` holds the numeric cluster id, D-010), which is the same rule the deck commitment enforces on-chain.
  *
  * **It carries two clocks.** `issuedAtMs` bounds how long one token is good for — fifteen minutes, so a
  * copied URL is not a durable credential — while `sessionEndsAtMs` bounds how long the *signature* behind
@@ -63,11 +65,11 @@ export interface RoomTokenClaims {
 /** The exact text the key signs. It names the wallet it claims, the arena, and what it is not, because people read these. */
 export function roomAuthMessage(claims: Pick<RoomTokenClaims, "wallet" | "key" | "chainId" | "arena"> & { issuedAtMs: number }): string {
   return [
-    "Masayume — open the duel room",
+    `${SIGNED_MESSAGE_BRAND} — open the duel room`,
     "",
     `Wallet: ${claims.wallet}`,
     `Key: ${claims.key}`,
-    `Arena: ${claims.arena} on chain ${claims.chainId}`,
+    `Arena: ${claims.arena} on ${clusterLabelOfId(claims.chainId)}`,
     `Issued: ${new Date(claims.issuedAtMs).toISOString()}`,
     "",
     "This browser's own key signs this, not the wallet. It opens the wallet's duel rooms; the entry transaction is what names the key on chain. It is not a transaction, it moves no funds, and it costs nothing.",

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { Side } from "../types/market";
 import { marketIdSchema } from "../types/ids";
+import { SIGNED_MESSAGE_BRAND, messageSignatureSchema } from "../auth/signed-message";
+import { clusterLabelOfId } from "../constants/chain";
 import { addressSchema, hash32Schema } from "../types/primitives";
 
 /** A signed authorisation is only good for a few minutes, so a captured one cannot be replayed later. */
@@ -12,7 +14,7 @@ export const PRIVATE_HONESTY = "Kept separate from your wallet, so it is harder 
 
 export interface PrivateOpenMessageInput {
   owner: string;
-  /** The desk contract and its chain, so a signature for one deployment never opens a bet on another. */
+  /** The desk program and its cluster id (D-010), so a signature for one deployment never opens a bet on another. */
   contract: string;
   chainId: number;
   marketId: string;
@@ -29,17 +31,18 @@ export interface PrivateOpenMessageInput {
  * The exact text the wallet signs to authorise one private bet — the reference's `openAuthMessage`,
  * built to be READ, not just verified: the prompt names the actual bet ("UP, 10.00 tUSDC on BTC 5m")
  * rather than a hash. The browser and the desk build it from the same fields; any drift refuses loudly.
- * The signature is also the desk's secret seed for the bet's three keys, so it never leaves the two of them.
+ * The signature is also the desk's secret seed for the bet's three keys (ed25519 is deterministic, so the same text
+ * always yields the same seed), and it never leaves the two of them.
  */
 export function privateOpenMessage(input: PrivateOpenMessageInput): string {
   return [
-    "Masayume — private bet",
+    `${SIGNED_MESSAGE_BRAND} — private bet`,
     "",
     `Side: ${input.side.toUpperCase()}`,
     `Stake: ${input.stakeText} ${input.symbol}`,
     `Window: ${input.asset} ${input.cadenceText}, closes ${new Date(input.expirySec * 1000).toISOString()}`,
     `Market: ${input.marketId}`,
-    `Desk: ${input.contract} on chain ${input.chainId}`,
+    `Desk: ${input.contract} on ${clusterLabelOfId(input.chainId)}`,
     `Wallet: ${input.owner}`,
     `Issued: ${new Date(input.issuedAtMs).toISOString()}`,
     "",
@@ -53,7 +56,7 @@ export function privateAuthFresh(issuedAtMs: number, nowMs: number): boolean {
 }
 
 const decimalString = z.string().regex(/^\d+$/);
-const signatureSchema = z.string().regex(/^0x[0-9a-fA-F]+$/).max(2_000);
+const signatureSchema = messageSignatureSchema;
 
 export const privateClaimSchema = z.object({
   owner: addressSchema,
