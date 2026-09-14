@@ -9,9 +9,9 @@
 ## Steps
 
 - [x] Foundation: `venue-ops.md` contract; `@agari/markets/ops` (client, send + engine codes, venue reads) with lane subpaths `ops/*`; ops runtime (env, role keys, actor loop, heartbeats, `VenueDeps`); calendar service (Alpaca ∩ Pyth schedule, live-checked); `print_archive` schema; lane-owned placeholders (D-028)
-- [ ] Calendar service (foundation) + roller plan, versions, recycle and grow (lane 3a)
-- [ ] Policy versions and Series: `init-series` for 9 tickers × Regular 5/15/60 with rent accounting, `fund-roles` (lane 3a; the devnet run needs SOL, see Handoff)
-- [ ] Roller (highest covering version; "paused: no signed source" when none) (lane 3a)
+- [x] Calendar service (foundation) + roller plan, versions, recycle and grow (lane 3a, merged 2026-09-14)
+- [x] Policy versions and Series: `init-series` for 9 tickers × Regular 5/15/60 with rent accounting, `fund-roles` (lane 3a; the devnet run needs SOL, see Handoff)
+- [x] Roller (highest covering version; "paused: no signed source" when none) (lane 3a)
 - [ ] Pyth trial relay (TSLA/QQQ/VOO) + close update accounts; take over the S0 blob archive (lane 3b)
 - [ ] RedStone relay: all 5 signer packages at T + 10–15 s with retries; archive to `print_archive`; single names + TSLA check prints (lane 3b)
 - [ ] Attested relay (opt-in only; off by default) (lane 3b)
@@ -41,6 +41,17 @@
   - Hermes `/v2/price_feeds` metadata (including `schedule`) is public; only price updates need the trial key. Alpaca `ALPACA_ENDPOINT` already ends in `/v2`.
   - The first live refresh agreed on 2026-09-07..09-28 with no disputed dates (11 sessions ahead).
   - Role keys `roller`, `price-relay`, `settler`, `maker`, `price-attestor` and `faucet-mint-authority` exist in `~/.config/agari/devnet/` and hold 0 SOL. The deployer holds 4.48 SOL.
+- **Lane 3a (roller, merged from `slice/S3a-roller` @ 1fb8514), proven on a Surfpool devnet fork during the 09-14 session:**
+  - **Rolling:** TSLA-5m #1–#5 ran back-to-back 15:55→16:20Z, alternating two Books. Each Book was released 1–4 s after its lock, including an order swept at lock. TSLA-15m #0–#2 and AAPL-5m #0–#4 rolled the same way.
+  - **Restarts and dry runs:** a restart resumed from chain state without duplicate opens, and DRY_RUN signed nothing.
+  - **CU:** open 35,922 · sweep 6,915 · release 5,501. `public_grow_ledger` took a Ledger from 96 to 192 seats (builder called directly; the live 8-seat trigger needs about 88 users).
+  - **init-series** planned 2.415640440 SOL on the fork for 3 Series + 6 Books and spent exactly that; a re-run was a no-op with drift checks.
+  - **Devnet dry runs:** 25 Series + 50 Books = **13.569386280 SOL**; `fund-roles` = **7 SOL**.
+  - **Post-trial plan** (`pnpm drive:roller-plan --at 2026-09-28T14:00:00Z`): TSLA on v2 RedStone, QQQ/VOO `paused: no signed source`, Saturday `closed: no session`.
+  - **Surfpool rent:** Surfpool charges mainnet rent (512-node Book 0.397 SOL against 0.290 on devnet), so fork spend overstates devnet.
+  - **Codama names vs `time-suffix`:** Codama argument names like `tradingStart:` trip the rule; pass them as shorthand locals.
+  - **Late opens:** with the 60 s minimum tradable time, a restarted roller opens a Window already under way (TSLA-15m 15:45–16:00Z at 15:55). This is spec-conformant, but revisit if it wastes rent after downtime.
+  - **Self-match:** a user's BUY_NO @ 300 against their own resting BUY_YES @ 400 reverts `SelfMatchCancelTaker` (DreamDEX semantics, D-008). S4's ticket must not rely on crossing one's own order.
 - **SOL for the devnet run** (5,080 lamports/B incl. header):
   - 25 missing Series × 0.0076 ≈ 0.2 SOL.
   - Books: 16 new 5m/15m Series × 2 × 0.2900 ≈ 9.3 SOL, plus 9 new 60m Series × 2 × 0.2276 ≈ 4.1 SOL, so ≈ 13.4 SOL of Books.
