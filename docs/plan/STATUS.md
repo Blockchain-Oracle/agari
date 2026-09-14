@@ -1,8 +1,8 @@
-# STATUS — updated 2026-09-14 by Claude (S1/S2 session)
+# STATUS — updated 2026-09-14 ~10:00 UTC by Claude (S1/S2 session, after a restart)
 
-Current stage: S1 and S2 (in progress, parallel)   Sub-slices: S1 1a ✅ 1b ✅ 1c ✅ (merged into stage/S1-solana-shell @ 186c42c) · 1d in-progress in 3 lanes (wt ../agari-wt/s1d1 games+dev · s1d2 markets/funding/session/x · s1d3 products+api+db) · S2 spec ✅ workspace ✅ state ✅ (main @ 95001b2) · S2 admin+roller (wt s2) · S2 pure verifiers + book_walk (wt s2p)
+Current stage: S1 and S2 (in progress, parallel)   Sub-slices: S1 1a–1d ✅ + /dev/wallet ✅ (stage/S1-solana-shell, main worktree) · S1 browser pass next · S2 spec/workspace/state/admin/pure verifiers/book_walk ✅ (main @ 66da2ee) · S2 matching+cancels+sets in-progress (wt ../agari-wt/s2, uncommitted, agent resumed) · S2 prints+settle+void done on slice/S2q-prints (wt ../agari-wt/s2q, merge after matching)
 Last green commit (gate passed): see `git log --grep "S0 gate passed"`      Last commit: see `git log -1` on each branch
-In-flight step: S1 1d web port (web red: 313 tsc errors at start; no-evm allowlist 27 entries, empty at S1 gate; web/package.json viem+wagmi removal and the allowlist emptiness are the S1 owner's at merge) · S2.4 admin/roller + LiteSVM harness · S2.5–2.6 print verifiers + book_walk. Chain side-effects: none
+In-flight step: S1 browser pass (routes at 390/1440, both themes) · S2.7–2.9 matching, cancels, sets (anchor/programs/agari-events/src/{book,matching,instructions/user_*}). Chain side-effects: none. Archivers: `pnpm archive:start` (idempotent, detached in their own process group; restart after any reboot/sleep, RedStone ≈ 24 h retention)
 Done: S0 ✅ | Milestones: M0 ✅ M1 ☐
 Blockers: none for S1. User: fund deployer (faucet.solana.com → AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F) before S2 deploy; Privy dashboard: enable Solana embedded wallets + login methods, allow http://localhost:3000, optional Solana gas sponsorship. RedStone fixture needs the 2026-09-14 13:30Z session archived (keep the Mac awake). X API keys (S11). Stork reply (QQQ/VOO after 09-25).
 Env readiness (presence only): PYTH ✅(trial → ≈09-27) ALPACA ✅ FINNHUB ✅ HELIUS ✅ PRIVY ✅ OPENAI ✅ DATABASE_URL ✅(local) X_API ☐ STORK ☐ role keys ✅ (~/.config/agari/devnet)
