@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 /**
  * Arcade scores: product state with no chain counterpart, and the one games table the web writes.
@@ -9,7 +10,7 @@ import { ensureSchema } from "./migrate";
  * the engine build they were made on, because a score from another build is not comparable and must
  * not sit on the same board.
  *
- * Wallets are lowercased at the write, and only here — the lesson `games.ts` records.
+ * Wallets take one canonical form at the write (`keys.ts`: base58 exact), and only here — the lesson `games.ts` records.
  */
 export type ArcadeGameId = "line-rider" | "candle-hop";
 
@@ -33,7 +34,7 @@ export interface ArcadeBoardRow {
 }
 
 function key(value: string): string {
-  return value.toLowerCase();
+  return storageKey(value);
 }
 
 export async function recordArcadeScore(input: ArcadeScoreInput): Promise<void> {

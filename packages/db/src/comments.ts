@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 export interface RoomComment {
   id: string;
@@ -47,7 +48,7 @@ export async function insertComment(marketId: string, author: string, body: stri
   await ensureSchema();
   const [row] = await db<CommentRow[]>`
     INSERT INTO room_comments (market_id, author, body)
-    VALUES (${marketId}, ${author.toLowerCase()}, ${body})
+    VALUES (${marketId}, ${storageKey(author)}, ${body})
     RETURNING id, market_id, author, body, created_at
   `;
   return row ? toComment(row) : null;

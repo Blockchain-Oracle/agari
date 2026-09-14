@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey } from "./keys";
 
 export type DecisionVerdictSide = "up" | "down" | "hold" | "none";
 export type DecisionGate = "trade" | "held" | "failed";
@@ -33,7 +34,7 @@ export async function beginStrategyDecision(d: Pick<NewStrategyDecision, "strate
   await ensureSchema();
   const rows = await db`
     INSERT INTO strategy_decisions (strategy_id, market_id, runner, model, prompt_hash, verdict_side, why, gate, gate_reason, dry_run)
-    VALUES (${d.strategyId}, ${d.marketId.toLowerCase()}, ${d.runner.toLowerCase()}, ${d.model}, ${d.promptHash}, 'none', 'Reading this Window', 'pending', 'Read in progress', ${d.dryRun})
+    VALUES (${d.strategyId}, ${storageKey(d.marketId)}, ${storageKey(d.runner)}, ${d.model}, ${d.promptHash}, 'none', 'Reading this Window', 'pending', 'Read in progress', ${d.dryRun})
     ON CONFLICT (strategy_id, market_id, dry_run) DO NOTHING RETURNING id
   `;
   return rows.length ? "acquired" : "existing";
@@ -45,7 +46,7 @@ export async function interruptStrategyDecisions(runner: string, beforeMs: numbe
   if (!db) throw new Error("decision store unavailable");
   await ensureSchema();
   await db`UPDATE strategy_decisions SET gate = 'failed', why = 'Runner interrupted during the model read', gate_reason = 'Interrupted read; holding this Window without another model call'
-    WHERE runner = ${runner.toLowerCase()} AND gate = 'pending' AND decided_at < ${new Date(beforeMs)}`;
+    WHERE runner = ${storageKey(runner)} AND gate = 'pending' AND decided_at < ${new Date(beforeMs)}`;
 }
 
 interface DecisionRow {
@@ -88,8 +89,8 @@ const toDecision = (r: DecisionRow): StrategyDecisionRecord => ({
 
 /**
  * One read per Window: the (strategy, market) pair is unique, so a runner that restarts mid-Window
- * cannot ask twice. Ids are lowercased at the write — the reads lowercase too, and a table whose
- * writes do not is one the settler was blind to for its whole life.
+ * cannot ask twice. Ids take one canonical form at the write and the read (`keys.ts`: base58 exact, hex lowercase),
+ * and a table whose reads and writes disagree is one the settler was blind to for its whole life.
  */
 export async function recordStrategyDecision(d: NewStrategyDecision): Promise<boolean> {
   const db = getDb();
@@ -97,7 +98,7 @@ export async function recordStrategyDecision(d: NewStrategyDecision): Promise<bo
   await ensureSchema();
   const rows = await db`
     UPDATE strategy_decisions SET model = ${d.model}, prompt_hash = ${d.promptHash}, verdict_side = ${d.verdictSide}, confidence = ${d.confidence}, why = ${d.why}, gate = ${d.gate}, gate_reason = ${d.gateReason}, side = ${d.side}
-    WHERE strategy_id = ${d.strategyId} AND market_id = ${d.marketId.toLowerCase()} AND dry_run = ${d.dryRun} AND gate = 'pending' RETURNING id
+    WHERE strategy_id = ${d.strategyId} AND market_id = ${storageKey(d.marketId)} AND dry_run = ${d.dryRun} AND gate = 'pending' RETURNING id
   `;
   return rows.length === 1;
 }
@@ -107,7 +108,7 @@ export async function markDecisionExecution(strategyId: string, marketId: string
   const db = getDb();
   if (!db) return false;
   await ensureSchema();
-  await db`UPDATE strategy_decisions SET filled = GREATEST(filled, ${filled}), skipped = ${skipped} WHERE strategy_id = ${strategyId} AND market_id = ${marketId.toLowerCase()} AND dry_run = ${dryRun}`;
+  await db`UPDATE strategy_decisions SET filled = GREATEST(filled, ${filled}), skipped = ${skipped} WHERE strategy_id = ${strategyId} AND market_id = ${storageKey(marketId)} AND dry_run = ${dryRun}`;
   return true;
 }
 
@@ -130,6 +131,6 @@ export async function getStrategyDecision(strategyId: string, marketId: string, 
   const db = getDb();
   if (!db) throw new Error("decision store unavailable");
   await ensureSchema();
-  const rows = await db<DecisionRow[]>`SELECT * FROM strategy_decisions WHERE strategy_id = ${strategyId} AND market_id = ${marketId.toLowerCase()} AND dry_run = ${dryRun} AND gate <> 'pending'`;
+  const rows = await db<DecisionRow[]>`SELECT * FROM strategy_decisions WHERE strategy_id = ${strategyId} AND market_id = ${storageKey(marketId)} AND dry_run = ${dryRun} AND gate <> 'pending'`;
   return rows[0] ? toDecision(rows[0]) : null;
 }

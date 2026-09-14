@@ -1,5 +1,6 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
+import { storageKey, storageKeyOrNull } from "./keys";
 
 /**
  * The duel projection's writes and the few reads built on it.
@@ -16,23 +17,24 @@ import { ensureSchema } from "./migrate";
 export type DuelStatus = "waiting" | "activeUnrevealed" | "picking" | "settling" | "finalized" | "refunded" | "forfeited";
 
 /**
- * Every address and hash in this table is stored lowercase, and this is the one function that makes
- * that true.
+ * Every identifier in this table has one canonical form (`keys.ts`: base58 exact, hex lowercase), and this is the
+ * one function that makes that true.
  *
- * It is not tidiness. Every read here filters on `lower(...)` of what the caller passed, while the
+ * It is not tidiness. Masayume's reads filtered on a lowercased form of what the caller passed, while the
  * writes took whatever the decoder produced — and viem returns a checksummed address from an event
  * log. So `duel_matches` filled up with `0xec71498B...` while `listLiveMatches` asked for
  * `0xec71498b...`, and matched nothing, ever. The settler read "no live match in the projection"
  * through a real duel sitting one row away: no deck revealed, no card settled, no pot awarded, and
  * `activeMatchFor` could never tell a reconnecting browser which match it was in. Found by the first
- * drive that ran the settler and a browser against the same database (2026-09-04).
+ * drive that ran the settler and a browser against the same database (2026-09-04). On Solana the same rule must NOT
+ * lowercase: base58 is case-sensitive, so addresses and Market ids are kept exactly and only hex folds (D-010).
  */
 function key(value: string): string {
-  return value.toLowerCase();
+  return storageKey(value);
 }
 
 function keyOrNull(value: string | null | undefined): string | null {
-  return value === null || value === undefined ? null : value.toLowerCase();
+  return storageKeyOrNull(value);
 }
 
 export interface DuelMatchRow {
@@ -168,10 +170,10 @@ export async function activeMatchFor(wallet: string, chainId: number, arena: str
   const db = getDb();
   if (!db) return null;
   await ensureSchema();
-  const who = wallet.toLowerCase();
+  const who = storageKey(wallet);
   const rows = await db<{ match_id: string }[]>`
     SELECT match_id FROM duel_matches
-    WHERE chain_id = ${chainId} AND arena = ${arena.toLowerCase()}
+    WHERE chain_id = ${chainId} AND arena = ${storageKey(arena)}
       AND status = ANY(${LIVE as unknown as string[]})
       AND (creator = ${who} OR challenger = ${who})
     ORDER BY created_at DESC LIMIT 1
@@ -191,7 +193,7 @@ export async function listMatchesFor(wallet: string, limit = 20): Promise<DuelHi
   const db = getDb();
   if (!db) return [];
   await ensureSchema();
-  const who = wallet.toLowerCase();
+  const who = storageKey(wallet);
   const rows = await db<Record<string, string | number | Date | null>[]>`
     SELECT match_id, chain_id, arena, mode, tier, creator, challenger, status, deck_hash, deck_size,
            policy_version, pot_per_player, winner, creator_pnl, challenger_pnl, created_at
@@ -231,7 +233,7 @@ const NEW_RATING = { rating: 1_000, verifiedMatches: 0 };
 export async function readRatings(wallets: readonly string[]): Promise<Map<string, RatingRow>> {
   const out = new Map<string, RatingRow>();
   const db = getDb();
-  const keys = wallets.map((w) => w.toLowerCase());
+  const keys = wallets.map((w) => storageKey(w));
   for (const wallet of keys) out.set(wallet, { wallet, ...NEW_RATING });
   if (!db) return out;
   await ensureSchema();
@@ -261,7 +263,7 @@ export async function applyRatingsOnce(matchId: string, updates: readonly Rating
   await ensureSchema();
   return db.begin(async (tx) => {
     for (const update of updates) {
-      const wallet = update.wallet.toLowerCase();
+      const wallet = storageKey(update.wallet);
       const claimed = await tx`
         INSERT INTO game_rating_events (match_id, wallet, delta, rating_after)
         VALUES (${matchId}, ${wallet}, ${update.delta}, ${update.rating})
@@ -286,7 +288,7 @@ export async function listLiveMatches(chainId: number, arena: string, limit = 50
   await ensureSchema();
   const rows = await db<{ match_id: string }[]>`
     SELECT match_id FROM duel_matches
-    WHERE chain_id = ${chainId} AND arena = ${arena.toLowerCase()} AND status = ANY(${LIVE as unknown as string[]})
+    WHERE chain_id = ${chainId} AND arena = ${storageKey(arena)} AND status = ANY(${LIVE as unknown as string[]})
     ORDER BY created_at ASC LIMIT ${limit}
   `;
   return rows.map((r) => r.match_id);
@@ -307,7 +309,7 @@ export async function countRankedFinalized(wallets: readonly string[] | null = n
   const db = getDb();
   if (!db) return out;
   await ensureSchema();
-  const keys = wallets?.map((w) => w.toLowerCase()) ?? null;
+  const keys = wallets?.map((w) => storageKey(w)) ?? null;
   const rows = await db<{ wallet: string; n: string }[]>`
     SELECT wallet, count(*)::text AS n FROM (
       SELECT creator AS wallet FROM duel_matches WHERE mode = 'ranked' AND status = 'finalized'
@@ -329,7 +331,7 @@ export async function ladderRankOf(wallet: string): Promise<number | null> {
   const rows = await db<{ place: string }[]>`
     SELECT place::text FROM (
       SELECT wallet, row_number() OVER (ORDER BY rating DESC, verified_matches DESC, wallet ASC) AS place FROM game_ratings
-    ) ladder WHERE wallet = ${wallet.toLowerCase()}
+    ) ladder WHERE wallet = ${storageKey(wallet)}
   `;
   const row = rows[0];
   return row ? Number(row.place) : null;
