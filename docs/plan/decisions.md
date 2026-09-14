@@ -502,6 +502,26 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** after downtime, a lane shows its next full Window instead of a Window that would void at once or settle without its cross-check.
 - **Approval:** within plan r2 S3 (spec corrections found by the lanes' live proofs).
 
+### D-030 — Operator RPC: paced, retried transport; shared websockets; crash-only supervision
+- **Date / owner:** 2026-09-14 · S3 owner (devnet soak)
+- **Evidence:**
+  - **Helius limits:** the soak's first hour on Helius devnet (27 Series) hit 429s at boundary bursts and `fetch failed` on half-closed sockets.
+  - **Hung pass:** a Kit `sendTransaction` confirmation never resolved, and the roller was stuck ≈ 50 min.
+  - **Retry bug:** undici's `interceptors.retry` over `fetch` POST fails with `UND_ERR_REQ_CONTENT_LENGTH_MISMATCH` on the first retry (local repro), so it never retried.
+  - **Websockets:** Helius refused extra websockets (`WebSocket failed to connect`) with one subscriptions instance per client.
+  - **Pyth budget:** the Pyth receiver's `post_update` exceeded the SDK's tight compute budget on 3-feed updates.
+  - Stage-03 Findings list each fix's before/after window.
+- **Rule:**
+  - **One client composition** for every operator client (`createDeployClient`, `createOpsClient`): kit-plugin-rpc's `solanaRpc` plugins around `createSolanaRpcFromTransport(retryingRpcTransport(url))`.
+    - The transport paces each call (`RPC_MAX_RPS` 8, `sendTransaction` also `RPC_SEND_TPS` 3), sends through one bounded undici agent (16 connections, 30 s timeouts, 4 s keep-alive), and retries 429/5xx/socket errors with jittered backoff (6 tries).
+    - Subscriptions are one instance per URL, and the legacy Pyth lane shares one Connection per URL.
+  - **Timeouts:** every send aborts after 120 s; the next pass reconciles from chain.
+  - **Supervision:** crash-only. `main.ts` exits with 70 when any actor's pass runs longer than `OPS_STUCK_PASS_MS` (10 min), and a supervisor restarts it. Every actor rebuilds its state from chain on boot.
+  - **Pyth posts** use the SDK's non-tight compute budget.
+  - **Endpoints:** HTTP RPC on Helius, websockets on the public devnet endpoint (`SOLANA_WS_URL`), when Helius websockets are refused.
+- **User-visible:** Windows keep rolling and settling through provider rate limits; a stuck actor recovers within ≈ 10 min instead of silently stopping.
+- **Approval:** within plan r2 S3 (soak hardening; plan §9 risk "Helius 10 RPS (batch, cursor backfill)").
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

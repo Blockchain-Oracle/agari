@@ -116,6 +116,21 @@
   - **Maker:** it quoted TSLA-5m, TSLA-15m and NVDA-5m, requoted on fair moves, and pulled at lock − 60.
   - **Settler / indexer:** the settler closed the S2 drive Ledgers; the indexer lag was 0–0.7 s.
   - **Bug found:** the fork proxies the devnet 60m Series that `init-series` had just registered. The roller opened TSLA-1h and NVDA-1h 16:00–17:00Z at 16:35, past their open deadline (16:15), so both voided at once (then drained and closed cleanly). TSLA-15m opened at T + 300 missed its check window. Fixed in `f237bfd`: a late Window must still admit its opening prints (spec §5.2, D-029).
+- **Devnet soak, 09-14 (first session, from 16:46Z), incidents and fixes:**
+  - **16:46–18:10Z, failed:**
+    - Helius 429s at every 5-minute boundary burst (27 Series × open, prints, settle, close).
+    - Half-closed keep-alive sockets (`fetch failed`).
+    - A roller pass hung ≈ 50 min on a confirmation that never resolved (no send timeout), so the roller opened nothing after 16:54Z. The relay missed 39 slots, and those Windows voided honestly.
+    - **Fix** (`b9de845`): a send timeout of 120 s, a stuck-pass watchdog (exit 70, `data/soak/run.sh` supervisor restarts) and root-cause error text.
+  - **18:10–18:23Z** after that fix: 27 opened, 64 prints, 0 missed, 31 settled, 34 Ledgers closed.
+    - **Retry bug:** a `UND_ERR_REQ_CONTENT_LENGTH_MISMATCH` showed undici's retry interceptor cannot replay a `fetch` POST body (reproduced locally), so no 429 had ever been retried.
+    - **Fix** (`683da7b`): retries moved into a Kit `RpcTransport` (`deploy/rpc-transport.ts`), with the client composed from kit-plugin-rpc's `solanaRpc` plugins (local check: 429 → 503 → result). `/health` staleness is now per actor interval.
+  - **18:26–18:38Z:** 27 opened, 60 prints, 0 missed, 0 429 / fetch / pass failures, `/health` ok.
+    - **Remaining:** `WebSocket failed to connect` (one Kit subscriptions instance per role client plus a web3.js Connection per Pyth post) and `Computational budget exceeded` on the receiver `post_update` under the SDK's tight budget.
+    - **Fix** (`50d0635`): one subscriptions instance per URL; one Connection per URL; Pyth posts use the non-tight default (200k CU per instruction).
+  - **18:39–18:52Z:** 24 opened, 71 prints, 0 missed. A few sends still exhausted retries at the 18:45Z burst.
+    - **Fix** (`56b1951`): process-wide pacing, `RPC_MAX_RPS` 8 and `RPC_SEND_TPS` 3 (a 32-call burst flows at 8/s). Confirmations moved to the public devnet websocket (`SOLANA_WS_URL=wss://api.devnet.solana.com`) while HTTP stays on Helius. Restarted 18:54:52Z.
+  - **SOL float** (roller 4 → 2.26, settler 2.5 → 2.21 by 18:52Z): live Ledger + mvault ≈ 0.046 each (≈ 50 live and closing), plus Market ≈ 0.003 × ≈ 150 Windows/h retained 6 h. The roller's steady peak in a full session is ≈ 5 SOL, so top it up before the 09-15 open.
 - **SOL for the devnet run** (5,080 lamports/B incl. header):
   - 25 missing Series × 0.0076 ≈ 0.2 SOL.
   - Books: 16 new 5m/15m Series × 2 × 0.2900 ≈ 9.3 SOL, plus 9 new 60m Series × 2 × 0.2276 ≈ 4.1 SOL, so ≈ 13.4 SOL of Books.
