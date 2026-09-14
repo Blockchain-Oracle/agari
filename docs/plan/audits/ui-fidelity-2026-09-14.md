@@ -14,8 +14,10 @@ Agari `slice/S4e-fidelity` (base `a335841`) against Masayume, the only design au
 Source parity of the shell is already near-total. The drift the user saw has three causes, in order of how much of the screen they explain:
 
 1. **Data surfaces are empty, not restyled.** On this base the S4 reads (lane 4a) are not merged, so every data-driven surface shows its honest "not live" state: the ticker reads `AGARI NOT LIVE ON THIS NETWORK YET`, and the markets hero, ticket rail, lanes, word board, reels, surface, earn, parlay, range and moonshot are blank or refused. Masayume's live app shows prices, cards and odds in those same components. Most of "it doesn't look like Masayume" is this, and it closes with 4a/4d, not with CSS.
-2. **The connect modal was a different component.** `WalletPicker` was a shadcn `Sheet` sliding in from the right, painted `bg-popover` (= `--color-surface-3`, #404040 in dark), with default shadcn type. Masayume opens RainbowKit's compact modal: a centred 368 px panel on `--color-surface-1`, radius 24, a bottom sheet on phones, sliding up with a 350 ms overshoot. This is the "opens on the sidebar" and "sidebar colours" complaint. **Being fixed in this lane (§5).**
-3. **Leftover Masayume / Somnia / EVM copy** in chrome and content pages.
+2. **The connect modal was a different component.** `WalletPicker` was a shadcn `Sheet` sliding in from the right, painted `bg-popover` (= `--color-surface-3`, #404040 in dark), with default shadcn type. Masayume opens RainbowKit's compact modal: a centred 368 px panel on `--color-surface-1`, radius 24, a bottom sheet on phones, sliding up with a 350 ms overshoot. This is the "opens on the sidebar" and "sidebar colours" complaint. **Fixed in `a337a64` (§5).**
+3. **Leftover Masayume / Somnia / EVM copy** in chrome and content pages. The chrome, tutorial and install copy, and brand-only strings, are fixed in `3787560`; content pages are S15's.
+
+One bug hid in the chrome itself (C-22): the header's **Connect could hydrate invisible**, a race that depended on load timing. Fixed in `a337a64`.
 
 What is identical, verified:
 
@@ -24,6 +26,23 @@ What is identical, verified:
 - `components/shell/**` and `components/states/**` differ only in the brand mark and the wallet seam (plus two intentional honesty edits: `BootNotice` below the fixed chrome, and no retry on `not-deployed`).
 - At 390 px, the header, bottom pill nav, "Everything" drawer, games hub, tutorial and theme toggle render pixel-equivalent apart from data and brand words.
 - After brand normalisation, 275 files differ in total. Outside `features/markets`, `features/games`, `app/api` and `app/dev`, the differences are almost all chain-seam type changes and copy.
+
+### Summary (36 findings; rows marked plain "Match" are not counted)
+
+| Severity | Found | Fixed here | Open: owner |
+|---|---|---|---|
+| S1 | 5 | 2 (C-01 connect modal, C-22 invisible Connect) | C-07 ticker: 4a · `/markets`: 4a → 4d · `/reels`: 4d |
+| S2 | 11 | 3 + C-02's modal (C-15, C-19, `/download`) | C-02 button: 4d · P-04, P-05: 4a/SO · duel: S12 · range/moonshot: S10b · parlay: S10a · earn: S8 · surface: S5/4a |
+| S3 | 9 | 4 (C-08, C-09, C-23, `/native-auth`) | season: S12 · status: S5/S16 · how-it-works, demo, pitch: S15 |
+| S4 | 11 | — | notes and data-gated checks: 4a, 4d, S5, S9, S11, S12, S15, SO |
+
+- **By primary owner:**
+  - **4e:** 10 findings, all fixed.
+  - **4d:** 3, plus C-02's button follow-up; `/markets` also waits on 4a.
+  - **4a / stage owner:** 6.
+  - **4c:** 0.
+  - **Later stages:** 15 (S5 3, S8 1, S9 1, S10a 1, S10b 1, S11 1, S12 3, S15 4).
+  - **No owner:** 2 intentional or non-drifts (C-17, C-20).
 
 ## 3. Severity and owners
 
@@ -44,31 +63,44 @@ What is identical, verified:
 
 | # | Item | Masayume | Agari | Difference | Sev | Owner | Status |
 |---|---|---|---|---|---|---|---|
-| C-01 | Connect modal | RainbowKit compact modal (`providers/rainbowkit-theme.ts`, `AppProviders.tsx`) | `providers/wallet/WalletPicker.tsx` | Right `Sheet` on #404040 vs centred token-coloured modal / phone bottom sheet; no wallet rows with icons, groups, "Recent", intro, "Get a Wallet", connecting/retry or not-installed views | S1 | 4e | In progress (§5) |
-| C-02 | Account modal (connected `ConnectButton`) | RainbowKit `AccountModal` via `openAccountModal` (`features/markets/wallet/ConnectButton.tsx`) | `ConnectButton` renders an inert address label | No modal: no emoji avatar, Copy Address or Disconnect | S2 | 4e (modal), 4d (button) | In progress (§5); 4d wires `session.openAccount` |
+| C-01 | Connect modal | RainbowKit compact modal (`providers/rainbowkit-theme.ts`, `AppProviders.tsx`) | `providers/wallet/WalletPicker.tsx` | Right `Sheet` on #404040 vs centred token-coloured modal / phone bottom sheet; no wallet rows with icons, groups, "Recent", intro, "Get a Wallet", connecting/retry or not-installed views | S1 | 4e | Fixed `a337a64` |
+| C-02 | Account modal (connected `ConnectButton`) | RainbowKit `AccountModal` via `openAccountModal` (`features/markets/wallet/ConnectButton.tsx`) | `ConnectButton` renders an inert address label | No modal: no emoji avatar, Copy Address or Disconnect | S2 | 4e (modal), 4d (button) | Modal fixed `a337a64`; 4d wires `session.openAccount` (messaged) |
 | C-03 | Header | `components/shell/header/Header.tsx` | same | Brand mark and word only | — | — | Match |
 | C-04 | Header account pill and menu | `HeaderAccount.tsx` (RainbowKit `displayName`) | `HeaderAccount.tsx` (`shortHex` 4…4) | Same markup and classes; base58 short form instead of 0x | — | — | Match (Adapted) |
 | C-05 | Money pill | `HeaderMoneyPill.tsx` | same | Imports only | — | — | Match |
 | C-06 | App strip | `AppStrip.tsx` | same | "Solana devnet — test funds only" line (Adapted) | — | — | Match |
 | C-07 | Marquee ticker | `Marquee.tsx` | same + failure headline | Masayume shows prices; Agari shows `AGARI NOT LIVE ON THIS NETWORK YET` because lanes/prices aren't read | S1 | 4a | Waits on reads |
-| C-08 | Desktop nav menus | `DesktopNavMenu.tsx`, `nav-items.ts` | same | `nav-items.ts` still says "Install Masayume as a web app." and "Read the concise Masayume thesis." | S3 | 4e | In progress |
-| C-09 | Mobile pill nav + "Everything" drawer | `MobileBottomNav.tsx` | same | Visually identical at 390 (checked); title "Everything in Masayume", aria "All Masayume destinations" | S3 | 4e | In progress |
+| C-08 | Desktop nav menus | `DesktopNavMenu.tsx`, `nav-items.ts` | same | `nav-items.ts` still says "Install Masayume as a web app." and "Read the concise Masayume thesis." | S3 | 4e | Fixed `3787560` |
+| C-09 | Mobile pill nav + "Everything" drawer | `MobileBottomNav.tsx` | same | Visually identical at 390 (checked); title "Everything in Masayume", aria "All Masayume destinations"; app-strip region "Install Masayume" | S3 | 4e | Fixed `3787560` |
 | C-10 | Footer | `Footer.tsx` | same | Byte-identical | — | — | Match |
 | C-11 | Grain, custom cursor, theme toggle | `GrainOverlay`, `CustomCursor`, `ThemeToggle` | same | Byte-identical; storage key `agari_theme` | — | — | Match |
 | C-12 | Theme tokens, fonts, icons | `styles/**`, `lib/fonts.ts`, `styles/icons.css` | same | Byte-identical | — | — | Match |
 | C-13 | Buttons, inputs, cards, badges, tabs, tooltip, switch | `components/ui/**` | same | Byte-identical | — | — | Match |
 | C-14 | Toasts | `components/ui/toast.tsx`, `styles/toast.css`, `lib/toast.ts` | same | Byte-identical | — | — | Match |
-| C-15 | Tutorial (first run) | `features/onboarding/*` | same | Same modal, dots and motion. Copy tells users to "Sign in with email", which is false since D-023 | S2 | 4e | In progress |
-| C-16 | Sensei dock and drawer | `features/sensei/*` | same | Mark and stock wording only; the dock's live read is empty without lanes | S4 | 4a (data) | Match (chrome) |
+| C-15 | Tutorial (first run) | `features/onboarding/*` | same | Same modal, dots and motion. Copy tells users to "Sign in with email", which is false since D-023 | S2 | 4e | Fixed `3787560` (Masayume's line with "any Solana wallet") |
+| C-16 | Sensei dock and drawer | `features/sensei/*` | same | Drawer, bubbles, starters and input identical at 1440 (checked open). Mark and stock wording differ; the meter shows `···` because lanes are not read | S4 | 4a (data) | Match (chrome) |
 | C-17 | States: loading, empty, error, stale, boundary | `components/states/*` | same | `BootNotice` sits inside `<main>` below the fixed chrome; `not-deployed` offers no retry (honesty, D-015) | S4 | — | Match (intentional) |
 | C-18 | 404 | `app/not-found.tsx` → `/markets?note=moved` | same | The "That page moved" note renders inside the lanes region, which is empty without reads | S4 | 4d/4a | Re-check after reads |
-| C-19 | Install / PWA | `features/install/*`, `public/manifest.webmanifest` | same | `/download` title reads "Get Masayume · Agari"; install copy promises "Sign in with email" | S2 | 4e | In progress |
+| C-19 | Install / PWA | `features/install/*`, `public/manifest.webmanifest` | same | `/download` title reads "Get Masayume · Agari"; install copy promises "Sign in with email" | S2 | 4e | Fixed `3787560` |
 | C-20 | Next dev indicator | — | `next dev` "N" badge | Dev server only; absent from `next build` | S4 | — | Not a drift |
 | C-21 | Root layout, providers order | `app/layout.tsx`, `AppProviders.tsx` | same | `WalletShellProvider` replaces Wagmi + RainbowKit; the rest is in order | — | — | Match (Adapted) |
+| C-22 | Header "Connect" after hydration | RainbowKit `mounted` render prop keeps server and client equal | `WalletShellProvider` + `HeaderAccount` | The Kit plugin hands hydration its live store, which has usually settled on `disconnected`. React then hydrated the inert server button with live props and kept `invisible`, `aria-hidden` and `tabindex=-1`: **no Connect button in the header** (dev log: "attributes … didn't match … won't be patched up"). It happened on some loads, not others | S1 | 4e | Fixed `a337a64` (status gated on hydration) |
+| C-23 | Header control while connecting | Stays "Connect" (RainbowKit shows progress in the modal) | Read "Connecting…" and disabled itself | Label and state drift | S3 | 4e | Fixed `a337a64` |
+| C-24 | Brand mark | `MasayumeMark.tsx` (正夢 crescent) | `AgariMark.tsx` is the same glyph, renamed | A logo is allowed to differ; Agari (上がり) has no mark of its own yet | S4 | S15 | Open |
 
 ## 5. Connect and account modals (C-01, C-02)
 
-Being rebuilt in `web/src/providers/wallet/` over our own base-ui `Dialog`, keeping the D-023 seam (`useWalletSession().connect()` opens it; the Kit wallet plugin discovers, connects and remembers). Measurements below are from masayume.app (dark) and RainbowKit 2.2.11.
+Rebuilt in `web/src/providers/wallet/` (`a337a64`) over our own base-ui `Dialog`, keeping the D-023 seam (`useWalletSession().connect()` opens it; the Kit wallet plugin discovers, connects and remembers). Measurements below are from masayume.app (dark) and RainbowKit 2.2.11.
+
+**Verified on Agari, dev and `next start`.** At 1440, every node of the list, "What is a Wallet?", "Get a Wallet", "Opening…" and RETRY views sits at the same x/y/w/h as masayume.app's, to the pixel. Checked with a spec-conformant Wallet Standard test wallet (WebCrypto Ed25519) injected in the page:
+
+- Installed group, Recent tag, and connect → modal closes → header pill.
+- The account modal, and Disconnect → header back to Connect.
+- A rejected connect shows RETRY.
+- The phone bottom sheet, icon strip and Get step at 390.
+- Light theme at 768.
+
+**Two pipeline notes, both shared with Masayume's build:** the CSS pipeline drops a `backdrop-filter` declared next to its `-webkit-` twin (masayume.app's `.modal-scrim` has lost its blur the same way), so the modal declares it unprefixed only. `base.css`'s `:focus-visible` ring is suppressed on the popup, as RainbowKit's inline `outline: none` did.
 
 | Part | Masayume (measured) | Agari |
 |---|---|---|
@@ -84,7 +116,7 @@ Being rebuilt in `web/src/providers/wallet/` over our own base-ui `Dialog`, keep
 | Connecting | 44 px icon, "Opening X...", "Confirm connection in the extension", conic spinner, "RETRY" on failure | same |
 | Not installed | "X is not installed" + "INSTALL" | same |
 | Phone layout | 60 px icon strip, "What is a Wallet?" paragraph, two large outline buttons | same |
-| Account modal | 74 px emoji avatar (80 on phones), 18 px 800 `4…4` address, "Copy Address"/"Copied!" and "Disconnect" tiles on `--color-surface-2` | same; native balance line omitted until a SOL balance read exists (SO) |
+| Account modal | 74 px emoji avatar (82 on phones), 18 px 800 `4…4` address, "Copy Address"/"Copied!" and "Disconnect" tiles on `--color-surface-2` | same; native balance line omitted until a SOL balance read exists (SO) |
 
 ## 6. Routes
 
@@ -112,16 +144,29 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 | `/how-it-works` | Same layout; copy is still Somnia/EVM ("Connect any EVM wallet…", "ERC-6909 outcome tokens on Somnia") | S3 | S15 | Copy |
 | `/demo` | h1 "See Masayume work.", Somnia copy, the Masayume demo video; venue read unavailable | S3 | S15 | Copy |
 | `/pitch` | Somnia thesis, `SomniaMark`, "Built on Somnia" | S3 | S15 | Copy |
-| `/download` | Title "Get Masayume"; "Sign in with email" | S2 | 4e | In progress |
+| `/download` | Title "Get Masayume"; "Sign in with email" | S2 | 4e | Fixed `3787560` |
 | `/trade-from-x`, `/claim` | "X sign-in is temporarily unavailable" (no X keys) | S4 | S11 | Env |
-| `/native-auth` | Body says "Masayume has no native build today" | S3 | S15 | Copy |
+| `/native-auth` | Body said "Masayume has no native build today" | S3 | 4e | Fixed `3787560` |
 | Legacy `/bell`, `/beta`, `/markets-live`, `/pool`, `/markets/[id]` | Same redirects | — | — | Match |
 
-**Brand copy still reading Masayume** (user-visible, outside chrome, for S15 unless noted):
+**Brand copy that read Masayume.** Where only the name was wrong, the string was fixed in `3787560`:
 
-- `features/alerts/copy.ts` "while Masayume is open": 4e, in progress.
-- `takes/copy.ts`, `private/copy.ts`, `edge/copy.ts` "Masayume readout", `earn/copy.ts` "Masayume MM", `surface/copy.ts` crumb and lead, `strategies/copy.ts` and `StudioForm.tsx` "Let Masayume run it".
-- `app/native-auth/page.tsx`; `api/news` User-Agent.
+- alerts "while Masayume is open"
+- takes "stored by Masayume"
+- private "Nobody at Masayume"
+- edge "Masayume readout"
+- earn "Masayume MM"
+- surface crumb and lead (which also named DreamDEX)
+- strategies "Masayume Ledger" and "Let Masayume run it", plus the Agents crumb
+- native-auth
+- the news bot User-Agent
+
+**Left for S15**, because the sentences themselves describe Somnia/EVM and need rewriting, not renaming:
+
+- `how-it-works/content.ts`
+- `demo/copy.ts` and `DemoVideo.tsx`
+- `pitch/*`
+- the Masayume demo video
 
 ## 7. Performance
 
@@ -136,11 +181,26 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 | P-07 | Fonts | `next/font/google` Sora, Inter, JetBrains Mono, Noto Serif JP | byte-identical | Match | — |
 | P-08 | Wallet stack in the bundle | wagmi + viem + RainbowKit on every page | Kit wallet plugin only | Smaller | — |
 | P-09 | `next.config.ts` | `@coinbase/cdp-sdk` stub alias (RainbowKit baggage) | still present, now dead | Noise (plan §5 "Removed noise") | SO |
-| P-10 | Bundle size | measured in §8 | measured in §8 | see §8 | — |
+| P-10 | Bundle size | 58 JS files, 3,492 KB decoded / 934 KB brotli on `/markets` | 34 files, 1,952 KB decoded / 608 KB gzip | ≈ 44 % less JS (see §8) | — |
 
 ## 8. Build and bundle
 
-Filled in from `pnpm build` before the lane's final commit.
+- **`pnpm build`** (web, Next 16.3.4 Turbopack, on `3787560`): compiled in 21.0 s under a load average of 12 (other lanes were building); 68/68 static pages. Next 16 no longer prints per-route sizes, so bundles were measured in the browser.
+- **`/markets`, cold cache, 1440 dark, resource timing:**
+
+| | masayume.app (Vercel) | Agari `next start` |
+|---|---|---|
+| JS files | 58 | 34 |
+| JS decoded | 3,492 KB | 1,952 KB |
+| JS transferred | 934 KB (brotli) | 608 KB (gzip) |
+| CSS decoded | 700 KB | 685 KB |
+| Preloaded fonts | 4 (Sora, Inter, JetBrains Mono subsets) | the same 4 files |
+
+- **Caveats:**
+  - Agari's `/markets` renders its not-deployed state, so the lazily loaded `lightweight-charts` chunk (one `next/dynamic`) is not fetched. That is about 160 KB on Masayume.
+  - Masayume's figure includes wagmi, viem and RainbowKit on every page.
+  - The two servers compress differently, so the decoded sizes are the comparable figure.
+- **Prod console:** no hydration warning after C-22; only Next's "preloaded but not used" warnings for prefetched route CSS and `/app/bet-screen.png`.
 
 ## 9. Items for other owners
 
@@ -150,7 +210,10 @@ Filled in from `pnpm build` before the lane's final commit.
   - `/reels` empty card height and copy.
   - The `?note=moved` line renders only inside populated lanes.
 - **4a / stage owner:** P-04 live price transport, P-05 book coordinator and endpoint health, the SOL balance read for the account modal, and the ticker/lanes reads (C-07).
-- **Stage owner:** P-09 dead `@coinbase/cdp-sdk` alias in `web/next.config.ts`; `THIRD_PARTY_NOTICES.md` still describes Masayume.
+- **Stage owner:**
+  - P-09: the dead `@coinbase/cdp-sdk` alias in `web/next.config.ts`.
+  - `THIRD_PARTY_NOTICES.md` still describes Masayume. A "Wallet modals" section (RainbowKit MIT, Solana Wallet Adapter icons Apache-2.0) was added in `a337a64`.
+  - D-023's wording ("WalletPicker (a sheet above the fixed chrome, z 1000)") is superseded: it is now a centred modal / phone bottom sheet at z 1000, with `useWalletSession().openAccount()` added to the seam.
 - **4c:** nothing drifted in `features/funding/**` beyond Adapted copy; re-check `AddFunds` and `CreditWelcome` motion after funding lands.
 - **Later stages:** S15 copy (how-it-works, demo, pitch, native-auth, strategies/surface/earn/edge/takes/private brand words), S12 season env and arena, S10a/b parlay/range/moonshot explainers that could render without the program, S8 earn explainer, S5 surface and status probes.
 
@@ -158,4 +221,6 @@ Filled in from `pnpm build` before the lane's final commit.
 
 | Commit | Change |
 |---|---|
-| (pending) | this audit |
+| `6d90995` | this audit, first version |
+| `a337a64` | C-01 connect modal, C-02 account modal + `openAccount`, C-22 header hydration, C-23 header label; wallet artwork in `web/public/wallet/`; notices |
+| `3787560` | C-08, C-09, C-15, C-19 copy; brand-only strings in alerts, takes, private, edge, earn, surface, strategies, native-auth, news UA |
