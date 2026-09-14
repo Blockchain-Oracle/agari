@@ -11,7 +11,7 @@ export function copyStateOf(card: { active: boolean; runner: string }, sub: Stra
   if (!sub.active || grant?.revoked) return "paused";
   if (!grant || grant.grantId !== sub.grantId) return "replaced";
   if (grant.expiresAtSec <= nowSec) return "expired";
-  if (grant.actor.toLowerCase() !== card.runner.toLowerCase()) return "runner-changed";
+  if (grant.actor !== card.runner) return "runner-changed";
   if (grant.budgetBase <= 0n) return "unfunded";
   return sub.live ? "copying" : "paused";
 }

@@ -1,12 +1,12 @@
 "use client";
 
-import type { Hex } from "@agari/core/types";
+import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { RANGE } from "./copy";
 
 /** The ticket's body once a band is on chain: the receipt line, the transaction, the rounds page, "another". */
-export function RangePlaced({ placed, onAnother }: { placed: { txHash: Hex; band: string }; onAnother: () => void }) {
+export function RangePlaced({ placed, onAnother }: { placed: { txHash: Signature; band: string }; onAnother: () => void }) {
   return (
     <div className="flex flex-col gap-3" role="status">
       <p className="type-body text-ink">{RANGE.cta.placed(placed.band)}</p>

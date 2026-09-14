@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StrategySubscription } from "@agari/core/strategies";
+import { encodeBase58, toAddress } from "@agari/core/types";
 import type { VaultGrant } from "@agari/core/vault";
 import { copyProgressKey, matchesProgressGrant, parseCopyProgress, type CopyProgress } from "./copy-progress";
 import { strategyIdentity } from "./identity";
@@ -7,7 +8,8 @@ import { copyStateOf } from "./lifecycle";
 import { initialStudioDraft, studioReadKey } from "./studio-draft";
 import { parseAmount } from "./format";
 
-const RUNNER = "0x1111111111111111111111111111111111111111";
+const RUNNER = toAddress(encodeBase58(new Uint8Array(32).fill(0x11)));
+const OTHER = toAddress(encodeBase58(new Uint8Array(32).fill(0x22)));
 const CARD = { strategyId: "1", active: true, runner: RUNNER, metadata: "" };
 const SUB: StrategySubscription = { strategyId: 1n, subscriber: RUNNER, grantId: 8n, subscribedAtSec: 10, active: true, live: true };
 const GRANT: VaultGrant = { grantId: 8n, owner: RUNNER, actor: RUNNER, kind: "strategy", revoked: false, expiresAtSec: 200, spentDay: 0, spentTodayBase: 0n, openPositions: 0, caps: { maxStakePerTradeBase: 1n, maxDailySpendBase: 5n, maxOpenPositions: 1, maxPriceRaw: 0n }, budgetBase: 5n };
@@ -21,7 +23,7 @@ describe("copy lifecycle", () => {
     expect(copyStateOf(CARD, SUB, { ...GRANT, revoked: true }, 100)).toBe("paused");
     expect(copyStateOf(CARD, SUB, { ...GRANT, grantId: 9n }, 100)).toBe("replaced");
     expect(copyStateOf(CARD, SUB, GRANT, 200)).toBe("expired");
-    expect(copyStateOf({ ...CARD, runner: `0x${"2".repeat(40)}` }, SUB, GRANT, 100)).toBe("runner-changed");
+    expect(copyStateOf({ ...CARD, runner: OTHER }, SUB, GRANT, 100)).toBe("runner-changed");
     expect(copyStateOf(CARD, SUB, { ...GRANT, budgetBase: 0n }, 100)).toBe("unfunded");
     expect(copyStateOf({ ...CARD, active: false }, SUB, GRANT, 100)).toBe("inactive");
   });
@@ -52,8 +54,9 @@ describe("stored copy progress", () => {
     expect(parseCopyProgress(JSON.stringify(progress))).toEqual(progress);
     expect(parseCopyProgress('{"stage":"subscribe-ready"}')).toBeNull();
     expect(parseCopyProgress("broken")).toBeNull();
-    expect(copyProgressKey("0xAAA", "0xBBB")).toBe(copyProgressKey("0xaaa", "0xbbb"));
-    expect(copyProgressKey("0xAAA", "0xBBB")).not.toBe(copyProgressKey("0xCCC", "0xBBB"));
+    // Base58 is case-sensitive: a re-cased wallet is another wallet, never the same progress (D-010).
+    expect(copyProgressKey(RUNNER, OTHER)).not.toBe(copyProgressKey(RUNNER.toLowerCase(), OTHER));
+    expect(copyProgressKey(RUNNER, OTHER)).not.toBe(copyProgressKey(OTHER, OTHER));
   });
   it("recognizes the exact known permission even after its budget has decreased", () => {
     expect(matchesProgressGrant(progress, GRANT)).toBe(true);

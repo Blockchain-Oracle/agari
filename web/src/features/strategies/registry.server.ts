@@ -1,6 +1,6 @@
 import { isOk } from "@agari/core/schemas";
 import { deriveRunnerHealth, parseStrategyMetadata, scoreFill, strategyRecord, type AgentWindowOutcome, type FillSettlement, type StrategyFill, type StrategyRecord } from "@agari/core/strategies";
-import { SIDE_TO_OUTCOME, toMarketId, type Address, type Hex, type MarketId } from "@agari/core/types";
+import { SIDE_TO_OUTCOME, toMarketId, type Address, type MarketId, type Signature } from "@agari/core/types";
 import { isDbConfigured, latestHeartbeats, listPlaybooks, listStrategyDecisions, listStrategyFills, recentHeartbeats, type StrategyDecisionRecord, type StrategyFillRecord } from "@agari/db";
 import { ensureMarkets, loadCollateral, marketsProvider, mapPool, parseMarketsEnv, unwrap } from "@agari/markets";
 import { listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
@@ -23,7 +23,7 @@ function boot(): void {
 
 function toFill(row: StrategyFillRecord): StrategyFill {
   return {
-    txHash: row.txHash as Hex,
+    txHash: row.txHash as Signature,
     strategyId: BigInt(row.strategyId),
     grantId: BigInt(row.grantId),
     owner: row.owner as Address,

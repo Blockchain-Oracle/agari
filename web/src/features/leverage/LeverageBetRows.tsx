@@ -33,7 +33,7 @@ function Row({ position, symbol, decimals, nowMs, writes }: RowProps) {
       nowMs={nowMs}
       busy={writes.busy}
       canSign={writes.canSign}
-      isOwner={writes.address?.toLowerCase() === position.owner}
+      isOwner={writes.address === position.owner}
       onCashOut={(p, min) => void writes.close(p.positionId, p.marketId, min, decimals, symbol ?? "")}
       onSettle={(p) => void writes.settle(p.positionId, p.marketId)}
     />

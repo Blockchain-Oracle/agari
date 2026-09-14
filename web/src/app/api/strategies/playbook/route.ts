@@ -2,8 +2,8 @@ import { isOk } from "@agari/core/schemas";
 import { isDbConfigured, upsertPlaybook } from "@agari/db";
 import { getStrategy } from "@agari/markets/strategies";
 import { NextResponse } from "next/server";
-import { verifyMessage } from "viem";
 import { playbookMessage, playbookRequestSchema } from "@/features/strategies/protocol";
+import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 
 const SIGNATURE_TTL_MS = 5 * 60_000;
 
@@ -20,12 +20,12 @@ export async function POST(req: Request) {
   const { strategyId, creator, issuedAtMs, body, signature } = parsed.data;
   if (Math.abs(Date.now() - issuedAtMs) > SIGNATURE_TTL_MS) return NextResponse.json({ error: "stale signature" }, { status: 400 });
 
-  const ok = await verifyMessage({ address: creator as `0x${string}`, message: playbookMessage(strategyId, creator, issuedAtMs, body), signature: signature as `0x${string}` }).catch(() => false);
+  const ok = await verifyWalletMessage({ text: playbookMessage(strategyId, creator, issuedAtMs, body), signature, signer: creator });
   if (!ok) return NextResponse.json({ error: "bad signature" }, { status: 401 });
 
   const strategy = await getStrategy(BigInt(strategyId));
   if (!isOk(strategy) || !strategy.value) return NextResponse.json({ error: "strategy unreadable" }, { status: 503 });
-  if (strategy.value.creator !== creator.toLowerCase()) return NextResponse.json({ error: "not the creator" }, { status: 403 });
+  if (strategy.value.creator !== creator) return NextResponse.json({ error: "not the creator" }, { status: 403 });
 
   await upsertPlaybook(strategyId, creator, body);
   return NextResponse.json({ ok: true });

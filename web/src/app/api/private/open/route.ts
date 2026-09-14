@@ -3,16 +3,17 @@ import { privateOpenMessage, privateOpenRequestSchema } from "@agari/core/privat
 import { toMarketId } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { getCollateral, marketsProvider } from "@agari/markets";
-import { canonicalSignature, openPrivateBet } from "@agari/markets/private";
+import { openPrivateBet } from "@agari/markets/private";
 import { NextResponse } from "next/server";
-import { verifyMessage } from "viem";
 import { getDesk } from "@/features/private/desk.server";
+import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { gate } from "@/features/session/sponsor.server";
 
 /**
  * Open a private bet. Proof that the caller IS the owner comes first: the route rebuilds the exact message
  * the wallet showed — from the chain's own Window, not the caller's strings — and checks the signature
- * against `owner`. Without this the endpoint would be a faucet for whoever can send a POST.
+ * against `owner` (ed25519 over the exact UTF-8 text, D-012). Without this the endpoint would be a faucet for whoever
+ * can send a POST.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,9 +28,9 @@ export async function POST(req: Request) {
   const parsed = privateOpenRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return refuse(400, "malformed private open request");
   const body = parsed.data;
-  // One authorisation, one byte form: a malleated twin of the same signature must not become a second slot.
-  const signature = canonicalSignature(body.signature as `0x${string}`);
-  if (!signature) return refuse(400, "the authorisation signature is not in its canonical form");
+  // One authorisation, one byte form: base58 has a single encoding per byte string, and ed25519 verification rejects a
+  // non-canonical `s`, so a malleated twin of the same signature can't become a second slot.
+  const signature = body.signature;
   const nowMs = Date.now();
   const byOwner = gate("address", body.owner, OPENS_PER_OWNER_PER_HOUR, nowMs);
   if (!byOwner.ok) return refuse(429, byOwner.reason);
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     symbol: collateral.symbol,
     issuedAtMs: body.issuedAtMs,
   });
-  const authorised = await verifyMessage({ address: body.owner, message, signature }).catch(() => false);
+  const authorised = await verifyWalletMessage({ text: message, signature, signer: body.owner });
   if (!authorised) return refuse(401, "authorisation was not signed by the owner");
 
   const result = await openPrivateBet(desk, {

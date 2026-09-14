@@ -1,5 +1,6 @@
 "use client";
 
+import type { Address, Signature } from "@agari/core/types";
 import { useState } from "react";
 import { notify } from "@/lib/toast";
 import { STRATEGIES } from "./copy";
@@ -18,7 +19,7 @@ interface DeskJoinProps {
   payload: StrategiesPayload;
   desk: DeskModel;
   writes: ReturnType<typeof useDeskWrites>;
-  onJoined: (tx: `0x${string}`) => void;
+  onJoined: (tx: Signature) => void;
 }
 
 /** JOIN: collapsed to one CTA, then one decision (the amount) with defaulted, editable guardrails. */
@@ -48,7 +49,7 @@ export function DeskJoin({ featured, payload, desk, writes, onJoined }: DeskJoin
 
   const join = async () => {
     if (budgetBase <= 0n || belowFloor) return;
-    const result = await writes.join({ strategyId: BigInt(featured.strategyId), runner: featured.runner as `0x${string}`, depositBase, budgetBase, caps, feeBase: BigInt(featured.feeBase) });
+    const result = await writes.join({ strategyId: BigInt(featured.strategyId), runner: featured.runner as Address, depositBase, budgetBase, caps, feeBase: BigInt(featured.feeBase) });
     if (result.ok) {
       if (result.txHash) onJoined(result.txHash);
       setDepositStr("");

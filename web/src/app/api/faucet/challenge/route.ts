@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { FaucetError } from "@agari/core/faucet";
+import { addressSchema } from "@agari/core/types";
 import { faucetBody, faucetErrorResponse, faucetForRequest } from "@/features/funding/faucet-config.server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-const schema = z.object({ wallet: z.string().regex(/^0x[0-9a-fA-F]{40}$/).transform((s) => s.toLowerCase()) });
+/** Base58 is case-sensitive: the wallet is validated and kept exactly as sent (D-010). */
+const schema = z.object({ wallet: addressSchema });
 export async function POST(request: Request) {
   try {
     const { service, ipHash, origin } = faucetForRequest(request);

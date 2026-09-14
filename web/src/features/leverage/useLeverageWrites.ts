@@ -4,17 +4,14 @@ import type { MarketId, Side } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { submitLeverageOpen, type LeverageOpenOutcome } from "@agari/markets/leverage";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { getClient } from "@agari/markets/runtime";
 import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { recordBet } from "@/features/room/record-bet";
 import { useCallback, useState } from "react";
-import type { PublicClient } from "viem";
 import { diagnosisCopy } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
 import { notify } from "@/lib/toast";
-import { useWalletSession } from "@/lib/wallet-session";
-import { useOwnerWalletClient } from "@/providers/UserSessionProvider";
+import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { LEVERAGE } from "./copy";
 
 export type LeverageBusyKey = "open" | `close:${string}` | `settle:${string}` | `knock:${string}`;
@@ -36,15 +33,15 @@ export interface LeverageOpenInput {
  */
 export function useLeverageWrites() {
   const submitter = useSubmitter();
-  const walletClient = useOwnerWalletClient();
+  const wallet = useOwnerWallet();
   const { address } = useWalletSession();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<LeverageBusyKey | null>(null);
 
   const contracts = useCallback((): VaultContracts | null => {
-    if (!walletClient) return null;
-    return { walletClient, publicClient: getClient().getViemClient() as PublicClient, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [walletClient]);
+    if (!wallet) return null;
+    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
+  }, [wallet]);
 
   const refresh = useCallback(
     async (marketId?: MarketId) => {
@@ -124,5 +121,5 @@ export function useLeverageWrites() {
     [submitter, refresh],
   );
 
-  return { open, close, settle, knockOut, busy, address, canSign: Boolean(submitter && walletClient) };
+  return { open, close, settle, knockOut, busy, address, canSign: Boolean(submitter && wallet) };
 }

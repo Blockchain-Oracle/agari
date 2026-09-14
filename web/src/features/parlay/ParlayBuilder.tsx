@@ -3,7 +3,7 @@
 import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@agari/core/parlay";
 import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import { isOk } from "@agari/core/schemas";
-import type { EventMarket, Hex } from "@agari/core/types";
+import type { EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet } from "@agari/markets/react";
 import { Layers, Plus, Wallet, Zap } from "lucide-react";
@@ -52,7 +52,7 @@ export function ParlayBuilder({ reserve, symbol }: ParlayBuilderProps) {
   const [step, setStep] = useState<PlaceStep>("idle");
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
-  const [txHash, setTxHash] = useState<Hex | null>(null);
+  const [txHash, setTxHash] = useState<Signature | null>(null);
 
   // ── leg authoring ──
   const addLeg = useCallback(
@@ -212,7 +212,7 @@ export function ParlayBuilder({ reserve, symbol }: ParlayBuilderProps) {
                 market={marketOf(leg)}
                 windows={windows}
                 legProbBps={quote?.legProbBps[i] ?? null}
-                thin={thin && thin.marketId.toLowerCase() === leg.marketId.toLowerCase() ? thin : null}
+                thin={thin && thin.marketId === leg.marketId ? thin : null}
                 decimals={decimals}
                 nowMs={nowMs}
                 onPatch={patchLeg}

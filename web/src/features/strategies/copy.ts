@@ -198,7 +198,7 @@ export const STRATEGIES = {
     soonBody: "Creators list their own agent's memory · self-serve, next",
     honest: "Sealed, purchasable playbooks need an encrypted store this deployment does not have. Playbooks here are plain text every visitor can read from the strategy card.",
   },
-  disclosure: (asset: string) => `Agents trade tUSDC on Somnia testnet using eligible Up/Down Windows for ${asset}. You can lose your full budget. The agent cannot withdraw or divert it. Verify every position on-chain.`,
+  disclosure: (asset: string) => `Agents trade tUSDC on Solana devnet using eligible Up/Down Windows for ${asset}. You can lose your full budget. The agent cannot withdraw or divert it. Verify every position on-chain.`,
   drawer: {
     record: "On-chain record ↗",
     guarantee: { eyebrow: "It can't touch your funds", body: "Your balance stays in your Vault. The agent can open positions for you under hard caps, but it", strong: "cannot withdraw or divert it.", verify: "verify limits on-chain ↗" },

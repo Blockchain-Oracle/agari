@@ -92,7 +92,6 @@ export const privateCashoutRequestSchema = z.object({
 });
 export type PrivateCashoutRequest = z.infer<typeof privateCashoutRequestSchema>;
 
-const hexString = z.string().regex(/^0x[0-9a-fA-F]*$/);
 
 /** One stored claim, checked field by field on restore so a hand-edited backup can never brick the list that is the only record of unclaimed money. */
 export const privateTicketSchema = z.object({
@@ -106,13 +105,13 @@ export const privateTicketSchema = z.object({
   expirySec: z.number().int().positive(),
   quantityRaw: decimalString,
   costBase: decimalString,
-  txs: z.object({ charge: hexString, fund: hexString, mint: hexString }),
+  txs: z.object({ charge: signatureSchema, fund: signatureSchema, mint: signatureSchema }),
   openedAtMs: z.number().int().positive(),
   status: z.enum(["open", "settled", "credited"]),
   payoutBase: decimalString.optional(),
   creditedBase: decimalString.optional(),
   creditedAtMs: z.number().int().positive().optional(),
-  creditTx: hexString.optional(),
+  creditTx: signatureSchema.optional(),
 });
 
 /** The backup file: plain JSON on purpose — it has to survive a lost laptop, a new device, and this app going away. */

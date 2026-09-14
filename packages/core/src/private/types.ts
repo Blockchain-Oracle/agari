@@ -1,5 +1,5 @@
 import type { MarketId, Side } from "../types/market";
-import type { Address, Hash32, Hex } from "../types/primitives";
+import type { Address, Hash32, Hex, Signature } from "../types/primitives";
 
 /** Where the desk lives on one chain — regenerated from `contracts/deployments` (AD-10). */
 export interface PrivateDeployment {
@@ -120,7 +120,8 @@ export interface PrivateTicket {
   expirySec: number;
   quantityRaw: string;
   costBase: string;
-  txs: { charge: Hex; fund: Hex; mint: Hex };
+  /** Solana transaction signatures of the desk's sends. */
+  txs: { charge: Signature; fund: Signature; mint: Signature };
   openedAtMs: number;
   status: PrivateTicketStatus;
   /** What the contracts paid at settlement; absent when this browser never saw the settlement itself. */
@@ -128,7 +129,7 @@ export interface PrivateTicket {
   /** What reached the private balance (payout plus dust). */
   creditedBase?: string;
   creditedAtMs?: number;
-  creditTx?: Hex;
+  creditTx?: Signature;
 }
 
 /** `GET /api/private/status` — whether the private route can run, and why not. */
@@ -148,13 +149,13 @@ export interface PrivateStatus {
 export type PrivateOpenResult =
   | { status: "opened"; ticket: PrivateTicket }
   /** The book refused the mint; the stake went straight back to the private balance. */
-  | { status: "refused"; reason: string; technical: string; refundedBase: string; txs: Partial<{ charge: Hex; fund: Hex; sweep: Hex; credit: Hex }> }
-  | { status: "unknown"; reason: string; txs: Partial<{ charge: Hex; fund: Hex; mint: Hex }> };
+  | { status: "refused"; reason: string; technical: string; refundedBase: string; txs: Partial<{ charge: Signature; fund: Signature; sweep: Signature; credit: Signature }> }
+  | { status: "unknown"; reason: string; txs: Partial<{ charge: Signature; fund: Signature; mint: Signature }> };
 
 export type PrivateCashoutResult =
   /** The Window has not settled yet; nothing moved. */
   | { status: "open"; expirySec: number }
   /** Settled, swept and credited — `payoutBase` is what the contracts paid, `creditedBase` what reached the balance (payout plus dust). */
-  | { status: "credited"; payoutBase: string; creditedBase: string; txs: Partial<{ settle: Hex; sweep: Hex; credit: Hex }> }
+  | { status: "credited"; payoutBase: string; creditedBase: string; txs: Partial<{ settle: Signature; sweep: Signature; credit: Signature }> }
   /** Already home: nothing left in the slot and nothing owed. */
   | { status: "done"; creditedBase: string };

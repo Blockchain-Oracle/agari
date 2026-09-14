@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!(await verifyLinkSignature("unlink", gate.session.authorId, wallet, issuedAtMs, signature))) return refuse(X_ERRORS.signatureMismatch, 401);
 
   const existing = await xLinkByAuthor(gate.session.authorId);
-  if (!existing || existing.wallet !== wallet.toLowerCase()) return refuse(X_ERRORS.notLinked, 409);
+  if (!existing || existing.wallet !== wallet) return refuse(X_ERRORS.notLinked, 409);
   if (!(await xLinkRevoke(gate.session.authorId, wallet))) return refuse(X_ERRORS.unlinkFailed, 502);
 
   const res = NextResponse.json({ ok: true });

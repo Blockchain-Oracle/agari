@@ -35,7 +35,7 @@ function parseRows(raw: string | null): PrivateTicket[] {
 
 export function loadPrivateTickets(owner?: string | null): PrivateTicket[] {
   const all = parseRows(readRaw());
-  return owner ? all.filter((t) => t.claim.owner.toLowerCase() === owner.toLowerCase()) : all;
+  return owner ? all.filter((t) => t.claim.owner === owner) : all;
 }
 
 export function savePrivateTickets(tickets: PrivateTicket[]): void {
@@ -95,10 +95,10 @@ export function usePrivateTickets(owner: string | null): { tickets: PrivateTicke
   const last = useRef<string | null>(null);
   const refresh = useCallback(() => {
     const raw = readRaw();
-    const key = `${owner?.toLowerCase() ?? ""}:${raw ?? ""}`;
+    const key = `${owner ?? ""}:${raw ?? ""}`;
     if (key === last.current) return;
     last.current = key;
-    setTickets(owner ? parseRows(raw).filter((t) => t.claim.owner.toLowerCase() === owner.toLowerCase()) : []);
+    setTickets(owner ? parseRows(raw).filter((t) => t.claim.owner === owner) : []);
   }, [owner]);
   useEffect(() => {
     last.current = null;

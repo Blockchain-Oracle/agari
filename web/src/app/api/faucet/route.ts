@@ -1,13 +1,16 @@
 import { z } from "zod";
+import { messageSignatureSchema } from "@agari/core/auth";
 import { FaucetError } from "@agari/core/faucet";
+import { addressSchema } from "@agari/core/types";
 import { createFaucetService } from "@/features/funding/faucet-service.server";
 import { faucetBody, faucetConfig, faucetErrorResponse, faucetForRequest, unavailableFaucetStatus } from "@/features/funding/faucet-config.server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
-const walletSchema = z.string().regex(/^0x[0-9a-fA-F]{40}$/).transform((s) => s.toLowerCase());
-const claimSchema = z.object({ id: z.uuid(), signature: z.string().regex(/^0x[0-9a-fA-F]+$/).max(4096) });
+/** Base58 is case-sensitive: wallets and message signatures are kept exactly as sent (D-010, D-012). */
+const walletSchema = addressSchema;
+const claimSchema = z.object({ id: z.uuid(), signature: messageSignatureSchema });
 
 export async function GET(request: Request) {
   const raw = new URL(request.url).searchParams.get("wallet");

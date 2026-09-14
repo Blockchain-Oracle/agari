@@ -40,7 +40,7 @@ export const PARLAY = {
   connect: {
     title: "Connect your wallet to build a parlay",
     /** The reference: "Any Sui wallet. Test funds are free". */
-    sub: "Any wallet on Somnia Shannon. Test funds are free",
+    sub: "Any Solana wallet, or sign in with email. Test funds are free",
   },
   builder: {
     yourLegs: "Your legs",
@@ -94,7 +94,7 @@ export const PARLAY = {
     reservePaused: "The reserve is paused: no new tickets until it reopens. Settlement and claims still run.",
     tryAgain: "Try again",
     technical: "technical details",
-    viewTx: "View on the Shannon explorer",
+    viewTx: "View on Solana Explorer",
     trophy: "Every leg must settle in the money. The instant one leg settles against you, the ticket is dead, and your stake is the most you can lose.",
     toast: (n: number, stake: string, payout: string, symbol: string) => `Parlay placed. ${n} legs, ${stake} to ${payout} ${symbol} if every leg lands.`,
     thinBook: (leg: number, filled: string, depth: string) => `Leg ${leg}'s book is thin — ${filled} of ${depth} contracts resting. Wait for the maker to lay more, or pick another Window.`,

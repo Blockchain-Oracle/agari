@@ -1,7 +1,7 @@
 "use client";
 
 import type { RangeQuote, RangeReserveState, RangeSide } from "@agari/core/range";
-import type { Diagnosis, EventMarket, Hex } from "@agari/core/types";
+import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { formatCadence } from "@agari/core/market";
@@ -36,7 +36,7 @@ export interface RangeTicketProps {
   step: PlaceStep;
   errorTitle: string;
   errorDetail: string;
-  txHash: Hex | null;
+  txHash: Signature | null;
   onPlace: () => void;
   onReset: () => void;
 }
