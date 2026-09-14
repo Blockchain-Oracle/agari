@@ -5,5 +5,9 @@
   "type": "module",
   "scripts": {
     "invariants": "node invariants/run.mjs"
+  },
+  "dependencies": {
+    "@agari/core": "workspace:*",
+    "@agari/markets": "workspace:*"
   }
 }

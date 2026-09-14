@@ -22,14 +22,20 @@
     "./sessions": "./src/sessions/index.ts",
     "./strategies": "./src/strategies/index.ts",
     "./vault": "./src/vault/index.ts",
-    "./x": "./src/x/index.ts"
+    "./x": "./src/x/index.ts",
+    "./deploy": "./src/deploy/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@agari/clients": "workspace:*",
     "@agari/core": "workspace:*",
+    "@solana-program/system": "0.14.1",
+    "@solana-program/token": "0.16.1",
     "@solana/kit": "^8.3.0",
+    "@solana/kit-plugin-rpc": "0.19.0",
+    "@solana/kit-plugin-signer": "0.19.0",
     "@tanstack/react-query": "catalog:",
     "zod": "catalog:"
   },

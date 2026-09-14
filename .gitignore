@@ -52,3 +52,6 @@ PROMPT.md
 
 # Next.js 16 generated agent pointer (AGENTS.md is ignored above)
 web/CLAUDE.md
+
+# deploy scripts: localnet (Surfpool) addresses are per-machine
+scripts/deploy/addresses.localnet.json

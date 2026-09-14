@@ -20,6 +20,7 @@ export const ROLES = {
   maker: "market-maker actor",
   sponsor: "web api/sponsor fee payer",
   "faucet-mint-authority": "tUSDC mint authority + devnet SOL top-up",
+  "tusdc-mint": "tUSDC mint address (signs once, when init-events creates the mint)",
   runner: "strategy-runner",
   "leverage-keeper": "leverage-keeper",
   "x-executor": "x-relay executor",
