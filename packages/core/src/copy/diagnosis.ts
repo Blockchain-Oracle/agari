@@ -30,7 +30,7 @@ const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "rpc-down": { headline: "The chain endpoint isn't answering", body: "We're rotating to the backup RPC. Last-good values stay on screen." },
   "contract-revert": { headline: "The contract refused", body: "Nothing moved. The technical details name the reason." },
   "grant-refused": { headline: "Outside the grant", body: "This order sits outside what the grant allows — its caps, expiry or actor. Adjust the grant or the size." },
-  "not-deployed": { headline: "Not on this network yet", body: "The Trading Balance contract is not deployed here. Wallet orders still work." },
+  "not-deployed": { headline: "Not live on this network yet", body: "Agari's markets aren't deployed on this network yet, so there is nothing to read or trade here. Nothing was sent." },
   "send-unknown": { headline: "Waiting for the chain to answer", body: "Your order is either in or it never left; we'll show you which." },
   unknown: { headline: "Something went sideways", body: "Nothing on-chain changed without a signature. Details below." },
 };

@@ -1,13 +1,16 @@
 "use client";
 
 import { groupByHorizon } from "@agari/core/market";
-import type { LaneSet } from "@agari/core/types";
+import { diagnosisCopy } from "@agari/core/copy";
+import type { Diagnosis, LaneSet } from "@agari/core/types";
 import { WORD_BOARD } from "@/lib/copy";
 import { WordCard } from "./WordCard";
 
 interface WordMarketBoardProps {
   /** The lane set the rail already holds — the board never opens a second market stream. */
   laneSet: LaneSet | null;
+  /** Why there is no lane set, when the read failed rather than is still in flight. */
+  failure: Diagnosis | null;
   nowMs: number;
 }
 
@@ -26,8 +29,10 @@ interface WordMarketBoardProps {
  * out of the server render — so "reading the board…" is also the pre-hydration state,
  * exactly as the reference's `now === 0` guard makes it.
  */
-export function WordMarketBoard({ laneSet, nowMs }: WordMarketBoardProps) {
+export function WordMarketBoard({ laneSet, failure, nowMs }: WordMarketBoardProps) {
   const groups = groupByHorizon(laneSet, nowMs);
+
+  if (laneSet === null && failure) return <div className="words-empty">{diagnosisCopy(failure.kind).body}</div>;
 
   if (laneSet === null || nowMs === 0) return <div className="words-empty">{WORD_BOARD.reading}</div>;
   if (groups.length === 0) return <div className="words-empty">{WORD_BOARD.between}</div>;

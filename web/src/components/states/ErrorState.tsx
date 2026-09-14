@@ -19,6 +19,8 @@ interface ErrorStateProps {
 export function ErrorState({ diagnosis, retry, backHref, variant = "inline", className }: ErrorStateProps) {
   const boundary = variant === "boundary";
   const copy = boundary ? ERROR_BOUNDARY : diagnosisCopy(diagnosis.kind);
+  // No retry can deploy a program: offering one for `not-deployed` would promise an outcome that cannot happen.
+  const offerRetry = retry !== undefined && diagnosis.kind !== "not-deployed";
 
   return (
     <div
@@ -29,10 +31,10 @@ export function ErrorState({ diagnosis, retry, backHref, variant = "inline", cla
         <p className={cn("text-ink", boundary ? "type-headline" : "type-body-strong")}>{copy.headline}</p>
         <p className="type-body text-ink-secondary">{copy.body}</p>
       </div>
-      {(retry || backHref || diagnosis.kind === "out-of-gas") && (
+      {(offerRetry || backHref || diagnosis.kind === "out-of-gas") && (
         <div className="flex flex-wrap gap-2">
           {diagnosis.kind === "out-of-gas" && <Button size="sm" onClick={openFunds}>Get test funds</Button>}
-          {retry && (
+          {offerRetry && (
             <Button variant="secondary" size="sm" onClick={retry}>
               {ERROR_BOUNDARY.retry}
             </Button>

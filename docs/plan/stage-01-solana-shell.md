@@ -18,7 +18,7 @@
 - [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017)
 - [x] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending` (lanes D1–D3 merged; viem/wagmi removed; `no-evm` allowlist empty)
 - [x] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify (`/api/dev/verify-message`; server half proven with real Ed25519 keys; the interactive Privy login is a gate item pending the user's dashboard setup)
-- [ ] Browser pass: 37 product routes at 390 and 1440, both themes
+- [x] Browser pass: 37 product routes at 390 and 1440, both themes (30 static product routes × 390/1440 × dark/light = 120 checks + a settled-state sweep + the dynamic duel and market routes; fixes in `fix(S1.7/web)`)
 
 ## Gate
 
@@ -101,7 +101,23 @@
   - **Checked against the dev server with WebCrypto Ed25519 keys:** a genuine signature gives `{ valid: true, tamperedValid: false }`; a wrong signer gives `valid: false`; a hex signature is HTTP 400.
   - **Other fixes:** the page's copy no longer says "Somnia Shannon". Next 16 now writes `web/CLAUDE.md` (a one-line `@AGENTS.md` pointer) on `pnpm dev`, so it's gitignored like `web/AGENTS.md`.
 
+- **Browser pass (production build, Chrome DevTools, 2026-09-14).**
+  - **Coverage.** The plan's "37" is Masayume's count, which included `/dev` and redirects. Here: 57 static page routes respond (52 × 200, 5 legacy redirects `/`, `/bell`, `/beta`, `/markets-live` → `/markets` and `/pool` → `/earn`). The 30 product routes were loaded in iframes at 1440×900 and 390×844 in both themes: no error boundary, the requested theme everywhere, no horizontal overflow. There are no JS exceptions in the console, only harmless preload warnings and the honest 503s from `leaderboard`/`traction`/`strategies`, which need the indexer. `/games/duel/[matchId]` renders; `/markets/[id]` redirects to `/markets` exactly as Masayume does.
+  - **Defects the HTTP and overflow checks could not see**, found by looking at `/markets` and fixed:
+    1. **Boot failure card under the header.** `MarketsBoot` rendered it above the fixed ticker and header, so they painted over it; Masayume's boot never failed on Shannon, so this was never visible. It is now `BootNotice`, rendered inside the page shell, and it skips `not-deployed`, which each surface already states.
+    2. **Endless loading states.** `useReadingQuery` returned a failed boot fact's error only when the caller's `enabled` was true, but callers gate `enabled` on the value that fact supplies (`venueId !== null`). The lane reads therefore sat `null` forever: the hero skeleton, "AGARI LOADING" in the ticker, and "reading the board…". The failed fact is now the answer regardless of `enabled`. A settled-state sweep (8 s after load) finds no `aria-busy` region, skeleton or loading text on any of the 30 routes.
+    3. **False copy.** `not-deployed` said "Wallet orders still work" (Masayume's vault-only meaning). It now reads "Not live on this network yet", and `ErrorState` no longer offers "Try again" for it.
+    4. **Wire mismatch.** `/api/sponsor` sent `balanceWei`/`forwarder` while the client parsed `balanceLamports`, so the session sheet only showed "no sponsor" through a caught `BigInt(undefined)`. The route now `satisfies SponsorWire`.
+    5. **Stale identity.** The theme key `masayume_theme` and the funding window events are renamed. The install strip, install page, onboarding, X, edge, portfolio and Sensei system prompt said Somnia/Masayume/BTC/"STT for gas"; these are now Agari/Solana devnet/stocks/"SOL for fees".
+  - **Left (recorded, not fixed):**
+    - `/how-it-works` long-form content (`features/how-it-works/content.ts`) still explains DreamDEX on Somnia: EVM wallets, ERC-6909 outcome tokens, the Somnia oracle hub. It needs a real Agari rewrite (signed Pyth/RedStone prints, the Solana order book, sessions), so it is owned by S15, with S4 facts.
+    - Onboarding/ticket copy about the two sides "not adding up to $1" describes DreamDEX's independent asks; revisit when the Solana book quotes (S4).
+    - The pitch/demo/stats narrative (S15).
+    - The install page screenshot is still Masayume's Bitcoin Window; its alt text is now neutral, and the image is S15 demo media.
+
 ## Handoff
+
+- **S1 gate status:** `pnpm typecheck && pnpm invariants && pnpm build` green; no EVM imports (`no-evm` allowlist empty); signed-message verify proven server-side with real Ed25519 keys. **Still open, needs the user:** "Privy embedded wallet shows a base58 address" and "Phantom connects" require the Privy dashboard setup (Solana embedded wallets + login methods, `http://localhost:3000` allowed origin). Then run `/dev/wallet` (sign and verify) in a real browser session.
 
 - **1d-D1 needs from the parent:**
   - `pnpm --filter web add @noble/hashes@1.8.0` (same version as ops) for `features/games/keccak.ts`.

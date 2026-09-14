@@ -73,7 +73,7 @@ export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProp
           {/* §02, where the reference puts it: the same live Windows, said in plain language. */}
           <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.words.title}>
             <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
-            <WordMarketBoard laneSet={lanes.laneSet} nowMs={nowMs} />
+            <WordMarketBoard laneSet={lanes.laneSet} failure={lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure} nowMs={nowMs} />
           </section>
         </div>
       </div>

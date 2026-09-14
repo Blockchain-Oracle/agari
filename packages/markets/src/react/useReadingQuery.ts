@@ -91,7 +91,10 @@ export function useReadingQuery<T>(
 
   const data = query.data ?? null;
   if (data) return data;
-  if (enabled && !needsMet && failedReading) return failedReading;
+  // Not gated on `enabled`: callers commonly disable a read on a value its failed fact would have supplied (a venue
+  // read with `enabled: venueId !== null`), which would otherwise leave it "loading" forever. Nothing that needs a
+  // failed fact can be read, so that failure is the honest answer either way.
+  if (!needsMet && failedReading) return failedReading;
   if (query.isError) return err(diagnose(query.error));
   return null;
 }

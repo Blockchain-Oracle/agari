@@ -33,6 +33,6 @@ export const PLATE = {
   connect: {
     title: "Connect Wallet",
     /** "New to Sui? Test funds are free →" */
-    newHere: "New to Somnia? Test funds are free →",
+    newHere: "New to Solana? Test funds are free →",
   },
 } as const;

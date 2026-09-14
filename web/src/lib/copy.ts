@@ -97,7 +97,7 @@ export const WALLET_DEV = {
   noSigner: "not bound",
   connectFirst: "Connect a wallet to read balances.",
   spendable: "Spendable tUSDC",
-  native: "STT for gas",
+  native: "SOL for fees",
   escrow: "Order escrow",
   credit: "Venue payout credit",
 } as const;

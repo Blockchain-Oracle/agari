@@ -6,8 +6,8 @@ import { useCallback, useEffect, useState } from "react";
 
 export const SPONSOR_ENDPOINT = "/api/sponsor";
 
-/** `GET /api/sponsor` on the wire: lamports as a decimal string. */
-interface SponsorWire {
+/** `GET /api/sponsor` on the wire: lamports as a decimal string. The route answers with exactly this shape. */
+export interface SponsorWire {
   configured: boolean;
   sponsor: Address | null;
   balanceLamports: string | null;

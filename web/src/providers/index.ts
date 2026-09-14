@@ -1,2 +1,2 @@
 export { AppProviders } from "./AppProviders";
-export { useBoot } from "./MarketsBoot";
+export { BootNotice, useBoot } from "./MarketsBoot";

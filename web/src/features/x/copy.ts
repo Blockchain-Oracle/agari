@@ -50,7 +50,7 @@ export const TRADE_FROM_X = {
   payoff: "Un⁠-⁠drainably.",
   lede: (handle: string) => [`Tweet your calls at `, handle, `. A bounded agent trades `, `your own`, ` funds, and can’t take them.`] as const,
   yourKeys: "your keys, your funds",
-  venue: "Somnia testnet · DreamDEX Event Contracts",
+  venue: "Solana devnet · Agari order book",
   setup: "set it up · three steps",
   steps: { connect: "Connect your wallet", fund: "Fund + authorize the agent", link: "Link your X account" },
   connected: "connected",
@@ -170,7 +170,7 @@ export const CLAIM = {
     waitingFor: (handle: string) => `waiting for @${handle}`,
     reveal: "sign in with X to reveal",
     footer: "Only you can cash out.",
-    network: "Somnia testnet",
+    network: "Solana devnet",
   },
   footnote: "Your calls sit in a vault that pays only the wallet that funded it. Not even us. Signing in with X just proves it’s the same you that placed them.",
 } as const;

@@ -28,9 +28,9 @@ export interface TutorialStep {
 
 export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
-    title: "Welcome to Masayume",
+    title: "Welcome to Agari",
     description:
-      "A prediction market on Somnia. Pick a side of a live Window, and the venue's oracle settles it at the close — the price decides, nobody else. This is the Shannon testnet: test funds only, no real money.",
+      "A prediction market on stock prices, on Solana. Pick a side of a live Window, and a signed oracle price settles it at the close — the price decides, nobody else. This is Solana devnet: test funds only, no real money.",
   },
   {
     title: "How a Window works",
@@ -40,7 +40,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     title: "Your wallet signs",
     description:
-      "Connect any Somnia wallet and choose Get test funds. Eligible wallets receive STT for gas before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself.",
+      "Sign in with email or connect a Solana wallet, then choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself.",
   },
   {
     title: "Where your money sits",
@@ -61,6 +61,6 @@ export const TUTORIAL_UI = {
   done: "Get started",
   lastStep: "Last step",
   connectTitle: "Connect to start trading",
-  connectNote: "Any Somnia wallet. Testnet, so these are test funds — and you sign every transaction yourself.",
+  connectNote: "Email sign-in or any Solana wallet. Devnet, so these are test funds — and you sign every transaction yourself.",
   progress: (step: number, total: number) => `Step ${step} of ${total}`,
 } as const;
