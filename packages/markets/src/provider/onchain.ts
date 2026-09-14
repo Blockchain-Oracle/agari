@@ -18,6 +18,8 @@ import { heldAtSettlement } from "./rows";
 
 /** `Market.open` (struct offset 208 + the discriminator): `price` i64 @0, `source` u8 @20. */
 const OPEN_PRINT_AT = 216;
+/** A Window's Series never changes: once seen, a holdings poll reads only the Ledger. */
+const seriesOfMarket = new Map<string, Address>();
 
 /** The closed-Window snapshot, rebuilt from the index row the indexer kept. */
 function snapshotFromRow(row: MarketRow, decimals: number, collateral: Address): OnchainSnapshot {
@@ -44,7 +46,10 @@ function snapshotFromRow(row: MarketRow, decimals: number, collateral: Address):
 export async function getOnchain(marketId: MarketId): Promise<Reading<OnchainSnapshot>> {
   return withReading(`onchain:${marketId}`, async () => {
     const [market, venue] = await Promise.all([readMarket(marketId), readVenue()]);
-    if (market) return toOnchainSnapshot(market, await readSeries(market.data.series), venue, nowSec());
+    if (market) {
+      seriesOfMarket.set(marketId, market.data.series as string as Address);
+      return toOnchainSnapshot(market, await readSeries(market.data.series), venue, nowSec());
+    }
     const row = await marketRow(marketId).catch(() => null);
     if (row && row.state !== "open") return snapshotFromRow(row, venue.decimals, venue.collateralMint as string as Address);
     throw new ReadingError(diagnosis("market-not-trading", `Window not found: ${marketId}`));
@@ -54,9 +59,13 @@ export async function getOnchain(marketId: MarketId): Promise<Reading<OnchainSna
 /** Seat balances (free + locked) for one Window; a seat the settler already paid reads what it held at settlement. */
 export async function getHoldings(wallet: Address, onchain: OnchainSnapshot): Promise<Reading<Holdings>> {
   return withReading(`holdings:${wallet}:${onchain.marketId}`, async () => {
-    const [market, seat] = await Promise.all([readMarket(onchain.marketId), readSeat(onchain.ledger, wallet)]);
-    if (seat?.seat && market) {
-      const { lotBase } = await readSeries(market.data.series);
+    const known = seriesOfMarket.get(onchain.marketId);
+    const [series, seat] = await Promise.all([
+      known ?? readMarket(onchain.marketId).then((market) => market && (seriesOfMarket.set(onchain.marketId, market.data.series as string as Address), market.data.series as string as Address)),
+      readSeat(onchain.ledger, wallet),
+    ]);
+    if (seat?.seat && series) {
+      const { lotBase } = await readSeries(series);
       return { upRaw: (seat.seat.yesFree + seat.seat.yesLocked) * lotBase, downRaw: (seat.seat.noFree + seat.seat.noLocked) * lotBase };
     }
     if (!onchain.finalized) return { upRaw: 0n, downRaw: 0n };
