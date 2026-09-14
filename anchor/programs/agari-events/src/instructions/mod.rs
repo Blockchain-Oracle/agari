@@ -13,3 +13,11 @@ pub use admin_series::*;
 pub use admin_set_authorities::*;
 pub use args::*;
 pub use roller_open_window::*;
+
+// S2 lane P: prints.
+pub mod copy_open_from_prev;
+pub mod print_rules;
+pub mod record_print_sources;
+
+pub use copy_open_from_prev::*;
+pub use record_print_sources::*;

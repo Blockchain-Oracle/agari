@@ -69,3 +69,17 @@ pub struct WindowOpened {
     pub mvault: Pubkey,
     pub generation: u32,
 }
+
+#[event]
+pub struct PrintRecorded {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub which: u8,
+    pub source: u8,
+    pub price: i64,
+    pub expo: i32,
+    pub source_ts: i64,
+    pub signers: u8,
+    pub copied: bool,
+    pub recorded_ts: i64,
+}

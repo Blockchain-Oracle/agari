@@ -13,3 +13,6 @@ pub mod ix;
 pub mod read;
 
 pub use harness::{Harness, Sent};
+
+// S2 lane P: prints, settle and void helpers.
+pub mod prints;

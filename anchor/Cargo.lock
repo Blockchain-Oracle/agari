@@ -62,6 +62,8 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "bytemuck",
+ "pyth-solana-receiver-sdk",
+ "solana-instructions-sysvar",
 ]
 
 [[package]]

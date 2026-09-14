@@ -45,4 +45,28 @@ pub mod agari_events {
     pub fn roller_open_window(ctx: Context<RollerOpenWindow>, args: OpenWindowArgs) -> Result<()> {
         instructions::roller_open_window::roller_open_window(ctx, args)
     }
+
+    pub fn public_record_print_pyth(ctx: Context<PublicRecordPrintPyth>, which: u8) -> Result<()> {
+        instructions::record_print_sources::public_record_print_pyth(ctx, which)
+    }
+
+    pub fn public_record_print_redstone(ctx: Context<PublicRecordPrintRedstone>, which: u8, payload: Vec<u8>) -> Result<()> {
+        instructions::record_print_sources::public_record_print_redstone(ctx, which, payload)
+    }
+
+    pub fn public_record_print_attested(
+        ctx: Context<PublicRecordPrintAttested>,
+        which: u8,
+        price: i64,
+        expo: i32,
+        bar_start_ts: i64,
+        fetched_at_ts: i64,
+    ) -> Result<()> {
+        instructions::record_print_sources::public_record_print_attested(ctx, which, price, expo, bar_start_ts, fetched_at_ts)
+    }
+
+    pub fn public_copy_open_from_prev(ctx: Context<PublicCopyOpenFromPrev>) -> Result<()> {
+        instructions::copy_open_from_prev::public_copy_open_from_prev(ctx)
+    }
+
 }
