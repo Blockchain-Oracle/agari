@@ -22,8 +22,14 @@ export interface ReadClient {
   cluster: Cluster;
   rpcHttpUrl: string;
   rpcWsUrl: string | null;
-  /** The agari-events program id, or null until S2 deploys it. */
+  /** The agari-events program id override; null reads the Codama client's (the deployed one). */
   eventsProgramId: Address | null;
+  /** The configured venue id override (`NEXT_PUBLIC_AGARI_VENUE_ID`); it must equal the derived config PDA. */
+  venueId: Address | null;
+  /** `/api/index` base (absolute); null = no indexer, lists read `indexer-down`. */
+  indexerUrl: string | null;
+  /** The ops HTTP base serving `/prices/latest` and `/prices/stream`; null = no spot. */
+  priceFeedUrl: string | null;
 }
 
 let client: ReadClient | null = null;
@@ -38,6 +44,9 @@ export function configureMarkets(env: MarketsEnv): void {
     rpcHttpUrl: env.rpcHttpUrls[0] as string,
     rpcWsUrl: env.rpcWsUrls[0] ?? null,
     eventsProgramId: env.eventsProgramId ?? null,
+    venueId: env.venueId ?? null,
+    indexerUrl: env.indexerUrl ?? null,
+    priceFeedUrl: env.priceFeedUrl ?? null,
   };
   version += 1;
   mark("runtime.configured");

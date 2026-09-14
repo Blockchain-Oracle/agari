@@ -1,25 +1,12 @@
 /**
- * The fill tape: a wallet's fills, the venue board and traction. From S3 these come from the Agari indexer
- * (`/api/index/*`); the shapes are Masayume's, so the surfaces that render them don't change.
+ * The venue board and traction (S5, from the indexer's venue-wide tape); a wallet's own fills live in `history.ts`.
+ * The shapes are Masayume's, so the surfaces that render them don't change.
  */
 import type { LedgerFill, RoundMarket, TraderRanking } from "@agari/core/projection";
 import type { Reading } from "@agari/core/schemas";
 import type { TickerSymbol } from "@agari/core/market";
 import type { Address, EventMarket, MarketId } from "@agari/core/types";
 import { notDeployedReading } from "../stub/not-deployed";
-
-export interface WalletFillsQuery {
-  /** The Book the fills executed on — a Window's `poolAddress`. Callers still filter on `marketId`: Books are recycled. */
-  pool?: Address;
-  /** Only fills at or after this unix second. */
-  sinceSec?: number;
-  limit?: number;
-}
-
-/** A wallet's own fills, narrowed to one Book and a time. An empty answer means "not on the tape yet", never "nothing filled". */
-export async function listWalletFills(_wallet: Address, _query: WalletFillsQuery = {}): Promise<Reading<LedgerFill[]>> {
-  return notDeployedReading("the Agari indexer is not running yet (S1 stub)");
-}
 
 /** A taker's buy is a call; a taker's sell is a cash-out. Traction counts attributed fills only. */
 export interface TractionCall {
@@ -79,8 +66,9 @@ export interface VenueBoard {
   traction: VenueTraction;
 }
 
+/** The venue-wide board is S5's (it needs a tape scan the S4 index API doesn't serve). */
 export async function readVenueBoard(_scope: BoardScope): Promise<Reading<VenueBoard>> {
-  return notDeployedReading("the Agari indexer is not running yet (S1 stub)");
+  return notDeployedReading("the venue board arrives in S5");
 }
 
 /** Bounded fan-out, so a wallet with hundreds of Windows doesn't open hundreds of requests at once. */

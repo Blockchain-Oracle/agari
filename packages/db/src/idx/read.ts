@@ -19,6 +19,19 @@ export interface IdxFillQuery {
   offset?: number;
 }
 
+export interface IdxMarketQuery {
+  market?: string;
+  series?: string;
+  symbol?: string;
+  state?: "open" | "resolved" | "voided";
+  /** Terminal Windows only (resolved or voided). */
+  settled?: boolean;
+  ids?: readonly string[];
+  expiryFromSec?: number;
+  expiryToSec?: number;
+  limit?: number;
+}
+
 export function indexReader(sql: Sql) {
   const fillCols = sql`f.signature, f.outer_ix, f.inner_ix, f.fill_ix, f.market, f.book, f.seq::text, f.slot::text, f.ts_sec::text, f.taker, f.taker_seat,
     f.taker_kind, f.maker, f.maker_seat, f.maker_kind, f.path, f.price_ticks, f.lots::text, t.commitment`;
@@ -52,7 +65,7 @@ export function indexReader(sql: Sql) {
     },
 
     /** Windows with their Series facts and all four prints (Masayume `listLive/PastBinaryMarkets`, `getBinaryMarket`). */
-    async markets(q: { market?: string; series?: string; symbol?: string; state?: "open" | "resolved" | "voided"; expiryFromSec?: number; expiryToSec?: number; limit?: number } = {}): Promise<IdxRow[]> {
+    async markets(q: IdxMarketQuery = {}): Promise<IdxRow[]> {
       return sql`
         SELECT m.*, s.ticker, s.lot_base::text, s.tick_base::text, s.cash_unit::text,
           (SELECT json_object_agg(p.which, json_build_object('source', p.source, 'price', p.price::text, 'expo', p.expo, 'sourceTsSec', p.source_ts_sec,
@@ -61,9 +74,16 @@ export function indexReader(sql: Sql) {
         WHERE m.opened_signature IS NOT NULL
           ${q.market ? sql`AND m.market = ${q.market}` : sql``} ${q.series ? sql`AND m.series = ${q.series}` : sql``}
           ${q.symbol ? sql`AND m.symbol = ${q.symbol}` : sql``} ${q.state ? sql`AND m.state = ${q.state}` : sql``}
+          ${q.settled ? sql`AND m.state <> 'open'` : sql``} ${q.ids ? sql`AND m.market = ANY(${q.ids as string[]}::text[])` : sql``}
           ${q.expiryFromSec !== undefined ? sql`AND m.expiry_sec >= ${q.expiryFromSec}` : sql``}
           ${q.expiryToSec !== undefined ? sql`AND m.expiry_sec <= ${q.expiryToSec}` : sql``}
         ORDER BY m.expiry_sec DESC LIMIT ${clamp(q.limit)}`;
+    },
+
+    /** Several Windows by id in one query (Masayume `getBinaryMarket` × n), without a limit past the ids asked for. */
+    async marketsByIds(ids: readonly string[]): Promise<IdxRow[]> {
+      if (ids.length === 0) return [];
+      return this.markets({ ids, limit: ids.length });
     },
 
     /** Opening prints by Window (Masayume `getOpeningPrices`). */
@@ -85,7 +105,8 @@ export function indexReader(sql: Sql) {
     async positions(owner: string, q: { unredeemedOnly?: boolean; limit?: number } = {}): Promise<IdxRow[]> {
       return sql`
         SELECT p.*, p.yes_lots::text AS yes_lots, p.no_lots::text AS no_lots, m.symbol, m.cadence_sec, m.expiry_sec, m.lock_at_sec, m.state, m.winner,
-          m.payout_yes, m.payout_no, m.void_reason, s.cash_unit::text
+          m.payout_yes, m.payout_no, m.void_reason, s.cash_unit::text, s.lot_base::text, s.tick_base::text, m.last_price_ticks,
+          m.series, m.ledger, m.trading_start_sec, m.resolved_ts_sec
         FROM idx_positions p JOIN idx_markets m ON m.market = p.market LEFT JOIN idx_series s ON s.series = m.series
         WHERE p.owner = ${owner} ${q.unredeemedOnly ? sql`AND NOT p.redeemed` : sql``}
         ORDER BY p.last_ts_sec DESC NULLS LAST LIMIT ${clamp(q.limit)}`;
