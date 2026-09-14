@@ -22,13 +22,21 @@ path = "events_admin.rs"
 name = "events_orders"
 path = "events_orders.rs"
 
+[[test]]
+name = "events_prints"
+path = "events_prints.rs"
+
+[[test]]
+name = "events_settle"
+path = "events_settle.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
 anchor-lang = "=1.2.0"
 anchor-spl = "=1.2.0"
 bytemuck = "1.25"
-litesvm = "=0.16.0"
+litesvm = { version = "=0.16.0", features = ["precompiles"] }
 solana-account = "4.3"
 solana-clock = "3.1"
 solana-instruction-error = "2.4"
@@ -37,3 +45,8 @@ solana-message = "4.2"
 solana-signer = "3.0.1"
 solana-transaction = "4.1"
 solana-transaction-error = "3.3"
+# S2 lane P: real Pyth fixture decoding, synthetic RedStone signing, ed25519 attestations.
+base64 = "0.22"
+k256 = { version = "0.13.4", features = ["ecdsa"] }
+pyth-solana-receiver-sdk = "=2.0.0"
+sha3 = "0.10"

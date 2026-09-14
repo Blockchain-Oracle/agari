@@ -207,6 +207,28 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none beyond the spec.
 - **Approval:** within plan r2 (spec-conformant implementation detail).
 
+### D-021 — Pyth receiver choice, print cost and settlement details (S2 lane P)
+- **Date / owner:** 2026-09-14 · S2 lane P
+- **Evidence:**
+  - **Receivers on a devnet fork:** Surfpool 1.5.0 `start --network devnet` (fork at slot 498,141,672). `@pythnetwork/pyth-solana-receiver` 0.16.0, in a scratch project outside the repo, posted the archived trial accumulator update for T = 2026-09-11T20:00:00Z (`data/archive/pyth/2026-09-11.jsonl`) through both pairs:
+    - default `rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ` + Wormhole `HDwcJBJXjL9FpJ7UBsYBtaDjsBUhuLCUYoz3zr8SWWaQ`;
+    - `pro-compatible` `rec2HHDDnjLfj4kE7VyEtFA1HPGQLK33259532cRyHp` + Wormhole `HDw2E7P8X1SkCyjvoGsfBGAVUutKcj874bXjHrpVYrVL`.
+  - Both posts confirmed. Both `PriceUpdateV2` accounts read back `verification_level: Full`, TSLA price 36,547,600 × 10⁻⁵, conf 6,068, `publish_time == T`, `prev_publish_time == T − 1`.
+  - The default receiver's account bytes (134 B) are the LiteSVM fixture `anchor/tests/vectors/prints/pyth-tsla-1789156800.account.b64`.
+  - **LiteSVM costs:**
+    - RedStone, 5 packages: **148,365 CU, 1,040 transaction bytes**, with no compute-budget instruction.
+    - RedStone, 3 packages: 93,226 CU, 796 B (including a `SetComputeUnitLimit`).
+    - Attested (ed25519 + print): 9,181 CU, 678 B.
+- **Rule:**
+  - **Pyth uses the SDK's default feature** (`rec5EK…`). Both generations verify the trial update, and the default is what the receiver JS SDK posts to without overrides, so the S3 relay and the program can't silently disagree. Accounts owned by `rec2HH…` are refused by Anchor's owner check (3007, tested). Moving to the other generation is a feature flag plus a program upgrade before any Window lists on it; policy versions don't change.
+  - **RedStone 5-package prints need no ALT and no compute-limit instruction:** 192 B and ≈ 51.6k CU of headroom under the legacy 1,232 B and default 200k CU. The relay may still set a limit.
+  - **Settle and void** share one accounts struct, `PublicResolveWindow` (`payer S w · series · market w · result init · system · +E`). A second resolution fails at Anchor's `init` of the existing `MarketResult` before the handler (D-019 precedence), so a resolved Window can never resolve again.
+  - **Cross-check order** follows prints.md §5 exactly: `CrossCheckPending` is evaluated before divergence, so a diverging check with the other check missing voids only after `expiry + check_admission_sec`.
+  - **`public_copy_open_from_prev`** compares the `market`/`prev_market` keys before loading; the same account in both slots would otherwise fail on the borrow rather than with `PrintNotAdjacent`.
+  - **Not LiteSVM-tested:** the attested `get_stack_height` (CPI) refusal needs a caller program; it's covered by code review, the precompile-offsets test and the stack-height check.
+- **User-visible:** none.
+- **Approval:** within plan r2 S2 (closes the D-002 receiver open item).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

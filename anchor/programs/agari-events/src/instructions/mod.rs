@@ -23,3 +23,14 @@ pub use user_cancel_orders::*;
 pub use user_place_order::*;
 pub use user_reduce_order::*;
 pub use user_sets::*;
+
+// S2 lane P: prints, settle and void.
+pub mod copy_open_from_prev;
+pub mod print_rules;
+pub mod record_print_sources;
+pub mod resolve_rules;
+pub mod resolve_window;
+
+pub use copy_open_from_prev::*;
+pub use record_print_sources::*;
+pub use resolve_window::*;

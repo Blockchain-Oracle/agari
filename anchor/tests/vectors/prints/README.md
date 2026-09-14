@@ -6,6 +6,7 @@ Real, archived oracle data that the pure verifiers in `anchor/crates/agari-commo
 |---|---|---|
 | `pyth-tsla-1789156800.b64` | Hermes trial update at 2026-09-11T20:00:00Z (16:00:00 ET), `data/archive/pyth/2026-09-11.jsonl`. The full accumulator update (TSLA, QQQ, VOO), base64 | `print/pyth/tests.rs` |
 | `pyth-tsla-1789156800.json` | TSLA's `PriceFeedMessage` as Hermes parsed it (price, conf, expo, publish/prev times) and the `expo −8` normalization | `print/pyth/tests.rs` |
+| `pyth-tsla-1789156800.account.b64` | The `PriceUpdateV2` account the default receiver (`rec5EK…`) stored for that update on a Surfpool devnet fork (134 B, `Full`; D-021) | `anchor/tests/src/prints.rs` (LiteSVM) |
 
 ## Adding the real RedStone TSLA fixture
 

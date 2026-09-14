@@ -79,4 +79,35 @@ pub mod agari_events {
     pub fn user_withdraw_credit(ctx: Context<UserWithdrawCredit>, seat_idx: u16, amount: u64) -> Result<()> {
         instructions::user_sets::user_withdraw_credit(ctx, seat_idx, amount)
     }
+
+    pub fn public_record_print_pyth(ctx: Context<PublicRecordPrintPyth>, which: u8) -> Result<()> {
+        instructions::record_print_sources::public_record_print_pyth(ctx, which)
+    }
+
+    pub fn public_record_print_redstone(ctx: Context<PublicRecordPrintRedstone>, which: u8, payload: Vec<u8>) -> Result<()> {
+        instructions::record_print_sources::public_record_print_redstone(ctx, which, payload)
+    }
+
+    pub fn public_record_print_attested(
+        ctx: Context<PublicRecordPrintAttested>,
+        which: u8,
+        price: i64,
+        expo: i32,
+        bar_start_ts: i64,
+        fetched_at_ts: i64,
+    ) -> Result<()> {
+        instructions::record_print_sources::public_record_print_attested(ctx, which, price, expo, bar_start_ts, fetched_at_ts)
+    }
+
+    pub fn public_copy_open_from_prev(ctx: Context<PublicCopyOpenFromPrev>) -> Result<()> {
+        instructions::copy_open_from_prev::public_copy_open_from_prev(ctx)
+    }
+
+    pub fn public_settle_window(ctx: Context<PublicResolveWindow>) -> Result<()> {
+        instructions::resolve_window::public_settle_window(ctx)
+    }
+
+    pub fn public_void_expired(ctx: Context<PublicResolveWindow>) -> Result<()> {
+        instructions::resolve_window::public_void_expired(ctx)
+    }
 }

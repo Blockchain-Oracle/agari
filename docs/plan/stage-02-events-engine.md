@@ -75,6 +75,23 @@
 - **Sets and cash (S2.9).** `user_mint_complete_set` (Normal mode, Trading; claims a seat, pulls `lots × 1000 × cu` + bond credit-first), `user_merge_complete_set` (Trading, any mode; credit back, optional withdraw) and `user_withdraw_credit` (any status or mode; `0 < amount ≤ credit`) move `backing_lots` exactly. Every payout goes only to a token account owned by the signing authority (`WrongTokenOwner` otherwise, AD-5).
 - **LiteSVM (S2.7–S2.9, `anchor/tests/events_orders.rs`, 8 tests).** Real token movements and `PlaceResult` return data for example 3 (mint pair, `mvault` = 7,720,000 + 2 bonds); an IOC with no fill reverts its evictions on chain and the sweep then refunds them; refusal codes 6100/6106/6108/6109/6111/6119/6305; credit and cancel refunds pay only the owner's token account; reduce, cancel-all and the post-lock sweep; exact mint/merge; Halted and ReduceOnly block buys and mints but never cancel or withdraw.
 - **Compute and size (LiteSVM, legacy tx, 1 signer, no compute-budget ix):** resting Normal order 16,218 CU / 544 B; **10-fill IOC 29,781 CU / 544 B** (plan budget 60–90k); cancel 9,648 CU / 400 B; mint complete set 13,628 CU / 487 B. `.so` 494,888 B with 15 instructions. The Surfpool `profileTransaction` pass (CU profile box) is still to do.
+- **S2 lane P prints + settle (2026-09-14):**
+  - **Instructions:** `public_record_print_{pyth,redstone,attested}`, `public_copy_open_from_prev`, `public_settle_window`, `public_void_expired`. Handlers live in `instructions/{record_print_sources,copy_open_from_prev,resolve_window}.rs`; the shared §4.0 rules are in `print_rules.rs`, and the pure settle/void decisions in `resolve_rules.rs` (4 unit tests).
+  - IDL: 13 instructions, `MarketResult` account, `PrintRecorded`/`WindowResolved` events. `.so` 493,632 B.
+  - **Pyth receiver decided (D-021):** both devnet receivers verify the archived trial update Full on a Surfpool devnet fork; the default feature `rec5EK…` is kept.
+  - **Cost:**
+    - RedStone, 5 packages: **148,365 CU / 1,040 B**, no ALT and no compute-limit instruction needed.
+    - RedStone, 3 packages: 93,226 CU / 796 B.
+    - Attested: 9,181 CU / 678 B.
+  - **LiteSVM tests, 12 new, all green:**
+    - **Pyth:** real fixture at T; T − 1 / T + 1 refused; wrong receiver owner 3007; check slot without check → `WrongPrintSource`; second print → `PrintAlreadyRecorded`.
+    - **RedStone:** 4 of 5 inside strict refused; 5 ok; 3 refused at `close + 299`, ok at `+300`.
+    - **Attested:** early (`PrintTooEarly`), unknown attestor, no ed25519, signature over another price, offsets attack, ok.
+    - **Copy-open:** before the previous close → `PrintsMissing`; self → `PrintNotAdjacent`; time gap → `PrintNotAdjacent`; copy; second copy → `PrintAlreadyRecorded`; past the open deadline → `PrintTooLate`; across a version switch → `PrintNotAdjacent`.
+    - **Settle:** `CrossCheckPending` at `close + 120`, single-source at `+121` with the full `MarketResult`; a present diverging check with the other missing → void `CrossCheckDivergence`; agreeing checks settle at once; tie → Up; lower close → Down.
+    - **PD-6 races** at `deadline` and `deadline + 1`: intraday Pyth, attested and RedStone (T + 900), the Gap open (`lock_at`), and the check bound (close + 120 against single-source settlement).
+  - `program_autofixer`: no issues.
+  - **Prints box not ticked:** the devnet evidence (a real Pyth trial post and a RedStone 5-signer print in `acceptance.md`) and the real archived RedStone fixture remain; `data/archive/redstone/` was still empty at 08:22Z, before the 13:30Z open.
 
 ## Handoff
 
@@ -111,3 +128,9 @@
   - PD-2(b) oracle-model bound → product programs (S10); the engine provides `placed_slot` + rested-only walks.
   - RedStone `TSLA` 09:30 feed semantics → S6 (Gap lane).
 - **Known risk.** A RedStone **check** policy needs all 5 signers for its whole 120 s window (strict 300 s > 120 s), so one offline signer means single-source settlement (flagged), never a false void.
+- **After lane P (prints + settle):**
+  - **Redeem/closure** read `Market.state`/`payout_yes`/`payout_no` (set by settle/void) and require `MarketResult` to exist for `public_close_market`; the result PDA is `["result", market]` with `rent_payer` = the resolver.
+  - `public_release_book` can key off `Market::status(now) ≥ Locked || is_terminal()`; a void may land before `lock_at`.
+  - The print-test world (`anchor/tests/src/prints.rs` `World`) gives Series + books + Windows + real prints in a few calls; redeem tests can settle a Window with two attested prints (`attested_pair`) and then redeem.
+  - **Real RedStone fixture:** add it per `anchor/tests/vectors/prints/README.md` once today's session is archived. The on-chain handler test can reuse `redstone_payload`'s wire layout with the D-002 production signers.
+  - **Devnet evidence:** post a real Pyth trial update to `rec5EK…` + `public_record_print_pyth`, plus a RedStone 5-signer print, and record both in `acceptance.md` once the deployer is funded.
