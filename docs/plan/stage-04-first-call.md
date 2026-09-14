@@ -34,7 +34,8 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 - [x] Signer seams: Wallet Standard signer (modify-and-sign, sending fallback) + keypair signer; no Privy (4b).
 - [x] Faucet: SOL top-up chain adapter + server-side tUSDC mint claims, one challenge signature (4c, merged `b4aef58`; devnet claims wait for `sol-faucet` SOL).
 - [ ] Sponsor → S7 (D-023): `/api/sponsor` unchanged; gate row restated (stage owner D-entry).
-- [ ] Web rewiring: ticker picker, market-session chip, closed/paused/settling copy, verdict print-source labels, per-Window claims, seat-deposit note (4d).
+- [x] Web rewiring: ticker picker, market-session chip, closed/paused/settling copy, verdict print-source labels, per-Window claims, seat-deposit note (4d, merged `09753ec`; full gate incl. `pnpm build` green, 198 vitests).
+- [ ] Masayume fidelity audit + shared chrome fixes, incl. the centered connect modal (4e, D-036 pending; the user's 2026-09-14 instruction).
 - [ ] Drive `scripts/drive/first-call.ts` on devnet: faucet → IOC up fill → ops settle → redeem or crank → `verify-index` (4b, finished by the stage owner).
 - [ ] Browser pass at 390/768/1440 in both themes: signed-out, first-run, unfunded, quote moved (requote), fill, nothing filled, unknown send (kill the tab mid-send), win/loss/void, claim and crank-paid, closed, paused.
 - [ ] Tag `m1-first-call`.
@@ -57,6 +58,23 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 
 ## Findings
 
+- **Lane 4d (markets surfaces, merged `09753ec` from `slice/S4d-surfaces` @ fc9b093):**
+  - **Session chip:** reads ops `/session` once a minute, shared (hero + lanes header; hidden in the 390 hero to keep Masayume's phone layout).
+  - **Closed / paused:** closed copy on hero, lanes, word board, between-rounds and reels. A paused ticker gets Yosuku's between-rounds card with "Paused: no signed price source".
+  - **Ticker picker:** Masayume's leaderboard asset tabs; `agari.ticker`; the rail pages by eight.
+  - **Verdict:** "RedStone price at 10:35:00 ET" (+ single source); settling copy covers the 5–17 s close print and the 2-minute check.
+  - **Claims:** one per Window with "Paid automatically" + crank signature.
+  - **Ticket:** seat-deposit footnote; nothingFilled copy. Masayume's ticket has no Max chip (+1/+5/+20), so the bond headroom sits in the over-balance check.
+  - **Fidelity fix:** prices showed 8 decimals / whole dollars (the oracle scale changed from cents to 10⁻⁸), so the hero axis read "252.20000000" and headlines "needs +$0". Now whole dollars from $1,000 up, cents below, axis at 2 dp.
+  - **Comparison:** masayume.app side by side with local fixture data, computed styles of every node in hero, ticket, market card, lane tabs, section header and word card at 1440 dark and 390 light. Remaining differences are intended: stock monograms, the chip, 3 cadences instead of 5, data-driven states.
+  - **Still differs:**
+    - Range / 2×–3× leverage / Public–Private stay disabled until their programs deploy.
+    - "All" on the word board shows ≈ 26 questions with nine tickers.
+  - **Follow-ups:**
+    - **Blocking, 4e:** the Kit wallet plugin never leaves `pending` in fresh Chrome contexts, so Connect stays invisible, plus a Header hydration mismatch. Also queued after `openAccount`: `ConnectButton` → `session.openAccount`.
+    - The seat bond comes from `SeriesFacts.seatBond`, not a launch-grid constant (`ticket/seat-deposit.ts`).
+    - A provider `getRedemption` should replace the web fetch of `/wallet/:w/actions`.
+    - `features/share/trade-card.ts` and `features/sensei/units.ts` still round stock prices to whole dollars.
 - **Lane 4b (writes, merged `76382c9` from `slice/S4b-writes` @ 504783b)**: the three re-pointed invariants find their files and pass; 115 vitests after the merge.
   - **Fork proofs** (Surfpool 8960, the drive passed 4 runs in a row on TEST-ATT-5m #3–#6):
     - **Up IOC:** 3,194 lots @ 400, cost 1,277,600 = the quote; wallet paid cost + 250,000 bond; 17,708 CU / 586 B.
