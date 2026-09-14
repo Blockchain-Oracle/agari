@@ -1,4 +1,4 @@
-/** `GET /health` (venue-ops.md §2.3): every actor heartbeat; `ok` is false when one is failing or silent 5 minutes. */
+/** `GET /health` (venue-ops.md §2.3): every actor heartbeat; `ok` is false when one is failing or silent for max(5 min, 3 × its loop interval). */
 import { heartbeats } from "../runtime/heartbeat";
 import type { OpsEnv } from "../runtime/env";
 
@@ -7,7 +7,7 @@ const FAILING = 3;
 
 export function healthBody(env: OpsEnv | undefined, nowMs = Date.now()) {
   const actors = heartbeats();
-  const ok = actors.every((a) => a.failures < FAILING && nowMs - (a.lastOkMs ?? a.startedMs) <= SILENT_MS);
+  const ok = actors.every((a) => a.failures < FAILING && nowMs - (a.lastOkMs ?? a.startedMs) <= Math.max(SILENT_MS, 3 * a.everyMs));
   return { ok, cluster: env?.cluster ?? null, dryRun: env?.dryRun ?? null, nowMs, actors };
 }
 

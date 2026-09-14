@@ -26,7 +26,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Runs `spec.pass` until `stop()`. Never throws. */
 export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat } {
-  const beat = registerHeartbeat(spec.name, spec.dryRun);
+  const beat = registerHeartbeat(spec.name, spec.dryRun, spec.everyMs);
   let stopped = false;
   let lastLogged = { why: "", atMs: 0 };
   const say = (why: string) => {
