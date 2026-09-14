@@ -45,8 +45,6 @@ export async function signSendConfirm(ctx: WriteContext, recordId: string, built
   }
   const { signature } = signed;
   await ctx.journal.markSent(recordId, signature, Number(signed.lastValidBlockHeight));
-  onPhase?.("confirming", { txHash: signature });
-
   if (signed.mode === "sign") {
     try {
       await sendStep(ctx.rpc, signed.wire);
@@ -56,6 +54,7 @@ export async function signSendConfirm(ctx: WriteContext, recordId: string, built
       return { kind: "not-sent", error };
     }
   }
+  onPhase?.("confirming", { txHash: signature });
 
   const landing = await confirmStep(ctx.rpc, {
     signature,
