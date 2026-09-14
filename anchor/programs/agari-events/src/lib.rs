@@ -69,4 +69,11 @@ pub mod agari_events {
         instructions::copy_open_from_prev::public_copy_open_from_prev(ctx)
     }
 
+    pub fn public_settle_window(ctx: Context<PublicResolveWindow>) -> Result<()> {
+        instructions::resolve_window::public_settle_window(ctx)
+    }
+
+    pub fn public_void_expired(ctx: Context<PublicResolveWindow>) -> Result<()> {
+        instructions::resolve_window::public_void_expired(ctx)
+    }
 }

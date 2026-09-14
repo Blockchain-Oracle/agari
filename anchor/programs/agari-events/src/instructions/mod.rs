@@ -14,10 +14,13 @@ pub use admin_set_authorities::*;
 pub use args::*;
 pub use roller_open_window::*;
 
-// S2 lane P: prints.
+// S2 lane P: prints, settle and void.
 pub mod copy_open_from_prev;
 pub mod print_rules;
 pub mod record_print_sources;
+pub mod resolve_rules;
+pub mod resolve_window;
 
 pub use copy_open_from_prev::*;
 pub use record_print_sources::*;
+pub use resolve_window::*;

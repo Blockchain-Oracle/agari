@@ -1,12 +1,14 @@
-//! Print helpers (S2 lane P): keys that sign real proofs, the policies that use them, instruction
+//! Print, settle and void helpers (S2 lane P): keys that sign real proofs, the policies that use them, instruction
 //! builders, and a one-call world with a Series, books and Windows.
 
 use agari_common::print::attested::{attest_message, AttestFields, ED25519_PROGRAM_ID};
 use agari_common::print::redstone::MARKER;
-use agari_common::seeds::event_authority_address;
+use agari_common::seeds::{event_authority_address, result_address};
 use agari_events::instructions::{OpenWindowArgs, PolicyVersionArgs, PrintPolicyArgs, SetAuthoritiesArgs};
+use agari_events::state::MarketResult;
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::solana_program::instruction::Instruction;
+use anchor_lang::solana_program::system_program;
 use anchor_lang::{AccountDeserialize, AccountSerialize, InstructionData, ToAccountMetas};
 use base64::Engine;
 use k256::ecdsa::{RecoveryId, Signature, SigningKey};
@@ -233,8 +235,35 @@ impl World {
         ix(accounts, agari_events::instruction::PublicCopyOpenFromPrev {})
     }
 
+    fn resolve_accounts(&self, market: Pubkey) -> agari_events::accounts::PublicResolveWindow {
+        agari_events::accounts::PublicResolveWindow {
+            payer: key(3).pubkey(),
+            series: self.series,
+            market,
+            result: result_address(&agari_events::ID, &market).0,
+            system_program: system_program::ID,
+            event_authority: event_authority(),
+            program: agari_events::ID,
+        }
+    }
+
+    /// Permissionless: the stranger (key 3) settles and pays the result rent.
+    pub fn settle(&mut self, market: Pubkey) -> Result<crate::Sent, u32> {
+        let ix = ix(self.resolve_accounts(market), agari_events::instruction::PublicSettleWindow {});
+        self.h.send(&[ix], &[&key(3)])
+    }
+
+    pub fn void(&mut self, market: Pubkey) -> Result<crate::Sent, u32> {
+        let ix = ix(self.resolve_accounts(market), agari_events::instruction::PublicVoidExpired {});
+        self.h.send(&[ix], &[&key(3)])
+    }
+
     /// Sends `ixs` paid by the stranger: prints need no role.
     pub fn send(&mut self, ixs: &[Instruction]) -> Result<crate::Sent, u32> {
         self.h.send(ixs, &[&key(3)])
+    }
+
+    pub fn result_state(&self, market: &Pubkey) -> MarketResult {
+        self.h.read(&result_address(&agari_events::ID, market).0)
     }
 }

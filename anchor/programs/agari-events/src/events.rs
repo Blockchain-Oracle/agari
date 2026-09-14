@@ -70,6 +70,23 @@ pub struct WindowOpened {
     pub generation: u32,
 }
 
+/// Borsh mirror of the zero-copy `Print` (events-accounts.md §3.5) for event payloads.
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct PrintData {
+    pub price: i64,
+    pub source_ts: i64,
+    pub expo: i32,
+    pub source: u8,
+    pub signers: u8,
+    pub flags: u8,
+}
+
+impl From<&crate::state::Print> for PrintData {
+    fn from(p: &crate::state::Print) -> Self {
+        Self { price: p.price, source_ts: p.source_ts, expo: p.expo, source: p.source, signers: p.signers, flags: p.flags }
+    }
+}
+
 #[event]
 pub struct PrintRecorded {
     pub market: Pubkey,
@@ -82,4 +99,21 @@ pub struct PrintRecorded {
     pub signers: u8,
     pub copied: bool,
     pub recorded_ts: i64,
+}
+
+#[event]
+pub struct WindowResolved {
+    pub market: Pubkey,
+    pub seq: u64,
+    pub state: u8,
+    pub winner: u8,
+    pub payout_yes: u32,
+    pub payout_no: u32,
+    pub void_reason: u8,
+    pub single_source: bool,
+    pub open: PrintData,
+    pub close: PrintData,
+    pub check_open: PrintData,
+    pub check_close: PrintData,
+    pub resolved_ts: i64,
 }

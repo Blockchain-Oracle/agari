@@ -22,6 +22,10 @@ path = "events_admin.rs"
 name = "events_prints"
 path = "events_prints.rs"
 
+[[test]]
+name = "events_settle"
+path = "events_settle.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
