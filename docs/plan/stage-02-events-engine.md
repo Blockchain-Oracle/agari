@@ -18,7 +18,7 @@
 - [x] Complete sets; withdraw credit
 - [x] Settle (cross-check), void, redeem/redeem_for, release book, close ledger + mvault (donation-safe), close market + result after retention (D-021, D-022)
 - [x] `book_walk` + TS mirror + vectors
-- [ ] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
+- [x] Targeted tests (P§8 engine list) + randomized operation-sequence harness + deadline race tests per source
 - [x] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
 - [x] Codegen (D-025)
 - [x] Devnet deploy + `init-events` (D-024, D-026)
@@ -163,11 +163,28 @@
   - **Result:** **29,938 CU, 642 B** for **10 fills** (the Market's `trade_count` +10), a third of the plan's 60–90k budget. It agrees with LiteSVM (29,888 CU).
   - **Surfpool 1.5.0 quirk:** `surfnet_profileTransaction` takes `[tx]` or `[tx, tag: string]`. The documented config object as the second parameter is refused ("expected a string").
   - The devnet table above covers every other instruction the drives send.
+- **P§8 engine list, audited against the code (2026-09-14).** Every S2-scope item has a named test:
+  - **Fill paths and exact cash:** `matching/tests/paths.rs` (8) plus examples 1–4.
+  - **Order behaviour:**
+    - Eviction credit and PostOnly over an expired top: example 7.
+    - IOC zero-fill revert: `edges.rs` and LiteSVM `an_ioc_that_fills_nothing…`.
+    - Remainder cancelled at the fill cap: example 6 and `skip_cap…`.
+  - **Prints, all sources:** wrong source, first print wins, unknown version, the roller's coverage check, append-only versions (`events_admin`, `events_prints`).
+  - **Pyth:** uniqueness window, feed, Partial, owner 3007, confidence, the real blob only at its own T.
+  - **RedStone:** the real golden (new, 14:40Z production signers); timestamp, unknown or malleated signer, duplicate refused (D-007); 3/4 inside strict then after; tamper; wrong feed.
+  - **Attested:** offsets attacks and the cutoff.
+  - **Cross-check:** pending, single-source, divergence void, and copy-open across versions. **New:** copy-open carries the check close only inside the check window (`copy_open_carries_the_check_close_only_inside_the_check_window`); until now no test used a version with a check.
+  - **Settlement and closure:** redeem 1/0 and void ½; a stale handle on a recycled book; donation-safe close; retention and dependents; ledger growth; bond refund; a full ledger refuses by name.
+  - **Randomized sequences:** `random.rs`, two runs with the §8.3 conservation checked after every operation.
+  - **PD-6 races:** per source at `T + 900`, the Gap open at `lock_at`, and the check bound (`events_settle`).
+- **Not in S2:** Switchboard (S6), PD-2 cross-slot manipulation and product claims after close (S10), indexer (S3), sponsor (S7).
+- **One accepted exception (D-021):** the attested `CpiNotAllowed` refusal needs a calling program. Add it in S10, when product programs make CPI calls.
 
 ## Handoff
 
 - **Next (after both drives, D-027):**
-  - **Targeted-tests box:** check the P§8 list against what exists (Findings) and add only what's missing.
+  - **S2 gate:** every box is ticked. Run the gate list, record it, and advance `parity.md` (C:05 §6 Q1; enables L-29…L-34). The merge to `main` waits for S1's gate, because this branch contains S1.
+  - **S10 note:** add the attested CPI-refusal test once a product program can CPI.
   - **Closure on devnet:** the three drive Windows still hold Market/Ledger/mvault rent. A settler pass (`public_release_book` for TSLA/TEST/NVDA; the drive recycles Books before opening, not after), then `public_close_ledger`, and `public_close_market` after 6 h, reclaims it. It belongs to the S3 settler; run it by hand only if SOL gets tight.
   - **Re-running the drive:** `set -a; source ../../stocklana/.env.local; set +a; pnpm exec tsx scripts/drive/events-cycle.ts --cluster devnet | sed "s/$HELIUS_API_KEY/<redacted>/g"` (PYTH_API_KEY and HELIUS_API_KEY live in the main worktree's `.env.local`). It must run in NYSE hours; the Pyth trial covers TSLA until the 09-25 close.
 - **Earlier next (after init-events, D-026, done):**

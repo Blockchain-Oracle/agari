@@ -166,3 +166,39 @@ fn copy_open_never_crosses_a_policy_version_switch() {
     assert_eq!(w.send(&[w.copy_open_ix(m1, m0)]).unwrap_err(), PRINT_NOT_ADJACENT, "same instant, different version");
     assert!(w.h.market_state(&m1).open.source == 0);
 }
+
+#[test]
+fn copy_open_carries_the_check_close_only_inside_the_check_window() {
+    // Attested primary (60 s delay) checked by RedStone (60 s strict inside a 120 s window), like drive Series 900.
+    let tsla = feed(b"TSLA");
+    let mut w = World::regular(version(attested_policy(), Some(redstone(b"TSLA", 120, 60))), 4);
+    let m0 = w.open(regular_window(0, T, 300, 0));
+    let m1 = w.open(regular_window(1, T + 300, 300, 0));
+    let m2 = w.open(regular_window(2, T + 600, 300, 0));
+
+    // Window 0 closes at T + 300 with both prints; Window 1 copies both at T + 360, inside its check window (T + 420).
+    w.h.warp_to(T + 330);
+    let check = redstone_payload(&w.keys.redstone, tsla, 36_550_000_000, (T + 300) as u64 * 1_000);
+    w.send(&[compute_limit(400_000), w.redstone_ix(m0, 3, check)]).unwrap();
+    w.h.warp_to(T + 360);
+    let close = w.attested_pair(&w.keys.attestor, m0, 1, 36_549_000_000, T + 300, T + 360);
+    w.send(&close).unwrap();
+    w.send(&[w.copy_open_ix(m1, m0)]).unwrap();
+    let (m0s, m1s) = (w.h.market_state(&m0), w.h.market_state(&m1));
+    assert_eq!((m1s.open.price, m1s.open.source), (m0s.close.price, m0s.close.source));
+    assert_eq!((m1s.check_open.price, m1s.check_open.signers), (m0s.check_close.price, 5));
+    assert_eq!(m1s.check_open.flags & PRINT_FLAG_COPIED_FROM_PREV, PRINT_FLAG_COPIED_FROM_PREV);
+
+    // Window 1 closes at T + 600; Window 2 copies at T + 721, past its check window (T + 720): the open only.
+    w.h.warp_to(T + 630);
+    let check = redstone_payload(&w.keys.redstone, tsla, 36_560_000_000, (T + 600) as u64 * 1_000);
+    w.send(&[compute_limit(400_000), w.redstone_ix(m1, 3, check)]).unwrap();
+    w.h.warp_to(T + 660);
+    let close = w.attested_pair(&w.keys.attestor, m1, 1, 36_559_000_000, T + 600, T + 660);
+    w.send(&close).unwrap();
+    w.h.warp_to(T + 721);
+    w.send(&[w.copy_open_ix(m2, m1)]).unwrap();
+    let m2s = w.h.market_state(&m2);
+    assert_eq!(m2s.open.price, 36_559_000_000);
+    assert_eq!(m2s.check_open.source, 0, "a check copied after its own window would outlive the rule it enforces");
+}
