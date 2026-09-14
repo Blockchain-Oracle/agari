@@ -18,7 +18,7 @@
 - [ ] Spot feed + `/health` + `/prices/stream` SSE (lane 3b)
 - [x] Settler (retries `CrossCheckPending` until the check bound; redeem_for, close ledger, close market) (lane 3c)
 - [x] Seed maker, `MAKER_MODE=seat` (lane 3c; real `SpotFeed` hookup at the main.ts step)
-- [ ] Indexer + backfill + `verify-index` (lane 3d)
+- [x] Indexer + backfill + `verify-index` (lane 3d)
 - [ ] Register actors in `main.ts` (DRY_RUN default) + heartbeats (stage owner, after the lanes merge)
 - [ ] Register series on devnet + rent accounting (stage owner; needs SOL)
 - [ ] One-session soak (stage owner)
@@ -72,6 +72,31 @@
   - **Series 900:** `SETTLER_ALL_SERIES=1` lets the settler also close the drive-only Series 900 Windows; on devnet this reclaims the S2 drive rent.
   - **Surfpool gPA:** Surfpool's `getProgramAccounts` still lists Markets closed on the fork. Steady-state reads are by address, so actors are unaffected.
   - **Maker RPC budget:** at 10 s passes, near-expiry fair moves requote often (≈ 11 per 5m Window). For devnet, raise `MM_REQUOTE_TICKS` or narrow `MM_SYMBOLS`/`MM_CADENCES` to stay within ≈ 1 RPS.
+- **Lane 3d (indexer, merged from `slice/S3d-indexer` @ 57d52d0):**
+  - **Devnet backfill** (read-only, Helius, 3 RPS, from deploy slot 498252588):
+    - 42 txs in 24.5 s, all finalized: WindowOpened 3, WindowResolved 3, PrintRecorded 8, OrderExecuted 8 (4 fills), OrdersCancelled 2, Redeemed 5.
+    - `pnpm drive:verify-index --cluster devnet` matched chain and index on every metric (0 gaps, 0 duplicates). Projections reproduce the S2 drive's figures (TSLA A redeemed 7,370,000, D 1,550,000).
+    - A re-walk, a cursor reset and `--rebuild` all left every table byte-identical (md5).
+  - **Surfpool live:**
+    - Program transactions were indexed 15–45 ms after confirmation.
+    - A deleted mint-pair transaction was detected as a `(market, seq)` hole and refetched by a per-Market signature walk (6/6 seqs in 18 s).
+    - Rows were promoted to finalized within one walk (5–10 s).
+    - Incremental projections were identical to a replay from `idx_events`.
+  - **Decoder test:** one vitest over real devnet tx `5eyinbbR…` (OrderExecuted seq 7, DIRECT_YES 1,000 @ 700).
+  - **Tables:** `idx_cursor`, `idx_txs`, `idx_events` (key `(signature, outer_ix, inner_ix)`), `idx_series` (read from the Series account; `SeriesRegistered` is an `emit!` log), `idx_markets`, `idx_prints`, `idx_orders`, `idx_fills`, `idx_positions`, `idx_candles`.
+  - **Cash units:** two are stored. `*_ticklots` (lots × ticks; × Series `cash_unit` = base units) and `*_base` (collateral base units, as CompleteSet and Redeemed carry them).
+  - **Masayume row shapes → `idx/read.ts`:**
+    - `getUserFills`/`getFills` → `walletFills`/`fills` (pool = book, fillPrice = YES ticks, txHash = signature)
+    - `getRouterActions` → `walletActions`
+    - `getBinaryMarket`/`listLive/PastBinaryMarkets` → `markets`
+    - `getOpeningPrices` → `openingPrints`
+    - `fetchPriceHistory` → `printHistory`
+    - `getPortfolio`/`getOpenPositionsWithPnL` → `positions`
+    - also `orders`, `candles`, `status`, `countsThrough`. S4 serves these at `/api/index/*`.
+  - **Surfpool block times:** Surfpool reports block times ≈ 1.79e6, so live lag falls back to notification → commit time, and verify-index also reports slots behind head. A fork indexer first re-indexes the devnet program history the fork proxies.
+  - **Where gaps surface:** a hole is noticed when a later event of the same Market is written.
+  - **`idx_orders.filled_lots`** is the placement's own fill; maker-side fills show in `remaining_lots`/`status`.
+  - **Wiring:** `startIndexer(deps)` needs `DATABASE_URL`; tuning `INDEXER_RPS` (3), `INDEXER_WALK_MS` (20,000), `INDEXER_START_SLOT`. `verify-index.ts` imports the comparison from `services/ops/src/actors/indexer/verify.ts` by relative path (resolves `@agari/db` through services/ops).
 - **SOL for the devnet run** (5,080 lamports/B incl. header):
   - 25 missing Series × 0.0076 ≈ 0.2 SOL.
   - Books: 16 new 5m/15m Series × 2 × 0.2900 ≈ 9.3 SOL, plus 9 new 60m Series × 2 × 0.2276 ≈ 4.1 SOL, so ≈ 13.4 SOL of Books.
