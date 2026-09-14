@@ -47,7 +47,8 @@ export async function startPriceRelay(deps: VenueDeps): Promise<PriceRelayHandle
   if (!secret) log("PRICE_RELAY_PRIVATE_KEY is not set: scanning and reporting only (DRY), nothing is signed");
   const dryRun = env.dryRun || !secret;
   const payerSecret = secret ?? readOnlySecret();
-  const client = await createOpsClient({ rpcUrl: env.rpcUrl, rpcSubscriptionsUrl: env.rpcSubscriptionsUrl, payerSecret });
+  // Prints have the tightest deadlines (RedStone checks by T + 120), so the relay paces in the reserved priority lane.
+  const client = await createOpsClient({ rpcUrl: env.rpcUrl, rpcSubscriptionsUrl: env.rpcSubscriptionsUrl, payerSecret, rpcLane: "priority" });
   const attestorSecret = process.env.RELAY_ATTESTED === "1" ? roleSecret("price-attestor") : null;
   if (process.env.RELAY_ATTESTED === "1" && !attestorSecret) log("RELAY_ATTESTED=1 but PRICE_ATTESTOR_PRIVATE_KEY is not set: attested slots stay unrecorded");
   const ctx: RelayContext = {

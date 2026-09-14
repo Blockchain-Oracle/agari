@@ -18,6 +18,15 @@ const RETRY_NETWORK = new Set(["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EPIPE
 /** Process-wide pacing, so a boundary burst queues instead of hitting the provider limit (Helius devnet ≈ 10 RPS). */
 const MAX_RPS = Number(process.env.RPC_MAX_RPS) || 8;
 const SEND_TPS = Number(process.env.RPC_SEND_TPS) || 3;
+/**
+ * The share of both rates reserved for the `priority` lane (price-relay: RedStone check prints must land by T + 120,
+ * and they lost the race to settler and maker traffic at busy boundaries). The two lanes together stay at the caps.
+ */
+const PRIORITY_RPS = Number(process.env.RPC_PRIORITY_RPS) || 3;
+const PRIORITY_TPS = Number(process.env.RPC_PRIORITY_TPS) || 1;
+
+/** `priority` gets its own reserved buckets; `normal` shares the rest. */
+export type RpcLane = "priority" | "normal";
 
 let dispatcher: Dispatcher | undefined;
 
@@ -41,8 +50,10 @@ function tokenBucket(ratePerSec: number) {
   };
 }
 
-const anyCall = tokenBucket(MAX_RPS);
-const sendCall = tokenBucket(SEND_TPS);
+const BUCKETS: Record<RpcLane, { anyCall: ReturnType<typeof tokenBucket>; sendCall: ReturnType<typeof tokenBucket> }> = {
+  priority: { anyCall: tokenBucket(PRIORITY_RPS), sendCall: tokenBucket(PRIORITY_TPS) },
+  normal: { anyCall: tokenBucket(Math.max(1, MAX_RPS - PRIORITY_RPS)), sendCall: tokenBucket(Math.max(1, SEND_TPS - PRIORITY_TPS)) },
+};
 const isSend = (payload: unknown) => (payload as { method?: unknown } | null)?.method === "sendTransaction";
 
 /** Bounded connections per origin, header/body timeouts, and a keep-alive shorter than the provider's idle close. */
@@ -68,7 +79,8 @@ const sleep = (ms: number, signal?: AbortSignal) =>
   });
 
 /** The default Kit HTTP transport over the shared dispatcher, retried with jittered exponential backoff. */
-export function retryingRpcTransport(url: string): RpcTransport {
+export function retryingRpcTransport(url: string, lane: RpcLane = "normal"): RpcTransport {
+  const { anyCall, sendCall } = BUCKETS[lane];
   const inner = createDefaultRpcTransport({ url: url as never, dispatcher_NODE_ONLY: rpcHttpDispatcher() as never }) as RpcTransport;
   return (async (request: Parameters<RpcTransport>[0]) => {
     for (let attempt = 0; ; attempt++) {
