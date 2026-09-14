@@ -1,9 +1,9 @@
 "use client";
 
-import { toMarketId } from "@agari/core/types";
 import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { CallPlacedCard, renderCallShareCard, renderTradeShareCard, type CallCard, type TradeCard } from "@/features/share";
+import { fixtureMarketId, fixtureSignature } from "../fixture-ids";
 import { DECIMALS, FIXED_NOW_MS, FIXED_NOW_SEC, SYMBOL, TX_HASH } from "../states/fixtures";
 
 const DEV = {
@@ -15,13 +15,13 @@ const DEV = {
   rendering: "rendering…",
 } as const;
 
-const MARKET = toMarketId(`0x${"5a1f0e2d".repeat(8)}`);
+const MARKET = fixtureMarketId(`0x${"5a1f0e2d".repeat(8)}`);
 
 const CALL: CallCard = {
-  asset: "BTC",
+  asset: "TSLA",
   side: "up",
   intervalSec: 300,
-  lineRaw: 6431600n,
+  lineRaw: 36_548_000_000n,
   stakeBase: 12_000_000n,
   contractsRaw: 18_750_000n,
   decimals: DECIMALS,
@@ -37,12 +37,12 @@ const CALL: CallCard = {
 const BOOSTED_CALL: CallCard = { ...CALL, stakeBase: 10_000_000n, contractsRaw: 32_000_000n, leverage: { leverageBps: 20_000, frontedBase: 10_000_000n } };
 
 const BASE: TradeCard = {
-  asset: "BTC",
+  asset: "TSLA",
   intervalSec: 300,
   sides: ["up"],
   outcome: "win",
-  lineRaw: 6431600n,
-  closeRaw: 6438912n,
+  lineRaw: 36_548_000_000n,
+  closeRaw: 36_589_120_000n,
   stakeBase: 12_000_000n,
   payoutBase: 18_375_000n,
   pnlBase: 6_375_000n,
@@ -51,7 +51,7 @@ const BASE: TradeCard = {
   expirySec: FIXED_NOW_SEC - 900,
   settledAtMs: FIXED_NOW_MS - 880_000,
   entryTxHash: TX_HASH,
-  settlementTxHash: `0x${"1c0ffee5".repeat(8)}`,
+  settlementTxHash: fixtureSignature(`0x${"1c0ffee5".repeat(8)}`),
 };
 
 const TRADES: TradeCard[] = [

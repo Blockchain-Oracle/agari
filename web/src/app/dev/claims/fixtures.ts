@@ -1,22 +1,25 @@
-import { diagnosis, toMarketId, type Address, type ClaimableRow, type Hex } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
+import { diagnosis, type ClaimableRow, type Signature } from "@agari/core/types";
 import { IDLE_RUN, itemsFromRows } from "@/features/markets/claims";
 import type { ClaimItem, ClaimRun } from "@/features/markets/claims";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 export const DECIMALS = 6;
 export const FIXED_NOW_MS = Date.UTC(2026, 8, 1, 14, 35, 0);
 const FIXED_NOW_SEC = FIXED_NOW_MS / 1000;
 
-export const TX_HASHES: readonly Hex[] = [
-  "0x9f3b2c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
-  "0x1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f810",
-  "0x2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a",
+export const TX_HASHES: readonly Signature[] = [
+  fixtureSignature("0x9f3b2c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"),
+  fixtureSignature("0x1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f810"),
+  fixtureSignature("0x2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a"),
 ];
-export const SETTLEMENT_TX_URL = `https://shannon-explorer.somnia.network/tx/${TX_HASHES[2]}`;
+export const SETTLEMENT_TX_URL = txUrl(TX_HASHES[2]!);
 export const ORACLE_QUESTION_ID = "1842";
-export const ORACLE_URL = `https://prd.oracle.somnia.host/questions/${ORACLE_QUESTION_ID}?view=graph`;
+/** The print proof is the settling transaction until S5 adds each source's own proof (D-012). */
+export const ORACLE_URL = SETTLEMENT_TX_URL;
 
-const MARKET_ADDRESS = "0x2f0b9c4d3e5a7f8190a1b2c3d4e5f60718293a4b" as Address;
-const marketId = (suffix: string) => toMarketId(`0x${suffix.padStart(64, "0")}`);
+const MARKET_ADDRESS = fixtureAddress("0x2f0b9c4d3e5a7f8190a1b2c3d4e5f60718293a4b");
+const marketId = (suffix: string) => fixtureMarketId(`0x${suffix}`);
 
 function row(overrides: Partial<ClaimableRow> & Pick<ClaimableRow, "kind" | "marketId" | "asset" | "intervalSec" | "legs">): ClaimableRow {
   const netPayoutBase = overrides.legs.reduce((sum, leg) => sum + leg.payoutBase, 0n);
@@ -35,7 +38,7 @@ function row(overrides: Partial<ClaimableRow> & Pick<ClaimableRow, "kind" | "mar
 export const WIN_ROW = row({
   kind: "win",
   marketId: marketId("ff1b"),
-  asset: "BTC",
+  asset: "TSLA",
   intervalSec: 300,
   legs: [{ outcomeIdx: 0, amountRaw: 200_000_000n, payoutBase: 200_000_000n }],
   settledAtMs: FIXED_NOW_MS - 598_000,
@@ -45,7 +48,7 @@ export const WIN_ROW = row({
 export const VOID_ROW = row({
   kind: "void",
   marketId: marketId("ff0c"),
-  asset: "ETH",
+  asset: "NVDA",
   intervalSec: 900,
   expirySec: FIXED_NOW_SEC - 2_400,
   legs: [
@@ -57,7 +60,7 @@ export const VOID_ROW = row({
 export const LATER_WIN_ROW = row({
   kind: "win",
   marketId: marketId("fee9"),
-  asset: "ETH",
+  asset: "NVDA",
   intervalSec: 3_600,
   expirySec: FIXED_NOW_SEC - 7_200,
   legs: [{ outcomeIdx: 1, amountRaw: 75_500_000n, payoutBase: 75_500_000n }],

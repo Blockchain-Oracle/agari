@@ -1,8 +1,10 @@
+import { CLUSTER_ID } from "@agari/core/constants";
 import { err, ok, stale, type Reading } from "@agari/core/schemas";
-import { diagnosis, toMarketId, type Address } from "@agari/core/types";
+import { diagnosis, type Address, type MarketId } from "@agari/core/types";
 import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@agari/core/vault";
 import type { VAULT } from "@/features/vault";
 import type { VaultOpenBet } from "@/features/vault";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned readings; nothing here is a real balance, address or deployment.
 const DECIMALS = 6;
@@ -12,13 +14,13 @@ const STALE_AGE_MS = 90_000;
 const NOW_SEC = Math.floor(AS_OF_MS / 1000);
 
 export const FIXTURE_SYMBOL = "tUSDC";
-export const FIXTURE_OWNER = "0x000000000000000000000000000000000000d357" as Address;
+export const FIXTURE_OWNER = fixtureAddress("0x000000000000000000000000000000000000d357");
 
 const deployment: VaultDeployment = {
-  chainId: 50312,
-  eventVault: "0x00000000000000000000000000000000000000e7" as Address,
-  forwarder: "0x00000000000000000000000000000000000000f0" as Address,
-  collateral: "0x70a86D8842FB63C4Ad2b7cdddF530eBf1BB25d8E" as Address,
+  chainId: CLUSTER_ID.devnet,
+  eventVault: fixtureAddress("0x00000000000000000000000000000000000000e7"),
+  forwarder: fixtureAddress("0x00000000000000000000000000000000000000f0"),
+  collateral: fixtureAddress("0x70a86D8842FB63C4Ad2b7cdddF530eBf1BB25d8E"),
   fromBlock: 477_650_000n,
 };
 
@@ -26,7 +28,7 @@ function grant(id: bigint, kind: VaultGrant["kind"], budget: bigint): VaultGrant
   return {
     grantId: id,
     owner: FIXTURE_OWNER,
-    actor: `0x00000000000000000000000000000000000000a${id.toString()}` as Address,
+    actor: fixtureAddress(`0xa${id.toString()}`),
     kind,
     revoked: false,
     expiresAtSec: NOW_SEC + 86_400,
@@ -72,12 +74,12 @@ export const VAULT_FIXTURES: readonly VaultFixture[] = [
   { key: "loading", reading: null, busy: null },
 ];
 
-const id = (n: number) => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
+const id = (n: number): MarketId => fixtureMarketId(n);
 
 export const OPEN_BETS: VaultOpenBet[] = [
-  { marketId: id(0x11019), asset: "BTC", intervalSec: 300, expirySec: NOW_SEC + 180, decimals: DECIMALS, heldUpRaw: 10n * UNIT, heldDownRaw: 0n, stakeBase: 4n * UNIT + 340_000n },
-  { marketId: id(0x11020), asset: "ETH", intervalSec: 900, expirySec: NOW_SEC + 40, decimals: DECIMALS, heldUpRaw: 0n, heldDownRaw: 25n * UNIT, stakeBase: 14n * UNIT + 875_000n },
-  { marketId: id(0x11021), asset: "BTC", intervalSec: 3_600, expirySec: NOW_SEC + 2_400, decimals: DECIMALS, heldUpRaw: 5n * UNIT, heldDownRaw: 5n * UNIT, stakeBase: 5n * UNIT },
+  { marketId: id(0x11019), asset: "TSLA", intervalSec: 300, expirySec: NOW_SEC + 180, decimals: DECIMALS, heldUpRaw: 10n * UNIT, heldDownRaw: 0n, stakeBase: 4n * UNIT + 340_000n },
+  { marketId: id(0x11020), asset: "NVDA", intervalSec: 900, expirySec: NOW_SEC + 40, decimals: DECIMALS, heldUpRaw: 0n, heldDownRaw: 25n * UNIT, stakeBase: 14n * UNIT + 875_000n },
+  { marketId: id(0x11021), asset: "TSLA", intervalSec: 3_600, expirySec: NOW_SEC + 2_400, decimals: DECIMALS, heldUpRaw: 5n * UNIT, heldDownRaw: 5n * UNIT, stakeBase: 5n * UNIT },
 ];
 
 export const WALLET_SPENDABLE = 1_234n * UNIT + 560_000n;

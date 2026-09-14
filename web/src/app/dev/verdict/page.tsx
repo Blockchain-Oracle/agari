@@ -1,6 +1,6 @@
 "use client";
 
-import { isBytes32, toMarketId } from "@agari/core/types";
+import { isMarketId } from "@agari/core/types";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { SectionHeader } from "@/components/chrome";
@@ -13,11 +13,11 @@ import { FIXTURE_MARKET, FIXTURE_RESOLUTION, VERDICT_FIXTURES, VOID_RESOLUTION }
 
 function LivePicker() {
   const requested = useSearchParams().get("m");
-  if (!requested || !isBytes32(requested)) return null;
+  if (!requested || !isMarketId(requested)) return null;
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader index="00" title={VERDICT_UI.title} eyebrow={requested} />
-      <LiveVerdict marketId={toMarketId(requested)} />
+      <LiveVerdict marketId={requested} />
     </section>
   );
 }

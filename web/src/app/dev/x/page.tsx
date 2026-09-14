@@ -10,14 +10,15 @@ import "@/features/x/x-card.css";
 import { X_FIXTURE_NOW_SEC, XUpgradeFixture } from "./XUpgradeFixture";
 import { XInstructionBuilderView } from "@/features/x/XInstructionBuilder";
 import { FIXTURE_NOW_MS, WINDOWS } from "../surface/fixtures";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 const DEV = {
   title: "X rail",
   intro: "The X-Predict wallet card in every link state, the claim ticket, and a receipt of every status — from canned data. No wallet, no store, no X app.",
 } as const;
 
-const EXECUTOR = "0x00000000000000000000000000000000000000e0";
-const OTHER = "0x1111111111111111111111111111111111111111";
+const EXECUTOR = fixtureAddress("0x00000000000000000000000000000000000000e0");
+const OTHER = fixtureAddress("0x1111111111111111111111111111111111111111");
 const noop = async () => undefined;
 
 function status(over: Partial<XStatus>): XStatus {
@@ -29,7 +30,7 @@ function link(over: Partial<XLink> & { status: XStatus }): XLink {
 }
 
 const GRANT: VaultGrant = {
-  grantId: 3n, owner: WALLET.toLowerCase() as VaultGrant["owner"], actor: EXECUTOR as VaultGrant["actor"], kind: "executor", revoked: false,
+  grantId: 3n, owner: WALLET, actor: EXECUTOR as VaultGrant["actor"], kind: "executor", revoked: false,
   expiresAtSec: X_FIXTURE_NOW_SEC + 86_400 * 20, spentDay: 0, spentTodayBase: 0n, openPositions: 1,
   caps: xGrantCaps(), budgetBase: 7_250_000n,
 };
@@ -40,7 +41,7 @@ function grant(over: Partial<XGrantState>): XGrantState {
     busy: "", error: "", ok: "", fund: noop, cashOut: noop, update: noop, keepReturnedFunds: () => undefined, clear: () => undefined, ...over };
 }
 
-const BINDING = { authorId: "1234567890", handle: "abu_builds", wallet: WALLET.toLowerCase(), since: X_FIXTURE_NOW_SEC * 1000 - 86_400_000 };
+const BINDING = { authorId: "1234567890", handle: "abu_builds", wallet: WALLET, since: X_FIXTURE_NOW_SEC * 1000 - 86_400_000 };
 const SESSION = { authorId: "1234567890", handle: "abu_builds" };
 
 const CASES: Array<{ title: string; address: string | null; link: XLink; grant: XGrantState }> = [
@@ -55,15 +56,15 @@ const CASES: Array<{ title: string; address: string | null; link: XLink; grant: 
 ];
 
 const RECEIPTS: XReceipt[] = (["filled", "nothing-filled", "refused", "submitted", "reverted", "unknown"] as const).map((s, i) => ({
-  mentionId: `18${i}`, authorId: SESSION.authorId, handle: SESSION.handle, wallet: WALLET.toLowerCase(), grantId: "3", marketId: `0x${"11".repeat(32)}`,
+  mentionId: `18${i}`, authorId: SESSION.authorId, handle: SESSION.handle, wallet: WALLET, grantId: "3", marketId: fixtureMarketId(`0x${"11".repeat(32)}`),
   side: i % 2 ? "down" : "up", stakeBase: "5000000", status: s,
   reason: s === "refused" ? "Review your trading permission and spending limits." : s === "unknown" ? "The transaction needs checking." : null,
   refusalCode: s === "refused" ? "permission-denied" : null,
-  txHash: s === "filled" || s === "reverted" ? `0x${"9f".repeat(32)}` : null, instruction: "@masayume_app btc up 5 15m", atMs: X_FIXTURE_NOW_SEC * 1000 - i * 600_000,
+  txHash: s === "filled" || s === "reverted" ? fixtureSignature(`0x${"9f".repeat(32)}`) : null, instruction: "@agari tsla up 5 15m", atMs: X_FIXTURE_NOW_SEC * 1000 - i * 600_000,
 }));
 RECEIPTS.push(
-  { ...RECEIPTS[2]!, mentionId: "190", refusalCode: "window-entry-closed", asset: "BTC", intervalSec: 900, entryClosesAtSec: X_FIXTURE_NOW_SEC - 30 },
-  { ...RECEIPTS[2]!, mentionId: "191", refusalCode: "instruction-invalid", parseRefusal: "no-cadence", instruction: "@masayume_app BTC long 5" },
+  { ...RECEIPTS[2]!, mentionId: "190", refusalCode: "window-entry-closed", asset: "TSLA", intervalSec: 900, entryClosesAtSec: X_FIXTURE_NOW_SEC - 30 },
+  { ...RECEIPTS[2]!, mentionId: "191", refusalCode: "instruction-invalid", parseRefusal: "no-cadence", instruction: "@agari TSLA long 5" },
 );
 
 export default function DevXPage() {

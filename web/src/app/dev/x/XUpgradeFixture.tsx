@@ -1,18 +1,19 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { diagnosis, type Address, type Hex } from "@agari/core/types";
+import { diagnosis } from "@agari/core/types";
 import { simulateCaps, type VaultGrant } from "@agari/core/vault";
 import { xPermissionState } from "@agari/core/x";
 import { XWalletCardView, type XGrantState, type XLink } from "@/features/x";
 import { updateXPermission, type XUpdateProgress } from "@/features/x/update-permission";
 import type { TxOutcome } from "@agari/core/ports";
 import { PLATE, PoolRows } from "@/features/markets/portfolio/plate";
+import { fixtureAddress, fixtureSignature } from "../fixture-ids";
 
-const OWNER = `0x${"11".repeat(20)}` as Address;
-const EXECUTOR = `0x${"22".repeat(20)}` as Address;
-const REVOKE = `0x${"aa".repeat(32)}` as Hex;
-const CREATED = `0x${"bb".repeat(32)}` as Hex;
+const OWNER = fixtureAddress(`0x${"11".repeat(20)}`);
+const EXECUTOR = fixtureAddress(`0x${"22".repeat(20)}`);
+const REVOKE = fixtureSignature(`0x${"aa".repeat(32)}`);
+const CREATED = fixtureSignature(`0x${"bb".repeat(32)}`);
 // A frozen rehearsal clock keeps server HTML and browser hydration identical.
 export const X_FIXTURE_NOW_SEC = Date.UTC(2026, 8, 10, 12) / 1000;
 const INITIAL: VaultGrant = { grantId: 10n, owner: OWNER, actor: EXECUTOR, kind: "executor", revoked: false,

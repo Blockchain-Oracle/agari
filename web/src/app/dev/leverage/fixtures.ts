@@ -1,5 +1,7 @@
+import { CLUSTER_ID } from "@agari/core/constants";
 import type { LeverageMark, LeveragePosition, LeverageQuote, LeverageReserveState } from "@agari/core/leverage";
 import { toMarketId, type Address, type MarketId } from "@agari/core/types";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned readings; nothing here is a real position, address or deployment.
 const DECIMALS = 6;
@@ -7,12 +9,12 @@ const UNIT = 10n ** BigInt(DECIMALS);
 export const FIXTURE_SYMBOL = "tUSDC";
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 2, 10, 0, 0);
 const NOW_SEC = Math.floor(FIXTURE_NOW_MS / 1000);
-export const OWNER = "0x000000000000000000000000000000000000d357" as Address;
-const id = (n: number): MarketId => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
-export const MARKET = { asset: "BTC", intervalSec: 300 };
+export const OWNER = fixtureAddress("0x000000000000000000000000000000000000d357");
+const id = (n: number): MarketId => fixtureMarketId(n);
+export const MARKET = { asset: "TSLA", intervalSec: 300 };
 
 export const RESERVE: LeverageReserveState = {
-  deployment: { chainId: 50312, leverageReserve: "0x00000000000000000000000000000000000000d9" as Address, fromBlock: 477_950_000n },
+  deployment: { chainId: CLUSTER_ID.devnet, leverageReserve: fixtureAddress("0x00000000000000000000000000000000000000d9"), fromBlock: 477_950_000n },
   params: {
     maxLeverageBps: 30_000,
     premiumBps: 800,

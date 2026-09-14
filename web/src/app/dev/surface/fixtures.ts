@@ -1,7 +1,9 @@
+import { fixtureWindow } from "../fixture-window";
 import { diagnosis } from "@agari/core/types";
 import { err, ok } from "@agari/core/schemas";
 import { termPoints, type TermPoint } from "@agari/core/surface";
 import { toMarketId, type Address, type BookDepth, type BookLevelView, type EventMarket, type MarketId } from "@agari/core/types";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned books; nothing here is a real market, pool or order.
 const DECIMALS = 6;
@@ -11,7 +13,7 @@ export const FIXTURE_DECIMALS = DECIMALS;
 export const FIXTURE_LOT = UNIT / 100n;
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 3, 9, 0, 0);
 const NOW_SEC = Math.floor(FIXTURE_NOW_MS / 1000);
-const id = (n: number): MarketId => toMarketId(`0x${n.toString(16).padStart(64, "0")}`);
+const id = (n: number): MarketId => fixtureMarketId(n);
 
 const level = (cents: number, contracts: number): BookLevelView => ({
   priceRaw: BigInt(cents) * (UNIT / 100n),
@@ -37,35 +39,8 @@ export const ONE_SIDED = book([], [level(64, 5), level(66, 8)]);
 export const THIN = book([level(40, 0.5)], [level(70, 0.5)]);
 export const EMPTY = book([], []);
 
-function market(n: number, intervalSec: number, expiresInSec: number, openingPriceRaw: bigint | null = 7_795_612n): EventMarket {
-  return {
-    marketId: id(n),
-    venueId: null,
-    asset: "BTC",
-    question: "",
-    intervalSec,
-    strikeRaw: 0n,
-    isUpDown: true,
-    tradingStartSec: NOW_SEC + expiresInSec - intervalSec,
-    expirySec: NOW_SEC + expiresInSec,
-    poolAddress: "0x0000000000000000000000000000000000000001" as Address,
-    marketAddress: "0x0000000000000000000000000000000000000002" as Address,
-    nonce: null,
-    yesTokenId: 0n,
-    noTokenId: 0n,
-    collateral: "0x0000000000000000000000000000000000000003" as Address,
-    decimals: DECIMALS,
-    status: "Trading",
-    winningOutcome: null,
-    voided: false,
-    finalized: null,
-    openingPriceRaw,
-    oracleQuestionId: null,
-    volumeQuoteRaw: 0n,
-    tradeCount: 0,
-    lastPriceRaw: null,
-    resolvedAtMs: null,
-  };
+function market(n: number, intervalSec: number, expiresInSec: number, openingPriceRaw: bigint | null = 36_541_200_000n): EventMarket {
+  return fixtureWindow({ marketId: id(n), intervalSec, expirySec: NOW_SEC + expiresInSec, decimals: DECIMALS, openingPriceRaw });
 }
 
 export const MARKET = market(0x11393, 900, 7 * 60 + 12);
