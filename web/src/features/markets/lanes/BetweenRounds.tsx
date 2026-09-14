@@ -22,7 +22,8 @@ export function BetweenRounds({ venueId, intervalSec, nowMs, session }: BetweenR
   const next = useLaneNextStart(closed ? null : venueId, intervalSec);
   if (closed) return <EmptyState why={MARKETS.closedWindows(session.label).why} />;
   if (next === null || nowMs === 0) return <LoadingState shape="line" />;
-  const nextStartMs = isOk(next) && next.value !== null ? secToMs(next.value) : null;
+  // Off-hours the lane's last expiry is the previous close, already behind the clock: not a next start to count down to.
+  const nextStartMs = isOk(next) && next.value !== null && secToMs(next.value) > nowMs ? secToMs(next.value) : null;
   const line = betweenRoundsLine(nextStartMs, nowMs, intervalSec);
   return <EmptyState why={nextStartMs === null ? line : `${line} (${MARKETS.estimated})`} />;
 }

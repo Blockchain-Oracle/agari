@@ -1,22 +1,27 @@
 "use client";
 
+import { MARKETS_POLL_MS } from "@agari/core/constants";
+import { ok, type Reading } from "@agari/core/schemas";
 import type { Address, OnchainSnapshot } from "@agari/core/types";
-import { useHoldings } from "@agari/markets/react";
+import { marketsProvider } from "@agari/markets";
+import { keys, useReadingQuery } from "@agari/markets/react";
+import { readSeat } from "@agari/markets/runtime";
 
 /**
- * The Series seat bond on the launch grid (D-026: 250,000 base = 0.25 tUSDC). agari-events pulls it on a wallet's
- * first order in a Window and refunds it at redeem. The Series account is the authority: once lane 4a's
- * `readSeries(...).seatBond` is on the read port this constant goes, and nothing else changes.
- */
-const LAUNCH_SEAT_BOND_BASE = 250_000n;
-
-/**
- * What the next order must also fund beyond its escrow: the seat bond while the wallet holds nothing in this Window
- * (first-call.md §6 — "no holdings" stands in for "no seat"; a wallet that sold out still has its seat, and is
- * asked for a quarter it will not be charged, never the reverse). Zero while unknown, and off the wallet route.
+ * What the next order must also fund beyond its escrow: the Series seat bond while the wallet has no seat on this
+ * Window's Ledger (agari-events pulls it on the first order and refunds it at redeem). Read from the Ledger itself —
+ * seat present or not, and the bond it records — the same read the order lane's funding check makes. Nested under the
+ * wallet's positions, so the order that takes the seat clears it. Zero while unknown, closed, or off the wallet route.
  */
 export function useSeatDeposit(wallet: Address | null, onchain: OnchainSnapshot | null): bigint {
-  const holdings = useHoldings(wallet, onchain);
-  if (wallet === null || !holdings?.ok) return 0n;
-  return holdings.value.upRaw === 0n && holdings.value.downRaw === 0n ? LAUNCH_SEAT_BOND_BASE : 0n;
+  const ledger = onchain?.ledger ?? null;
+  const reading = useReadingQuery<bigint>(
+    [...keys.positions(wallet), "seat-deposit", ledger],
+    async (): Promise<Reading<bigint>> => {
+      const read = await readSeat(ledger as Address, wallet as Address);
+      return ok(read && !read.seat ? read.seatBond : 0n, marketsProvider.nowMs());
+    },
+    { enabled: wallet !== null && ledger !== null, pollMs: MARKETS_POLL_MS },
+  );
+  return reading?.ok ? reading.value : 0n;
 }

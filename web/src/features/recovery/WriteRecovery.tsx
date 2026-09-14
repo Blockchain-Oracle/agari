@@ -1,6 +1,6 @@
 "use client";
 
-import { chainReconciler, recoverUnresolved, type RecoveryResult, type SubmitterSession } from "@agari/markets";
+import { recoverUnresolved, type RecoveryResult, type SubmitterSession } from "@agari/markets";
 import { useUserSession } from "@agari/markets/react";
 import { useEffect } from "react";
 import { notify } from "@/lib/toast";
@@ -36,7 +36,9 @@ export function WriteRecovery() {
     if (!session || asked.has(session)) return;
     asked.add(session);
     let cancelled = false;
-    recoverUnresolved(session.submitter.journal, session.address, chainReconciler, Date.now())
+    // The session's own reconciler: bound to its RPC and the indexer, so an order closed before signing is decided by
+    // the Window's fills rather than left pending (lane 4b).
+    recoverUnresolved(session.submitter.journal, session.address, session.submitter.reconciler, Date.now())
       .then((results) => {
         if (!cancelled) announce(results);
       })
