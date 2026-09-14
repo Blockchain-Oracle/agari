@@ -3,12 +3,13 @@ import type { PrintArchiveRow } from "@agari/db";
 import { feedAt, type GatewayResponse } from "./redstone-fetch";
 import type { RelaySources } from "./sources";
 
-const COMPLETE_BY_SEC = 60;
+/** A short signer set is archived as it stands at T + 45, so every boundary is stored within the 60 s gate. */
+const COMPLETE_BY_SEC = 45;
 
 export type RedstoneRows = { rows: PrintArchiveRow[]; waiting: string[]; unavailable: string[] };
 
 /**
- * A feed is archived once it has every configured signer, or once a fetch at or after T + 60 settles what exists.
+ * A feed is archived once it has every configured signer, or once a fetch at or after T + 45 settles what exists.
  * `skip` holds `"<feed>:<T>"` keys already stored.
  */
 export function redstoneRows(sources: RelaySources, response: GatewayResponse, tSec: number, skip: ReadonlySet<string>): RedstoneRows {

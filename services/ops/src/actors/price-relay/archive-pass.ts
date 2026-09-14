@@ -52,8 +52,9 @@ export async function archivePass(ctx: ArchiveContext): Promise<PassResult> {
       return out;
     })
     .filter((t) => t >= from && t <= wall - FETCH_AFTER_SEC);
-  const nextT = (Math.floor(wall / STEP_SEC) + 1) * STEP_SEC;
-  const idleDelay = Math.min(60_000, (nextT + FETCH_AFTER_SEC - wall) * 1000);
+  // The next archive point is the earliest boundary whose fetch time is still ahead (the current one until T + 12).
+  const nextPoint = (Math.floor((wall - FETCH_AFTER_SEC) / STEP_SEC) + 1) * STEP_SEC + FETCH_AFTER_SEC;
+  const idleDelay = Math.min(60_000, Math.max(1, nextPoint - wall) * 1000);
   if (times.length === 0) return { why: "no session boundary in the last 23 h to archive", nextDelayMs: idleDelay };
 
   const [lo, hi] = [Math.min(...times), Math.max(...times)];

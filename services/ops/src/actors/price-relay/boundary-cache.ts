@@ -1,14 +1,17 @@
 /**
  * One fetch per boundary for everything in the process that needs it (recording, archiving): RedStone refetches
- * every 3 s while a feed still lacks a signer and T + 60 hasn't passed, then freezes; Pyth caches the first answer
- * that carries every requested feed.
+ * every 3 s while a feed still lacks a signer until T + 60, every 30 s after that until T + 300 (a late fifth package
+ * lets a primary record before its strict window ends), then freezes; Pyth caches the first answer that carries
+ * every requested feed.
  */
 import { fetchPythAt, type PythBoundary } from "./hermes-fetch";
 import { feedAt, fetchRedstoneAt, type GatewayResponse } from "./redstone-fetch";
 import type { RelaySources } from "./sources";
 
 const REFETCH_MS = 3_000;
-const COMPLETE_BY_SEC = 60;
+/** After T + 60 a short signer set keeps being refetched, slower, until the widest strict window (300 s) has passed. */
+const LATE_REFETCH_MS = 30_000;
+const STRICT_MAX_SEC = 300;
 const KEEP_SEC = 24 * 3600;
 const PYTH_SPACING_MS = 1_000;
 const PYTH_BACKOFF_MS = 5_000;
@@ -40,13 +43,14 @@ export class BoundaryCache {
     const entry = this.redstoneByT.get(tSec) ?? { response: null, lastTryMs: 0, frozen: false, inflight: null, error: null };
     this.redstoneByT.set(tSec, entry);
     if (entry.frozen || entry.inflight) return entry.inflight ?? entry.response;
-    if (entry.response && Date.now() - entry.lastTryMs < REFETCH_MS) return entry.response;
+    const lateMs = entry.response && entry.response.fetchedAtMs / 1000 >= tSec + 60 ? LATE_REFETCH_MS : REFETCH_MS;
+    if (entry.response && Date.now() - entry.lastTryMs < lateMs) return entry.response;
     entry.lastTryMs = Date.now();
     entry.inflight = fetchRedstoneAt(tSec, this.sources.gateways)
       .then((response) => {
         entry.response = response;
         entry.error = null;
-        entry.frozen = this.complete(response, tSec) || response.fetchedAtMs / 1000 >= tSec + COMPLETE_BY_SEC;
+        entry.frozen = this.complete(response, tSec) || response.fetchedAtMs / 1000 >= tSec + STRICT_MAX_SEC;
         return response;
       })
       .catch((error: unknown) => {

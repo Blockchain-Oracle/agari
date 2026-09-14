@@ -24,9 +24,11 @@ export interface PrintArchiveStat {
   boundaries: number;
   firstSec: number;
   lastSec: number;
-  /** Slowest `fetched_at − T`. */
+  /** Slowest `archived_at − T`. */
   maxLagMs: number;
-  /** Boundaries archived more than 60 s after T. */
+  /** Slowest `fetched_at − T`. */
+  maxFetchLagMs: number;
+  /** Rows archived more than 60 s after T. */
   lateCount: number;
   minSigners: number;
 }
@@ -80,10 +82,11 @@ export async function printArchiveStats(fromSec: number): Promise<PrintArchiveSt
   const db = getDb();
   if (!db) return null;
   await ensureSchema();
-  const rows = await db<Array<{ source: PrintArchiveSource; feed: string; n: number; first: string; last: string; max_lag: string; late: number; min_signers: number }>>`
+  const rows = await db<Array<{ source: PrintArchiveSource; feed: string; n: number; first: string; last: string; max_lag: string; max_fetch_lag: string; late: number; min_signers: number }>>`
     SELECT source, feed, count(*)::int AS n, min(boundary_sec) AS first, max(boundary_sec) AS last,
-           max(fetched_at_ms - boundary_sec * 1000) AS max_lag,
-           count(*) FILTER (WHERE fetched_at_ms - boundary_sec * 1000 > 60000)::int AS late,
+           max(archived_at_ms - boundary_sec * 1000) AS max_lag,
+           max(fetched_at_ms - boundary_sec * 1000) AS max_fetch_lag,
+           count(*) FILTER (WHERE archived_at_ms - boundary_sec * 1000 > 60000)::int AS late,
            min(signers)::int AS min_signers
     FROM print_archive WHERE boundary_sec >= ${fromSec}
     GROUP BY source, feed ORDER BY source, feed`;
@@ -94,6 +97,7 @@ export async function printArchiveStats(fromSec: number): Promise<PrintArchiveSt
     firstSec: Number(r.first),
     lastSec: Number(r.last),
     maxLagMs: Number(r.max_lag),
+    maxFetchLagMs: Number(r.max_fetch_lag),
     lateCount: r.late,
     minSigners: r.min_signers,
   }));
