@@ -16,7 +16,7 @@
   - [x] 1a.5 `claims/payout.ts` + `projection/settle.ts`: mirror the engine's redeem (1e7 payout vector, zero fee, floor) from the frozen S2 spec
 - [x] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed) (D-015, D-016)
 - [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017)
-- [ ] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending`
+- [x] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending` (lanes D1–D3 merged; viem/wagmi removed; `no-evm` allowlist empty)
 - [ ] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify
 - [ ] Browser pass: 37 product routes at 390 and 1440, both themes
 
@@ -94,6 +94,8 @@
     - `useXGrant`'s receipt reader returns null (S4/S7).
   - **Session key format:** `{ address, secretKey: base58(seed₃₂ ‖ pubkey₃₂), createdAtMs }` in IndexedDB under `agari.sessionKey.<owner>`. It is generated with WebCrypto Ed25519 (the seed sits at PKCS#8 offset 16), and the markets session signs with `{ secretKey }`. Non-conforming stored records read as "no key". The key's SOL balance and top-ups refuse until S7.
   - **Env:** `lib/env.ts` reads `NEXT_PUBLIC_SOLANA_{CLUSTER,RPC_URL,WS_URL}`, `NEXT_PUBLIC_AGARI_{INDEXER_URL,VENUE_ID,EVENTS_PROGRAM_ID}` and `NEXT_PUBLIC_PRICE_FEED_URL` as literal `process.env.X` reads. `marketsEnvInputFrom(process.env)` does not inline in client bundles, so its doc comment is wrong for browsers.
+
+- **1d merge (S1 owner):** the cross-lane seams closed in the merge (the `/dev/private` tx ids became `fixtureSignature`; `/dev/session` moved to `keyFeeLamports`/`topUpLamports`; the Sensei units test was ported to the 10⁻⁸ print scale). `viem` and `wagmi` were removed from `web/package.json` and `no-evm.allow.json` is empty. Gates: `pnpm typecheck` 0 errors (web was 313), `pnpm invariants` 0, `pnpm build` green, `pnpm test` 1,090/1,090 across 91 files.
 
 ## Handoff
 

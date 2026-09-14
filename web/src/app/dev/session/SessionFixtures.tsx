@@ -46,7 +46,7 @@ function view(status: SessionStatus, extra: Partial<SessionKeyView> = {}): Sessi
     nowSec: NOW_SEC,
     sponsor: { configured: false, sponsor: null, balanceLamports: null, allowlist: [] },
     sponsorRefusal: null,
-    keyGasWei: 720_000_000_000_000_000n,
+    keyFeeLamports: 20_000_000n,
     vaultAvailableBase: 40n * ONE,
     ...extra,
   };
@@ -68,9 +68,9 @@ const VIEWS: Array<{ label: string; view: SessionKeyView }> = [
   { label: "armed · key pays", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600) }) },
   {
     label: "armed · sponsor on",
-    view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), sponsor: { configured: true, sponsor: VAULT, balanceLamports: 5n * LAMPORTS_PER_SOL, allowlist: ["agari-vault:place_for"] }, keyGasWei: 0n }),
+    view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), sponsor: { configured: true, sponsor: VAULT, balanceLamports: 5n * LAMPORTS_PER_SOL, allowlist: ["agari-vault:place_for"] }, keyFeeLamports: 0n }),
   },
-  { label: "armed · key empty", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), keyGasWei: 0n }) },
+  { label: "armed · key empty", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), keyFeeLamports: 0n }) },
   {
     label: "armed · sponsor declined",
     view: view("armed", {
@@ -123,7 +123,7 @@ export function SessionFixtures() {
       <section className="flex flex-col gap-4">
         <SectionHeader index="01" title={SESSION.dev.states} />
         {VIEWS.map(({ label, view: v }) => <ManagerFixture key={label} label={label} view={v} />)}
-        <CapabilityReceipt keyAddress={KEY} expiresAtSec={NOW_SEC + 6 * 3600} sponsorConfigured topUpWei={0n} firstTime />
+        <CapabilityReceipt keyAddress={KEY} expiresAtSec={NOW_SEC + 6 * 3600} sponsorConfigured topUpLamports={0n} />
       </section>
 
       <section className="flex flex-col gap-4">

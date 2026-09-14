@@ -5,22 +5,22 @@ import { oracleToWholeUsd } from "./units";
 
 describe("Sensei oracle dollar boundary", () => {
   it("gives the model comparable whole-dollar opening and live prices from real feed scales", () => {
-    // Shannon opening numericValue is cents; the EMA feed is 18 decimals, converted by the chart.
-    const opening = oracleToWholeUsd(7_983_070n);
-    const live = oracleToWholeUsd(feedRawToOracleRaw(79_921_466_704_266_065_779_969n, 18));
-    expect(opening).toBe(79_831);
-    expect(live).toBe(79_921);
+    // A TSLA opening print is normalized to 10⁻⁸ on-chain ($365.48); a live tick may arrive at 18 decimals.
+    const opening = oracleToWholeUsd(36_548_000_000n);
+    const live = oracleToWholeUsd(feedRawToOracleRaw(365_912_345_678_901_234_567n, 18));
+    expect(opening).toBe(365);
+    expect(live).toBe(366);
     const context = senseiTurnContext({ messages: [], restless: false, snapshot: {
-      priceUsd: { BTC: live! },
-      markets: [{ asset: "BTC", cadence: "1h", minsToClose: 10, lineUsd: opening, upCents: 54, downCents: 48 }],
+      priceUsd: { TSLA: live! },
+      markets: [{ asset: "TSLA", cadence: "1h", minsToClose: 10, lineUsd: opening, upCents: 54, downCents: 48 }],
     } });
-    expect(context).toContain("BTC $79,921");
-    expect(context).toContain("line $79,831");
+    expect(context).toContain("TSLA $366");
+    expect(context).toContain("line $365");
   });
 
   it("preserves the snapshot's whole-dollar rounding and missing-print semantics", () => {
-    expect(oracleToWholeUsd(249_031n)).toBe(2_490);
-    expect(oracleToWholeUsd(249_050n)).toBe(2_491);
+    expect(oracleToWholeUsd(24_949_000_000n)).toBe(249);
+    expect(oracleToWholeUsd(24_950_000_000n)).toBe(250);
     expect(oracleToWholeUsd(null)).toBeNull();
   });
 });

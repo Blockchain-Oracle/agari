@@ -1,7 +1,7 @@
 import { CLUSTER_ID } from "@agari/core/constants";
 import type { PrivateBudget, PrivateClaim, PrivateDeskState, PrivateQuote, PrivateTicket } from "@agari/core/private";
 import type { Hash32, Hex } from "@agari/core/types";
-import { fixtureAddress, fixtureMarketId } from "../fixture-ids";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned readings; nothing here is a real position, address, deployment or signature. Masayume signed these claims for
 // real with a throwaway EIP-712 key so "Verified" was genuinely checked. On Solana the desk signs an ed25519 claim over
@@ -52,7 +52,7 @@ const placeholder = (n: number): Hex => `0x${n.toString(16).padStart(2, "0").rep
 /** Four tickets across the states; the second is the one Masayume corrupted to exercise the failure state. */
 export async function signedTickets(): Promise<PrivateTicket[]> {
   const base = { desk: FIXTURE_DESK, contract: CONTRACT, chainId: CHAIN_ID, asset: "TSLA", intervalSec: 300, expirySec: Math.floor(FIXTURE_NOW_MS / 1000) + 180 };
-  const zero = `0x${"00".repeat(32)}` as Hex;
+  const zero = fixtureSignature(0);
   const open = claim("open", 0, 10n * UNIT, FIXTURE_NOW_MS - 60_000);
   const bad = claim("bad", 1, 5n * UNIT, FIXTURE_NOW_MS - 900_000);
   const won = claim("won", 0, 10n * UNIT, FIXTURE_NOW_MS - 7_200_000);
