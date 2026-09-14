@@ -10,7 +10,7 @@
 
 - [x] Spec, frozen at the end of the step: `docs/plan/specs/{events-engine,events-accounts,events-instructions,prints}.md` (D-006…D-009)
 - [x] Workspace, common grid, seeds (start from `docs/plan/spikes/d002/`; pin `solana-program` 3.0.0)
-- [ ] State accounts; `Book` as keypair + `#[account(zero)]`; `Ledger` PDA
+- [x] State accounts; `Book` as keypair + `#[account(zero)]`; `Ledger` PDA
 - [ ] Admin instructions incl. `admin_add_policy_version` + `roller_open_window` (PROGRAM seats, version coverage check)
 - [ ] Prints: Pyth (receiver feature decided against a real devnet post), RedStone (threshold 5 inside `strict_sec`; measure tx bytes + CU for 5 packages), attested, `public_copy_open_from_prev`, cross-check prints + settle rules + void reasons
 - [ ] Matching: four paths, Normal/IOC/FOK/PostOnly, self-match, `max_fills`, eager eviction with `max_evictions`, credit-first funding, PostOnly-after-expiry-skip, remainder cancel at fill cap, `placed_slot`
@@ -48,11 +48,22 @@
   - **Explicit error discriminants work in Anchor 1.2:** `anchor-syn` parses `Variant = N` and adds `ERROR_CODE_OFFSET`. The IDL lists 85 errors: InvalidMode 6000, NotProgramAuthority 6021, MarketNotTrading 6100, InvalidOrderArgs 6120, WrongPrintSource 6200, BadPrintSlot 6233, InsufficientCredit 6300, BadGrowAmount 6307.
   - `agari-common` stays engine-type-agnostic: `view::load_checked<T: Pod + Discriminator>` (owner → length → discriminator → alignment), `load_slice_checked`, and key-only binding checks. Products get engine types from `agari-events` with the `cpi` feature.
   - Cold `anchor build` ≈ 10.5 min in a fresh worktree (IDL host build included); `.so` 51,568 B with no instructions yet.
+- **S2.3 state (2026-09-14):**
+  - `state/{config,series,policy,market,result,book,ledger,enums,view}.rs` match `events-accounts.md` §3 byte for byte.
+  - `layout_tests.rs` asserts every struct size and every field offset in the spec tables, the account bytes and rent (config 856 / 4,998,720; series 1,368; market 456; result 256; ledger 96 → 8,552 and 1,024 → 90,216; +116 seats = 10,208 B, +117 exceeds 10,240; book 256 → 44,680 and 512 → 56,968), plus the checked splitters. **All matched the spec on the first run; no D-019 needed.**
+  - `bytemuck` `min_const_generics` makes `[Level; 1000]` `Pod`; no by-value copies (Book and Ledger are only reached through `book_parts_mut`/`ledger_parts_mut` over borrowed data).
+  - Enums are `#[repr(u8)]` with `TryFrom<u8>`; `MarketStatus` is derived, never stored.
+  - `program_autofixer`: no issues on step 1 and state sources.
 - **Size estimate.** A RedStone 5-package print transaction is ≈ 1,080 B of 1,232, so no ALT is needed (to be measured).
 
 ## Handoff
 
-- **Next step:** workspace, common grid, seeds.
+- **Next step:** admin instructions + `roller_open_window`.
+  - The IDL lists zero-copy accounts only once an instruction references them (it has none yet). Codama sees Book/Ledger headers only, so the TS client decodes the node and seat slices by hand from `events-accounts.md` §3.8–3.9 (2d).
+  - Zero-copy structs don't derive Borsh. `admin_add_policy_version` needs a Borsh args mirror of `PolicyVersion` (or a byte-array arg cast with `bytemuck`); keep the IDL honest either way.
+  - Reach Book and Ledger through `state::{book_parts_mut, ledger_parts_mut}` on `try_borrow_mut_data()`, never `AccountLoader::load_mut` (it would borrow the slices too). `admin_add_book` can still use `#[account(zero)]` for the create-then-bind check.
+  - A fresh worktree's cold `anchor build` takes ≈ 10.5 min; incremental builds take seconds.
+- **Earlier handoff (S2.1), done in S2.2/S2.3:** workspace, common grid, seeds.
   - Start from `docs/plan/spikes/d002/`.
   - Add the oracle crates, then `cargo update -p solana-program@5.0.0 --precise 3.0.0`.
   - Enable `anchor-lang` feature `event-cpi`.
