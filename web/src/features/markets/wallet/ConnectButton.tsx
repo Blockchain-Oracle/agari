@@ -1,9 +1,8 @@
 "use client";
 
 import { Hash } from "@/components/data";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { CONNECT } from "@/lib/copy";
-import { cn } from "@/lib/utils";
 import { useWalletSession } from "@/lib/wallet-session";
 
 /**
@@ -28,11 +27,11 @@ export function ConnectButton() {
       </Button>
     );
   }
-  // Connected: the account menu lives in the header, so this is a label, not a second menu.
+  // Connected: Masayume's account button, which opens the account modal (avatar, address, copy, disconnect).
   return (
-    <span className={cn(buttonVariants({ variant: "secondary" }), "cursor-default")} aria-label={CONNECT.connected}>
+    <Button variant="secondary" onClick={session.openAccount} aria-label={CONNECT.connected}>
       <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
       <Hash value={session.address} lead={4} tail={4} />
-    </span>
+    </Button>
   );
 }
