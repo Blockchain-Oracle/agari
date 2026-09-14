@@ -27,8 +27,8 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
   - `sol-faucet` role key created and funded.
   - `web/.env.local` vars (Handoff).
 - [x] Runtime + boot facts (4a.1, merged first as `17e61a6`; 69 runtime vitests incl. every Book vector and a captured devnet Book): browser/server transport, `runtime/accounts.ts`, Book decode, pure mappers, venue, collateral, clock.
-- [ ] Provider reads over chain + `/api/index/[...path]` (4a).
-- [ ] Hooks, names unchanged: coordinator Book subscriptions, shared spot stream, `useStakeQuote` over the coordinated Book (4a).
+- [x] Provider reads over chain + `/api/index/[...path]` (4a, merged `34729da`; live-session browser proof at the 09-15 open).
+- [x] Hooks, names unchanged: coordinator Book subscriptions, shared spot stream, `useStakeQuote` over the coordinated Book (4a).
 - [ ] Submitter order lane: status gate → quote → expiry → funding → build (IOC) → simulate → journal → sign → send → confirm → book from `OrderExecuted` (4b).
 - [ ] Tx lane `redeem` (full redeem per Window, crank-paid reconcile) + journal reconcile by signature and `lastValidBlockHeight` (4b).
 - [ ] Signer seams: Wallet Standard signer (modify-and-sign, sending fallback) + keypair signer; no Privy (4b).
@@ -57,6 +57,28 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 
 ## Findings
 
+- **Lane 4a (reads, merged `34729da` from `slice/S4a-reads` @ 98cfe72); 113 markets+funding vitests after the merge:**
+  - **Provider methods:** every method ran in Node against devnet, the soak index and ops (20:45–21:10Z, off-hours):
+    - `syncClock` (offset −510 ms); `loadCollateral` tUSDC 6 dp; `resolveVenueId`.
+    - Settled lists with winners and print sources; `getResolution`/`getOnchain` (Resolved, and a closed drive Market read as Voided).
+    - `getOpeningPrice`; `getPriceHistory` (28 NVDA points); released Books read empty.
+    - Wallet history/holdings/balance sheet/claimables for the drive and maker wallets.
+  - **Browser:** `/markets` shows the honest "No live Windows"; four `useAssetPrice` share one EventSource.
+  - **RPC:**
+    - Measured: production build, signed out, off-hours, 3 RPC in 102 s + 7 index requests + 1 SSE.
+    - Computed for a live session: ≈ 13–17 RPC/min signed out, ≈ 33/min signed in (budget ≤ 60).
+    - Book coordinator: 3 Books = 3 `getMultipleAccounts`, then websocket only.
+  - **Cache:** Masayume's TanStack keys, staleTimes and invalidation, unchanged.
+    - Index GETs are shared in flight and for 1 s. Account reads in one event-loop turn batch into one `getMultipleAccounts`.
+    - Series/config/ATAs are cached for life; mode is cached ≤ 15 s.
+    - Hidden tabs drop Book sockets after 30 s and the spot stream after 60 s.
+  - **Additive / naming:**
+    - Collateral decimals come from `GlobalConfig.collateral_decimals`.
+    - Additive `SeriesFacts.policySources` and `BookState.generation/orderCount`.
+    - `VenueSource` keeps `inferred` (the spec's `derived` would need the `/status` copy to change; cosmetic, left).
+  - **Book notifications:** ≈ 76 KB base64 per change. `base64+zstd` would need a decoder dependency; not taken in S4.
+  - **Build-time env:** `NEXT_PUBLIC_AGARI_INDEXER_URL` is baked at build time (set per port for `next build`).
+  - **Not seen live (session closed):** 9-ticker lanes, maker quotes in live Books, UI opening prints, live stake quotes, in-session RPC/min. Proof at the 09-15 13:30Z open.
 - **Lane 4c (faucet, merged `b4aef58` from `slice/S4c-faucet` @ 54f92c8), proven on a Surfpool fork with the real route handlers and adapter:**
   - **One signature, both assets:** the challenge covers SOL and 10,000 tUSDC. The SOL top-up sent 20,000,000 lamports. tUSDC: 10,000,000,000 base units minted with fee payer `sol-faucet`, 10,000 lamports fee, `[createIdempotent, mintToChecked]`.
   - **Quotas:** a bad signature gets 403; replaying the same id returns the same signature; cooldown 429 for both assets; the 11th tUSDC claim per connection gets 429.
