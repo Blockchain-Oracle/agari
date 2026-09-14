@@ -29,9 +29,7 @@
   },
   "dependencies": {
     "@agari/core": "workspace:*",
-    "@somnia-chain/markets-sdk": "0.28.1",
     "@tanstack/react-query": "catalog:",
-    "viem": "catalog:",
     "zod": "catalog:"
   },
   "peerDependencies": {

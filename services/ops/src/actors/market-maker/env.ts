@@ -1,7 +1,8 @@
-import type { Hex } from "@agari/core/types";
+import { readSecretKey } from "../secret-key";
 
 export interface MakerEnv {
-  privateKey: Hex | null;
+  /** The role's 64-byte Solana keypair. */
+  privateKey: Uint8Array | null;
   /** Half the spread the actor asks for around the fair, per whole unit of collateral (raw). */
   halfSpreadRaw: bigint;
   /** Contracts a side per quote, whole units. */
@@ -36,7 +37,7 @@ export function readMakerEnv(env: NodeJS.ProcessEnv = process.env): MakerEnv {
   const ticks = Number(env.MM_REQUOTE_TICKS);
   const intervals = list(env.MM_INTERVALS).map(Number).filter((n) => Number.isFinite(n) && n > 0);
   return {
-    privateKey: key && /^0x[0-9a-fA-F]{64}$/.test(key) ? (key as Hex) : null,
+    privateKey: readSecretKey(key),
     halfSpreadRaw: half > 0n ? half : DEFAULT_HALF_SPREAD_RAW,
     quoteSize: Number.isFinite(size) && size > 0 ? size : DEFAULT_QUOTE_SIZE,
     refreshMs: Number.isFinite(refresh) && refresh >= 10_000 ? refresh : DEFAULT_REFRESH_MS,

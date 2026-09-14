@@ -1,10 +1,10 @@
 import type { RoundMarket } from "@agari/core/projection";
-import { toMarketId } from "@agari/core/types";
+import { encodeBase58, toMarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { tallyToLedger, vaultRound, VAULT_TX_SENTINEL, type VaultTally } from "./history";
 
 const ONE = 1_000_000n;
-const marketId = toMarketId(`0x${"11009".padStart(64, "0")}`);
+const marketId = toMarketId(encodeBase58(new Uint8Array(32).fill(0x19)));
 
 const tally = (over: Partial<VaultTally> = {}): VaultTally => ({
   marketId,

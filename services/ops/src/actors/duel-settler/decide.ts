@@ -1,5 +1,5 @@
 import { cardsInMask, type ArenaMatch, type ArenaParams } from "@agari/core/games";
-import type { Bytes32, MarketId } from "@agari/core/types";
+import type { Hash32, MarketId } from "@agari/core/types";
 
 /**
  * What the arena will accept for one match right now — every crank's precondition, restated from
@@ -17,12 +17,12 @@ import type { Bytes32, MarketId } from "@agari/core/types";
 
 export type SettlerAction =
   /** Opening a committed deck. Permissionless too: the commitment, not a key, proves it was fixed first. */
-  | { kind: "arena-reveal"; matchId: Bytes32; why: string }
-  | { kind: "arena-lock"; matchId: Bytes32; why: string }
-  | { kind: "arena-settle-card"; matchId: Bytes32; cardIndex: number; why: string }
-  | { kind: "arena-finalize"; matchId: Bytes32; why: string }
-  | { kind: "arena-refund-unjoined"; matchId: Bytes32; why: string }
-  | { kind: "arena-refund-unrevealed"; matchId: Bytes32; why: string };
+  | { kind: "arena-reveal"; matchId: Hash32; why: string }
+  | { kind: "arena-lock"; matchId: Hash32; why: string }
+  | { kind: "arena-settle-card"; matchId: Hash32; cardIndex: number; why: string }
+  | { kind: "arena-finalize"; matchId: Hash32; why: string }
+  | { kind: "arena-refund-unjoined"; matchId: Hash32; why: string }
+  | { kind: "arena-refund-unrevealed"; matchId: Hash32; why: string };
 
 export interface SettleInput {
   match: ArenaMatch;

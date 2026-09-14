@@ -1,6 +1,6 @@
 import { MARKETS_POLL_MS } from "@agari/core/constants";
 import type { Address } from "@agari/core/types";
-import { getWalletCollateral } from "../provider/wallet-collateral";
+import { getWalletCollateral } from "../provider/reads";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";
 

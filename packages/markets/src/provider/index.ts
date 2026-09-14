@@ -1,21 +1,30 @@
 import type { MarketsProvider } from "@agari/core/ports";
-import { getBalanceSheet } from "./balances";
-import { getBookDepth, getBookParams } from "./books";
-import { listClaimables } from "./claimables";
 import { nowMs } from "./clock";
-import { syncClock } from "./clock-sync";
-import { settlementFeeBps } from "./fees";
-import { listWalletHistory } from "./history";
-import { getMarket, listLiveLanes, listSettled } from "./markets";
-import { nextWindow } from "./next-window";
-import { getOnchain } from "./onchain";
-import { getHoldings, listOpenPositions } from "./positions";
-import { getAssetPrice, getOpeningPrice, getPriceHistory } from "./prices";
-import { freshQuoteStake } from "./quotes";
-import { getResolution } from "./resolution";
-import { getVaultHoldings, getVaultSnapshot } from "../vault/read";
+import {
+  freshQuoteStake,
+  getAssetPrice,
+  getBalanceSheet,
+  getBookDepth,
+  getBookParams,
+  getHoldings,
+  getMarket,
+  getOnchain,
+  getOpeningPrice,
+  getPriceHistory,
+  getResolution,
+  getVaultHoldings,
+  getVaultSnapshot,
+  listClaimables,
+  listLiveLanes,
+  listOpenPositions,
+  listSettled,
+  listWalletHistory,
+  nextWindow,
+  settlementFeeBps,
+  syncClock,
+} from "./reads";
 
-/** The one read port every surface plugs into (AD-1). */
+/** The one read port every surface plugs into (AD-1). S1: the not-deployed stub (D-015). */
 export const marketsProvider: MarketsProvider = {
   listLiveLanes,
   getMarket,
@@ -42,14 +51,19 @@ export const marketsProvider: MarketsProvider = {
 };
 
 export { bootMarkets, type MarketsBoot } from "./boot";
-export { DEFAULT_BOOK_DEPTH, liveBookDepth } from "./books";
 export { applyClockSync, lastClockSync, nowMs, nowSec } from "./clock";
-export { syncClock } from "./clock-sync";
-export { laneNextStart } from "./next-window";
-export { fetchOpeningPrices } from "./prices";
-export { readVenueBoard, type BoardScope, type VenueBoard } from "./board";
-export type { TractionCall, TractionPoint, VenueTraction } from "./traction";
-export { listWalletFills, type WalletFillsQuery } from "./fills";
-export { listWalletHistory, mapPool, toRoundMarket } from "./history";
-export { quoteFromBook, type QuoteInput } from "./quotes";
+export { laneNextStart, readRecoveryCursor, syncClock } from "./reads";
 export { forgetReading, unwrap, withReading, type Unwrap } from "./reading";
+export {
+  listWalletFills,
+  mapPool,
+  readVenueBoard,
+  toRoundMarket,
+  type BoardScope,
+  type ScanScope,
+  type TractionCall,
+  type TractionPoint,
+  type VenueBoard,
+  type VenueTraction,
+  type WalletFillsQuery,
+} from "./tape";

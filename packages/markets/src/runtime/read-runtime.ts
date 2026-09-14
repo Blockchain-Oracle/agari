@@ -1,147 +1,62 @@
 /**
- * The shared read-only DreamDEX runtime.
+ * The shared read runtime (one per browser tab or server process).
  *
- * One instance per browser tab or server process: public/indexer clients, market metadata,
- * subscriptions and caches. It has NO mutable account and NO signer, and it never exposes
- * `.trader` — so an endpoint rotation can never change any actor's signing authority, and
- * two actors can never end up sharing one mutable signer.
- *
- * Everything that signs uses its own SubmitterSession (see ../sessions).
+ * It holds the configured cluster, endpoints and program ids, and has no signer. Every signer lives in its own
+ * `SubmitterSession` (../sessions), so a read-endpoint change can never move a write's authority. In S1 it opens
+ * no connection: nothing is deployed to read from, and the `@solana/kit` client arrives with the adapter (S4).
  */
-import { SOMNIA_TESTNET_PRICE_FEED, SomniaMarkets } from "@somnia-chain/markets-sdk";
-import { resolveAddresses } from "../addresses";
-import { mark } from "../perf/milestones";
-import { SOMNIA_SHANNON } from "../chain";
-import type { MarketsEnv } from "../env";
-import { resolveParlayDeployment } from "../parlay/deployment";
-import { resolveRangeDeployment } from "../range/deployment";
-import { resolveMakerDeployment } from "../maker/deployment";
-import { resolveLeverageDeployment } from "../leverage/deployment";
-import { resolvePrivateDeployment } from "../private/deployment";
-import { resolveArenaDeployment } from "../games/deployment";
-import { resolveVaultDeployment } from "../vault/deployment";
-import type { ParlayDeployment } from "@agari/core/parlay";
-import type { RangeDeployment } from "@agari/core/range";
-import type { MakerDeployment } from "@agari/core/maker";
-import type { LeverageDeployment } from "@agari/core/leverage";
-import type { PrivateDeployment } from "@agari/core/private";
+import type { Cluster } from "@agari/core/constants";
 import type { ArenaDeployment } from "@agari/core/games";
+import type { LeverageDeployment } from "@agari/core/leverage";
+import type { MakerDeployment } from "@agari/core/maker";
+import type { ParlayDeployment } from "@agari/core/parlay";
+import type { PrivateDeployment } from "@agari/core/private";
+import type { RangeDeployment } from "@agari/core/range";
+import type { Address } from "@agari/core/types";
 import type { VaultDeployment } from "@agari/core/vault";
+import type { MarketsEnv } from "../env";
+import { mark } from "../perf/milestones";
 
-type ExchangeConfig = ConstructorParameters<typeof SomniaMarkets>[0];
+/** What the runtime is pointed at. A descriptor, not a connection: the kit RPC client is built in S4. */
+export interface ReadClient {
+  cluster: Cluster;
+  rpcHttpUrl: string;
+  rpcWsUrl: string | null;
+  /** The agari-events program id, or null until S2 deploys it. */
+  eventsProgramId: Address | null;
+}
 
-/** Runtime rotation rebuilds the singleton and drops every live watch, so it stays opt-in (plan ruling #8). */
-export const AUTO_ROTATE_RPC = false;
-
-let exchange: SomniaMarkets | null = null;
-let vaultDeployment: VaultDeployment | null = null;
-let parlayDeployment: ParlayDeployment | null = null;
-let rangeDeployment: RangeDeployment | null = null;
-let makerDeployment: MakerDeployment | null = null;
-let leverageDeployment: LeverageDeployment | null = null;
-let privateDeployment: PrivateDeployment | null = null;
-let arenaDeployment: ArenaDeployment | null = null;
+let client: ReadClient | null = null;
 let version = 0;
-let wsIndex = 0;
 const listeners = new Set<() => void>();
 const teardowns = new Set<() => void>();
 
-function buildConfig(env: MarketsEnv, wsRpcUrl: string | undefined): ExchangeConfig {
-  return {
-    indexerUrl: env.indexerUrl,
-    chain: SOMNIA_SHANNON,
-    wsRpcUrl,
-    addresses: resolveAddresses(),
-    priceFeed: env.priceFeedUrl ? { url: env.priceFeedUrl, quote: env.priceFeedQuote } : SOMNIA_TESTNET_PRICE_FEED,
+/** Builds the module-level runtime. Every consumer (web, ops, scripts) shares this one instance. */
+export function configureMarkets(env: MarketsEnv): void {
+  client = {
+    cluster: env.cluster,
+    rpcHttpUrl: env.rpcHttpUrls[0] as string,
+    rpcWsUrl: env.rpcWsUrls[0] ?? null,
+    eventsProgramId: env.eventsProgramId ?? null,
   };
-}
-
-/**
- * Builds the module-level read runtime. Every consumer (web, ops, scripts) shares this one
- * instance. It returns nothing on purpose: handing the SomniaMarkets object back would hand
- * out `.trader` and `.setSigner` with it, which is exactly the coupling this split removes.
- */
-export function configureMarkets(env: MarketsEnv, options: { wsIndex?: number } = {}): void {
-  wsIndex = options.wsIndex ?? wsIndex;
-  const previous = exchange;
-  exchange = new SomniaMarkets(buildConfig(env, env.rpcWsUrls[wsIndex] ?? env.rpcWsUrls[0]));
-  vaultDeployment = resolveVaultDeployment(env);
-  parlayDeployment = resolveParlayDeployment(env);
-  rangeDeployment = resolveRangeDeployment(env);
-  makerDeployment = resolveMakerDeployment(env);
-  leverageDeployment = resolveLeverageDeployment(env);
-  privateDeployment = resolvePrivateDeployment(env);
-  arenaDeployment = resolveArenaDeployment(env);
   version += 1;
   mark("runtime.configured");
-  if (previous) void previous.close().catch(() => undefined);
   for (const listener of listeners) listener();
 }
 
 /** Configures once per process; safe to call from every entry point. */
 export function ensureMarkets(env: MarketsEnv): void {
-  if (!exchange) configureMarkets(env);
+  if (!client) configureMarkets(env);
 }
 
-function getExchange(): SomniaMarkets {
-  if (!exchange) throw new Error("markets port not configured — call configureMarkets(env) first");
-  return exchange;
+export function getClient(): ReadClient {
+  if (!client) throw new Error("markets port not configured — call configureMarkets(env) first");
+  return client;
 }
 
-export function getClient() {
-  return getExchange().client;
-}
-
-/** The EventVault for the configured chain, or null where none is deployed — every vault read branches on this. */
-export function getVaultDeployment(): VaultDeployment | null {
-  return vaultDeployment;
-}
-
-/** The ParlayReserve for the configured chain, or null where none is deployed — every parlay read branches on this. */
-export function getParlayDeployment(): ParlayDeployment | null {
-  return parlayDeployment;
-}
-
-/** The RangeReserve for the configured chain, or null where none is deployed — every range read branches on this. */
-export function getRangeDeployment(): RangeDeployment | null {
-  return rangeDeployment;
-}
-
-/** The MarketMakerVault for the configured chain, or null where none is deployed — every maker read branches on this. */
-export function getMakerDeployment(): MakerDeployment | null {
-  return makerDeployment;
-}
-
-/** The GameArena for the configured chain, or null where none is deployed — every duel read branches on this. */
-export function getArenaDeployment(): ArenaDeployment | null {
-  return arenaDeployment;
-}
-
-/** Bumps whenever the singleton is rebuilt so React providers can re-key. */
+/** Bumps whenever the runtime is rebuilt so React providers can re-key. */
 export function exchangeVersion(): number {
   return version;
-}
-
-/**
- * Registers work that must run before the shared client is closed — releasing the watch handles
- * held on it, above all. Kept as a registry rather than a direct call so nothing downstream of the
- * runtime has to be imported back into it.
- */
-export function onRuntimeClose(teardown: () => void): () => void {
-  teardowns.add(teardown);
-  return () => teardowns.delete(teardown);
-}
-
-/** Releases the shared runtime and its watches. */
-export async function closeRuntime(): Promise<void> {
-  const previous = exchange;
-  exchange = null;
-  for (const teardown of [...teardowns]) teardown();
-  await previous?.close().catch(() => undefined);
-}
-
-export function activeWsIndex(): number {
-  return wsIndex;
 }
 
 export function subscribeExchange(listener: () => void): () => void {
@@ -149,18 +64,25 @@ export function subscribeExchange(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-/** Rebuilds the singleton on the next endpoint in the list (both testnet RPCs are configured, NFR-10). */
-export function rotateRpc(env: MarketsEnv): void {
-  const next = (wsIndex + 1) % Math.max(1, env.rpcWsUrls.length);
-  configureMarkets(env, { wsIndex: next });
+/** Registers work that must run before the runtime is closed (releasing account subscriptions, from S4). */
+export function onRuntimeClose(teardown: () => void): () => void {
+  teardowns.add(teardown);
+  return () => teardowns.delete(teardown);
 }
 
-/** The LeverageReserve for the configured chain, or null where none is deployed — every boost read branches on this. */
-export function getLeverageDeployment(): LeverageDeployment | null {
-  return leverageDeployment;
+export async function closeRuntime(): Promise<void> {
+  client = null;
+  for (const teardown of [...teardowns]) teardown();
 }
 
-/** The PrivateDesk for the configured chain, or null where none is deployed — every private read branches on this. */
-export function getPrivateDeployment(): PrivateDeployment | null {
-  return privateDeployment;
-}
+/**
+ * Product deployments on the configured cluster. Every product read branches on these, and each is null until its
+ * program is deployed (vault S7, maker S8, strategies S9, parlay/range/leverage/private S10, arena S12).
+ */
+export const getVaultDeployment = (): VaultDeployment | null => null;
+export const getParlayDeployment = (): ParlayDeployment | null => null;
+export const getRangeDeployment = (): RangeDeployment | null => null;
+export const getMakerDeployment = (): MakerDeployment | null => null;
+export const getLeverageDeployment = (): LeverageDeployment | null => null;
+export const getPrivateDeployment = (): PrivateDeployment | null => null;
+export const getArenaDeployment = (): ArenaDeployment | null => null;

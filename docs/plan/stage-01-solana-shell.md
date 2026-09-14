@@ -14,7 +14,7 @@
   - [x] 1a.3 `market/{session,lanes}.ts`: Pyth `schedule` parser, Alpaca calendar shape, session states, cadence alignment, `lock_at`, no-entry buffer, Regular/Gap/Token lanes (D-011; session slice `8512da7`)
   - [x] 1a.4 `auth/signed-message.ts` (ed25519, verifier injected), `urls/explorer.ts` (Solana Explorer + cluster), Somnia constants out of core (`constants/{chain,fees,faucet}.ts`, SOL faucet policy, copy)
   - [x] 1a.5 `claims/payout.ts` + `projection/settle.ts`: mirror the engine's redeem (1e7 payout vector, zero fee, floor) from the frozen S2 spec
-- [ ] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed)
+- [x] 1b markets stub + invariants (`no-evm`, `kit-import-boundary`, `idl-no-destination`, `program-id-drift`; DreamDEX rules removed) (D-015, D-016)
 - [x] 1c providers, Privy, header (`wagmi.ts` and `rainbowkit-theme.ts` deleted) (D-017)
 - [ ] 1d port the 32 EVM-importing web files onto the stub and identity seams; `*.server.ts` verifiers on ed25519; write hooks return `CapabilityPending`
 - [ ] `/dev/wallet` fixture: Privy sign-in → signMessage → server verify
@@ -36,28 +36,27 @@
   - **Lazy island.** Privy, `@solana/kit` and the `@solana-program/*` peers are value-imported only by `providers/privy.tsx`, reached through `next/dynamic`; everything else reads a Privy-free context. The bundle effect can't be measured until `pnpm build` is green (1d); check it there.
   - **Hooks match the seam.** Privy's hook types satisfy `PrivySigners` directly, with no cast.
   - **Out-of-scope edit.** The shared `features/markets/wallet/ConnectButton.tsx` was ported with the header, since it is the plan's "ConnectButton on Privy" deliverable and about 20 features render it. The dead `NetworkBanner` was deleted.
-  - **Remaining web type errors attributable to 1b:**
-    - `@agari/markets/react` doesn't yet export `WalletSession`, which also leaves the implicit `any` params in `privy-session.ts`.
-    - `SubmitterSessionProvider` still takes `walletClient`, not `wallet`.
-    - With both in place locally, the 1c scope type-checks clean.
+  - **1b seam items** (`WalletSession` export, `wallet` prop) landed with the 1b merge.
   - **Left for 1d:**
     - wagmi `useSignMessage` in `features/{markets/faucet/useFaucet,private/usePrivateOpen,room/useRoom,takes/useTakes,x/useXStatus}.ts` → `signText(useOwnerWallet(), text)`.
     - `useOwnerWalletClient` in 7 feature write hooks and `SessionKeyProvider` → `useOwnerWallet`.
     - 20 viem importers in `features/**`/`app/**`.
     - wagmi and viem stay in `web/package.json` until then.
-
+- **1b surface:** 215 consumer symbols across 17 subpaths (`docs/plan/specs/markets-surface.md`); 186 kept (names unchanged, types per D-010…D-012) and 29 EVM-only removed with owner stages. `packages/markets` went from ≈ 10.7k to ≈ 3.8k lines (−9,974 net), with no `viem`, no DreamDEX SDK and no `@solana/kit` yet.
+- **1b gates:** `@agari/core`, `@agari/markets`, `@agari/db`, `@agari/brain`, `services/ops` typecheck green; invariants 10/10 green (`no-evm` allowlist 35 = the plan's 32 web files + 3 web deps); 982 tests pass (core + markets + ops). **`web` is red by design: 313 type errors in 145 files** until 1c/1d.
+- **1b hazards found outside `packages/core`:** 20 address `toLowerCase()` calls in ops actors (removed) and the intent journal's `listUnresolved` (fixed). `packages/db` still lowercases addresses and market ids on write (`strategy-attempts.ts` and others): out of 1b's scope, but base58-corrupting.
 ## Handoff
 
 - **1b–1d must:** never lowercase, uppercase or text-sort an `Address`/`MarketId`/`Signature` (Masayume web code does this for EVM ids); build test ids with `packages/core/src/testing/ids.ts`; treat `txHash` as a base58 `Signature`.
 - **1d must:** pass `{ lockAtSec, intervalSec }` to the entry helpers (`markets/submitter/steps/expiry.ts`, `ops/x-relay/execute.ts`, `web/features/x/XInstructionBuilder.tsx`); build `EventMarket` fixtures with `packages/core/src/testing/market.ts`; drop every reader of the removed DreamDEX fields (D-011).
 - **S2 must agree with core:** ticker `seriesId` values, Gap cadence seed 604,800, basis order `regular 0 · gap 1 · token 2` (confirm in the frozen spec).
 - **1a.5 done:** `estPayoutBase(amountRaw, kind)` = `⌊amountRaw × {10⁷ | 5·10⁶} / 10⁷⌋`, exact on every valid grid because registration forces `1000·cu == lot_base`. `feeBps` fields remain as display data, always 0 from the adapter; the UI stages decide whether a fee line survives.
-- **1b must:** drop `GasLane`/`GAS_CEILING` (removed) for simulate → `units × COMPUTE_MARGIN_BPS`, capped at `COMPUTE_UNIT_LIMIT_MAX`; `txUrl(signature, cluster)` replaces the Somnia explorer; `urls/oracle.ts` is gone (proof links come from prints, S5).
+- **1b done (D-015, D-016).** For 1c: `SubmitterSessionProvider({ env, wallet, enabled? })` with `wallet: WalletSession | undefined` (exported as a type from `@agari/markets/react`); the session re-keys on `address` + `kind`, not the wallet object's identity. `parseMarketsEnv` defaults to public devnet; `marketsEnvInputFrom(process.env)` maps `NEXT_PUBLIC_SOLANA_{CLUSTER,RPC_URL,WS_URL}`, `NEXT_PUBLIC_AGARI_{INDEXER_URL,VENUE_ID,EVENTS_PROGRAM_ID}`, `NEXT_PUBLIC_PRICE_FEED_URL`. `SOMNIA_SHANNON` is gone: the Privy config names the cluster itself.
+- **For 1d:** the 29 removed symbols and every file still importing them are in `markets-surface.md`. Web code calling `getClient().getViemClient()`/`getErc20*` must go (`getClient()` is a `{ cluster, rpcHttpUrl, rpcWsUrl, eventsProgramId }` descriptor). Product write contexts take `contracts: { signer, deployment }`. `FundingCheck` has no `needsApproval`. `GasCheck` is lamports (`balanceLamports`/`requiredLamports`). `readVenueBoard`/`listWalletFills` return not-deployed until the S3 indexer. Empty `scripts/invariants/no-evm.allow.json` as each file is ported.
+- **For S3/S4:** `packages/db` lowercases addresses on write (see Findings). Ops actors compile and idle honestly ("not deployed"); their chain paths (recovery cursor, sends) wait on the adapter. `services/ops` gained `@noble/hashes` for the deck commitment's keccak (was viem).
 - **1d must:** verify signed texts with `verifySignedMessage` + a server ed25519 (`faucet`, `x/link`, `room-token`, `private/protocol` now read "Agari" and name the Solana cluster); message signatures travel as base58; the faucet is SOL in lamports (`SOL_FAUCET_POLICY`, `lastValidBlockHeight` instead of an EVM nonce).
 - **Numeric cluster ids (D-012):** fields still named `chainId` hold `CLUSTER_ID` (devnet 103).
 - **Left for S10 (private):** `PRIVATE_CLAIM_TYPES`/`PRIVATE_CLAIM_DOMAIN_NAME` are EIP-712 and still say Masayume; PD-4 needs an ed25519 claim over a canonical encoding. **S15:** `copy/verdict.ts` "Masayume — it came true", provenance comments in `games/{deck,picking}.ts`.
-- **1b must:** export `type WalletSession` from `@agari/markets/react` and rename `SubmitterSessionProvider`'s `walletClient` prop to `wallet?: WalletSession` (1c already passes `wallet`).
-- **Merge note (1b + 1c):** both slices touch `pnpm-lock.yaml`; resolve by taking either side, then run `pnpm install`.
 - **User action (Privy dashboard, before the `/dev/wallet` fixture):**
   - Enable **Solana** embedded wallets and the login methods you want (email, Google, X…) on the app for `NEXT_PUBLIC_PRIVY_APP_ID`.
   - Add `http://localhost:3000` (and the deploy origin in S16) to allowed origins.

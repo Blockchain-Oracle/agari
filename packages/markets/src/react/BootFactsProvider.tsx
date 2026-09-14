@@ -2,7 +2,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import type { MarketsEnv } from "../env";
-import { BootFactsContext, type BootFactReadiness } from "./boot-facts-context";
+import { BootFactsContext, type BootFactState } from "./boot-facts-context";
 import { useClockFact, useCollateralFact, useVenueFact } from "./useMarketsBoot";
 
 /**
@@ -20,9 +20,19 @@ export function BootFactsProvider({ env, children }: { env: MarketsEnv; children
   const clockOk = clock?.ok === true;
   const collateralOk = collateral?.ok === true;
   const venueOk = venue?.ok === true;
-  const value = useMemo<BootFactReadiness>(
-    () => ({ clock: clockOk, collateral: collateralOk, venue: venueOk }),
-    [clockOk, collateralOk, venueOk],
+  const clockError = clock && !clock.ok ? clock.error : undefined;
+  const collateralError = collateral && !collateral.ok ? collateral.error : undefined;
+  const venueError = venue && !venue.ok ? venue.error : undefined;
+  const value = useMemo<BootFactState>(
+    () => ({
+      ready: { clock: clockOk, collateral: collateralOk, venue: venueOk },
+      failed: {
+        ...(clockError ? { clock: clockError } : {}),
+        ...(collateralError ? { collateral: collateralError } : {}),
+        ...(venueError ? { venue: venueError } : {}),
+      },
+    }),
+    [clockOk, collateralOk, venueOk, clockError, collateralError, venueError],
   );
 
   return <BootFactsContext.Provider value={value}>{children}</BootFactsContext.Provider>;

@@ -1,7 +1,8 @@
+import { encodeBase58, type Address, type Signature } from "@agari/core/types";
 import { describe, expect, it, vi } from "vitest";
 import { createXExecutionJournal } from "./execution-journal";
 
-const actor = `0x${"11".repeat(20)}` as const;
+const actor = encodeBase58(new Uint8Array(32).fill(0x11)) as Address;
 describe("durable X journal association", () => {
   it("records the mention before send and persists its hash through later bookkeeping states", async () => {
     const write = vi.fn(async () => {});
@@ -9,7 +10,7 @@ describe("durable X journal association", () => {
     const record = await execution.forMention("123", () => execution.journal.record({ kind: "order", wallet: actor, summary: "fixture" }));
     expect(record.id).toBe("123");
     expect(write.mock.calls[0]).toEqual(["123", expect.objectContaining({ journalState: "recorded", executionActor: actor })]);
-    const hash = `0x${"ab".repeat(32)}` as const;
+    const hash = encodeBase58(new Uint8Array(64).fill(0xab)) as Signature;
     await execution.journal.markSent(record.id, hash);
     await execution.journal.markUnknown(record.id);
     expect(write.mock.calls[1]).toEqual(["123", { journalState: "sent" }, hash]);

@@ -1,0 +1,35 @@
+{
+  "_doc": [
+    "S1 no-evm migration allowlist (D-015). Every entry is an EVM import or dependency that S1 step 1d removes.",
+    "The list only shrinks: the rule fails on a stale entry, and the S1 gate requires this file to be empty."
+  ],
+  "files": [
+    "web/src/app/api/private/open/route.ts",
+    "web/src/app/api/sponsor/route.ts",
+    "web/src/app/api/strategies/playbook/route.ts",
+    "web/src/app/dev/private/fixtures.ts",
+    "web/src/features/funding/faucet-config.server.ts",
+    "web/src/features/games/duel/useArenaWrites.ts",
+    "web/src/features/games/duel/useDuelRoom.ts",
+    "web/src/features/games/duel/useGameKey.ts",
+    "web/src/features/games/lucky/lucky.server.ts",
+    "web/src/features/games/lucky/useLuckyCheck.ts",
+    "web/src/features/games/room-token.server.ts",
+    "web/src/features/games/sponsor.server.ts",
+    "web/src/features/leverage/useLeverageWrites.ts",
+    "web/src/features/markets/faucet/useFaucet.ts",
+    "web/src/features/parlay/useParlayWrites.ts",
+    "web/src/features/private/usePrivateOpen.ts",
+    "web/src/features/range/useRangeWrites.ts",
+    "web/src/features/room/gate.server.ts",
+    "web/src/features/room/useRoom.ts",
+    "web/src/features/strategies/useDeskWrites.ts",
+    "web/src/features/takes/useTakes.ts",
+    "web/src/features/takes/verify.server.ts",
+    "web/src/features/x/gate.server.ts",
+    "web/src/features/x/useXGrant.ts",
+    "web/src/features/x/useXStatus.ts",
+    "web/package.json#viem",
+    "web/package.json#wagmi"
+  ]
+}

@@ -1,6 +1,6 @@
 import { arenaPickKey, stakeTier, stakeTierIdOf, type CardReceipt, type MatchFacts } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32 } from "@agari/core/types";
+import type { Address, Hash32 } from "@agari/core/types";
 import { getArenaMatch } from "@agari/markets/games";
 
 /**
@@ -35,11 +35,11 @@ export function createMatchCache(): MatchCache {
 /** The entry a `created` event can build with no chain read at all — the common path in a live process. */
 export function seedFromCreation(
   cache: MatchCache,
-  input: { matchId: Bytes32; creator: Address; tier: number; deckSize: number; potBase: bigint },
+  input: { matchId: Hash32; creator: Address; tier: number; deckSize: number; potBase: bigint },
 ): MatchEntry {
   const tier = stakeTierIdOf(input.tier);
   const entry: MatchEntry = {
-    facts: { creator: input.creator.toLowerCase() as Address, challenger: null, deckSize: input.deckSize },
+    facts: { creator: input.creator, challenger: null, deckSize: input.deckSize },
     mode: stakeTier(tier).mode,
     tier,
     potPerPlayerBase: input.potBase,
@@ -53,7 +53,7 @@ export function seedFromCreation(
 const ZERO = "0x0000000000000000000000000000000000000000";
 
 /** The entry for a match, reading the arena when this process has not seen it. Null when the arena has not either. */
-export async function entryFor(cache: MatchCache, matchId: Bytes32, chainId: number): Promise<MatchEntry | null> {
+export async function entryFor(cache: MatchCache, matchId: Hash32, chainId: number): Promise<MatchEntry | null> {
   const key = matchId.toLowerCase();
   const cached = cache.get(key);
   if (cached) return cached;
@@ -88,6 +88,6 @@ export async function entryFor(cache: MatchCache, matchId: Bytes32, chainId: num
 }
 
 /** Terminal matches are dropped: their story is told, and a projector that never forgets is a leak. */
-export function forget(cache: MatchCache, matchId: Bytes32): void {
+export function forget(cache: MatchCache, matchId: Hash32): void {
   cache.delete(matchId.toLowerCase());
 }

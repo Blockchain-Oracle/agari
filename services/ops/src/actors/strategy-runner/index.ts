@@ -1,6 +1,6 @@
 import { isOk } from "@agari/core/schemas";
 import { parseStrategyMetadata, type StrategyRecord } from "@agari/core/strategies";
-import type { Bytes32 } from "@agari/core/types";
+import type { Address } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { interruptStrategyDecisions, isDbConfigured, listAttemptedStrategyIds, markDecisionExecution, recordHeartbeat } from "@agari/db";
 import { createMemoryJournal, createSubmitterSession, ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId, type SubmitterSession } from "@agari/markets";
@@ -16,7 +16,7 @@ type Log = (why: string) => void;
 interface Runner {
   env: RunnerEnv;
   session: SubmitterSession | null;
-  venueId: Bytes32;
+  venueId: Address;
   agent: AgentState;
   log: Log;
   unresolved: Set<string>;
@@ -54,7 +54,7 @@ async function cycle(runner: Runner, strategyId: bigint, nowMs: number): Promise
   if (runner.unresolved.size > 0) return heartbeat(runner, strategyId, "confirmation unknown for this runner's previous attempt; holding all new submissions and not resending", 0, null);
   if (runner.session) await settleStrategyPositions(runner.session, strategyId, runner.env.dryRun, runner.log);
   if (!strategy.active) return heartbeat(runner, strategyId, "strategy deactivated by its creator; idle", 0, null);
-  if (runner.session && strategy.runner !== runner.session.address.toLowerCase()) {
+  if (runner.session && strategy.runner !== runner.session.address) {
     return heartbeat(runner, strategyId, `this key is ${runner.session.address}, the strategy names ${strategy.runner}; not trading it`, 0, null);
   }
   const meta = parseStrategyMetadata(strategy.metadata);
@@ -116,7 +116,7 @@ export async function startStrategyRunner(log: Log): Promise<void> {
 
   let session: SubmitterSession | null = null;
   if (env.privateKey) {
-    session = await createSubmitterSession({ env: marketsEnv, authority: "strategy-runner", signer: { privateKey: env.privateKey }, journal: createMemoryJournal() });
+    session = await createSubmitterSession({ env: marketsEnv, authority: "strategy-runner", signer: { secretKey: env.privateKey }, journal: createMemoryJournal() });
     log(`runner key ${session.address}${env.dryRun ? " (dry run: nothing is sent)" : ""}`);
   } else {
     log("RUNNER_PRIVATE_KEY is not set: scanning and reporting only, nothing can be sent");
@@ -142,7 +142,7 @@ export async function startStrategyRunner(log: Log): Promise<void> {
       return [];
     }
     const historical = await listAttemptedStrategyIds(session!.address);
-    const mine = [...new Set([...listed.value.filter((s) => s.runner === session!.address.toLowerCase()).map((s) => s.strategyId), ...historical.map(BigInt)])];
+    const mine = [...new Set([...listed.value.filter((s) => s.runner === session!.address).map((s) => s.strategyId), ...historical.map(BigInt)])];
     const summary = mine.map((id) => `#${id}`).join(", ") || "none";
     if (summary !== lastDiscovered) {
       lastDiscovered = summary;

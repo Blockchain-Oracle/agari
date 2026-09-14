@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { diagnosis, toMarketId, type DiagnosisKind, type Quote } from "@agari/core/types";
+import { diagnosis, encodeBase58, toMarketId, type DiagnosisKind, type Quote, type Signature } from "@agari/core/types";
 import { outcomeToReceipt } from "./receipt-outcome";
 
-const HASH = `0x${"ab".repeat(32)}` as const;
+const HASH = encodeBase58(new Uint8Array(64).fill(0xab)) as Signature;
 const PRIVATE_DIAGNOSTIC = "Provider error at https://private-rpc.example/?key=secret";
 
 describe("X execution receipt truth", () => {
@@ -17,7 +17,7 @@ describe("X execution receipt truth", () => {
   it("preserves actual fill measurements without replacing the requested stake", () => {
     const original = { stakeBase: "100000000" };
     const result = { ...original, ...outcomeToReceipt({ status: "confirmed", booked: {
-      marketId: toMarketId(`0x${"11".repeat(32)}`), side: "up", contractsRaw: 2469134n,
+      marketId: toMarketId(encodeBase58(new Uint8Array(32).fill(0x11))), side: "up", contractsRaw: 2469134n,
       costBase: 1234567n, avgPriceBps: 5000, txHash: HASH, fillCount: 1,
     } }) };
     expect(result).toMatchObject({ status: "filled", txHash: HASH, stakeBase: "100000000", bookedCostBase: "1234567", bookedContractsRaw: "2469134", avgPriceBps: 5000, reason: null });

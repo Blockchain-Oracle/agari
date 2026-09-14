@@ -1,11 +1,11 @@
 import type { ArenaMatch, ArenaParams, ArenaStatus } from "@agari/core/games";
-import { toMarketId, type Address, type Bytes32, type MarketId } from "@agari/core/types";
+import { encodeBase58, toMarketId, type Address, type Hash32, type MarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { decideMatch, isDone } from "./decide";
 
 const NOW = 1_756_900_000;
-const MATCH_ID = `0x${"11".repeat(32)}` as Bytes32;
-const CARDS: readonly MarketId[] = [0, 1, 2].map((i) => toMarketId(`0x${String(i + 1).padStart(64, "0")}`));
+const MATCH_ID = `0x${"11".repeat(32)}` as Hash32;
+const CARDS: readonly MarketId[] = [0, 1, 2].map((i) => toMarketId(encodeBase58(new Uint8Array(32).fill(i + 1))));
 const ALL = new Set(CARDS);
 
 const PARAMS: ArenaParams = { joinWindowSec: 300, revealWindowSec: 180, pickWindowSec: 120, minDeckSize: 3, maxDeckSize: 5, minCardLifeSec: 240 };
@@ -13,8 +13,8 @@ const PARAMS: ArenaParams = { joinWindowSec: 300, revealWindowSec: 180, pickWind
 function match(status: ArenaStatus, overrides: Partial<ArenaMatch> = {}): ArenaMatch {
   return {
     matchId: MATCH_ID,
-    creator: "0xaaaa111111111111111111111111111111111111" as Address,
-    challenger: "0xbbbb111111111111111111111111111111111111" as Address,
+    creator: encodeBase58(new Uint8Array(32).fill(0xaa)) as Address,
+    challenger: encodeBase58(new Uint8Array(32).fill(0xbb)) as Address,
     tier: 1,
     status,
     deckSize: 3,
@@ -22,7 +22,7 @@ function match(status: ArenaStatus, overrides: Partial<ArenaMatch> = {}): ArenaM
     pickedMask1: 0b111,
     settledMask: 0,
     policyVersion: 1,
-    deckHash: `0x${"ab".repeat(32)}` as Bytes32,
+    deckHash: `0x${"ab".repeat(32)}` as Hash32,
     createdAtSec: NOW - 1_000,
     joinedAtSec: NOW - 900,
     revealedAtSec: NOW - 800,

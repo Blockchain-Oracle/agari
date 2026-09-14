@@ -1,6 +1,6 @@
 import { roomRef, stakeTier, type DeckCommitment, type DuelMode, type MatchPlayers, type ServerMessage, type StakeTierId } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32 } from "@agari/core/types";
+import type { Address, Hash32 } from "@agari/core/types";
 import { getArenaMatch } from "@agari/markets/games";
 import type { RoomContext } from "../game-room/handlers";
 
@@ -36,7 +36,7 @@ const CREATE_WINDOW_MS = Number(process.env.GAME_CREATE_WINDOW_MS ?? 2 * 60_000)
 const CHECK_EVERY_MS = 10_000;
 
 export interface PendingMatch {
-  matchId: Bytes32;
+  matchId: Hash32;
   players: MatchPlayers;
   mode: DuelMode;
   tier: StakeTierId;
@@ -52,7 +52,7 @@ interface Held extends PendingMatch {
 
 export interface PendingCreations {
   /** Records a sealed deck as awaiting its creator's transaction. */
-  hold(input: { matchId: Bytes32; players: MatchPlayers; mode: DuelMode; tier: StakeTierId; commitment: DeckCommitment }): void;
+  hold(input: { matchId: Hash32; players: MatchPlayers; mode: DuelMode; tier: StakeTierId; commitment: DeckCommitment }): void;
   /** What this wallet is in before the chain knows — the reconnect path's pre-chain half. */
   forWallet(wallet: Address): PendingMatch | null;
   /** Forgets one, on any evidence the arena now holds it. */
@@ -75,8 +75,7 @@ export function createPendingCreations(ctx: RoomContext): PendingCreations {
     },
 
     forWallet(wallet) {
-      const who = wallet.toLowerCase();
-      for (const entry of held.values()) if (entry.wallets.some((w) => w.toLowerCase() === who)) return entry;
+      for (const entry of held.values()) if (entry.wallets.some((w) => w === wallet)) return entry;
       return null;
     },
 
@@ -110,6 +109,6 @@ export function createPendingCreations(ctx: RoomContext): PendingCreations {
 }
 
 /** The room a pending match would broadcast into, so its two players share one before the chain does. */
-export function pendingRef(ctx: RoomContext, matchId: Bytes32): ReturnType<typeof roomRef> {
+export function pendingRef(ctx: RoomContext, matchId: Hash32): ReturnType<typeof roomRef> {
   return roomRef(ctx.chainId, ctx.arena, matchId);
 }

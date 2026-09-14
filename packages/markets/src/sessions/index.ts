@@ -1,4 +1,5 @@
 export { isDelegated, type AuthorityKind } from "./authority";
+export { keypairAddress, parseSecretKey, SECRET_KEY_BYTES } from "./keypair";
 export { createNonceQueue, type Enqueue } from "./nonce-queue";
 export {
   createSubmitterSession,
@@ -7,14 +8,3 @@ export {
   type SubmitterSession,
   type SubmitterSessionConfig,
 } from "./submitter-session";
-export {
-  createSessionKeySession,
-  generateSessionKey,
-  keyGasBalance,
-  sessionGasTopUpWei,
-  sessionKeyClient,
-  topUpSessionGas,
-  type SessionKeyRecord,
-  type SessionKeySessionConfig,
-} from "./session-key";
-export type { SessionTrader } from "./trader";

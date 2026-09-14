@@ -12,7 +12,7 @@ import {
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
 import { deckSupply } from "./deckmaster";
-import type { Address, Bytes32 } from "@agari/core/types";
+import type { Address, Hash32 } from "@agari/core/types";
 import { readRatings } from "@agari/db";
 import { getArenaState } from "@agari/markets/games";
 import { WebSocket } from "ws";
@@ -68,9 +68,9 @@ interface Waiting extends QueueEntry {
 }
 
 interface Pairing {
-  matchId: Bytes32;
+  matchId: Hash32;
   players: [Waiting, Waiting];
-  seeds: Map<string, Bytes32>;
+  seeds: Map<string, Hash32>;
   openedAtMs: number;
   /** Set when both seeds are in and the deckmaster started trying; null while the seeds are still owed. */
   dealingSinceMs: number | null;
@@ -152,7 +152,7 @@ export function createMatchmaker(ctx: RoomContext): Matchmaker {
     if (gone(pairing)) return;
     if (!isOk(state) || !state.value) return dissolve(pairing, "the arena is unreadable right now");
 
-    const seeds = pairing.players.map((player) => pairing.seeds.get(player.connection.id) as Bytes32);
+    const seeds = pairing.players.map((player) => pairing.seeds.get(player.connection.id) as Hash32);
     const dealt = await dealDeck({
       matchId: pairing.matchId,
       chainId: ctx.chainId,

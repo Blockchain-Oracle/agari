@@ -14,7 +14,7 @@ import {
   type Seat,
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32, MarketId } from "@agari/core/types";
+import type { Address, Hash32, MarketId } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { getArenaMatch, type ArenaMatchView } from "@agari/markets/games";
 
@@ -143,7 +143,7 @@ function phaseFor(match: ArenaMatch): ChainPhase {
 }
 
 /** One match as a `MatchState`, or the reason it cannot be shown. `null` for a match id the arena never wrote. */
-export async function buildMatchSnapshot(matchId: Bytes32, chainId: number): Promise<SnapshotResult> {
+export async function buildMatchSnapshot(matchId: Hash32, chainId: number): Promise<SnapshotResult> {
   const reading = await getArenaMatch(matchId);
   if (!isOk(reading)) return { ok: false, code: "internal", why: `the arena is unreadable: ${reading.error.technical}` };
   if (!reading.value) return { ok: false, code: "unknown-match", why: "no such match on this arena" };
@@ -178,7 +178,7 @@ export async function buildMatchSnapshot(matchId: Bytes32, chainId: number): Pro
 /** The picks in a deck this seat still owes — what a resumed stage puts back on screen. */
 export function outstandingFor(view: ArenaMatchView, wallet: Address): readonly number[] {
   const { match } = view;
-  const seat: Seat | null = match.creator === wallet.toLowerCase() ? 0 : match.challenger === wallet.toLowerCase() ? 1 : null;
+  const seat: Seat | null = match.creator === wallet ? 0 : match.challenger === wallet ? 1 : null;
   if (seat === null) return [];
   const mask = seat === 0 ? match.pickedMask0 : match.pickedMask1;
   return Array.from({ length: match.deckSize }, (_, i) => i).filter((i) => ((mask >> i) & 1) === 0);

@@ -9,7 +9,7 @@ import {
   type ServerMessage,
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import { isBytes32, type Address, type Bytes32 } from "@agari/core/types";
+import { isHash32, type Address, type Hash32 } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { readArenaAgent } from "@agari/markets/games";
 import type { PendingMatch } from "../matchmaker/pending";
@@ -54,7 +54,7 @@ export interface RoomOccupancy {
 
 /** Where a fresh browser learns which match it is already in, without being told by the browser. */
 export interface MatchDirectory {
-  activeMatchFor(wallet: Address): Promise<Bytes32 | null>;
+  activeMatchFor(wallet: Address): Promise<Hash32 | null>;
 }
 
 export interface RoomContext {
@@ -75,16 +75,16 @@ function playersOf(state: MatchState): readonly Address[] {
 }
 
 /** A match id the arena could actually hold. Checked here so a malformed one is a refusal, not an RPC error. */
-function asMatchId(value: string): Bytes32 | null {
+function asMatchId(value: string): Hash32 | null {
   const lower = value.toLowerCase();
-  return isBytes32(lower) ? lower : null;
+  return isHash32(lower) ? lower : null;
 }
 
 /**
  * The reconnect path, whole: read the match, check the wallet belongs in it, join its room, send one
  * snapshot, then let the deltas resume. Nothing about the previous connection is consulted.
  */
-async function sendSnapshot(ctx: RoomContext, connection: RoomConnection, matchId: Bytes32 | null, about: ClientMessage["type"]): Promise<void> {
+async function sendSnapshot(ctx: RoomContext, connection: RoomConnection, matchId: Hash32 | null, about: ClientMessage["type"]): Promise<void> {
   const serverTimeMs = marketsProvider.nowMs();
   if (!matchId) {
     /**
@@ -132,7 +132,7 @@ async function sendSnapshot(ctx: RoomContext, connection: RoomConnection, matchI
  * yet — before the entry, or a seat that entered without one — is the reference's trust in the claim; an
  * unreadable arena is not a refusal either, because a node blinking must not lock a player out mid-duel.
  */
-async function keyIsTheSeats(connection: RoomConnection, matchId: Bytes32, nowMs: number): Promise<boolean> {
+async function keyIsTheSeats(connection: RoomConnection, matchId: Hash32, nowMs: number): Promise<boolean> {
   const named = await readArenaAgent(matchId, connection.wallet);
   if (!isOk(named) || !named.value) return true;
   if (named.value.expiresAtSec <= Math.floor(nowMs / 1_000)) return true;
@@ -268,7 +268,7 @@ export function announceDeparture(ctx: RoomContext, connection: RoomConnection):
  * costs one chain read rather than one per player, and every player lands on identical state, which is
  * the property a delta cannot promise.
  */
-export async function resnapshotRoom(ctx: RoomContext, matchId: Bytes32): Promise<number> {
+export async function resnapshotRoom(ctx: RoomContext, matchId: Hash32): Promise<number> {
   const ref = roomRef(ctx.chainId, ctx.arena, matchId);
   const built = await buildMatchSnapshot(matchId, ctx.chainId);
   if (!built.ok) {

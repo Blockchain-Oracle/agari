@@ -1,0 +1,4 @@
+{
+  "_doc": "AD-5 exceptions for idl-no-destination: `program:instruction:account` → the reason the account can't be a caller-chosen payout destination (e.g. an ATA constrained to the seat owner). Empty until the programs exist.",
+  "entries": {}
+}

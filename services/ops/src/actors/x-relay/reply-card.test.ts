@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
+import { encodeBase58 } from "@agari/core/types";
 import type { XReceiptStatus } from "@agari/core/x";
 import { renderReplyCardPng, renderReplyCardSvg } from "./reply-card";
 import { createReplyPresentation } from "./reply-format";
@@ -7,21 +8,21 @@ import { createReplyPresentation } from "./reply-format";
 describe("receipt reply artwork", () => {
   it("shows actionable refusal headings and the missing input in the image", () => {
     const receipt = { mentionId: "123", authorId: "456", handle: "alice", wallet: null, grantId: null, marketId: null,
-      side: null, stakeBase: null, status: "refused" as const, reason: null, instruction: "BTC long 5", atMs: 1, txHash: null,
+      side: null, stakeBase: null, status: "refused" as const, reason: null, instruction: "TSLA long 5", atMs: 1, txHash: null,
       refusalCode: "instruction-invalid" as const, parseRefusal: "no-cadence" as const };
     const svg = renderReplyCardSvg(createReplyPresentation(receipt, 6));
     expect(svg).toContain("Check your instruction");
     expect(svg).toContain("Add a timeframe, such as 5m or 15m.");
-    expect(svg).toContain("Example: BTC UP 5 15m.");
+    expect(svg).toContain("Example: TSLA UP 5 15m.");
     expect(renderReplyCardSvg({ status: "refused", title: "Entries closed" })).toContain("Entries closed");
     expect(renderReplyCardSvg({ status: "refused", title: "arbitrary injected title" })).not.toContain("arbitrary injected title");
   });
   it("changes the exact image for each persisted sender and transaction, with all facts intact", async () => {
     const base = { mentionId: "123", authorId: "456", handle: "alice", wallet: null, grantId: null, marketId: null,
       side: "up" as const, stakeBase: "5000000", bookedCostBase: "4950000", status: "filled" as const,
-      reason: null, instruction: "fixture", atMs: 1, txHash: `0x${"ab".repeat(32)}` };
+      reason: null, instruction: "fixture", atMs: 1, txHash: encodeBase58(new Uint8Array(64).fill(0xab)) };
     const first = createReplyPresentation(base, 6);
-    const second = createReplyPresentation({ ...base, authorId: "789", handle: "bob", txHash: `0x${"cd".repeat(32)}` }, 6);
+    const second = createReplyPresentation({ ...base, authorId: "789", handle: "bob", txHash: encodeBase58(new Uint8Array(64).fill(0xcd)) }, 6);
     const svg = renderReplyCardSvg(first);
     expect(svg).toContain("FOR @alice");
     expect(svg).toContain(base.txHash);

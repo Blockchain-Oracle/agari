@@ -76,8 +76,8 @@ export function createRoomHub(): RoomHub {
       seq += 1;
       const connection: RoomConnection = {
         id: `c${seq}`,
-        wallet: wallet.toLowerCase() as Address,
-        key: key.toLowerCase() as Address,
+        wallet,
+        key,
         socket,
         rates: createRateState(),
         room: null,
@@ -118,7 +118,7 @@ export function createRoomHub(): RoomHub {
     },
 
     toWallet(wallet, message) {
-      const who = wallet.toLowerCase();
+      const who = wallet;
       let written = 0;
       for (const connection of all) {
         if (connection.wallet !== who) continue;
@@ -139,8 +139,8 @@ export function createRoomHub(): RoomHub {
       const seen = new Map<string, number>();
       for (const member of room.members) seen.set(member.wallet, Math.max(seen.get(member.wallet) ?? 0, member.lastSeenMs));
       const players = room.players.slice(0, 2).map((wallet) => {
-        const lastSeenMs = seen.get(wallet.toLowerCase()) ?? 0;
-        return { wallet: wallet.toLowerCase() as Address, online: lastSeenMs > 0, lastSeenMs };
+        const lastSeenMs = seen.get(wallet) ?? 0;
+        return { wallet, online: lastSeenMs > 0, lastSeenMs };
       });
       return { type: "presence", room: room.ref, players };
     },

@@ -1,7 +1,7 @@
 import { isOk } from "@agari/core/schemas";
-import { toMarketId, type Address, type Hex } from "@agari/core/types";
+import { isSignature, toMarketId, type Address } from "@agari/core/types";
 import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, listStrategyFills, listStrategyOwners, listUnresolvedStrategyAttempts, recordAttemptFill, type StrategyFillRecord } from "@agari/db";
-import { marketsProvider, type SubmitterSession } from "@agari/markets";
+import { marketsProvider, readRecoveryCursor, type SubmitterSession } from "@agari/markets";
 import { listStrategySubscribers } from "@agari/markets/strategies";
 import { getVaultGrant, listVaultTallies, recoverVaultExecution } from "@agari/markets/vault";
 
@@ -18,19 +18,13 @@ export async function reconcileRunnerAttempts(session: SubmitterSession, log: (w
           await finishStrategyAttempt(attempt, "settled", attempt.txHash, "positions settled on-chain; proceeds belong to owner");
           continue;
         }
-        if (attempt.txHash) {
-          const receipt = await session.contracts.publicClient.getTransactionReceipt({ hash: attempt.txHash as Hex }).catch(() => null);
-          if (receipt?.status === "reverted") {
-            await finishStrategyAttempt(attempt, "reverted", attempt.txHash, "settlement reverted; owner can settle manually");
-            continue;
-          }
-        }
+        // A reverted settlement is read from the transaction's status once the RPC client exists (S4); until then it stays unknown.
         unresolved.add(attempt.strategyId);
         await finishStrategyAttempt(attempt, "unknown", attempt.txHash, "settlement confirmation unknown; not resending");
         continue;
       }
-      const recovery = { owner: attempt.owner as Address, actor: session.address, side: attempt.side, expectedNonce: attempt.nonce, marketId: toMarketId(attempt.marketId), grantId: BigInt(attempt.grantId), fromBlock: BigInt(attempt.fromBlock) };
-      const result = await recoverVaultExecution({ ...recovery, txHash: attempt.txHash as Hex | null });
+      const recovery = { owner: attempt.owner as Address, actor: session.address, side: attempt.side, marketId: toMarketId(attempt.marketId), grantId: BigInt(attempt.grantId), fromSlot: BigInt(attempt.fromBlock) };
+      const result = await recoverVaultExecution({ ...recovery, txHash: attempt.txHash && isSignature(attempt.txHash) ? attempt.txHash : null });
       if (result.status === "confirmed") {
         if (result.tokenDelta > 0n) await recordAttemptFill({ txHash: result.txHash, strategyId: attempt.strategyId, grantId: attempt.grantId, owner: attempt.owner, marketId: attempt.marketId, side: result.side, cashDelta: result.cashDelta.toString(), tokenDelta: result.tokenDelta.toString(), atSec: result.atSec, dryRun: false });
         else await finishStrategyAttempt(attempt, "nothing-filled", result.txHash, "confirmed IOC filled nothing");
@@ -54,7 +48,7 @@ export async function reconcileRunnerAttempts(session: SubmitterSession, log: (w
 /** Clean up old grants too. Proceeds always remain in the owner's available balance. */
 export async function settleStrategyPositions(session: SubmitterSession, strategyId: bigint, dryRun: boolean, log: (why: string) => void): Promise<number> {
   const [subscribers, recorded] = await Promise.all([listStrategySubscribers(strategyId), listStrategyOwners(strategyId.toString())]);
-  const owners = [...new Set([...subscribers, ...recorded].map((owner) => owner.toLowerCase() as Address))];
+  const owners = [...new Set([...subscribers, ...recorded].map((owner) => owner as Address))];
   let fills: StrategyFillRecord[] | undefined;
   let settled = 0;
   for (const owner of owners) {
@@ -72,7 +66,7 @@ export async function settleStrategyPositions(session: SubmitterSession, strateg
       let ours = 0;
       for (const id of grants) {
         const grant = await getVaultGrant(id);
-        if (grant.kind === "strategy" && grant.actor === session.address.toLowerCase()) ours += 1;
+        if (grant.kind === "strategy" && grant.actor === session.address) ours += 1;
       }
       if (!ours) continue;
       // Owner-wide history can contain another strategy's position, including a replaced grant.
@@ -84,7 +78,7 @@ export async function settleStrategyPositions(session: SubmitterSession, strateg
       const origins = new Set<string>();
       for (const [side, amount, grantId] of [["up", h.upRaw, h.upGrantId], ["down", h.downRaw, h.downGrantId]] as const) {
         if (amount === 0n) continue;
-        const matching = fills.filter((fill) => !fill.dryRun && fill.owner.toLowerCase() === owner && fill.marketId.toLowerCase() === tally.marketId.toLowerCase() && fill.grantId === grantId.toString() && fill.side === side && BigInt(fill.tokenDelta) > 0n);
+        const matching = fills.filter((fill) => !fill.dryRun && fill.owner === owner && fill.marketId === tally.marketId && fill.grantId === grantId.toString() && fill.side === side && BigInt(fill.tokenDelta) > 0n);
         if (grantId === 0n || matching.length === 0) throw attributionUnknown();
         for (const fill of matching) origins.add(fill.strategyId);
       }
@@ -94,8 +88,9 @@ export async function settleStrategyPositions(session: SubmitterSession, strateg
       const key = { strategyId: originStrategyId, marketId: tally.marketId, owner, kind: "settle" as const };
       const previous = await getStrategyAttempt(key);
       if (previous) throw new Error(`settlement ${previous.state}: prior attempt not repeated; inspect the receipt or settle from Portfolio`);
-      const [fromBlock, nonce] = await Promise.all([session.contracts.publicClient.getBlockNumber(), session.contracts.publicClient.getTransactionCount({ address: session.address, blockTag: "pending" })]);
-      if (!await beginStrategyAttempt({ ...key, runner: session.address, grantId: (grants[0] ?? 0n).toString(), side: h.upRaw > 0n ? "up" : "down", stakeBase: "0", fromBlock: fromBlock.toString(), nonce })) throw new Error("settlement unknown: an existing reservation prevents resubmission");
+      const cursor = await readRecoveryCursor();
+      if (!isOk(cursor)) throw new Error(`recovery cursor unreadable: ${cursor.error.technical}; not settling`);
+      if (!await beginStrategyAttempt({ ...key, runner: session.address, grantId: (grants[0] ?? 0n).toString(), side: h.upRaw > 0n ? "up" : "down", stakeBase: "0", fromBlock: cursor.value.fromSlot.toString(), nonce: 0 })) throw new Error("settlement unknown: an existing reservation prevents resubmission");
       const result = await session.submitter.submitTx({ kind: "vault-crank-settle", owner, marketId: tally.marketId }).catch(async (error) => {
         await finishStrategyAttempt(key, "unknown", null, String(error)).catch(() => undefined);
         throw new Error(`settlement unknown: ${String(error)}; not resending`);
