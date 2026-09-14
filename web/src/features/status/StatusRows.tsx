@@ -16,7 +16,7 @@ export function StatusBanner({ payload }: { payload: StatusPayload }) {
       </div>
       <div className="status-checkpoint">
         <div className="status-checkpoint-label">{STATUS.checkpoint}</div>
-        <div className="status-checkpoint-value">{payload.blockNumber === null ? STATUS.noBlock : payload.blockNumber.toLocaleString("en-US")}</div>
+        <div className="status-checkpoint-value">{payload.slot === null ? STATUS.noSlot : payload.slot.toLocaleString("en-US")}</div>
       </div>
     </div>
   );

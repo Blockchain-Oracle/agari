@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { BitcoinMark, EthereumMark } from "@/components/icons/AssetMarks";
+import { isTickerSymbol, TICKERS } from "@agari/core/market";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,7 +12,13 @@ import { cn } from "@/lib/utils";
  */
 type Mark = ComponentType<{ className?: string }>;
 
-const MARKS: Record<string, Mark> = { BTC: BitcoinMark, ETH: EthereumMark };
+/** Drawn marks by ticker. Company logos are trademarks, so none is drawn yet: every ticker shows its monogram (D-011). */
+const MARKS: Record<string, Mark> = {};
+
+/** The letter on the disc: the registry's monogram for a listed ticker, else the name's first letter. */
+export function assetMonogram(asset: string): string {
+  return isTickerSymbol(asset) ? TICKERS[asset].monogram : asset.slice(0, 1).toUpperCase();
+}
 
 export function assetMark(asset: string): Mark | null {
   return MARKS[asset.toUpperCase()] ?? null;
@@ -29,7 +35,7 @@ export function AssetDisc({ asset, className }: AssetDiscProps) {
   const Mark = assetMark(asset);
   return (
     <span aria-hidden className={cn(className, Mark ? "has-mark" : "generic")}>
-      {Mark ? <Mark className="asset-mark" /> : <span>{asset.slice(0, 1).toUpperCase()}</span>}
+      {Mark ? <Mark className="asset-mark" /> : <span>{assetMonogram(asset)}</span>}
     </span>
   );
 }

@@ -1,20 +1,23 @@
 "use client";
 
-import { OUTCOME_TO_SIDE, type EventMarket, type Hex, type Resolution, type Verdict } from "@agari/core/types";
+import { OUTCOME_TO_SIDE, type EventMarket, type Resolution, type Signature, type Verdict } from "@agari/core/types";
 import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
-import { oracleGraphUrl, txUrl } from "@agari/core/urls";
+import { txUrl } from "@agari/core/urls";
 import { Money } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import { oraclePriceText } from "@/features/markets/hero";
 import { ShareTradeButton, type TradeCard } from "@/features/share";
 import { MARKETS, VERDICT_UI, formatCadence, verdictAnnouncement, verdictStrings } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
 import { ClaimWinnings } from "./ClaimWinnings";
 import { PnlFigure } from "./PnlFigure";
+import { printSourceText } from "./print-source";
 import { useAnnounceOnce } from "./useAnnounceOnce";
 import { VerdictLegs } from "./VerdictLegs";
 import { VerdictStamp } from "./VerdictStamp";
 
-export type VerdictMarket = Pick<EventMarket, "marketId" | "asset" | "intervalSec" | "expirySec" | "openingPriceRaw">;
+/** A settled round from the fill projection carries its asset as plain text, so a verdict takes any asset name. */
+export type VerdictMarket = Pick<EventMarket, "marketId" | "intervalSec" | "expirySec" | "openingPriceRaw"> & { asset: string };
 
 export interface VerdictCardProps {
   verdict: Verdict;
@@ -23,7 +26,7 @@ export interface VerdictCardProps {
   resolution: Resolution | null;
   symbol: string;
   /** What the fill projection knows and a live verdict does not: the entry tx, and whether the round closed on the book before expiry. */
-  provenance?: { entryTxHash?: Hex; closedEarly?: boolean };
+  provenance?: { entryTxHash?: Signature; closedEarly?: boolean };
 }
 
 const SIDE_WORD = { up: MARKETS.up, down: MARKETS.down } as const;
@@ -60,7 +63,7 @@ export function VerdictCard({ verdict, market, resolution, symbol, provenance }:
   const announced = useAnnounceOnce(verdictAnnouncement(verdict.outcome, `${formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })} ${symbol}`));
   const settledAtMs = verdict.settledAtMs ?? resolution?.settledAtMs ?? secToMs(market.expirySec);
   const settlementTx = resolution?.settlementTxHash ?? null;
-  const questionId = resolution?.oracleQuestionId ?? null;
+  const source = printSourceText(resolution);
 
   return (
     <article
@@ -88,11 +91,11 @@ export function VerdictCard({ verdict, market, resolution, symbol, provenance }:
         <ReceiptRow label={VERDICT_UI.window}>{windowLine(market, verdict)}</ReceiptRow>
         <ReceiptRow label={VERDICT_UI.openingPrint}>{oraclePriceText(resolution?.openingRaw ?? market.openingPriceRaw)}</ReceiptRow>
         <ReceiptRow label={VERDICT_UI.closingPrint}>{oraclePriceText(resolution?.closingRaw ?? null)}</ReceiptRow>
-        <ReceiptRow label={VERDICT_UI.settlementTx} href={settlementTx ? txUrl(settlementTx) : null} degradedLabel={VERDICT_UI.pendingTx}>
+        <ReceiptRow label={VERDICT_UI.settlementTx} href={settlementTx ? txUrl(settlementTx, webEnv.markets.cluster) : null} degradedLabel={VERDICT_UI.pendingTx}>
           {settlementTx ? shortHex(settlementTx, 10, 4) : "—"}
         </ReceiptRow>
-        <ReceiptRow label={VERDICT_UI.oracleGraph} href={questionId ? oracleGraphUrl(questionId) : null} degradedLabel={VERDICT_UI.noQuestion}>
-          {questionId ? VERDICT_UI.question(questionId) : "—"}
+        <ReceiptRow label={VERDICT_UI.oracleGraph} href={null} degradedLabel={VERDICT_UI.noQuestion}>
+          {source ? VERDICT_UI.question(source) : "—"}
         </ReceiptRow>
       </Receipt>
       {/* The reference's receipt footer share slot (TradeReceipt L321–325): the Earned Heat card, real fields only. */}

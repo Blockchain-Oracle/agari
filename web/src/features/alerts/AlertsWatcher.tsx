@@ -1,5 +1,6 @@
 "use client";
 
+import { isTickerSymbol } from "@agari/core/market";
 import { oneUnit } from "@agari/core/units";
 import { useAssetPrice } from "@agari/markets/react";
 import { useEffect, useState } from "react";
@@ -15,7 +16,8 @@ const dollars = (raw: bigint): string => `$${(raw / oneUnit(ORACLE_SCALE)).toLoc
  * display scale, and runs the stored rules against it on every tick that moves.
  */
 function AssetWatch({ asset }: { asset: string }) {
-  const reading = useAssetPrice(asset);
+  // A stored rule for an asset Agari doesn't list (an old BTC alert) reads nothing rather than a wrong price.
+  const reading = useAssetPrice(isTickerSymbol(asset) ? asset : null);
   const price = reading?.ok ? reading.value : null;
   const raw = price ? feedRawToOracleRaw(basisRaw(price), price.decimals) : null;
 

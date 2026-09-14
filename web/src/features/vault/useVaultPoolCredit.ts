@@ -13,5 +13,5 @@ import { useBalanceSheet } from "@agari/markets/react";
 export function useVaultPoolCredit(deployment: VaultDeployment | null): VenueCredit[] {
   const sheet = useBalanceSheet(deployment?.eventVault ?? null);
   if (!deployment || !sheet || !isOk(sheet)) return [];
-  return sheet.value.venueCreditByPool;
+  return sheet.value.venueCreditByMarket;
 }

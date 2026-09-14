@@ -1,3 +1,4 @@
+import type { TickerSymbol } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
 import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
 import { getDb, isDbConfigured } from "@agari/db";
@@ -35,25 +36,25 @@ function down(id: string, label: string, detail: string, optional = false, confi
 
 const elapsed = (error: unknown) => error instanceof DiagnosticFailure ? error.elapsedMs : null;
 
-export async function probeRpc(): Promise<{ pipeline: StatusPipeline; blockNumber: number | null }> {
+export async function probeRpc(): Promise<{ pipeline: StatusPipeline; slot: number | null }> {
   const label = STATUS.pipelines.rpc;
   try {
     const clock = await diagnose("rpc", ({ step }) => step("RPC chain head", async () => fresh(await syncClock())));
-    const { blockNumber, rttMs, offsetMs } = clock.value;
-    // Block timestamps are whole seconds, so a head a second "behind" is normal; one minutes
+    const { slot, rttMs, offsetMs } = clock.value;
+    // Block times are whole seconds, so a head a second "behind" is normal; one minutes
     // behind is a chain that stopped, not a slow socket.
     const lagSec = Math.max(0, Math.round(-offsetMs / 1000));
     const offsetText = `${offsetMs >= 0 ? "+" : "−"}${(Math.abs(offsetMs) / 1000).toFixed(1)}`;
     return {
-      pipeline: { id: "rpc", label, ok: true, lagSec, latencyMs: rttMs, detail: STATUS.detail.rpc(blockNumber.toLocaleString("en-US"), offsetText), optional: false, configured: true },
-      blockNumber,
+      pipeline: { id: "rpc", label, ok: true, lagSec, latencyMs: rttMs, detail: STATUS.detail.rpc(slot.toLocaleString("en-US"), offsetText), optional: false, configured: true },
+      slot,
     };
   } catch (error) {
-    return { pipeline: down("rpc", label, message(error), false, true, elapsed(error)), blockNumber: null };
+    return { pipeline: down("rpc", label, message(error), false, true, elapsed(error)), slot: null };
   }
 }
 
-export async function probeIndexer(env: MarketsEnv): Promise<{ pipeline: StatusPipeline; assets: string[] }> {
+export async function probeIndexer(env: MarketsEnv): Promise<{ pipeline: StatusPipeline; assets: TickerSymbol[] }> {
   const label = STATUS.pipelines.indexer;
   try {
     const result = await diagnose(`indexer:${env.indexerUrl}:${env.venueId}`, async ({ step }) => {
@@ -77,14 +78,14 @@ export async function probeIndexer(env: MarketsEnv): Promise<{ pipeline: StatusP
 }
 
 /** The one real "time lag" here: how old the feed's latest print is against the wall clock. */
-export async function probePrice(asset: string, nowMs: number): Promise<StatusPipeline> {
+export async function probePrice(asset: TickerSymbol, nowMs: number): Promise<StatusPipeline> {
   const id = `price:${asset}`;
   const label = STATUS.pipelines.price(asset);
   try {
     const result = await diagnose(id, ({ step }) => step(`${asset} latest price`, async () => fresh(await marketsProvider.getAssetPrice(asset))));
     const price = result.value;
     if (price === null) return down(id, label, STATUS.detail.noPrint, false, true, result.elapsedMs);
-    const printedMs = secToMs(price.blockTimestampSec);
+    const printedMs = secToMs(price.publishTimeSec);
     const lagSec = Math.max(0, Math.round((nowMs - printedMs) / 1000));
     const priceText = `$${formatBaseUnits(price.priceRaw, price.decimals)}`;
     return { id, label, ok: true, lagSec, latencyMs: result.elapsedMs, detail: STATUS.detail.price(priceText, formatUtc(printedMs)), optional: false, configured: true };

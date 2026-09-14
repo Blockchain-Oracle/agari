@@ -1,6 +1,7 @@
 "use client";
 
 import { isOk } from "@agari/core/schemas";
+import { isTickerSymbol } from "@agari/core/market";
 import type { AssetPrice } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { PRICE_BASIS } from "@agari/markets/identity";
@@ -19,7 +20,7 @@ function basisRaw(price: AssetPrice): bigint {
 }
 
 function useAssetSlot(asset: string | null): TickerEntry | null {
-  const reading = useAssetPrice(asset);
+  const reading = useAssetPrice(asset !== null && isTickerSymbol(asset) ? asset : null);
   // Direction is "last move", so it must survive renders where the price did not change; a ref carries it.
   const last = useRef<{ raw: bigint; direction: TickerDirection } | null>(null);
 

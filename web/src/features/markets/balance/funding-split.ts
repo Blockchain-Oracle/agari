@@ -1,4 +1,4 @@
-import type { Address, BalanceSheet } from "@agari/core/types";
+import type { BalanceSheet, MarketId } from "@agari/core/types";
 
 export interface FundingSplit {
   creditUsedBase: bigint;
@@ -9,11 +9,13 @@ export interface FundingSplit {
 
 const min = (a: bigint, b: bigint): bigint => (a < b ? a : b);
 
-/** Venue payout credit lives per pool; only the credit sitting on the window's own pool is drawn for that window. */
-export function creditForPool(sheet: Pick<BalanceSheet, "venueCreditByPool">, pool: Address): bigint {
-  const wanted = pool.toLowerCase();
-  return sheet.venueCreditByPool
-    .filter((credit) => credit.pool.toLowerCase() === wanted)
+/**
+ * Venue payout credit lives in each Window's Ledger seat; only the credit sitting in that Window is drawn for it.
+ * Matched exactly: a MarketId is base58 and case-sensitive (D-010).
+ */
+export function creditForMarket(sheet: Pick<BalanceSheet, "venueCreditByMarket">, marketId: MarketId): bigint {
+  return sheet.venueCreditByMarket
+    .filter((credit) => credit.marketId === marketId)
     .reduce((sum, credit) => sum + credit.amountBase, 0n);
 }
 

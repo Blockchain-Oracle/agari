@@ -1,7 +1,8 @@
 import { X_LINK_SIGNATURE_TTL_MS, xLinkMessage, xUnlinkMessage } from "@agari/core/x";
 import { xLinkByAuthor, xLinkByWallet, type XLinkRecord } from "@agari/db";
+import { isAddress, isSignature } from "@agari/core/types";
 import { cookies } from "next/headers";
-import { verifyMessage } from "viem";
+import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { readXConfig, type XConfig } from "./config.server";
 import type { XBinding } from "./protocol";
 import { readSession, X_SESSION_COOKIE, type XSession } from "./session.server";
@@ -37,10 +38,8 @@ export function signatureFresh(issuedAtMs: number, nowMs: number): boolean {
 }
 
 export async function verifyLinkSignature(kind: "link" | "unlink", authorId: string, wallet: string, issuedAtMs: number, signature: string): Promise<boolean> {
-  try {
-    const message = kind === "link" ? xLinkMessage(authorId, wallet, issuedAtMs) : xUnlinkMessage(authorId, wallet, issuedAtMs);
-    return await verifyMessage({ address: wallet as `0x${string}`, message, signature: signature as `0x${string}` });
-  } catch {
-    return false;
-  }
+  // ed25519 over the exact text, base58 wallet and signature (D-012); malformed input is a plain false.
+  if (!isAddress(wallet) || !isSignature(signature)) return false;
+  const text = kind === "link" ? xLinkMessage(authorId, wallet, issuedAtMs) : xUnlinkMessage(authorId, wallet, issuedAtMs);
+  return verifyWalletMessage({ text, signature, signer: wallet });
 }

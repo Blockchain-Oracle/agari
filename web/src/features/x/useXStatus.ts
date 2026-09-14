@@ -3,8 +3,7 @@
 import { xLinkMessage, xUnlinkMessage } from "@agari/core/x";
 import { shortHex } from "@agari/core/units";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSignMessage } from "wagmi";
-import { useWalletSession } from "@/lib/wallet-session";
+import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { X_ERRORS, X_OAUTH_EXPIRED, X_OAUTH_FALLBACK, X_OAUTH_MESSAGES, xOauthRejected, X_CARD } from "./copy";
 import { X_REASON_PARAM, X_RETURN_PARAM, type XStatus } from "./protocol";
 
@@ -55,7 +54,7 @@ function bounceMessage(reason: string | null): string {
  */
 export function useXStatus(): XLink {
   const { address } = useWalletSession();
-  const { signMessageAsync } = useSignMessage();
+  const owner = useOwnerWallet();
   const [status, setStatus] = useState<XStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<XBusy>("");
@@ -74,9 +73,10 @@ export function useXStatus(): XLink {
 
   const session = status?.session ?? null;
   const binding = status?.binding ?? null;
-  const routedHere = Boolean(address && binding && binding.wallet === address.toLowerCase());
+  // Exact match: base58 is case-sensitive (D-010).
+  const routedHere = Boolean(address && binding && binding.wallet === address);
   const sessionMatchesBinding = Boolean(session && binding && session.authorId === binding.authorId);
-  const walletMismatch = Boolean(address && binding && session && binding.authorId === session.authorId && binding.wallet !== address.toLowerCase());
+  const walletMismatch = Boolean(address && binding && session && binding.authorId === session.authorId && binding.wallet !== address);
   const needsLink = Boolean(address && session && !walletMismatch && (!routedHere || !sessionMatchesBinding));
 
   const link = useCallback(async () => {
@@ -86,7 +86,8 @@ export function useXStatus(): XLink {
     setBusy("link");
     try {
       const issuedAtMs = Date.now();
-      const signature = await signMessageAsync({ message: xLinkMessage(session.authorId, address, issuedAtMs) });
+      if (!owner || owner.address !== address) throw new Error(X_ERRORS.linkFailed);
+      const signature = await signText(owner, xLinkMessage(session.authorId, address, issuedAtMs));
       const response = await fetch("/api/x/bind", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ wallet: address, issuedAtMs, signature }) });
       const body = (await response.json().catch(() => ({}))) as { ok?: boolean; reason?: string; boundWallet?: string };
       if (!response.ok || body.ok === false) {
@@ -102,7 +103,7 @@ export function useXStatus(): XLink {
     } finally {
       setBusy("");
     }
-  }, [address, session, busy, signMessageAsync, refresh]);
+  }, [address, session, busy, owner, refresh]);
 
   const unlink = useCallback(async () => {
     if (!address || !session || !sessionMatchesBinding || busy) return;
@@ -111,7 +112,8 @@ export function useXStatus(): XLink {
     setBusy("unlink");
     try {
       const issuedAtMs = Date.now();
-      const signature = await signMessageAsync({ message: xUnlinkMessage(session.authorId, address, issuedAtMs) });
+      if (!owner || owner.address !== address) throw new Error(X_ERRORS.unlinkFailed);
+      const signature = await signText(owner, xUnlinkMessage(session.authorId, address, issuedAtMs));
       const response = await fetch("/api/x/unlink", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ wallet: address, issuedAtMs, signature }) });
       const body = (await response.json().catch(() => ({}))) as { ok?: boolean; reason?: string };
       if (!response.ok || body.ok === false) throw new Error(body.reason || X_ERRORS.unlinkFailed);
@@ -121,7 +123,7 @@ export function useXStatus(): XLink {
     } finally {
       setBusy("");
     }
-  }, [address, session, sessionMatchesBinding, busy, signMessageAsync, refresh]);
+  }, [address, session, sessionMatchesBinding, busy, owner, refresh]);
 
   // Finish the job the sign-in started: OAuth bounces back with `?x=1` having only set a cookie.
   const autoLinked = useRef(false);

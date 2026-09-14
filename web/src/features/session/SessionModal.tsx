@@ -1,7 +1,6 @@
 "use client";
 
 import type { Diagnosis } from "@agari/core/types";
-import { sessionGasTopUpWei } from "@agari/markets";
 import { useBalanceSheet } from "@agari/markets/react";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -13,6 +12,7 @@ import { CapabilityReceipt } from "./CapabilityReceipt";
 import { CapsEditor } from "./CapsEditor";
 import { CAPS_DEFAULTS, termsFromForm, workedExample, type CapsForm } from "./caps";
 import { SESSION } from "./copy";
+import { SESSION_KEY_TOPUP_LAMPORTS } from "./fees";
 import { useSessionKey } from "./SessionKeyProvider";
 import styles from "./SessionDetails.module.css";
 
@@ -168,7 +168,7 @@ export function SessionModal({ open, onOpenChange, symbol }: SessionModalProps) 
       </details>
       <details className="modal-disclosure">
         <summary>{SESSION.sheet.receiptTitle}</summary>
-        <CapabilityReceipt keyAddress={view.key?.address ?? null} expiresAtSec={view.nowSec + form.expiryHours * 3600} sponsorConfigured={view.sponsor?.configured ?? false} topUpWei={sessionGasTopUpWei()} firstTime={view.grant === null} />
+        <CapabilityReceipt keyAddress={view.key?.address ?? null} expiresAtSec={view.nowSec + form.expiryHours * 3600} sponsorConfigured={view.sponsor?.configured ?? false} topUpLamports={SESSION_KEY_TOPUP_LAMPORTS} />
       </details>
     </SessionModalShell>
   );

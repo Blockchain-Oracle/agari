@@ -1,4 +1,4 @@
-import type { Address, ClaimKind, Diagnosis, Hex, MarketId, OutcomeIdx } from "@agari/core/types";
+import type { Address, ClaimKind, Diagnosis, MarketId, OutcomeIdx, Signature } from "@agari/core/types";
 
 /** One redemption = one leg = one wallet signature; a void row contributes two items (canon #11). */
 export type ClaimItemStatus = "pending" | "claiming" | "confirmed" | "reverted" | "unknown";
@@ -15,7 +15,7 @@ export interface ClaimItem {
   payoutBase: bigint;
   decimals: number;
   status: ClaimItemStatus;
-  txHash: Hex | null;
+  txHash: Signature | null;
   /** Why this item did not confirm — kept per item, never collapsed into one verdict (AD-15). */
   diagnosis: Diagnosis | null;
 }

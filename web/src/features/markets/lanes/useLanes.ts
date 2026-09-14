@@ -2,7 +2,7 @@
 
 import { MARKETS_POLL_MS } from "@agari/core/constants";
 import { isOk, type Reading } from "@agari/core/schemas";
-import type { Bytes32, Lane, LaneSet } from "@agari/core/types";
+import type { Address, Lane, LaneSet } from "@agari/core/types";
 import { laneNextStart } from "@agari/markets";
 import { keys, useLanes, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,7 +25,7 @@ export interface LanesState {
   retry: () => void;
 }
 
-export function useLanesState(venueId: Bytes32 | null): LanesState {
+export function useLanesState(venueId: Address | null): LanesState {
   const reading = useLanes(venueId);
   const laneSet = reading && isOk(reading) ? reading.value : null;
   const [pinned, pin] = usePersistedState(LANE_KEY, NO_PIN, numberCodec);
@@ -49,10 +49,10 @@ export function useLanesState(venueId: Bytes32 | null): LanesState {
 }
 
 /** Next start for an empty lane — windows are contiguous, so it is the last expiry plus the roll gap (an estimate until observed). */
-export function useLaneNextStart(venueId: Bytes32 | null, intervalSec: number | null): Reading<number | null> | null {
+export function useLaneNextStart(venueId: Address | null, intervalSec: number | null): Reading<number | null> | null {
   return useReadingQuery(
     [...keys.lanes(venueId), "next-start", intervalSec],
-    () => laneNextStart(venueId as Bytes32, intervalSec as number),
+    () => laneNextStart(venueId as Address, intervalSec as number),
     { enabled: venueId !== null && intervalSec !== null, pollMs: MARKETS_POLL_MS },
   );
 }

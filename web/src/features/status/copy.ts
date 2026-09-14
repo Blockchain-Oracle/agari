@@ -8,8 +8,8 @@ export const STATUS = {
   degraded: "Degraded Performance",
   maxLag: (sec: number, pipeline: string) => `Max lag: ${sec}s (${pipeline})`,
   noLag: "No lag measured",
-  checkpoint: "Block",
-  noBlock: "—",
+  checkpoint: "Slot",
+  noSlot: "—",
   tableTitle: (n: number) => `Pipeline Status (${n})`,
   lag: (sec: number) => `${sec}s`,
   latency: (ms: number) => `${ms}ms`,
@@ -17,7 +17,7 @@ export const STATUS = {
   lastChecked: (clock: string) => `Last checked: ${clock} · Auto-refreshes every 30s`,
 
   pipelines: {
-    rpc: "Somnia RPC · chain head",
+    rpc: "Solana RPC · chain head",
     indexer: "DreamDEX indexer · live windows",
     price: (asset: string) => `Price feed · ${asset}`,
     store: "Social store · the Room and takes",
@@ -25,7 +25,7 @@ export const STATUS = {
   },
 
   detail: {
-    rpc: (block: string, offsetSec: string) => `block ${block} · head ${offsetSec}s vs this clock`,
+    rpc: (slot: string, offsetSec: string) => `slot ${slot} · head ${offsetSec}s vs this clock`,
     indexer: (lanes: number, windows: number, source: string) => `${lanes} lanes · ${windows} live windows · venue ${source}`,
     venueSource: { env: "from config", inferred: "read off the busiest live venue", none: "not found" } as const,
     noVenue: "no live venue found on the indexer",

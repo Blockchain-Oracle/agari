@@ -178,7 +178,11 @@ export function DemoPage() {
                 <div className="demo-card-title">{card.title}</div>
                 <div className="demo-card-body">{card.body}</div>
                 <div className="demo-card-proof">
-                  <ProofLink href={contractProofHref(proof)} label={`${S.depth.proven} · ${proof.label}`} reference={proof.address} />
+                  {proof.address === null ? (
+                    <span className="demo-proof-note">{S.verify.pending}</span>
+                  ) : (
+                    <ProofLink href={contractProofHref(proof) ?? ""} label={`${S.depth.proven} · ${proof.label}`} reference={proof.address} />
+                  )}
                 </div>
               </div>
             </Reveal>
@@ -195,7 +199,7 @@ export function DemoPage() {
             <Serif>{S.verify.headlineSerif}</Serif>
           </h2>
           <p className="demo-body wide">{S.verify.body}</p>
-          <p className="demo-proof-note">{S.verify.readOn(shortAddress(PROOF_WALLET), PROOFS_READ_ON)}</p>
+          <p className="demo-proof-note">{PROOF_WALLET !== null && PROOFS_READ_ON !== null ? S.verify.readOn(shortAddress(PROOF_WALLET), PROOFS_READ_ON) : S.verify.pending}</p>
         </Reveal>
         <div className="demo-proofs">
           {TX_PROOFS.map((proof) => (
@@ -211,13 +215,15 @@ export function DemoPage() {
           <p className="demo-proof-note">{S.verify.contracts}</p>
         </Reveal>
         <div className="demo-proofs">
-          {CONTRACT_PROOFS.map((proof) => (
-            <Reveal key={proof.key}>
-              <div className="demo-proof-row">
-                <ProofLink href={contractProofHref(proof)} label={proof.label} reference={proof.address} />
-              </div>
-            </Reveal>
-          ))}
+          {CONTRACT_PROOFS.map((proof) =>
+            proof.address === null ? null : (
+              <Reveal key={proof.key}>
+                <div className="demo-proof-row">
+                  <ProofLink href={contractProofHref(proof) ?? ""} label={proof.label} reference={proof.address} />
+                </div>
+              </Reveal>
+            ),
+          )}
         </div>
       </section>
 

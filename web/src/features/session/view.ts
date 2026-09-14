@@ -1,5 +1,5 @@
 import type { TxOutcome } from "@agari/core/ports";
-import type { Address, Hex } from "@agari/core/types";
+import type { Address, Signature } from "@agari/core/types";
 import type { VaultDeployment, VaultGrant } from "@agari/core/vault";
 import type { SponsorStatus } from "@agari/markets";
 import type { CapsForm } from "./caps";
@@ -20,7 +20,8 @@ export interface SessionKeyView {
   sponsor: SponsorStatus | null;
   /** The relayer's last refusal, when the key had to pay. */
   sponsorRefusal: string | null;
-  keyGasWei: bigint | null;
+  /** The key's SOL for its own fees, in lamports; null while unknown. */
+  keyFeeLamports: bigint | null;
   vaultAvailableBase: bigint | null;
 }
 
@@ -28,7 +29,7 @@ export type SessionBusy = "enabling" | "topping-up" | "revoking" | "rekeying" | 
 
 export interface EnableOutcome {
   outcome: TxOutcome;
-  topUpHash: Hex | null;
+  topUpHash: Signature | null;
   topUpError: string | null;
 }
 
@@ -36,7 +37,7 @@ export interface SessionKeyActions {
   enable(form: CapsForm): Promise<EnableOutcome>;
   rekey(): Promise<EnableOutcome>;
   revoke(): Promise<TxOutcome>;
-  topUp(): Promise<Hex | null>;
+  topUp(): Promise<Signature | null>;
   forget(): Promise<void>;
 }
 
@@ -59,6 +60,7 @@ export function deriveStatus(input: {
   const grant = input.grant;
   if (!grant || grant.revoked) return "disarmed";
   if (grant.expiresAtSec < input.nowSec) return "expired";
-  if (!input.key || input.key.address.toLowerCase() !== grant.actor.toLowerCase()) return "grant-without-key";
+  // Exact match: base58 is case-sensitive (D-010).
+  if (!input.key || input.key.address !== grant.actor) return "grant-without-key";
   return "armed";
 }

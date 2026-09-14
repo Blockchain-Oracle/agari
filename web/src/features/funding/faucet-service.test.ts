@@ -1,22 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
-import { faucetTopUpWei, STT_FAUCET_POLICY as POLICY, type FaucetChallenge, type FaucetClaim } from "@agari/core/faucet";
+import { faucetTopUpLamports, SOL_FAUCET_POLICY as POLICY, type FaucetChallenge, type FaucetClaim } from "@agari/core/faucet";
+import { encodeBase58 } from "@agari/core/types";
 import type { FaucetStore } from "@agari/db";
 import type { FaucetChain } from "@agari/markets/faucet";
-import { createFaucetService } from "./faucet-service.server";
+import { createFaucetService, verifyChallengeSignature } from "./faucet-service.server";
 
-const FUNDER = `0x${"aa".repeat(20)}`;
-const wallet = (n: number) => `0x${n.toString(16).padStart(40, "0")}`;
+const key = (n: number, length = 32) => encodeBase58(new Uint8Array(length).fill(n));
+const FUNDER = key(0xaa);
+const wallet = (n: number) => key(n);
 const W = wallet(1);
+const SIG = key(0xab, 64);
+const sig = (n: number) => key(n, 64);
 const NOW_MS = 1_900_000_000_000;
-const ETH = 1_000_000_000_000_000_000n;
+const SOL = 1_000_000_000n;
 function harness() {
   const challenges = new Map<string, FaucetChallenge>();
   const claims = new Map<string, FaucetClaim>();
-  const balances = new Map<string, bigint>([[FUNDER, 100n * ETH]]);
+  const balances = new Map<string, bigint>([[FUNDER, 100n * SOL]]);
   const landed = new Set<string>();
   let nowMs = NOW_MS;
   let id = 0;
-  let nonce = 0;
+  let sent = 0;
   let tail = Promise.resolve();
   const store: FaucetStore = {
     challenge: vi.fn(async (id) => challenges.get(id) ?? null),
@@ -30,7 +34,7 @@ function harness() {
     pending: vi.fn(async () => [...claims.values()].find((c) => c.status === "prepared" || c.status === "conflict") ?? null),
     used: vi.fn(async (since, ip) => {
       const list = [...claims.values()].filter((c) => c.createdAtMs >= since);
-      return { amountWei: list.reduce((sum, c) => sum + BigInt(c.amountWei), 0n), ip: list.filter((c) => c.ipHash === ip).length };
+      return { amountLamports: list.reduce((sum, c) => sum + BigInt(c.amountLamports), 0n), ip: list.filter((c) => c.ipHash === ip).length };
     }),
     insert: vi.fn(async (c) => { claims.set(c.id, c); }),
     mark: vi.fn(async (id, status) => { const c = claims.get(id); if (c?.status === "prepared") claims.set(id, { ...c, status }); }),
@@ -43,54 +47,60 @@ function harness() {
     try { return await run(store); } finally { release(); }
   };
   const chain: FaucetChain = {
-    address: FUNDER,
+    address: FUNDER as FaucetChain["address"],
+    cluster: "devnet",
+    verify: vi.fn(async () => false),
     balance: vi.fn(async (w) => balances.get(w) ?? 0n),
-    verify: vi.fn(async () => true),
-    prepare: vi.fn(async () => ({ nonce: nonce++, feeWei: "1000", txHash: `0x${nonce.toString(16).padStart(64, "0")}` as `0x${string}`, rawTransaction: `0x${nonce.toString(16).padStart(2, "0")}` as `0x${string}` })),
+    prepare: vi.fn(async () => { sent += 1; return { lastValidBlockHeight: 1_000 + sent, feeLamports: "5000", txHash: sig(sent), rawTransaction: `raw-${sent}` }; }),
     inspect: vi.fn(async (c) => landed.has(c.txHash) ? "confirmed" : "prepared"),
     broadcast: vi.fn(async (c) => {
       expect(claims.has(c.id)).toBe(true); // Nothing is broadcast before the durable reservation exists.
       if (!landed.has(c.txHash)) {
         landed.add(c.txHash);
-        balances.set(c.wallet, (balances.get(c.wallet) ?? 0n) + BigInt(c.amountWei));
-        balances.set(FUNDER, balances.get(FUNDER)! - BigInt(c.amountWei) - BigInt(c.feeWei));
+        balances.set(c.wallet, (balances.get(c.wallet) ?? 0n) + BigInt(c.amountLamports));
+        balances.set(FUNDER, balances.get(FUNDER)! - BigInt(c.amountLamports) - BigInt(c.feeLamports));
       }
     }),
   };
-  const deps = { read: async () => store, lock, now: () => nowMs, id: () => `00000000-0000-4000-8000-${String(++id).padStart(12, "0")}` };
+  const verify = vi.fn(async (_wallet: string, _message: string, _signature: string) => true);
+  const deps = { read: async () => store, lock, now: () => nowMs, id: () => `00000000-0000-4000-8000-${String(++id).padStart(12, "0")}`, verify };
   const service = createFaucetService(chain, deps);
-  const request = async (w = W, ip = "ip-a") => { const c = await service.challenge(w, ip, "https://masayume.app"); return service.claim(c.id, "0xab", ip); };
-  return { service, chain, store, deps, claims, challenges, balances, landed, request, advance: (ms: number) => { nowMs += ms; } };
+  const request = async (w = W, ip = "ip-a") => { const c = await service.challenge(w, ip, "https://agari.xyz"); return service.claim(c.id, SIG, ip); };
+  return { service, chain, store, deps, verify, claims, challenges, balances, landed, request, advance: (ms: number) => { nowMs += ms; } };
 }
 
-describe("STT faucet policy", () => {
-  it("tops up to a target, never adds 2 on top of an existing balance", () => {
-    expect(faucetTopUpWei(0n)).toBe(2n * ETH);
-    expect(faucetTopUpWei(ETH / 2n)).toBe(3n * ETH / 2n);
-    expect(faucetTopUpWei(ETH)).toBe(0n);
+describe("devnet SOL faucet policy", () => {
+  it("tops up to a target, never adds the target on top of an existing balance", () => {
+    expect(faucetTopUpLamports(0n)).toBe(POLICY.targetLamports);
+    expect(faucetTopUpLamports(POLICY.thresholdLamports - 1n)).toBe(POLICY.targetLamports - POLICY.thresholdLamports + 1n);
+    expect(faucetTopUpLamports(POLICY.thresholdLamports)).toBe(0n);
   });
   it("binds the signature to domain, wallet, network, nonce and expiry", async () => {
-    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://masayume.app");
-    for (const part of ["https://masayume.app", W, "50312", c.id, "gives no permission"]) expect(c.message).toContain(part);
+    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    for (const part of ["https://agari.xyz", W, "Solana devnet", c.id, "gives no permission"]) expect(c.message).toContain(part);
+  });
+  it("refuses a malformed wallet or signature before any crypto runs", async () => {
+    expect(await verifyChallengeSignature("0x1234", "message", SIG)).toBe(false);
+    expect(await verifyChallengeSignature(W, "message", "0xab")).toBe(false);
   });
   it("does not reserve or broadcast an invalid signature", async () => {
-    const h = harness(); vi.mocked(h.chain.verify).mockResolvedValue(false);
+    const h = harness(); h.verify.mockResolvedValue(false);
     await expect(h.request()).rejects.toMatchObject({ code: "signature-invalid" });
     expect(h.claims.size).toBe(0); expect(h.chain.broadcast).not.toHaveBeenCalled();
   });
   it("refuses expired and changed-connection requests before funding", async () => {
-    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://masayume.app");
-    await expect(h.service.claim(c.id, "0xab", "ip-b")).rejects.toMatchObject({ code: "request-changed" });
+    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    await expect(h.service.claim(c.id, SIG, "ip-b")).rejects.toMatchObject({ code: "request-changed" });
     h.advance(POLICY.challengeTtlMs);
-    await expect(h.service.claim(c.id, "0xab", "ip-a")).rejects.toMatchObject({ code: "challenge-expired" });
+    await expect(h.service.claim(c.id, SIG, "ip-a")).rejects.toMatchObject({ code: "challenge-expired" });
     expect(h.chain.broadcast).not.toHaveBeenCalled();
   });
   it("rejects sufficient wallet balances, exhausted allocation, and the funding reserve", async () => {
-    const funded = harness(); funded.balances.set(W, ETH);
+    const funded = harness(); funded.balances.set(W, POLICY.thresholdLamports);
     await expect(funded.request()).rejects.toMatchObject({ code: "already-funded" });
-    const budget = harness(); vi.mocked(budget.store.used).mockResolvedValue({ amountWei: POLICY.dailyWei, ip: 0 });
+    const budget = harness(); vi.mocked(budget.store.used).mockResolvedValue({ amountLamports: POLICY.dailyLamports, ip: 0 });
     await expect(budget.request()).rejects.toMatchObject({ code: "daily-limit" });
-    const reserve = harness(); reserve.balances.set(FUNDER, 12n * ETH);
+    const reserve = harness(); reserve.balances.set(FUNDER, POLICY.reserveLamports + POLICY.targetLamports - 1n);
     await expect(reserve.request()).rejects.toMatchObject({ code: "refill-needed" });
     for (const h of [funded, budget, reserve]) expect(h.chain.broadcast).not.toHaveBeenCalled();
   });
@@ -109,10 +119,10 @@ describe("STT faucet policy", () => {
     expect(h.chain.broadcast).not.toHaveBeenCalled();
   });
   it("concurrent retries produce one signed transaction and one payment", async () => {
-    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://masayume.app");
-    await Promise.all(Array.from({ length: 16 }, () => h.service.claim(c.id, "0xab", "ip-a")));
+    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    await Promise.all(Array.from({ length: 16 }, () => h.service.claim(c.id, SIG, "ip-a")));
     expect(h.claims.size).toBe(1); expect(h.chain.prepare).toHaveBeenCalledTimes(1); expect(h.landed.size).toBe(1);
-    expect(h.balances.get(W)).toBe(2n * ETH);
+    expect(h.balances.get(W)).toBe(POLICY.targetLamports);
   });
   it("a second challenge cannot bypass wallet cooldown after moving funds away", async () => {
     const h = harness(); await h.request(); h.balances.set(W, 0n);
@@ -126,20 +136,20 @@ describe("STT faucet policy", () => {
     const initial = await h.request(); expect(initial.status).toBe("prepared");
     h.advance(POLICY.challengeTtlMs + 1);
     const restarted = createFaucetService(h.chain, h.deps);
-    const recovered = await restarted.claim(initial.id, "0xab", "new-connection");
+    const recovered = await restarted.claim(initial.id, SIG, "new-connection");
     expect(recovered).toMatchObject({ txHash: initial.txHash, status: "confirmed" });
     expect(h.chain.prepare).toHaveBeenCalledTimes(1); expect(h.landed.size).toBe(1);
   });
   it("recovers a lost broadcast acknowledgement without a second payment", async () => {
     const h = harness(); const send = h.chain.broadcast;
     vi.mocked(h.chain.broadcast).mockImplementationOnce(async (c) => {
-      h.landed.add(c.txHash); h.balances.set(c.wallet, BigInt(c.amountWei)); throw new Error("ack lost");
+      h.landed.add(c.txHash); h.balances.set(c.wallet, BigInt(c.amountLamports)); throw new Error("ack lost");
     });
     const result = await h.request(); expect(result.status).toBe("confirmed");
-    await h.service.claim(result.id, "0xab", "ip-a");
+    await h.service.claim(result.id, SIG, "ip-a");
     expect(send).toHaveBeenCalledTimes(1); expect(h.chain.prepare).toHaveBeenCalledTimes(1);
   });
-  it("unresolved or conflicting nonce evidence holds all new allocations", async () => {
+  it("an unresolved or conflicting transfer holds all new allocations", async () => {
     const h = harness(); vi.mocked(h.chain.broadcast).mockRejectedValue(new Error("offline"));
     await h.request();
     await expect(h.request(wallet(2))).rejects.toMatchObject({ code: "pending-transfer" });
@@ -148,14 +158,14 @@ describe("STT faucet policy", () => {
     expect(h.chain.prepare).toHaveBeenCalledTimes(1);
   });
   it("limits challenge spam and repeated claims from one connection", async () => {
-    const h = harness(); for (let n = 0; n < 6; n++) await h.service.challenge(W, "ip-a", "https://masayume.app");
-    await expect(h.service.challenge(W, "ip-a", "https://masayume.app")).rejects.toMatchObject({ code: "rate-limited" });
-    const other = harness(); vi.mocked(other.store.used).mockResolvedValue({ amountWei: 20n * ETH, ip: 10 });
+    const h = harness(); for (let n = 0; n < 6; n++) await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    await expect(h.service.challenge(W, "ip-a", "https://agari.xyz")).rejects.toMatchObject({ code: "rate-limited" });
+    const other = harness(); vi.mocked(other.store.used).mockResolvedValue({ amountLamports: POLICY.targetLamports, ip: 10 });
     await expect(other.request()).rejects.toMatchObject({ code: "rate-limited" });
   });
   it("public status omits signed bytes and IP identifiers", async () => {
     const h = harness(); await h.request(); const status = await h.service.status(W);
-    expect(status.walletBalanceWei).toBe(String(2n * ETH));
+    expect(status.walletBalanceLamports).toBe(String(POLICY.targetLamports));
     expect(JSON.stringify(status)).not.toContain("rawTransaction"); expect(JSON.stringify(status)).not.toContain("ip-a");
   });
 });

@@ -28,7 +28,7 @@ export const statusPayloadSchema = z.object({
   maxLagSec: z.number().nullable(),
   maxLagPipeline: z.string().nullable(),
   /** The chain head at read time — the reference's "checkpoint". */
-  blockNumber: z.number().nullable(),
+  slot: z.number().nullable(),
   pipelines: z.array(statusPipelineSchema),
 });
 

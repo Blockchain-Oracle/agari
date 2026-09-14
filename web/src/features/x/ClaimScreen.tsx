@@ -1,5 +1,6 @@
 "use client";
 
+import { isAddress } from "@agari/core/types";
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { useVaultSnapshot } from "@agari/markets/react";
@@ -47,11 +48,11 @@ export function ClaimScreen() {
   const session = link.status?.session ?? null;
   const binding = link.status?.binding ?? null;
   const boundWallet = binding?.wallet ?? null;
-  const vault = useVaultSnapshot(boundWallet as `0x${string}` | null);
+  const vault = useVaultSnapshot(boundWallet !== null && isAddress(boundWallet) ? boundWallet : null);
   const value = vault && vault.ok ? vault.value : null;
   const amount = value ? formatBaseUnits(value.account.availableBase, value.decimals) : null;
   const handle = session?.handle ?? binding?.handle ?? null;
-  const ready = Boolean(address && boundWallet && boundWallet === address.toLowerCase());
+  const ready = Boolean(address && boundWallet && boundWallet === address);
   const stage: "in" | "wallet" | "ready" = ready ? "ready" : session ? "wallet" : "in";
 
   return (

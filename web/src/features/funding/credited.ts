@@ -6,7 +6,8 @@ export interface CreditedDetail {
   firstTime: boolean;
 }
 
-const WELCOMED_KEY = (address: string) => `agari.welcomed.${address.toLowerCase()}`;
+// Base58 is case-sensitive: the address is keyed exactly as written (D-010).
+const WELCOMED_KEY = (address: string) => `agari.welcomed.${address}`;
 
 /**
  * Announces a credit. The FIRST for an address is the celebratory moment (`CreditWelcome`); the rest are

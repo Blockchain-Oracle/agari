@@ -4,11 +4,6 @@
     "The list only shrinks: the rule fails on a stale entry, and the S1 gate requires this file to be empty."
   ],
   "files": [
-    "web/src/features/funding/faucet-config.server.ts",
-    "web/src/features/markets/faucet/useFaucet.ts",
-    "web/src/features/x/gate.server.ts",
-    "web/src/features/x/useXGrant.ts",
-    "web/src/features/x/useXStatus.ts",
     "web/package.json#viem",
     "web/package.json#wagmi"
   ]

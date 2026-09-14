@@ -1,6 +1,6 @@
 "use client";
 
-import { FAUCET_UNITS, STT_FAUCETS } from "@agari/core/constants";
+import { FAUCET_UNITS, SOL_FAUCETS } from "@agari/core/constants";
 import { collateralOrNull } from "@agari/markets";
 import { X } from "lucide-react";
 import Link from "next/link";
@@ -16,7 +16,7 @@ import { FundingProgress } from "./FundingProgress";
 
 const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-6)}`;
 
-/** Shared test-funds dialog: eligible STT top-up, then the wallet-signed venue faucet mint. */
+/** Shared test-funds dialog: eligible devnet SOL top-up, then the wallet-signed venue faucet mint. */
 export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { address, isRightChain } = useWalletSession();
   const faucet = useFaucet();
@@ -104,11 +104,11 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
 
             <div className="fund-foot">
               {faucet.state.gasShort && <p className="fund-foot-line">{FUNDING.modal.gasFirst}</p>}
-              {STT_FAUCETS.map((f) => (
+              {SOL_FAUCETS.map((f) => (
                 <a key={f.url} href={f.url} target="_blank" rel="noreferrer" className="fund-foot-link" data-cursor="hover">
                   {faucet.state.gasShort ? `${f.name} ↗` : FUNDING.modal.needMore}
                 </a>
-              )).slice(0, faucet.state.gasShort ? STT_FAUCETS.length : 1)}
+              )).slice(0, faucet.state.gasShort ? SOL_FAUCETS.length : 1)}
             </div>
           </>
         )}

@@ -1,5 +1,5 @@
 import { formatCadence } from "@agari/core/copy";
-import type { Hex, Side } from "@agari/core/types";
+import type { Side, Signature } from "@agari/core/types";
 import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
 import { ORACLE_SCALE } from "@/features/markets/hero/units";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
@@ -40,8 +40,8 @@ export interface TradeCard {
   symbol: string;
   expirySec: number;
   settledAtMs: number;
-  entryTxHash: Hex | null;
-  settlementTxHash: Hex | null;
+  entryTxHash: Signature | null;
+  settlementTxHash: Signature | null;
 }
 
 /** Baselines down the record panel, and where the heat sits behind the hero. */
@@ -63,10 +63,9 @@ export function tradeBandLabel(card: TradeCard): string {
   return card.lineRaw === null ? `${sides} vs the opening print` : `${sides} vs ${usd0(card.lineRaw)}`;
 }
 
-/** Folio / filename id: first 6 hex of the entry tx when known, else of the settlement tx. */
+/** Folio / filename id: the first 6 characters of the entry signature when known, else of the settlement one, exactly as written (base58 is case-sensitive, D-010). */
 export function shortTradeId(card: TradeCard): string {
-  const hash = card.entryTxHash ?? card.settlementTxHash ?? "0x000000";
-  return hash.replace(/^0x/i, "").slice(0, 6).toUpperCase();
+  return (card.entryTxHash ?? card.settlementTxHash ?? "000000").slice(0, 6);
 }
 
 interface TradeLook {

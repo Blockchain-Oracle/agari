@@ -1,14 +1,14 @@
 "use client";
 
 import { isOk } from "@agari/core/schemas";
-import type { Bytes32 } from "@agari/core/types";
+import type { Address } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
 import { EmptyState, LoadingState } from "@/components/states";
 import { betweenRoundsLine, MARKETS } from "@/lib/copy";
 import { useLaneNextStart } from "./useLanes";
 
 interface BetweenRoundsProps {
-  venueId: Bytes32 | null;
+  venueId: Address | null;
   intervalSec: number;
   nowMs: number;
 }

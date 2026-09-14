@@ -8,11 +8,10 @@ interface FundingNoteProps {
   symbol: string;
 }
 
-/** Where the escrow comes from (venue credit first, FR-5) and the one honest approval sentence (Approvals convention). */
+/** Where the escrow comes from (venue credit first, FR-5). SPL transfers need no token approval, so there is no approval sentence (D-012). */
 export function FundingNote({ funding, decimals, symbol }: FundingNoteProps) {
   const lines = [
     funding.venueCreditUsedBase > 0n ? TICKET.creditNote(`${formatBaseUnits(funding.venueCreditUsedBase, decimals)} ${symbol}`) : null,
-    funding.needsApproval ? TICKET.approvalNote : null,
   ].filter((line): line is string => line !== null);
   if (lines.length === 0) return null;
   return (

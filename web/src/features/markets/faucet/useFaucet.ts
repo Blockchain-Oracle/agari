@@ -1,25 +1,24 @@
 "use client";
 
-import { FAUCET_UNITS } from "@agari/core/constants";
+import { FAUCET_UNITS, FEE_RESERVE_LAMPORTS } from "@agari/core/constants";
 import type { FaucetClaimView, FaucetStatus } from "@agari/core/faucet";
 import type { WritePhase } from "@agari/core/ports";
-import type { Diagnosis, Hex } from "@agari/core/types";
+import type { Diagnosis, Signature } from "@agari/core/types";
 import { oneUnit } from "@agari/core/units";
-import { collateralOrNull, loadCollateral, requiredGasWei } from "@agari/markets";
+import { collateralOrNull, loadCollateral } from "@agari/markets";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSignMessage } from "wagmi";
 import { announceCredit } from "@/features/funding/credited";
 import { FUNDING_STAGE_LABEL, readGasStatus, requestGas, type FundingStage } from "@/features/funding/gas-client";
 import { FAUCET } from "@/lib/copy";
 import { notify } from "@/lib/toast";
-import { useWalletSession } from "@/lib/wallet-session";
+import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 
 export interface FaucetState {
   phase: WritePhase;
   diagnosis: Diagnosis | null;
-  txHash: Hex | null;
+  txHash: Signature | null;
   gasShort: boolean;
   checkingGas: boolean;
   stage: FundingStage;
@@ -33,10 +32,11 @@ export function useFaucet() {
   const submitter = useSubmitter();
   const { address, hasSigner } = useSigner();
   const wallet = useWalletSession();
-  const { signMessageAsync } = useSignMessage();
+  const owner = useOwnerWallet();
   const queryClient = useQueryClient();
   const [state, setState] = useState<FaucetState>(IDLE);
-  const binding = `${wallet.address?.toLowerCase()}:${wallet.chainId}`;
+  // Base58 is case-sensitive, and a Solana wallet has no chain to switch: the address alone binds a run (D-010).
+  const binding = `${wallet.address}`;
   const currentBinding = useRef(binding);
   currentBinding.current = binding;
   useEffect(() => setState(IDLE), [binding]);
@@ -48,14 +48,14 @@ export function useFaucet() {
     setState((s) => ({ ...s, checkingGas: true }));
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const gas = await Promise.race([submitter.checkGas("faucet"), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("The gas balance check timed out. Please retry or use an external STT faucet.")), 15_000); })]);
+      const gas = await Promise.race([submitter.checkGas("faucet"), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("The SOL balance check timed out. Please retry or use an external SOL faucet.")), 15_000); })]);
       if (currentBinding.current === binding) setState((s) => ({ ...s, checkingGas: false, diagnosis: gas.ok ? null : gas.diagnosis, gasShort: !gas.ok && gas.diagnosis.kind === "out-of-gas" }));
       return gas.ok;
     } finally { clearTimeout(timer); if (currentBinding.current === binding) setState((s) => ({ ...s, checkingGas: false })); }
   }, [submitter, binding]);
 
   const mint = useCallback(async () => {
-    if (!address || !wallet.isRightChain || wallet.address?.toLowerCase() !== address.toLowerCase() || running.has(address)) return;
+    if (!address || !wallet.isRightChain || wallet.address !== address || running.has(address)) return;
     if (!submitter) { setState((s) => ({ ...s, error: "Your wallet connection is still getting ready. Please retry." })); return; }
     running.add(address);
     const current = () => currentBinding.current === binding;
@@ -66,8 +66,8 @@ export function useFaucet() {
       return funding;
     };
     const checkFundingGas = async (funding: FaucetStatus | null) => {
-      if (funding?.walletBalanceWei == null) return recheckGas();
-      const enough = BigInt(funding.walletBalanceWei) >= requiredGasWei("faucet");
+      if (funding?.walletBalanceLamports == null) return recheckGas();
+      const enough = BigInt(funding.walletBalanceLamports) >= FEE_RESERVE_LAMPORTS;
       if (current()) setState((s) => ({ ...s, gasShort: !enough, diagnosis: null }));
       return enough;
     };
@@ -78,11 +78,11 @@ export function useFaucet() {
       if (!current()) return;
       let enoughGas = await checkFundingGas(funding);
       if (!current()) return;
-      const low = funding?.walletBalanceWei != null && BigInt(funding.walletBalanceWei) < BigInt(funding.thresholdWei);
+      const low = funding?.walletBalanceLamports != null && BigInt(funding.walletBalanceLamports) < BigInt(funding.thresholdLamports);
       const cooling = funding?.claim && funding.claim.nextClaimAtMs > Date.now() && funding.claim.status !== "prepared";
       if (funding?.configured && (funding.claim?.status === "prepared" || (low && funding.ready && !cooling))) {
         try {
-          await requestGas({ wallet: address, status: funding, current, stage, sign: (message) => signMessageAsync({ message, account: address }), onClaim: (gasClaim) => { if (current()) setState((s) => ({ ...s, gasClaim })); } });
+          await requestGas({ wallet: address, status: funding, current, stage, sign: (message) => { if (!owner || owner.address !== address) throw new Error("Wallet changed. Open test funds again for the connected wallet."); return signText(owner, message); }, onClaim: (gasClaim) => { if (current()) setState((s) => ({ ...s, gasClaim })); } });
         } catch (error) {
           if (!current()) return;
           if (error instanceof Error && /reject|denied|cancel/i.test(error.message)) throw error;
@@ -94,7 +94,7 @@ export function useFaucet() {
         funding = await readFunding();
         enoughGas = await checkFundingGas(funding);
       }
-      if (!enoughGas) throw new Error(funding?.message ?? "You need STT for gas. Our gas service is unavailable; use an external faucet below.");
+      if (!enoughGas) throw new Error(funding?.message ?? "You need SOL for fees. Our SOL service is unavailable; use an external faucet below.");
       if (!current()) return;
       let collateral = collateralOrNull();
       if (!collateral) {
@@ -105,7 +105,7 @@ export function useFaucet() {
         } finally { clearTimeout(timer); }
       }
       if (!current()) return;
-      if (!collateral) throw new Error("Gas is available, but the tUSDC token details could not be read. Retry once the connection recovers; any confirmed STT stays in your wallet.");
+      if (!collateral) throw new Error("Gas is available, but the tUSDC token details could not be read. Retry once the connection recovers; any confirmed SOL stays in your wallet.");
       stage("minting");
       const outcome = await submitter.submitTx({ kind: "faucet", amountBase: FAUCET_UNITS * oneUnit(collateral.decimals) }, (phase, detail) => { if (current()) setState((s) => ({ ...s, phase, txHash: detail?.txHash ?? s.txHash })); });
       if (!current()) return;
@@ -120,12 +120,12 @@ export function useFaucet() {
     } catch (error) {
       if (current()) setState((s) => ({ ...s, stage: "idle", error: error instanceof Error ? error.message : "The request could not finish. Please retry." }));
     } finally { running.delete(address); }
-  }, [submitter, address, wallet.address, wallet.isRightChain, binding, state.phase, recheckGas, queryClient, signMessageAsync]);
+  }, [submitter, address, wallet.address, wallet.isRightChain, binding, state.phase, recheckGas, queryClient, owner]);
 
   const resetCompleted = useCallback(() => setState((s) => s.phase === "confirmed" ? IDLE : s), []);
   const retryGas = useCallback(async () => {
     try { return await recheckGas(); } catch (error) {
-      if (currentBinding.current === binding) setState((s) => ({ ...s, error: error instanceof Error ? error.message : "The gas balance could not be checked." }));
+      if (currentBinding.current === binding) setState((s) => ({ ...s, error: error instanceof Error ? error.message : "The SOL balance could not be checked." }));
       return false;
     }
   }, [recheckGas, binding]);

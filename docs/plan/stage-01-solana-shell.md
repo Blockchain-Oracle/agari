@@ -81,6 +81,20 @@
     - `app/dev/fixture-ids.ts` maps each old hex literal to base58 of the same bytes; `app/dev/fixture-window.ts` is one complete `EventMarket`.
     - BTC/ETH → TSLA/NVDA; cent prices → 8-dp prints; explorer links use `txUrl`; the boot page shows the Solana config and the engine's deploy state.
     - The private desk tickets carry placeholder signatures until S10's ed25519 claim (PD-4), never a faked "Verified".
+- **1d-D2 (markets, funding, session, vault, x, surface, share, pitch, demo, stats, alerts, status, leaderboard, chrome, persist, env):**
+  - **Type errors in D2 paths: 147 → 0.** 48 web tests pass there, including the ported faucet double-payment suite (15) and a new WebCrypto session-key test (2). The allowlist lost 5 entries (27 → 22).
+  - **Silent hazards removed:**
+    - address `toLowerCase()` in the faucet binding, gas-request storage, X status/claim, the leaderboard "you" row, the welcome key, the session store and the key lock;
+    - folio ids uppercased from tx hashes;
+    - `0x` regexes in X wire schemas and receipts.
+  - **Honest states:**
+    - `/demo` shows no Shannon receipts and program links only once `NEXT_PUBLIC_AGARI_EVENTS_PROGRAM_ID` is set.
+    - The verdict and claim "Oracle graph" row now names the print source (Pyth/RedStone/…, single-source flagged), with "print proof not linked yet".
+    - The leaderboard refuses with not-deployed when no venue is configured.
+    - `useXGrant`'s receipt reader returns null (S4/S7).
+  - **Session key format:** `{ address, secretKey: base58(seed₃₂ ‖ pubkey₃₂), createdAtMs }` in IndexedDB under `agari.sessionKey.<owner>`. It is generated with WebCrypto Ed25519 (the seed sits at PKCS#8 offset 16), and the markets session signs with `{ secretKey }`. Non-conforming stored records read as "no key". The key's SOL balance and top-ups refuse until S7.
+  - **Env:** `lib/env.ts` reads `NEXT_PUBLIC_SOLANA_{CLUSTER,RPC_URL,WS_URL}`, `NEXT_PUBLIC_AGARI_{INDEXER_URL,VENUE_ID,EVENTS_PROGRAM_ID}` and `NEXT_PUBLIC_PRICE_FEED_URL` as literal `process.env.X` reads. `marketsEnvInputFrom(process.env)` does not inline in client bundles, so its doc comment is wrong for browsers.
+
 ## Handoff
 
 - **1d-D1 needs from the parent:**
@@ -114,3 +128,22 @@
   - **S7:** the `api/sponsor` spending policy.
   - **S4:** room bet registration's transaction read; the desk copy flows' `transactionStatus`.
   - **S15:** "Masayume" brand copy (`private/copy.ts`, `strategies/copy.ts`, the claims backup kind, the news bot User-Agent).
+- **1d-D2 handoff:**
+  - **D3 (`app/api/**`) must port against the D2 modules as committed:**
+    - `features/session/sponsor.server.ts` no longer exports `forwardRequestSchema` or `deadlineIsSane` (EIP-2771). It exports `marketsEnvFromProcess`, `vaultDeploymentFromProcess`, `sponsorConfig` (a Solana keypair) and `gate`. `GET /api/sponsor` should answer `{ configured, sponsor, balanceLamports, allowlist }`, and POST should refuse until S7.
+    - `/api/faucet*` routes need `addressSchema` / `messageSignatureSchema` (no `0x`, no lowercasing); `createFaucetService` keeps its method names.
+    - `/api/x/bind`/`unlink` already get base58 via `xBindRequestSchema`.
+    - `app/api/status/route.ts` got a one-line `blockNumber` → `slot` edit.
+  - **D1 (`app/dev/**`) must:**
+    - rename the session fixture fields `keyGasWei` → `keyFeeLamports`;
+    - `SponsorStatus` now has `balanceLamports` and no `forwarder`;
+    - `CapabilityReceipt` takes `topUpLamports` and drops `firstTime`;
+    - `BalanceSheet` has `venueCreditByMarket: [{ marketId, amountBase }]` and `nativeLamports`;
+    - `CLAIM.receipt.oracle` is now "Price source".
+  - **Shared files D2 touched (small, merge by hand if they conflict):** `web/src/lib/copy.ts` (FAUCET/BALANCE/VERDICT_UI/CLAIM strings), `web/src/app/api/status/route.ts` (1 line), `web/.env.example` (`SOL_FAUCET_*`), `packages/db/src/{faucet,schema-faucet}.ts` + `packages/db/scripts/test-faucet-postgres.ts` (new `sol_faucet_claims` table).
+  - **Still open in D2 folders, for later stages:**
+    - lane tabs and pins key by `intervalSec` only and must key by `(basis, intervalSec)` once token lanes list (S6);
+    - `TradingBalanceView`/`VaultControls` still pass a `needsApproval` prop that is now always false (remove after D1 merges);
+    - `components/chrome/WrongNetworkBanner` can never show (`isRightChain === isConnected`);
+    - pitch, demo, stats and transcript narrative copy still tells the Masayume/Somnia/DreamDEX story (S15 brand pass);
+    - the dead `MARKETS.fixedStrikeHidden` copy entry remains in `lib/copy.ts`.
