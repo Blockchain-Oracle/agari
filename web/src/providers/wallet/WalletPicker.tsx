@@ -1,83 +1,173 @@
 "use client";
 
-import { useConnect, useIsWalletReady, useWallets } from "@solana/kit-plugin-wallet/react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { WALLET_PICKER } from "@/lib/copy";
-import { walletClient } from "./kit-wallet";
+import { Dialog } from "@base-ui/react/dialog";
+import { useState, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { WALLET_MODAL, type KnownWallet } from "./copy";
+import { useWalletChoices, type DiscoveredWallet, type WalletChoices } from "./useWalletChoices";
+import { BackButton, CloseButton, usePhoneLayout, WalletDialog, WalletIcon } from "./wallet-modal-parts";
+import { WalletPickerPhone } from "./WalletPickerPhone";
+import { ConnectStep, GetStep, IntroStep } from "./wallet-steps";
 
-type DiscoveredWallet = ReturnType<typeof useWallets>[number];
+const T = WALLET_MODAL;
+
+type Step =
+  | { kind: "list" }
+  | { kind: "learn" }
+  | { kind: "get" }
+  | { kind: "connect"; wallet: DiscoveredWallet; failed: boolean }
+  | { kind: "install"; wallet: KnownWallet };
 
 /**
- * The wallet list (D-023): every Wallet Standard wallet installed in this browser that supports the app's chain, as
- * Masayume's connect modal listed wallets. No wallet found is said plainly, with where to get one.
+ * The connect modal (D-023 behaviour, Masayume's look): RainbowKit's compact modal as Masayume configured it, listing
+ * the Wallet Standard wallets this browser has. It unmounts on close, so every open starts at the list.
  */
 export function WalletPicker({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const wallets = useWallets(walletClient);
-  const ready = useIsWalletReady(walletClient);
-  const { dispatchAsync: connect, isRunning } = useConnect(walletClient);
-  const [choosing, setChoosing] = useState<string | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
+  return (
+    <WalletDialog open={open} onOpenChange={onOpenChange} compact>
+      <PickerBody close={() => onOpenChange(false)} />
+    </WalletDialog>
+  );
+}
+
+function PickerBody({ close }: { close: () => void }) {
+  const phone = usePhoneLayout();
+  const choices = useWalletChoices();
+  return phone ? <WalletPickerPhone choices={choices} close={close} /> : <CompactOptions choices={choices} close={close} />;
+}
+
+function CompactOptions({ choices, close }: { choices: WalletChoices; close: () => void }) {
+  const [step, setStep] = useState<Step>({ kind: "list" });
 
   async function choose(wallet: DiscoveredWallet) {
-    setFailure(null);
-    setChoosing(wallet.name);
-    try {
-      await connect(wallet);
-      onOpenChange(false);
-    } catch (error) {
-      if ((error as Error).name !== "AbortError") setFailure(WALLET_PICKER.failed(wallet.name, (error as Error).message));
-    } finally {
-      setChoosing(null);
-    }
+    setStep({ kind: "connect", wallet, failed: false });
+    const outcome = await choices.connect(wallet);
+    if (outcome === "connected") close();
+    else if (outcome === "failed") setStep((now) => (now.kind === "connect" && now.wallet === wallet ? { ...now, failed: true } : now));
   }
 
+  if (step.kind === "list") {
+    return (
+      <div className="wm-options">
+        <WalletList choices={choices} onChoose={(wallet) => void choose(wallet)} onInstall={(wallet) => setStep({ kind: "install", wallet })} onLearn={() => setStep({ kind: "learn" })} />
+      </div>
+    );
+  }
+
+  const toList = () => setStep({ kind: "list" });
+  const header =
+    step.kind === "learn" ? { label: T.intro.title, back: toList }
+    : step.kind === "get" ? { label: T.get.title, back: () => setStep({ kind: "learn" }) }
+    : { label: null, back: toList };
+
   return (
-    <Sheet open={open} onOpenChange={(next) => { if (!next) setFailure(null); onOpenChange(next); }}>
-      {/* Above the app strip (900), ticker (850), header (800), Sensei drawer (950) and mobile nav overlay (980). */}
-      <SheetContent side="right" className="z-[1000] flex flex-col gap-4 p-5" overlayClassName="z-[1000]">
-        <SheetHeader className="p-0">
-          <SheetTitle>{WALLET_PICKER.title}</SheetTitle>
-          <SheetDescription>{WALLET_PICKER.description}</SheetDescription>
-        </SheetHeader>
-
-        {!ready && <p className="type-body text-ink-secondary">{WALLET_PICKER.detecting}</p>}
-
-        {ready && wallets.length > 0 && (
-          <ul className="flex flex-col gap-2">
-            {wallets.map((wallet) => (
-              <li key={wallet.name}>
-                <Button variant="secondary" className="w-full justify-start gap-3" disabled={isRunning} onClick={() => void choose(wallet)}>
-                  {/* Wallet Standard icons are data: URIs the wallet itself provides. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={wallet.icon} alt="" width={20} height={20} className="size-5 rounded" />
-                  <span>{choosing === wallet.name ? WALLET_PICKER.connecting(wallet.name) : wallet.name}</span>
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {ready && wallets.length === 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="type-body-strong text-ink">{WALLET_PICKER.none}</p>
-            <p className="type-body text-ink-secondary">{WALLET_PICKER.noneHint}</p>
-            <ul className="flex flex-col gap-1 type-body">
-              {WALLET_PICKER.installs.map((install) => (
-                <li key={install.name}>
-                  <a className="text-accent underline-offset-4 hover:underline" href={install.href} target="_blank" rel="noreferrer">
-                    {install.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
+    <div className="wm-options">
+      <div className="wm-step">
+        <div className="wm-step-head">
+          <div className="wm-step-head-side">
+            <BackButton onClick={header.back} />
           </div>
-        )}
+          <div className="wm-step-title">
+            <Dialog.Title className={cn("wm-t18", !header.label && "sr-only")}>{header.label ?? T.title}</Dialog.Title>
+          </div>
+          <CloseButton />
+        </div>
+        <div className="wm-step-body">
+          <div className="wm-step-inner">
+            {step.kind === "learn" && <IntroStep onGetWallet={() => setStep({ kind: "get" })} />}
+            {step.kind === "get" && <GetStep />}
+            {step.kind === "connect" && (
+              <ConnectStep
+                wallet={{ name: step.wallet.name, icon: step.wallet.icon, installed: true }}
+                failed={step.failed}
+                onRetry={() => void choose(step.wallet)}
+              />
+            )}
+            {step.kind === "install" && (
+              <ConnectStep wallet={{ ...step.wallet, installed: false }} failed={false} onRetry={() => undefined} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {failure && <p role="alert" className="type-body text-ink-secondary">{failure}</p>}
-        <p className="type-caption text-ink-muted">{WALLET_PICKER.devnet}</p>
-      </SheetContent>
-    </Sheet>
+/** RainbowKit's compact `DesktopOptions` first screen: title, grouped wallet rows, and the "New to … wallets?" footer. */
+function WalletList({
+  choices,
+  onChoose,
+  onInstall,
+  onLearn,
+}: {
+  choices: WalletChoices;
+  onChoose: (wallet: DiscoveredWallet) => void;
+  onInstall: (wallet: KnownWallet) => void;
+  onLearn: () => void;
+}) {
+  return (
+    <div className="wm-list-col">
+      <div className="wm-list-head">
+        <div className="wm-list-head-spacer" />
+        <div className="wm-list-title">
+          <Dialog.Title render={<h1 />} className="wm-t18">
+            {T.title}
+          </Dialog.Title>
+        </div>
+        <div className="wm-list-close">
+          <CloseButton />
+        </div>
+      </div>
+      <div className="wm-scroll">
+        {choices.installed.length > 0 && (
+          <Group name={T.groups.installed} accent>
+            {choices.installed.map(({ wallet, recent }) => (
+              <WalletRow key={wallet.name} icon={wallet.icon} name={wallet.name} recent={recent} onClick={() => onChoose(wallet)} />
+            ))}
+          </Group>
+        )}
+        {choices.browser.length > 0 && (
+          <Group name={T.groups.browser}>
+            {choices.browser.map((wallet) => (
+              <WalletRow key={wallet.name} icon={wallet.icon} name={wallet.name} recent={false} onClick={() => onInstall(wallet)} />
+            ))}
+          </Group>
+        )}
+      </div>
+      <div className="wm-divider" />
+      <div className="wm-foot">
+        <div className="wm-foot-text">
+          <span className="wm-t14m">{T.newTo}</span>
+        </div>
+        <button type="button" className="wm-link wm-touch wm-grow wm-shrink wm-t14b wm-accent" onClick={onLearn}>
+          {T.learnMore}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Group({ name, accent = false, children }: { name: string; accent?: boolean; children: ReactNode }) {
+  return (
+    <>
+      <div className="wm-group">
+        <span className={cn("wm-t14b", accent ? "wm-accent" : "wm-group-muted")}>{name}</span>
+      </div>
+      <div className="wm-rows">{children}</div>
+    </>
+  );
+}
+
+function WalletRow({ icon, name, recent, onClick }: { icon: string; name: string; recent: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className="wm-row wm-touch wm-shrink" onClick={onClick}>
+      <span className="wm-row-inner">
+        <WalletIcon src={icon} size={28} />
+        <span>
+          <span className={cn("wm-row-name", recent && "wm-row-name--recent")}>{name}</span>
+          {recent && <span className="wm-recent">{T.recent}</span>}
+        </span>
+      </span>
+    </button>
   );
 }

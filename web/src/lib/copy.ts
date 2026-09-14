@@ -35,23 +35,6 @@ export const WORD_BOARD = {
   noLean: "no book on both sides yet",
 } as const;
 
-/** The wallet picker (D-023): Wallet Standard wallets installed in this browser. */
-export const WALLET_PICKER = {
-  title: "Connect a Solana wallet",
-  description: "Your wallet holds your keys and signs every transaction. Agari never sees them.",
-  detecting: "Looking for wallets in this browser…",
-  connecting: (name: string) => `Connecting ${name}…`,
-  failed: (name: string, why: string) => `${name} didn't connect: ${why}`,
-  none: "No Solana wallet found in this browser.",
-  noneHint: "Install one of these, then reload this page:",
-  installs: [
-    { name: "Phantom", href: "https://phantom.com/download" },
-    { name: "Solflare", href: "https://solflare.com/download" },
-    { name: "Backpack", href: "https://backpack.app/download" },
-  ],
-  devnet: "Agari runs on Solana devnet with test funds. Set your wallet to devnet so its previews match.",
-} as const;
-
 export const CONNECT = {
   connect: "Connect",
   connecting: "Connecting…",

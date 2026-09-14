@@ -19,8 +19,10 @@ export interface WalletSession {
   switching: false;
   /** A user-initiated connection is in flight. */
   connecting: boolean;
-  /** Opens the wallet picker (Wallet Standard wallets installed in this browser, D-023). */
+  /** Opens the connect modal (Wallet Standard wallets installed in this browser, D-023). */
   connect(): void;
+  /** Opens the account modal (avatar, address, Copy Address, Disconnect): Masayume's RainbowKit `openAccountModal`. */
+  openAccount(): void;
   disconnect(): Promise<void>;
 }
 
@@ -36,6 +38,7 @@ export function useWalletSession(): WalletSession {
     switching: false,
     connecting: shell.connecting,
     connect: shell.openPicker,
+    openAccount: shell.openAccount,
     disconnect: shell.disconnect,
   };
 }
