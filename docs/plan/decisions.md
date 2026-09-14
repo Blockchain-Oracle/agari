@@ -90,6 +90,78 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **PD-8:** growable Ledger with seat bond.
 - **No Pyth trial-extension request** (user, 2026-09-13). A Stork hackathon key was requested (email sent 2026-09-13).
 
+### D-006 — Engine account layouts and sizes (S2 spec)
+- **Date / owner:** 2026-09-14 · S2 owner (spec step)
+- **Evidence:**
+  - `docs/plan/specs/events-accounts.md` §3. Every layout was computed by script: no implicit padding, offsets asserted.
+  - Anchor docs (zero-copy: `repr(C)`, `#[account(zero)]` for > 10,240 B).
+  - Solana "CPI cost model: realloc limits" (`MAX_PERMITTED_DATA_INCREASE` = 10,240 B beyond the size at the start of the top-level instruction).
+  - Anchor `realloc` codegen (`AccountReallocExceedsLimit`).
+- **Rule:**
+  - All engine accounts are `#[account(zero_copy)]` with explicit padding.
+  - **Ledger:** seat 88 B (bond amount moved to the Ledger header, `BONDED` flag). `public_grow_ledger` adds **≤ 116 seats per call** (the plan's +150 would need 13,200 B). 1,024 seats = 90,216 B ≈ **0.459 SOL** (plan ≈ 0.39).
+  - **Book:** 1-based node refs (a zeroed Book is empty) with a free-list plus high-water allocator; exact sizes 56,968 B (512) / 44,680 B (256).
+  - **Other sizes:** GlobalConfig 856 B, Series 1,368 B, Market 456 B, MarketResult 256 B (adds `rent_payer`; the settler's rent is refunded to the settler).
+  - PROGRAM seat index = the `config.program_authorities` index.
+  - `admin_init_config` requires the program upgrade authority.
+  - New errors (marked ★ in §4): BadPolicy, BadSeriesParams, BadBookSize, TooManyBooks, BadAuthorities, SeriesMarketMismatch, MvaultMarketMismatch, NotProgramAuthority, SelfMatchCancelTaker, InvalidOrderArgs, InvalidPrintValue, PrintNotAdjacent, DependentsRemain, BookNotReleased, LedgerNotClosed, PartialRedeemNotAllowed, BadPrintSlot, WrongTokenOwner, SeatNotEmpty, BadGrowAmount. Codes use explicit discriminants in fixed ranges.
+- **User-visible:** a full Ledger grows in 8 steps instead of 7; the per-Window SOL float rises from ≈ 0.0044 to ≈ 0.0049 (Market + result), ≈ 3.7 SOL steady.
+- **Approval:** within plan r2 S2 spec step (sizes are derived facts; semantics unchanged).
+
+### D-007 — Print admission per boundary; verification refinements (S2 spec)
+- **Date / owner:** 2026-09-14 · S2 owner (spec step)
+- **Evidence:**
+  - D-003's S2 spec note (the Gap open needs admission until `lock_at`).
+  - `R:redstone-rust-sdk@05e3c9f`:
+    - `core/aggregator.rs`: unknown signers and zero values are skipped; a repeated signer returns `Err(ReoccurringFeedId)`; a feed below threshold is silently dropped.
+    - `protocol/payload_decoder.rs`: big-endian fields; a 142 B single-feed package.
+    - `utils/median.rs`: overflow-safe floor average.
+    - `types/feed_id.rs`: left-aligned ASCII.
+    - SDK errors carry raw codes (509…, 1000+i).
+  - `docs/plan/specs/prints.md`.
+- **Rule:**
+  - **Per-boundary admission.** `PrintPolicy` gains `open_admission_sec` + `close_admission_sec` (replacing one `admission_sec`), with `ADMIT_UNTIL_LOCK = u32::MAX` allowed only for the Gap open. Deadlines are frozen into `Market.open_deadline` / `close_deadline` at listing. A check policy's admissions must equal `check_admission_sec`. `Series.settlement_window_sec` is dropped.
+  - **Clock.** Every source requires `now ≥ T + min_delay_sec`; the plan's Pyth `publish_time ≤ now + 2` is removed (the uniqueness window already pins the update).
+  - **RedStone.**
+    - Pre-parse a strict wire layout (single-feed, 32-byte values, `N ≤ signer_count`), then call the SDK with **threshold = N (the posted package count)**. Every posted package must verify, so `Print.signers = N` exactly.
+    - `N ≥ 5` inside `strict_sec`, `N ≥ redstone_threshold` after.
+    - A duplicate or malleated signer **refuses the whole print** (the plan's test said "counts once").
+    - SDK errors are mapped to our codes; `UnknownRedStoneSigner` is reserved (not raised on the SDK path).
+  - **Cross-check.** A present check print that diverges always voids; missing checks only flag `single_source`.
+  - **`public_copy_open_from_prev`** is limited to `now ≤ open_deadline` (keeps PD-6 exclusivity).
+  - **Attested.** `source_ts` = T is derived, not an argument.
+- **User-visible:** none beyond PD-1/PD-6 as planned; a RedStone print shows its exact signer count.
+- **Approval:** within plan r2 PD-1/PD-6 (planner, S2 spec step).
+
+### D-008 — Matching and funding semantics (S2 spec)
+- **Date / owner:** 2026-09-14 · S2 owner (spec step)
+- **Evidence:**
+  - `R:dreamdex-docs/trading/common/order-types.md` ("What happens when an order is refused": Cancel Taker → `SelfMatchCancelTaker` revert; "Self-Trade Prevention").
+  - `R:phoenix-v1 fifo.rs:1190-1330` (expired and self-trade handling count against the match limit).
+  - `C:08` #9–#13.
+  - Solana return-data docs (return data is cleared before every CPI).
+- **Rule:**
+  - **Self-match.** CancelTaker **reverts** `SelfMatchCancelTaker` (DreamDEX fidelity; supersedes `C:08` #10's "cancel remainder"). CancelMaker cancels the maker and consumes a `max_fills` unit.
+  - **Match loop.** Expired nodes are evicted up to `max_evictions`, then skipped up to `MAX_SKIPS = 64`. A Normal remainder is cancelled on the fill or skip cap. A PostOnly that hits the skip cap reverts.
+  - **Funding.** Exact funding **after** matching (credit first, then one transfer); `PlaceResult.refunded` is a report of never-pulled escrow.
+  - **Proceeds.** `withdraw_proceeds` sweeps the whole seat credit; pulls and payouts are never netted. `set_return_data` is the last action.
+  - **Order management.** Reduce is in place and keeps priority. The open-order cap is checked when an order would rest (revert). The cancel instructions take a `withdraw` flag; mint takes `use_credit`; merge takes `withdraw`.
+  - **Mode.** ReduceOnly blocks buys, mint, listing and growth; Halted blocks all placement, mint, listing and growth; neither blocks cancel, sweep, withdraw, merge, prints, settle, void, redeem or close.
+- **User-visible:** placing an order that would trade against your own resting order is refused with a named reason, as on DreamDEX.
+- **Approval:** within plan r2 (Masayume/DreamDEX is the design authority); planner, S2 spec step.
+
+### D-009 — Lifecycle and closure details (S2 spec)
+- **Date / owner:** 2026-09-14 · S2 owner (spec step)
+- **Evidence:** plan PD-6/PD-7/PD-8; `C:08` #11, #14–#16; `docs/plan/specs/events-engine.md` §5–§8.
+- **Rule:**
+  - **Status.** Cancel, reduce, cancel-all and sweep work in every status (so redeem is never stuck behind orders). A void may land before `lock_at` and stops trading at once; a sweep evicts every order after `lock_at` **or** once terminal.
+  - **Redeem.** Redeem zeroes a non-PROGRAM seat and refunds its bond. Partial redeem is PROGRAM-only.
+  - **Seats.** One seat per owner (scan on claim).
+  - **Closure.** `public_close_ledger` scans seats instead of maintaining an `open_seats` counter. `public_close_market` also requires `BOOK_RELEASED` and `LEDGER_CLOSED`. Rent from `public_grow_ledger` returns to the Ledger's `rent_payer`.
+  - **Dependents.** The engine doesn't enforce "result captured before `product_release_dependent`" (the product's obligation).
+- **User-visible:** a Window whose opening price never arrives voids early (0.5/0.5) and stops trading; users can always cancel and redeem.
+- **Approval:** within plan r2 PD-6/PD-7/PD-8 (planner, S2 spec step).
+
 ### D-010 — Solana primitives in `@agari/core`, and what S1 renames
 - **Date / owner:** 2026-09-14 · S1 owner (step 1a.1)
 - **Evidence:** plan P§5 "Primitives" and "hook names unchanged"; the blast radius in `stage-01-solana-shell.md` Findings; core typecheck + 757 core tests after the change.
@@ -143,6 +215,23 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - The `insufficient-allowance` diagnosis is gone (there's no token approval on Solana).
 - **User-visible:** sign-in and consent prompts say Agari and Solana devnet; "Out of SOL for fees" replaces "Out of STT gas".
 - **Approval:** within plan r2 S1.
+
+### D-013 — S2 spec review amendments (core alignment)
+- **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
+- **Evidence:**
+  - Hand re-derivation of all eight fill rows and the eight worked examples: cash pairs sum to `1000·q`; `mvault` reconciles under Up and void.
+  - Every layout offset, size and rent figure recomputed (GlobalConfig 856, Series 1,368, Market 456, MarketResult 256, Seat 88, Book 32,384 + 48·n).
+  - The PD-6 inequalities checked for exclusivity.
+  - Core D-011 (`GAP_CADENCE_SEC`, clock-aligned Windows) and D-012 (`CLUSTER_ID`).
+- **Rule:**
+  - **Gap Series seed:** `cadence_sec = 604,800` (not 0), shared with core, so no consumer divides by a zero interval.
+  - **Series cadence:** Regular/Token cadences must divide 3,600.
+  - **`roller_open_window` alignment:** `trading_start % cadence == 0` and `expiry − trading_start == cadence`, with no partial Windows. The chain is at least as strict as the calendar that generates them.
+  - **`cluster_tag`:** values = core `CLUSTER_ID` (101 mainnet-beta, 103 devnet, 104 localnet), one numbering for attested prints and signed texts.
+  - **RedStone check policy:** `strict_sec < check_admission_sec` (launch value 60 s inside the 120 s window).
+  - D-006…D-009 are accepted as written, including the CancelTaker revert and refusing duplicate RedStone signers.
+- **User-visible:** none.
+- **Approval:** stage-owner review within plan r2.
 
 ## Open questions
 
