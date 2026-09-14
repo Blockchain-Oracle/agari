@@ -18,6 +18,7 @@ function input(over: Partial<SettleInput> = {}): SettleInput {
     dependents: 0,
     resolvedSec: 0,
     retentionSec: 21_600,
+    redeemGraceSec: 0,
     bookOrderCount: null,
     seats: null,
     ...over,
@@ -109,5 +110,17 @@ describe("decideSettle: terminal Windows", () => {
 
   it("drains a voided Window the same way", () => {
     expect(decideSettle(input({ state: 2, bookOrderCount: 1, seats: [] })).kind).toBe("sweep");
+  });
+});
+
+describe("decideSettle: the claim grace (D-032)", () => {
+  const terminal = { state: 1, resolvedSec: T1 + 20, redeemGraceSec: 300, bookOrderCount: 0, seats: [seat(8), seat(9)] };
+  it("releases the Book at once but leaves user seats to their owners until the grace ends", () => {
+    expect(decideSettle(input({ ...terminal, nowSec: T1 + 30 }))).toMatchObject({ kind: "releaseBook" });
+    expect(decideSettle(input({ ...terminal, bookReleased: true, nowSec: T1 + 30 }))).toMatchObject({ kind: "wait", untilSec: T1 + 320 });
+  });
+  it("cranks redeem_for once the grace has passed, and never waits when the seats are already gone", () => {
+    expect(decideSettle(input({ ...terminal, bookReleased: true, nowSec: T1 + 320 }))).toMatchObject({ kind: "redeemFor", seats: [8, 9] });
+    expect(decideSettle(input({ ...terminal, bookReleased: true, nowSec: T1 + 30, seats: [] }))).toMatchObject({ kind: "closeLedger" });
   });
 });

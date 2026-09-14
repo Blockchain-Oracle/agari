@@ -25,6 +25,8 @@ export interface SettleInput {
   dependents: number;
   resolvedSec: number;
   retentionSec: number;
+  /** Users may claim their own seats this long after resolution before the crank pays them (`redeem_for`); 0 = at once. */
+  redeemGraceSec: number;
   /** Required when terminal with the Book still bound; null = not read. */
   bookOrderCount: number | null;
   /** Required when terminal with the Ledger open: its owned seats; null = not read. */
@@ -76,6 +78,12 @@ function terminal(i: SettleInput): SettleAction {
   if (!i.ledgerClosed) {
     if (i.seats === null) return { kind: "read", need: "seats", why: "ledger seats" };
     const redeemable = i.seats.filter((s) => !s.program).map((s) => s.index);
+    const graceEnds = i.resolvedSec + i.redeemGraceSec;
+    if (redeemable.length > 0 && i.nowSec < graceEnds) {
+      // The claim grace (D-032): the Book still goes back at once, the seats wait for their owners' own redeem.
+      if (!i.bookReleased) return { kind: "releaseBook", why: "book empty; seats in their claim grace" };
+      return { kind: "wait", untilSec: graceEnds, why: `${redeemable.length} seats in their claim grace until ${graceEnds}` };
+    }
     if (redeemable.length > 0) {
       const batch = redeemable.slice(0, REDEEM_BATCH);
       return { kind: "redeemFor", seats: batch, why: `seats ${batch.join(",")} of ${redeemable.length} to redeem` };

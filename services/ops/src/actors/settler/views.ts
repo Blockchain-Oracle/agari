@@ -15,7 +15,7 @@ const present = (p: { source: number }) => p.source !== 0;
 export function settleInput(
   m: MarketView,
   series: SeriesView,
-  ctx: { nowSec: number; retentionSec: number; bookOrderCount: number | null; ledger: LedgerState | null | undefined },
+  ctx: { nowSec: number; retentionSec: number; redeemGraceSec: number; bookOrderCount: number | null; ledger: LedgerState | null | undefined },
 ): SettleInput {
   const d = m.data;
   const version = series.data.policyVersions[d.policyVersion];
@@ -33,6 +33,7 @@ export function settleInput(
     dependents: d.dependents,
     resolvedSec: Number(d.resolvedTs),
     retentionSec: ctx.retentionSec,
+    redeemGraceSec: ctx.redeemGraceSec,
     bookOrderCount: ctx.bookOrderCount,
     seats:
       ledgerClosed || !ctx.ledger

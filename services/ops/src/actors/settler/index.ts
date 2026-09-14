@@ -11,6 +11,9 @@ import { execute } from "./execute";
 import { roleClient } from "./role-client";
 import { marketLabel, settleInput } from "./views";
 
+/** D-032: seats stay claimable by their owners for this long after resolution before `redeem_for` pays them. */
+const REDEEM_GRACE_SEC = Number.isFinite(Number(process.env.SETTLER_REDEEM_GRACE_SEC)) && process.env.SETTLER_REDEEM_GRACE_SEC ? Number(process.env.SETTLER_REDEEM_GRACE_SEC) : 300;
+
 const PASS_MS = 5_000;
 const SERIES_LIST_MS = 5 * 60_000;
 const SERIES_POLL_MS = 30_000;
@@ -78,7 +81,7 @@ async function tend(st: Settler, m: MarketView, now: number, budget: { sends: nu
   const bookOrderCount = terminal && (m.data.flags & MARKET_FLAG.bookReleased) === 0 ? await readBookOrderCount(st.client, m.data.book) : null;
   let ledger: LedgerState | null | undefined;
   if (terminal && (m.data.flags & MARKET_FLAG.ledgerClosed) === 0) ledger = await readLedger(st.client, m.data.ledger);
-  const action = decideSettle(settleInput(m, series, { nowSec: now, retentionSec: st.config!.retentionSec, bookOrderCount, ledger }));
+  const action = decideSettle(settleInput(m, series, { nowSec: now, retentionSec: st.config!.retentionSec, redeemGraceSec: REDEEM_GRACE_SEC, bookOrderCount, ledger }));
   if (action.kind === "wait") return { note: null, nextCheckSec: action.untilSec };
   if (action.kind === "read") return { note: `${label}: ${action.why} unreadable`, nextCheckSec: now + 30 };
   if (budget.sends <= 0) return { note: null, nextCheckSec: now };
