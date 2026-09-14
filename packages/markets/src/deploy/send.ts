@@ -18,11 +18,12 @@ export type SeriesRecord = { address: string; ticker: number; cadenceSec: number
 
 export type StepLog = { step: string; signature: string | null; note: string };
 
-export type StepContext = {
-  client: DeployClient;
+/** What sending needs: a funded client and somewhere to report each confirmed step. */
+export type SendContext = { client: DeployClient; log: (entry: StepLog) => void };
+
+export type StepContext = SendContext & {
   record: VenueRecord;
   save: (record: VenueRecord) => void;
-  log: (entry: StepLog) => void;
 };
 
 /** A chain value that differs from what the script would create. Never auto-corrected: fix the file or the chain by hand. */
@@ -44,7 +45,7 @@ export function diffField(out: string[], name: string, chain: unknown, want: unk
 
 export const hex = (bytes: ArrayLike<number>) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 
-export async function send(ctx: StepContext, step: string, instructions: Instruction[], note: string): Promise<string> {
+export async function send(ctx: SendContext, step: string, instructions: Instruction[], note: string): Promise<string> {
   try {
     const result = await ctx.client.sendTransaction(instructions);
     const signature = String(result.context.signature);

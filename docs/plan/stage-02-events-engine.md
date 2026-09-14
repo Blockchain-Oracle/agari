@@ -22,7 +22,7 @@
 - [ ] CU profile (Surfpool `profileTransaction`; 10-fill IOC within budget; record)
 - [x] Codegen (D-025)
 - [x] Devnet deploy + `init-events` (D-024, D-026)
-- [ ] Surfpool drive (time travel): open → mint-pair → print (Pyth + RedStone check) → settle → redeem; plus a divergence void and a missing-print void
+- [x] Surfpool drive (time travel): open → mint-pair → print (Pyth + RedStone check) → settle → redeem; plus a divergence void and a missing-print void (D-027)
 - [ ] The same drive on devnet in market hours with real Pyth trial (TSLA) and RedStone (NVDA) prints, plus one attested print on a test series
 
 ## Gate
@@ -123,6 +123,14 @@
   - **Measured:** config init + authorities 15,534 CU / **1,090 B** (the largest; fixed-size arrays, so it never grows); TSLA register + 2 versions 19,791 CU / 664 B; NVDA register + 1 version 12,777 CU / 516 B; Book create + add 4,879 CU / 474 B.
   - The on-chain IDL equals `packages/clients/agari-events/idl.json`. No deploy or metadata buffers remain.
   - A Surfpool devnet fork ran the whole script first (mainnet rent 1.621 SOL). The re-run was a no-op, and planted drifts were refused with field diffs.
+- **Surfpool drive (2026-09-14, D-027).** `pnpm drive:events --cluster localnet` ran on a Surfpool devnet fork with real 14:30/14:35Z prices, 41 transactions, all green:
+  - **TSLA window:**
+    - Pyth trial open 358.31339 / close 358.98500; RedStone checks from 5 signers 358.32860904 / 359.02901824 (724 B payloads), so cross-checked → **Up**.
+    - Fills on real tokens: mint pair (A BUY_YES 10,000 @ 620 × D BUY_NO 4,000 @ 600 IOC), direct YES (D 1,000 @ 710 vs A's ask @ 700), burn pair (D SELL_NO 1,000 @ 720 vs the same ask).
+    - After sweep + redeem: A **7,370,000**, D **1,550,000**, each equal to the seat-derived expectation. The mvault went 8,920,000 → 0.
+  - **TEST window (Series 900):** attested prints (361.91 / 362.62, 1% high) were checked by the same RedStone packages → **void `CrossCheckDivergence`**; 750,000 each (500,000 + bond) and the mvault → 0.
+  - **NVDA window:** a resting bid and no prints; the clock jumped to `T + 902` → **void `MissingPrint`**; 750,000 refunded, mvault → 0.
+  - **Bugs the drive found and fixed:** `ANY_SEAT` from a seated authority (`SeatMismatch`), and a Book stranded on an aborted run's Window (now `recycleBooks`).
 
 ## Handoff
 

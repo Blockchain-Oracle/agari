@@ -448,6 +448,25 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** explorers decode agari-events instructions on devnet. Test collateral is "tUSDC" at `5i61C4kH…`.
 - **Approval:** within plan r2 S2 (deploy + init-events step).
 
+### D-027 — The S2 events drive: live boundaries, time travel only forward, drive-only test Series
+- **Date / owner:** 2026-09-14 · S2 owner (Surfpool drive step)
+- **Evidence:**
+  - Surfpool `surfnet_timeTravel` moves the clock forward only (Context7 `/solana-foundation/surfpool`). On a fresh fork the chain clock trailed the wall clock by 2–3 s.
+  - The first drive run failed on A's second order with `SeatMismatch` (6115): `seat_hint = u16::MAX` from an authority that already holds a seat is refused (D-020).
+  - The Pyth receiver SDK lane (`@pythnetwork/pyth-solana-receiver` 0.16.0) needs an override: `jito-ts` pins web3.js ~1.77.3, whose CJS build deep-imports `rpc-websockets/dist/lib/client`, and pnpm resolves that to rpc-websockets 9 (`ERR_PACKAGE_PATH_NOT_EXPORTED`).
+  - The second Surfpool run passed end to end (acceptance.md 2026-09-14 14:30–14:50Z): 41 transactions and exact payouts.
+- **Rule:**
+  - **Live prints, forward time travel:** prints must exist in reality at T, so the drive runs one real 5-minute boundary pair during NYSE hours. Surfpool's clock is pulled level with the wall clock before every print. Time travel is used only to pass deadlines (the missing-print void at `T + 900`).
+  - **Order of a boundary:** RedStone checks first, since the check window closes at `T + 120`. Then Pyth (post → record), then the attested print once the chain clock is at least `T + min_delay_sec`.
+  - **Drive-only test Series:** ticker id **900** (never in the core registry, so the app never lists it), Regular 5m, one 256-node Book. The primary is attested (feed `"agari-drive-attested:TSLA"`, min delay 10 s, bars 60 s, admission 900 s) and the check is the TSLA RedStone check policy. The drive attests 1% above RedStone's median, so the Window must void with `CrossCheckDivergence`. It exists to exercise attested prints and the divergence void on real data.
+  - **Seats:** callers pass their existing seat index (`seatHintFor` reads the Ledger), and `ANY_SEAT` only for a first order.
+  - **Attested pair:** ed25519 offsets use `u16::MAX` ("this instruction"), so Kit's planner may place its compute-budget instruction anywhere. The precompile still sits immediately before the record.
+  - **RedStone values** are parsed from the JSON source text (`JSON.parse` reviver `context.source`) and scaled ×10⁸ exactly; more than 8 decimals is refused.
+  - **Pyth posting** (`@agari/markets/prices/legacy`) uses `@pythnetwork/pyth-solana-receiver` 0.16.0 and `@solana/web3.js` 1.98.4, with the pnpm override `jito-ts>@solana/web3.js: 1.98.4` and `allowBuilds` false for `bigint-buffer`/`protobufjs`. It uses its own confirm-and-resend sender. `reclaim_rent` batches keep the default compute limit, because a tight budget sets 0. Update accounts are closed after recording.
+  - **Book recycling:** before opening, the drive sweeps and releases any Book whose Window has locked (`recycleBooks`). The roller (S3) owns this in production.
+- **User-visible:** none (drive tooling). Series 900 is visible on-chain on devnet but never listed.
+- **Approval:** within plan r2 S2 (Surfpool and devnet drive steps).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

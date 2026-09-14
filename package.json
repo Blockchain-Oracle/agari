@@ -16,6 +16,7 @@
     "env:check": "node scripts/env-check.mjs",
     "roles": "node scripts/deploy/roles.mjs",
     "deploy:init-events": "tsx --env-file-if-exists=.env.local scripts/deploy/init-events.ts",
+    "drive:events": "tsx --env-file-if-exists=.env.local scripts/drive/events-cycle.ts",
     "anchor:build": "cd anchor && NO_DNA=1 anchor build --arch v0",
     "codegen": "node scripts/codegen.mjs",
     "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",

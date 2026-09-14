@@ -8,13 +8,21 @@ import { ensureConfig, ensureMint, ensureTreasury } from "./ensure-config";
 import { ensureBooks, ensureSeries } from "./ensure-series";
 import type { PriceSources } from "./policies";
 import type { StepContext, StepLog, VenueRecord } from "./send";
+export type { StepContext } from "./send";
 import { s2Authorities, s2Series, type AuthorityKeys } from "./venue-spec";
 
 export { createDeployClient, keypairSigner, type DeployClient, type DeployClientConfig } from "./client";
-export { describeSendError, DriftError, type SeriesRecord, type StepLog, type VenueRecord } from "./send";
+export { describeSendError, DriftError, type SendContext, type SeriesRecord, type StepLog, type VenueRecord } from "./send";
 export { policyVersions, type PriceSources } from "./policies";
 export { seriesAddress } from "./ensure-series";
-export { BOOK_CAPACITY, BOOKS_PER_SERIES, LAUNCH_GRID, s2Series } from "./venue-spec";
+export { BOOK_CAPACITY, BOOKS_PER_SERIES, DRIVE_ATTESTED_FEED, driveTestSeries, LAUNCH_GRID, s2Series, type SeriesSpec } from "./venue-spec";
+export { ensureBooks, ensureSeries } from "./ensure-series";
+export { chainNowSec, readSeats, windowAddresses, type Seat } from "./cycle/accounts";
+export { DRIVE_TEST_TICKER } from "./venue-spec";
+export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
+export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
+export { attestedMessage, ed25519Instruction } from "../prices/attested";
+export { packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, redstonePayload, decimalToE8, type RedStonePackage } from "../prices/redstone";
 
 export type InitEventsInput = {
   /** Fee payer and config admin: must be the program's upgrade authority (`admin_init_config`). */

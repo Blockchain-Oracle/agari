@@ -91,16 +91,17 @@ export async function ensureBooks(ctx: StepContext, spec: SeriesSpec, series: Ad
   const saveBooks = (list: Address[]) =>
     ctx.save({ ...ctx.record, series: { ...ctx.record.series, [spec.key]: { ...ctx.record.series![spec.key]!, books: list } } });
   saveBooks(known);
-  for (let n = known.length; n < BOOKS_PER_SERIES; n++) {
+  const { count, capacity } = spec.books ?? { count: BOOKS_PER_SERIES, capacity: BOOK_CAPACITY };
+  for (let n = known.length; n < count; n++) {
     const book = await generateKeyPairSigner();
-    const space = bookSpace(BOOK_CAPACITY);
+    const space = bookSpace(capacity);
     const lamports = await ctx.client.getMinimumBalance(space);
     const create = getCreateAccountInstruction({ payer: ctx.client.payer, newAccount: book, lamports, space, programAddress: AGARI_EVENTS_PROGRAM_ADDRESS });
-    const add = await getAdminAddBookInstructionAsync({ admin: ctx.client.payer, series, book: book.address, capacity: BOOK_CAPACITY });
-    await send(ctx, `book ${spec.key}#${n + 1}`, [create, add], `created ${book.address} (${BOOK_CAPACITY} nodes, ${lamports} lamports)`);
+    const add = await getAdminAddBookInstructionAsync({ admin: ctx.client.payer, series, book: book.address, capacity });
+    await send(ctx, `book ${spec.key}#${n + 1}`, [create, add], `created ${book.address} (${capacity} nodes, ${lamports} lamports)`);
     known.push(book.address);
     saveBooks(known);
   }
-  if (known.length > BOOKS_PER_SERIES) ctx.log({ step: `books ${spec.key}`, signature: null, note: `${known.length} books (more than ${BOOKS_PER_SERIES})` });
+  if (known.length > count) ctx.log({ step: `books ${spec.key}`, signature: null, note: `${known.length} books (more than ${count})` });
   return known;
 }

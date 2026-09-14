@@ -5,11 +5,18 @@ packages:
   - scripts
 
 allowBuilds:
+  bigint-buffer: false
   bufferutil: false
   esbuild: true
   keccak: false
+  protobufjs: false
   sharp: false
   utf-8-validate: false
+
+# jito-ts (via @pythnetwork/solana-utils) pins web3.js ~1.77.3, whose CJS build deep-imports rpc-websockets/dist/lib/client;
+# under pnpm's layout that resolves to rpc-websockets 9 and fails to load. One web3.js 1 for the whole legacy lane.
+overrides:
+  "jito-ts>@solana/web3.js": 1.98.4
 
 catalog:
   next: 16.3.4

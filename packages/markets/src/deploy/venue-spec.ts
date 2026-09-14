@@ -5,7 +5,7 @@
 import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstructionDataArgs } from "@agari/clients/agari-events";
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@solana/kit";
-import { policyVersions, redstoneSigners, type PolicyVersionArgs, type PriceSources } from "./policies";
+import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, type PolicyVersionArgs, type PriceSources } from "./policies";
 
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
 export const COLLATERAL_DECIMALS = 6;
@@ -42,7 +42,34 @@ export type SeriesSpec = {
   basis: number;
   params: SeriesParams;
   versions: PolicyVersionArgs[];
+  /** Defaults: `BOOKS_PER_SERIES` × `BOOK_CAPACITY`. */
+  books?: { count: number; capacity: 256 | 512 };
 };
+
+/** Drive-only Series id: never in the core ticker registry, so the app never lists it (D-027). */
+export const DRIVE_TEST_TICKER = 900;
+export const DRIVE_ATTESTED_FEED = asciiFeedId("agari-drive-attested:TSLA");
+
+/**
+ * The drive's test Series: an attested primary (10 s correction delay, 60 s bars) checked against RedStone TSLA, so one
+ * real Window can exercise attested prints and a cross-check divergence void. One 256-node Book.
+ */
+export function driveTestSeries(sources: PriceSources): SeriesSpec {
+  const tsla = policyVersions("TSLA", sources)[0]!;
+  const redstoneCheck = policyVersions("TSLA", sources).find((v) => v.check.source === SOURCE.redstone)?.check;
+  if (!redstoneCheck) throw new Error("price-sources.json: TSLA has no RedStone check version");
+  const attested = { ...redstoneCheck, source: SOURCE.attested, feedId: DRIVE_ATTESTED_FEED, strictSec: 0, minDelaySec: 10, barLenSec: 60, openAdmissionSec: 900, closeAdmissionSec: 900 };
+  return {
+    key: "TEST-ATT-5m",
+    symbol: "TSLA",
+    ticker: DRIVE_TEST_TICKER,
+    cadenceSec: 300,
+    basis: BASIS.regular,
+    params: LAUNCH_GRID,
+    versions: [{ ...tsla, validUntilTs: I64_MAX, primary: attested, check: redstoneCheck }],
+    books: { count: 1, capacity: 256 },
+  };
+}
 
 /** S2's Series: TSLA (Pyth + RedStone check, then RedStone) and NVDA (RedStone), Regular 5m. */
 export function s2Series(sources: PriceSources): SeriesSpec[] {
