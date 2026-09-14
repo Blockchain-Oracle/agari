@@ -3,14 +3,16 @@ import type { Address } from "@agari/core/types";
 import type { TransactionSigner } from "@solana/kit";
 import { nowMs as chainNowMs } from "../provider/clock";
 import type { Enqueue } from "../sessions/nonce-queue";
-import { notDeployed } from "../stub/not-deployed";
 import { noopAttribution } from "./attribution";
 import { indexEvidence, type WriteEvidence } from "./evidence";
 import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
 import type { WriteRpc } from "./steps/message";
+import { submitOrder } from "./order-lane";
+import type { WriteContext } from "./settle-write";
 import { allowAllStopGate } from "./stop-gate";
-import { writeRpc } from "./write-rpc";
+import { submitTx } from "./tx-lane";
+import { solana } from "../runtime/solana";
 
 export interface SubmitterDeps {
   /** The single account this submitter signs for. */
@@ -48,16 +50,22 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
   const { wallet, enqueue } = deps;
   const nowMs = deps.nowMs ?? chainNowMs;
   const journal = deps.journal ?? createMemoryJournal(nowMs);
-  const rpc = () => deps.rpc ?? writeRpc();
+  const stopGate = deps.stopGate ?? allowAllStopGate;
+  const attribution = deps.attribution ?? noopAttribution;
+  // Resolved per write, so a read runtime rebuilt onto other endpoints is picked up by the next send.
+  const context = (): WriteContext => {
+    const rpc = deps.rpc ?? solana().rpc;
+    return { wallet, signer: deps.signer, rpc, journal, evidence: evidenceOf(deps, rpc), nowMs };
+  };
   return {
     journal,
-    stopGate: deps.stopGate ?? allowAllStopGate,
-    attribution: deps.attribution ?? noopAttribution,
+    stopGate,
+    attribution,
     wallet,
     hasSigner: () => true,
-    submitTx: () => enqueue(async () => ({ status: "refused", diagnosis: notDeployed() }) as const),
-    submitOrder: () => enqueue(async () => ({ status: "refused", diagnosis: notDeployed() }) as const),
-    checkGas: (lane) => checkGas(rpc(), wallet, lane),
+    submitTx: (intent, onPhase) => enqueue(() => submitTx(context(), intent, onPhase)),
+    submitOrder: (request, onPhase) => enqueue(() => submitOrder({ ...context(), stopGate, attribution }, request, onPhase)),
+    checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };
 }
 

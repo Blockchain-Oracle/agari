@@ -1,4 +1,4 @@
-import type { Diagnosis, Quote, Signature } from "@agari/core/types";
+import type { Diagnosis, Quote } from "@agari/core/types";
 
 /** A pre-send step refused the write; the lane turns it into a `refused` outcome with this diagnosis. */
 export class OrderRefusedError extends Error {
@@ -33,17 +33,6 @@ export class SimulationFailedError extends Error {
   ) {
     super(`${stage} failed: ${describeChainFailure(failure)}`);
     this.name = "SimulationFailedError";
-  }
-}
-
-/** The transaction landed and failed: its fee is paid and its signature is final. */
-export class LandedFailureError extends Error {
-  constructor(
-    readonly failure: ChainFailure,
-    readonly signature: Signature,
-  ) {
-    super(`landed and failed (tx ${signature}): ${describeChainFailure(failure)}`);
-    this.name = "LandedFailureError";
   }
 }
 

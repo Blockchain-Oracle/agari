@@ -2,7 +2,7 @@ import type { IntentJournal, IntentRecord } from "@agari/core/ports";
 import type { Address } from "@agari/core/types";
 import { indexEvidence } from "./evidence";
 import { reconcileUnknown, type ReconcileDeps, type ReconcileVerdict } from "./reconcile";
-import { writeRpc } from "./write-rpc";
+import { solana } from "../runtime/solana";
 
 /**
  * Recovery of writes the journal still holds open — a send that timed out, a tab closed
@@ -38,7 +38,7 @@ export const chainReconcilerWith =
 
 /** The chain reconciler: the transaction status when there is a signature, the Window's fills or `Redeemed` when there is not. */
 export const chainReconciler: Reconciler = (wallet, record) => {
-  const rpc = writeRpc();
+  const rpc = solana().rpc;
   return reconcileUnknown(wallet, record, { rpc, evidence: indexEvidence(undefined, rpc), nowMs: Date.now });
 };
 
