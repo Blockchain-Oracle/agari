@@ -1,0 +1,12 @@
+{
+  "_doc": "Real Pyth trial Hermes update at T = 2026-09-11T20:00:00Z (16:00:00 ET), from data/archive/pyth/2026-09-11.jsonl. The .b64 is the full accumulator update (TSLA, QQQ, VOO); these are TSLA's PriceFeedMessage fields as Hermes parsed them.",
+  "T": 1789156800,
+  "iso": "2026-09-11T20:00:00.000Z",
+  "feedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+  "price": 36547600,
+  "conf": 6068,
+  "expo": -5,
+  "publishTime": 1789156800,
+  "prevPublishTime": 1789156799,
+  "normalizedPrice": 36547600000
+}

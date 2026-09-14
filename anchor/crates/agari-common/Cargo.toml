@@ -19,3 +19,11 @@ anchor-lang = { workspace = true }
 bytemuck = { workspace = true }
 pyth-solana-receiver-sdk = { workspace = true, optional = true }
 redstone = { workspace = true, optional = true }
+
+[dev-dependencies]
+base64 = "0.22"
+byteorder = "1.5"
+k256 = { version = "0.13.4", features = ["ecdsa"] }
+pythnet-sdk = "=3.0.0"
+serde_json = "1"
+sha3 = "0.10"

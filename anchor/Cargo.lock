@@ -43,9 +43,15 @@ name = "agari-common"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "base64 0.22.1",
  "bytemuck",
+ "byteorder",
+ "k256",
  "pyth-solana-receiver-sdk",
+ "pythnet-sdk",
  "redstone",
+ "serde_json",
+ "sha3",
 ]
 
 [[package]]

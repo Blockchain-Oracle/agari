@@ -56,6 +56,8 @@
   - `program_autofixer`: no issues on step 1 and state sources.
 - **Size estimate.** A RedStone 5-package print transaction is ≈ 1,080 B of 1,232, so no ALT is needed (to be measured).
 
+- **Pure print verifiers (S2.5)** in `agari-common::print::{pyth, redstone, attested, median, normalize}` pass 21 targeted tests: the real archived Pyth trial update (TSLA 2026-09-11 16:00:00 ET accepts T, refuses T ± 1 s, a wrong feed, partial verification and a 1 bp cap), synthetic 5-key RedStone packages through the SDK's real recovery path (strict window, threshold after strict, duplicate → refused, unknown/malleated → below N, timestamp/feed/value exactness, malformed payloads refused before crypto), and the attested 158 B golden plus every offsets attack. **Remaining for the Prints box:** the instruction handlers (§4.0 slot/deadline rules, sysvar loading), the real RedStone fixture (`anchor/tests/vectors/prints/README.md`), the Pyth receiver-feature devnet post, and CU/transaction-size measurement.
+
 ## Handoff
 
 - **Next step:** admin instructions + `roller_open_window`.

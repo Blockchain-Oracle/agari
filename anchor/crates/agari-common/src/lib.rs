@@ -10,4 +10,5 @@
 pub mod grid;
 pub mod place_result;
 pub mod seeds;
+pub mod print;
 pub mod view;
