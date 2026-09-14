@@ -22,7 +22,7 @@ Stock-price Up/Down prediction market on Solana: a source-led port of Masayume (
 - **Tests:** not a deliverable. Targeted tests only where money or settlement correctness is in doubt.
 - **Libraries:** research with Context7 first; performance-first choices.
 - **Secrets:** never print or commit them. Data-provider keys are server-only. Keypairs live in `~/.config/agari/`.
-- **CLI:** `NO_DNA=1 anchor …`, `NO_DNA=1 surfpool …`. New shells need `~/.local/share/solana/install/active_release/bin`, `~/.avm/bin`, `~/.surfpool/bin` on PATH. Never run `avm use` or `agave-install` casually.
+- **CLI:** `NO_DNA=1 anchor …`, `NO_DNA=1 surfpool …`. New shells need `~/.local/share/solana/install/active_release/bin`, `~/.avm/bin`, `~/.local/bin` (surfpool) on PATH. Never run `avm use` or `agave-install` casually.
 - **Commits:** one per step, `<type>(S<n>.<step>/<area>): <summary>`, trailers `Stage:` and `Parity:`. Tick the stage checkbox in the same commit. Never end a session dirty (`wip(...)`).
 - **Evidence:** every devnet transaction goes in `docs/plan/acceptance.md`; `parity.md` advances only at stage gates.
 
