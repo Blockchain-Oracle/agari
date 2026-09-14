@@ -16,7 +16,7 @@ import { FundingProgress } from "./FundingProgress";
 
 const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-6)}`;
 
-/** Shared test-funds dialog: eligible devnet SOL top-up, then the wallet-signed venue faucet mint. */
+/** Shared test-funds dialog: eligible devnet SOL top-up, then the server-sent tUSDC mint, behind one free signature (D-034). */
 export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { address, isRightChain } = useWalletSession();
   const faucet = useFaucet();
