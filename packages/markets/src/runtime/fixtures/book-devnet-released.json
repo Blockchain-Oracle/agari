@@ -1,0 +1,8 @@
+{
+ "_doc": "A devnet Book account captured read-only with getAccountInfo (confirmed); data is gzip then base64. Recapture during a session for a Book with resting maker quotes.",
+ "series": "NVDA-5m",
+ "address": "Cmt4NQVMTP78iLqJb4ESydyWx2uNM2992q8rUtgJtKfo",
+ "slot": "498414633",
+ "capturedAt": "2026-09-14T20:25:57Z",
+ "dataGzipBase64": "H4sIAAAAAAAC/+3QIQrCAAAFUJ3YxEM4rLNpW/YAM+0CRuuOMASZweoJbLI7mI2G3UCwDMOKiAOj0bD3wueHn342ycI0XlW9Hx77ablbR8fZ4HR/jtJ8ngxv23O9Sa6Lpiwuh2W7G78j+PTgWwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4o74LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADomBc9ZAcAiN4AAA=="
+}
