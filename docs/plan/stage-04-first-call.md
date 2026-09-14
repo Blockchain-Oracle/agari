@@ -29,9 +29,9 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 - [x] Runtime + boot facts (4a.1, merged first as `17e61a6`; 69 runtime vitests incl. every Book vector and a captured devnet Book): browser/server transport, `runtime/accounts.ts`, Book decode, pure mappers, venue, collateral, clock.
 - [x] Provider reads over chain + `/api/index/[...path]` (4a, merged `34729da`; live-session browser proof at the 09-15 open).
 - [x] Hooks, names unchanged: coordinator Book subscriptions, shared spot stream, `useStakeQuote` over the coordinated Book (4a).
-- [ ] Submitter order lane: status gate → quote → expiry → funding → build (IOC) → simulate → journal → sign → send → confirm → book from `OrderExecuted` (4b).
-- [ ] Tx lane `redeem` (full redeem per Window, crank-paid reconcile) + journal reconcile by signature and `lastValidBlockHeight` (4b).
-- [ ] Signer seams: Wallet Standard signer (modify-and-sign, sending fallback) + keypair signer; no Privy (4b).
+- [x] Submitter order lane: status gate → quote → expiry → funding → build (IOC) → simulate → journal → sign → send → confirm → book from `OrderExecuted` (4b).
+- [x] Tx lane `redeem` (full redeem per Window, crank-paid reconcile) + journal reconcile by signature and `lastValidBlockHeight` (4b).
+- [x] Signer seams: Wallet Standard signer (modify-and-sign, sending fallback) + keypair signer; no Privy (4b).
 - [x] Faucet: SOL top-up chain adapter + server-side tUSDC mint claims, one challenge signature (4c, merged `b4aef58`; devnet claims wait for `sol-faucet` SOL).
 - [ ] Sponsor → S7 (D-023): `/api/sponsor` unchanged; gate row restated (stage owner D-entry).
 - [ ] Web rewiring: ticker picker, market-session chip, closed/paused/settling copy, verdict print-source labels, per-Window claims, seat-deposit note (4d).
@@ -57,6 +57,22 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 
 ## Findings
 
+- **Lane 4b (writes, merged `76382c9` from `slice/S4b-writes` @ 504783b)**: the three re-pointed invariants find their files and pass; 115 vitests after the merge.
+  - **Fork proofs** (Surfpool 8960, the drive passed 4 runs in a row on TEST-ATT-5m #3–#6):
+    - **Up IOC:** 3,194 lots @ 400, cost 1,277,600 = the quote; wallet paid cost + 250,000 bond; 17,708 CU / 586 B.
+    - **Down IOC:** no second bond.
+    - **Simulation 6110:** requote with nothing sent; the accepted requote filled.
+    - **Landed 6110** (send without preflight after the book emptied): `nothingFilled`, seat and tUSDC untouched.
+    - **SIGKILL after journaling the signature:** reconciled as landed, 0 re-sends, fill counted once.
+    - **Redeem:** paid 4,445,000 = the seat (lots + bond); 14,141 CU / 522 B.
+    - **Crank-paid:** the rival's redeem returned the settler's `redeem_for` signature without sending.
+  - **Kit / wallets:**
+    - Kit 8.3's `setTransactionMessageComputeUnitLimit` suffices; `@solana-program/compute-budget` is unused and can be removed.
+    - A wallet that replaces the blockhash makes Kit report `lastValidBlockHeight = u64::MAX`, so the lane journals head + 150 as the bound.
+    - `submitter/events.ts` is a small browser-safe decoder, because `ops/**` is server-only. Sharing one decoder with the indexer is a later cleanup.
+  - **Cost-cap buffer (open, needs the user):** Masayume's 5m buffer (15,661 bps) sizes lots at the padded price, so a 2 tUSDC stake at 400 spent 64% of the stake. Proposed: a small Solana buffer (D-entry after the user's answer).
+  - **Drive:** `scripts/drive/first-call*.ts` (4 files); the devnet path is written but unrun, and needs NYSE hours and a funded `sol-faucet`.
+  - **Not proven:** preflight-refusal requote, 6115 rebuild, unsigned-intent reconcile through the index, sending-only wallets and 4001 rejection (the last two need a real wallet in the browser pass).
 - **Lane 4a (reads, merged `34729da` from `slice/S4a-reads` @ 98cfe72); 113 markets+funding vitests after the merge:**
   - **Provider methods:** every method ran in Node against devnet, the soak index and ops (20:45–21:10Z, off-hours):
     - `syncClock` (offset −510 ms); `loadCollateral` tUSDC 6 dp; `resolveVenueId`.
