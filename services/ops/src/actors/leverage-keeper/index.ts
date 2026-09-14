@@ -55,7 +55,7 @@ export async function startLeverageKeeper(log: Log): Promise<void> {
 
   let session: SubmitterSession | null = null;
   if (env.privateKey) {
-    session = await createSubmitterSession({ env: marketsEnv, authority: "leverage-keeper", signer: { privateKey: env.privateKey }, journal: createMemoryJournal() });
+    session = await createSubmitterSession({ env: marketsEnv, authority: "leverage-keeper", signer: { secretKey: env.privateKey }, journal: createMemoryJournal() });
     log(`keeper key ${session.address}${env.dryRun ? " (DRY RUN: nothing is sent)" : ""}`);
   } else {
     log("LEVERAGE_KEEPER_PRIVATE_KEY is not set: scanning and reporting only, nothing can be sent");

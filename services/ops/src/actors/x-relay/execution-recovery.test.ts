@@ -1,10 +1,11 @@
+import { encodeBase58, type Signature } from "@agari/core/types";
 import type { XReceipt } from "@agari/core/x";
 import { describe, expect, it, vi } from "vitest";
 import { recoverExecutionReceipt, recoverXExecutions } from "./execution-recovery";
 
 const receipt: XReceipt = { mentionId: "123", authorId: "456", handle: "caller", wallet: null, grantId: null, marketId: null,
   side: "up", stakeBase: "5000000", status: "submitted", reason: null, txHash: null, instruction: "fixture", atMs: 1, collateralDecimals: 6 };
-const hash = `0x${"ab".repeat(32)}` as const;
+const hash = encodeBase58(new Uint8Array(64).fill(0xab)) as Signature;
 describe("X receipt recovery without execution replay", () => {
   it("restores actual booked spend and a lost hash without replacing the requested amount", () => {
     expect(recoverExecutionReceipt(receipt, { status: "confirmed", txHash: hash, cashDelta: 1_234_567n, tokenDelta: 2_469_134n, side: "up", atSec: 1 }))

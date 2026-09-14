@@ -1,5 +1,5 @@
 import type { AgentContext, StrategyRecord } from "@agari/core/strategies";
-import type { Bytes32, EventMarket } from "@agari/core/types";
+import { encodeBase58, type Address, type EventMarket } from "@agari/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ claim: vi.fn(), previous: vi.fn(), store: vi.fn(), lanes: vi.fn(), context: vi.fn(), record: vi.fn(), decide: vi.fn(), decisions: vi.fn() }));
@@ -12,15 +12,15 @@ vi.mock("@agari/brain", async (original) => ({ ...await original<object>(), deci
 import { scanVenueWithAgent, warmAgentState, type AgentRunner } from "./agent";
 import { readRunnerEnv } from "./env";
 
-const market = { marketId: `0x${"11".repeat(32)}`, asset: "BTC", intervalSec: 900, tradingStartSec: 1_000, expirySec: 1_900, openingPriceRaw: 10_000n, status: "Trading", voided: false, finalized: false } as EventMarket;
+const market = { marketId: encodeBase58(new Uint8Array(32).fill(0x11)), asset: "TSLA", lane: "regular", lockAtSec: 1_900, intervalSec: 900, tradingStartSec: 1_000, expirySec: 1_900, openingPriceRaw: 10_000n, status: "Trading", voided: false, finalized: false } as EventMarket;
 const nowMs = 1_300_000;
 const spec = { preset: "agent" as const, persona: "Follow the trend.", posture: "balanced" as const, cadences: [900] };
 const strategy = { strategyId: 1n, envelope: { maxStakePerTradeBase: 100n, maxDailySpendBase: 1_000n, maxOpenPositions: 1, maxPriceRaw: 0n } } as StrategyRecord;
-const context: AgentContext = { asset: "BTC", intervalSec: 900, tradingStartSec: 1_000, openingRaw: 10_000n, emaRaw: 10_020n, spotRaw: 10_020n, feedDecimals: 2, samples: [], upCents: 50, downCents: 50, stakeBase: 100n, collateralDecimals: 6, elapsedSec: 300, leftSec: 600 };
+const context: AgentContext = { asset: "TSLA", intervalSec: 900, tradingStartSec: 1_000, openingRaw: 10_000n, emaRaw: 10_020n, spotRaw: 10_020n, feedDecimals: 2, samples: [], upCents: 50, downCents: 50, stakeBase: 100n, collateralDecimals: 6, elapsedSec: 300, leftSec: 600 };
 const verdict = { side: "up" as const, confidence: 0.8, why: "steady trend" };
 const decision = { side: "up" as const, moveBps: 20, thresholdBps: 0, reason: "agent bets up" };
 const ok = <T>(value: T) => ({ ok: true as const, value, stale: false, asOfMs: nowMs });
-const runner = (): AgentRunner => ({ env: readRunnerEnv({ STRATEGY_IDS: "1" }), venueId: `0x${"22".repeat(32)}` as Bytes32, runnerKey: "runner", log: vi.fn(), onReading: vi.fn().mockResolvedValue(undefined), agent: { brain: { providerName: "fixture", modelId: "test", via: "direct", model: {} } as AgentRunner["agent"]["brain"], missing: "", read: new Map(), callsAtMs: [] } });
+const runner = (): AgentRunner => ({ env: readRunnerEnv({ STRATEGY_IDS: "1" }), venueId: encodeBase58(new Uint8Array(32).fill(0x22)) as Address, runnerKey: "runner", log: vi.fn(), onReading: vi.fn().mockResolvedValue(undefined), agent: { brain: { providerName: "fixture", modelId: "test", via: "direct", model: {} } as AgentRunner["agent"]["brain"], missing: "", read: new Map(), callsAtMs: [] } });
 
 beforeEach(() => {
   vi.resetAllMocks();

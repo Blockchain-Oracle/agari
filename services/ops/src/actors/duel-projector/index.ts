@@ -41,7 +41,7 @@ export async function startDuelProjector(log: Log, room: RoomContext | null): Pr
   const deployment = resolveArenaDeployment(env);
   if (!deployment) return log("GameArena is not deployed on this network; nothing to project");
 
-  const name = `duel:${deployment.chainId}:${deployment.gameArena.toLowerCase()}`;
+  const name = `duel:${deployment.chainId}:${deployment.gameArena}`;
   const deps: ApplyDeps = { room, cache: createMatchCache(), chainId: deployment.chainId, arena: deployment.gameArena, log };
 
   const stored = await readCursor(name);

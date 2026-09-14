@@ -1,7 +1,8 @@
-import type { Hex } from "@agari/core/types";
+import { readSecretKey } from "../secret-key";
 
 export interface RunnerEnv {
-  privateKey: Hex | null;
+  /** The role's 64-byte Solana keypair. */
+  privateKey: Uint8Array | null;
   strategyIds: bigint[];
   intervalMs: number;
   dryRun: boolean;
@@ -30,7 +31,7 @@ export function readRunnerEnv(env: NodeJS.ProcessEnv = process.env): RunnerEnv {
     .filter(Boolean)
     .map((s) => BigInt(s));
   return {
-    privateKey: key && /^0x[0-9a-fA-F]{64}$/.test(key) ? (key as Hex) : null,
+    privateKey: readSecretKey(key),
     strategyIds: ids,
     intervalMs: intEnv(env, "RUNNER_INTERVAL_MS", DEFAULT_INTERVAL_MS, 5_000),
     dryRun: env.DRY_RUN === "1" || env.DRY_RUN === "true",

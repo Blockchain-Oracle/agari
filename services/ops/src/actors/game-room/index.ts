@@ -1,5 +1,5 @@
 import { activeMatchFor } from "@agari/db";
-import type { Address, Bytes32 } from "@agari/core/types";
+import type { Address, Hash32 } from "@agari/core/types";
 import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
 import { resolveArenaDeployment } from "@agari/markets/games";
 import { readRoomEnv, ROOM_ENV } from "./env";
@@ -51,7 +51,7 @@ export async function startGameRoom(log: Log): Promise<RoomContext | null> {
      */
     directory: {
       activeMatchFor: async (wallet: Address) =>
-        (await activeMatchFor(wallet, deployment.chainId, deployment.gameArena)) as Bytes32 | null,
+        (await activeMatchFor(wallet, deployment.chainId, deployment.gameArena)) as Hash32 | null,
     },
   };
 

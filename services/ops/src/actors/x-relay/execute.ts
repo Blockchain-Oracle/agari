@@ -1,14 +1,14 @@
 import { noEntryCutoffSec } from "@agari/core/lifecycle";
 import { describeRefusal, isBalanceOnlyXGrant, parseInstruction, selectXWindow, X_REFUSAL_DETAILS, type XInstruction } from "@agari/core/x";
 import { xLinkByAuthor, xReceiptUpsert, type XReceiptRecord } from "@agari/db";
-import { getCollateral, getVaultSnapshot, marketsProvider, resolveVenueId, type SubmitterSession } from "@agari/markets";
-import type { Bytes32 } from "@agari/core/types";
+import { getCollateral, getVaultSnapshot, marketsProvider, readRecoveryCursor, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import type { Address } from "@agari/core/types";
 import type { Mention } from "./transport";
 import { outcomeToReceipt } from "./receipt-outcome";
 
 export interface ExecutorContext {
   session: SubmitterSession;
-  venueId: Bytes32;
+  venueId: Address;
   log: (why: string) => void;
   /** Required in production: preserve wallet/target before entering the signing lane. */
   checkpoint?: (receipt: XReceiptRecord) => Promise<void>;
@@ -35,7 +35,7 @@ function receiptFor(mention: Mention, over: Partial<XReceiptRecord>): XReceiptRe
 }
 
 /** The soonest Window still enterable for the asset and cadence a mention named. */
-async function liveWindow(venueId: Bytes32, instruction: XInstruction) {
+async function liveWindow(venueId: Address, instruction: XInstruction) {
   let lanes = await marketsProvider.listLiveLanes(venueId);
   // Retry the read once, never the order. A failed refresh is not evidence of an empty venue.
   if (!lanes.ok || lanes.stale) lanes = await marketsProvider.listLiveLanes(venueId);
@@ -60,12 +60,12 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
   const { instruction } = parsed;
   const base = { wallet: link.wallet, side: instruction.side, stakeBase: instruction.stakeBase.toString(), asset: instruction.asset, intervalSec: instruction.intervalSec };
 
-  const snapshot = await getVaultSnapshot(link.wallet as `0x${string}`);
+  const snapshot = await getVaultSnapshot(link.wallet as Address);
   if (!snapshot.ok || snapshot.stale) return receiptFor(mention, { ...base, refusalCode: "balance-unavailable", reason: "could not read the Trading Balance right now" });
   if (!snapshot.value) return receiptFor(mention, { ...base, refusalCode: "not-deployed", reason: "the Trading Balance contract is not deployed on this network" });
   const grant = snapshot.value.grants.executor;
   if (!grant) return receiptFor(mention, { ...base, refusalCode: "grant-missing", reason: "no live X grant for this wallet — fund and authorize on /trade-from-x" });
-  if (grant.actor !== ctx.session.address.toLowerCase()) return receiptFor(mention, { ...base, refusalCode: "grant-mismatch", grantId: grant.grantId.toString(), reason: "the wallet's X grant names a different executor" });
+  if (grant.actor !== ctx.session.address) return receiptFor(mention, { ...base, refusalCode: "grant-mismatch", grantId: grant.grantId.toString(), reason: "the wallet's X grant names a different executor" });
   if (grant.expiresAtSec * 1000 <= Date.now()) return receiptFor(mention, { ...base, refusalCode: "grant-expired", grantId: grant.grantId.toString(), reason: "the X grant has expired — renew it on /trade-from-x" });
   if (!isBalanceOnlyXGrant(grant)) return receiptFor(mention, { ...base, grantId: grant.grantId.toString(), refusalCode: "grant-update-required", reason: X_REFUSAL_DETAILS["grant-update-required"] });
   if (instruction.stakeBase > grant.budgetBase) return receiptFor(mention, { ...base, grantId: grant.grantId.toString(), refusalCode: "insufficient-funds", reason: X_REFUSAL_DETAILS["insufficient-funds"] });
@@ -74,7 +74,7 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
   if (!selected.ok) {
     const window = "market" in selected ? selected.market : undefined;
     return receiptFor(mention, { ...base, refusalCode: selected.code, grantId: grant.grantId.toString(), reason: X_REFUSAL_DETAILS[selected.code],
-      ...(window ? { marketId: window.marketId, expirySec: window.expirySec, entryClosesAtSec: noEntryCutoffSec(window.expirySec, window.intervalSec),
+      ...(window ? { marketId: window.marketId, expirySec: window.expirySec, entryClosesAtSec: noEntryCutoffSec(window),
         ...(selected.code === "window-not-started" ? { nextWindowAtSec: window.tradingStartSec } : {}) } : {}),
     });
   }
@@ -87,12 +87,11 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
   if (!quote.value) return receiptFor(mention, { ...withMarket, refusalCode: "no-liquidity", reason: "No fillable quote was available for this instruction." });
 
   if (ctx.checkpoint) {
-    const [block, expectedNonce] = await Promise.all([
-      ctx.session.contracts.publicClient.getBlockNumber(),
-      ctx.session.contracts.publicClient.getTransactionCount({ address: ctx.session.address, blockTag: "pending" }),
-    ]);
+    // The recovery cursor is the slot before the send; Solana has no account nonce.
+    const cursor = await readRecoveryCursor();
+    if (!cursor.ok) return receiptFor(mention, { ...withMarket, refusalCode: "execution-unavailable", reason: X_REFUSAL_DETAILS["execution-unavailable"] });
     await ctx.checkpoint(receiptFor(mention, { ...withMarket, status: "submitted", executionActor: ctx.session.address,
-      poolAddress: market.poolAddress, collateralDecimals: market.decimals, recoveryFromBlock: block.toString(), expectedNonce }));
+      poolAddress: market.poolAddress, collateralDecimals: market.decimals, recoveryFromBlock: cursor.value.fromSlot.toString(), expectedNonce: null }));
   }
 
   const outcome = await ctx.session.submitter.submitOrder({
@@ -107,7 +106,7 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
   return receiptFor(mention, { ...withMarket, ...outcomeToReceipt(outcome) });
 }
 
-export async function resolveVenue(configured: Bytes32): Promise<Bytes32 | null> {
+export async function resolveVenue(configured: Address | undefined): Promise<Address | null> {
   const venue = await resolveVenueId(configured);
   return venue.ok ? venue.value.venueId : null;
 }

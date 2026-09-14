@@ -1,4 +1,5 @@
-import { SHANNON_EXPLORER_URL } from "@agari/core/constants";
+import { isSignature } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
 import { formatBaseUnits } from "@agari/core/units";
 import { X_RECEIPT_STATUSES, xRefusalCopy, xReceiptRecovery, type XReceipt, type XReceiptStatus } from "@agari/core/x";
 
@@ -19,7 +20,6 @@ export interface ReplyPresentation {
 }
 
 const BASE_UNITS = /^(0|[1-9]\d{0,77})$/;
-const TX_HASH = /^0x[0-9a-fA-F]{64}$/;
 const CADENCES: Record<number, string> = { 60: "1m", 300: "5m", 900: "15m", 3600: "1h", 14400: "4h", 86400: "1d" };
 
 function amount(value: string | null | undefined, decimals: number): string | null {
@@ -41,12 +41,12 @@ function marketContext(receipt: XReceipt): string {
 
 /** Only validated receipt facts and fixed copy reach public text or the deterministic card renderer. */
 export function createReplyPresentation(receipt: XReceipt, decimals: number, symbol = "tUSDC"): ReplyPresentation {
-  const hash = typeof receipt.txHash === "string" && TX_HASH.test(receipt.txHash) ? receipt.txHash : null;
+  const hash = isSignature(receipt.txHash) ? receipt.txHash : null;
   let status = X_RECEIPT_STATUSES.includes(receipt.status) ? receipt.status : "unknown";
   // A corrupt historical row must not produce a chain-result claim without a usable receipt link.
   if (!hash && (status === "filled" || status === "nothing-filled" || status === "reverted")) status = "unknown";
   const context = marketContext(receipt);
-  const url = hash ? `${SHANNON_EXPLORER_URL}/tx/${hash}` : TRADE_FROM_X_URL;
+  const url = hash ? txUrl(hash) : TRADE_FROM_X_URL;
   // The receipt's original author snapshot is immutable; never resolve a current profile here.
   const sender = typeof receipt.handle === "string" && /^[A-Za-z0-9_]{1,15}$/.test(receipt.handle)
     ? `@${receipt.handle}` : /^\d{1,30}$/.test(receipt.authorId) ? `X user ${receipt.authorId}` : null;

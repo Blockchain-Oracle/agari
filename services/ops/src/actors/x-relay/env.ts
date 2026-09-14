@@ -1,10 +1,12 @@
+import { readSecretKey } from "../secret-key";
 /** What the relay needs, and what is missing — read once, reported in the heartbeat, never a crash. */
 export interface RelayEnv {
   /** The account's session, encoded by rettiwt's own key format (the four session cookies, base64). */
   rettiwtApiKey: string;
   /** The handle whose mentions are the instructions, without the `@`. */
   handle: string;
-  executorPrivateKey: `0x${string}`;
+  /** The executor role's 64-byte Solana keypair. */
+  executorPrivateKey: Uint8Array;
   /** Replies are posted as the account only when asked for. */
   postingEnabled: boolean;
   /** Branded images accompany receipts by default; set X_REPLY_IMAGES_ENABLED=0 for text only. */
@@ -35,7 +37,8 @@ export function readRelayEnv(): RelayEnvReading {
   const databaseUrl = process.env.DATABASE_URL ?? "";
   if (!rettiwtApiKey) missing.push(RELAY_ENV.rettiwtKey);
   if (!handle) missing.push(RELAY_ENV.handle);
-  if (!/^0x[0-9a-fA-F]{64}$/.test(executorPrivateKey)) missing.push(RELAY_ENV.executor);
+  const executorSecretKey = readSecretKey(executorPrivateKey);
+  if (!executorSecretKey) missing.push(RELAY_ENV.executor);
   if (!databaseUrl) missing.push(RELAY_ENV.db);
   if (missing.length > 0) return { ok: false, missing };
   const pollMs = Number(process.env.X_POLL_MS);
@@ -44,7 +47,7 @@ export function readRelayEnv(): RelayEnvReading {
     env: {
       rettiwtApiKey,
       handle,
-      executorPrivateKey: executorPrivateKey as `0x${string}`,
+      executorPrivateKey: executorSecretKey as Uint8Array,
       postingEnabled: process.env.X_POSTING_ENABLED === "1" || process.env.X_POSTING_ENABLED === "true",
       replyImagesEnabled: process.env.X_REPLY_IMAGES_ENABLED !== "0" && process.env.X_REPLY_IMAGES_ENABLED !== "false",
       pollMs: Number.isFinite(pollMs) && pollMs >= 5_000 ? pollMs : DEFAULT_POLL_MS,

@@ -83,7 +83,7 @@ export async function applyEvent(deps: ApplyDeps, entry: ArenaEventLog): Promise
         arena: deps.arena,
         mode: match.mode,
         tier: match.tier,
-        creator: event.creator.toLowerCase(),
+        creator: event.creator,
         challenger: null,
         status: "waiting",
         deckHash: event.deckHash,

@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { encodeBase58 } from "@agari/core/types";
 import type { XReceipt } from "@agari/core/x";
 import { deliverReplies, startReplyDelivery, type ReplyDeliveryContext } from "./reply-delivery";
 
 const receipt: XReceipt = {
   mentionId: "123", authorId: "456", handle: "caller", wallet: null, grantId: null,
   marketId: null, side: "up", stakeBase: "5000000", bookedCostBase: "3000000",
-  status: "filled", reason: null, txHash: `0x${"a".repeat(64)}`, instruction: "BTC UP 5 5m", atMs: 1,
+  status: "filled", reason: null, txHash: encodeBase58(new Uint8Array(64).fill(0xaa)), instruction: "TSLA UP 5 5m", atMs: 1,
 };
 
 function fixture() {
@@ -44,7 +45,7 @@ describe("reply delivery without financial execution", () => {
     await deliverReplies(ctx);
     expect(state.order).toEqual(["upload", "persist-post", "post"]);
     expect(ctx.store.beginPost).toHaveBeenCalledWith(job, expect.stringContaining("Spent 3 tUSDC"), "789");
-    expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("/tx/0x"), "789");
+    expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("/tx/"), "789");
     expect(ctx.store.sent).toHaveBeenCalledWith(job, "999");
     expect(ctx.transport.reply).toHaveBeenCalledTimes(1);
   });

@@ -1,7 +1,7 @@
 import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFollowSpec } from "@agari/core/strategies";
-import type { Bytes32, EventMarket } from "@agari/core/types";
+import type { Address, EventMarket } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { openingOnFeedScale } from "@agari/markets/strategies";
 
@@ -17,7 +17,7 @@ export interface Scan {
  * One read of the venue: every Trading Window with an opening print and a fresh feed, decided by
  * the pure model. Reads only — nothing here can send.
  */
-export async function scanVenue(venueId: Bytes32, spec: OracleFollowSpec, nowMs: number): Promise<Scan> {
+export async function scanVenue(venueId: Address, spec: OracleFollowSpec, nowMs: number): Promise<Scan> {
   const lanes = await marketsProvider.listLiveLanes(venueId);
   if (!isOk(lanes) || lanes.stale) return { candidates: [], scanned: 0, closestBps: null, why: `lanes unreadable: ${isOk(lanes) ? "stale state" : lanes.error.technical}` };
   const markets = lanes.value.lanes.flatMap((lane) => lane.markets).filter((m) => phase(m, nowMs) === "trading");

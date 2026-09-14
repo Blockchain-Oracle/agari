@@ -1,20 +1,19 @@
 import type { XReceipt } from "@agari/core/x";
 import { priceRawToBps, oneUnit } from "@agari/core/units";
-import { toMarketId, type Address, type Hex } from "@agari/core/types";
+import { isAddress, isMarketId, isSignature, toMarketId } from "@agari/core/types";
 import { recoverVaultExecution, type RecoveredVaultExecution } from "@agari/markets/vault";
 
 /** Only complete durable execution context can be reconciled against the shared vault verifier. */
 export async function resolveXExecution(receipt: XReceipt): Promise<RecoveredVaultExecution> {
-  const address = /^0x[0-9a-fA-F]{40}$/;
-  if (!receipt.wallet || !address.test(receipt.wallet) || !receipt.executionActor || !address.test(receipt.executionActor)
-    || !receipt.marketId || !/^0x[0-9a-fA-F]{64}$/.test(receipt.marketId) || !receipt.grantId || !/^\d{1,78}$/.test(receipt.grantId)
+  if (!receipt.wallet || !isAddress(receipt.wallet) || !receipt.executionActor || !isAddress(receipt.executionActor)
+    || !receipt.marketId || !isMarketId(receipt.marketId) || !receipt.grantId || !/^\d{1,78}$/.test(receipt.grantId)
     || (receipt.side !== "up" && receipt.side !== "down")) return { status: "unknown" };
   if (!receipt.txHash && !receipt.intentRecordedAtMs) return { status: "unknown" };
-  if (receipt.txHash && !/^0x[0-9a-fA-F]{64}$/.test(receipt.txHash)) return { status: "unknown" };
-  return recoverVaultExecution({ owner: receipt.wallet as Address, actor: receipt.executionActor as Address,
+  if (receipt.txHash && !isSignature(receipt.txHash)) return { status: "unknown" };
+  return recoverVaultExecution({ owner: receipt.wallet, actor: receipt.executionActor,
     marketId: toMarketId(receipt.marketId), grantId: BigInt(receipt.grantId), side: receipt.side,
-    fromBlock: receipt.recoveryFromBlock && /^\d{1,78}$/.test(receipt.recoveryFromBlock) ? BigInt(receipt.recoveryFromBlock) : 0n,
-    txHash: receipt.txHash as Hex | null, expectedNonce: receipt.expectedNonce });
+    fromSlot: receipt.recoveryFromBlock && /^\d{1,78}$/.test(receipt.recoveryFromBlock) ? BigInt(receipt.recoveryFromBlock) : 0n,
+    txHash: receipt.txHash && isSignature(receipt.txHash) ? receipt.txHash : null });
 }
 
 /** A confirmed vault call can still book zero tokens. Amounts come only from the verified event. */

@@ -2,10 +2,11 @@ import { randomBytes } from "node:crypto";
 import { deckCommitmentPreimage, nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@agari/core/games";
 import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
-import type { Address, Bytes32, Hex, MarketId } from "@agari/core/types";
+import type { Address, Hash32, Hex, MarketId } from "@agari/core/types";
 import { putDeck } from "@agari/db";
 import { marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
-import { keccak256 } from "viem";
+import { keccak_256 } from "@noble/hashes/sha3";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { DECK_KEY_ENV, deckKey, journal, seal, type RevealMaterial } from "./seal";
 
 /**
@@ -42,7 +43,7 @@ const CREATE_LATENCY_SEC = Number(process.env.GAME_DECK_CREATE_LATENCY_SEC ?? 45
 export interface DealtDeck {
   cards: readonly DeckCard[];
   lane: DeckLane;
-  deckHash: Bytes32;
+  deckHash: Hash32;
   policyVersion: number;
 }
 
@@ -56,16 +57,21 @@ export interface DealtDeck {
  */
 export type DealOutcome = { ok: true; deck: DealtDeck } | { ok: false; why: string; retry: boolean; nextDeckInSec?: number | null };
 
-const bytes32 = (): Bytes32 => `0x${randomBytes(32).toString("hex")}`;
+const bytes32 = (): Hash32 => `0x${randomBytes(32).toString("hex")}`;
 
 /** A fresh match id. Random rather than derived: two players must not be able to predict one another's. */
-export function newMatchId(): Bytes32 {
+export function newMatchId(): Hash32 {
   return bytes32();
 }
 
 /** The commitment a client publishes when it queues, and what the deckmaster checks its reveal against. */
-export function seedCommitment(seed: Bytes32): Bytes32 {
+export function seedCommitment(seed: Hash32): Hash32 {
   return keccak256(seed);
+}
+
+/** keccak256 over 0x-hex bytes, as the arena program's `sol_keccak256` computes it (S12 keeps the packing). */
+function keccak256(hex: Hex): Hash32 {
+  return `0x${bytesToHex(keccak_256(hexToBytes(hex.slice(2))))}`;
 }
 
 /**
@@ -121,10 +127,10 @@ export async function deckSupply(params: DealInput["params"]): Promise<number | 
 }
 
 export interface DealInput {
-  matchId: Bytes32;
+  matchId: Hash32;
   chainId: number;
   arena: Address;
-  clientSeeds: readonly Bytes32[];
+  clientSeeds: readonly Hash32[];
   /** The arena's own deadlines. Headroom is derived from all four, never from `minCardLifeSec` alone. */
   params: Pick<ArenaParams, "minCardLifeSec" | "joinWindowSec" | "revealWindowSec" | "pickWindowSec">;
 }

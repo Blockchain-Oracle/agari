@@ -1,11 +1,11 @@
-import type { Address, EventMarket } from "@agari/core/types";
+import { encodeBase58, type Address, type EventMarket } from "@agari/core/types";
 import type { StrategySubscription } from "@agari/core/strategies";
 import type { SubmitterSession } from "@agari/markets";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ getAttempt: vi.fn(), begin: vi.fn(), finish: vi.fn(), recordFill: vi.fn(), unresolved: vi.fn(), owners: vi.fn(), decisions: vi.fn(), fills: vi.fn(), snapshot: vi.fn(), onchain: vi.fn(), holdings: vi.fn(), quote: vi.fn(), recover: vi.fn(), tallies: vi.fn(), grant: vi.fn(), subscribers: vi.fn(), send: vi.fn(), settle: vi.fn(), market: vi.fn() }));
 vi.mock("@agari/db", () => ({ getStrategyAttempt: mocks.getAttempt, beginStrategyAttempt: mocks.begin, finishStrategyAttempt: mocks.finish, recordAttemptFill: mocks.recordFill, listUnresolvedStrategyAttempts: mocks.unresolved, listStrategyOwners: mocks.owners, listStrategyDecisions: mocks.decisions, listStrategyFills: mocks.fills }));
-vi.mock("@agari/markets", () => ({ marketsProvider: { getVaultSnapshot: mocks.snapshot, getOnchain: mocks.onchain, getVaultHoldings: mocks.holdings, freshQuoteStake: mocks.quote, getMarket: mocks.market, nowMs: () => 2_000_000 } }));
+vi.mock("@agari/markets", () => ({ readRecoveryCursor: async () => ({ ok: true, value: { fromSlot: 123n }, stale: false, asOfMs: 0 }), marketsProvider: { getVaultSnapshot: mocks.snapshot, getOnchain: mocks.onchain, getVaultHoldings: mocks.holdings, freshQuoteStake: mocks.quote, getMarket: mocks.market, nowMs: () => 2_000_000 } }));
 vi.mock("@agari/markets/vault", () => ({ getVaultGrant: mocks.grant, listVaultTallies: mocks.tallies, recoverVaultExecution: mocks.recover }));
 vi.mock("@agari/markets/strategies", () => ({ listStrategySubscribers: mocks.subscribers }));
 
@@ -13,15 +13,15 @@ import { executeForSubscriber } from "./execute";
 import { readAgentRecord, settlementReader } from "./agent-record";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
 
-const OWNER = `0x${"11".repeat(20)}` as Address;
-const RUNNER = `0x${"22".repeat(20)}` as Address;
-const MARKET = `0x${"33".repeat(32)}`;
-const HASH = `0x${"44".repeat(32)}`;
+const OWNER = encodeBase58(new Uint8Array(32).fill(0x11)) as Address;
+const RUNNER = encodeBase58(new Uint8Array(32).fill(0x22)) as Address;
+const MARKET = encodeBase58(new Uint8Array(32).fill(0x33));
+const HASH = encodeBase58(new Uint8Array(64).fill(0x44));
 const ok = <T>(value: T) => ({ ok: true as const, value, stale: false, asOfMs: 0 });
 const grant = { grantId: 9n, owner: OWNER, actor: RUNNER, kind: "strategy", revoked: false, expiresAtSec: 10_000, spentDay: 0, spentTodayBase: 0n, openPositions: 0, budgetBase: 5_000_000n, caps: { maxStakePerTradeBase: 1_000_000n, maxDailySpendBase: 5_000_000n, maxOpenPositions: 1, maxPriceRaw: 0n } };
 const recordedFill = { txHash: HASH, strategyId: "1", grantId: "9", owner: OWNER, marketId: MARKET, side: "up", cashDelta: "100", tokenDelta: "200", atSec: 1_000, dryRun: false };
-const session = { address: RUNNER, contracts: { publicClient: { getBlockNumber: async () => 123n, getTransactionCount: async () => 7 } }, submitter: { submitOrder: mocks.send, submitTx: mocks.settle } } as unknown as SubmitterSession;
-const input = { session, sub: { strategyId: 1n, subscriber: OWNER, grantId: 9n } as StrategySubscription, market: { marketId: MARKET, asset: "BTC", decimals: 6, intervalSec: 900 } as EventMarket, decision: { side: "up" as const, moveBps: 20, thresholdBps: 10, reason: "trend" }, nowMs: 1_000_000, dryRun: false };
+const session = { address: RUNNER, contracts: { signer: RUNNER, deployment: null }, submitter: { submitOrder: mocks.send, submitTx: mocks.settle } } as unknown as SubmitterSession;
+const input = { session, sub: { strategyId: 1n, subscriber: OWNER, grantId: 9n } as StrategySubscription, market: { marketId: MARKET, asset: "TSLA", decimals: 6, intervalSec: 900 } as unknown as EventMarket, decision: { side: "up" as const, moveBps: 20, thresholdBps: 10, reason: "trend" }, nowMs: 1_000_000, dryRun: false };
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -52,7 +52,7 @@ describe("durable strategy attempts", () => {
   it("preserves an unknown send and refuses to replay it after restart", async () => {
     mocks.send.mockResolvedValue({ status: "unknown", txHash: HASH, diagnosis: { technical: "RPC timeout" } });
     expect((await executeForSubscriber(input)).status).toBe("unknown");
-    expect(mocks.begin).toHaveBeenCalledWith(expect.objectContaining({ nonce: 7, fromBlock: "123" }));
+    expect(mocks.begin).toHaveBeenCalledWith(expect.objectContaining({ nonce: 0, fromBlock: "123" }));
     expect(mocks.finish).toHaveBeenCalledWith(expect.anything(), "unknown", HASH, "RPC timeout");
     mocks.getAttempt.mockResolvedValue({ state: "unknown" });
     expect((await executeForSubscriber(input)).status).toBe("unknown");

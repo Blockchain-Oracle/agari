@@ -1,6 +1,6 @@
 import { createSubmitterSession, ensureMarkets, getCollateral, loadCollateral, parseMarketsEnv, syncClock } from "@agari/markets";
 import { xAcquireReplyDelivery, xBeginReplyPost, xClaimMention, xFinishReplyPost, xMarkInterruptedReplyPosts, xReceiptByMention, xRelayStateGet, xRelayStateSet, xStopReplyDelivery, xRecoveryCandidates, xStoreRecoveredReceipt, xSetStageHealth, xHasUnresolvedBroadcast, xIsRelayReply, xSuppressRelayReplyDeliveries } from "@agari/db";
-import type { Bytes32 } from "@agari/core/types";
+import type { Hash32 } from "@agari/core/types";
 import { readRelayEnv, RELAY_ENV } from "./env";
 import { executeMention, resolveVenue, xReceiptUpsert } from "./execute";
 import { rettiwtTransport } from "./rettiwt";
@@ -33,14 +33,14 @@ export async function startXRelay(log: (why: string) => void): Promise<void> {
   ensureMarkets(marketsEnv);
   await loadCollateral();
   await syncClock();
-  const venueId = await resolveVenue(marketsEnv.venueId as Bytes32);
+  const venueId = await resolveVenue(marketsEnv.venueId);
   if (!venueId) {
     log("no live venue — nothing to execute against");
     setInterval(() => log("no live venue"), HEARTBEAT_MS);
     return;
   }
   const execution = createXExecutionJournal();
-  const session = await createSubmitterSession({ env: marketsEnv, authority: "x-executor", signer: { privateKey: relay.executorPrivateKey }, journal: execution.journal });
+  const session = await createSubmitterSession({ env: marketsEnv, authority: "x-executor", signer: { secretKey: relay.executorPrivateKey }, journal: execution.journal });
   // The way to X: the account's own session. Replies go out as the account only when asked for.
   const transport = rettiwtTransport(relay.rettiwtApiKey, relay.handle);
   let botAuthorId: string;

@@ -3,7 +3,7 @@ import { dailyHeadroomBase, type VaultGrant } from "@agari/core/vault";
 import type { Decision, StrategyFill, StrategySubscription } from "@agari/core/strategies";
 import { toMarketId, type EventMarket, type MarketId } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
-import { marketsProvider, type SubmitterSession } from "@agari/markets";
+import { marketsProvider, type SubmitterSession, readRecoveryCursor } from "@agari/markets";
 import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, recordAttemptFill } from "@agari/db";
 
 export type ExecutionResult =
@@ -63,8 +63,10 @@ export async function executeForSubscriber(input: {
   const target = { marketId: market.marketId, poolAddress: market.poolAddress, decimals: market.decimals, intervalSec: market.intervalSec };
   const quote = await marketsProvider.freshQuoteStake(target, side, stakeBase);
   if (!isOk(quote) || quote.stale || !quote.value) return { status: "skipped", reason: "nothing freshly quoted at this size; holding" };
-  const [fromBlock, nonce] = await Promise.all([session.contracts.publicClient.getBlockNumber(), session.contracts.publicClient.getTransactionCount({ address: session.address, blockTag: "pending" })]);
-  const acquired = await beginStrategyAttempt({ ...key, runner: session.address, grantId: sub.grantId.toString(), side, stakeBase: stakeBase.toString(), fromBlock: fromBlock.toString(), nonce });
+  // The recovery cursor is the slot before the send; Solana has no account nonce, so the stored nonce is 0 (S9 reshapes the row).
+  const cursor = await readRecoveryCursor();
+  if (!isOk(cursor)) return { status: "skipped", reason: `recovery cursor unreadable: ${cursor.error.technical}; holding` };
+  const acquired = await beginStrategyAttempt({ ...key, runner: session.address, grantId: sub.grantId.toString(), side, stakeBase: stakeBase.toString(), fromBlock: cursor.value.fromSlot.toString(), nonce: 0 });
   if (!acquired) return { status: "skipped", reason: "another attempt already reserved this Window; not resending" };
   try {
     const outcome = await session.submitter.submitOrder({
