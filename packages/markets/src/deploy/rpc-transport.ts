@@ -1,6 +1,7 @@
 /**
  * The JSON-RPC transport every operator client uses (the S3 devnet soak hit Helius 429s at boundary bursts and
- * half-closed keep-alive sockets). Retries live here, above `fetch`: undici's retry interceptor can't replay a fetch
+ * half-closed keep-alive sockets). Calls are paced process-wide (`RPC_MAX_RPS`, default 8; `sendTransaction` also
+ * `RPC_SEND_TPS`, default 3), then retried on what still fails. Retries live here, above `fetch`: undici's retry interceptor can't replay a fetch
  * POST body (it fails with UND_ERR_REQ_CONTENT_LENGTH_MISMATCH), while a transport call rebuilds the request each time.
  * Retrying `sendTransaction` is safe: a duplicate signature is deduplicated by the cluster, and actors reconcile from
  * chain state before acting again.
@@ -14,7 +15,35 @@ const MAX_DELAY_MS = 8_000;
 const RETRY_STATUS = new Set([429, 500, 502, 503, 504]);
 const RETRY_NETWORK = new Set(["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "EPIPE", "ENETUNREACH", "EHOSTUNREACH", "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT"]);
 
+/** Process-wide pacing, so a boundary burst queues instead of hitting the provider limit (Helius devnet ≈ 10 RPS). */
+const MAX_RPS = Number(process.env.RPC_MAX_RPS) || 8;
+const SEND_TPS = Number(process.env.RPC_SEND_TPS) || 3;
+
 let dispatcher: Dispatcher | undefined;
+
+/** A token bucket: `take` resolves when a token is free, in arrival order. */
+function tokenBucket(ratePerSec: number) {
+  let tokens = ratePerSec;
+  let refilledMs = Date.now();
+  let tail: Promise<void> = Promise.resolve();
+  const refill = () => {
+    const now = Date.now();
+    tokens = Math.min(ratePerSec, tokens + ((now - refilledMs) / 1000) * ratePerSec);
+    refilledMs = now;
+  };
+  return (signal?: AbortSignal): Promise<void> => {
+    const turn = tail.then(async () => {
+      for (refill(); tokens < 1; refill()) await sleep(Math.ceil(((1 - tokens) / ratePerSec) * 1000), signal);
+      tokens -= 1;
+    });
+    tail = turn.catch(() => undefined);
+    return turn;
+  };
+}
+
+const anyCall = tokenBucket(MAX_RPS);
+const sendCall = tokenBucket(SEND_TPS);
+const isSend = (payload: unknown) => (payload as { method?: unknown } | null)?.method === "sendTransaction";
 
 /** Bounded connections per origin, header/body timeouts, and a keep-alive shorter than the provider's idle close. */
 export function rpcHttpDispatcher(): Dispatcher {
@@ -44,6 +73,8 @@ export function retryingRpcTransport(url: string): RpcTransport {
   return (async (request: Parameters<RpcTransport>[0]) => {
     for (let attempt = 0; ; attempt++) {
       try {
+        if (isSend(request.payload)) await sendCall(request.signal);
+        await anyCall(request.signal);
         return await inner(request);
       } catch (error) {
         if (attempt >= MAX_RETRIES || request.signal?.aborted || !retryable(error)) throw error;
