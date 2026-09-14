@@ -522,6 +522,67 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** Windows keep rolling and settling through provider rate limits; a stuck actor recovers within ≈ 10 min instead of silently stopping.
 - **Approval:** within plan r2 S3 (soak hardening; plan §9 risk "Helius 10 RPS (batch, cursor backfill)").
 
+### D-031 — The S4 contract and lanes
+- **Date / owner:** 2026-09-14 · S4 owner (foundation)
+- **Evidence:** `docs/plan/specs/first-call.md` (spec architect pass over the ports, the S1 stub, S2/S3 Solana code, the web consumers and Masayume `68f7a09`, with file:line citations); the S3 soak (live Windows, maker quotes, prints, an indexer lagging ≈ 2 s); D-030 (a free Helius key saturates from ops alone).
+- **Rule:**
+  - **Sources:** a read comes from the chain when it gates a write or must be head-fresh (the Window snapshot, Books, seats, balances, clock). Lists and history come from the indexer through `/api/index/*`. Spot and session state come from ops HTTP.
+  - **Browser pacing:** the browser has its own paced transport, `runtime/transport.ts` (Node-only undici stays server-side).
+  - **Lanes:**
+    - 4a reads (its first slice, 4a.1 = the §2.1 runtime, merges first);
+    - 4b writes;
+    - 4c faucet;
+    - 4d surfaces.
+  - **Merge order:** 4a.1 → 4a → 4b → 4c → 4d, with file ownership per spec §7. The stage owner alone edits manifests, the lockfile, `core/ports`, `markets/{env,index}.ts`, web providers and env, `services/ops`, invariants and docs.
+  - **Invariants:** `order-lane-ioc`, `status-gate-enum` and `expiry-from-headroom` are re-pointed at the Solana order-lane files (optional until 4b lands them).
+- **User-visible:** none yet.
+- **Approval:** within plan r2 S4.
+
+### D-032 — The settler leaves user seats to their owners for 300 s
+- **Date / owner:** 2026-09-14 · S4 owner (spec Q-S4-3, recommended default taken; the user had said SOL float is not a concern)
+- **Evidence:** venue-ops.md §7 has the settler `redeem_for` every user seat right after settle, so S4's Claim (L-33/L-34) would almost never be seen. A grace of 300 s keeps Ledgers open ≈ 5 min longer, ≈ 0.9 SOL more roller float in a full session.
+- **Rule:** the settler releases the Book at once but waits until `resolved_ts + SETTLER_REDEEM_GRACE_SEC` (default 300) before `redeem_for` on non-PROGRAM seats; after that it pays whatever is left. The UI shows "Paid automatically" with the crank signature for a seat the settler paid (`13121f8`, venue-ops.md §7 amended by this entry).
+- **User-visible:** after a Window settles, winners have 5 minutes to press Claim themselves; otherwise they are paid automatically.
+- **Approval:** stage owner on the spec default; reversible by env.
+
+### D-033 — Solana write semantics for the order and redeem lanes; journal recovery by signature
+- **Date / owner:** 2026-09-14 · S4 owner (foundation)
+- **Evidence:**
+  - events-engine.md §3 and §8.4: an IOC with no fill reverts with 6110, partial redeem is PROGRAM-only (6232), and the first order in a Window takes the seat bond.
+  - Masayume's order lane (`submitter/order-lane.ts:68-110`).
+  - Solana has no nonce: a signature with no status past its blockhash's `lastValidBlockHeight` never landed.
+- **Rule:**
+  - **Orders:** Up = BUY_YES IOC, Down = BUY_NO IOC, at the confirmed quote's limit. Simulation 6110 → requote (or no-liquidity); a landed 6110 → `nothingFilled`. Funding counts the seat bond and seat credit (`use_credit: true`).
+  - **Redeem:** one full `user_redeem` per Window; a seat already paid by the settler reconciles to `confirmed` from the indexer's `Redeemed`.
+  - **Fees:** the wallet is the fee payer.
+  - **Port addition (additive):** `IntentRecord.lastValidBlockHeight?` and `IntentJournal.markSent(id, txHash, lastValidBlockHeight?)`.
+  - **Reconcile:** `getSignatureStatuses` → `confirmed` / `reverted` / `absent` (past the block height) / `unknown`. Nothing is re-signed.
+- **User-visible:** a stale ticket asks again instead of failing; an order the book outran says nothing was taken; a closed tab mid-send resolves on return.
+- **Approval:** within plan r2 S4.
+
+### D-034 — The S4 faucet: one challenge signature, server-sent SOL top-up and tUSDC mint
+- **Date / owner:** 2026-09-14 · S4 owner (spec Q-S4-1, recommended default)
+- **Evidence:** tUSDC's mint authority is the server role `faucet-mint-authority` (D-026), so a wallet cannot mint alone. A wallet-built transaction co-signed by the authority breaks when a wallet modifies the transaction (Wallet Standard `signTransaction` may). Masayume's SOL faucet service, challenge and quotas already exist in `web/src/features/funding`.
+- **Rule:**
+  - **Claims:** the user signs one free challenge message. The server then sends a SOL top-up (new role `sol-faucet` `HL3ZUNsP…`: SOL source, fee payer and ATA rent payer) and/or a tUSDC `mintToChecked` (signed by `faucet-mint-authority`) through the faucet service.
+  - **Quotas:** journaled with Masayume's quotas plus the new tUSDC policy (10,000 tUSDC per claim, one per wallet and 10 per IP per 24 h, 2,000,000 per 24 h globally).
+  - **RPC:** the faucet uses public devnet by default.
+  - **Keys:** env vars on a server; locally, the role files in `~/.config/agari/devnet/`. They are never copied into `.env` files.
+- **User-visible:** "Get test funds" needs one signature and no transaction popup; tUSDC arrives without the user paying a fee.
+- **Approval:** stage owner on the spec default.
+
+### D-035 — S4 gate wording and browser RPC
+- **Date / owner:** 2026-09-14 · S4 owner (spec §4, Q-S4-2)
+- **Evidence:**
+  - D-023 moved the sponsor co-sign to S7 and removed Privy.
+  - Public Solana endpoints limit per IP (100 req / 10 s), so each browser brings its own budget.
+  - A Helius key in a browser bundle would leak, and the free key already saturates from ops (D-030).
+- **Rule:**
+  - **Gate rows:** "sponsored fill (fee payer = sponsor)" becomes "wallet-paid IOC fill: fee payer = the user's wallet, SOL from the faucet top-up; sponsored fills move to S7". "Manual fresh-Privy end-to-end" becomes "a fresh Phantom (Wallet Standard) wallet".
+  - **Browser RPC:** browsers use `NEXT_PUBLIC_SOLANA_RPC_URL`/`_WS_URL`, which default to public devnet, through the paced browser transport. There is no `/api/rpc` proxy in S4; revisit at S16.
+- **User-visible:** the first call needs a little devnet SOL from the faucet top-up.
+- **Approval:** stage owner, following the user's D-023.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

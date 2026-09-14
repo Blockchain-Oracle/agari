@@ -59,7 +59,7 @@ const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ en
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.
 const relay = actors.has("relay") ? await boot("price-relay", () => startPriceRelay(deps("price-relay"))) : null;
 const spot = relay?.spot ?? null;
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot, env, log: log("http") }));
+if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot, sessions, env, log: log("http") }));
 if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));
 if (actors.has("settler")) void boot("settler", () => startSettler(deps("settler")));
 if (actors.has("indexer")) void boot("indexer", () => startIndexer(deps("indexer")));

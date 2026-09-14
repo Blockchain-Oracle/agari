@@ -75,5 +75,28 @@ export const rules = [
     exts: [...TS, ".mjs", ".css", ".rs"],
     check: fileLength,
   },
+  // S4 (first-call.md §7): the Solana order lane's three structural guarantees, optional until 4b lands the files.
+  {
+    id: "order-lane-ioc",
+    description: "the user order lane places IOC only (no resting, no self-match); first-call.md §3.1",
+    file: "packages/markets/src/submitter/steps/build.ts",
+    optional: true,
+    mustMatch: /ORDER_TYPE\.ioc/,
+    mustNotMatch: /ORDER_TYPE\.(normal|fok|postOnly)/,
+  },
+  {
+    id: "status-gate-enum",
+    description: "the order lane gates on the on-chain Trading status enum, never a string or clock guess",
+    file: "packages/markets/src/submitter/steps/status-gate.ts",
+    optional: true,
+    mustMatch: /ONCHAIN_STATUS\.Trading/,
+  },
+  {
+    id: "expiry-from-headroom",
+    description: "order expiry comes from core's lock-aware headroom helper",
+    file: "packages/markets/src/submitter/steps/expiry.ts",
+    optional: true,
+    mustMatch: /orderExpirySec\(/,
+  },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];

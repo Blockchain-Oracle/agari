@@ -164,12 +164,14 @@ export interface IntentRecord {
   /** The pool and Window an order was aimed at — what a send with no digest is reconciled against. */
   pool?: Address;
   marketId?: MarketId;
+  /** Solana: the blockhash's last valid block height. Past it, a signature with no status never landed (D-033). */
+  lastValidBlockHeight?: number;
 }
 
 /** Intent is journaled before send so a no-digest timeout can be reconciled instead of retried (AD-3). */
 export interface IntentJournal {
   record(entry: Omit<IntentRecord, "id" | "state" | "createdAtMs">): Promise<IntentRecord>;
-  markSent(id: string, txHash: Signature): Promise<void>;
+  markSent(id: string, txHash: Signature, lastValidBlockHeight?: number): Promise<void>;
   markConfirmed(id: string): Promise<void>;
   markFailed(id: string, reason: string): Promise<void>;
   markUnknown(id: string): Promise<void>;

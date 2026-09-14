@@ -29,8 +29,8 @@ export function createJournal(store: IntentStore, nowMs: () => number = Date.now
       store.save([...store.load(), record].slice(-MAX_RECORDS));
       return record;
     },
-    async markSent(id, txHash) {
-      update(id, { state: "sent", txHash });
+    async markSent(id, txHash, lastValidBlockHeight) {
+      update(id, { state: "sent", txHash, ...(lastValidBlockHeight === undefined ? {} : { lastValidBlockHeight }) });
     },
     async markConfirmed(id) {
       update(id, { state: "confirmed" });
