@@ -1,0 +1,7 @@
+{
+  "_doc": [
+    "Split-day skip list for window-roller (plan §4, venue-ops.md §5.2). A skip pauses every Regular Window of that ticker on that ET date ('paused: corporate action').",
+    "Shape: { \"symbol\": \"TSLA\", \"date\": \"YYYY-MM-DD\" (ET), \"why\": \"3-for-1 split\" }. S6 owns the source of these entries."
+  ],
+  "skips": []
+}
