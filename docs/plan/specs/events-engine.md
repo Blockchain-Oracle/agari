@@ -61,7 +61,7 @@ For a fill of `q` lots at maker price `M` (`cu = 1` below):
 
 ### 2.2 Worked numbers (launch grid, `cu = 1`, amounts in base units; 1 USDC = 1,000,000)
 
-Seats A, B, C, D in one Window. `credit`/`transferred_in` are base units; YES/NO are lots.
+Seats A, B, C, D in one Window. `credit`/`transferred_in` are base units; YES/NO are lots. Examples take `seat_bond = 0`; each is read on its own unless it names an earlier state (so 5 does not cross A's bid from 3).
 
 1. **DIRECT_YES.** A holds 5,000 YES and rests `SELL_YES 5,000 @ 540` → A `yes_free 0, yes_locked 5,000`. B sends `BUY_YES 3,000 @ 560 IOC`. The best ask 540 ≤ 560 → one fill of 3,000 @ 540.
    - B pays 3,000 × 540 = **1,620,000** (worst case at the limit 1,680,000; `refunded` 60,000, never pulled). B `yes_free 3,000`.

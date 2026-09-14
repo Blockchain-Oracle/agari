@@ -27,7 +27,7 @@ Companion to [`events-engine.md`](events-engine.md), [`events-accounts.md`](even
 | Switchboard (S6) | — | — | — | 10 | — | 20 | 60 | 60 |
 | Attested | — | — | — | 60 | 60 | — | 900 | 900 |
 | **Gap-lane Series** (any source) | | | | | | | **`ADMIT_UNTIL_LOCK`** | source default |
-| **Check policy** (any source) | source values | | | | | | `= check_admission_sec` (120) | `= check_admission_sec` (120) |
+| **Check policy** (any source) | source values | | RedStone: **60** | | | | `= check_admission_sec` (120) | `= check_admission_sec` (120) |
 
 `max_divergence_bps` = 25 and `check_admission_sec` = 120 when a check exists, else both 0. The launch versions from D-003 become `admin_add_policy_version` calls in `scripts/deploy/set-policies.mjs`:
 - TSLA v1: Pyth primary + RedStone check, `2026-09-11T00:00Z → 2026-09-25T20:00Z`.
@@ -48,6 +48,7 @@ Companion to [`events-engine.md`](events-engine.md), [`events-accounts.md`](even
 4. **Check:**
    - `source == None` ⇒ the whole check struct is zero, `max_divergence_bps == 0`, `check_admission_sec == 0`.
    - Otherwise: `source ≠ primary.source`; per-source rules as above; `open_admission_sec == close_admission_sec == check_admission_sec ≥ 1`; `1 ≤ max_divergence_bps ≤ 10,000`.
+   - A RedStone check needs `strict_sec < check_admission_sec`, so the liveness threshold is reachable inside the check window. Otherwise one offline signer silently turns every cross-checked Window single-source (D-013).
 
 ### 2.3 Version selection (roller, off-chain and on-chain)
 

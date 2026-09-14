@@ -25,7 +25,7 @@ Companion to [`events-engine.md`](events-engine.md), [`events-accounts.md`](even
 1. `program_data` is this program's ProgramData and `upgrade_authority == admin` (NotAdmin). Blocks deploy front-running.
 2. `token_program == spl_token::ID`, `collateral_mint.owner == spl_token::ID` (WrongTokenProgram; Token-2022 rejected).
 3. `treasury.mint == collateral_mint` (WrongMint).
-4. `cluster_tag ∈ {1,2,3}` (BadAuthorities).
+4. `cluster_tag ∈ {101, 103, 104}` (BadAuthorities): core `CLUSTER_ID` (D-012, D-013).
 
 **Effects:** config fields; `mode = Normal`; `collateral_decimals = mint.decimals`; authority arrays zero. **Event:** `ConfigInitialized`.
 
@@ -46,7 +46,7 @@ Companion to [`events-engine.md`](events-engine.md), [`events-accounts.md`](even
 **Args:** `ticker u16, cadence_sec u32, basis u8, lot_base u64, tick_base u64, min_lots u64, seat_bond u64, min_rest_slots u32, max_lead_sec u32, fills_cap u8, evictions_cap u8`
 **Accounts:** admin S w (payer) · config r · series w (init PDA) · system_program r
 1. NotAdmin.
-2. `basis ≤ 2`. Regular/Token: `cadence_sec ≥ 60`, `cadence_sec % 60 == 0`, `86,400 % cadence_sec == 0`. Gap: `cadence_sec == 0` (BadAlignment).
+2. `basis ≤ 2`. Regular/Token: `cadence_sec ≥ 60`, `cadence_sec % 60 == 0`, `3,600 % cadence_sec == 0` (ET offsets are whole hours, so only cadences dividing an hour stay on the ET clock). Gap: `cadence_sec == GAP_CADENCE_SEC` (604,800) (BadAlignment). D-013.
 3. `pow = 10^collateral_decimals`: `tick_base × 1000 == pow`, `lot_base × tick_base % pow == 0`, `min_lots ≥ 1` (BadGrid).
 4. `1 ≤ fills_cap ≤ 32`, `evictions_cap ≤ 16`, `max_lead_sec ≥ 1` (BadSeriesParams).
 
@@ -79,7 +79,7 @@ The book is created earlier in the same transaction by `SystemProgram.createAcco
 5. `trading_start < lock_at ≤ expiry` and `lock_at > now` (BadHorizon).
 6. `trading_start ≥ series.last_expiry` (WindowOverlap).
 7. **Alignment:**
-   - Regular/Token: `expiry % cadence_sec == 0`, `expiry − trading_start ≤ cadence_sec`, `lock_at == expiry` (BadAlignment). A partial first Window, e.g. 09:30 → 10:00 on the 60 m lane, is allowed.
+   - Regular/Token: `trading_start % cadence_sec == 0`, `expiry − trading_start == cadence_sec`, `lock_at == expiry` (BadAlignment). No partial Windows: the 60 m lane starts at 10:00 (core `market/windows.ts`, D-011, D-013).
    - Gap: `expiry − trading_start ≤ MAX_GAP_DURATION_SEC` (BadHorizon).
 8. `trading_start ≤ now + series.max_lead_sec` (BadHorizon).
 9. `open_kind ≤ 2`, `close_kind ≤ 2` (BadAlignment).

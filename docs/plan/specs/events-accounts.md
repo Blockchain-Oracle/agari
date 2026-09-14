@@ -37,6 +37,7 @@ Companion to [`events-engine.md`](events-engine.md) (semantics), [`events-instru
 | `MAX_POLICY_VERSIONS` / `MAX_FREE_BOOKS` | 8 / 4 |
 | `MAX_GAP_DURATION_SEC` | 432,000 (5 days: Fri 16:00 → Tue 09:30 over a holiday Monday) |
 | `ADMIT_UNTIL_LOCK` | `u32::MAX` (prints.md §3) |
+| `GAP_CADENCE_SEC` | 604,800 (the Gap Series `cadence_sec` seed; = core `GAP_CADENCE_SEC`) |
 | `DEFAULT_RESULT_RETENTION_SEC` | 21,600 |
 | `ATTEST_DOMAIN` | `b"agari-print-v1"` (14 B) |
 
@@ -58,7 +59,7 @@ Companion to [`events-engine.md`](events-engine.md) (semantics), [`events-instru
 | `Winner` | 0 Yes (Up), 1 No (Down), 2 Void |
 | `StopReason` | 0 Filled, 1 NoCross, 2 FillCap, 3 SkipCap, 4 PostOnlyRested |
 | `RemoveReason` | 0 Expired, 1 SelfMatch, 2 UserCancel, 3 CancelAll, 4 Sweep |
-| `ClusterTag` | 1 devnet, 2 mainnet-beta, 3 localnet |
+| `ClusterTag` | 101 mainnet-beta, 103 devnet, 104 localnet (= core `CLUSTER_ID`, D-013) |
 
 **Flags:** `Seat.flags` bit0 `PROGRAM`, bit1 `BONDED`. `OrderNode.flags` bit0 `LIVE`. `Print.flags` bit0 `COPIED_FROM_PREV`. `Market.flags` bit0 `BOOK_RELEASED`, bit1 `LEDGER_CLOSED`, bit2 `SINGLE_SOURCE`.
 
@@ -123,7 +124,7 @@ Companion to [`events-engine.md`](events-engine.md) (semantics), [`events-instru
 | 0 | `ticker` | u16 | registry id (`core/market/tickers.ts`) |
 | 2 | `basis` | u8 | `Basis` |
 | 3 | `bump` | u8 | |
-| 4 | `cadence_sec` | u32 | 0 for Gap |
+| 4 | `cadence_sec` | u32 | `GAP_CADENCE_SEC` = 604,800 for Gap (= core, D-013) |
 | 8 | `lot_base` | u64 | |
 | 16 | `tick_base` | u64 | `× 1000 == 10^dec` |
 | 24 | `cash_unit` | u64 | `lot_base × tick_base / 10^dec` |

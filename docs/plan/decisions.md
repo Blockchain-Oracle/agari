@@ -162,6 +162,23 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** a Window whose opening price never arrives voids early (0.5/0.5) and stops trading; users can always cancel and redeem.
 - **Approval:** within plan r2 PD-6/PD-7/PD-8 (planner, S2 spec step).
 
+### D-013 — S2 spec review amendments (core alignment)
+- **Date / owner:** 2026-09-14 · S1 owner, reviewing the S2 spec before merge
+- **Evidence:**
+  - Hand re-derivation of all eight fill rows and the eight worked examples: cash pairs sum to `1000·q`; `mvault` reconciles under Up and void.
+  - Every layout offset, size and rent figure recomputed (GlobalConfig 856, Series 1,368, Market 456, MarketResult 256, Seat 88, Book 32,384 + 48·n).
+  - The PD-6 inequalities checked for exclusivity.
+  - Core D-011 (`GAP_CADENCE_SEC`, clock-aligned Windows) and D-012 (`CLUSTER_ID`).
+- **Rule:**
+  - **Gap Series seed:** `cadence_sec = 604,800` (not 0), shared with core, so no consumer divides by a zero interval.
+  - **Series cadence:** Regular/Token cadences must divide 3,600.
+  - **`roller_open_window` alignment:** `trading_start % cadence == 0` and `expiry − trading_start == cadence`, with no partial Windows. The chain is at least as strict as the calendar that generates them.
+  - **`cluster_tag`:** values = core `CLUSTER_ID` (101 mainnet-beta, 103 devnet, 104 localnet), one numbering for attested prints and signed texts.
+  - **RedStone check policy:** `strict_sec < check_admission_sec` (launch value 60 s inside the 120 s window).
+  - D-006…D-009 are accepted as written, including the CancelTaker revert and refusing duplicate RedStone signers.
+- **User-visible:** none.
+- **Approval:** stage-owner review within plan r2.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
