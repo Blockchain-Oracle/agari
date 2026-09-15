@@ -1045,6 +1045,13 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** no placeholder video, ever.
 - **Approval:** stage owner.
 
+### D-098 — Ops must exit when an actor fails to start; until it does, the health check watches for it
+- **Date / owner:** 2026-09-15 · S18/S3 owner
+- **Evidence:** on 09-15 the window-roller logged `failed to start: fetch failed ← getaddrinfo ENOTFOUND devnet.helius-rpc.com` at 19:09Z. The other actors kept the process alive, so `data/soak/run.sh` never restarted it, `/session` served `lanes: {}`, and the 20:00Z prelist did not run until ops was killed by hand at 20:25Z, 98 minutes later. The S3 gate re-measure found the same pattern at 18:47Z.
+- **Rule:** a start failure in any actor is fatal: ops logs it and exits non-zero so the supervisor restarts the whole process, with the supervisor's existing 10 s sleep as the backoff. This is recorded, not built: the change lands after the Friday deadline, because a crash loop introduced the night before the bell drive is worse than the known workaround. Until then the hourly health check and the pre-bell check grep the log for `failed to start` newer than the last actor start and verify `/session` lanes is non-empty.
+- **User-visible:** an outage in one actor stops the venue rolling until someone notices; the checks cap that at an hour.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
