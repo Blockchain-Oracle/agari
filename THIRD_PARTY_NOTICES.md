@@ -1,6 +1,6 @@
 # Third-party notices
 
-This file records the sources and attribution of material used by Masayume. It does not grant a license to Masayume as a whole, change upstream terms, or imply endorsement by the named projects. Existing file-level notices and dependency licenses remain applicable.
+This file records the sources and attribution of material used by Agari, a source-led port of Masayume (`reference/masayume` @ `68f7a09`), and of the material Masayume itself carried. It does not grant a license to Agari as a whole, change upstream terms, or imply endorsement by the named projects or companies. Existing file-level notices and dependency licenses remain applicable.
 
 ## Yosuku product and presentation
 
@@ -55,6 +55,19 @@ Agari's connect and account modals (`web/src/providers/wallet/`) replicate the R
 
 - **RainbowKit** ([rainbow-me/rainbowkit](https://github.com/rainbow-me/rainbowkit), MIT, Copyright (c) 2024 Rainbow): the close, back, copy, copied and disconnect glyph paths, the spinner outline, the emoji avatar palette, and the two "What is a Wallet?" illustrations (`web/public/wallet/assets.svg`, `login.svg`). Its English strings are reused with "Ethereum" replaced by "Solana".
 - **Solana Wallet Adapter** ([anza-xyz/wallet-adapter](https://github.com/anza-xyz/wallet-adapter), Apache-2.0): the Phantom, Solflare and Backpack icons (`web/public/wallet/phantom.svg`, `solflare.svg`, `backpack.png`), taken from the adapters' `icon` data. The names and marks belong to those wallets and identify them only.
+
+## Asset marks
+
+The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-085) carry the issuer's mark as inline SVG path data, vendored so nothing is fetched at runtime and nothing sits under `web/public/`; the share-card canvas draws the same paths. The marks and names are trademarks of their owners; they identify the traded assets and imply no endorsement of, or affiliation with, Agari. A CC0 grant below covers the vectorization, not the trademark.
+
+| Mark | Source | Terms |
+| --- | --- | --- |
+| Tesla, NVIDIA, Apple, Meta, Google | [simple-icons](https://github.com/simple-icons/simple-icons) **16.31.0** (`icons/<slug>.svg`) | CC0 1.0 Universal |
+| Amazon | simple-icons **14.15.0**, the last release to carry `amazon.svg` | CC0 1.0 at publication. The maintainers removed the Amazon and AWS icons in 15.0.0 ([PR #13056](https://github.com/simple-icons/simple-icons/pull/13056)) pending permission, not on a request from Amazon. |
+| Microsoft | Own geometry: four rectangles drawn in `paths.ts`; no third-party artwork | simple-icons removed its Microsoft icons in 13.0.0 on Microsoft's trademark terms ([PR #10019](https://github.com/simple-icons/simple-icons/pull/10019)), so none is vendored. |
+| Invesco QQQ, Vanguard S&P 500, SPDR S&P 500 | None: the registry monogram typed on the fund house's colour | — |
+
+The brand colours in `packages/core/src/market/tickers.ts` (`Ticker.brand`) and `web/src/styles/icons.css` are the issuers' published mark colours (simple-icons `hex` for the vendored marks, near-black for Apple).
 
 ## Agent portraits and packaged libraries
 

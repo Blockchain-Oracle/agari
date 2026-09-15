@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { AssetDisc } from "../hero/asset-mark";
 import { SIDE_WORD } from "../side-styles";
 import { CASH_OUT, useCashOut, type CashOutTarget } from "./useCashOut";
 
@@ -91,6 +92,7 @@ export function BetRow({ position, symbol, nowMs, cashOutPreview }: BetRowProps)
       </span>
 
       <Link href={marketDeepLink({ marketId: position.marketId })} data-cursor="hover" className="type-body-strong text-ink">
+        <AssetDisc asset={position.asset} className="bets-mark" />
         {position.asset} {sideLabel(position)}
       </Link>
       <span className="type-label-micro text-ink-muted">{formatCadence(position.intervalSec)}</span>

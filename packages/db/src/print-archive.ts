@@ -102,3 +102,34 @@ export async function printArchiveStats(fromSec: number): Promise<PrintArchiveSt
     minSigners: r.min_signers,
   }));
 }
+
+export interface ArchivedLatest {
+  source: PrintArchiveSource;
+  feed: string;
+  boundarySec: number;
+  /** Decimal integer string, price × 10⁸. */
+  priceE8: string;
+  signers: number;
+}
+
+/**
+ * The newest archived row of each `(source, feed)` asked for: the last price a surface can show when no live source
+ * has ticked since the process started (D-086). Feeds are unique across sources (tickers vs Pyth hex ids), so one
+ * `ANY` per column is exact. Null when no database is configured.
+ */
+export async function latestArchivedPrints(keys: readonly { source: PrintArchiveSource; feed: string }[]): Promise<ArchivedLatest[] | null> {
+  const db = getDb();
+  if (!db) return null;
+  if (keys.length === 0) return [];
+  await ensureSchema();
+  const sources = [...new Set(keys.map((k) => k.source))];
+  const feeds = [...new Set(keys.map((k) => k.feed))];
+  const wanted = new Set(keys.map((k) => `${k.source}:${k.feed}`));
+  const rows = await db<Array<{ source: PrintArchiveSource; feed: string; boundary_sec: string; price_e8: string; signers: number }>>`
+    SELECT DISTINCT ON (source, feed) source, feed, boundary_sec, price_e8, signers FROM print_archive
+    WHERE source = ANY(${sources}::text[]) AND feed = ANY(${feeds}::text[])
+    ORDER BY source, feed, boundary_sec DESC`;
+  return rows
+    .filter((r) => wanted.has(`${r.source}:${r.feed}`))
+    .map((r) => ({ source: r.source, feed: r.feed, boundarySec: Number(r.boundary_sec), priceE8: r.price_e8, signers: r.signers }));
+}

@@ -6,6 +6,7 @@ import type { LaneSet, Side } from "@agari/core/types";
 import { useOpeningPrice } from "@agari/markets/react";
 import { UnplugIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { usdLine } from "@/features/markets/hero/units";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { ConnectButton } from "@/features/markets/wallet";
@@ -53,7 +54,9 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
   const lineRaw = opening?.ok ? opening.value : (market?.openingPriceRaw ?? null);
   const spotRaw = useOracleSpot(market?.asset ?? null);
 
+  // The chip's words after the asset, as the card cuts them (`callParts`): " over $359.07", " vs the opening print".
   const band = market === null ? null : lineRaw === null ? TAKES.noLine(market.asset) : side === "up" ? TAKES.over(market.asset, usdLine(lineRaw)) : TAKES.under(market.asset, usdLine(lineRaw));
+  const tail = band === null || market === null ? null : band.startsWith(market.asset) ? band.slice(market.asset.length) : ` ${band}`;
   const canPost = configured === true && !!address && market !== null && !busy;
 
   const submit = async () => {
@@ -160,9 +163,24 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
 
                 <div className="take-preview">
                   <div className="take-preview-label">{C.calling}</div>
+                  {/* The card's call chip, mirrored (D-082): mark, direction, the asset as a cashtag, the band's words. */}
                   <div className="take-preview-call">
-                    {side === "up" ? "▲" : "▼"} {band ?? "—"}
-                    <span className="take-preview-window"> · {market ? TAKES.window(formatCadence(market.intervalSec)) : C.noMarket}</span>
+                    <span className="take-chip take-preview-chip">
+                      {market && <AssetDisc asset={market.asset} className="take-chip-mark" />}
+                      <span className="take-chip-dir">{side === "up" ? "▲ UP" : "▼ DOWN"}</span>
+                      <span className="take-chip-dot">·</span>
+                      <span className="take-chip-band">
+                        {market ? (
+                          <>
+                            <span className="take-chip-tag">${market.asset}</span>
+                            {tail}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </span>
+                    </span>
+                    <span className="take-preview-window">· {market ? TAKES.window(formatCadence(market.intervalSec)) : C.noMarket}</span>
                   </div>
                 </div>
 

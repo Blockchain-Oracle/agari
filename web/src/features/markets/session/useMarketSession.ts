@@ -5,24 +5,29 @@ import { err, ok, type Reading } from "@agari/core/schemas";
 import { diagnosis, HALT_REASONS, type CorporateSkip, type EarningsEvent, type HaltBoard, type HaltEntry, type LaneBasis } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { useReadingQuery } from "@agari/markets/react";
+import { useRef } from "react";
 import { z } from "zod";
 import { webEnv } from "@/lib/env";
 
 /** first-call.md §6: the chip polls ops once a minute; a label only turns over at a session boundary. */
 const SESSION_POLL_MS = 60_000;
+/** Closed and more than ten minutes from the next open, the body cannot change: poll every five minutes (S18a). */
+const CLOSED_POLL_MS = 5 * 60_000;
+const NEAR_BOUNDARY_SEC = 10 * 60;
 const SESSION_KEY = ["agari", "ops", "session"] as const;
 
 const sessionSchema = z.object({ date: z.string(), openSec: z.number(), closeSec: z.number(), earlyClose: z.boolean() });
 
 /**
  * The ops `GET /session` body (`services/ops/src/http/session.ts`); lanes are keyed by core `laneKey`. The S6 fields
- * default so an ops process from before S6 still reads: no halts, earnings unknown, no skips.
+ * default so an ops process from before S6 still reads: no halts, earnings unknown, no skips. `calendar.recent`
+ * (S5) defaults empty for the same reason.
  */
 const bodySchema = z.object({
   nowSec: z.number(),
   status: z.object({ session: sessionSchema.nullable() }).passthrough().nullable(),
   calendar: z
-    .object({ fromDate: z.string(), toDate: z.string(), unknownDates: z.array(z.string()), upcoming: z.array(sessionSchema) })
+    .object({ fromDate: z.string(), toDate: z.string(), unknownDates: z.array(z.string()), upcoming: z.array(sessionSchema), recent: z.array(sessionSchema).default([]) })
     .nullable(),
   lanes: z.record(z.string(), z.string()),
   halts: z.record(z.string(), z.object({ reason: z.enum(HALT_REASONS), sinceSec: z.number() })).default({}),
@@ -49,6 +54,8 @@ export interface MarketSession {
   /** Report dates 14 days ahead; null = unknown, never "none". */
   earnings: readonly EarningsEvent[] | null;
   skips: readonly CorporateSkip[];
+  /** Every session the calendar names, recent through upcoming, ascending: the archive window and the daily closes read from it (S18a). */
+  sessions: readonly TradingSession[];
 }
 
 async function readSession(): Promise<Reading<SessionBody>> {
@@ -59,12 +66,23 @@ async function readSession(): Promise<Reading<SessionBody>> {
   return ok(bodySchema.parse(await response.json()), marketsProvider.nowMs());
 }
 
-/** Today's session (kept even once it has closed) and the upcoming ones: every date the core rules will ask about. */
+/** The recent sessions, today's (kept even once it has closed) and the upcoming ones: every date the core rules will ask about. */
 function calendarOf(body: SessionBody): SessionCalendar | null {
   if (!body.calendar) return null;
-  const today: TradingSession[] = body.status?.session ? [body.status.session] : [];
-  const sessions = [...today, ...body.calendar.upcoming.filter((s) => s.date !== body.status?.session?.date)];
+  const byDate = new Map<string, TradingSession>();
+  for (const s of [...body.calendar.recent, ...(body.status?.session ? [body.status.session] : []), ...body.calendar.upcoming]) byDate.set(s.date, s);
+  const sessions = [...byDate.values()].sort((a, b) => a.openSec - b.openSec);
   return { fromDate: body.calendar.fromDate, toDate: body.calendar.toDate, unknownDates: body.calendar.unknownDates, sessions };
+}
+
+/** Once a minute near a boundary or while open; every five minutes through a closed night, weekend or holiday. */
+function sessionPollMs(reading: Reading<SessionBody> | null): number {
+  if (!reading?.ok) return SESSION_POLL_MS;
+  const calendar = calendarOf(reading.value);
+  const nowSec = Math.floor(marketsProvider.nowMs() / 1000);
+  const status = calendar ? sessionStatus(nowSec, calendar) : null;
+  if (!status || status.state === "regular" || status.state === "early-close" || status.state === "halted") return SESSION_POLL_MS;
+  return status.nextOpenSec !== null && status.nextOpenSec - nowSec <= NEAR_BOUNDARY_SEC ? SESSION_POLL_MS : CLOSED_POLL_MS;
 }
 
 /** The roller's word for one lane, keyed as ops keys it (`TSLA-60m`, `TSLA-gap`, `TSLAx-5m`). */
@@ -102,6 +120,7 @@ export function toMarketSession(body: SessionLaneInputs, calendar: SessionCalend
     halts,
     earnings: body.earnings as EarningsEvent[] | null,
     skips: body.skips as CorporateSkip[],
+    sessions: calendar.sessions,
   };
 }
 
@@ -112,8 +131,16 @@ export function toMarketSession(body: SessionLaneInputs, calendar: SessionCalend
  * a surface then says nothing about hours rather than guessing them.
  */
 export function useMarketSession(asset?: string): MarketSession | null {
-  const reading = useReadingQuery(SESSION_KEY, readSession, { pollMs: SESSION_POLL_MS, needs: [] });
+  const reading = useReadingQuery(SESSION_KEY, readSession, { pollMs: sessionPollMs, staleTimeMs: SESSION_POLL_MS, needs: [] });
+  // The value is rebuilt every render but handed back by identity until a fact in it changes (a poll answered, a
+  // boundary passed, a halt lifted), so a consumer can memoize on the session without recomputing once a second.
+  const held = useRef<{ signature: string; value: MarketSession } | null>(null);
   if (!reading?.ok) return null;
   const calendar = calendarOf(reading.value);
-  return calendar ? toMarketSession(reading.value, calendar, Math.floor(marketsProvider.nowMs() / 1000), asset) : null;
+  const next = calendar ? toMarketSession(reading.value, calendar, Math.floor(marketsProvider.nowMs() / 1000), asset) : null;
+  if (!next) return null;
+  const { state, date, nextOpenSec, closesAtSec } = next.status;
+  const signature = [reading.value.nowSec, asset ?? "", state, date, nextOpenSec, closesAtSec, next.label].join("|");
+  if (held.current?.signature !== signature) held.current = { signature, value: next };
+  return held.current.value;
 }

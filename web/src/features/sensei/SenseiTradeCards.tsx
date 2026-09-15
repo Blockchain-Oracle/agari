@@ -6,6 +6,7 @@ import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { useState } from "react";
 import { Countdown } from "@/components/data";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { HERO_HEAD, MARKETS } from "@/lib/copy";
 import { usdLine } from "../markets/hero/units";
 import { SENSEI_UI } from "./copy";
@@ -63,6 +64,7 @@ export function SenseiTradeCards({ markets, snapshotMarkets, nowMs, onAct }: Sen
             <div key={market.marketId} className="st-card">
               <div className="st-cardhead">
                 <span className="st-asset">
+                  <AssetDisc asset={market.asset} className="sensei-mark" />
                   {market.asset} <b>{formatCadence(market.intervalSec)}</b>
                 </span>
                 <span className="st-meta">

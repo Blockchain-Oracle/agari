@@ -923,6 +923,85 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none; token prints land from the attestor key, and price-attestor becomes a paying writer (≈ 0.04–0.07 SOL/day).
 - **Approval:** stage owner, 2026-09-15.
 
+### D-081 — Fidelity reconciled: Masayume exact where it exists, creative where it does not (amends D-036)
+- **Date / owner:** 2026-09-15 · user (voice) + S18 owner
+- **Evidence:** the user, testing while NYSE was closed: the app must never be empty, must carry real stock logos, and the news page and take cards should be designed "creatively" with 21st.dev; the D-036 replica rule had no answer for surfaces Masayume never had (a 24/7 crypto venue has no closed state).
+- **Rule:** Masayume stays the authority for everything it has (chrome, modals, market cards, ticket, portfolio, tokens, type, spacing). Creative license, from 2–3 generated 21st directions with one chosen and recorded, applies to (a) surfaces Masayume never had (closed-market state, asset identity, ticker hub, activity, pre-open calls) and (b) surfaces the user flagged (`/news`, the take card and composer), implemented in Masayume's tokens. Byte-identical Masayume CSS values are never "inconsistency".
+- **User-visible:** the app looks like one product; new states and the news/take surfaces gain their own design.
+- **Approval:** user, 2026-09-15.
+
+### D-082 — `/news` and the take card are redesigned (amends social-assistant.md §1.4 "layout unchanged")
+- **Date / owner:** 2026-09-15 · S18 owner (lane 18d)
+- **Evidence:** `NewsFeed.tsx` + `news.css` and `TakeReelCard.tsx` + `take.css` are byte-identical Masayume ports; the user finds the wire "not the way the card is"; `Article.symbols` is on the wire but never shown.
+- **Rule:** keep the lead-plus-wire structure, `.news-page` tokens, mono meta, hairlines, display type, skeleton, poll and `Article` shape. Add sentiment-tinted edges, asset-mark chips with `$TICKER` cashtags, and one shared `.news-row` grammar used by `/news`, the activity feed and the ticker hub; the take chip carries the asset mark and a cashtag link. The direction is chosen from `21st generate --variants 3` and recorded here with its generation id and take number.
+- **User-visible:** the news page and takes read as cards with the stocks on them.
+- **Approval:** user (design scope), lane report for the chosen take.
+- **Amendment (2026-09-15, lane 18d):** `21st generate` is locked on this account (`21st usage`: "21st AI generation: not enabled"; `generate` answers `ai_subscription_required`), so no generation id or take number exists. Three hand-drafted directions in Agari's tokens live in `web/../data/18d-directions/` on the 18d worktree (kept locally, gitignored; its README lists them with 390/1440 screenshots): V1 Ledger (dense rows, a 2 px tone edge on every row and the lead, aligned columns), V2 Broadsheet (airy rows, the edge only as the lead's top band), V3 Wire (timestamps, square tone marks, cashtag pills). **The user chose V1 Ledger with two tweaks on 2026-09-15:** cashtags into the meta line after the source, and under 640 px the tone moves to the meta row so titles keep their width. Built as `NewsRow` + `styles/news-wire.css` (S18d.4–S18d.7); the tone is a dot + word in place of the bordered pill; the row is a list item whose title is its only link (a row that is itself an anchor cannot carry cashtag links).
+
+### D-083 — Cleanup scope for S18
+- **Date / owner:** 2026-09-15 · S18 owner (lane 18e)
+- **Evidence:** `21st review web/src`: 15 `a11y-interactive-div`, 10 `focus-outline-none`, 2 `a11y-autofocus`, 1 `responsive-fixed-width`, 3 `interaction-disabled-pointer`; the closed-market sentence is duplicated (`MARKETS.closedWindows`, `REELS.closed`); `useTickerNews` keys on `"masayume"`; 217 identity hits in 137 files.
+- **Rule:** fix the review errors, the duplicated copy, the query key, user-visible identity strings outside `features/{pitch,demo}` (S15's), and knip-confirmed dead exports. Nav honesty first: every route of a deferred stage renders its existing "not live" state. Never touch `styles/yosuku/**` values, `components/ui/**`, or anything byte-identical to Masayume; review warnings on Masayume values are skipped.
+- **User-visible:** keyboard-reachable cards, no stray Masayume wording.
+- **Approval:** stage owner.
+
+### D-084 — Scope cut for the deadline: S8–S12 and S14 deferred; W2 = S18
+- **Date / owner:** 2026-09-15 · user
+- **Evidence:** Fri 2026-09-18 20:00Z deadline; W1 (S5, S6, S7, S13) is gating this week; the always-on, pre-open-call, identity and editorial work is the user's priority over more programs.
+- **Rule:** S8 (Earn maker vault), S9 (agents), S10 (specialist tickets), S11 (X + Blinks), S12 (games programs) and S14 (add-ons) ship after the deadline. Their web surfaces stay and render honest "not live" states. `00-plan.md` §7.3 waves updated. S15/S16/S17 follow S18.
+- **User-visible:** those features show "coming soon" states rather than half-built flows.
+- **Approval:** user, 2026-09-15.
+
+### D-085 — Asset marks: real stock logos in Masayume's mark grammar (amends D-011)
+- **Date / owner:** 2026-09-15 · S18 owner (lane 18c)
+- **Evidence:** D-011 kept logos off as trademarks; the user asked for real logos everywhere ("a product, not a demo"); nominative use to identify the traded asset is standard brokerage practice; simple-icons publishes CC0 glyph paths and brand hexes for TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL; no clean Invesco/Vanguard/SPDR SVG exists; `design-literals` scans only `web/src/{app,components,features,providers}` TSX.
+- **Rule:** `Ticker.brand { slug, hex }` in `packages/core/src/market/tickers.ts` is the single source; `icons.css` mirrors `--brand-<slug>` and a vitest asserts they match. Marks are vendored inline SVG paths (`components/icons/asset-marks/`), drawn as Masayume draws BTC/ETH (`viewBox 0 0 32 32`, own brand-colour circle, white glyph). QQQ/VOO/SPY keep their monogram on the issuer colour. xStocks reuse the underlying's mark with an "x" badge. Canvas and OG code read `TICKERS[sym].brand.hex` by import. `THIRD_PARTY_NOTICES.md` gains an "Asset marks" section (simple-icons version pinned; marks identify the assets and imply no endorsement). No runtime fetch, no `remotePatterns`, nothing under `web/public/`.
+- **User-visible:** every disc, the marquee, the ticker hub, Sensei cards, portfolio rows and share cards carry the real mark.
+- **Approval:** user (logos), stage owner (sources).
+
+### D-086 — Always-on data: the last price and the last session never disappear
+- **Date / owner:** 2026-09-15 · S18 owner (lane 18a)
+- **Evidence:** `services/ops/src/http/spot-sse.ts` drops quotes older than 60 s, so overnight `/prices/latest` can be `{}`; the spot feed is in-memory, so an ops restart leaves nothing until a source ticks; `print_archive` holds a signed 5-minute series per ticker per session (RedStone rows keyed by ticker) with no read path; the web hero chart reads only a Window's open/close prints.
+- **Rule:** `/prices/latest` and the SSE snapshot never drop a symbol; rows carry `ageSec` and `fresh`; when the feed is empty the newest `print_archive` row is served with `source: "archive"`. A public index query `archive/<TICKER>?from&to` serves the archive series with `IndexQuery.cacheSec` = 60. The web's 1D history is the last regular session from the archive plus the live tick; daily closes derive from the archive's session boundaries. Closed surfaces label aged readings "last close · as of <time> ET", never through `StaleTick`, and poll at 60 s. Alpaca bars (`data.alpaca.markets`, `feed=sip` for history, keys server-only) are a stretch for longer ranges.
+- **User-visible:** prices, change and a chart at any hour.
+- **Approval:** stage owner.
+
+### D-087 — Session words: pre-market, after hours, weekend and holiday are visible states
+- **Date / owner:** 2026-09-15 · S18 owner (lane 18a)
+- **Evidence:** `SessionState` already has `pre | post | holiday | closed | early-close | halted`, but `useMarketSession` flattens them to "Closed" and the raw enum leaks only on `/dev` boards (the user's "post stuff").
+- **Rule:** `packages/core/src/copy/session-words.ts` (pure, tested) gives `sessionStateWord` and `sessionPhrase` ("Pre-market · opens in 1h 12m", "After hours · reopens Tue 09:30 ET", "Open · closes in 2h 05m"). The chip, marquee, hero foot and cards use them; the enum is unchanged. The chip mounts in the global header above 768 px.
+- **User-visible:** the session state is a word and a countdown, everywhere.
+- **Approval:** stage owner.
+- **Amendment (2026-09-15, 18a 83404ea):** the header chip mounts from **1024 px**, not 768: at 768 the desktop nav already fills the bar and the chip pushed Connect off it; below 1024 the marquee's session cell carries the state. Verified at 390/768/1024/1440.
+
+### D-088 — Pre-open calls: post-only orders may rest on a Listed Window; takers are refused
+- **Date / owner:** 2026-09-15 · user ("trade in advance") + S18 owner; program change carried by lane 6b in its upgrade
+- **Evidence:** `matching/place.rs:60-62` is the only pre-open refusal; `MarketStatus::Listed` is clock-derived and unused by any instruction; PostOnly walks `Walk::CrossCheck` and can never fill; cancel/reduce work in every status (D-009); escrow refunds through `evict.rs::remove_node`; the roller sweeps at lock; redeem folds `locked_cash` and the seat bond; 6121 is the next free code. A call resting until `lock_at` would be taken by the venue's own maker whenever fair drifted through its price mid-Window.
+- **Rule:** `check_order` admits every order type while Trading, only PostOnly while Listed, and returns `PreOpenTakerRefused` (6121) otherwise; `expire_ts ≤ lock_at`, `check_mode`, seat funding and `MAX_OPEN_ORDERS_PER_SEAT` are unchanged; two crossing pre-open users get the existing 6109. The web's default expiry for a scheduled call is `trading_start + 90 s` ("fills within the first minute after the bell or your stake returns"); "rest until the lock" is an opt-in. Copy states: the wallet signs; the stake is held until fill, cancel or expiry; the 0.25 tUSDC seat bond returns after the Window settles; no fill is promised; the venue's maker or any trader may take a resting call at its price; nothing fills before the open boundary; an unfilled call loses nothing if the Window voids. LiteSVM covers rest, refusal, cross, fill at the resting price, cancel, and expiry → sweep → redeem.
+- **User-visible:** "Schedule a call" on listed Windows while the market is closed; "Resting for the open" rows in Portfolio with Cancel.
+- **Approval:** user (mechanism), 2026-09-15.
+
+### D-089 — The seat maker's order type is a knob; post-only stays the default until the bell drive
+- **Date / owner:** 2026-09-15 · S18 owner (lane 6a)
+- **Evidence:** the seat maker quotes PostOnly and pulls inside the opposite best, so it can never fill a user's resting call; a Normal order that stops on FillCap cancels its remainder, which `window.ts` would record as `placed`.
+- **Rule:** `MM_ORDER_TYPE=post-only|limit`, default `post-only`. With `limit` the maker quotes Normal orders, stops pulling inside the opposite best, keeps `cancelAll` before every requote and `selfMatch = CancelMaker`, `max_fills` 16, and reads `rested_lots`/`stop_reason` from `OrderExecuted` before marking a quote placed. The soak runs `limit` for the Thursday bell drive; it becomes the default after that proof.
+- **User-visible:** scheduled calls can be filled by the venue's maker at the bell.
+- **Approval:** stage owner; the default flip needs the drive's acceptance rows.
+
+### D-090 — The roller prelists the first Window of the next session at the prior close
+- **Date / owner:** 2026-09-15 · S18 owner (lane 6a)
+- **Evidence:** Windows may exist up to `Series.max_lead_sec` 400,000 s ahead (Fri→Mon 235,800 s fits); each Series has two Books and both are free overnight; the 60m lane's first Window is 10:00–11:00 with an `Intraday` open (`windows.ts:44-57`), so an `openKind` trigger would skip it; a listed Window holds ≈ 0.0665 SOL (Market 456 B + Ledger 8,552 B + mvault 165 B), ≈ 1.8 SOL for 27 Series, refunded at `close_ledger`/`close_market`.
+- **Rule:** with `ROLLER_PRELIST` (default on) and `ROLLER_PRELIST_CADENCES` (default `300,900,3600`), a Regular Series' first Window of the next session lists as soon as no session is live and `tradingStart − now ≤ maxLeadSec − PRELIST_MARGIN_SEC (3,600)`; halt, corporate, version and free-Book checks run after it; later Windows keep the 120 s lead; `grow()` runs on listed Windows too; the roller logs its SOL balance in the prelist state. Unfilled pre-open escrow returns via the lock sweep to venue credit, paid by the crank redeem; the settler crank-redeems zero-balance bonded seats so the Ledger can close.
+- **User-visible:** tomorrow's first Windows exist tonight, so a call can be scheduled.
+- **Approval:** stage owner; enabling on the soak needs the roller to hold ≥ 3 SOL.
+
+### D-091 — Auto-fire from the Trading Balance is a follow-on; the grant gains a market scope before its first deploy
+- **Date / owner:** 2026-09-15 · S18 owner (with S7)
+- **Evidence:** `actor_place_for` is IOC-only and grants (`state/grant.rs`) carry money caps and expiry but no market or side scope; the vault is not deployed yet, so a layout change now costs nothing.
+- **Rule:** before agari-vault's first devnet deploy, `Grant._reserved` becomes `market: Pubkey` (default = any; size unchanged; layout tests updated), `actor_place_for` checks it, the IDL/codegen and `GrantTerms.caps.market?` follow. An ops `opening-bell` actor that fires a user's pre-declared IOC at `trading_start` under a market-scoped EXECUTOR grant is recorded, not built.
+- **User-visible:** none yet.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

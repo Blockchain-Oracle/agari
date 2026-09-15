@@ -6,6 +6,38 @@
   gap: 14px;
 }
 
+/* The asset's mark leads the title (S18c, D-085): 48 px beside the display face, 40 px on a phone. */
+.tkh-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tkh-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+}
+
+.tkh-mark.generic {
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 24px;
+}
+
+[data-theme="light"] .tkh-mark.generic {
+  background: rgba(20, 18, 16, 0.1);
+}
+
+@media (max-width: 767px) {
+  .tkh-mark {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 .tkh-page .prf-actions .mh-room {
   margin: 0;
 }
@@ -20,6 +52,7 @@
   white-space: nowrap;
 }
 
-.tkh-page .news-row-body {
-  display: block;
+/* The headlines list takes the activity list's rhythm under its section head. */
+.tkh-headlines {
+  margin-top: 24px;
 }

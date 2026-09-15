@@ -23,6 +23,10 @@ export const keys = {
   positions: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet] as const,
   /** Nested under the wallet's positions so one invalidation after a write refreshes both. */
   holdings: (wallet: string | null, marketId: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet, "holdings", marketId] as const,
+  /** The wallet's resting calls (D-088), under its positions so `invalidateAfterWrite` refreshes them too. */
+  restingOrders: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet, "resting"] as const,
+  /** A Series' grid facts (lot, tick, cash unit, min lots, seat bond): fixed at registration, so one read holds (D-088). */
+  series: (address: string | null) => [QUERY_KEY_SCOPE, APP, "series", address] as const,
   claimables: (wallet: string | null, venueId: Address | null) => [QUERY_KEY_SCOPE, APP, "claimables", wallet, venueId] as const,
   /** The fill projection: settled rounds, equity, stats — one key, so a claim or an order refreshes all of it. */
   history: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "history", wallet] as const,
@@ -65,4 +69,6 @@ export const keys = {
   clock: () => [QUERY_KEY_SCOPE, APP, "boot", "clock"] as const,
   onchain: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "onchain", marketId] as const,
   fee: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "fee", marketId] as const,
+  /** The signed print archive over one span (S18a, D-086): the 1D chart and the daily closes read the same entry. */
+  archive: (asset: string | null, fromSec: number, toSec: number) => [QUERY_KEY_SCOPE, APP, "archive", asset, fromSec, toSec] as const,
 };

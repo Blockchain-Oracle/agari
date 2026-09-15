@@ -1,10 +1,12 @@
 "use client";
 
 import { formatCadence } from "@agari/core/copy";
+import { assetTicker } from "@agari/core/market";
 import { secToMs } from "@agari/core/units";
 import { addressUrl, marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { memo, type CSSProperties } from "react";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { usdLine } from "@/features/markets/hero/units";
 import { timeAgo } from "@/features/markets/history/time-ago";
 import { addressHue } from "@/lib/address-hue";
@@ -15,11 +17,40 @@ import "./take-cashtag.css";
 
 const shortAddress = (address: string): string => (address.length > 10 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address || TAKES.anon);
 
-/** The call, from the stored fields: `▲ UP · BTC over $64,316` (reference `callParts`, L27–34). */
-function callParts(take: FeedTake): { glyph: string; dir: string; band: string } {
+/**
+ * The call, from the stored fields: `▲ UP · $TSLA over $359.07` (reference `callParts`, L27–34). The band's asset is
+ * cut off its front so the chip can set it as a cashtag (D-082); the words after it are the reference's own.
+ */
+function callParts(take: FeedTake): { glyph: string; dir: string; tail: string } {
   const line = take.lineRaw === null ? null : usdLine(BigInt(take.lineRaw));
   const band = line === null ? TAKES.noLine(take.asset) : take.side === "up" ? TAKES.over(take.asset, line) : TAKES.under(take.asset, line);
-  return take.side === "up" ? { glyph: "▲", dir: "UP", band } : { glyph: "▼", dir: "DOWN", band };
+  const tail = band.startsWith(take.asset) ? band.slice(take.asset.length) : ` ${band}`;
+  return take.side === "up" ? { glyph: "▲", dir: "UP", tail } : { glyph: "▼", dir: "DOWN", tail };
+}
+
+/** The call chip: the asset's mark, the direction, then `$TSLA` as a link to its hub (a token links to its underlying's). */
+function CallChip({ take }: { take: FeedTake }) {
+  const { glyph, dir, tail } = callParts(take);
+  const hub = assetTicker(take.asset);
+  return (
+    <span className="take-chip">
+      <AssetDisc asset={take.asset} className="take-chip-mark" />
+      <span className="take-chip-dir">
+        {glyph} {dir}
+      </span>
+      <span className="take-chip-dot">·</span>
+      <span className="take-chip-band">
+        {hub ? (
+          <Link href={tickerHref(hub.ticker.symbol)} className="take-cashtag take-chip-tag" data-cursor="hover">
+            ${take.asset}
+          </Link>
+        ) : (
+          <span className="take-chip-tag">${take.asset}</span>
+        )}
+        {tail}
+      </span>
+    </span>
+  );
 }
 
 /** The caption with each registry `$TICKER` as a link to its ticker hub; any other `$` word stays text. */
@@ -55,13 +86,14 @@ interface TakeReelCardProps {
  * and links the posting transaction; ours says the take is signed by the wallet and
  * links the author on the explorer, because that is what holds a take here. The
  * reference's "comments soon" is a live link: the Room exists. The author's name opens
- * their profile, and a caption's cashtags open their ticker hubs.
+ * their profile, and a caption's cashtags open their ticker hubs. The call chip carries
+ * the asset's mark and names it as a cashtag (D-082); caption, avatar and provenance are
+ * the reference's.
  *
  * The frame is `.reel-card`, so it follows the theme exactly as the market card does
  * (the user's 2026-09-01 ruling) — one ink triplet, no dark island.
  */
 export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: TakeReelCardProps) {
-  const { glyph, dir, band } = callParts(take);
   const open = nowMs > 0 && secToMs(take.expirySec) > nowMs;
   const otherSide = take.side === "up" ? "down" : "up";
 
@@ -90,13 +122,7 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: TakeReel
       </div>
 
       <div className="take-chip-row">
-        <span className="take-chip">
-          <span className="take-chip-dir">
-            {glyph} {dir}
-          </span>
-          <span className="take-chip-dot">·</span>
-          <span className="take-chip-band">{band}</span>
-        </span>
+        <CallChip take={take} />
       </div>
 
       <div className="take-voice">{take.caption ? <Caption caption={take.caption} /> : <p className="take-caption quiet">{TAKES.noNote}</p>}</div>

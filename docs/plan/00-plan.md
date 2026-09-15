@@ -1236,9 +1236,9 @@ S0 ─┬─> S1 ─┐
 - **S2's gate is hard for money.** No financial program stage (S7 vault, S8 maker, S10 reserves, S12b arena) starts until the engine's randomized sequences, deadline races and failure scenarios pass and the devnet evidence rows exist.
 - After M1, up to four agents per wave:
   - W1: S5, S6, S13, S7
-  - W2: S8, S10a, S10b, S12a
-  - W3: S9, S10c, S12b, S11
-  - W4: S10d, S14
+  - W2 (D-084, 2026-09-15): S18 (always-on markets, pre-open calls, asset identity, editorial lift); S8, S10a, S10b, S12a deferred past the deadline.
+  - W3 (post-deadline): S9, S10c, S12b, S11
+  - W4 (post-deadline): S10d, S14
 - Program stages own separate `anchor/programs/*` directories; only `Anchor.toml` and the addresses JSON are shared (append-only).
 - Budget devnet SOL per deploy; close buffers after each.
 

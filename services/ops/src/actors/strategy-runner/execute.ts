@@ -93,8 +93,9 @@ export async function executeForSubscriber(input: {
       await recordAttemptFill({ txHash: fill.txHash, strategyId: fill.strategyId.toString(), grantId: fill.grantId.toString(), owner: fill.owner, marketId: fill.marketId, side: fill.side, cashDelta: fill.cashDeltaBase.toString(), tokenDelta: fill.tokenDeltaRaw.toString(), atSec: fill.atSec, dryRun: false });
       return { status: "filled", fill };
     }
-    const reason = outcome.status === "nothingFilled" ? "the book moved; nothing filled" : outcome.status === "requote" ? "quote moved past the cap" : outcome.diagnosis.technical;
-    const state = outcome.status === "nothingFilled" ? "nothing-filled" : outcome.status === "requote" ? "refused" : outcome.status;
+    // A strategy never asks to rest (`entry: "rest"` is the ticket's pre-open call, D-088), so a resting outcome is a refusal here.
+    const reason = outcome.status === "nothingFilled" ? "the book moved; nothing filled" : outcome.status === "requote" ? "quote moved past the cap" : outcome.status === "resting" ? "a resting call is not a strategy fill" : outcome.diagnosis.technical;
+    const state = outcome.status === "nothingFilled" ? "nothing-filled" : outcome.status === "requote" || outcome.status === "resting" ? "refused" : outcome.status;
     await finishStrategyAttempt(key, state, "txHash" in outcome ? outcome.txHash ?? null : null, reason);
     return { status: state === "unknown" ? "unknown" : state === "nothing-filled" ? "skipped" : "refused", reason };
   } catch (error) {

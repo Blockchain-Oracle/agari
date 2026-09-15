@@ -32,6 +32,10 @@ export interface OrderRequest {
   wallet: Address;
   /** Defaults to the wallet route. */
   route?: OrderRoute;
+  /** `take` (default): an IOC at the quote. `rest`: a post-only call at the quote's limit that rests until it fills, is cancelled or expires (D-088). */
+  entry?: "take" | "rest";
+  /** A resting call's expiry: `bell` (default, `trading_start + 90 s`) or `lock` (`lock_at`). */
+  restUntil?: "bell" | "lock";
 }
 
 export interface BookedOrder {
@@ -46,8 +50,24 @@ export interface BookedOrder {
   proceedsBase?: bigint;
 }
 
+/** A post-only call that rested (D-088): its handle on the Book, its size, its YES-terms price and the escrow it holds. */
+export interface RestedOrder {
+  marketId: MarketId;
+  side: Side;
+  txHash: Signature;
+  node: number;
+  seq: bigint;
+  lots: bigint;
+  priceTicks: number;
+  contractsRaw: bigint;
+  escrowBase: bigint;
+  expireSec: number;
+}
+
 export type OrderOutcome =
   | { status: "confirmed"; booked: BookedOrder }
+  /** The post-only call rests on the Book; nothing filled yet (D-088). */
+  | { status: "resting"; rested: RestedOrder }
   /** The tx mined but crossed nothing: the book moved before the IOC landed; the stake was never taken. */
   | { status: "nothingFilled"; txHash: Signature }
   /** The fresh quote's `maxCostBase` exceeds the confirmed one — the surface shows the new cost and asks again. */
@@ -71,8 +91,8 @@ export interface CashOutRequest {
   route?: OrderRoute;
 }
 
-/** An order outcome, except that a cash-out requote carries the fresh exit quote. */
-export type CashOutOutcome = Exclude<OrderOutcome, { status: "requote" }> | { status: "requote"; exit: ExitQuote };
+/** An order outcome, except that a cash-out requote carries the fresh exit quote, and a sell never rests. */
+export type CashOutOutcome = Exclude<OrderOutcome, { status: "requote" } | { status: "resting" }> | { status: "requote"; exit: ExitQuote };
 
 export interface GrantTerms {
   kind: GrantKind;
@@ -110,6 +130,8 @@ export type TxIntent =
   | { kind: "faucet"; amountBase: bigint }
   /** `user_redeem` on a terminal Window: the outcome and lots to redeem (a PROGRAM seat may redeem part). */
   | { kind: "redeem"; marketId: MarketId; outcomeIdx: OutcomeIdx; amountRaw: bigint }
+  /** `user_cancel_orders` on the wallet's own resting calls (D-088); `withdraw` pays the refunded escrow and any credit out. */
+  | { kind: "cancel-orders"; marketId: MarketId; handles: { node: number; seq: bigint }[]; withdraw: boolean }
   | VaultIntent
   | StrategyIntent
   | ParlayIntent

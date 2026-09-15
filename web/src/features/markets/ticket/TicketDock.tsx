@@ -1,9 +1,12 @@
 "use client";
 
+import { isRestable } from "@agari/core/lifecycle";
 import { useEffect, useState } from "react";
 import { TICKET } from "@/lib/copy";
+import { ScheduleTicket } from "./ScheduleTicket";
 import { Ticket } from "./Ticket";
 import type { TicketSelection } from "./types";
+import { useWindowPhase } from "./useTicket";
 
 /** Tailwind's `lg` — the reference docks the ticket at `lg:static` and slides it over the page below. */
 const RAIL_QUERY = "(min-width: 64rem)";
@@ -18,6 +21,16 @@ function useHasRail(): boolean {
     return () => media.removeEventListener("change", sync);
   }, []);
   return hasRail;
+}
+
+/**
+ * Which composer the Window takes: a listed Regular or Gap Window before its open rests a scheduled call (D-088);
+ * anything else is the taker's ticket. The token lane lists two minutes ahead and keeps the taker's words.
+ */
+function TicketBody({ selection, drawer }: { selection: TicketSelection; drawer?: { onClose: () => void } }) {
+  const phase = useWindowPhase(selection.market, selection.nowMs);
+  const schedules = phase !== null && isRestable(phase) && selection.market.lane !== "token";
+  return schedules ? <ScheduleTicket selection={selection} drawer={drawer} /> : <Ticket selection={selection} drawer={drawer} />;
 }
 
 /**
@@ -52,7 +65,7 @@ export function TicketDock({ selection }: { selection: TicketSelection }) {
   if (hasRail) {
     return (
       <div className="mh-rail">
-        <Ticket selection={selection} />
+        <TicketBody selection={selection} />
       </div>
     );
   }
@@ -62,7 +75,7 @@ export function TicketDock({ selection }: { selection: TicketSelection }) {
     <>
       {open && <div className="tk-drawer-backdrop" onClick={close} aria-hidden="true" />}
       <div className={`tk-drawer${open ? " tk-drawer--open" : ""}`} role="dialog" aria-label={TICKET.title} aria-hidden={!open}>
-        {open && <Ticket selection={selection} drawer={{ onClose: close }} />}
+        {open && <TicketBody selection={selection} drawer={{ onClose: close }} />}
       </div>
     </>
   );

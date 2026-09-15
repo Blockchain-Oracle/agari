@@ -33,3 +33,19 @@ describe("ticker registry", () => {
     }
   });
 });
+
+describe("parseLaneKey", () => {
+  it("inverts laneKey for every basis", async () => {
+    const { laneKey, parseLaneKey } = await import("./tickers");
+    for (const symbol of TICKER_SYMBOLS) {
+      for (const cadenceSec of [300, 900, 3600]) expect(parseLaneKey(laneKey(symbol, "regular", cadenceSec))).toEqual({ symbol, basis: "regular", cadenceSec });
+      expect(parseLaneKey(laneKey(symbol, "gap", 604_800))).toEqual({ symbol, basis: "gap", cadenceSec: 604_800 });
+    }
+    for (const symbol of TOKEN_LANE_TICKERS) expect(parseLaneKey(laneKey(symbol, "token", 300))).toEqual({ symbol, basis: "token", cadenceSec: 300 });
+    expect(parseLaneKey("TSLAx-5m")).toEqual({ symbol: "TSLA", basis: "token", cadenceSec: 300 });
+  });
+  it("refuses keys that name no lane", async () => {
+    const { parseLaneKey } = await import("./tickers");
+    for (const key of ["", "TSLA", "TSLA-", "-5m", "COIN-5m", "TSLA-1h", "TSLA-0m", "AAPLx-5m", "tsla-5m"]) expect(parseLaneKey(key)).toBeNull();
+  });
+});

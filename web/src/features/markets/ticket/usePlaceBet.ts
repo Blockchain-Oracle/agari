@@ -1,12 +1,13 @@
 "use client";
 
+import { ownCentsOf } from "@agari/core/orders";
 import type { OrderOutcome, OrderRequest, WritePhase } from "@agari/core/ports";
 import type { Address, Quote, Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
-import { TICKET } from "@/lib/copy";
+import { PREOPEN, TICKET } from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import { recordBet } from "@/features/room/record-bet";
 import { SIDE_WORD } from "../side-styles";
@@ -22,6 +23,7 @@ const IDLE: PlaceBetState = { phase: "composing", outcome: null, txHash: null };
 function phaseOf(outcome: OrderOutcome): WritePhase {
   switch (outcome.status) {
     case "confirmed":
+    case "resting":
     case "nothingFilled":
       return "confirmed";
     case "reverted":
@@ -35,6 +37,7 @@ function phaseOf(outcome: OrderOutcome): WritePhase {
 
 function txHashOf(outcome: OrderOutcome): Signature | null {
   if (outcome.status === "confirmed") return outcome.booked.txHash;
+  if (outcome.status === "resting") return outcome.rested.txHash;
   if ("txHash" in outcome) return outcome.txHash ?? null;
   return null;
 }
@@ -66,7 +69,7 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
         const outcome = await submitter.submitOrder({ ...request, wallet: address }, (phase, detail) =>
           setState((s) => ({ ...s, phase, txHash: detail?.txHash ?? s.txHash })),
         );
-        if (outcome.status === "confirmed" || outcome.status === "nothingFilled") {
+        if (outcome.status === "confirmed" || outcome.status === "resting" || outcome.status === "nothingFilled") {
           // A delegated fill lands on the owner's books, not the key's — refresh the owner too.
           await invalidateAfterWrite(queryClient, { wallet: user.address ?? address, marketId: request.market.marketId });
           if (user.address && user.address !== address) await invalidateAfterWrite(queryClient, { wallet: address });
@@ -77,6 +80,11 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
           // The bet records the bettor, as the reference's does (`bet_registry::record` inside the bet PTB).
           recordBet(request.market.marketId, user.address ?? address, booked.txHash, request.route?.kind === "wallet" ? "wallet" : "vault");
           notify.neutral(TICKET.booked(formatBaseUnits(booked.contractsRaw, request.market.decimals, { minDp: 0 }), SIDE_WORD[booked.side], booked.avgPriceBps));
+        }
+        if (outcome.status === "resting") {
+          // A scheduled call rests: nothing to record as a bet until it fills (the index's fill row does that).
+          const { rested } = outcome;
+          notify.neutral(PREOPEN.ticket.restingToast(formatBaseUnits(rested.contractsRaw, request.market.decimals, { minDp: 0 }), SIDE_WORD[rested.side], ownCentsOf(rested.side, rested.priceTicks)));
         }
       } finally {
         inFlight.current = false;

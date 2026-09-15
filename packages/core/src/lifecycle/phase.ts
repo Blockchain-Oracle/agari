@@ -56,6 +56,11 @@ export function isEnterable(p: MarketPhase): boolean {
   return ENTERABLE.has(p);
 }
 
+/** A Window listed before its open takes post-only calls that rest until the bell (D-088): the only restable phase. */
+export function isRestable(p: MarketPhase): boolean {
+  return p === "upcoming";
+}
+
 export function isSettled(p: MarketPhase): boolean {
   return p === "settledUnclaimed" || p === "finalized" || p === "voided";
 }

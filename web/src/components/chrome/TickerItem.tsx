@@ -1,4 +1,5 @@
 import { StaleTick } from "@/components/states/StaleTick";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { cn } from "@/lib/utils";
 
 export type TickerDirection = "up" | "down" | "flat";
@@ -9,6 +10,8 @@ export interface TickerEntry {
   direction: TickerDirection;
   /** When set the price is frozen at its last-good value and the tick says so. */
   staleAsOfMs?: number;
+  /** When set the price is the archived last close standing in for a feed that has nothing (D-086), never a stale tick. */
+  closeAsOfSec?: number;
 }
 
 // The one chrome element allowed direction color — it IS money direction.
@@ -22,6 +25,7 @@ export function TickerItem({ asset, priceText, direction, staleAsOfMs }: TickerE
   const d = DIRECTION[direction];
   return (
     <div role="listitem" className="flex shrink-0 items-center gap-2">
+      <AssetDisc asset={asset} className="marquee-mark" />
       <span className="type-label-micro text-ink-secondary">{asset}</span>
       <span className="type-data text-ink">{priceText}</span>
       <span className={cn("type-data", d.ink)} aria-label={d.word}>

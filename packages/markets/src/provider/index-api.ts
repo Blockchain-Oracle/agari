@@ -120,6 +120,14 @@ export interface PrintHistoryRow {
   expo: number;
 }
 
+/** One `print_archive` boundary (`archive/<TICKER>`, D-086): price × 10⁻⁸ as stored. */
+export interface ArchiveRow {
+  boundary_sec: Dec;
+  source: "redstone" | "pyth";
+  price_e8: Dec;
+  signers: number;
+}
+
 const MEMO_MS = 1_000;
 /** Never cached by the browser or Next's server fetch cache (a variable: Node's `RequestInit` type lacks `cache`). */
 export const NO_STORE = { cache: "no-store" } as const;

@@ -42,6 +42,11 @@ export const BLOCKER_KINDS = [
   "lane-paused",
   "gap-listed",
   "corporate-action",
+  // S18 pre-open calls (D-088): a post-only call on a listed Window.
+  "rest-would-cross",
+  "no-price",
+  "too-many-resting",
+  "pre-open-taker",
 ] as const;
 
 export type BlockerKind = (typeof BLOCKER_KINDS)[number];
@@ -61,6 +66,8 @@ export interface BlockerContext {
   opensText?: string;
   /** `halted` for a stale signed price rather than a trading halt (Q-S6-9: only `pyth-wide`/`issuer-halt` say "Trading halted"). */
   haltStale?: boolean;
+  /** The composed crossing sentence for `rest-would-cross` ("Someone wants UP at 55¢ — rest DOWN at 44¢ or less, or wait for the bell"). */
+  crossingText?: string;
 }
 
 const DEFAULT_CHAIN = "Solana devnet";
@@ -147,5 +154,13 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
       return ctx.opensText ? `Calls open ${ctx.opensText}` : "Calls open at the Friday close";
     case "corporate-action":
       return "Paused: corporate action";
+    case "rest-would-cross":
+      return ctx.crossingText ?? "Your price would fill now — rest under the book or wait for the bell";
+    case "no-price":
+      return "Pick a price between 1¢ and 99¢";
+    case "too-many-resting":
+      return "16 calls already rest on this Window — cancel one first";
+    case "pre-open-taker":
+      return "Nothing fills before the open — schedule a resting call instead";
   }
 }

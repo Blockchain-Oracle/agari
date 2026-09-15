@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { LaneBasis } from "../types/market";
+import { GAP_CADENCE_SEC, type LaneBasis } from "../types/market";
 import { toAddress, type Address, type Hash32 } from "../types/primitives";
 
 /**
@@ -37,6 +37,21 @@ export interface OndoStock {
   mint: Address;
 }
 
+/** The `--brand-<slug>` custom property in `web/src/styles/icons.css` and the `.mark-<slug>-disc` fill. */
+export const BRAND_SLUGS = ["tesla", "nvidia", "apple", "microsoft", "meta", "amazon", "google", "invesco", "vanguard", "spdr"] as const;
+export type BrandSlug = (typeof BRAND_SLUGS)[number];
+
+/**
+ * The asset's own colour (D-085): the registry is the single source, `icons.css` mirrors it as `--brand-<slug>` for
+ * the discs, and the share-card canvas reads `hex` by import. For a stock it is the issuer's mark colour as
+ * simple-icons records it; for an ETF it is the fund house's, under the typed monogram (no clean SVG exists).
+ */
+export interface Brand {
+  slug: BrandSlug;
+  /** `#RRGGBB`, upper-case. */
+  hex: string;
+}
+
 export interface Ticker {
   symbol: TickerSymbol;
   /**
@@ -56,63 +71,65 @@ export interface Ticker {
   xstock: XStock | null;
   /** Mainnet mint verified 2026-09-15 (owner Token-2022, 9 dp, metadata symbol matches; C:01 §3.1). */
   ondo: OndoStock | null;
-  /** Typed on the asset disc until a drawn mark exists. */
+  /** Typed on the asset disc when no glyph is drawn (the ETFs), and in the share text. */
   monogram: string;
+  brand: Brand;
 }
 
 const xstock = (symbol: XStockSymbol, mint: string, surgeSymbol: string): XStock => ({ symbol, mint: toAddress(mint), surgeSymbol });
 const ondo = (symbol: OndoSymbol, mint: string): OndoStock => ({ symbol, mint: toAddress(mint) });
+const brand = (slug: BrandSlug, hex: string): Brand => ({ slug, hex });
 
 export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
   TSLA: {
     symbol: "TSLA", seriesId: 1, name: "Tesla", kind: "stock", alpacaSymbol: "TSLA",
     pythFeedId: "0x16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1", redstoneFeedId: "TSLA", launch: true,
-    xstock: xstock("TSLAx", "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "TSLAX/USD"), ondo: ondo("TSLAon", "KeGv7bsfR4MheC1CkmnAVceoApjrkvBhHYjWb67ondo"), monogram: "T",
+    xstock: xstock("TSLAx", "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "TSLAX/USD"), ondo: ondo("TSLAon", "KeGv7bsfR4MheC1CkmnAVceoApjrkvBhHYjWb67ondo"), monogram: "T", brand: brand("tesla", "#CC0000"),
   },
   NVDA: {
     symbol: "NVDA", seriesId: 2, name: "NVIDIA", kind: "stock", alpacaSymbol: "NVDA",
     pythFeedId: "0xb1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593", redstoneFeedId: "NVDA", launch: true,
-    xstock: xstock("NVDAx", "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "NVDAX/USD"), ondo: ondo("NVDAon", "gEGtLTPNQ7jcg25zTetkbmF7teoDLcrfTnQfmn2ondo"), monogram: "N",
+    xstock: xstock("NVDAx", "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "NVDAX/USD"), ondo: ondo("NVDAon", "gEGtLTPNQ7jcg25zTetkbmF7teoDLcrfTnQfmn2ondo"), monogram: "N", brand: brand("nvidia", "#76B900"),
   },
   AAPL: {
     symbol: "AAPL", seriesId: 3, name: "Apple", kind: "stock", alpacaSymbol: "AAPL",
     pythFeedId: "0x49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688", redstoneFeedId: "AAPL", launch: true,
-    xstock: null, ondo: null, monogram: "A",
+    xstock: null, ondo: null, monogram: "A", brand: brand("apple", "#111111"),
   },
   MSFT: {
     symbol: "MSFT", seriesId: 4, name: "Microsoft", kind: "stock", alpacaSymbol: "MSFT",
     pythFeedId: "0xd0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1", redstoneFeedId: "MSFT", launch: true,
-    xstock: null, ondo: null, monogram: "M",
+    xstock: null, ondo: null, monogram: "M", brand: brand("microsoft", "#0078D4"),
   },
   META: {
     symbol: "META", seriesId: 5, name: "Meta", kind: "stock", alpacaSymbol: "META",
     pythFeedId: "0x78a3e3b8e676a8f73c439f5d749737034b139bbbe899ba5775216fba596607fe", redstoneFeedId: "META", launch: true,
-    xstock: null, ondo: null, monogram: "M",
+    xstock: null, ondo: null, monogram: "M", brand: brand("meta", "#0467DF"),
   },
   AMZN: {
     symbol: "AMZN", seriesId: 6, name: "Amazon", kind: "stock", alpacaSymbol: "AMZN",
     pythFeedId: "0xb5d0e0fa58a1f8b81498ae670ce93c872d14434b72c364885d4fa1b257cbb07a", redstoneFeedId: "AMZN", launch: true,
-    xstock: null, ondo: null, monogram: "A",
+    xstock: null, ondo: null, monogram: "A", brand: brand("amazon", "#FF9900"),
   },
   GOOGL: {
     symbol: "GOOGL", seriesId: 7, name: "Alphabet", kind: "stock", alpacaSymbol: "GOOGL",
     pythFeedId: "0x5a48c03e9b9cb337801073ed9d166817473697efff0d138874e0f6a33d6d5aa6", redstoneFeedId: "GOOGL", launch: true,
-    xstock: null, ondo: null, monogram: "G",
+    xstock: null, ondo: null, monogram: "G", brand: brand("google", "#4285F4"),
   },
   QQQ: {
     symbol: "QQQ", seriesId: 8, name: "Invesco QQQ", kind: "etf", alpacaSymbol: "QQQ",
     pythFeedId: "0x9695e2b96ea7b3859da9ed25b7a46a920a776e2fdae19a7bcfdf2b219230452d", redstoneFeedId: null, launch: true,
-    xstock: xstock("QQQx", "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "QQQX/USD"), ondo: ondo("QQQon", "HrYNm6jTQ71LoFphjVKBTdAE4uja7WsmLG8VxB8ondo"), monogram: "Q",
+    xstock: xstock("QQQx", "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "QQQX/USD"), ondo: ondo("QQQon", "HrYNm6jTQ71LoFphjVKBTdAE4uja7WsmLG8VxB8ondo"), monogram: "Q", brand: brand("invesco", "#0A2240"),
   },
   VOO: {
     symbol: "VOO", seriesId: 9, name: "Vanguard S&P 500", kind: "etf", alpacaSymbol: "VOO",
     pythFeedId: "0x236b30dd09a9c00dfeec156c7b1efd646c0f01825a1758e3e4a0679e3bdff179", redstoneFeedId: null, launch: true,
-    xstock: null, ondo: null, monogram: "V",
+    xstock: null, ondo: null, monogram: "V", brand: brand("vanguard", "#96151D"),
   },
   SPY: {
     symbol: "SPY", seriesId: 10, name: "SPDR S&P 500", kind: "etf", alpacaSymbol: "SPY",
     pythFeedId: "0x19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5", redstoneFeedId: null, launch: false,
-    xstock: xstock("SPYx", "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "SPYX/USD"), ondo: ondo("SPYon", "k18WJUULWheRkSpSquYGdNNmtuE2Vbw1hpuUi92ondo"), monogram: "S",
+    xstock: xstock("SPYx", "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "SPYX/USD"), ondo: ondo("SPYon", "k18WJUULWheRkSpSquYGdNNmtuE2Vbw1hpuUi92ondo"), monogram: "S", brand: brand("spdr", "#1F3A5F"),
   },
 };
 
@@ -176,6 +193,28 @@ export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: numb
   return `${asset}-${cadenceSec / 60}m`;
 }
 
+export interface LaneKeyParts {
+  symbol: TickerSymbol;
+  basis: LaneBasis;
+  cadenceSec: number;
+}
+
+/** The inverse of `laneKey`: `TSLA-60m` → Regular 3,600 s, `TSLA-gap` → Gap, `TSLAx-5m` → the TSLA token lane. Null for anything else. */
+export function parseLaneKey(key: string): LaneKeyParts | null {
+  const dash = key.lastIndexOf("-");
+  if (dash <= 0) return null;
+  const asset = key.slice(0, dash);
+  const tail = key.slice(dash + 1);
+  if (tail === "gap") return isTickerSymbol(asset) ? { symbol: asset, basis: "gap", cadenceSec: GAP_CADENCE_SEC } : null;
+  const minutes = /^(\d+)m$/.exec(tail);
+  if (!minutes) return null;
+  const cadenceSec = Number(minutes[1]) * 60;
+  if (cadenceSec <= 0) return null;
+  if (isTickerSymbol(asset)) return { symbol: asset, basis: "regular", cadenceSec };
+  const underlying = TICKER_SYMBOLS.map((s) => TICKERS[s]).find((t) => t.xstock?.symbol === asset);
+  return underlying ? { symbol: underlying.symbol, basis: "token", cadenceSec } : null;
+}
+
 export const isTickerSymbol = (v: unknown): v is TickerSymbol => typeof v === "string" && (TICKER_SYMBOLS as readonly string[]).includes(v);
 
 export const tickerSymbolSchema = z.enum(TICKER_SYMBOLS);
@@ -184,6 +223,17 @@ const BY_SERIES_ID = new Map(TICKER_SYMBOLS.map((symbol) => [TICKERS[symbol].ser
 
 export function tickerBySeriesId(seriesId: number): Ticker | null {
   return BY_SERIES_ID.get(seriesId) ?? null;
+}
+
+/**
+ * The registry ticker an asset symbol identifies — itself, or the underlying of a verified share token (`TSLAx`,
+ * `TSLAon`) — and which token it is, so a token lane wears the stock's mark with the issuer's badge. Null for
+ * an asset the registry does not know.
+ */
+export function assetTicker(symbol: string): { ticker: Ticker; token: ShareToken["issuer"] | null } | null {
+  if (isTickerSymbol(symbol)) return { ticker: TICKERS[symbol], token: null };
+  const share = SHARE_TOKENS.find((t) => t.symbol === symbol);
+  return share ? { ticker: TICKERS[share.underlying], token: share.issuer } : null;
 }
 
 /** The ticker whose xStock this is, e.g. `TSLAx` → TSLA. */

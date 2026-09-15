@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { phase, type PhaseInput } from "./phase";
+import { isRestable, phase, type PhaseInput } from "./phase";
 import { ONCHAIN_STATUS } from "./status";
 
 const START_SEC = 1_000_000;
@@ -52,5 +52,12 @@ describe("phase", () => {
     expect(phase(market({ status: "Trading", onchainStatus: ONCHAIN_STATUS.Locked }), at(START_SEC))).toBe("locked");
     expect(phase(market({ status: "Listed", onchainStatus: ONCHAIN_STATUS.Trading }), at(START_SEC))).toBe("trading");
     expect(phase(market({ status: "Trading", onchainStatus: ONCHAIN_STATUS.Listed }), at(START_SEC - 1))).toBe("upcoming");
+  });
+});
+
+describe("isRestable", () => {
+  it("admits a post-only call only while the Window is listed before its open (D-088)", () => {
+    expect(isRestable("upcoming")).toBe(true);
+    for (const p of ["pendingOpeningPrint", "trading", "noEntryBuffer", "locked", "settledUnclaimed", "finalized", "voided"] as const) expect(isRestable(p)).toBe(false);
   });
 });
