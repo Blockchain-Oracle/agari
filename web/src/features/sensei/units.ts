@@ -1,4 +1,4 @@
-import { oneUnit } from "@agari/core/units";
+import { oneCent, oneUnit } from "@agari/core/units";
 import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 
 const WHOLE_DOLLARS_FROM = 1_000n;
@@ -17,3 +17,17 @@ export function oracleToUsd(raw: bigint | null): number | null {
   return Number((raw + centUnit / 2n) / centUnit) / 100;
 }
 
+/** Collateral base units as whole cents, half up: what a position's stake and mark travel to Sensei as (integers, never dollars). */
+export function baseToCents(base: bigint, decimals: number): number {
+  const cent = oneCent(decimals);
+  const magnitude = base < 0n ? -base : base;
+  const cents = Number((magnitude + cent / 2n) / cent);
+  return base < 0n ? -cents : cents;
+}
+
+/** Integer cents as the model reads a stake: "$12.50", "$1,204.00". */
+export function centsText(cents: number): string {
+  const magnitude = Math.abs(cents);
+  const dollars = Math.floor(magnitude / 100).toLocaleString("en-US");
+  return `${cents < 0 ? "-" : ""}$${dollars}.${String(magnitude % 100).padStart(2, "0")}`;
+}
