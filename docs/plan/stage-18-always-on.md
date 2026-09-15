@@ -23,13 +23,13 @@
 ## Steps
 
 - [ ] Foundation (stage owner): integration branch on `:3000`; this file; D-081…D-091; plan §7.3 waves and `parity.md` updated; `ALPACA_KEY_ID/SECRET_KEY` in `web/.env.local` (server-only, never printed); lane worktrees.
-- [ ] **18a Always-on** (data + UI, one lane):
+- [x] **18a Always-on** (data + UI, one lane; S18a.1–S18a.7 on `slice/S18a-always-on`; the bars stretch is not built):
   - ops `spot-sse.ts`: `/prices/latest` and the SSE snapshot never drop a symbol (`ageSec`, `fresh`); newest `print_archive` row as the fallback when the in-memory feed is empty (`source: "archive"`).
   - db `printArchiveSeries`; index `case "archive"` with `IndexQuery.cacheSec` (`s-maxage=60`).
   - web `features/markets/history/*`: 1D from the signed archive + live tick; `useDailyCloses`; `dayChange()`; keys appended; closed-surface `staleTime = min(nextOpen − now, 6 h)`, `gcTime` 30 min; `useAssetPrice({ pollMs })` 60 s off-hours.
   - core `copy/session-words.ts` (`sessionStateWord`, `sessionPhrase`, tested); `parseLaneKey`.
   - UI: `HeroAssetChart`/`HeroAssetHead`/`HistoryRangeTabs`; `TicketPlaceholder`; `NextWindowRail`/`NextWindowCard`; `CadenceLanes` configured lanes; `BetweenRounds` countdown; word board `nextAction`; header `MarketSessionChip`; marquee phrase + last-close fallback; portfolio empty `nextAction`; chip `data-state` + phrase; `copy-session.ts`; `/dev/hero` fixtures at pre/post/weekend/holiday clocks.
-  - Stretch: Alpaca bars route (`web/src/lib/alpaca.server.ts`, `app/api/bars/route.ts`; `data.alpaca.markets`, `feed=sip` for history) and 5D/1M/3M ranges.
+  - Stretch (open): Alpaca bars route (`web/src/lib/alpaca.server.ts`, `app/api/bars/route.ts`; `data.alpaca.markets`, `feed=sip` for history) and 5D/1M/3M ranges. `HISTORY_RANGES` lists 1D only until it lands.
 - [ ] **18c Asset identity:** `Ticker.brand { slug, hex }`; `--brand-<slug>` in `icons.css` + the drift vitest; `components/icons/asset-marks/{paths.ts,AssetMarkSvg.tsx}` (simple-icons CC0, vendored); `asset-mark.tsx` marks, xStock badge, issuer-colour monograms for QQQ/VOO/SPY; placements: marquee + `TickerItem`, ticker hub h1, Sensei cards, `BetRow`, share-card canvas (`features/share/marks.ts`); `THIRD_PARTY_NOTICES.md` "Asset marks" (fix the Masayume header).
 - [ ] **B-P program** (lane 6b, in its upgrade): `check_order` admits PostOnly on Listed; `PreOpenTakerRefused = 121`; matching unit test; LiteSVM `events_preopen.rs` (6 cases); codegen; `chain-failure.ts`/`ops/send.ts` map 6121.
 - [ ] **B-O roller + maker** (lane 6a, S6 stage): prelist the first Window of the next session per Regular Series (`ROLLER_PRELIST`, `ROLLER_PRELIST_CADENCES`, `PRELIST_MARGIN_SEC`; the 60m lane's first Window is 10:00); `grow()` on listed Windows; `MM_ORDER_TYPE=post-only|limit` (default post-only); `window.ts` reads `rested_lots`/`stop_reason`; vitests incl. the 60m case.

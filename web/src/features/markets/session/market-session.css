@@ -66,11 +66,12 @@
   letter-spacing: 0.14em;
 }
 
-/* The global header carries the chip from 768px up (D-087); below that the marquee's session cell says it. */
+/* The global header carries the chip from 1024px up (D-087, amended on the 18a pass: at 768 the desktop nav already
+   fills the bar and the chip pushed Connect off the edge); below that the marquee's session cell says it. */
 .header-session {
   display: none;
 }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .header-right .header-session {
     display: inline-flex;
   }

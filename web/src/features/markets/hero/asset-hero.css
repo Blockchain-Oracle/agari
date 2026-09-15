@@ -18,8 +18,23 @@
 .mh-foot-soft {
   color: var(--gray-600);
 }
+/* A phone keeps the phrase and the last close; the source is the line Masayume also drops at this width (part-16
+   hides its own foot note under 480px). */
+@media (max-width: 480px) {
+  .mh-foot-source {
+    display: none;
+  }
+}
 
-/* The change pill and its "since" word share the distance row; the word is the quiet half. */
+/* The change pill and its "since" word share the distance row; the word is the quiet half. The figure never breaks
+   mid-line: on a phone's narrow head the word drops under it instead. */
+[data-asset] .mh-distance {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+[data-asset] .mh-distance-value {
+  white-space: nowrap;
+}
 .mh-distance .mh-since {
   color: var(--gray-500);
   font-size: 12px;

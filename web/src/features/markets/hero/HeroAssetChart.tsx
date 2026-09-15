@@ -81,11 +81,12 @@ export function HeroAssetChartView({ asset, tickers, onPickAsset, session, histo
         </div>
       </div>
       <div className="hero-chart-foot">
-        <span className="mh-foot-line">
+        {/* A div, not a span: Masayume's `.hero-chart-foot > span:first-child` caps its own source note's width. */}
+        <div className="mh-foot-line">
           <span>{sessionPhrase(session.status, nowSec)}</span>
           {closeLine && <span className="mh-foot-soft">· {closeLine}</span>}
-          <span className="mh-foot-soft">· {SESSION_COPY.hero.source}</span>
-        </span>
+          <span className="mh-foot-soft mh-foot-source">· {SESSION_COPY.hero.source}</span>
+        </div>
         <ScheduleCallButton asset={asset} session={session} />
       </div>
     </div>

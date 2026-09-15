@@ -26,9 +26,12 @@ function ClosedHero({ fixture }: { fixture: HeroFixture }) {
   return (
     <div className="flex flex-col gap-4">
       <Fixture label={DEV.hero}>
-        <div className="hero-grid hero-grid-mini">
-          <HeroAssetChartView asset={asset} tickers={LAUNCH_TICKERS} onPickAsset={noop} session={session} history={ok(history, nowSec * 1000)} nowSec={nowSec} range="1D" onRange={noop} />
-          <TicketPlaceholderView asset={asset} session={session} nowSec={nowSec} />
+        {/* `.markets-hero` scopes Masayume's mini-hero grid (the fixed rail column, the chart's height floor, the top-aligned rail on desktop). */}
+        <div className="markets-hero">
+          <div className="hero-grid hero-grid-mini">
+            <HeroAssetChartView asset={asset} tickers={LAUNCH_TICKERS} onPickAsset={noop} session={session} history={ok(history, nowSec * 1000)} nowSec={nowSec} range="1D" onRange={noop} />
+            <TicketPlaceholderView asset={asset} session={session} nowSec={nowSec} />
+          </div>
         </div>
       </Fixture>
       <FixtureGrid>

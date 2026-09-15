@@ -19,12 +19,12 @@ const LAST_CLOSE = 35_907_000_000n; // $359.07
 const PRE_TICK = 35_710_000_000n; // $357.10 — pre-market, down since the close
 const POST_TICK = 36_055_000_000n; // $360.55 — after hours, up since the close
 
-/** One point per 5-minute boundary from the open to the close, a straight drift with a small deterministic wobble. */
+/** One point per 5-minute boundary from the open to the close, a straight drift with a slow deterministic swing. */
 function sessionPrints(openSec: number, closeSec: number, fromRaw: bigint, toRaw: bigint): ChartPoint[] {
   const n = Math.floor((closeSec - openSec) / FIVE_MIN);
   return Array.from({ length: n + 1 }, (_, i) => {
     const drift = ((toRaw - fromRaw) * BigInt(i)) / BigInt(n);
-    const wobble = BigInt(((i * 7_919) % 23) - 11) * 3_000_000n; // ± $0.33
+    const wobble = BigInt(Math.abs((i % 24) - 12) - 6) * 15_000_000n; // a slow triangle, ± $0.90
     return { timeSec: openSec + i * FIVE_MIN, valueRaw: i === n ? toRaw : fromRaw + drift + wobble };
   });
 }

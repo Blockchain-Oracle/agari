@@ -78,7 +78,7 @@ export default function Header() {
           </div>
 
           <div className="header-right">
-            {/* The NYSE state, from the tablet breakpoint up (D-087); the marquee carries it on a phone. */}
+            {/* The NYSE state, from the desktop breakpoint up (D-087, `.header-session`); the marquee carries it below that. */}
             <MarketSessionChip className="header-session" />
             <ThemeToggle />
             <HeaderMoneyPill onOpen={() => setShowFunds(true)} />

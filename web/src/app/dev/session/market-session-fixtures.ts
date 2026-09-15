@@ -17,7 +17,8 @@ function calendar(from: string, to: string): SessionCalendar {
   return calendarFromAlpaca(rows, from, to);
 }
 
-const SEPTEMBER = calendar("2026-09-14", "2026-09-30");
+/** From the 8th, so a Tuesday-morning fixture has a previous session to measure against (the /dev/hero day change). */
+const SEPTEMBER = calendar("2026-09-08", "2026-09-30");
 const THANKSGIVING = calendar("2026-11-23", "2026-12-04");
 
 /** The clocks each state is read at (UTC seconds). */
@@ -72,15 +73,15 @@ export function fixtureSession(nowSec: number, { halts = {}, asset }: SessionOpt
   return session;
 }
 
-/** Every §5 session state, labeled as the fixture page shows it. */
-export const SESSION_STATES: ReadonlyArray<{ label: string; session: MarketSession; asset?: string }> = [
-  { label: "pre — before the open", session: fixtureSession(CLOCK.preTue) },
-  { label: "regular — in session", session: fixtureSession(CLOCK.regularTue) },
-  { label: "early close — Black Friday", session: fixtureSession(CLOCK.earlyCloseFri) },
-  { label: "halted — TSLA, pyth-wide", session: fixtureSession(CLOCK.regularTue, { halts: HALTS, asset: "TSLA" }), asset: "TSLA" },
-  { label: "halted — AAPL, redstone-stale (Q-S6-9)", session: fixtureSession(CLOCK.regularTue, { halts: HALTS, asset: "AAPL" }), asset: "AAPL" },
-  { label: "halted — TSLAx issuer halt, at the weekend", session: fixtureSession(CLOCK.weekendSat, { halts: HALTS, asset: "TSLAx" }), asset: "TSLAx" },
-  { label: "post — after the close", session: fixtureSession(CLOCK.postTue) },
-  { label: "closed — the weekend", session: fixtureSession(CLOCK.weekendSat) },
-  { label: "holiday — Thanksgiving", session: fixtureSession(CLOCK.holidayThu) },
+/** Every §5 session state, labeled as the fixture page shows it, with the clock it was read at (the chip's countdown counts from it, D-087). */
+export const SESSION_STATES: ReadonlyArray<{ label: string; session: MarketSession; nowSec: number; asset?: string }> = [
+  { label: "pre — before the open", session: fixtureSession(CLOCK.preTue), nowSec: CLOCK.preTue },
+  { label: "regular — in session", session: fixtureSession(CLOCK.regularTue), nowSec: CLOCK.regularTue },
+  { label: "early close — Black Friday", session: fixtureSession(CLOCK.earlyCloseFri), nowSec: CLOCK.earlyCloseFri },
+  { label: "halted — TSLA, pyth-wide", session: fixtureSession(CLOCK.regularTue, { halts: HALTS, asset: "TSLA" }), nowSec: CLOCK.regularTue, asset: "TSLA" },
+  { label: "halted — AAPL, redstone-stale (Q-S6-9)", session: fixtureSession(CLOCK.regularTue, { halts: HALTS, asset: "AAPL" }), nowSec: CLOCK.regularTue, asset: "AAPL" },
+  { label: "halted — TSLAx issuer halt, at the weekend", session: fixtureSession(CLOCK.weekendSat, { halts: HALTS, asset: "TSLAx" }), nowSec: CLOCK.weekendSat, asset: "TSLAx" },
+  { label: "post — after the close", session: fixtureSession(CLOCK.postTue), nowSec: CLOCK.postTue },
+  { label: "closed — the weekend", session: fixtureSession(CLOCK.weekendSat), nowSec: CLOCK.weekendSat },
+  { label: "holiday — Thanksgiving", session: fixtureSession(CLOCK.holidayThu), nowSec: CLOCK.holidayThu },
 ];
