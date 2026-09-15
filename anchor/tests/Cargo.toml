@@ -62,10 +62,12 @@ name = "vault_trading"
 path = "vault_trading.rs"
 
 # S6 lane 6b: a real Switchboard quote on the upgraded program (session-lanes.md §2.6).
+[[test]]
 name = "events_switchboard"
 path = "events_switchboard.rs"
 
 # D-088: a Listed Window rests PostOnly quotes before its open print.
+[[test]]
 name = "events_preopen"
 path = "events_preopen.rs"
 
