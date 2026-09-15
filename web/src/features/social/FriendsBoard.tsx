@@ -8,6 +8,7 @@ import { LEADERBOARD } from "@/features/leaderboard/copy";
 import { glyphFromAddress } from "@/features/leaderboard/glyph";
 import type { BoardRanking } from "@/features/leaderboard/protocol";
 import { useLeaderboard } from "@/features/leaderboard/useLeaderboard";
+import { profileHref } from "@/features/takes/cashtags";
 import { cn } from "@/lib/utils";
 import { useWalletSession } from "@/lib/wallet-session";
 import { SOCIAL } from "./copy";
@@ -33,7 +34,7 @@ function Cell({ friend, side, decimals }: { friend: Friend | undefined; side: "e
   const meta = <span className="bz-meta">{words.cellMeta(trader.tradeCount, trader.winRatePct)}</span>;
   const text = (
     <div className="bz-text">
-      <Link href={`/u/${trader.owner}`} className="bz-name" data-cursor="hover">
+      <Link href={profileHref(trader.owner)} className="bz-name" data-cursor="hover">
         {friend.you ? `${words.you} · ${shortHex(trader.owner)}` : shortHex(trader.owner)}
       </Link>
     </div>

@@ -1,6 +1,7 @@
 import { isTickerSymbol, TICKERS } from "@agari/core/market";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { tickerHref } from "@/features/takes/cashtags";
 import { TICKER_HUB } from "@/features/ticker-hub/copy";
 import { TickerHubScreen } from "@/features/ticker-hub/TickerHubScreen";
 
@@ -18,6 +19,6 @@ export default async function Page({ params }: Props) {
   const { symbol } = await params;
   const upper = symbol.toUpperCase();
   if (!isTickerSymbol(upper)) notFound();
-  if (symbol !== upper) redirect(`/tickers/${upper}`);
+  if (symbol !== upper) redirect(tickerHref(upper));
   return <TickerHubScreen symbol={upper} />;
 }

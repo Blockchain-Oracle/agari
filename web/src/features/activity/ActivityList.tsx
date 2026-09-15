@@ -5,6 +5,7 @@ import Link from "next/link";
 import { memo, useMemo, type CSSProperties } from "react";
 import { useNowMs } from "@/components/data";
 import { timeAgo } from "@/features/markets/history/time-ago";
+import { profileHref } from "@/features/takes/cashtags";
 import type { FeedTake } from "@/features/takes/protocol";
 import { addressHue } from "@/lib/address-hue";
 import { ACTIVITY } from "./copy";
@@ -56,7 +57,7 @@ const ActivityRow = memo(function ActivityRow({ index, item, take, units, showWh
             {showWho && (
               <>
                 {nowMs > 0 ? " · " : ""}
-                <Link href={`/u/${item.wallet}`} className="act-who" data-cursor="hover">
+                <Link href={profileHref(item.wallet)} className="act-who" data-cursor="hover">
                   <span aria-hidden className="act-avatar" style={{ "--act-hue": addressHue(item.wallet) } as CSSProperties} />
                   {shortHex(item.wallet)}
                 </Link>
