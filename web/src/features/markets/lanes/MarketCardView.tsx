@@ -9,8 +9,8 @@ import { AssetDisc } from "../hero/asset-mark";
 import { usdLine } from "../hero/units";
 import type { ChartPoint } from "../hero/useChartSeries";
 import { CardSpark } from "./CardSpark";
-import { GapListedCard } from "./GapListedCard";
 import { etWeekday, etWhen, laneAssetLabel, laneCadenceLabel } from "./lane-view";
+import { ListedCard } from "./ListedCard";
 
 /** What the card reads: the chart series and the top of the book, from the live hooks or a `/dev` fixture. */
 export interface MarketCardData {
@@ -69,7 +69,8 @@ function GapClock({ market, nowMs, current }: { market: EventMarket; nowMs: numb
  * assumes BTC or a house model are in `styles/market-card.css`.
  *
  * S6 lanes change words, never the anatomy (session-lanes.md §5): a token Window names its xStock ("TSLAx"); a Gap
- * Window asks about the Monday open, counts to its Sunday lock, and before Friday's close is the pending card.
+ * Window asks about the Monday open, counts to its Sunday lock, and before Friday's close is the pending card. A
+ * listed Regular or Gap Window before its open is the pending card that schedules a call (D-088, `ListedCard`).
  *
  * Numbers, as everywhere: the line is the opening print, and UP/DOWN are the top of
  * the real book. The reference fills its ramp with `odds?.upCents ?? 50`, so an
@@ -77,7 +78,7 @@ function GapClock({ market, nowMs, current }: { market: EventMarket; nowMs: numb
  */
 export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, points, latestRaw, upCents, downCents, hydrating }: MarketCardViewProps) {
   const current = nowMs > 0 ? phase(market, nowMs) : null;
-  if (market.lane === "gap" && current === "upcoming") return <GapListedCard market={market} />;
+  if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
 
   const openingRaw = market.openingPriceRaw;
   const asset = laneAssetLabel(market.asset, market.lane);

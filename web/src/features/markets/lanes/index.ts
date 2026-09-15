@@ -12,3 +12,4 @@ export * from "./useTickerPin";
 export * from "./GapListedCard";
 export * from "./lane-view";
 export * from "./MarketCardView";
+export * from "./ListedCard";

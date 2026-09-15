@@ -16,6 +16,7 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { HistoryRows, type HistoryReading } from "../history";
 import { useChainNowMs } from "../useChainNow";
 import { BetRow } from "./BetRow";
+import { useRestingItems } from "./RestingRows";
 
 const PAGE_SIZE = 8;
 type Tab = "open" | "history";
@@ -55,6 +56,8 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const reading = usePositions(address);
   const vaultItems = useVaultBetItems(symbol);
   const boosts = useLeverageBetItems(symbol);
+  // Scheduled calls lead the Open tab (D-088): what rests for the open sits above what is already held.
+  const restingItems = useRestingItems(symbol);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("open");
   const retry = () => {
@@ -63,7 +66,7 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
 
   const positionItems: ListItem[] =
     reading && isOk(reading) ? reading.value.map((position) => ({ key: `wallet:${position.marketId}`, node: <BetRow position={position} symbol={symbol} nowMs={nowMs} /> })) : [];
-  const openItems = [...positionItems, ...vaultItems, ...boosts.live];
+  const openItems = [...restingItems, ...positionItems, ...vaultItems, ...boosts.live];
   const pager = usePager(openItems, PAGE_SIZE);
   const openCount = reading && isOk(reading) ? openItems.length : null;
   const settledCount = history.reading?.ok ? history.reading.value.rounds.length + boosts.done.length : null;

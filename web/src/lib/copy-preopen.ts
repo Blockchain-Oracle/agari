@@ -58,13 +58,14 @@ export const PREOPEN = {
     headline: (opens: string) => `Schedule a call · opens ${opens} ET`,
     why: "Rest a post-only call at your price now; it fills within the first minute after the bell if the book comes to you.",
     cta: "Schedule a call",
+    hint: "post-only · your price",
     aria: (asset: string) => `Schedule a call on this ${asset} Window`,
   },
   rows: {
     restingForOpen: "Resting for the open",
     resting: "Resting",
     expired: "Didn't fill",
-    expiredWhy: "stake returned as venue credit",
+    expiredWhy: "stake returns as venue credit",
     cancelled: "Cancelled",
     /** "UP at 55¢ · 10 contracts". */
     call: (side: string, cents: number, contractsText: string) => `${side} at ${cents}¢ · ${contractsText} contracts`,
