@@ -25,7 +25,7 @@ export const MOONSHOT = {
     title: "Moonshot",
     body: "Call a side and a multiple; the house solves the level that pays it. This is never mapped onto an ordinary up/down position — it needs the reserve that funds the payout.",
     why: RANGE_NOT_DEPLOYED,
-    dependency: "the RangeReserve contract — deploy with contracts/script/DeployRangeReserve.s.sol, then pnpm contracts:export",
+    dependency: "the range reserve program (planned after the hackathon deadline)",
   },
   connect: { title: "Connect your wallet to take aim", sub: "Any Solana wallet, on devnet. Test funds are free" },
   aim: {

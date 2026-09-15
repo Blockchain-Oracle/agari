@@ -153,7 +153,7 @@ export const GAMES = {
     title: "Finished matches",
     pending:
       "Finished matches are read back from the arena's own events, indexed so a history page is one query rather than a log replay. The arena is not built yet.",
-    dependency: "GameArena and the ops projector (slices 6–7)",
+    dependency: "the GameArena program and the ops projector (planned after the hackathon deadline)",
   },
 
   settings: {

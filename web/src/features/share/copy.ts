@@ -14,7 +14,7 @@ const BRAND = {
   brand: "AGARI",
   site: "masayume.app",
   siteUrl: "https://masayume.app",
-  handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "@masayume_app",
+  handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "@agari_app",
 } as const;
 
 const signOff = `${BRAND.site} via ${BRAND.handle}`;

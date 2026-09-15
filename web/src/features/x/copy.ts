@@ -10,7 +10,7 @@ export const X_HANDLE = SHARE.handle;
 
 export const X_LINK_STATUS = {
   checking: "Checking your X connection…",
-  unavailable: "X sign-in is temporarily unavailable. Please try again shortly.",
+  unavailable: "X sign-in is not available on this deployment yet.",
 } as const;
 
 export const X_ERRORS = {
