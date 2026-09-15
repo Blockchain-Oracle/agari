@@ -56,7 +56,15 @@ No repository-wide license currently exists for this tree (no root `LICENSE` fil
 
 ## Link check
 
-See the separate S15c.5 step: every relative link in `README.md` and `docs/submission/*` is checked against the filesystem, and a sample of absolute URLs is checked with `curl -sI`. Results are recorded in the lane's final report rather than duplicated here.
+Every relative link in `README.md`, `THIRD_PARTY_NOTICES.md` and `docs/submission/*` resolves to a real file (checked programmatically against the filesystem; zero broken). A 10-URL sample of the 41 absolute links was checked with `curl`:
+
+- Four `explorer.solana.com` links (2 transactions, 2 addresses) all answered `429`, consistently, even after a delay and a browser-shaped user agent. This matches explorer.solana.com's known bot-blocking behavior for automated requests, not a broken link — every signature and address in the README's proof table was copied verbatim from a confirmed row in `docs/plan/acceptance.md`, not typed by hand. A human clicking the same links in a browser gets a normal page.
+- `github.com/Cybire1/yosuku` (Yosuku's own repository) answers **404** to an anonymous request. This is not new: Masayume's own public-release audit recorded the identical 404 on 2026-09-06 and noted that a search-engine cache still showed an older public page, so cached availability was never treated as current access or a license grant. That unresolved fact is inherited here, not newly discovered, and does not change the already-recorded owner approval of the Yosuku reuse.
+- The other 6 sampled links (Masayume's own GitHub, RainbowKit, DiceBear, Kenney, itch.io) all answered `200`.
+
+## Program build reproducibility
+
+Not run in this pass. `anchor build --verifiable` for `agari-events`/`agari-vault` and the on-chain IDL publish are the stage owner's step after tonight's devnet upgrade sequence (`D-096`); the README's Programs section carries explicit "pending (D-096)" placeholders rather than a fabricated hash.
 
 ## Concrete remaining public-release decisions
 
