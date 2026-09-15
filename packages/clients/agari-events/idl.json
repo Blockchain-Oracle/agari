@@ -279,6 +279,14 @@
         },
         {
           "name": "treasury"
+        },
+        {
+          "name": "queue",
+          "docs": [
+            "The Switchboard queue being pinned; required (and checked) when `args.switchboard_queue` is set, omitted when",
+            "it is the zero placeholder."
+          ],
+          "optional": true
         }
       ],
       "args": [
@@ -856,6 +864,13 @@
       ],
       "accounts": [
         {
+          "name": "recorder",
+          "docs": [
+            "Until `T + 40` this must be a `config.attestors` key; afterwards any signer records (the fee payer signs anyway)."
+          ],
+          "signer": true
+        },
+        {
           "name": "series"
         },
         {
@@ -883,7 +898,8 @@
         {
           "name": "queue",
           "docs": [
-            "The Switchboard queue whose ed25519 oracle signing keys must have signed the quote."
+            "The Switchboard queue whose ed25519 oracle signing keys must have signed the quote.",
+            "checked in the handler (the crate's verifier checks only its size)."
           ]
         },
         {
@@ -893,6 +909,14 @@
         {
           "name": "instructions",
           "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "prev_market",
+          "docs": [
+            "Window `index − 1` of this Series, required for an Open print past index 0: an Open whose previous Close is in",
+            "must be copied, never printed."
+          ],
+          "optional": true
         },
         {
           "name": "event_authority"
@@ -2546,6 +2570,11 @@
       "code": 6120,
       "name": "InvalidOrderArgs",
       "msg": "order arguments are out of range"
+    },
+    {
+      "code": 6121,
+      "name": "PreOpenTakerRefused",
+      "msg": "market is listed: only post-only orders may rest before the open"
     },
     {
       "code": 6200,

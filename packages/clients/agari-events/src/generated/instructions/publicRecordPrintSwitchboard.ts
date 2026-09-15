@@ -20,6 +20,7 @@ import {
   SolanaError,
   transformEncoder,
   type AccountMeta,
+  type AccountSignerMeta,
   type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
@@ -28,7 +29,9 @@ import {
   type InstructionWithAccounts,
   type InstructionWithData,
   type ReadonlyAccount,
+  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
+  type TransactionSigner,
   type WritableAccount,
 } from "@solana/kit";
 import {
@@ -49,6 +52,7 @@ export function getPublicRecordPrintSwitchboardDiscriminatorBytes(): ReadonlyUin
 
 export type PublicRecordPrintSwitchboardInstruction<
   TProgram extends string = typeof AGARI_EVENTS_PROGRAM_ADDRESS,
+  TAccountRecorder extends string | AccountMeta<string> = string,
   TAccountSeries extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TAccountConfig extends string | AccountMeta<string> = string,
@@ -57,6 +61,7 @@ export type PublicRecordPrintSwitchboardInstruction<
     "SysvarS1otHashes111111111111111111111111111",
   TAccountInstructions extends string | AccountMeta<string> =
     "Sysvar1nstructions1111111111111111111111111",
+  TAccountPrevMarket extends string | AccountMeta<string> = string,
   TAccountEventAuthority extends string | AccountMeta<string> = string,
   TAccountProgram extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
@@ -64,6 +69,10 @@ export type PublicRecordPrintSwitchboardInstruction<
   InstructionWithData<ReadonlyUint8Array> &
   InstructionWithAccounts<
     [
+      TAccountRecorder extends string
+        ? ReadonlySignerAccount<TAccountRecorder> &
+            AccountSignerMeta<TAccountRecorder>
+        : TAccountRecorder,
       TAccountSeries extends string
         ? ReadonlyAccount<TAccountSeries>
         : TAccountSeries,
@@ -82,6 +91,9 @@ export type PublicRecordPrintSwitchboardInstruction<
       TAccountInstructions extends string
         ? ReadonlyAccount<TAccountInstructions>
         : TAccountInstructions,
+      TAccountPrevMarket extends string
+        ? ReadonlyAccount<TAccountPrevMarket>
+        : TAccountPrevMarket,
       TAccountEventAuthority extends string
         ? ReadonlyAccount<TAccountEventAuthority>
         : TAccountEventAuthority,
@@ -130,45 +142,61 @@ export function getPublicRecordPrintSwitchboardInstructionDataCodec(): FixedSize
 }
 
 export type PublicRecordPrintSwitchboardAsyncInput<
+  TAccountRecorder extends string = string,
   TAccountSeries extends string = string,
   TAccountMarket extends string = string,
   TAccountConfig extends string = string,
   TAccountQueue extends string = string,
   TAccountSlothashes extends string = string,
   TAccountInstructions extends string = string,
+  TAccountPrevMarket extends string = string,
   TAccountEventAuthority extends string = string,
   TAccountProgram extends string = string,
 > = {
+  /** Until `T + 40` this must be a `config.attestors` key; afterwards any signer records (the fee payer signs anyway). */
+  recorder: TransactionSigner<TAccountRecorder>;
   series: Address<TAccountSeries>;
   market: Address<TAccountMarket>;
   config?: Address<TAccountConfig>;
-  /** The Switchboard queue whose ed25519 oracle signing keys must have signed the quote. */
+  /**
+   * The Switchboard queue whose ed25519 oracle signing keys must have signed the quote.
+   * checked in the handler (the crate's verifier checks only its size).
+   */
   queue: Address<TAccountQueue>;
   slothashes?: Address<TAccountSlothashes>;
   instructions?: Address<TAccountInstructions>;
+  /**
+   * Window `index − 1` of this Series, required for an Open print past index 0: an Open whose previous Close is in
+   * must be copied, never printed.
+   */
+  prevMarket?: Address<TAccountPrevMarket>;
   eventAuthority: Address<TAccountEventAuthority>;
   program: Address<TAccountProgram>;
   which: PublicRecordPrintSwitchboardInstructionDataArgs["which"];
 };
 
 export async function getPublicRecordPrintSwitchboardInstructionAsync<
+  TAccountRecorder extends string,
   TAccountSeries extends string,
   TAccountMarket extends string,
   TAccountConfig extends string,
   TAccountQueue extends string,
   TAccountSlothashes extends string,
   TAccountInstructions extends string,
+  TAccountPrevMarket extends string,
   TAccountEventAuthority extends string,
   TAccountProgram extends string,
   TProgramAddress extends Address = typeof AGARI_EVENTS_PROGRAM_ADDRESS,
 >(
   input: PublicRecordPrintSwitchboardAsyncInput<
+    TAccountRecorder,
     TAccountSeries,
     TAccountMarket,
     TAccountConfig,
     TAccountQueue,
     TAccountSlothashes,
     TAccountInstructions,
+    TAccountPrevMarket,
     TAccountEventAuthority,
     TAccountProgram
   >,
@@ -176,12 +204,14 @@ export async function getPublicRecordPrintSwitchboardInstructionAsync<
 ): Promise<
   PublicRecordPrintSwitchboardInstruction<
     TProgramAddress,
+    TAccountRecorder,
     TAccountSeries,
     TAccountMarket,
     TAccountConfig,
     TAccountQueue,
     TAccountSlothashes,
     TAccountInstructions,
+    TAccountPrevMarket,
     TAccountEventAuthority,
     TAccountProgram
   >
@@ -191,12 +221,14 @@ export async function getPublicRecordPrintSwitchboardInstructionAsync<
 
   // Original accounts.
   const originalAccounts = {
+    recorder: { value: input.recorder ?? null, isWritable: false },
     series: { value: input.series ?? null, isWritable: false },
     market: { value: input.market ?? null, isWritable: true },
     config: { value: input.config ?? null, isWritable: false },
     queue: { value: input.queue ?? null, isWritable: false },
     slothashes: { value: input.slothashes ?? null, isWritable: false },
     instructions: { value: input.instructions ?? null, isWritable: false },
+    prevMarket: { value: input.prevMarket ?? null, isWritable: false },
     eventAuthority: { value: input.eventAuthority ?? null, isWritable: false },
     program: { value: input.program ?? null, isWritable: false },
   };
@@ -224,12 +256,14 @@ export async function getPublicRecordPrintSwitchboardInstructionAsync<
   const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
+      getAccountMeta("recorder", accounts.recorder),
       getAccountMeta("series", accounts.series),
       getAccountMeta("market", accounts.market),
       getAccountMeta("config", accounts.config),
       getAccountMeta("queue", accounts.queue),
       getAccountMeta("slothashes", accounts.slothashes),
       getAccountMeta("instructions", accounts.instructions),
+      getAccountMeta("prevMarket", accounts.prevMarket),
       getAccountMeta("eventAuthority", accounts.eventAuthority),
       getAccountMeta("program", accounts.program),
     ],
@@ -239,69 +273,89 @@ export async function getPublicRecordPrintSwitchboardInstructionAsync<
     programAddress,
   } as PublicRecordPrintSwitchboardInstruction<
     TProgramAddress,
+    TAccountRecorder,
     TAccountSeries,
     TAccountMarket,
     TAccountConfig,
     TAccountQueue,
     TAccountSlothashes,
     TAccountInstructions,
+    TAccountPrevMarket,
     TAccountEventAuthority,
     TAccountProgram
   >);
 }
 
 export type PublicRecordPrintSwitchboardInput<
+  TAccountRecorder extends string = string,
   TAccountSeries extends string = string,
   TAccountMarket extends string = string,
   TAccountConfig extends string = string,
   TAccountQueue extends string = string,
   TAccountSlothashes extends string = string,
   TAccountInstructions extends string = string,
+  TAccountPrevMarket extends string = string,
   TAccountEventAuthority extends string = string,
   TAccountProgram extends string = string,
 > = {
+  /** Until `T + 40` this must be a `config.attestors` key; afterwards any signer records (the fee payer signs anyway). */
+  recorder: TransactionSigner<TAccountRecorder>;
   series: Address<TAccountSeries>;
   market: Address<TAccountMarket>;
   config: Address<TAccountConfig>;
-  /** The Switchboard queue whose ed25519 oracle signing keys must have signed the quote. */
+  /**
+   * The Switchboard queue whose ed25519 oracle signing keys must have signed the quote.
+   * checked in the handler (the crate's verifier checks only its size).
+   */
   queue: Address<TAccountQueue>;
   slothashes?: Address<TAccountSlothashes>;
   instructions?: Address<TAccountInstructions>;
+  /**
+   * Window `index − 1` of this Series, required for an Open print past index 0: an Open whose previous Close is in
+   * must be copied, never printed.
+   */
+  prevMarket?: Address<TAccountPrevMarket>;
   eventAuthority: Address<TAccountEventAuthority>;
   program: Address<TAccountProgram>;
   which: PublicRecordPrintSwitchboardInstructionDataArgs["which"];
 };
 
 export function getPublicRecordPrintSwitchboardInstruction<
+  TAccountRecorder extends string,
   TAccountSeries extends string,
   TAccountMarket extends string,
   TAccountConfig extends string,
   TAccountQueue extends string,
   TAccountSlothashes extends string,
   TAccountInstructions extends string,
+  TAccountPrevMarket extends string,
   TAccountEventAuthority extends string,
   TAccountProgram extends string,
   TProgramAddress extends Address = typeof AGARI_EVENTS_PROGRAM_ADDRESS,
 >(
   input: PublicRecordPrintSwitchboardInput<
+    TAccountRecorder,
     TAccountSeries,
     TAccountMarket,
     TAccountConfig,
     TAccountQueue,
     TAccountSlothashes,
     TAccountInstructions,
+    TAccountPrevMarket,
     TAccountEventAuthority,
     TAccountProgram
   >,
   config?: { programAddress?: TProgramAddress },
 ): PublicRecordPrintSwitchboardInstruction<
   TProgramAddress,
+  TAccountRecorder,
   TAccountSeries,
   TAccountMarket,
   TAccountConfig,
   TAccountQueue,
   TAccountSlothashes,
   TAccountInstructions,
+  TAccountPrevMarket,
   TAccountEventAuthority,
   TAccountProgram
 > {
@@ -310,12 +364,14 @@ export function getPublicRecordPrintSwitchboardInstruction<
 
   // Original accounts.
   const originalAccounts = {
+    recorder: { value: input.recorder ?? null, isWritable: false },
     series: { value: input.series ?? null, isWritable: false },
     market: { value: input.market ?? null, isWritable: true },
     config: { value: input.config ?? null, isWritable: false },
     queue: { value: input.queue ?? null, isWritable: false },
     slothashes: { value: input.slothashes ?? null, isWritable: false },
     instructions: { value: input.instructions ?? null, isWritable: false },
+    prevMarket: { value: input.prevMarket ?? null, isWritable: false },
     eventAuthority: { value: input.eventAuthority ?? null, isWritable: false },
     program: { value: input.program ?? null, isWritable: false },
   };
@@ -340,12 +396,14 @@ export function getPublicRecordPrintSwitchboardInstruction<
   const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
+      getAccountMeta("recorder", accounts.recorder),
       getAccountMeta("series", accounts.series),
       getAccountMeta("market", accounts.market),
       getAccountMeta("config", accounts.config),
       getAccountMeta("queue", accounts.queue),
       getAccountMeta("slothashes", accounts.slothashes),
       getAccountMeta("instructions", accounts.instructions),
+      getAccountMeta("prevMarket", accounts.prevMarket),
       getAccountMeta("eventAuthority", accounts.eventAuthority),
       getAccountMeta("program", accounts.program),
     ],
@@ -355,12 +413,14 @@ export function getPublicRecordPrintSwitchboardInstruction<
     programAddress,
   } as PublicRecordPrintSwitchboardInstruction<
     TProgramAddress,
+    TAccountRecorder,
     TAccountSeries,
     TAccountMarket,
     TAccountConfig,
     TAccountQueue,
     TAccountSlothashes,
     TAccountInstructions,
+    TAccountPrevMarket,
     TAccountEventAuthority,
     TAccountProgram
   >);
@@ -372,15 +432,25 @@ export type ParsedPublicRecordPrintSwitchboardInstruction<
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    series: TAccountMetas[0];
-    market: TAccountMetas[1];
-    config: TAccountMetas[2];
-    /** The Switchboard queue whose ed25519 oracle signing keys must have signed the quote. */
-    queue: TAccountMetas[3];
-    slothashes: TAccountMetas[4];
-    instructions: TAccountMetas[5];
-    eventAuthority: TAccountMetas[6];
-    program: TAccountMetas[7];
+    /** Until `T + 40` this must be a `config.attestors` key; afterwards any signer records (the fee payer signs anyway). */
+    recorder: TAccountMetas[0];
+    series: TAccountMetas[1];
+    market: TAccountMetas[2];
+    config: TAccountMetas[3];
+    /**
+     * The Switchboard queue whose ed25519 oracle signing keys must have signed the quote.
+     * checked in the handler (the crate's verifier checks only its size).
+     */
+    queue: TAccountMetas[4];
+    slothashes: TAccountMetas[5];
+    instructions: TAccountMetas[6];
+    /**
+     * Window `index − 1` of this Series, required for an Open print past index 0: an Open whose previous Close is in
+     * must be copied, never printed.
+     */
+    prevMarket?: TAccountMetas[7] | undefined;
+    eventAuthority: TAccountMetas[8];
+    program: TAccountMetas[9];
   };
   data: PublicRecordPrintSwitchboardInstructionData;
 };
@@ -393,12 +463,12 @@ export function parsePublicRecordPrintSwitchboardInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedPublicRecordPrintSwitchboardInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 8) {
+  if (instruction.accounts.length < 10) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
       {
         actualAccountMetas: instruction.accounts.length,
-        expectedAccountMetas: 8,
+        expectedAccountMetas: 10,
       },
     );
   }
@@ -408,15 +478,23 @@ export function parsePublicRecordPrintSwitchboardInstruction<
     accountIndex += 1;
     return accountMeta;
   };
+  const getNextOptionalAccount = () => {
+    const accountMeta = getNextAccount();
+    return accountMeta.address === AGARI_EVENTS_PROGRAM_ADDRESS
+      ? undefined
+      : accountMeta;
+  };
   return {
     programAddress: instruction.programAddress,
     accounts: {
+      recorder: getNextAccount(),
       series: getNextAccount(),
       market: getNextAccount(),
       config: getNextAccount(),
       queue: getNextAccount(),
       slothashes: getNextAccount(),
       instructions: getNextAccount(),
+      prevMarket: getNextOptionalAccount(),
       eventAuthority: getNextAccount(),
       program: getNextAccount(),
     },
