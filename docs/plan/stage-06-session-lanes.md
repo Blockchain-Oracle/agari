@@ -50,12 +50,13 @@
   - `packages/core/src/market/{halts,void-reason,events-calendar,corporate}.ts` with vitests (`skipApplies` on Gap spans, `voidDetail`, `earningsFlag`).
   - `corporate-actions.json` gains `lanes` and `multipliers`.
   - Merged 5968db4 (core) and 8b85afb (ops, scripts, LiteSVM 3/3). The roller's Regular plan reads `clock.halts` (`haltPausedState`) and `corporateActionFor`; `PlanClock` also carries `multipliers` for the token lane.
-- [ ] **6a Gap:**
+- [x] **6a Gap:**
   - `plan-gap.ts` (48 h lead, check-bound exception, two-date corporate skip) and vitests at `--at` clocks.
   - Relay `gap-slots.ts` (RedStone open from `print_archive` until `lock_at`); maker `gap-fair.ts`.
   - `init-gap-series.ts` dry run on Surfpool.
   - LiteSVM `events_gap.rs`: real 09-11 → 09-14 weekend (Pyth fixtures, D-021 method) and the PD-6 race at `lock_at` / `lock_at + 1`.
   - Surfpool forward time-travel drive `gap-cycle.ts` on drive-only Series 901.
+  - Merged 73d9f80: plan-gap on core `haltPausedState`/`corporateActionFor`; LiteSVM the real 09-11 → 09-14 weekend settles Down on archived Pyth (TSLA 365.47600 → 359.81147, QQQ 714.90 → 703.325, VOO 702.49748 → 697.68105), PD-6 race both orders; Surfpool drive 14 txs (list from the planner, 6100 at lock, settle, redeem to base unit, Book release). `SpotFeed.latest` takes xStocks, `LaneQuote.halfSpreadTicks?` (blind quote 350/650), `gapSpanOf` in roller logs. Dry run: 9 Gap Series 2.117153880 SOL (0.235239320 each); float per listed Window 0.048127920 (the mvault is 82 B, not the spec's 165 B). `roller-plan --at 2026-09-17T20:00:00Z` on devnet: all 9 Gap lanes "would list #0 09-18 20:00Z–09-21 13:30Z v1". Follow-ups: Series 902 real-print overnight mode (Q-S6-3), Q-S6-1 open re-reads 09-15/16/17.
 - [ ] **Stage owner, Gap Series on devnet (Wed 09-16):**
   - Register 9 Series (or the Q-S6-1 subset): 2.117 SOL, one 256-node Book each, acceptance rows.
   - Restart ops; `pnpm drive:roller-plan --at 2026-09-17T20:00:00Z` shows every Gap lane `open`.
