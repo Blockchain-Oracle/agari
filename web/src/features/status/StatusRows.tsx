@@ -22,7 +22,7 @@ export function StatusBanner({ payload }: { payload: StatusPayload }) {
   );
 }
 
-function PipelineRow({ pipeline }: { pipeline: StatusPipeline }) {
+function PipelineRow({ pipeline, sessionLabel }: { pipeline: StatusPipeline; sessionLabel: string | null }) {
   const notConfigured = pipeline.optional && !pipeline.configured;
   return (
     <div className="status-row">
@@ -35,12 +35,13 @@ function PipelineRow({ pipeline }: { pipeline: StatusPipeline }) {
         {pipeline.detail}
       </span>
       {notConfigured && <span className="status-chip">{STATUS.optional}</span>}
+      {pipeline.expected && <span className="status-chip">{STATUS.expected(sessionLabel)}</span>}
     </div>
   );
 }
 
-/** The pipeline table — reference L87–122, one row per dependency with the lag dot ladder. */
-export function StatusTable({ pipelines }: { pipelines: StatusPipeline[] }) {
+/** The pipeline table — reference L87–122, one row per dependency with the lag dot ladder; ours adds the closed-session chip. */
+export function StatusTable({ pipelines, sessionLabel = null }: { pipelines: StatusPipeline[]; sessionLabel?: string | null }) {
   return (
     <div className="status-table">
       <div className="status-table-head">
@@ -48,7 +49,7 @@ export function StatusTable({ pipelines }: { pipelines: StatusPipeline[] }) {
       </div>
       <div className="status-table-body">
         {pipelines.map((pipeline) => (
-          <PipelineRow key={pipeline.id} pipeline={pipeline} />
+          <PipelineRow key={pipeline.id} pipeline={pipeline} sessionLabel={sessionLabel} />
         ))}
       </div>
     </div>

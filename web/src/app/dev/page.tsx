@@ -5,6 +5,7 @@ import { DEV } from "@/lib/copy";
 const FIXTURES = [
   { href: "/dev/states", label: "States", note: "honest-state primitives, data, chrome, receipt, ui" },
   { href: "/dev/wallet", label: "Wallet", note: "connect ladder, network banner, balance plate, faucet" },
+  { href: "/dev/status", label: "Status", note: "off-hours expected, in session, a stopped actor" },
   { href: "/dev/hero", label: "Hero market", note: "chart as ticket on the soonest live window (?m= to pick one)" },
   { href: "/dev/balance", label: "Balance plate", note: "every money state from canned sheets, then live" },
   { href: "/dev/verdict", label: "Verdict", note: "win, loss, void, both-sides-net, then live (?m=)" },
