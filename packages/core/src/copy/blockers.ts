@@ -59,6 +59,8 @@ export interface BlockerContext {
   privateCapText?: string;
   /** "Mon 09:30 ET" (session-closed) or "Fri 16:00 ET" (gap-listed). */
   opensText?: string;
+  /** `halted` for a stale signed price rather than a trading halt (Q-S6-9: only `pyth-wide`/`issuer-halt` say "Trading halted"). */
+  haltStale?: boolean;
 }
 
 const DEFAULT_CHAIN = "Solana devnet";
@@ -138,7 +140,7 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "session-closed":
       return ctx.opensText ? `Market closed — opens ${ctx.opensText}` : "Market closed";
     case "halted":
-      return "Trading halted — no new calls";
+      return ctx.haltStale ? "Signed price stale — no new calls" : "Trading halted — no new calls";
     case "lane-paused":
       return "Paused: no signed price source";
     case "gap-listed":

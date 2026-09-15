@@ -1,10 +1,10 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
 import type { MarketPhase } from "@agari/core/lifecycle";
 import type { EventMarket } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { HERO, TICKET } from "@/lib/copy";
+import { laneAssetLabel, laneTabLabel } from "../lanes/lane-view";
 
 interface TicketHeaderProps {
   market: EventMarket;
@@ -17,7 +17,7 @@ export function TicketHeader({ market, phase, nowMs }: TicketHeaderProps) {
     <header className="flex items-center justify-between gap-3">
       <div className="flex flex-col gap-0.5">
         <span className="type-title text-ink">
-          {market.asset} · {formatCadence(market.intervalSec)}
+          {laneAssetLabel(market.asset, market.lane)} · {laneTabLabel(market.lane, market.intervalSec)}
         </span>
         <span className="type-caption text-ink-secondary">{phase ? HERO.phase[phase] : TICKET.syncing}</span>
       </div>

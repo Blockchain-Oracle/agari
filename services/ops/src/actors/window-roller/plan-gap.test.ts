@@ -22,11 +22,11 @@ function calendarAt(atSec: number, holidays: string[] = ["2026-09-07", "2026-11-
 }
 
 const gapSeries = (symbol: string, over: Partial<PlanSeries> = {}): PlanSeries => ({
-  key: `${symbol}-gap`, symbol, cadenceSec: 604_800, nextIndex: 0n, lastExpirySec: 0,
+  key: `${symbol}-gap`, symbol, cadenceSec: 604_800, maxLeadSec: 400_000, nextIndex: 0n, lastExpirySec: 0,
   versions: policyVersions(symbol, SOURCES, "gap").map(versionWindow), freeBooks: ["GapBook"], ...over,
 });
 const clock = (at: string, over: Partial<PlanClock> = {}): PlanClock => ({
-  calendar: calendarAt(utc(at)), nowSec: utc(at), leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, ...over,
+  calendar: calendarAt(utc(at)), nowSec: utc(at), leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], ...over,
 });
 const spanOf = (plan: ReturnType<typeof planGapSeries>) => ("window" in plan ? [iso(plan.window.tradingStartSec), iso(plan.window.lockAtSec), iso(plan.window.expirySec)] : null);
 

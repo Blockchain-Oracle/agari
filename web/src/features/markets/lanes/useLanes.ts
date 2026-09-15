@@ -8,22 +8,31 @@ import { laneNextStart } from "@agari/markets";
 import { keys, useLanes, useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { numberCodec, usePersistedState } from "@/lib/persisted";
+import { usePersistedState } from "@/lib/persisted";
+import { laneTabKey, laneTabParts, parseLaneTabKey, type LaneTabKey } from "./lane-view";
 import { useTickerPin } from "./useTickerPin";
 
 const LANE_KEY = "agari.lane";
-const NO_PIN = 0;
+const NO_PIN = "";
+
+/** `regular:300`, `gap:604800`, `token:300`; a pre-S6 bare cadence reads as its Regular lane. */
+const laneKeyCodec = {
+  parse: (raw: string): LaneTabKey | typeof NO_PIN | null => (raw === NO_PIN ? NO_PIN : parseLaneTabKey(raw)),
+  serialize: (value: LaneTabKey | typeof NO_PIN) => value,
+};
 
 export interface LanesState {
   reading: Reading<LaneSet> | null;
   laneSet: LaneSet | null;
   /** The cadence shown: the pinned one when present, else the first live lane. */
   activeLane: Lane | null;
+  /** The shown lane's `basis:cadence` key (the pinned one while it has no live Window). */
+  activeKey: LaneTabKey | null;
   activeIntervalSec: number | null;
-  /** The pinned cadence has no live Window right now — it stays selected and shows "Between rounds" instead of jumping. */
+  /** The pinned lane has no live Window right now — it stays selected and shows "Between rounds" instead of jumping. */
   pinnedMissing: boolean;
-  pin: (intervalSec: number) => void;
-  /** The pinned ticker (`agari.ticker`); null lists every ticker. Lane pins stay keyed by cadence alone (S6 adds basis). */
+  pin: (key: LaneTabKey) => void;
+  /** The pinned ticker (`agari.ticker`); null lists every ticker. */
   ticker: TickerSymbol | null;
   pinTicker: (ticker: TickerSymbol | null) => void;
   /** Refetches the lane list — the one action a failed lane read should offer. */
@@ -33,21 +42,24 @@ export interface LanesState {
 export function useLanesState(venueId: Address | null): LanesState {
   const reading = useLanes(venueId);
   const laneSet = reading && isOk(reading) ? reading.value : null;
-  const [pinned, pin] = usePersistedState(LANE_KEY, NO_PIN, numberCodec);
+  const [pinned, pin] = usePersistedState<LaneTabKey | typeof NO_PIN>(LANE_KEY, NO_PIN, laneKeyCodec);
   const [ticker, pinTicker] = useTickerPin();
   const queryClient = useQueryClient();
   const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: keys.lanes(venueId) }), [queryClient, venueId]);
 
   const lanes = laneSet?.lanes ?? [];
-  const pinnedLane = pinned === NO_PIN ? null : (lanes.find((lane) => lane.intervalSec === pinned) ?? null);
-  const pinnedMissing = pinned !== NO_PIN && laneSet !== null && pinnedLane === null;
+  const pinnedKey = pinned === NO_PIN ? null : pinned;
+  const pinnedLane = pinnedKey === null ? null : (lanes.find((lane) => laneTabKey(lane.basis, lane.intervalSec) === pinnedKey) ?? null);
+  const pinnedMissing = pinnedKey !== null && laneSet !== null && pinnedLane === null;
   const activeLane = pinnedLane ?? (pinnedMissing ? null : (lanes[0] ?? null));
+  const activeKey = pinnedMissing ? pinnedKey : activeLane ? laneTabKey(activeLane.basis, activeLane.intervalSec) : null;
 
   return {
     reading,
     laneSet,
     activeLane,
-    activeIntervalSec: pinnedMissing ? pinned : (activeLane?.intervalSec ?? null),
+    activeKey,
+    activeIntervalSec: activeKey ? laneTabParts(activeKey).intervalSec : null,
     pinnedMissing,
     pin,
     ticker,

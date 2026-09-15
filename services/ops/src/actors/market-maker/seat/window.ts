@@ -1,7 +1,8 @@
 /** One Window's maker pass: pull, stop or (re)quote, merging paired inventory on the way (venue-ops.md §8.2–8.3). */
 import { marketStatus, sendOps, OpsSendError, ENGINE_ERROR, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
 import {
-  ANY_SEAT, cancelAllInstruction, MAKER_KIND, mergeSetInstruction, postOnlyInstruction, readBookTop, readLedger, type LedgerSeat, type VenueConfig,
+  ANY_SEAT, cancelAllInstruction, MAKER_KIND, mergeSetInstruction, NORMAL, POST_ONLY, quoteInstruction, readBookTop, readLedger, readPlaceOutcome,
+  type LedgerSeat, type VenueConfig,
 } from "@agari/markets/ops/maker";
 import type { TickerSymbol } from "@agari/core/market";
 import type { SeatMakerEnv } from "./env";
@@ -74,21 +75,33 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
     await send(ctx, `merge ${lots} sets ${label}`, async () => [await mergeSetInstruction(ctx.client, m, ctx.config, seat.index, lots)]);
   }
   await cancelAll(placed ? `requote: fair ${placed.fairTicks} → ${fair}` : "unknown resting orders");
+  const crossing = ctx.env.orderType === "limit";
   const top = await readBookTop(ctx.client, d.book);
-  const pair = quotePair({ fairTicks: fair, halfSpreadTicks: lane?.halfSpreadTicks ?? ctx.env.halfSpreadTicks, minTick: ctx.env.minTick, bestBidTicks: top?.bestBidTicks ?? null, bestAskTicks: top?.bestAskTicks ?? null });
+  const pair = quotePair({
+    fairTicks: fair, halfSpreadTicks: lane?.halfSpreadTicks ?? ctx.env.halfSpreadTicks, minTick: ctx.env.minTick,
+    bestBidTicks: top?.bestBidTicks ?? null, bestAskTicks: top?.bestAskTicks ?? null, crossing,
+  });
   const lots = sizeLots({ wantLots: ctx.env.quoteLots, pair, cu: series.data.cashUnit, budget: lane?.maxCashPerWindow ?? ctx.env.maxCashPerWindow, minLots: series.data.minLots });
   if (lots === 0n) return { state: "idle", placed: null, note: `fair ${fair}: no admissible size or side` };
   const expireSec = quoteExpirySec(ctx.nowSec, lockAtSec, ctx.env.quoteTtlSec);
   let seatHint = seat?.index ?? ANY_SEAT;
   let placedAny = false;
+  const took: string[] = [];
   for (const [side, ticks] of [["bid", pair.bidTicks], ["ask", pair.askTicks]] as const) {
     if (ticks === null) continue;
     const kind = side === "bid" ? MAKER_KIND.buyYes : MAKER_KIND.buyNo;
+    const orderType = crossing ? NORMAL : POST_ONLY;
     try {
-      const sig = await send(ctx, `post ${side} ${lots} @ ${ticks} ${label} (fair ${fair}, expires ${expireSec})`, async () => [
-        await postOnlyInstruction(ctx.client, m, ctx.config, { kind, priceTicks: ticks, lots, expireSec, seatHint, clientId: BigInt(ctx.nowSec) }),
+      const sig = await send(ctx, `${crossing ? "limit" : "post"} ${side} ${lots} @ ${ticks} ${label} (fair ${fair}, expires ${expireSec})`, async () => [
+        await quoteInstruction(ctx.client, m, ctx.config, { kind, priceTicks: ticks, lots, expireSec, seatHint, clientId: BigInt(ctx.nowSec), orderType }),
       ]);
-      placedAny = true;
+      // A limit quote may fill instead of resting (a Normal order stopping on the fill cap cancels its remainder), so
+      // what rests comes from the placement's own PlaceResult, never from the assumption that a quote always rests.
+      if (sig && crossing) {
+        const outcome = await readPlaceOutcome(ctx.client, sig);
+        if (outcome && outcome.filledLots > 0n) took.push(`${side} filled ${outcome.filledLots}${outcome.cancelledLots > 0n ? `, cancelled ${outcome.cancelledLots} (stop ${outcome.stopReason})` : ""}`);
+        placedAny ||= outcome === null ? false : outcome.restedLots > 0n;
+      } else placedAny = true;
       // The first placement claims a seat; the second must name it (D-020).
       if (sig && seatHint === ANY_SEAT) seatHint = (await readLedger(ctx.client, d.ledger))?.seats.find((s) => s.owner === me)?.index ?? ANY_SEAT;
     } catch (error) {
@@ -96,5 +109,6 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
       else throw error;
     }
   }
-  return { state: "quoting", placed: placedAny ? { fairTicks: fair, expireSec } : null, note: `fair ${fair} → ${pair.bidTicks ?? "-"} / ${pair.askTicks ?? "-"} × ${lots}` };
+  const note = `fair ${fair} → ${pair.bidTicks ?? "-"} / ${pair.askTicks ?? "-"} × ${lots}${took.length ? ` · ${took.join("; ")}` : ""}`;
+  return { state: "quoting", placed: placedAny ? { fairTicks: fair, expireSec } : null, note };
 }

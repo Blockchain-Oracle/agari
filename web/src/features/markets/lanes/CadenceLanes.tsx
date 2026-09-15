@@ -6,6 +6,7 @@ import { ReadingBoundary } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { BetweenRounds } from "./BetweenRounds";
 import { useMarketSession } from "../session";
+import { laneTabParts } from "./lane-view";
 import { LaneTabs } from "./LaneTabs";
 import { TickerLane } from "./TickerLane";
 import type { LanesState } from "./useLanes";
@@ -37,14 +38,9 @@ export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, on
     >
       {(laneSet) => (
         <div className="flex flex-col gap-4">
-          <LaneTabs
-            lanes={laneSet.lanes}
-            activeIntervalSec={state.activeIntervalSec}
-            pinnedMissingIntervalSec={state.pinnedMissing ? state.activeIntervalSec : null}
-            onPin={state.pin}
-          />
+          <LaneTabs lanes={laneSet.lanes} activeKey={state.activeKey} pinnedMissingKey={state.pinnedMissing ? state.activeKey : null} onPin={state.pin} />
           {state.activeLane === null || state.activeLane.markets.length === 0 ? (
-            <BetweenRounds venueId={venueId} intervalSec={state.activeIntervalSec ?? 0} nowMs={nowMs} session={session} />
+            <BetweenRounds venueId={venueId} basis={state.activeKey ? laneTabParts(state.activeKey).basis : "regular"} intervalSec={state.activeIntervalSec ?? 0} nowMs={nowMs} session={session} />
           ) : (
             <TickerLane
               lane={state.activeLane}

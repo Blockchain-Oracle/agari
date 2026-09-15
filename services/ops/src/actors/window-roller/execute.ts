@@ -21,6 +21,9 @@ export interface RollerSettings {
   leadSec: number;
   gapLeadSec: number;
   minTradableSec: number;
+  /** Prelist the next session's first Regular Window at the previous close (D-089). */
+  prelist: boolean;
+  prelistCadencesSec: readonly number[];
   /** Optional `TSLA-5m,TSLA-gap,TSLAx-5m` filter (dev runs); empty = every Series of a registry ticker. */
   only: readonly string[];
 }
@@ -46,6 +49,8 @@ const SWEEPS_PER_BOOK = 8;
 export const seriesKey = seriesLaneKey;
 /** A Gap spans days, so its log span carries dates (`09-18 20:00Z–09-21 13:30Z`). */
 const spanFor = (s: SeriesView, w: { tradingStartSec: number; expirySec: number }) => (seriesBasis(s) === "gap" ? gapSpanOf(w) : spanOf(w));
+/** Lamports as an exact SOL string with three decimals (display only). */
+const solText = (lamports: bigint) => `${lamports / 1_000_000_000n}.${(lamports % 1_000_000_000n).toString().padStart(9, "0").slice(0, 3)}`;
 
 async function refreshSeries(state: RollerState): Promise<void> {
   if (Date.now() - state.seriesListedMs >= SERIES_LIST_MS) {
@@ -121,9 +126,9 @@ async function recycle(state: RollerState, bound: Bound[], nowSec: number, notes
   return released;
 }
 
-/** PD-8: grow a trading Market's Ledger when fewer than 8 seats remain. */
+/** PD-8: grow a listed or trading Market's Ledger when fewer than 8 seats remain (a prelisted Window takes calls too). */
 async function grow(state: RollerState, bound: Bound[], nowSec: number, notes: string[]): Promise<void> {
-  const trading = bound.filter((b) => marketStatus(b.market.data, nowSec) === "trading");
+  const trading = bound.filter((b) => ["listed", "trading"].includes(marketStatus(b.market.data, nowSec)));
   if (trading.length === 0) return;
   const headers = await fetchLedgerHeaders(state.client, trading.map((b) => b.market.data.ledger));
   for (const [i, header] of headers.entries()) {
@@ -148,7 +153,10 @@ async function grow(state: RollerState, bound: Bound[], nowSec: number, notes: s
 function planFor(s: SeriesView, clock: PlanClock): SeriesPlan {
   const versions = s.data.policyVersions.slice(0, s.data.versionCount).map(versionWindow);
   const freeBooks = s.data.freeBooks.slice(0, s.data.freeBookCount);
-  const series = { key: seriesKey(s), symbol: s.symbol!, cadenceSec: s.data.cadenceSec, nextIndex: s.data.nextIndex, lastExpirySec: Number(s.data.lastExpiry), versions, freeBooks };
+  const series = {
+    key: seriesKey(s), symbol: s.symbol!, cadenceSec: s.data.cadenceSec, maxLeadSec: s.data.maxLeadSec, nextIndex: s.data.nextIndex,
+    lastExpirySec: Number(s.data.lastExpiry), versions, freeBooks,
+  };
   return planByBasis(seriesBasis(s)!, series, clock);
 }
 
@@ -172,8 +180,10 @@ async function open(state: RollerState, s: SeriesView, clock: PlanClock, notes: 
     });
     state.counters.opened++;
     const version = describeVersion(plan.policyVersion, versionWindow(fresh.data.policyVersions[plan.policyVersion]!));
-    notes.push(`opened ${key} #${plan.index} ${spanFor(fresh, w)} ${version} ${opened.signature}`);
-    return `open #${plan.index} ${spanFor(fresh, w)} ${version}`;
+    // A prelisted Window says so until it starts trading: it holds SOL float from the previous close (D-089).
+    const verb = plan.state.startsWith("prelisting") ? "prelisted" : "opened";
+    notes.push(`${verb} ${key} #${plan.index} ${spanFor(fresh, w)} ${version} ${opened.signature}`);
+    return `${verb === "prelisted" ? "prelisted" : "open"} #${plan.index} ${spanFor(fresh, w)} ${version}`;
   } catch (error) {
     if (isCode(error, ENGINE_ERROR.badWindowIndex, ENGINE_ERROR.windowOverlap)) return "already opened: re-reading";
     state.counters.failed++;
@@ -206,6 +216,7 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
     calendar: deps.sessions.calendar(), nowSec, leadSec: state.settings.leadSec, gapLeadSec: state.settings.gapLeadSec,
     minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(),
     multipliers: deps.events.multipliers(), halts: deps.halts.board(),
+    prelist: state.settings.prelist, prelistCadencesSec: state.settings.prelistCadencesSec,
   };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;
@@ -217,6 +228,11 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
     if ((plan.kind === "wait" || plan.kind === "paused") && plan.wakeSec < wakeSec) wakeSec = plan.wakeSec;
     // Wake at the next lock so the Book recycles promptly; an already-locked Book that failed waits for the normal cadence.
     for (const b of bound) if (b.series.address === s.address && Number(b.market.data.lockAt) > nowSec) wakeSec = Math.min(wakeSec, Number(b.market.data.lockAt));
+  }
+  // The prelist is the roller's SOL float: report what it has left next to the lanes holding it.
+  if (Object.values(lanes).some((v) => v.includes("prelist"))) {
+    const balance = (await state.client.rpc.getBalance(state.client.payer.address).send()).value;
+    for (const [key, value] of Object.entries(lanes)) if (value.includes("prelist")) lanes[key] = `${value} · roller ${solText(balance)} SOL`;
   }
   const counts = Object.values(lanes).reduce<Record<string, number>>((acc, v) => ((acc[v.split(/[: #]/)[0]!] = (acc[v.split(/[: #]/)[0]!] ?? 0) + 1), acc), {});
   const summary = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(", ");

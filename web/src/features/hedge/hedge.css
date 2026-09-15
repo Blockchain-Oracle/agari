@@ -1,0 +1,126 @@
+/* The hedge card: Masayume's season banner (features/games/games.css `.gm-season`) — the same grid, border, vermilion
+ * wash and inset bevel — in the markets voice (mono eyebrow and line, display name) instead of the games pixel face.
+ * A foot row carries the devnet disclosure, and the CTA stays on a phone (the reference hides it under 480px, where the
+ * whole banner is its link) because here it says what the tap does. */
+
+.hg-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 10px;
+  min-height: 96px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--vermilion) 40%, var(--color-hairline));
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--vermilion) 16%, var(--color-surface-1)), var(--color-surface-1) 70%),
+    var(--color-surface-1);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.06), inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+[data-theme="light"] .hg-banner {
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(20, 18, 16, 0.08);
+}
+
+/* The trophy's slot (56px): the asset disc at the hero badge's neutral paint. */
+.hg-banner-mark {
+  display: flex;
+  width: 56px;
+  height: 56px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--vermilion) 35%, transparent));
+}
+[data-theme="light"] .hg-banner-mark {
+  background: rgba(20, 18, 16, 0.1);
+}
+
+.hg-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+/* The copy is already upper case; transforming it would print "XSTOCKS" for the issuer's own "xStocks". */
+.hg-banner-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--gray-500);
+}
+.hg-banner-name {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--white);
+}
+.hg-banner-line {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--vermilion);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hg-banner:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
+}
+.hg-banner-cta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+.hg-banner:hover .hg-banner-cta,
+.hg-banner:focus-visible .hg-banner-cta {
+  color: var(--white);
+}
+.hg-banner-foot {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--gray-500);
+}
+
+@media (max-width: 480px) {
+  .hg-banner {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 12px 14px;
+  }
+  .hg-banner-name {
+    font-size: 22px;
+  }
+  .hg-banner-mark {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+  .hg-banner-line {
+    white-space: normal;
+  }
+  .hg-banner-cta {
+    grid-column: 2;
+  }
+}

@@ -9,7 +9,9 @@
 // DRIVE DATA: 901's primary is attested. Its prices replay the archived TSLA Pyth prints of the real 09-11 → 09-14 weekend
 // (the LiteSVM replay's account vectors), relabelled for this future weekend; they are not prints of these dates.
 // Run: SURFPOOL_PORT=9061 SURFPOOL_WS_PORT=9062 pnpm drive:gap-cycle
-// Localnet only (Surfpool's clock moves only forward, D-027); it sends nothing to devnet.
+//   Localnet only (Surfpool's clock moves only forward, D-027).
+// Real prints on Series 902 (gap-live.ts, Q-S6-3): pnpm drive:gap-cycle --series 902 --open-at <ISO> [--lock-at <ISO>] --close-at <ISO>
+//   [--cluster localnet|devnet]; default localnet. Devnet is the stage owner's overnight run (Thu 20:00Z → Fri 13:30Z).
 
 import { readFileSync, writeFileSync } from "node:fs";
 import {
@@ -17,11 +19,12 @@ import {
   openGapWindow, ORDER_TYPE, placeOrder, recordAttestedPrint, recycleBooks, settleWindow, WHICH, type PriceSources, type StepContext, type StepLog,
 } from "@agari/markets/deploy";
 import { createSessionService } from "../../services/ops/src/calendar/session-service";
-import { DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC } from "../../services/ops/src/actors/window-roller/plan";
+import { DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC, DEFAULT_PRELIST_CADENCES_SEC } from "../../services/ops/src/actors/window-roller/plan";
 import { planGapSeries } from "../../services/ops/src/actors/window-roller/plan-gap";
 import { versionWindow } from "../../services/ops/src/actors/window-roller/versions";
-import { addressesFor, endpoints, flag, readJson, redactKey, roleSecret, sol } from "../deploy/ops-cluster";
+import { addressesFor, arg, endpoints, readJson, redactKey, roleSecret, sol } from "../deploy/ops-cluster";
 import type { DriveEnv } from "./events-cycle";
+import { liveGapCycle } from "./gap-live";
 import { redeemAll } from "./redeem";
 import { timeTravel } from "./sources";
 
@@ -29,13 +32,17 @@ process.on("uncaughtException", (e) => {
   console.error(redactKey(e instanceof Error ? (e.stack ?? e.message) : String(e)));
   process.exit(1);
 });
-if (flag("--cluster") && !process.argv.includes("localnet")) throw new Error("gap-cycle runs on Surfpool only (--cluster localnet)");
+const seriesArg = Number(arg("--series", "901"));
+const cluster = arg("--cluster", "localnet");
+if (seriesArg !== 901 && seriesArg !== 902) throw new Error("--series is 901 (attested, time travel) or 902 (real prints)");
+if (cluster !== "localnet" && (seriesArg === 901 || cluster !== "devnet")) throw new Error("901 runs on Surfpool only; 902 on localnet or devnet");
 
 const iso = (sec: number) => new Date(sec * 1000).toISOString().replace(".000", "");
 const evidence: Array<StepLog & { chainSec: number }> = [];
-const { rpcUrl, rpcSubscriptionsUrl, label } = endpoints("localnet");
-const client = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret: roleSecret("deployer") });
-const { file, save } = addressesFor("localnet");
+const payerSecret = roleSecret("deployer");
+const { rpcUrl, rpcSubscriptionsUrl, label } = endpoints(cluster);
+const client = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret });
+const { file, save } = addressesFor(cluster);
 let clockSec = await chainNowSec(client);
 const log = (entry: StepLog) => {
   evidence.push({ ...entry, chainSec: clockSec });
@@ -45,7 +52,30 @@ const ctx: StepContext = { client, record: file.venue, save: (next) => (Object.a
 const config = (await client.agariEvents.accounts.globalConfig.fetch(file.venue.config as never)).data;
 const [roller, faucet, attestor] = await Promise.all([keypairSigner(roleSecret("roller")), keypairSigner(roleSecret("faucet-mint-authority")), keypairSigner(roleSecret("price-attestor"))]);
 const before = (await client.rpc.getBalance(client.payer.address).send()).value;
-console.log(`gap drive on ${label}, payer ${client.payer.address}, chain clock ${iso(clockSec)}`);
+const sources = readJson<PriceSources>("services/ops/config/price-sources.json");
+const sessions = createSessionService({ nowSec: () => clockSec });
+console.log(`gap drive ${seriesArg} on ${label}, payer ${client.payer.address}, chain clock ${iso(clockSec)}`);
+console.log(`  ${await sessions.refresh(true)}`);
+
+async function finish(): Promise<never> {
+  const spent = before - (await client.rpc.getBalance(client.payer.address).send()).value;
+  console.log(`gap drive done: ${evidence.filter((e) => e.signature).length} transactions, payer spent ${sol(spent)} SOL`);
+  writeFileSync(`scripts/drive/last-run.gap-${cluster}.json`, `${JSON.stringify({ series: seriesArg, evidence }, null, 2)}\n`);
+  process.exit(0);
+}
+
+if (seriesArg === 902) {
+  const at = (name: string) => {
+    const sec = Date.parse(arg(name, "")) / 1000;
+    if (!Number.isInteger(sec)) throw new Error(`${name} must be a whole-second ISO time`);
+    return sec;
+  };
+  const [openSec, closeSec] = [at("--open-at"), at("--close-at")];
+  const lockSec = process.argv.includes("--lock-at") ? at("--lock-at") : Math.min(openSec + 14_400, closeSec);
+  const env = { cluster: cluster as "localnet" | "devnet", rpcUrl, client, ctx, payerSecret, mint: config.collateralMint, roller, faucet, sources, calendar: sessions.calendar() };
+  await liveGapCycle(env, { openSec, lockSec, closeSec });
+  await finish();
+}
 
 /** Surfpool only: jump the chain clock forward to `sec` and read it back. */
 async function travel(sec: number, why: string) {
@@ -65,22 +95,19 @@ function vectorE8(name: string): bigint {
 const [fridayE8, mondayE8] = [vectorE8("pyth-tsla-1789156800.account.b64"), vectorE8("pyth-tsla-1789392600.account.b64")];
 
 // Series 901 (ensure-style, so a re-run on the same fork reuses it), and a Book freed from any earlier drive Window.
-const sources = readJson<PriceSources>("services/ops/config/price-sources.json");
 const spec = driveGapAttestedSeries(sources);
 const series = await ensureSeries(ctx, spec);
 const books = await ensureBooks(ctx, spec, series);
 await recycleBooks(ctx, series, books);
 
 // 1. List: the roller's Gap plan at the chain clock.
-const sessions = createSessionService({ nowSec: () => clockSec });
-console.log(`  ${await sessions.refresh(true)}`);
 async function plan() {
   const s = (await client.agariEvents.accounts.series.fetch(series)).data;
   const planSeries = {
-    key: spec.key, symbol: spec.symbol, cadenceSec: s.cadenceSec, nextIndex: s.nextIndex, lastExpirySec: Number(s.lastExpiry),
+    key: spec.key, symbol: spec.symbol, cadenceSec: s.cadenceSec, maxLeadSec: s.maxLeadSec, nextIndex: s.nextIndex, lastExpirySec: Number(s.lastExpiry),
     versions: s.policyVersions.slice(0, s.versionCount).map(versionWindow), freeBooks: s.freeBooks.slice(0, s.freeBookCount),
   };
-  const clock = { calendar: sessions.calendar(), nowSec: clockSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC, minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: [], multipliers: [], halts: {} };
+  const clock = { calendar: sessions.calendar(), nowSec: clockSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC, minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: DEFAULT_PRELIST_CADENCES_SEC };
   const result = planGapSeries(planSeries, clock);
   console.log(`  roller plan @ ${iso(clockSec)}: ${result.state}`);
   return result;
@@ -131,7 +158,4 @@ const freed = (await client.agariEvents.accounts.series.fetch(series)).data;
 if (!freed.freeBooks.slice(0, freed.freeBookCount).includes(w.book)) throw new Error(`Book ${w.book} did not return to the free list`);
 console.log(`  Book ${w.book} back on the free list ✓`);
 
-const after = (await client.rpc.getBalance(client.payer.address).send()).value;
-console.log(`gap drive done: ${evidence.filter((e) => e.signature).length} transactions, payer spent ${sol(before - after)} SOL`);
-writeFileSync("scripts/drive/last-run.gap-localnet.json", `${JSON.stringify({ window: { ...w, index: String(w.index) }, evidence }, null, 2)}\n`);
-process.exit(0);
+await finish();
