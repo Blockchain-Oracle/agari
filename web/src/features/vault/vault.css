@@ -50,7 +50,7 @@
   .vault-controls { flex-direction: row; align-items: center; }
 }
 
-/* h-11 w-full sm:w-32 rounded-xl border border-black/10 bg-white px-3 font-mono text-sm text-black outline-none focus:border-black/30 */
+/* h-11 w-full sm:w-32 rounded-xl border border-black/10 bg-white px-3 font-mono text-sm text-black outline-none focus:border-black/30 — here focus-visible:outline-none with the `.vault-input:focus` border as the ring */
 .vault-input {
   height: 44px;
   width: 100%;
@@ -61,8 +61,8 @@
   font-family: var(--font-mono);
   font-size: 14px;
   color: var(--color-ink);
-  outline: none;
 }
+.vault-input:focus-visible { outline: none; }
 .vault-input:focus { border-color: var(--input-focus-ring); }
 @media (min-width: 640px) {
   .vault-input { width: 128px; }

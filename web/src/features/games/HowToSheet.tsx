@@ -26,8 +26,9 @@ export function HowToSheet({ id, open, onClose }: { id: GameId; open: boolean; o
   const entry = gameEntry(id);
   const lines = GAMES.howTo[id] ?? [];
   return createPortal(
-    <div className="du-modal-root" role="dialog" aria-modal="true" aria-labelledby="gm-howto-title" onClick={onClose}>
-      <div className="du-modal gm-howto" onClick={(event) => event.stopPropagation()}>
+    <div className="du-modal-root" role="dialog" aria-modal="true" aria-labelledby="gm-howto-title">
+      <button type="button" className="du-modal-scrim" aria-label={GAMES.howToWords.close} tabIndex={-1} onClick={onClose} />
+      <div className="du-modal gm-howto">
         <button type="button" className="du-modal-close" onClick={onClose} aria-label={GAMES.howToWords.close}>
           ✕
         </button>

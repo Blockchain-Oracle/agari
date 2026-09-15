@@ -147,8 +147,9 @@
 /* border border-white/12 rounded-xl px-3.5 py-2.5 focus-within:border-white/30 */
 .xt-amount { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 10px 14px; transition: border-color 0.2s; }
 .xt-amount:focus-within { border-color: rgba(255, 255, 255, 0.3); }
-/* bg-transparent w-14 outline-none font-mono text-lg */
-.xt-amount input { background: transparent; width: 56px; outline: none; font-family: var(--font-mono); font-size: 18px; color: inherit; border: 0; }
+/* bg-transparent w-14 outline-none font-mono text-lg — here focus-visible:outline-none with the `.xt-amount:focus-within` border above as the ring */
+.xt-amount input { background: transparent; width: 56px; font-family: var(--font-mono); font-size: 18px; color: inherit; border: 0; }
+.xt-amount input:focus-visible { outline: none; }
 /* text-gray-500 font-mono text-sm */
 .xt-amount-unit { color: #737373; font-family: var(--font-mono); font-size: 14px; }
 /* rounded-lg border border-white/10 hover:border-white/25 px-3 py-2 font-mono text-[12px] text-gray-400 hover:text-white */

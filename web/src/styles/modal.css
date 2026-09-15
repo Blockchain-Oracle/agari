@@ -5,6 +5,8 @@
  * dialogs; this sheet is for everything else. */
 .modal-root { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .modal-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+/* A scrim that closes on click is a real button (S18e, D-083): the reset keeps every scrim's own paint; tabIndex -1 leaves the close button and Escape as the keyboard path. */
+button.modal-scrim, button.fund-modal-scrim, button.strat-drawer-scrim, button.sensei-drawer-scrim, button.tk-drawer-backdrop, button.du-modal-scrim { display: block; border: 0; padding: 0; margin: 0; appearance: none; -webkit-appearance: none; font: inherit; color: inherit; cursor: default; }
 .modal {
   position: relative; width: 100%; max-width: 448px; max-height: 90dvh; display: flex; flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: #0d0d10;

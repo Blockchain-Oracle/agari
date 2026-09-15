@@ -88,8 +88,10 @@
 /* flex items-center gap-1 rounded-lg px-3 py-2; border line, background #FFFDF8 */
 .xw-amount { display: flex; align-items: center; gap: 4px; border-radius: 8px; padding: 8px 12px; border: 1px solid var(--xw-line); background: var(--xw-paper); }
 .xw-amount-sign { font-size: 14px; color: var(--xw-mute); }
-/* w-14 bg-transparent text-sm outline-none */
-.xw-amount input { width: 56px; background: transparent; font-size: 14px; outline: none; border: 0; color: var(--xw-ink); }
+/* w-14 bg-transparent text-sm outline-none — here focus-visible:outline-none with the `.xw-amount:focus-within` border as the ring */
+.xw-amount input { width: 56px; background: transparent; font-size: 14px; border: 0; color: var(--xw-ink); }
+.xw-amount input:focus-visible { outline: none; }
+.xw-amount:focus-within { border-color: var(--xw-v); }
 /* font-mono text-[10px] */
 .xw-amount-unit { font-family: var(--font-mono); font-size: 10px; color: var(--xw-mute); }
 /* mt-2 text-[12px] text-[#E04D26] / text-emerald-400 */

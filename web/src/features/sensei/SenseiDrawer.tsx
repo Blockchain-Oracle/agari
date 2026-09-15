@@ -94,7 +94,7 @@ export function SenseiDrawer({ open, onClose, chat, reading, markets, nowMs, sec
 
   return (
     <>
-      <div className={cn("sensei-drawer-scrim", open && "show")} onClick={onClose} aria-hidden={!open} />
+      <button type="button" className={cn("sensei-drawer-scrim", open && "show")} aria-label={SENSEI_UI.close} tabIndex={-1} aria-hidden={!open} onClick={onClose} />
       <aside className={cn("sensei-drawer", open && "open")} role="dialog" aria-label={SENSEI_UI.title} aria-modal={open} aria-hidden={!open}>
         <header className="sensei-drawer-head">
           <div>

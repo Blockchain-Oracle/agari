@@ -53,7 +53,7 @@
 /* text-[10px] text-gray-600 */
 .pl-field-hint { font-size: 10px; color: var(--gray-600); }
 .pl-field-input { position: relative; }
-/* w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-white/20 text-white font-mono text-lg outline-none */
+/* w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] focus:border-white/20 text-white font-mono text-lg outline-none — here focus-visible:outline-none with the `.pl-input:focus` border below as the ring */
 .pl-input {
   width: 100%;
   padding: 10px 12px;
@@ -63,12 +63,12 @@
   color: var(--white);
   font-family: var(--font-mono);
   font-size: 18px;
-  outline: none;
   transition: border-color 200ms var(--ease);
   appearance: textfield;
   -moz-appearance: textfield;
 }
 .pl-input::-webkit-outer-spin-button, .pl-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pl-input:focus-visible { outline: none; }
 .pl-input:focus { border-color: rgba(255, 255, 255, 0.2); }
 [data-theme="light"] .pl-input { background: rgba(20, 18, 16, 0.03); border-color: rgba(20, 18, 16, 0.11); }
 [data-theme="light"] .pl-input:focus { border-color: rgba(20, 18, 16, 0.22); }
