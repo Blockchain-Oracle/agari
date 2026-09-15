@@ -127,7 +127,6 @@ export const rules = [
     id: "session-key-non-extractable",
     description: "the session key is generated non-extractable and never exported (no exportKey( or extractable: true); tap-trading.md §2",
     scopes: ["packages/markets/src/sessions", "web/src/features/session"],
-    optional: true,
     check: sessionKeyNonExtractable,
   },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },

@@ -1,17 +1,25 @@
-import { COMPUTE_UNIT_LIMIT_MAX } from "@agari/core/constants";
 import type { Address } from "@agari/core/types";
 import type { VaultDeployment } from "@agari/core/vault";
-import { keypairAddress, parseMarketsEnv, parseSecretKey, resolveVaultDeployment, type MarketsEnv } from "@agari/markets";
+import { marketsEnvInputFrom, parseMarketsEnv, resolveVaultDeployment, type MarketsEnv } from "@agari/markets";
+import { keypairAddress } from "@agari/markets/sessions";
+import { sponsorLimitsFrom, sponsorRoleSecret } from "@agari/markets/sponsor";
 
 /**
- * The sponsor's policy, server-side (AD-15, plan §3.2): on Solana the sponsor is a fee-payer co-signer that signs a
- * transaction only as its fee payer, for an allowlist of exact instruction discriminators, and never as any other
- * signer or writable account. The co-sign rail itself arrives with the vault program (S7); this module keeps the
- * parts that don't need the chain: the key, the caps and the per-address and per-device gates.
- *
- * Gates degrade closed (no device id, no sponsorship). The counters live in this process; a multi-instance deploy
- * would count per instance until the store-backed `sponsor_gates` table exists (AD-7).
+ * Server env for the sponsor routes. The fee-payer co-sign itself (policy, key, ledger) lives in
+ * `@agari/markets/sponsor` (tap-trading.md §3, D-065); what stays here is the shared env mapping and the games'
+ * view of the same `sponsor` role (S12), which shares the key and the hourly gates but not the co-sign policy.
  */
+
+/** The chain-port config from server env, through the one name map markets owns (so no field, like the vault id, is dropped). */
+export function marketsEnvFromProcess(): MarketsEnv {
+  return parseMarketsEnv(marketsEnvInputFrom(process.env));
+}
+
+export function vaultDeploymentFromProcess(env: MarketsEnv): VaultDeployment | null {
+  return resolveVaultDeployment(env);
+}
+
+/** The games' view of the shared `sponsor` role (S12): its key, RPC and the Masayume hourly gates. */
 export interface SponsorConfig {
   /** The sponsor's 64-byte Solana keypair. Server-only. */
   secretKey: Uint8Array;
@@ -23,60 +31,30 @@ export interface SponsorConfig {
   maxComputeUnits: number;
 }
 
-const DEFAULT_PER_ADDRESS = 30;
-const DEFAULT_PER_DEVICE = 60;
-const WINDOW_MS = 60 * 60 * 1000;
-
-/** The chain-port config from server env. Server code reads process env at runtime, so no literal-name inlining is needed. */
-export function marketsEnvFromProcess(): MarketsEnv {
-  return parseMarketsEnv({
-    cluster: process.env.NEXT_PUBLIC_SOLANA_CLUSTER,
-    rpcHttpUrls: process.env.NEXT_PUBLIC_SOLANA_RPC_URL,
-    rpcWsUrls: process.env.NEXT_PUBLIC_SOLANA_WS_URL,
-    indexerUrl: process.env.NEXT_PUBLIC_AGARI_INDEXER_URL,
-    venueId: process.env.NEXT_PUBLIC_AGARI_VENUE_ID,
-    eventsProgramId: process.env.NEXT_PUBLIC_AGARI_EVENTS_PROGRAM_ID,
-  });
-}
-
-export function vaultDeploymentFromProcess(env: MarketsEnv): VaultDeployment | null {
-  return resolveVaultDeployment(env);
-}
-
-function intEnv(name: string, fallback: number): number {
-  const parsed = Number(process.env[name]);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-/** Null when no valid `SPONSOR_PRIVATE_KEY` (Solana keypair: CLI JSON array or base58) is set; every key then pays its own fees. */
 export function sponsorConfig(env: MarketsEnv): SponsorConfig | null {
-  const raw = process.env.SPONSOR_PRIVATE_KEY;
-  if (!raw) return null;
-  let secretKey: Uint8Array;
-  try {
-    secretKey = parseSecretKey(raw);
-  } catch {
-    return null;
-  }
+  const secretKey = sponsorRoleSecret(process.env);
+  if (!secretKey) return null;
+  const limits = sponsorLimitsFrom(process.env);
   return {
     secretKey,
     rpcUrl: process.env.SPONSOR_RPC_URL || (env.rpcHttpUrls[0] as string),
     sponsor: keypairAddress(secretKey),
-    maxPerAddressPerHour: intEnv("SPONSOR_PER_ADDRESS_PER_HOUR", DEFAULT_PER_ADDRESS),
-    maxPerDevicePerHour: intEnv("SPONSOR_PER_DEVICE_PER_HOUR", DEFAULT_PER_DEVICE),
-    maxComputeUnits: Math.min(intEnv("SPONSOR_MAX_COMPUTE_UNITS", COMPUTE_UNIT_LIMIT_MAX), COMPUTE_UNIT_LIMIT_MAX),
+    maxPerAddressPerHour: limits.signerPerHour,
+    maxPerDevicePerHour: limits.devicePerHour,
+    maxComputeUnits: limits.maxComputeUnits,
   };
 }
 
 export type GateVerdict = { ok: true } | { ok: false; reason: string };
 
+const HOUR_MS = 60 * 60 * 1000;
 const hits = new Map<string, number[]>();
 
-/** A sliding hour per key; anything over the cap is refused with the cap in words. Ids are kept exactly as given (base58, D-010). */
+/** A sliding hour per key for the non-co-sign routes (games, private opens); ids are kept exactly as given (base58, D-010). */
 export function gate(scope: "address" | "device", id: string, max: number, nowMs: number): GateVerdict {
   if (!id) return { ok: false, reason: `no ${scope} to gate on — the sponsor refuses rather than guess` };
   const key = `${scope}:${id}`;
-  const recent = (hits.get(key) ?? []).filter((at) => nowMs - at < WINDOW_MS);
+  const recent = (hits.get(key) ?? []).filter((at) => nowMs - at < HOUR_MS);
   if (recent.length >= max) return { ok: false, reason: `over the sponsor's ${max}-per-hour ${scope} cap` };
   recent.push(nowMs);
   hits.set(key, recent);

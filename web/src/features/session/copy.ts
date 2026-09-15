@@ -55,11 +55,10 @@ export const SESSION = {
       gasKey: (amountText: string) => `paid by the key — ${amountText} SOL moves to it now`,
       signatures: "Signatures",
       sigsOne: "one: the deposit and grant, together",
-      sigsTopUp: (base: string) => `${base}, then one more to move SOL to the key`,
+      sigsWithTopUp: "one: the deposit, the grant and the key's SOL, together",
     },
     cta: "Arm tap-trading",
     ctaBusy: "Arming…",
-    ctaTopUp: "Moving SOL to the key…",
     armed: "Tap-trading is on.",
     armedBody: "Taps on this browser sign from the session key inside your caps.",
     errors: {
