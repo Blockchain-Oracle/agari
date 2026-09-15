@@ -56,11 +56,15 @@ No repository-wide license currently exists for this tree (no root `LICENSE` fil
 
 ## Link check
 
-Every relative link in `README.md`, `THIRD_PARTY_NOTICES.md` and `docs/submission/*` resolves to a real file (checked programmatically against the filesystem; zero broken). A 10-URL sample of the 41 absolute links was checked with `curl`:
+Every relative link in `README.md`, `THIRD_PARTY_NOTICES.md` and `docs/submission/*` resolves to a real file (checked programmatically against the filesystem; zero broken). All 39 absolute links were checked (22 `explorer.solana.com` links, 17 others):
 
-- Four `explorer.solana.com` links (2 transactions, 2 addresses) all answered `429`, consistently, even after a delay and a browser-shaped user agent. This matches explorer.solana.com's known bot-blocking behavior for automated requests, not a broken link — every signature and address in the README's proof table was copied verbatim from a confirmed row in `docs/plan/acceptance.md`, not typed by hand. A human clicking the same links in a browser gets a normal page.
+- `explorer.solana.com` (18 transaction links, 4 address links) cannot be checked with `curl`: every request, including one for a garbage signature, gets the same `429` with a `x-vercel-challenge-token` header — the site's bot-check blocks all non-browser requests, valid or not, so a `curl` status there proves nothing either way. Instead, every signature and address was verified directly against the source of truth: `getSignatureStatuses` for all 18 signatures returned `confirmationStatus: "finalized"` and `err: null` for every one; `getMultipleAccounts` for all 4 addresses returned a real account for each (`agari-events` and `agari-vault` owned by the BPF Upgradeable Loader, the venue config owned by `agari-events`, the tUSDC mint owned by the SPL Token program) — exactly the ownership each README row claims. This is a stronger check than loading the explorer page, and confirms every cited proof is real; the explorer pages themselves were not loaded, only their underlying RPC data.
 - `github.com/Cybire1/yosuku` (Yosuku's own repository) answers **404** to an anonymous request. This is not new: Masayume's own public-release audit recorded the identical 404 on 2026-09-06 and noted that a search-engine cache still showed an older public page, so cached availability was never treated as current access or a license grant. That unresolved fact is inherited here, not newly discovered, and does not change the already-recorded owner approval of the Yosuku reuse.
-- The other 6 sampled links (Masayume's own GitHub, RainbowKit, DiceBear, Kenney, itch.io) all answered `200`.
+- The other 16 non-explorer links (Masayume's own GitHub, Flicky, PIPS, the Solana Wallet Adapter, RainbowKit, DiceBear, Kenney's three packs, the m6x11 page, both simple-icons PRs, the simple-icons repo, and both Google/SIL font OFL pages) all answered `200`.
+
+## Captures (S15c.4, superseding this audit's earlier note)
+
+A prior pass of this lane recorded that captures could not happen because the shared `chrome-devtools-mcp` browser was locked by a concurrent lane. The stage owner's unblock recipe (an isolated headless-Chrome capture script, independent of the shared browser) resolved this: four real captures of the running `:3000` app (`/markets` at 1440×900 and 390×844, `/portfolio` and `/how-it-works` at 1440×900, all dark theme, all showing the honest after-hours/closed state) now live in `agari-docs/public/captures/` and are embedded with descriptive alt text in `start/quickstart.mdx`, `start/find-your-way.mdx` and `trading/portfolio.mdx`. `agari-docs` no longer ships with zero image references.
 
 ## Program build reproducibility
 
