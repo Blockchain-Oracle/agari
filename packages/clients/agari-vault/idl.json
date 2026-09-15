@@ -1,0 +1,2317 @@
+{
+  "address": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9",
+  "metadata": {
+    "name": "agari_vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's EventVault on Solana: Trading Balance custody, grants and IOC taps through the agari-events PROGRAM seat"
+  },
+  "instructions": [
+    {
+      "name": "actor_place_for",
+      "discriminator": [
+        164,
+        141,
+        71,
+        147,
+        196,
+        184,
+        147,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "actor",
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "grant",
+          "writable": true
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "address": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8"
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "grant_id",
+          "type": "u64"
+        },
+        {
+          "name": "outcome",
+          "type": "u8"
+        },
+        {
+          "name": "is_buy",
+          "type": "bool"
+        },
+        {
+          "name": "price_ticks",
+          "type": "u16"
+        },
+        {
+          "name": "lots",
+          "type": "u64"
+        },
+        {
+          "name": "expire_ts",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "admin_init_vault",
+      "discriminator": [
+        75,
+        169,
+        219,
+        105,
+        46,
+        136,
+        26,
+        78
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "program",
+          "address": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_deposit",
+      "discriminator": [
+        184,
+        48,
+        123,
+        180,
+        114,
+        72,
+        157,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_ata",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_deposit_and_grant",
+      "discriminator": [
+        151,
+        50,
+        177,
+        145,
+        183,
+        162,
+        212,
+        116
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "writable": true,
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_ata",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "grant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "grant_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "previous_grant",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "grant_id",
+          "type": "u64"
+        },
+        {
+          "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "actor",
+          "type": "pubkey"
+        },
+        {
+          "name": "caps",
+          "type": {
+            "defined": {
+              "name": "CapsArgs"
+            }
+          }
+        },
+        {
+          "name": "expires_at_sec",
+          "type": "i64"
+        },
+        {
+          "name": "budget",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_fund_grant",
+      "discriminator": [
+        216,
+        220,
+        191,
+        221,
+        156,
+        229,
+        44,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "grant",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_grant",
+      "discriminator": [
+        156,
+        14,
+        163,
+        223,
+        154,
+        232,
+        32,
+        97
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "writable": true,
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "grant",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  97,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "grant_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "previous_grant",
+          "docs": [
+            "The owner's active grant of this kind, revoked first; required when one exists."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "grant_id",
+          "type": "u64"
+        },
+        {
+          "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "actor",
+          "type": "pubkey"
+        },
+        {
+          "name": "caps",
+          "type": {
+            "defined": {
+              "name": "CapsArgs"
+            }
+          }
+        },
+        {
+          "name": "expires_at_sec",
+          "type": "i64"
+        },
+        {
+          "name": "budget",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_move_to_private",
+      "discriminator": [
+        64,
+        25,
+        58,
+        167,
+        185,
+        35,
+        237,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_open_account",
+      "discriminator": [
+        67,
+        135,
+        222,
+        183,
+        148,
+        61,
+        82,
+        135
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "address": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_place",
+      "discriminator": [
+        139,
+        140,
+        192,
+        173,
+        170,
+        235,
+        0,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "address": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8"
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome",
+          "type": "u8"
+        },
+        {
+          "name": "is_buy",
+          "type": "bool"
+        },
+        {
+          "name": "price_ticks",
+          "type": "u16"
+        },
+        {
+          "name": "lots",
+          "type": "u64"
+        },
+        {
+          "name": "expire_ts",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "owner_revoke",
+      "discriminator": [
+        174,
+        76,
+        167,
+        28,
+        141,
+        123,
+        43,
+        184
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "grant",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_withdraw",
+      "discriminator": [
+        138,
+        172,
+        103,
+        228,
+        254,
+        96,
+        114,
+        178
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_ata",
+          "writable": true
+        },
+        {
+          "name": "seat",
+          "address": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_withdraw_private",
+      "discriminator": [
+        156,
+        184,
+        187,
+        102,
+        143,
+        37,
+        117,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_ata",
+          "writable": true
+        },
+        {
+          "name": "seat",
+          "address": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_crank_settle",
+      "discriminator": [
+        179,
+        32,
+        184,
+        19,
+        1,
+        164,
+        241,
+        194
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Pays the fee only."
+          ],
+          "signer": true
+        },
+        {
+          "name": "vault_config",
+          "address": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb"
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "yes_grant",
+          "docs": [
+            "The grant that opened the YES side (or both sides, passed once)."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "no_grant",
+          "docs": [
+            "The grant that opened the NO side, when it differs from the YES side's."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "seat",
+          "address": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8"
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Grant",
+      "discriminator": [
+        161,
+        166,
+        11,
+        205,
+        204,
+        135,
+        205,
+        54
+      ]
+    },
+    {
+      "name": "VaultAccount",
+      "discriminator": [
+        230,
+        251,
+        241,
+        83,
+        139,
+        202,
+        93,
+        28
+      ]
+    },
+    {
+      "name": "VaultConfig",
+      "discriminator": [
+        99,
+        86,
+        43,
+        216,
+        184,
+        102,
+        119,
+        77
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AccountOpened",
+      "discriminator": [
+        250,
+        89,
+        39,
+        67,
+        35,
+        119,
+        126,
+        63
+      ]
+    },
+    {
+      "name": "Deposited",
+      "discriminator": [
+        111,
+        141,
+        26,
+        45,
+        161,
+        35,
+        100,
+        57
+      ]
+    },
+    {
+      "name": "Executed",
+      "discriminator": [
+        8,
+        232,
+        139,
+        132,
+        197,
+        45,
+        29,
+        164
+      ]
+    },
+    {
+      "name": "GrantCreated",
+      "discriminator": [
+        162,
+        254,
+        131,
+        56,
+        65,
+        214,
+        85,
+        6
+      ]
+    },
+    {
+      "name": "GrantFunded",
+      "discriminator": [
+        82,
+        66,
+        222,
+        208,
+        167,
+        206,
+        149,
+        118
+      ]
+    },
+    {
+      "name": "GrantRevoked",
+      "discriminator": [
+        192,
+        60,
+        253,
+        12,
+        110,
+        158,
+        200,
+        30
+      ]
+    },
+    {
+      "name": "PrivateMoved",
+      "discriminator": [
+        128,
+        143,
+        130,
+        20,
+        134,
+        29,
+        48,
+        171
+      ]
+    },
+    {
+      "name": "PrivateWithdrawn",
+      "discriminator": [
+        14,
+        245,
+        146,
+        167,
+        35,
+        129,
+        219,
+        217
+      ]
+    },
+    {
+      "name": "Settled",
+      "discriminator": [
+        232,
+        210,
+        40,
+        17,
+        142,
+        124,
+        145,
+        238
+      ]
+    },
+    {
+      "name": "VaultInitialized",
+      "discriminator": [
+        180,
+        43,
+        207,
+        2,
+        18,
+        71,
+        3,
+        75
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 7000,
+      "name": "ZeroAmount",
+      "msg": "amount must be greater than zero"
+    },
+    {
+      "code": 7001,
+      "name": "Insufficient",
+      "msg": "not enough balance for this amount"
+    },
+    {
+      "code": 7002,
+      "name": "WrongCollateral",
+      "msg": "collateral mint does not match the vault"
+    },
+    {
+      "code": 7003,
+      "name": "WrongTokenOwner",
+      "msg": "token account does not belong to the owner"
+    },
+    {
+      "code": 7004,
+      "name": "NotAdmin",
+      "msg": "signer is not the program upgrade authority"
+    },
+    {
+      "code": 7005,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflow"
+    },
+    {
+      "code": 7100,
+      "name": "NoSuchGrant",
+      "msg": "no grant with this id"
+    },
+    {
+      "code": 7101,
+      "name": "NotGrantActor",
+      "msg": "signer is not the grant's actor"
+    },
+    {
+      "code": 7102,
+      "name": "NotGrantOwner",
+      "msg": "grant does not belong to this owner"
+    },
+    {
+      "code": 7103,
+      "name": "GrantIsRevoked",
+      "msg": "grant is revoked"
+    },
+    {
+      "code": 7104,
+      "name": "GrantExpired",
+      "msg": "grant has expired"
+    },
+    {
+      "code": 7105,
+      "name": "BadExpiry",
+      "msg": "grant expiry must be in the future"
+    },
+    {
+      "code": 7106,
+      "name": "ZeroActor",
+      "msg": "grant actor must not be the zero key"
+    },
+    {
+      "code": 7107,
+      "name": "BadGrantKind",
+      "msg": "grant kind must be SESSION, EXECUTOR or STRATEGY"
+    },
+    {
+      "code": 7108,
+      "name": "OverStakeCap",
+      "msg": "fill cost exceeds the per-trade cap"
+    },
+    {
+      "code": 7109,
+      "name": "OverDailyCap",
+      "msg": "fill cost exceeds today's spending cap"
+    },
+    {
+      "code": 7110,
+      "name": "OverPositionCap",
+      "msg": "a new position exceeds the open-position cap"
+    },
+    {
+      "code": 7111,
+      "name": "OverPriceCap",
+      "msg": "price exceeds the grant's price cap"
+    },
+    {
+      "code": 7112,
+      "name": "GrantAccountMissing",
+      "msg": "a grant attributed to this position was not passed"
+    },
+    {
+      "code": 7113,
+      "name": "ActiveGrantMismatch",
+      "msg": "previous grant does not match the active grant of this kind"
+    },
+    {
+      "code": 7114,
+      "name": "StaleGrantId",
+      "msg": "grant id is not the next grant id"
+    },
+    {
+      "code": 7200,
+      "name": "UnknownMarket",
+      "msg": "market, series, book or ledger is not a bound agari-events Window"
+    },
+    {
+      "code": 7201,
+      "name": "MarketNotTrading",
+      "msg": "market is not trading"
+    },
+    {
+      "code": 7202,
+      "name": "MarketNotSettled",
+      "msg": "market is not resolved or voided"
+    },
+    {
+      "code": 7203,
+      "name": "NothingToSettle",
+      "msg": "no position to settle on this market"
+    },
+    {
+      "code": 7204,
+      "name": "BadOutcome",
+      "msg": "outcome must be 0 (YES) or 1 (NO)"
+    },
+    {
+      "code": 7205,
+      "name": "BadPrice",
+      "msg": "price must be between 1 and 999 ticks"
+    },
+    {
+      "code": 7206,
+      "name": "VaultNotRegistered",
+      "msg": "the vault seat is not a registered program authority"
+    },
+    {
+      "code": 7207,
+      "name": "WindowPredatesVault",
+      "msg": "this Window was listed before the vault registered its seat"
+    },
+    {
+      "code": 7208,
+      "name": "PositionSlotsFull",
+      "msg": "every position slot is in use: settle a finished Window first"
+    },
+    {
+      "code": 7209,
+      "name": "EngineResultMissing",
+      "msg": "the engine returned no placement result"
+    },
+    {
+      "code": 7210,
+      "name": "EngineAccountingMismatch",
+      "msg": "engine amounts do not match the vault's accounting"
+    }
+  ],
+  "types": [
+    {
+      "name": "AccountOpened",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "custody",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CapsArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_stake_per_trade",
+            "type": "u64"
+          },
+          {
+            "name": "max_daily_spend",
+            "type": "u64"
+          },
+          {
+            "name": "max_open_positions",
+            "type": "u32"
+          },
+          {
+            "name": "max_price_ticks",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "available",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Executed",
+      "docs": [
+        "One IOC through the vault seat. `grant_id` 0 = the owner acting alone; `market` is the Market PDA."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "grant_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": "u8"
+          },
+          {
+            "name": "is_buy",
+            "type": "bool"
+          },
+          {
+            "name": "cash_delta",
+            "docs": [
+              "Collateral spent (buy) or received (sell)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lots_delta",
+            "docs": [
+              "Lots gained (buy) or sold (sell)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          },
+          {
+            "name": "at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "fills",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Grant",
+      "docs": [
+        "168 B struct, 176 B account. Never closed in S7."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          },
+          {
+            "name": "grant_id",
+            "docs": [
+              "Global and never reused (`VaultConfig.next_grant_id`)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "expires_at_sec",
+            "docs": [
+              "Live while `now ≤ expires_at_sec`."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "spent_day",
+            "docs": [
+              "UTC day (`⌊unix_ts / 86,400⌋`) that `spent_today` belongs to."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "spent_today",
+            "type": "u64"
+          },
+          {
+            "name": "budget",
+            "docs": [
+              "What the actor may still spend; proceeds never flow back here."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_stake_per_trade",
+            "type": "u64"
+          },
+          {
+            "name": "max_daily_spend",
+            "type": "u64"
+          },
+          {
+            "name": "max_open_positions",
+            "type": "u32"
+          },
+          {
+            "name": "open_positions",
+            "type": "u32"
+          },
+          {
+            "name": "max_price_ticks",
+            "docs": [
+              "Dearest own-side price in ticks; 0 = no cap."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "kind",
+            "docs": [
+              "SESSION 0, EXECUTOR 1, STRATEGY 2."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "revoked",
+            "docs": [
+              "0 live, 1 revoked."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GrantCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "grant_id",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "max_stake_per_trade",
+            "type": "u64"
+          },
+          {
+            "name": "max_daily_spend",
+            "type": "u64"
+          },
+          {
+            "name": "max_open_positions",
+            "type": "u32"
+          },
+          {
+            "name": "max_price_ticks",
+            "type": "u16"
+          },
+          {
+            "name": "expires_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "budget",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GrantFunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "grant_id",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "budget",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GrantRevoked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "grant_id",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "returned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PositionSlot",
+      "docs": [
+        "64 B. A slot is free while `market` is the default key."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "docs": [
+              "The agari-events Market PDA."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "yes_lots",
+            "type": "u64"
+          },
+          {
+            "name": "no_lots",
+            "type": "u64"
+          },
+          {
+            "name": "yes_grant",
+            "docs": [
+              "The grant that opened the YES side; 0 = attended."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "no_grant",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrivateMoved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "private_available",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrivateWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "private_available",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Settled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "payout",
+            "type": "u64"
+          },
+          {
+            "name": "yes_redeemed",
+            "type": "u64"
+          },
+          {
+            "name": "no_redeemed",
+            "type": "u64"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          },
+          {
+            "name": "at_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultAccount",
+      "docs": [
+        "1,152 B struct (128 B header + 16 × 64 B slots), 1,160 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "available",
+            "docs": [
+              "Free Trading Balance (base units)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "private_available",
+            "docs": [
+              "The private bucket (`moveToPrivate`)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "total_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "active_grants",
+            "docs": [
+              "The live grant id per kind (SESSION, EXECUTOR, STRATEGY); 0 = none."
+            ],
+            "type": {
+              "array": [
+                "u64",
+                3
+              ]
+            }
+          },
+          {
+            "name": "custody_bump",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "slots_used",
+            "docs": [
+              "Slots whose `market` is set."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "positions",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "PositionSlot"
+                  }
+                },
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultConfig",
+      "docs": [
+        "208 B struct, 216 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "The program upgrade authority at init."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "events_config",
+            "docs": [
+              "agari-events `GlobalConfig`."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "docs": [
+              "= `events_config.collateral_mint` at init."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "docs": [
+              "The `[\"seat\"]` PDA: engine authority and custody owner."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "next_grant_id",
+            "docs": [
+              "The id the next grant must take; starts at 1 (0 = attended)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "seat_bump",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "config",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "available",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}
