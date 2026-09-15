@@ -59,7 +59,7 @@ export const BOARD: Reading<BoardData> = ok(
       bestStreak: 6 - Math.floor(i / 2),
       volumeBase: (400n - BigInt(i) * 30n) * ONE,
     })),
-    meta: { period: "24h", windowStartMs: FIXED_NOW_MS - 86_400_000, windowEndMs: FIXED_NOW_MS, computedAtMs: FIXED_NOW_MS, rankedTraders: 9, totalWallets: 9, closedCalls: 231, totalVolumeBase: 2_520n * ONE, complete: true, decimals: DECIMALS, symbol: "tUSDC" },
+    meta: { period: "24h", ticker: null, session: null, windowStartMs: FIXED_NOW_MS - 86_400_000, windowEndMs: FIXED_NOW_MS, computedAtMs: FIXED_NOW_MS, rankedTraders: 9, totalWallets: 9, closedCalls: 231, totalVolumeBase: 2_520n * ONE, complete: true, decimals: DECIMALS, symbol: "tUSDC" },
   },
   FIXED_NOW_MS,
 );
