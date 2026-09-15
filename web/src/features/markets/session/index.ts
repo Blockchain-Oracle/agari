@@ -1,2 +1,2 @@
-export { MarketSessionChip } from "./MarketSessionChip";
-export { isLanePaused, laneState, useMarketSession, type MarketSession } from "./useMarketSession";
+export { MarketSessionChip, MarketSessionChipView } from "./MarketSessionChip";
+export { isLanePaused, laneState, toMarketSession, useMarketSession, type MarketSession } from "./useMarketSession";
