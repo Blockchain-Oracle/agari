@@ -195,6 +195,7 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 
 ## 8. Build and bundle
 
+- **`pnpm build`** on `7949b0b` (merged stage): green only with `NEXT_PUBLIC_AGARI_INDEXER_URL` overridden to an absolute URL for the process; see §9, the stage owner's build blocker.
 - **`pnpm build`** (web, Next 16.3.4 Turbopack, on `3787560`): compiled in 21.0 s under a load average of 12 (other lanes were building); 68/68 static pages. Next 16 no longer prints per-route sizes, so bundles were measured in the browser.
 - **`/markets`, cold cache, 1440 dark, resource timing:**
 
@@ -221,6 +222,7 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
   - The `?note=moved` line renders only inside populated lanes.
 - **4a / stage owner:** P-04 live price transport, P-05 book coordinator and endpoint health, the SOL balance read for the account modal, and the ticker/lanes reads (C-07).
 - **Stage owner:**
+  - **Build blocker on stage (not a fidelity drift):** the shared `web/.env.local` sets `NEXT_PUBLIC_AGARI_INDEXER_URL` to a relative `/api/index`. `packages/markets/src/env.ts` validates `indexerUrl` with `z.url()`, so `pnpm build` fails collecting `/api/index/[...path]` with a ZodError "Invalid URL". `next dev` doesn't collect page data up front, so it doesn't show there. With the variable overridden to an absolute URL for the process only, the build is green (68/68 pages). The fix is either an absolute URL in env or a schema that accepts a same-origin path. **Resolved on stage by `fefedf6`** (the schema accepts `/api/index`; the browser resolves it against the page origin, the server over loopback): `pnpm build` exits 0 with 68/68 pages on `1921179` with the relative value. 4e's failing build ran on `7949b0b`, which predates that commit.
   - P-11: the `/api/sponsor` GET on every route, from `SessionKeyProvider` in the shared providers.
   - P-09: the dead `@coinbase/cdp-sdk` alias in `web/next.config.ts`.
   - `THIRD_PARTY_NOTICES.md` still describes Masayume. A "Wallet modals" section (RainbowKit MIT, Solana Wallet Adapter icons Apache-2.0) was added in `a337a64`.
