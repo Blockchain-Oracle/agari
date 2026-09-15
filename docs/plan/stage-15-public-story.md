@@ -58,6 +58,7 @@
 - Lane 15b (20:41Z): How it works describes all three lanes as the product; no "not listed yet" label, because the devnet lane registers the Gap and token Series on 09-15 night. The pitch's "137 confirmed devnet signatures" is typed from `acceptance.md` @ 4a909c3; the stage owner refreshes it at the S15 gate. `/demo` is prerendered, so the mp4 check runs at build: rebuild after `web/public/video/agari-demo.mp4` lands; an `agari-demo.vtt` beside it becomes captions.
 - Lane 15b found /reels at 390 with the Take button over the closed-state headline (an 18d surface): sent to the S18 closed-state pass.
 - Lane 15d: the chrome-devtools MCP profile lock was worked around with headless Chrome over CDP on its own profile; games/duel copy keeps three Masayume strings (deferred S12).
+- Lane 15d (S15d.8): the X relay reply names Agari and Solana devnet, with the app URL from `NEXT_PUBLIC_SITE_URL` (default `https://agari.app`, as `share/copy.ts` already does); set it in the ops env at S16. Open for S17: the relay's reply context only names BTC or ETH assets, so a TSLA receipt drops its ticker. Identity audit: 137 kept, 11 changed, 3 open (games/duel copy, deferred S12).
 
 ## Handoff
 
