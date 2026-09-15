@@ -1,5 +1,6 @@
 import type { Address } from "@agari/core/types";
-import { createSponsorService, SPONSOR_ALLOWLIST, type SponsorService } from "@agari/markets/sponsor";
+import { createDbCosignLedger } from "@agari/db";
+import { createSponsorService, gateVerdict, SPONSOR_ALLOWLIST, type SponsorService } from "@agari/markets/sponsor";
 import { NextResponse } from "next/server";
 import { vaultProgramFromProcess } from "@/features/session/sponsor.server";
 import type { SponsorWire } from "@/features/session/useSponsorStatus";
@@ -19,7 +20,19 @@ const UNREADABLE = "the vault deployment could not be read";
 const noStore = { "Cache-Control": "no-store" };
 
 let service: SponsorService | null = null;
-const sponsor = () => (service ??= createSponsorService(process.env));
+
+/**
+ * One service per process. With `DATABASE_URL` the co-signs are counted in `sponsor_cosigns`, one decision per
+ * transaction, so the daily budgets hold across instances; without it the service keeps its in-process counters and
+ * the GET says "local counters" rather than pretending the budget is enforced.
+ */
+const sponsor = () => {
+  if (!service) {
+    const ledger = createDbCosignLedger(gateVerdict);
+    service = createSponsorService(process.env, ledger ? { ledger } : {});
+  }
+  return service;
+};
 
 /** A chain read that did not answer is not a vault that is missing, so the two are told apart rather than merged. */
 async function vaultProgram(): Promise<{ program: Address | null } | { unreadable: true }> {
