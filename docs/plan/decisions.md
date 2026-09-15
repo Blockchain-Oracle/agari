@@ -651,6 +651,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Outcome:** `switchboard_min_oracles = min(3, observed max)`.
   - **Q-S6-4 (default, pending the user):** a 2-oracle lane is accepted only with token caps halved and "signed by 2 oracles" disclosed on receipts and the ticket; below 2, or failing quotes, the lane is paused honestly ("Paused: no signed price source").
   - This entry is amended with the observed maximum, the hashes and the measured sizes when the spike lands.
+  - **Outcome (2026-09-15 06:37–06:43Z, weekday pre-market, 6b 7ccc0cc):** asking for 5 signatures returned 4 distinct oracles (indices 0, 1, 4, 6) every round; asking for 3 or 4 sometimes returned one short; 2 and 6 returned HTTP 500. The feed's `minOracleSamples` doesn't force a count. Signed slot age on arrival 1–14 slots; values 13–28 bps from Jupiter. **`switchboard_min_oracles = 3`**; the Q-S6-4 halved-caps path is not needed (weekends unmeasured: a weekend round below 3 pauses the lane honestly). The relay requests 5, refuses below the minimum, and sends at most 4 (5 signatures exceed 1,232 B without an ALT). Measured on LiteSVM with the real quote: 3 oracles × 4 feeds 1,022 B / 12,258 CU; 4 oracles + compute limit 1,173 B / 12,857 CU. Feed hashes pinned in `price-sources.json` `tokenLane`.
 - **User-visible:** a token receipt names how many oracles signed it.
 - **Approval:** stage owner on the spec default; Q-S6-4 is the user's to change.
 
@@ -675,6 +676,10 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Upgrade (stage owner only):** `NO_DNA=1 anchor build --arch v0` (size and sha256 recorded); the new `.so` at `cDcHZ…` on a Surfpool devnet fork runs 6b's proofs and `pnpm drive:events` as the regression; devnet `solana program deploy --program-id <agari_events keypair> --upgrade-authority deployer --buffer <fresh buffer keypair>` (resume with the same buffer); dump and compare sha256; `pnpm codegen`; IDL republished via program-metadata (D-026); then `admin_set_authorities` with the **full** current set plus the queue and D-053's `switchboard_min_oracles`. Every step is an acceptance row.
   - **SOL:** buffer ≈ `.so` bytes × 5,080 lamports (≈ 3.9–4.9 SOL, refunded), extension ≈ 0.5–1.0 SOL kept; peak ≈ 5.5 SOL on the deployer.
   - **Q-S6-6 (default, needs the user):** ask for ≈ 15 devnet SOL to the funding inbox `5zjywmmJ…` before Wed 09-16 (Gap 2.12 + token 5.55 + float ≈ 3.5 + upgrade peak ≈ 5.5, ≈ 1 kept). Balances are re-read before any deploy.
+- **Amendment (2026-09-15, 6b f44c69c):**
+  - **Crate hardening:** switchboard-on-demand 0.13.0's `QuoteVerifier` panics on a SlotHashes or signing-key mismatch, and maps `oracle_idx % 30` (index 30 aliases oracle 0), never deduping. The handler runs named checks first: SlotHashes lookup, queue signing keys, index < 30; `quote_print` dedupes by index **and** signer key. prints.md §4.4 follows this order.
+  - **Proof venue:** Surfpool's SlotHashes repeat one fake hash and are rewritten every block, so a live quote can't verify there. The spec row "Surfpool fork: the upgraded `.so` verifies a live quote" becomes: LiteSVM with a real devnet quote and queue dump (`events_switchboard.rs`, real ed25519 precompile) **plus** the first devnet print after the upgrade. Surfpool still runs `pnpm drive:events` as the upgrade regression.
+  - **Measured:** the v0 `.so` is 804,480 B (sha256 `5dbaa7a2…25e6`); devnet holds 764,200 B, so the upgrade extends program data by 40,280 B (≈ 0.205 SOL kept) with a ≈ 4.088 SOL buffer (refunded). Dry run for 12 token Series: 5.554492520 SOL.
 - **User-visible:** none until the token lane lists.
 - **Approval:** stage owner on the spec; the SOL is the user's.
 
