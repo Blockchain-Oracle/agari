@@ -382,6 +382,36 @@
         "books": [
           "4msyF6LAKHcHP2zbDdqap569tcPYQR5SaaB2UhjHcC5d"
         ]
+      },
+      "TSLAx-5m": {
+        "address": "BREtUfHThLXgAxzhEmvccwB8GSLySsy56dZv49UJqXUX",
+        "ticker": 1,
+        "cadenceSec": 300,
+        "basis": 2,
+        "books": [
+          "3muBrYRwVE7JANsbUtstUZEfadKgZ9JBdnZSZNHmbooB",
+          "35RME5Sh66BdkkNnSzzRFufG2joXLQmwFn4ReoKoRGyd"
+        ]
+      },
+      "TSLAx-15m": {
+        "address": "13Zs87TRN3kHSJjDHvf6ZGJUYoehUu2XURdTh8BbGVhA",
+        "ticker": 1,
+        "cadenceSec": 900,
+        "basis": 2,
+        "books": [
+          "grKQBmbibZWgZjWeuBMLR3EX8z2Bvs5ueM27Q7c2wgB",
+          "EtseHArYnJyBzEtmWWMwqqsDbHUHDgggQgXpQHJ8AZKF"
+        ]
+      },
+      "TSLAx-60m": {
+        "address": "J8ktiwu1Le1kgGWToR84qNyTjRf4AR2omdjA3vVVxcP7",
+        "ticker": 1,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "J2uYxRv5kcofjNau9yVhKapVjtQx9wMPzqZain9ARZr6",
+          "HibLPUV5xrj3AmRtBab1DKzQSWrWvfyvK2jSszLZX2qZ"
+        ]
       }
     }
   }
