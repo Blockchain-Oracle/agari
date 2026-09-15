@@ -10,13 +10,18 @@ import type { WriteRpc } from "../submitter/steps/message";
 import { keypairAddress } from "./keypair";
 import { keypairSigner } from "./keypair-signer";
 import { createNonceQueue } from "./nonce-queue";
+import { createSignerFromKeyPair, type TransactionSigner } from "@solana/kit";
 
 /**
  * Exactly one of these — a session signs one way, decided once, at construction:
  * - `wallet`: the person's Wallet Standard wallet, as a Kit signer (D-014, D-023);
- * - `secretKey`: a server role's 64-byte Solana keypair (ops actors, the desk, the settler).
+ * - `secretKey`: a server role's 64-byte Solana keypair (ops actors, the desk, the settler);
+ * - `keyPair`: a tap-trading session key, a non-extractable WebCrypto Ed25519 pair from `generateSessionKey()` (D-066).
  */
-export type SessionSigner = { wallet: WalletSession } | { secretKey: Uint8Array };
+/** Kit's WebCrypto key pair type, named without the DOM lib (the ops service compiles markets without it). */
+export type SessionKeyPair = Parameters<typeof createSignerFromKeyPair>[0];
+
+export type SessionSigner = { wallet: WalletSession } | { secretKey: Uint8Array } | { keyPair: SessionKeyPair };
 
 export interface SubmitterSessionConfig {
   env: MarketsEnv;
@@ -61,8 +66,19 @@ export class SessionDisposedError extends Error {
  */
 export async function createSubmitterSession(config: SubmitterSessionConfig): Promise<SubmitterSession> {
   const { env, authority, signer } = config;
-  const address = "wallet" in signer ? signer.wallet.address : keypairAddress(signer.secretKey);
-  const transactionSigner = "wallet" in signer ? signer.wallet.signer : await keypairSigner(signer.secretKey);
+  let address: Address;
+  let transactionSigner: TransactionSigner;
+  if ("wallet" in signer) {
+    address = signer.wallet.address;
+    transactionSigner = signer.wallet.signer;
+  } else if ("keyPair" in signer) {
+    const sessionKey = await createSignerFromKeyPair(signer.keyPair);
+    address = sessionKey.address as unknown as Address;
+    transactionSigner = sessionKey;
+  } else {
+    address = keypairAddress(signer.secretKey);
+    transactionSigner = await keypairSigner(signer.secretKey);
+  }
 
   let disposed = false;
   const enqueue = createNonceQueue();
