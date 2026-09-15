@@ -1,0 +1,64 @@
+/* S13 additions to the Room sheet (social-assistant.md §1.2), in `.room-*` language: the head's
+ * "This Window · $TSLA" switch and the author link. Values come from room.css and room-thread.css
+ * (the badge's mono 9px caps, the rule and inset tokens, the vermilion of a member's own bubble),
+ * so the sheet reads as one piece in both themes. */
+
+.room-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 6px;
+}
+
+.room-head-row .room-badge {
+  margin-top: 0;
+}
+
+/* rounded-full border border-white/[0.08] bg-white/[0.02] p-0.5 — the badge's pill, split in two */
+.room-switch {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--room-rule);
+  border-radius: 9999px;
+  background: var(--room-inset);
+  padding: 2px;
+}
+
+.room-switch button {
+  border-radius: 9999px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(var(--room-ink-rgb) / 0.45);
+  outline: none;
+  transition: color 150ms var(--ease-out), background-color 150ms var(--ease-out);
+}
+
+.room-switch button:hover {
+  color: rgb(var(--room-ink-rgb) / 0.85);
+}
+
+/* The chosen Room takes the member bubble's vermilion tint. */
+.room-switch button[data-on="true"] {
+  background: color-mix(in srgb, var(--vermilion) 16%, transparent);
+  color: var(--vermilion);
+}
+
+.room-switch button:focus-visible {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--vermilion) 55%, transparent);
+}
+
+/* The author's name links to their profile. Base58 is case-sensitive (D-010), so the name is
+   never re-cased by the meta line's caps. */
+.room-author {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  transition: color 150ms var(--ease-out);
+}
+
+.room-author:hover {
+  color: rgb(var(--room-ink-rgb) / 0.85);
+}

@@ -1,8 +1,11 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
+import type { TickerSymbol } from "@agari/core/market";
 import { LockIcon, SendIcon, XIcon } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { profileHref } from "@/features/takes/cashtags";
 import { addressHue } from "@/lib/address-hue";
 import { ROOM } from "./copy";
 import { ROOM_BODY_MAX, type RoomComment, type RoomGate } from "./protocol";
@@ -20,6 +23,10 @@ interface CommentRoomProps {
   onPost: (body: string) => void;
   /** Jump the reader to placing a bet, which is what unlocks the Room. */
   onBet?: () => void;
+  /** The ticker, when this is a ticker's standing Room (`$TSLA`) rather than one Window's. */
+  ticker?: TickerSymbol | null;
+  /** The head's "This Window · $TSLA" switch, when the Room has a ticker to switch to. */
+  switcher?: ReactNode;
 }
 
 const shortAddress = (address: string): string => (address.length > 10 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address);
@@ -52,7 +59,7 @@ function timeAgo(ms: number): string {
  * reference's presentation — it brings the focus trap, the labelled dialog role and
  * inert background that the reference re-implements only partly.
  */
-export function CommentRoom({ callLabel, gate, comments, busy, error, onClose, onJoin, onPost, onBet }: CommentRoomProps) {
+export function CommentRoom({ callLabel, gate, comments, busy, error, onClose, onJoin, onPost, onBet, ticker = null, switcher }: CommentRoomProps) {
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -90,8 +97,11 @@ export function CommentRoom({ callLabel, gate, comments, busy, error, onClose, o
             </span>
             <div className="min-w-0 flex-1">
               <Dialog.Title className="room-title">{callLabel}</Dialog.Title>
-              <div className="room-badge">
-                <LockIcon size={9} strokeWidth={2.4} /> {ROOM.qualifier}
+              <div className="room-head-row">
+                <div className="room-badge">
+                  <LockIcon size={9} strokeWidth={2.4} /> {ROOM.qualifier}
+                </div>
+                {switcher}
               </div>
             </div>
             <Dialog.Close className="room-close" aria-label={ROOM.close} data-cursor="hover">
@@ -100,7 +110,7 @@ export function CommentRoom({ callLabel, gate, comments, busy, error, onClose, o
           </div>
 
           {gate !== "joined" ? (
-            <RoomStates gate={gate} onJoin={onJoin} onBet={onBet} />
+            <RoomStates gate={gate} onJoin={onJoin} onBet={onBet} ticker={ticker} />
           ) : (
             <>
               <div ref={listRef} className="room-thread">
@@ -108,11 +118,14 @@ export function CommentRoom({ callLabel, gate, comments, busy, error, onClose, o
                 {comments.map((comment) => (
                   <div key={comment.id} className="room-line" data-mine={comment.mine}>
                     <span className="room-avatar" style={{ "--room-hue": addressHue(comment.author) } as CSSProperties} aria-hidden>
-                      {comment.author.slice(2, 4).toUpperCase()}
+                      {/* The first two characters, exactly: base58 is case-sensitive (D-010). */}
+                      {comment.author.slice(0, 2)}
                     </span>
                     <div className="room-bubble">
                       <div className="room-meta">
-                        <span>{comment.mine ? "you" : shortAddress(comment.author)}</span>
+                        <Link href={profileHref(comment.author)} className="room-author" data-cursor="hover">
+                          {comment.mine ? "you" : shortAddress(comment.author)}
+                        </Link>
                         <span>{timeAgo(comment.createdAtMs)}</span>
                       </div>
                       <p className="room-body">{comment.body}</p>
