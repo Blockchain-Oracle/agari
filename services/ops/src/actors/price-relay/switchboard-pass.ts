@@ -6,7 +6,8 @@
  * Per T: closes print first from one quote over their distinct feeds. Opens then copy the previous Window's close;
  * an open without an adjacent recorded close (the first Window after downtime) prints from the same quote. A slot
  * refused with `QuoteSlotStale` gets one fresh quote while at least 5 s of admission remain. Admission is on the chain
- * clock (`T + 10 ≤ now ≤ T + 60`).
+ * clock (`T + 10 ≤ now ≤ T + 60`). Every quote attempt is reported to halt-watch (`recordQuoteResult`): a fetched quote
+ * resets its xStocks' streaks, a failed fetch or a `QuoteSlotStale` refusal adds one, and three in a row halt the lane.
  */
 import { readFileSync } from "node:fs";
 import {
@@ -14,7 +15,9 @@ import {
   type PrintSlot, type SlotOutcome, type SwitchboardVenue,
 } from "@agari/markets/ops/prints";
 import type { SwitchboardQuote } from "@agari/markets/prices/legacy";
+import type { XStockSymbol } from "@agari/core/market";
 import { errorText } from "../../runtime/env";
+import { recordQuoteResult } from "../halt-watch/quote-failures";
 import type { LanePassResult } from "./lane-pass";
 import type { RelayContext } from "./relay-pass";
 
@@ -26,18 +29,22 @@ const CONFIG_URL = new URL("../../../config/price-sources.json", import.meta.url
 
 type TokenLaneFile = { tokenLane?: { tickers?: Record<string, { surgeSymbol: string; feedHash: string | null }> } };
 
-/** Pinned feed hash → Surge symbol (`price-sources.json` `tokenLane`). */
-export function surgeSymbolsByFeed(text = readFileSync(CONFIG_URL, "utf8")): Map<string, string> {
+export type TokenFeed = { xstock: XStockSymbol; surgeSymbol: string };
+
+/** Pinned feed hash → its xStock and Surge symbol (`price-sources.json` `tokenLane`). */
+export function tokenFeedsByHash(text = readFileSync(CONFIG_URL, "utf8")): Map<string, TokenFeed> {
   const tickers = (JSON.parse(text) as TokenLaneFile).tokenLane?.tickers ?? {};
-  return new Map(Object.values(tickers).flatMap((t) => (t.feedHash ? [[t.feedHash.toLowerCase(), t.surgeSymbol] as const] : [])));
+  return new Map(
+    Object.entries(tickers).flatMap(([xstock, t]) => (t.feedHash ? [[t.feedHash.toLowerCase(), { xstock: xstock as XStockSymbol, surgeSymbol: t.surgeSymbol }] as const] : [])),
+  );
 }
 
-type LaneState = { venue: SwitchboardVenue | null; venueAtMs: number; symbols: Map<string, string>; retried: Set<number> };
+type LaneState = { venue: SwitchboardVenue | null; venueAtMs: number; feeds: Map<string, TokenFeed>; retried: Set<number> };
 const states = new WeakMap<RelayContext, LaneState>();
 
 function stateOf(ctx: RelayContext): LaneState {
   let s = states.get(ctx);
-  if (!s) states.set(ctx, (s = { venue: null, venueAtMs: 0, symbols: surgeSymbolsByFeed(), retried: new Set() }));
+  if (!s) states.set(ctx, (s = { venue: null, venueAtMs: 0, feeds: tokenFeedsByHash(), retried: new Set() }));
   return s;
 }
 
@@ -67,12 +74,22 @@ async function boundary(ctx: RelayContext, state: LaneState, queue: string, tSec
   const minOracles = state.venue!.minOracles;
   const closes = slots.filter((s) => s.slot === "close");
   const opens = slots.filter((s) => s.slot === "open");
-  const unknown = slots.filter((s) => !state.symbols.has(s.feedIdHex));
+  const unknown = slots.filter((s) => !state.feeds.has(s.feedIdHex));
   if (unknown.length) return `switchboard T ${iso(tSec)}: no Surge symbol pinned for ${unknown.map(short).join(", ")}`;
-  const symbolsOf = (list: PrintSlot[]) => [...new Set(list.map((s) => state.symbols.get(s.feedIdHex)!))];
+  const symbolsOf = (list: PrintSlot[]) => [...new Set(list.map((s) => state.feeds.get(s.feedIdHex)!.surgeSymbol))];
+  const xstocksOf = (list: PrintSlot[]) => [...new Set(list.map((s) => state.feeds.get(s.feedIdHex)!.xstock))];
   if (ctx.dryRun) return `DRY switchboard T ${iso(tSec)}: would quote ${symbolsOf(slots).join(",")} (≥ ${minOracles} oracles), print ${closes.map(short).join(", ") || "no close"}, copy ${opens.map(short).join(", ") || "no open"}`;
 
-  const quoteFor = (list: PrintSlot[]) => fetchTokenQuote({ rpcUrl: ctx.rpcUrl, surgeSymbols: symbolsOf(list), minOracles, queue });
+  const quoteFor = async (list: PrintSlot[]) => {
+    try {
+      const fetched = await fetchTokenQuote({ rpcUrl: ctx.rpcUrl, surgeSymbols: symbolsOf(list), minOracles, queue });
+      recordQuoteResult(xstocksOf(list), true);
+      return fetched;
+    } catch (error) {
+      recordQuoteResult(xstocksOf(list), false);
+      throw error;
+    }
+  };
   let quote: SwitchboardQuote | null = null;
   const lines: string[] = [];
   const print = async (list: PrintSlot[]): Promise<SlotOutcome[]> => {
@@ -80,6 +97,7 @@ async function boundary(ctx: RelayContext, state: LaneState, queue: string, tSec
     if (!quote || list.some((s) => !quoteHasFeed(quote!, s.feedIdHex))) quote = await quoteFor(slots);
     let outcomes = await inBatches(list, CONCURRENCY, (s) => recordSwitchboardSlot(ctx.client, s, quote!, queue));
     const stale = outcomes.filter((o) => o.code === SWITCHBOARD_ERROR.quoteSlotStale).map((o) => o.slot);
+    if (stale.length) recordQuoteResult(xstocksOf(stale), false);
     if (stale.length && !state.retried.has(tSec) && Math.min(...stale.map((s) => s.deadlineSec)) - chainNow >= RETRY_MIN_LEFT_SEC) {
       state.retried.add(tSec);
       quote = await quoteFor(slots);

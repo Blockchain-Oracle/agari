@@ -7,7 +7,7 @@
  * move is measured within one source: Jupiter now over Jupiter at the Window's start (`xstock-spot` history). Variance
  * accrues around the clock, so the time left is scaled from calendar to trading seconds before `fairYesTicks`.
  */
-import { TICKERS } from "@agari/core/market";
+import { haltOf, TICKERS } from "@agari/core/market";
 import { currentXStockSpot, type XStockSpotFeed } from "../../../prices/xstock-spot";
 import { fairYesTicks, TRADING_YEAR_SEC } from "./fair";
 import type { LaneQuote, LaneQuoteInput } from "./lane-quote";
@@ -24,7 +24,8 @@ export function tokenQuote(input: LaneQuoteInput, spotFeed: XStockSpotFeed | nul
   const pull = (why: string): LaneQuote => ({ phase: "pull", fairTicks: null, maxCashPerWindow: cap, why });
   const xstock = TICKERS[input.symbol].xstock?.symbol;
   if (!xstock) return pull(`${input.symbol} has no xStock`);
-  const halt = input.halts[xstock];
+  // Token halts are keyed by the xStock (`issuer-halt`, `quote-unavailable`), never by the ticker.
+  const halt = haltOf(input.halts, xstock);
   if (halt) return pull(`halted (${halt.reason})`);
   const m = input.market.data;
   if (input.nowSec >= Number(m.lockAt) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };

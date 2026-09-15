@@ -1,25 +1,19 @@
 /**
  * What the roller does next on one 24/7 token Series (session-lanes.md §2.4): `tokenWindows` back-to-back with no
- * calendar, skipped only for multiplier changes (§3.4), token-lane corporate skips and halts of the xStock (§3.1).
+ * calendar, paused only by a halt of the xStock (§3.1; token halts are keyed by xStock, not ticker) or a corporate
+ * action on the token lane (core `corporateActionFor`: token-lane date skips and multiplier changes inside the span).
  * Pure, like `plan.ts`. Lane 6b owns this file.
  *
  * A token Window's opening print is copied from the previous close (`public_copy_open_from_prev`) or printed from a
  * Switchboard quote inside `[T + 10, T + 60]`, so a late open still has to leave the relay `PRINT_MARGIN_SEC` before
  * `open_deadline`; after downtime the next aligned Window is the candidate.
  */
-import { etDateOf, TICKERS, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
-import type { HaltBoard, MultiplierChange } from "@agari/core/types";
+import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, TICKERS, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { describeVersion, highestCoveringVersion, openPrintsAdmissible } from "./versions";
 
-/**
- * The roller's clock plus the token-lane inputs it will carry once the executor passes them (`deps.events.multipliers()`,
- * `deps.halts`); without them a token Series lists on skips and coverage alone.
- */
-export type TokenPlanClock = PlanClock & { multipliers?: readonly MultiplierChange[]; halts?: HaltBoard };
-
 /** The earliest Window at or after `lastExpirySec` that can still be opened and take its opening print. */
-export function nextTokenCandidate(series: PlanSeries, clock: TokenPlanClock): ScheduledWindow {
+export function nextTokenCandidate(series: PlanSeries, clock: PlanClock): ScheduledWindow {
   const cadence = series.cadenceSec;
   const from = Math.max(series.lastExpirySec, clock.nowSec - cadence);
   const windows = tokenWindows(from, Math.max(from, clock.nowSec) + clock.leadSec + 2 * cadence, cadence);
@@ -32,18 +26,17 @@ export function nextTokenCandidate(series: PlanSeries, clock: TokenPlanClock): S
   return ok ?? windows.at(-1)!;
 }
 
-function pauseReason(series: PlanSeries, w: ScheduledWindow, clock: TokenPlanClock): string | null {
-  const xstock = TICKERS[series.symbol as TickerSymbol]?.xstock?.symbol;
-  const halt = xstock ? clock.halts?.[xstock] : undefined;
-  if (halt) return `paused: halted (${halt.reason})`;
-  const skip = clock.skips.find((k) => k.symbol === series.symbol && k.lanes?.includes("token") && k.date === etDateOf(w.tradingStartSec));
-  if (skip) return `paused: corporate action (${skip.why})`;
-  const change = clock.multipliers?.find((m) => m.xstock === xstock && w.tradingStartSec < m.effectiveSec && m.effectiveSec <= w.expirySec);
-  if (change) return `paused: corporate action (${change.why})`;
-  return null;
+function pauseReason(series: PlanSeries, w: ScheduledWindow, clock: PlanClock): string | null {
+  const symbol = series.symbol as TickerSymbol;
+  const xstock = TICKERS[symbol]?.xstock?.symbol;
+  if (!xstock) return `paused: ${symbol} has no xStock`;
+  const halt = haltOf(clock.halts, xstock);
+  if (halt) return haltPausedState(halt);
+  const action = corporateActionFor({ symbol, lane: "token", window: w }, clock.skips, clock.multipliers);
+  return action ? corporatePausedState(action.why) : null;
 }
 
-export function planTokenSeries(series: PlanSeries, clock: TokenPlanClock): SeriesPlan {
+export function planTokenSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
   const w = nextTokenCandidate(series, clock);
   const untilOpen = w.tradingStartSec - clock.nowSec;
   if (untilOpen > clock.leadSec) return { kind: "wait", window: w, wakeSec: w.tradingStartSec - clock.leadSec, state: `waiting: next ${spanOf(w)}` };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PlanSeries } from "./plan";
-import { planTokenSeries, type TokenPlanClock } from "./plan-token";
+import type { PlanClock, PlanSeries } from "./plan";
+import { planTokenSeries } from "./plan-token";
 import type { VersionWindow } from "./versions";
 
 // Sat 2026-09-19 14:00:00Z: a weekend, when only the token lane trades.
@@ -10,8 +10,8 @@ const V1: VersionWindow[] = [{ validFromSec: 1_789_430_400, validUntilSec: null,
 const series = (over: Partial<PlanSeries> = {}): PlanSeries => ({
   key: "TSLAx-5m", symbol: "TSLA", cadenceSec: 300, nextIndex: 4n, lastExpirySec: 0, versions: V1, freeBooks: ["BookA", "BookB"], ...over,
 });
-const clock = (nowSec: number, over: Partial<TokenPlanClock> = {}): TokenPlanClock => ({
-  calendar: null, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], ...over,
+const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({
+  calendar: null, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, ...over,
 });
 
 describe("window-roller token plan", () => {
@@ -35,10 +35,11 @@ describe("window-roller token plan", () => {
     expect(hour.kind === "wait" && hour.window.tradingStartSec).toBe(SAT);
   });
 
-  it("pauses on a halt, a token-lane skip or a multiplier change inside the span; other lanes' skips don't apply", () => {
+  it("pauses on an xStock halt (not the ticker's), a token-lane skip or a multiplier change inside the span; other lanes' skips don't apply", () => {
     const at = clock(SAT - 60);
     expect(planTokenSeries(series(), { ...at, halts: { TSLAx: { reason: "issuer-halt", sinceSec: SAT - 900 } } }).state).toBe("paused: halted (issuer-halt)");
     expect(planTokenSeries(series(), { ...at, halts: { NVDAx: { reason: "quote-unavailable", sinceSec: SAT } } }).kind).toBe("open");
+    expect(planTokenSeries(series(), { ...at, halts: { TSLA: { reason: "pyth-stale", sinceSec: SAT } } }).kind).toBe("open");
     const regularOnly = [{ symbol: "TSLA" as const, date: "2026-09-19", why: "split", lanes: ["regular" as const] }];
     expect(planTokenSeries(series(), { ...at, skips: regularOnly }).kind).toBe("open");
     const token = [{ symbol: "TSLA" as const, date: "2026-09-19", why: "split", lanes: ["token" as const] }];
