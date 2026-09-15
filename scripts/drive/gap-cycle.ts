@@ -8,7 +8,7 @@
 //   close:  the Monday 09:30:00 ET print, settle, sweep, redeem every seat to the base unit, then the Book is recycled.
 // DRIVE DATA: 901's primary is attested. Its prices replay the archived TSLA Pyth prints of the real 09-11 → 09-14 weekend
 // (the LiteSVM replay's account vectors), relabelled for this future weekend; they are not prints of these dates.
-// Run: SURFPOOL_PORT=9061 SURFPOOL_WS_PORT=9062 pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/gap-cycle.ts
+// Run: SURFPOOL_PORT=9061 SURFPOOL_WS_PORT=9062 pnpm drive:gap-cycle
 // Localnet only (Surfpool's clock moves only forward, D-027); it sends nothing to devnet.
 
 import { readFileSync, writeFileSync } from "node:fs";

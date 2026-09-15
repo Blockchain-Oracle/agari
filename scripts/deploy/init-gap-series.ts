@@ -2,8 +2,7 @@
 // S6 init-gap-series, ensure-style (session-lanes.md §1.3): the Monday Gap Series (basis 1, cadence seed 604,800) of the
 // launch tickers with their Gap policy versions (open admission until lock_at) and one recyclable 256-node Book each.
 // Creates only what is missing; drift throws (D-026).
-// Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/deploy/init-gap-series.ts
-//        [--cluster devnet|localnet] [--dry-run] [--symbols TSLA,NVDA] [--drive 901,902]
+// Run: pnpm deploy:init-gap-series [--cluster devnet|localnet] [--dry-run] [--symbols TSLA,NVDA] [--drive 901,902]
 //   --dry-run prints what is missing, its exact rent and fees from the cluster's own rent, and the payer balance; it
 //             sends nothing. --drive adds the drive-only Gap Series (901 attested, 902 TSLA Pyth v1).
 // Payer and Series admin: the deployer (GlobalConfig admin, D-026). A real run refuses below the total + 0.5 SOL.
