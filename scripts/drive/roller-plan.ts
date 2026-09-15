@@ -7,10 +7,12 @@
 
 import { laneKey, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, type TickerSymbol } from "@agari/core/market";
 import { GAP_CADENCE_SEC, type LaneBasis } from "@agari/core/types";
-import { policyVersions, type PriceSources } from "@agari/markets/deploy";
+import { LAUNCH_GRID, policyVersions, type PriceSources } from "@agari/markets/deploy";
 import { createOpsClient, listSeries, seriesBasis, seriesLaneKey } from "@agari/markets/ops";
 import { createSessionService } from "../../services/ops/src/calendar/session-service";
-import { DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC, spanOf, type PlanSeries } from "../../services/ops/src/actors/window-roller/plan";
+import {
+  DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC, DEFAULT_PRELIST, DEFAULT_PRELIST_CADENCES_SEC, spanOf, type PlanSeries,
+} from "../../services/ops/src/actors/window-roller/plan";
 import { planByBasis } from "../../services/ops/src/actors/window-roller/plan-basis";
 import { gapSpanOf } from "../../services/ops/src/actors/window-roller/plan-gap";
 import { createSessionEvents } from "../../services/ops/src/runtime/session-events";
@@ -41,6 +43,7 @@ const events = createSessionEvents();
 const clock = {
   calendar: sessions.calendar(), nowSec: atSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC,
   minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: events.skips(), multipliers: events.multipliers(), halts: {},
+  prelist: DEFAULT_PRELIST, prelistCadencesSec: DEFAULT_PRELIST_CADENCES_SEC,
 };
 
 const launch = TICKER_SYMBOLS.filter((s) => TICKERS[s].launch);
@@ -56,19 +59,19 @@ for (const [symbol, basis, cadenceSec] of lanes) {
   let series: PlanSeries;
   if (chain) {
     series = {
-      key, symbol, cadenceSec, nextIndex: chain.data.nextIndex, lastExpirySec: Number(chain.data.lastExpiry),
+      key, symbol, cadenceSec, maxLeadSec: chain.data.maxLeadSec, nextIndex: chain.data.nextIndex, lastExpirySec: Number(chain.data.lastExpiry),
       versions: chain.data.policyVersions.slice(0, chain.data.versionCount).map(versionWindow), freeBooks: chain.data.freeBooks.slice(0, chain.data.freeBookCount),
     };
   } else {
     try {
-      series = { key, symbol, cadenceSec, nextIndex: 0n, lastExpirySec: 0, versions: policyVersions(symbol, sources, basis).map(versionWindow), freeBooks: ["(unregistered)"] };
+      series = { key, symbol, cadenceSec, maxLeadSec: LAUNCH_GRID.maxLeadSec, nextIndex: 0n, lastExpirySec: 0, versions: policyVersions(symbol, sources, basis).map(versionWindow), freeBooks: ["(unregistered)"] };
     } catch (error) {
       console.log(`  ${key.padEnd(10)} ${"not registered".padEnd(15)} ${error instanceof Error ? error.message : String(error)}`);
       continue;
     }
   }
   const plan = planByBasis(basis, series, clock);
-  const state = plan.kind === "open" ? plan.state.replace("opening", chain ? "would open" : "would list") : plan.state;
+  const state = plan.kind === "open" ? plan.state.replace("opening", chain ? "would open" : "would list").replace("prelisting", "would prelist") : plan.state;
   const window = "window" in plan ? ` (${basis === "gap" ? gapSpanOf(plan.window) : spanOf(plan.window)})` : "";
   console.log(`  ${key.padEnd(10)} ${(chain ? "registered" : "not registered").padEnd(15)} ${state}${plan.kind === "open" ? "" : window}`);
 }
