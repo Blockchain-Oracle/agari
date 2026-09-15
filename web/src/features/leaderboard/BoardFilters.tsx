@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKER_SYMBOLS, TICKERS } from "@agari/core/market";
+import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
 import { TickerPicker } from "@/features/markets/lanes/TickerPicker";
 import { cn } from "@/lib/utils";
 import { LEADERBOARD } from "./copy";
@@ -15,7 +15,8 @@ interface BoardFiltersProps {
   meta: string;
 }
 
-const NO_PAUSES: ReadonlySet<never> = new Set();
+// 6d keys paused tickers by reason; the board never pauses a ticker.
+const NO_PAUSES: ReadonlyMap<TickerSymbol, string> = new Map();
 /** The Regular lane's tickers, registry order (SPY waits for a signed source). */
 const BOARD_TICKERS = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].launch);
 
@@ -41,7 +42,7 @@ export function BoardFilters({ board, onBoard, meta }: BoardFiltersProps) {
           </button>
         ))}
       </div>
-      <TickerPicker tickers={BOARD_TICKERS} paused={NO_PAUSES} ticker={board.ticker} onPick={(ticker) => onBoard({ ...board, ticker })} />
+      <TickerPicker basis="regular" tickers={BOARD_TICKERS} paused={NO_PAUSES} ticker={board.ticker} onPick={(ticker) => onBoard({ ...board, ticker })} />
       <div className="lb-filter-meta">{meta}</div>
     </div>
   );
