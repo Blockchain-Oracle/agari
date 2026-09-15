@@ -9,6 +9,7 @@ import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
+import { submitCashOut } from "./cash-out";
 import { submitOrder } from "./order-lane";
 import type { WriteContext } from "./settle-write";
 import { allowAllStopGate } from "./stop-gate";
@@ -67,6 +68,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     hasSigner: () => true,
     submitTx: (intent, onPhase) => enqueue(() => submitTx(context(), intent, onPhase)),
     submitOrder: (request, onPhase) => enqueue(() => submitOrder({ ...context(), stopGate, attribution }, request, onPhase)),
+    submitCashOut: (request, onPhase) => enqueue(() => submitCashOut({ ...context(), stopGate, attribution }, request, onPhase)),
     checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };
 }

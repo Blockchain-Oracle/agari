@@ -12,7 +12,7 @@ export * from "./provider";
 export * from "./range";
 export * from "./runtime";
 export * from "./sessions";
-export * from "./sponsor";
+export type { SponsorStatus } from "./sponsor/status";
 export * from "./strategies";
 export { NOT_DEPLOYED_TECHNICAL, notDeployed, notDeployedReading } from "./stub/not-deployed";
 export * from "./submitter";

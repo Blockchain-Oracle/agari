@@ -41,7 +41,7 @@ function view(status: SessionStatus, extra: Partial<SessionKeyView> = {}): Sessi
     owner: OWNER,
     key: { address: KEY },
     grant: null,
-    deployment: { chainId: CLUSTER_ID.devnet, eventVault: VAULT, forwarder: VAULT, collateral: VAULT, fromBlock: 0n },
+    deployment: { chainId: CLUSTER_ID.devnet, eventVault: VAULT, seat: VAULT, config: VAULT, collateral: VAULT, fromBlock: 0n },
     decimals: 6,
     nowSec: NOW_SEC,
     sponsor: { configured: false, sponsor: null, balanceLamports: null, allowlist: [] },

@@ -9,8 +9,10 @@
  * `generated-abi`, `vault-abi-shape`) — the SDK, its pinned addresses and the Solidity ABIs are gone; `banned-wagmi-hooks`
  * — `no-evm` bans wagmi outright; and the EVM order-lane file rules (`order-lane-ioc`, `status-gate-enum`,
  * `expiry-from-headroom`) — their files were the EVM lane; S4 re-adds them against the Solana order lane.
+ *
+ * A check rule returns its findings, or `{ findings, skipped }` when part of what it guards has not landed yet.
  */
-import { readText, walkFiles } from "./lib/walk.mjs";
+import { codeLines, readText, walkFiles } from "./lib/walk.mjs";
 import { finding } from "./lib/report.mjs";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
@@ -31,6 +33,28 @@ function fileLength(rule, ctx) {
     }
   }
   return findings;
+}
+
+/** tap-trading.md §2 (D-066): the session key's secret never exists as bytes in the page. */
+const EXTRACTABLE_KEY = /\bexportKey\s*\(|\bextractable\s*:\s*true\b|\bgenerateKeyPair(?:Signer)?\s*\(\s*true\b/;
+/** The S1 port's PKCS#8 export, which lane 7c replaces with `generateSessionKey` from `@agari/markets` and the v2 store. */
+const S1_KEYGEN = "web/src/features/session/keygen.ts";
+
+function sessionKeyNonExtractable(rule, ctx) {
+  const findings = [];
+  for (const scope of rule.scopes) {
+    for (const { rel, abs } of walkFiles(ctx.root, scope, TS)) {
+      for (const [lineNo, line] of codeLines(readText(abs))) {
+        const match = EXTRACTABLE_KEY.exec(line);
+        if (match) findings.push(finding(rule, `\`${match[0]}\``, `${rel}:${lineNo}`));
+      }
+    }
+  }
+  // Optional while the S1 keygen still exports its key: that file alone is waived, every other file is held to the rule.
+  const pending = findings.filter((f) => f.location.startsWith(`${S1_KEYGEN}:`));
+  if (!rule.optional || pending.length === 0) return findings;
+  const rest = findings.filter((f) => !pending.includes(f));
+  return rest.length > 0 ? rest : { findings: [], skipped: `${S1_KEYGEN} still exports its key until lane 7c's v2 store` };
 }
 
 export const rules = [
@@ -97,6 +121,14 @@ export const rules = [
     file: "packages/markets/src/submitter/steps/expiry.ts",
     optional: true,
     mustMatch: /orderExpirySec\(/,
+  },
+  // S7 (tap-trading.md §2, D-066): the tap-trading key is a non-extractable CryptoKeyPair from generation to IndexedDB.
+  {
+    id: "session-key-non-extractable",
+    description: "the session key is generated non-extractable and never exported (no exportKey( or extractable: true); tap-trading.md §2",
+    scopes: ["packages/markets/src/sessions", "web/src/features/session"],
+    optional: true,
+    check: sessionKeyNonExtractable,
   },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];

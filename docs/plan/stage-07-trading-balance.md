@@ -23,7 +23,7 @@
 
 ## Steps
 
-- [ ] Foundation (stage owner, D-061…D-069):
+- [x] Foundation (stage owner, D-061…D-069; the deployer SOL ask is raised and still open):
   - **D-entries:**
     - D-061: contract frozen; lanes; S7 starts before the S4 gate.
     - D-062: account model deltas (vault.md §1).
@@ -107,10 +107,37 @@
 
 ## Findings
 
-- (none yet)
+- **Foundation (Context7 + installed sources):**
+  - Kit 8.3 `generateKeyPair(extractable = false)` → `crypto.subtle.generateKey("Ed25519", false, …)`; `getAddressFromPublicKey(publicKey)`; `createSignerFromKeyPair(keyPair): KeyPairSigner`. Forbid `generateKeyPair(true)`, and in the session key's path the bytes constructors (`createKeyPairFromBytes`, `createKeyPairSignerFromBytes`), which hold the secret in JS memory.
+  - `CryptoKey` is `[Serializable]` (WebCrypto spec): IndexedDB structured clone keeps `[[extractable]] = false`. Ed25519 WebCrypto: Chrome 137, Firefox 129, Safari 17. Safari signs Ed25519 randomized, so a re-sign changes the txid (never re-sign, D-033).
+  - Names outside the DOM lib: `services/ops` has no `CryptoKeyPair` global, so markets names it `Awaited<ReturnType<typeof generateKeyPair>>`.
+  - `partiallySignTransactionMessageWithSigners(msg)` accepts a plain-address fee payer (`setTransactionMessageFeePayer(address, msg)`). It compiles every missing signer slot as 64 zero bytes and never asserts full signing. The wire form is `getBase64EncodedWireTransaction(tx)`.
+  - `simulateTransaction(base64, { encoding: "base64", sigVerify: false, replaceRecentBlockhash?, accounts: { addresses, encoding } })` returns `accounts` in address order, plus `unitsConsumed`, `fee` and balances. `sigVerify` and `replaceRecentBlockhash` conflict only when both are true.
+  - `getFeeForMessage(base64Message)` → `Lamports | null` (null = the blockhash expired). Kit has no message-to-base64 helper: use `getBase64Decoder().decode(tx.messageBytes)`.
+  - Anchor 1.2 supports `Option<AccountLoader<'info, T>>` with `mut`/`seeds` (the constraints run only when `Some`; `None` = the program id in that slot).
+  - `declare_program!(name)` reads `idls/<name>.json` from the nearest ancestor `idls/` directory. It generates `cpi`, `accounts` (zero-copy types with `ZeroCopy`/`Owner`), `program`, `errors` and `events`. CPI account structs are plain `AccountInfo`, so drop loaders before invoking.
 
 ## Handoff
 
+- **Foundation facts (`feat(S7.0/foundation)`):**
+  - **agari-vault program id `84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9`** (keypair `~/.config/agari/programs/agari-vault.json`, create-once, never printed). 7a: `declare_id!("84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9")`, crate `anchor/programs/agari-vault`, lib name `agari_vault`. It is already in `Anchor.toml` (localnet, devnet), `addresses.devnet.json` `programs.agari_vault` and `web/.env.local` `NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID`. Before the first `anchor build` in a worktree, copy it to `anchor/target/deploy/agari_vault-keypair.json` (gitignored; Anchor otherwise generates a mismatching key, as stage-02 notes for agari-events); never run `anchor keys sync`.
+  - **Ports (additive, D-067/D-069):**
+    - core `VaultDeployment { chainId, eventVault, seat, config, collateral, fromBlock }` and `VAULT_NOT_DEPLOYED`;
+    - `ExitQuote` (core types);
+    - `MarketsProvider.freshExitQuote(target, side, contractsRaw)`;
+    - `CashOutRequest`, `CashOutOutcome` (requote carries `exit`), `Submitter.submitCashOut`, `BookedOrder.proceedsBase?`, `vault-deposit-and-grant.keyTopUpLamports?`.
+  - **Stubs 7b replaces:** `packages/markets/src/provider/exit-quote.ts` (not-deployed reading) and `submitter/cash-out.ts` (refused not-deployed), both already wired into `marketsProvider` and `createSubmitter`. `resolveVaultDeployment` still returns null.
+  - **Exports:**
+    - `generateSessionKey(): Promise<{ address, keyPair }>` is implemented in `sessions/session-key.ts` and exported from `@agari/markets` and `@agari/markets/sessions`. 7c's store imports it instead of `F/session/keygen.ts`.
+    - `@agari/markets/sponsor` (server-only) has a placeholder index. `sponsor.ts` moved to `sponsor/status.ts`; `SponsorStatus` gains `reason?`, and it is the only thing the root re-exports.
+  - **Env:** `MarketsEnv.vaultProgramId`, from `NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID` via `marketsEnvInputFrom` and `web/src/lib/env.ts`.
+    - 7c: `F/session/sponsor.server.ts` `marketsEnvFromProcess` lists the vars by hand and doesn't pass `vaultProgramId`. Use `parseMarketsEnv(marketsEnvInputFrom(process.env))`.
+    - 7b: `.env.local` now carries the id before the program exists, so a deployment resolved from env alone would read a missing `VaultConfig`. Treat an absent config account as not deployed.
+  - **Invariants:**
+    - `session-key-non-extractable` is optional only while `F/session/keygen.ts` still exports its key (that file is waived, everything else is checked now). 7c removes the waiver; the gate needs the rule to run, not skip.
+    - `program-id-drift` now also holds Anchor.toml devnet == `addresses.devnet.json` for a program with no crate yet.
+  - `web/.env.example` has the Solana vault and sponsor block, with the spec's `SPONSOR_*` limit names. `pnpm env:check` lists the vault id (S7) and `SPONSOR_PRIVATE_KEY` (optional; role file fallback).
+  - **Q-S7-1/2/3:** answered with the defaults (D-065, D-063, D-062).
 - **Lanes** (tap-trading.md §6):
   - **7a program:** Surfpool 8980/8981; LiteSVM in `anchor/tests`.
   - **7b adapter:** Surfpool 8990/8991, DB `agari_s7b`.
@@ -131,7 +158,7 @@
   - The program keypair is new at the foundation.
 - **Devnet SOL:**
   - Needed: vault deploy peak ≈ 3.1–4.6 SOL (buffer refunded; programdata rent ≈ 1.5–2.3 SOL kept), IDL ≈ 0.03, sponsor float 0.5, drive owners ≈ 0.06. **Ask the user for ≈ 5.5 SOL.**
-  - Available: the deployer held 3.32 SOL at 2026-09-14 16:50Z (STATUS). Funding inbox `5zjywmmJ…` forwards to the deployer.
+  - Available: the deployer held 3.32 SOL at 2026-09-14 16:50Z (STATUS) and **0.73 SOL at 2026-09-15 06:18Z**. `sponsor` (`5kKwdNLo…`) holds 0 SOL. The ≈ 5.5 SOL ask stands. Funding inbox `5zjywmmJ…` forwards to the deployer.
 - **Coordination:**
   - S8 (maker) registers index 1 with the same `set-authorities` script, and S6 sets the Switchboard queue with it. Run one at a time; each run re-sends every field.
   - The games sponsor route shares the `sponsor` role (S12), not this policy.

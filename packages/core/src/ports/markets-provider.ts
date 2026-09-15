@@ -4,7 +4,7 @@ import type { Reading } from "../schemas/reading";
 import type { AssetPrice, ClockSync, PricePoint, Resolution } from "../types/feeds";
 import type { EventMarket, LaneSet, MarketId, OnchainSnapshot, Side } from "../types/market";
 import type { Address, Hash32 } from "../types/primitives";
-import type { BalanceSheet, BookDepth, BookParams, ClaimableRow, Holdings, OpenPosition, Quote } from "../types/trading";
+import type { BalanceSheet, BookDepth, BookParams, ClaimableRow, ExitQuote, Holdings, OpenPosition, Quote } from "../types/trading";
 import type { VaultHoldings, VaultSnapshot } from "../vault/types";
 
 /** What a book read needs to address a market: the id for recycle-safety plus the pool the book physically lives on. */
@@ -28,6 +28,8 @@ export interface MarketsProvider {
   getBookParams(poolAddress: Address): Promise<Reading<BookParams>>;
   /** Watch-free quote straight off the chain book — what the Submitter re-quotes with at click time. */
   freshQuoteStake(target: QuoteTarget, side: Side, stakeBase: bigint): Promise<Reading<Quote | null>>;
+  /** Watch-free exit quote for a plain cash-out (L-35); null when the Book would fill nothing ("No exit liquidity"). */
+  freshExitQuote(target: QuoteTarget, side: Side, contractsRaw: bigint): Promise<Reading<ExitQuote | null>>;
   getOpeningPrice(marketId: MarketId): Promise<Reading<bigint | null>>;
   getAssetPrice(asset: TickerSymbol): Promise<Reading<AssetPrice | null>>;
   getPriceHistory(asset: TickerSymbol, fromSec: number, toSec: number): Promise<Reading<PricePoint[]>>;

@@ -43,13 +43,17 @@ export interface VaultAccount {
   totalWithdrawnBase: bigint;
 }
 
-/** Where the vault lives on one chain — regenerated from `contracts/deployments` (AD-10). */
+/** Where `agari-vault` lives on one cluster (vault.md §1, D-069). There is no forwarder: the sponsor only pays fees. */
 export interface VaultDeployment {
   chainId: number;
+  /** The agari-vault program id (`NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID` = `addresses.devnet.json` `programs.agari_vault`). */
   eventVault: Address;
-  forwarder: Address;
+  /** The `["seat"]` PDA: the vault's PROGRAM seat in every Ledger and the authority of each owner's custody. */
+  seat: Address;
+  /** The `["vault-config"]` PDA. */
+  config: Address;
   collateral: Address;
-  /** The block the vault was deployed in: where its event history starts. */
+  /** The slot the vault was deployed in: where its event history starts. */
   fromBlock: bigint;
 }
 
@@ -71,4 +75,4 @@ export interface VaultHoldings {
   downGrantId: bigint;
 }
 
-export const VAULT_NOT_DEPLOYED = "EventVault is not deployed on this network yet" as const;
+export const VAULT_NOT_DEPLOYED = "agari-vault is not deployed on this cluster yet" as const;

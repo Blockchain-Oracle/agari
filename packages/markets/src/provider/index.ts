@@ -1,5 +1,6 @@
 import type { MarketsProvider } from "@agari/core/ports";
 import { nowMs } from "./clock";
+import { freshExitQuote } from "./exit-quote";
 import {
   freshQuoteStake,
   getAssetPrice,
@@ -33,6 +34,7 @@ export const marketsProvider: MarketsProvider = {
   getBookDepth,
   getBookParams,
   freshQuoteStake,
+  freshExitQuote,
   getOpeningPrice,
   getAssetPrice,
   getPriceHistory,

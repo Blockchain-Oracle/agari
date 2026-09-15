@@ -8,9 +8,11 @@ skip-lint = false
 
 [programs.localnet]
 agari_events = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+agari_vault = "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
 
 [programs.devnet]
 agari_events = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+agari_vault = "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
 
 [provider]
 cluster = "localnet"

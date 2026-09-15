@@ -43,6 +43,22 @@ export interface Quote {
   quotedAtMs: number;
 }
 
+/**
+ * A plain cash-out's quote (L-35): selling `contractsRaw` of one side into the live Book as it stands. Up sells into
+ * the YES bids; Down sells into the YES asks, inverted (tap-trading.md §1.4).
+ */
+export interface ExitQuote {
+  /** What the Book fills now: `min(held, fillable)`. */
+  contractsRaw: bigint;
+  /** Protective sell limit in UP (YES) terms, ready for the order lane: the last level reached, padded down. */
+  limitPriceRaw: bigint;
+  /** What the walk pays out for the whole size. */
+  expectedProceedsBase: bigint;
+  /** The floor at the protective limit: the least a fill can pay. */
+  minProceedsBase: bigint;
+  avgPriceBps: number;
+}
+
 export interface OpenPosition {
   marketId: MarketId;
   asset: string;

@@ -19,7 +19,8 @@ export const FIXTURE_OWNER = fixtureAddress("0x000000000000000000000000000000000
 const deployment: VaultDeployment = {
   chainId: CLUSTER_ID.devnet,
   eventVault: fixtureAddress("0x00000000000000000000000000000000000000e7"),
-  forwarder: fixtureAddress("0x00000000000000000000000000000000000000f0"),
+  seat: fixtureAddress("0x00000000000000000000000000000000000000f0"),
+  config: fixtureAddress("0x00000000000000000000000000000000000000f1"),
   collateral: fixtureAddress("0x70a86D8842FB63C4Ad2b7cdddF530eBf1BB25d8E"),
   fromBlock: 477_650_000n,
 };

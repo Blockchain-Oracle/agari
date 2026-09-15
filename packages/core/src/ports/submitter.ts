@@ -1,7 +1,7 @@
 import type { Diagnosis } from "../types/diagnosis";
 import type { EventMarket, MarketId, OutcomeIdx, Side } from "../types/market";
 import type { Address, Signature } from "../types/primitives";
-import type { Quote } from "../types/trading";
+import type { ExitQuote, Quote } from "../types/trading";
 import type { ArenaIntent } from "../games/arena";
 import type { ParlayIntent } from "../parlay/types";
 import type { RangeIntent } from "../range/types";
@@ -42,6 +42,8 @@ export interface BookedOrder {
   avgPriceBps: number;
   txHash: Signature;
   fillCount: number;
+  /** A sell (plain cash-out, L-35): what the fill paid out. A sell books `costBase: 0` (tap-trading.md §1.4). */
+  proceedsBase?: bigint;
 }
 
 export type OrderOutcome =
@@ -53,6 +55,24 @@ export type OrderOutcome =
   | { status: "refused"; diagnosis: Diagnosis }
   | { status: "reverted"; diagnosis: Diagnosis; txHash: Signature }
   | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
+
+/**
+ * Plain cash-out (L-35): sell a held side back into the Book with an IOC before lock. The confirmed exit quote's
+ * `minProceedsBase` is the floor: a fresh quote below it is surfaced as a requote, never silently accepted.
+ */
+export interface CashOutRequest {
+  market: EventMarket;
+  side: Side;
+  /** How many contracts to sell, at most the holding on that route. */
+  contractsRaw: bigint;
+  displayedExit: ExitQuote;
+  wallet: Address;
+  /** Defaults to the wallet route. */
+  route?: OrderRoute;
+}
+
+/** An order outcome, except that a cash-out requote carries the fresh exit quote. */
+export type CashOutOutcome = Exclude<OrderOutcome, { status: "requote" }> | { status: "requote"; exit: ExitQuote };
 
 export interface GrantTerms {
   kind: GrantKind;
@@ -70,7 +90,13 @@ export type VaultIntent =
   | { kind: "vault-withdraw-private"; amountBase: bigint }
   | { kind: "vault-grant"; terms: GrantTerms }
   /** Deposit and grant in one transaction, so no grant ever exists without its budget (Story 6.1). */
-  | { kind: "vault-deposit-and-grant"; amountBase: bigint; terms: GrantTerms }
+  | {
+      kind: "vault-deposit-and-grant";
+      amountBase: bigint;
+      terms: GrantTerms;
+      /** SOL moved from the owner to `terms.actor` in the same transaction, only when no sponsor pays the key's fees (tap-trading.md §2). */
+      keyTopUpLamports?: bigint;
+    }
   | { kind: "vault-fund-grant"; grantId: bigint; amountBase: bigint }
   | { kind: "vault-revoke"; grantId: bigint }
   /** Permissionless: anyone may crank a settled Window into its owner's balance. */
@@ -132,6 +158,7 @@ export type TxOutcome =
 export interface Submitter {
   submitOrder(request: OrderRequest, onPhase?: PhaseListener): Promise<OrderOutcome>;
   submitTx(intent: TxIntent, onPhase?: PhaseListener): Promise<TxOutcome>;
+  submitCashOut(request: CashOutRequest, onPhase?: PhaseListener): Promise<CashOutOutcome>;
   hasSigner(): boolean;
 }
 

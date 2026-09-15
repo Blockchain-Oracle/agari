@@ -13,6 +13,9 @@
       "soSha256": "310e14d7265d3fb32662de0035d0e0b9a7322a3c48860468087b90962bc44309",
       "sourceCommit": "36f1384",
       "idlMetadata": "97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH"
+    },
+    "agari_vault": {
+      "programId": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
     }
   },
   "venue": {

@@ -3,7 +3,8 @@
  *  - no-evm:              no EVM library anywhere, with a shrinking allowlist that S1 1d empties;
  *  - kit-import-boundary: only packages/markets imports the chain SDKs (the web wallet provider island is exempt);
  *  - idl-no-destination:  AD-5 checked against the IDLs — no instruction takes a caller-chosen payout destination;
- *  - program-id-drift:    declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json.
+ *  - program-id-drift:    declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json. A program whose crate doesn't
+ *                         exist yet (its id reserved at a stage foundation) is still held to Anchor.toml devnet == the file.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -117,6 +118,7 @@ export function programIdDrift(rule, ctx) {
     }
   }
   const findings = [];
+  const tomlDevnet = new Map();
   const tomlPath = join(ctx.root, "anchor/Anchor.toml");
   if (existsSync(tomlPath)) {
     let section = null;
@@ -125,6 +127,7 @@ export function programIdDrift(rule, ctx) {
       if (header) section = header[1];
       else if (/^\s*\[/.test(line)) section = null;
       const entry = section && /^\s*([\w-]+)\s*=\s*"([^"]+)"/.exec(line);
+      if (entry && section === "devnet") tomlDevnet.set(snake(entry[1]), entry[2]);
       if (entry && declared.has(snake(entry[1])) && declared.get(snake(entry[1])) !== entry[2]) {
         findings.push(finding(rule, `[programs.${section}] ${entry[1]} = ${entry[2]}, declare_id! says ${declared.get(snake(entry[1]))}`, "anchor/Anchor.toml"));
       }
@@ -138,6 +141,8 @@ export function programIdDrift(rule, ctx) {
       const id = typeof value === "string" ? value : value?.programId;
       if (typeof id === "string" && declared.has(snake(name)) && declared.get(snake(name)) !== id) {
         findings.push(finding(rule, `${name} = ${id}, declare_id! says ${declared.get(snake(name))}`, "scripts/deploy/addresses.devnet.json"));
+      } else if (typeof id === "string" && !declared.has(snake(name)) && tomlDevnet.has(snake(name)) && tomlDevnet.get(snake(name)) !== id) {
+        findings.push(finding(rule, `${name} = ${id}, Anchor.toml [programs.devnet] says ${tomlDevnet.get(snake(name))}`, "scripts/deploy/addresses.devnet.json"));
       }
     }
   }

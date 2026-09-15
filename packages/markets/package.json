@@ -20,6 +20,7 @@
     "./react": "./src/react/index.ts",
     "./runtime": "./src/runtime/index.ts",
     "./sessions": "./src/sessions/index.ts",
+    "./sponsor": "./src/sponsor/index.ts",
     "./strategies": "./src/strategies/index.ts",
     "./vault": "./src/vault/index.ts",
     "./x": "./src/x/index.ts",
