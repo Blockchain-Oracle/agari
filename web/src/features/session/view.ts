@@ -25,7 +25,7 @@ export interface SessionKeyView {
   vaultAvailableBase: bigint | null;
 }
 
-export type SessionBusy = "enabling" | "revoking" | "rekeying" | null;
+export type SessionBusy = "enabling" | "topping-up" | "revoking" | "rekeying" | null;
 
 export interface EnableOutcome {
   outcome: TxOutcome;

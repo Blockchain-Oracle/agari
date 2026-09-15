@@ -32,6 +32,8 @@ function refusedTx(technical: string): TxOutcome {
   return { status: "refused", diagnosis: diagnosis("unknown", technical) };
 }
 
+const keyLamportsKey = (key: Address | null) => ["agari", "session", "keyLamports", key] as const;
+
 /** A fresh non-extractable key (D-066) as its v2 record. */
 async function freshKey(): Promise<StoredSessionKey> {
   const { address, keyPair } = await generateSessionKey();
@@ -78,7 +80,7 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
   // The key's own SOL, read every poll while it is armed: what it can pay when no sponsor will (tap-trading.md §1.1).
   const keyAddress = key?.address ?? null;
   const keyBalance = useQuery({
-    queryKey: ["agari", "session", "keyLamports", keyAddress],
+    queryKey: keyLamportsKey(keyAddress),
     queryFn: async () => (await loadAccount(keyAddress as string as Parameters<typeof loadAccount>[0])).lamports,
     enabled: armed && keyAddress !== null,
     refetchInterval: MARKETS_POLL_MS,
@@ -134,8 +136,14 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
     try {
       const record = await freshKey();
       if (!(await saveSessionKey(owner, record))) return { outcome: refusedTx(STORAGE_UNAVAILABLE), topUpHash: null, topUpError: null };
+      // A fresh key holds no SOL: when no sponsor pays its fees, its top-up rides the same re-grant transaction.
+      const keyPays = !(await ensureSponsor()).configured;
       // Replacing the grant returns the old budget before the new one is taken (the program's own rule, vault.md §3.3).
-      const outcome = await submitter.submitTx({ kind: "vault-grant", terms: termsFromGrant(live, record.address) });
+      const outcome = await submitter.submitTx({
+        kind: "vault-grant",
+        terms: termsFromGrant(live, record.address),
+        ...(keyPays ? { keyTopUpLamports: SESSION_KEY_TOPUP_LAMPORTS } : {}),
+      });
       if (outcome.status !== "confirmed") return { outcome, topUpHash: null, topUpError: null };
       setStored({ owner, key: record, loaded: true });
       await invalidate();
@@ -143,7 +151,7 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
     } finally {
       setBusy(null);
     }
-  }, [userSession, owner, grant, nowSec, invalidate]);
+  }, [userSession, owner, grant, nowSec, ensureSponsor, invalidate]);
 
   const revoke = useCallback(async (): Promise<TxOutcome> => {
     const submitter = userSession?.submitter;
@@ -158,8 +166,20 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
     }
   }, [userSession, grant, invalidate]);
 
-  // The key's SOL arrives inside the enable transaction; a later top-up has no write in the port yet, so it moves nothing.
-  const topUp = useCallback(async (): Promise<Signature | null> => null, []);
+  /** The manager's "Move 0.01 SOL to the key": one owner-signed transfer to the armed key that pays its own fees. */
+  const topUp = useCallback(async (): Promise<Signature | null> => {
+    const submitter = userSession?.submitter;
+    if (!submitter || !key) return null;
+    setBusy("topping-up");
+    try {
+      const outcome = await submitter.submitTx({ kind: "vault-key-top-up", key: key.address, lamports: SESSION_KEY_TOPUP_LAMPORTS });
+      if (outcome.status !== "confirmed") return null;
+      await queryClient.invalidateQueries({ queryKey: keyLamportsKey(key.address) });
+      return outcome.txHash;
+    } finally {
+      setBusy(null);
+    }
+  }, [userSession, key, queryClient]);
 
   const forget = useCallback(async () => {
     if (!owner) return;
