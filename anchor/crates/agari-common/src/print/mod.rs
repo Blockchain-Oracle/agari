@@ -12,6 +12,8 @@ pub mod normalize;
 pub mod pyth;
 #[cfg(feature = "redstone")]
 pub mod redstone;
+/// S6 token lane (prints.md §4.4). The pure checks build without the crate; `verify_with_crate` needs `switchboard`.
+pub mod switchboard;
 
 /// A verified print before normalization (prints.md §4.1–4.4 "Output").
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,7 +22,7 @@ pub struct RawPrint {
     pub expo: i32,
     /// Pyth `publish_time`; RedStone, attested and Switchboard: `T`.
     pub source_ts: i64,
-    /// Pyth 0; RedStone the verified package count; attested 1.
+    /// Pyth 0; RedStone the verified package count; attested 1; Switchboard the distinct oracles.
     pub signers: u8,
 }
 
@@ -37,4 +39,10 @@ pub enum PrintError {
     BadRedStonePackage,
     RedStoneTimestampMismatch,
     InsufficientRedStoneSigners,
+    // S6 Switchboard (prints.md §4.4), onto the existing codes 6214–6218.
+    SwitchboardFeedMismatch,
+    SwitchboardQueueMismatch,
+    DuplicateOracle,
+    TooFewOracles,
+    QuoteSlotStale,
 }

@@ -13,12 +13,17 @@ default = []
 # Print verifiers (S2 prints step) link the oracle crates only where a program enables them.
 pyth = ["dep:pyth-solana-receiver-sdk"]
 redstone = ["dep:redstone"]
+# S6 token lane (prints.md §4.4). switchboard-on-demand pulls libsecp256k1 → rand → getrandom 0.2, which needs the
+# custom backend on SBF (D-002; `print/switchboard.rs` registers an always-failing one).
+switchboard = ["dep:switchboard-on-demand", "dep:getrandom"]
 
 [dependencies]
 anchor-lang = { workspace = true }
 bytemuck = { workspace = true }
 pyth-solana-receiver-sdk = { workspace = true, optional = true }
 redstone = { workspace = true, optional = true }
+switchboard-on-demand = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
 
 [dev-dependencies]
 base64 = "0.22"
@@ -27,3 +32,6 @@ k256 = { version = "0.13.4", features = ["ecdsa"] }
 pythnet-sdk = "=3.0.0"
 serde_json = "1"
 sha3 = "0.10"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

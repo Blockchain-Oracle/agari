@@ -55,6 +55,14 @@ impl Harness {
         Window { series, book, market: w.market, ledger: w.ledger, mvault: w.mvault, start }
     }
 
+    /// The same Window, left **Listed**: the clock sits an hour before `trading_start`, where only PostOnly rests
+    /// (D-088 "trade in advance").
+    pub fn listed_window(&mut self) -> Window {
+        let w = self.trading_window();
+        self.warp_to(w.start - 3_600);
+        w
+    }
+
     /// A funded key with a collateral token account holding `tusdc` base units.
     pub fn funded_user(&mut self, tusdc: u64) -> (Keypair, Pubkey) {
         let user = self.fresh_key();

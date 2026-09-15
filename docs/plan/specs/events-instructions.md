@@ -31,9 +31,11 @@ Companion to [`events-engine.md`](events-engine.md), [`events-accounts.md`](even
 
 ### 1.2 `admin_set_authorities(args: SetAuthoritiesArgs)`
 **Args:** `rollers [Pubkey;4], attestors [Pubkey;4], redstone_signers [[u8;20];5], redstone_signer_count u8, redstone_threshold u8, switchboard_queue Pubkey, switchboard_min_oracles u8, program_authorities [Pubkey;8], result_retention_sec u32`
+
+**Accounts:** `admin S · config w · treasury r · queue r?` (the queue account is required whenever `switchboard_queue` is set, and is checked like prints.md §4.4 step 1).
 **Accounts:** admin S · config w · treasury r
 1. `admin == config.admin` (NotAdmin).
-2. The non-zero entries of each Pubkey array are unique. `1 ≤ redstone_threshold ≤ redstone_signer_count ≤ 5`. Signer entries `[0, count)` are non-zero and unique; the rest are zero. `switchboard_min_oracles ≥ 1` when the queue is non-zero (BadAuthorities).
+2. The non-zero entries of each Pubkey array are unique. `1 ≤ redstone_threshold ≤ redstone_signer_count ≤ 5`. Signer entries `[0, count)` are non-zero and unique; the rest are zero. `1 ≤ switchboard_min_oracles ≤ 8` when the queue is non-zero, and that queue account is passed and checked (BadAuthorities).
 3. `treasury.mint == config.collateral_mint` (WrongMint).
 
 **Effects:** replace everything, `treasury = treasury.key()`. Listed Windows keep their pre-allocated PROGRAM seats. Later prints use the new signer and attestor sets. **Event:** `AuthoritiesSet`.
@@ -103,7 +105,7 @@ The shared checks are in prints.md §4.0. Per-source instructions:
 | `public_record_print_pyth` | `which u8` | `price_update r` (`Account<PriceUpdateV2>`, owner = receiver compiled in) · +E |
 | `public_record_print_redstone` | `which u8, payload Vec<u8>` | `config r` · +E |
 | `public_record_print_attested` | `which u8, price i64, expo i32, bar_start_ts i64, fetched_at_ts i64` | `config r` · `instructions r` (sysvar) · +E |
-| `public_record_print_switchboard` (**S6**) | `which u8` | `config r` · `queue r` · `slothashes r` (sysvar) · `instructions r` (sysvar) · +E |
+| `public_record_print_switchboard` (**S6**) | `which u8` | `recorder S` (a `config.attestors` key until `T + 40`, D-088) · `config r` · `queue r` · `slothashes r` (sysvar) · `instructions r` (sysvar) · `prev_market r?` (required for an Open past index 0) · +E |
 | `public_copy_open_from_prev` | — | `prev_market r` · +E |
 
 No signer account is required (the fee payer is the caller). **Event:** `PrintRecorded`.

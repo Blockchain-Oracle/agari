@@ -163,10 +163,10 @@ Versions are built from the ticker versions in `price-sources.json` with one cha
 
 **Relay (`price-relay/switchboard-pass.ts`, new):** today the relay skips Switchboard slots (`relay-pass.ts:142`). The new pass, per T at T + 10 s:
 1. Collect the token slots due at T (`slots.ts:75-89`).
-2. Fetch **one** quote (≤ 8 feeds, `numSignatures = min_oracles`) from `packages/markets/src/prices/legacy/switchboard-quote.ts` (new; `@switchboard-xyz/on-demand` 3.10.6 on web3.js 1, like Pyth's lane).
-3. Send every close slot as `[quote ix, record]` in parallel with the same quote bytes, inside 20 slots.
-4. On QuoteSlotStale with ≥ 5 s left, retry once with a fresh quote.
-5. Fill open slots with `public_copy_open_from_prev` once the previous close is in (prints.md §4.5).
+2. Fetch **one** quote (≤ 8 feeds) from `packages/markets/src/prices/legacy/switchboard-quote.ts` (new; `@switchboard-xyz/on-demand` 3.10.6 on web3.js 1, like Pyth's lane). Ask for 5 signatures and send at most 4: the devnet gateway signs with at most 4 distinct oracles and sometimes returns one fewer than asked (D-053), and a 4-signature quote over 4 feeds is 1,173 B with a compute-budget instruction, inside the 1,232 B legacy limit. A quote below `switchboard_min_oracles` is refused before it is sent.
+3. Send every close slot as `[quote ix, record]` in parallel with the same quote bytes, inside 20 slots. **Prints are signed by `price-attestor`** (its key pays their fees), because until `T + 40` only a configured attestor may record (prints.md §4.4, D-088); without that key the lane waits for the public window at `T + 40`.
+4. On QuoteSlotStale with ≥ 5 s left, retry once with a fresh quote. Every quote attempt is reported to `halt-watch` (`recordQuoteResult`), and three failures in a row halt the lane.
+5. Fill open slots with `public_copy_open_from_prev` — permissionless, so the relay's own key pays — in the **same pass** as the close, since an Open whose adjacent Close exists can no longer be printed directly (prints.md §4.4 step 3). An Open with no adjacent Close (the first Window, or after downtime) still prints from the quote.
 
 A missed slot is reported, and the settler voids at T + 61.
 

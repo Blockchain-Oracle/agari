@@ -142,3 +142,27 @@ fn reduce_keeps_queue_priority() {
     assert_eq!((t.seat(2).yes_locked, t.seat(2).credit), (800, 100_000));
     t.check().unwrap();
 }
+
+/// D-088: a Listed Window rests PostOnly quotes before its open print and refuses every taker until Trading.
+#[test]
+fn a_listed_window_rests_post_only_and_refuses_takers() {
+    let mut t = TestVenue::new(64, 8, 0);
+    t.now = START - 3_600;
+    let rested = t.place(1, order(Kind::BuyYes, 400, 100, POST_ONLY)).unwrap();
+    assert_eq!(rested.stop_reason, StopReason::PostOnlyRested as u8);
+    for taker in [NORMAL, FOK, IOC] {
+        assert_eq!(
+            t.place(2, order(Kind::BuyNo, 700, 100, taker)).unwrap_err() as u32,
+            EventsError::PreOpenTakerRefused as u32,
+            "order type {taker} may not take before the open print",
+        );
+    }
+    // From the open boundary every type is admitted again, and the pre-open quote is takeable.
+    t.now = START + 10;
+    let filled = t.place(2, order(Kind::BuyNo, 400, 100, IOC)).unwrap();
+    assert_eq!((filled.filled_lots, filled.rested_lots), (100, 0));
+    // A locked Window still refuses everything, PostOnly included.
+    t.now = t.market.lock_at;
+    assert_eq!(t.place(1, order(Kind::BuyYes, 400, 10, POST_ONLY)).unwrap_err() as u32, EventsError::MarketNotTrading as u32);
+    t.check().unwrap();
+}

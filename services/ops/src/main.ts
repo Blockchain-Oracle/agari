@@ -23,6 +23,8 @@ import { startXRelay } from "./actors/x-relay";
 import { startEarnings } from "./calendar/earnings";
 import { createSessionService } from "./calendar/session-service";
 import { startOpsHttp } from "./http/server";
+import type { SpotFeed } from "./prices/spot";
+import { createXStockSpotFeed, joinXStockSpot } from "./prices/xstock-spot";
 import { createHaltBoard, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
 
 const HEARTBEAT_MS = 30_000;
@@ -65,7 +67,16 @@ const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ en
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.
 const relay = actors.has("relay") ? await boot("price-relay", () => startPriceRelay(deps("price-relay"))) : null;
 const spot = relay?.spot ?? null;
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot, sessions, halts, events, env, log: log("http") }));
+// S6 token lane (session-lanes.md §2.4): the Jupiter xStock spot runs only for the maker and HTTP, joined under the xStock
+// symbols; halt-watch keeps the relay's own feed. Keyless lite-api (0.5 RPS) serves the 5 s poll when no key is set.
+let marketSpot: SpotFeed | null = spot;
+if (actors.has("maker") || actors.has("http")) {
+  if (!process.env.JUPITER_API_KEY) log("xstock-spot")("JUPITER_API_KEY not set: polling keyless lite-api.jup.ag; the token maker pulls while Jupiter fails");
+  const xstockSpot = createXStockSpotFeed({ log: log("xstock-spot"), apiKey: process.env.JUPITER_API_KEY || undefined });
+  xstockSpot.start();
+  marketSpot = joinXStockSpot(spot, xstockSpot);
+}
+if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: marketSpot, sessions, halts, events, env, log: log("http") }));
 if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
 if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
 if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));
@@ -73,7 +84,7 @@ if (actors.has("settler")) void boot("settler", () => startSettler(deps("settler
 if (actors.has("indexer")) void boot("indexer", () => startIndexer(deps("indexer")));
 if (actors.has("maker")) {
   if (process.env.MAKER_MODE === "vault") void boot("market-maker", () => startMarketMaker(log("market-maker")));
-  else void boot("seed-maker", () => startSeedMaker(deps("seed-maker", spot)));
+  else void boot("seed-maker", () => startSeedMaker(deps("seed-maker", marketSpot)));
 }
 
 if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"));
