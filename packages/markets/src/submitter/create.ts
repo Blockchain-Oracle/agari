@@ -11,6 +11,7 @@ import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
 import { submitCashOut } from "./cash-out";
 import { submitOrder } from "./order-lane";
+import { submitRest } from "./rest-lane";
 import type { WriteContext } from "./settle-write";
 import { allowAllStopGate } from "./stop-gate";
 import { submitTx } from "./tx-lane";
@@ -70,7 +71,8 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     reconciler: (owner, record) => chainReconcilerWith(context())(owner, record),
     hasSigner: () => true,
     submitTx: (intent, onPhase) => enqueue(() => submitTx(context(), intent, onPhase)),
-    submitOrder: (request, onPhase) => enqueue(() => submitOrder({ ...context(), stopGate, attribution }, request, onPhase)),
+    // A pre-open call (`entry: "rest"`, D-088) takes the rest lane; everything else is the taker's IOC lane.
+    submitOrder: (request, onPhase) => enqueue(() => (request.entry === "rest" ? submitRest : submitOrder)({ ...context(), stopGate, attribution }, request, onPhase)),
     submitCashOut: (request, onPhase) => enqueue(() => submitCashOut({ ...context(), stopGate, attribution }, request, onPhase)),
     checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };

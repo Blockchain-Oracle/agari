@@ -102,7 +102,7 @@ export const rules = [
   // S4 (first-call.md §7): the Solana order lane's three structural guarantees, optional until 4b lands the files.
   {
     id: "order-lane-ioc",
-    description: "the user order lane places IOC only (no resting, no self-match); first-call.md §3.1",
+    description: "the taker's order build defaults to IOC (no resting, no self-match); only the rest lane passes post-only (first-call.md §3.1, D-088)",
     file: "packages/markets/src/submitter/steps/build.ts",
     optional: true,
     mustMatch: /ORDER_TYPE\.ioc/,

@@ -13,6 +13,7 @@ export { useAssetPrice } from "./useAssetPrice";
 export { useBook } from "./useBook";
 export { useBooks } from "./useBooks";
 export { useHoldings } from "./useHoldings";
+export { useRestingOrders } from "./useRestingOrders";
 export {
   bootMarkets,
   useClockFact,

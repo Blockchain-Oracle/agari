@@ -44,7 +44,7 @@ async function notSentOutcome(error: unknown, quoteInput: QuoteInput | null, now
 }
 
 /** Simulation `SeatMismatch` (6115): the seat changed since it was read. Re-read it and rebuild once (first-call.md §3.1). */
-async function buildWithSeatRetry(ctx: OrderLaneContext, input: OrderBuildInput): Promise<BuiltWrite> {
+export async function buildWithSeatRetry(ctx: OrderLaneContext, input: OrderBuildInput): Promise<BuiltWrite> {
   try {
     return await buildOrder(ctx.rpc, input);
   } catch (error) {
