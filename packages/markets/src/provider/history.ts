@@ -90,6 +90,7 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
     const sets = actions.rows.map((action) => toSetAction(action, grids.get(action.market ?? ""))).filter((a): a is LedgerSetAction => a !== null);
     const ledgers = buildLedgers(attributed, sets, venue.decimals);
     const redeemed = new Map(positions.map((p) => [p.market, p.redeemed]));
+    const byCrank = new Map(positions.map((p) => [p.market, p.redeemed_by_crank]));
 
     const rounds: SettledRound[] = [];
     let openCount = 0;
@@ -101,8 +102,10 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
         if (ledger.heldUpRaw + ledger.heldDownRaw > 0n) openCount += 1;
         continue;
       }
-      // A redeemed seat was paid (by the wallet or the settler's crank); an unredeemed one still holds its legs.
-      const live: Holdings = redeemed.get(id) ? { upRaw: 0n, downRaw: 0n } : { upRaw: ledger.heldUpRaw, downRaw: ledger.heldDownRaw };
+      // A redeemed seat was paid (by the wallet or the settler's crank); an unredeemed one still holds its legs. A Window
+      // past the newest PAGE positions has no row here, so whether it was paid is unread, never guessed as "to collect".
+      const seat = redeemed.get(id);
+      const live: Holdings | null = seat === undefined ? null : seat ? { upRaw: 0n, downRaw: 0n } : { upRaw: ledger.heldUpRaw, downRaw: ledger.heldDownRaw };
       const round = settleRound({
         ledger,
         market: {
@@ -119,7 +122,7 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
         feeBps: 0,
         liveHoldings: live,
       });
-      if (round) rounds.push(round);
+      if (round) rounds.push(round.claim === "paid" && byCrank.get(id) === true ? { ...round, paidByCrank: true } : round);
     }
     rounds.sort((a, b) => roundSettledAtMs(b) - roundSettledAtMs(a));
     return {
