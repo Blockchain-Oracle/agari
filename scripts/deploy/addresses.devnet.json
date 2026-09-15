@@ -9,13 +9,29 @@
       "deploySignature": "535nHdsRyvVbmuKVHPsuaBV9HCVEcfkTRbZnk2Gpr35DSnC8SAsFzkDJnm4qW6L6EKptVSrNzuhHkwzQ56hKRpQS",
       "deployedSlot": 498252588,
       "sbpfArch": "v0",
-      "soBytes": 764200,
-      "soSha256": "310e14d7265d3fb32662de0035d0e0b9a7322a3c48860468087b90962bc44309",
-      "sourceCommit": "36f1384",
-      "idlMetadata": "97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH"
+      "soBytes": 813328,
+      "soSha256": "2e4bf8cce4ceffb8387496f37752cb41a18edeb47e3cd911e241579f2efc54fe",
+      "sourceCommit": "9adaf66",
+      "idlMetadata": "97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH",
+      "upgradeSignature": "2qRw9u5ZGbaZhjaeZeHaim3M5kw81TPJkYfUMbDeGku7VzdF67zzqXypVptkJjAKBqutzWJEtHFsSKQ2pjMtJp5k",
+      "upgradedSlot": 498944324,
+      "extendSignature": "63eKut7v4crVrTovjg2FPWrYJiJmCRR1cGsrxxohFPcmThtYCuigGNtrqYLVsK1AeHTB6sR6ErF27U8Uk3gNYwgN"
     },
     "agari_vault": {
-      "programId": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
+      "programId": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9",
+      "programData": "88v6d5jh5WtEoP1Yq8RACohRR97LB6Zg4cmreaHXZB2G",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "42p43jqnerGtbkEgtAx94mk2eWXgrfVjkfop7D6KEpxUsPJye3tN1cqELATccUXZM5iuQ5NH8iFmws13GxoBNj25",
+      "deployedSlot": 498945413,
+      "fromSlot": 498945413,
+      "sbpfArch": "v0",
+      "soBytes": 519296,
+      "soSha256": "b6eab3a1776b283440d701a87fdb095106cb6c454cb6779249087f030cde61af",
+      "sourceCommit": "9adaf66",
+      "seat": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8",
+      "config": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb",
+      "initSignature": "2WRP4Lg3tS2JfCoL2DxVRS2gjDkBxbza3okaDu4143PgtRZuP7XCFoHbeSXNmWQV3YFqJEFUUAbcihi2tcNB554f",
+      "idlMetadata": "54LqFBmc51qe2KsuHGUTwgAbA1qgdqzfgZhr5FXKBhDS"
     }
   },
   "venue": {
@@ -303,6 +319,99 @@
         "books": [
           "BDUcPeoNrmUYVmZ8wPCjQSh16WeQ2b1YSjfdk1SDb4BX",
           "6qFesgnBweHWpHY71GQrfoXQcUdFB4JwguKfdxj5Rd2P"
+        ]
+      },
+      "TSLA-gap": {
+        "address": "Ek9ceHDDEm81ZRAWDqNVfhUYtBVQY87xVnp78WPdjTE1",
+        "ticker": 1,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "DKUd4fqc9qZEATmtYJL6k1vy3AcF71TjTVWwQjeLH5e9"
+        ]
+      },
+      "NVDA-gap": {
+        "address": "2R9FgPGMuK3LQJg7H6L2jLnPbzbPp6VsQfz8ghuBgcqk",
+        "ticker": 2,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "3vZaBYXbTV2eDhxbKtr5HMvJJCRTn96njHWfTX4ifznM"
+        ]
+      },
+      "AAPL-gap": {
+        "address": "U12Grb9SRG9V6cxkLoYCabx5xAMQUYYwBD1kAfJRDPe",
+        "ticker": 3,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "4396KvRdLjNuF3GePkoKtYsAVoYNc3SnH8U8LfGLsWed"
+        ]
+      },
+      "META-gap": {
+        "address": "BsLGpPBC65vP1haHHboRCpxiBB7cCMsZXZwtVoxryPEE",
+        "ticker": 5,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "CGsUz1SMvDyfoYLTLtuiEv7UL7SDEg8SzQEKhUh9b96y"
+        ]
+      },
+      "GOOGL-gap": {
+        "address": "ANik1iJPvwKri7bjP6xyhrzvab8Rh35WpCYJqarj739c",
+        "ticker": 7,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "GU1SHsqqmaDoJ7YoaWPj1ZANqemJRieZvss9UFqtVrYx"
+        ]
+      },
+      "QQQ-gap": {
+        "address": "9bSaEvURoZof7o6g1S4Ac6wbw8nTy1zz1cTHDnp53tXp",
+        "ticker": 8,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "EQ9Np5txB4j87xajcpW4ULJ45WUqgxeJzbwce93QLDq7"
+        ]
+      },
+      "VOO-gap": {
+        "address": "3EDQv3aEhjEgFevHTzMCE2B5D3TDmXHATzDcxf53UhxU",
+        "ticker": 9,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "4msyF6LAKHcHP2zbDdqap569tcPYQR5SaaB2UhjHcC5d"
+        ]
+      },
+      "TSLAx-5m": {
+        "address": "BREtUfHThLXgAxzhEmvccwB8GSLySsy56dZv49UJqXUX",
+        "ticker": 1,
+        "cadenceSec": 300,
+        "basis": 2,
+        "books": [
+          "3muBrYRwVE7JANsbUtstUZEfadKgZ9JBdnZSZNHmbooB",
+          "35RME5Sh66BdkkNnSzzRFufG2joXLQmwFn4ReoKoRGyd"
+        ]
+      },
+      "TSLAx-15m": {
+        "address": "13Zs87TRN3kHSJjDHvf6ZGJUYoehUu2XURdTh8BbGVhA",
+        "ticker": 1,
+        "cadenceSec": 900,
+        "basis": 2,
+        "books": [
+          "grKQBmbibZWgZjWeuBMLR3EX8z2Bvs5ueM27Q7c2wgB",
+          "EtseHArYnJyBzEtmWWMwqqsDbHUHDgggQgXpQHJ8AZKF"
+        ]
+      },
+      "TSLAx-60m": {
+        "address": "J8ktiwu1Le1kgGWToR84qNyTjRf4AR2omdjA3vVVxcP7",
+        "ticker": 1,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "J2uYxRv5kcofjNau9yVhKapVjtQx9wMPzqZain9ARZr6",
+          "HibLPUV5xrj3AmRtBab1DKzQSWrWvfyvK2jSszLZX2qZ"
         ]
       }
     }
