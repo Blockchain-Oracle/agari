@@ -99,6 +99,10 @@ pub mod agari_events {
         instructions::record_print_sources::public_record_print_attested(ctx, which, price, expo, bar_start_ts, fetched_at_ts)
     }
 
+    pub fn public_record_print_switchboard(ctx: Context<PublicRecordPrintSwitchboard>, which: u8) -> Result<()> {
+        instructions::record_print_switchboard::public_record_print_switchboard(ctx, which)
+    }
+
     pub fn public_copy_open_from_prev(ctx: Context<PublicCopyOpenFromPrev>) -> Result<()> {
         instructions::copy_open_from_prev::public_copy_open_from_prev(ctx)
     }

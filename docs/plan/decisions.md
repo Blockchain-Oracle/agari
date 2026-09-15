@@ -912,6 +912,17 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** Sensei says when earnings are unknown instead of guessing; off-hours it points to the open.
 - **Approval:** stage owner.
 
+### D-073 — Switchboard prints: the recorder is gated until T+40 and the queue is verified (amends D-055)
+- **Date / owner:** 2026-09-15 · S6 owner, from the security review of lane 6b's f44c69c
+- **Evidence:** a Surge quote proves "these oracles ran the job around slot S", never "at T": with T+10 ≤ now ≤ T+60 and a 20-slot age bound, any validly signed quote from ≈ T+2 to T+60 was admissible and the first transaction to land chose the price; off-hours xStocks barely move and ties go Up. The crate's `QuoteVerifier` trusted every key slot below 30 (an expired oracle's slot could verify), the queue account was pinned by address only, and `switchboard_min_oracles` was unbounded.
+- **Rule:**
+  - `public_record_print_switchboard` takes a `recorder` signer; until `T + 40` the recorder must be a `config.attestors` key (6209 `UnknownAttestor` otherwise), after which the path is public as a liveness fallback. The relay signs token prints with the price-attestor role from T+10 and falls back to the public window at T+40 with one log line when the key is missing.
+  - A direct Open print for Window N+1 is refused with 6228 `PrintNotAdjacent` while Window N's Close is recorded, so only `public_copy_open_from_prev` fills it; `prev_market` (`["market", series, index − 1]`) is required whenever `index > 0`.
+  - `check_signers` refuses `idx >= min(30, queue.oracle_keys_len)`; the queue account's owner must be the on-demand program for the cluster and its discriminator `[217,194,55,127,184,83,138,1]`, checked in the print handler and in `admin_set_authorities` (new optional `queue` account); `switchboard_min_oracles` is bounded 1..=8 when a queue is set.
+  - No new error codes; the IDL gains `recorder`, optional `prev_market` and optional `queue`.
+- **User-visible:** none; token prints land from the attestor key, and price-attestor becomes a paying writer (≈ 0.04–0.07 SOL/day).
+- **Approval:** stage owner, 2026-09-15.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

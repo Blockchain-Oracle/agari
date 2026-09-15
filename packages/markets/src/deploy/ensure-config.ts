@@ -13,7 +13,7 @@ import {
   TOKEN_PROGRAM_ADDRESS,
 } from "@solana-program/token";
 import { assertNoDrift, diffField, hex, send, type StepContext } from "./send";
-import { COLLATERAL_DECIMALS, RESULT_RETENTION_SEC } from "./venue-spec";
+import { COLLATERAL_DECIMALS, DEFAULT_ADDRESS, RESULT_RETENTION_SEC } from "./venue-spec";
 
 export async function ensureMint(ctx: StepContext, mint: KeyPairSigner, mintAuthority: Address): Promise<Address> {
   if (ctx.record.collateralMint && ctx.record.collateralMint !== mint.address) {
@@ -98,7 +98,9 @@ export async function ensureConfig(ctx: StepContext, want: ConfigWant): Promise<
       clusterTag: want.clusterTag,
       resultRetentionSec: RESULT_RETENTION_SEC,
     });
-    const authorities = await getAdminSetAuthoritiesInstructionAsync({ admin, treasury: want.treasury, ...want.authorities });
+    // A set queue is checked by the handler (owner and discriminator), so the account rides along; S2 pins none.
+    const queue = want.authorities.switchboardQueue === DEFAULT_ADDRESS ? undefined : want.authorities.switchboardQueue;
+    const authorities = await getAdminSetAuthoritiesInstructionAsync({ admin, treasury: want.treasury, queue, ...want.authorities });
     await send(ctx, "config", [init, authorities], `created ${config} (cluster tag ${want.clusterTag}) with authorities`);
   }
   ctx.save({ ...ctx.record, admin: admin.address, config });

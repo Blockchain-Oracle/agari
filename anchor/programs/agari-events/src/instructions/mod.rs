@@ -28,11 +28,14 @@ pub use user_sets::*;
 pub mod copy_open_from_prev;
 pub mod print_rules;
 pub mod record_print_sources;
+// S6 lane 6b: the token lane's Switchboard print.
+pub mod record_print_switchboard;
 pub mod resolve_rules;
 pub mod resolve_window;
 
 pub use copy_open_from_prev::*;
 pub use record_print_sources::*;
+pub use record_print_switchboard::*;
 pub use resolve_window::*;
 
 // S2.12–S2.13: redeem and closure.

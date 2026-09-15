@@ -23,6 +23,11 @@ pub fn print_error(e: PrintError) -> Error {
         PrintError::BadRedStonePackage => EventsError::BadRedStonePackage,
         PrintError::RedStoneTimestampMismatch => EventsError::RedStoneTimestampMismatch,
         PrintError::InsufficientRedStoneSigners => EventsError::InsufficientRedStoneSigners,
+        PrintError::SwitchboardFeedMismatch => EventsError::SwitchboardFeedMismatch,
+        PrintError::SwitchboardQueueMismatch => EventsError::SwitchboardQueueMismatch,
+        PrintError::DuplicateOracle => EventsError::DuplicateOracle,
+        PrintError::TooFewOracles => EventsError::TooFewOracles,
+        PrintError::QuoteSlotStale => EventsError::QuoteSlotStale,
     }
     .into()
 }

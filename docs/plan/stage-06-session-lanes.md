@@ -63,17 +63,18 @@
   - Restart ops; `pnpm drive:roller-plan --at 2026-09-17T20:00:00Z` shows every Gap lane `open`.
   - Record the listed 09-18 Windows.
 - [ ] **Overnight devnet Gap drive (6a, Q-S6-3):** Series 902, TSLA Pyth, Thu 09-17 20:00Z → Fri 09-18 13:30Z. Open print, lock, close print, settle, redeem (acceptance rows).
-- [ ] **6b program:**
+- [x] **6b program:**
   - `agari-common::print::switchboard` (`check_quote_ix`, `quote_print`, pre-normalized to expo −8) with pure tests on a captured devnet quote.
   - `record_print_switchboard.rs` plus dispatch; error map onto 6214–6218.
   - LiteSVM `events_switchboard.rs`: wrong queue, duplicate oracle, too few oracles, stale slot, wrong feed, bad index, before T + 10, after T + 60.
   - `anchor build --arch v0` green; codegen.
-- [ ] **6b off-chain:**
+- [x] **6b off-chain:**
   - `switchboard-quote.ts` (legacy lane) and `ops/prints/switchboard.ts`.
   - Relay `switchboard-pass.ts`: one quote per T; opens via `public_copy_open_from_prev`.
   - Roller `plan-token.ts`; maker `token-fair.ts`; `xstock-spot.ts` (Jupiter chart spot).
   - `jupiter-attest.ts` fallback, proven on Surfpool only.
   - `init-token-series.ts` dry run.
+  - Merged e78cfd0 (5d3470c): `.so` 813,328 B sha256 2e4bf8cc…, LiteSVM 49/49, vitests 1,277. Security review fixes (D-073): the recorder signs and must be an attestor until T+40 (6209), a direct Open with an adjacent recorded Close is refused (6228; `prev_market` required for index > 0), `idx < oracle_keys_len`, queue owner + discriminator + 1..=30 oracles checked in the print handler and `admin_set_authorities` (optional `queue` account), `min_oracles` 1..=8. D-088 pre-open rule: PostOnly admitted on Listed, 6121 for takers; `events_preopen.rs`. Relay prints sign with price-attestor from T+10 (public fallback at T+40 when the key is missing); xstock-spot reports "keyless" without `JUPITER_API_KEY`. The token-plan test fixtures gained 6a's `maxLeadSec`/`prelist` fields at merge. price-attestor now pays ≈ 0.04–0.07 SOL/day (in the funding ask).
 - [ ] **Stage owner, program upgrade and token Series (D-055, D-056):**
   - Surfpool fork: new `.so` at `cDcHZ…`, 6b proofs, `pnpm drive:events` regression.
   - Devnet `solana program deploy --program-id … --buffer …` (auto-extend); sha256 compare.

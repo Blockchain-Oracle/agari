@@ -24,7 +24,7 @@ custom-panic = []
 anchor-lang = { workspace = true, features = ["event-cpi"] }
 anchor-spl = { workspace = true }
 bytemuck = { workspace = true }
-agari-common = { path = "../../crates/agari-common", features = ["pyth", "redstone"] }
+agari-common = { path = "../../crates/agari-common", features = ["pyth", "redstone", "switchboard"] }
 # Default feature = receiver rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ (D-021: both devnet receivers verify the trial
 # update Full on a Surfpool devnet fork; the SDK and the relay default to this one).
 pyth-solana-receiver-sdk = { workspace = true }

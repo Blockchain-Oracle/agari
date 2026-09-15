@@ -57,12 +57,17 @@ pub fn check_mode(mode: u8, kind: u8) -> Result<(), EventsError> {
 
 /// Steps 3–7, in order.
 pub fn check_order(market: &Market, now: i64, a: &PlaceOrderArgs, rules: SeriesRules) -> Result<ValidOrder, EventsError> {
-    if market.status(now) != MarketStatus::Trading {
-        return Err(EventsError::MarketNotTrading);
-    }
     let bad = EventsError::InvalidOrderArgs;
     let kind = Kind::try_from(a.kind).map_err(|_| bad)?;
     let order_type = OrderType::try_from(a.order_type).map_err(|_| bad)?;
+    // D-088 "trade in advance": a Listed Window rests PostOnly quotes before its open print, so a book exists at T.
+    // Nothing may take there: without an open print no fill could be priced against the Window's own strike.
+    match market.status(now) {
+        MarketStatus::Trading => {}
+        MarketStatus::Listed if order_type == OrderType::PostOnly => {}
+        MarketStatus::Listed => return Err(EventsError::PreOpenTakerRefused),
+        _ => return Err(EventsError::MarketNotTrading),
+    }
     let self_match = SelfMatch::try_from(a.self_match).map_err(|_| bad)?;
     if a.max_fills == 0 || a.max_fills > MAX_FILLS_CAP.min(rules.fills_cap) || a.max_evictions > MAX_EVICTIONS_CAP.min(rules.evictions_cap) {
         return Err(bad);

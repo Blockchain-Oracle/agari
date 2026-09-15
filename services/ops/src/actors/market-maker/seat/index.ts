@@ -6,7 +6,7 @@
  */
 import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type SeriesView } from "@agari/markets/ops";
 import { readVenueConfig, type VenueConfig } from "@agari/markets/ops/maker";
-import type { TickerSymbol } from "@agari/core/market";
+import { haltOf, TICKERS, type HaltAsset, type TickerSymbol } from "@agari/core/market";
 import { runActor, type PassResult, type VenueDeps } from "../../../runtime";
 import { roleClient } from "../../settler/role-client";
 import { seriesLabel, marketLabel } from "../../settler/views";
@@ -51,12 +51,15 @@ export async function startSeedMaker(deps: VenueDeps): Promise<{ stop: () => voi
       const m = views[i];
       if (!m || m.data.state !== 0) continue;
       const symbol = ref.s.symbol as TickerSymbol;
+      const basis = seriesBasis(ref.s)!;
+      // Token Windows halt by their xStock (session-lanes.md §3.1); Regular and Gap Windows by the ticker.
+      const haltAsset: HaltAsset = basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? symbol) : symbol;
       const spot = deps.spot?.latest(symbol, env.spotMaxAgeSec) ?? null;
       const label = marketLabel(ref.s, m);
-      const lane = laneQuote(seriesBasis(ref.s)!, { series: ref.s, market: m, symbol, nowSec, status, spot: deps.spot, halts, env });
+      const lane = laneQuote(basis, { series: ref.s, market: m, symbol, nowSec, status, spot: deps.spot, halts, env });
       try {
         const result = await tendWindow(
-          { client, config, env, dryRun, nowSec, inSession: inSession && !halts[symbol], closesAtSec: status?.closesAtSec ?? null, spotE8: spot?.priceE8 ?? null, log: deps.log, lane },
+          { client, config, env, dryRun, nowSec, inSession: inSession && !haltOf(halts, haltAsset), closesAtSec: status?.closesAtSec ?? null, spotE8: spot?.priceE8 ?? null, log: deps.log, lane },
           ref.s, symbol, m, placed.get(m.address) ?? null, label,
         );
         if (result.placed) placed.set(m.address, result.placed);

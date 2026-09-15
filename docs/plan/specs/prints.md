@@ -214,14 +214,19 @@ The plan's arg list omitted `source_ts`; it is derived as T, not passed. Atteste
 ### 4.4 Switchboard (`public_record_print_switchboard(which)`) — **deferred to S6**, rules frozen now
 
 Crate: `switchboard-on-demand 0.13.0`, `default-features = false, features = ["solana-v3"]`, plus the `getrandom` custom stub (D-002).
-1. `queue.key() == config.switchboard_queue` (SwitchboardQueueMismatch). `QuoteVerifier` checks only the size.
-2. `cur = load_current_index_checked(instructions)`. The quote's ed25519 instruction is at `cur − 1`, program id `Ed25519SigVerify…` (BadAttestation).
-3. Every offsets record's three instruction-index fields are `u16::MAX` or `cur − 1` (BadAttestation). This is the JS SDK 3.10.6 `0xFFFF` encoding workaround; `C:13` §2.5.
-4. `QuoteVerifier::new().queue(queue).slothash_sysvar(slothashes).ix_sysvar(instructions).clock_slot(clock.slot).max_age(policy.max_slot_age).verify(data)`. SlotHashes membership blocks cross-cluster replay, since devnet and mainnet share oracle keys. Failure → QuoteSlotStale when the slot is too old, else BadAttestation.
-5. **Distinct** oracle indices (the verifier doesn't dedupe): a repeated index → DuplicateOracle; `distinct ≥ config.switchboard_min_oracles` (TooFewOracles).
-6. `quote.feed(&policy.feed_id)` exists (SwitchboardFeedMismatch).
-7. `clock.slot − quote.slot ≤ max_slot_age` (QuoteSlotStale).
-8. Output: `(value i128 scaled 10¹⁸, expo −18, source_ts = T, signers = distinct)`. Admission is clock-bounded by §4.0: `T + min_delay_sec ≤ now ≤ T + admission_sec`. The label is "observed ≤ 60 s after T".
+
+**Accounts:** `recorder S · series · market w · config · queue · slothashes · instructions · prev_market?` + E.
+
+1. `queue.key() == config.switchboard_queue`, which is never the zero placeholder; `queue.owner` is the cluster's on-demand program (`config.cluster_tag`: mainnet `SBondMDrc…`, devnet and localnet `Aio4gaXj…`); its data is 6,280 B, carries the `QueueAccountData` discriminator `[217,194,55,127,184,83,138,1]` and `1 ≤ oracle_keys_len ≤ 30` (all SwitchboardQueueMismatch). `QuoteVerifier` checks only the size.
+2. **Who may record (D-088).** A quote proves "these oracles ran the job around slot S", never "at T", so every validly signed quote from ≈ T + 2 to T + 60 is admissible and whoever picks the quote picks the price. Until `T + 40` the `recorder` must be a `config.attestors` key (UnknownAttestor); from `T + 40` the path is public, so a stalled relay can't strand a Window. The residual choice inside `[T + 40, T + 60]` is accepted: by then the relay has normally recorded.
+3. **An Open that can be copied is not printed (D-088).** For `which == Open` and `market.index > 0`, `prev_market` is required and must be `["market", series, index − 1]` (PrintNotAdjacent); when that Window is adjacent (`prev.expiry == market.trading_start`, same Series) and its Close is recorded, the slot belongs to `public_copy_open_from_prev` (PrintNotAdjacent), so Window N's close and Window N + 1's open are always the same print. A first Window, a non-adjacent previous one, or one without its Close still prints directly.
+4. `cur = load_current_index_checked(instructions)`. The quote's ed25519 instruction is at `cur − 1`, program id `Ed25519SigVerify…` (BadAttestation).
+5. Every offsets record's three instruction-index fields are `u16::MAX` or `cur − 1` (BadAttestation). This is the JS SDK 3.10.6 `0xFFFF` encoding workaround; `C:13` §2.5.
+6. `clock.slot − quote.slot ≤ max_slot_age` (QuoteSlotStale), then the quote's slot is still in SlotHashes with the hash the oracles signed (missing → QuoteSlotStale, a different hash → BadAttestation), and every signature's key is the queue's ed25519 signing key at its oracle index, with `idx < oracle_keys_len ≤ 30` (BadAttestation). These run **before** `QuoteVerifier`, which `assert!`s (panics) on the same mismatches, reads SlotHashes past its entries and maps `oracle_idx % 30`, so index 30 would alias oracle 0.
+7. `QuoteVerifier::new().queue(queue).slothash_sysvar(slothashes).ix_sysvar(instructions).clock_slot(clock.slot).max_age(policy.max_slot_age).verify(data)`. SlotHashes membership blocks cross-cluster replay, since devnet and mainnet share oracle keys. Any remaining failure → BadAttestation.
+8. **Distinct** oracles (the verifier doesn't dedupe): a repeated index **or signer key** → DuplicateOracle; `distinct ≥ config.switchboard_min_oracles` (TooFewOracles), which `admin_set_authorities` bounds to `1..=8`.
+9. Exactly one entry for `policy.feed_id` (SwitchboardFeedMismatch; a duplicated feed hash is ambiguous).
+10. Output: `(value i128 scaled 10¹⁸, expo −18, source_ts = T, signers = distinct)`. Admission is clock-bounded by §4.0: `T + min_delay_sec ≤ now ≤ T + admission_sec`. The label is "observed ≤ 60 s after T".
 
 ### 4.5 `public_copy_open_from_prev`
 
