@@ -27,8 +27,50 @@ pub const QUEUE_ACCOUNT_LEN: usize = 6_280;
 /// 40 reserved bytes and 30 secp256k1 keys precede it (checked against the crate in the tests).
 pub const QUEUE_SIGNING_KEYS_OFFSET: usize = 8 + 32 + 32 * 32 + 78 * 32 + 40 + 30 * 20;
 pub const QUEUE_SIGNING_KEY_SLOTS: usize = 30;
+/// `8 + offset_of!(QueueAccountData, oracle_keys_len)`: the live oracle count, so a swap-removed oracle's stale key
+/// slot can't verify (checked against the crate in the tests).
+pub const QUEUE_ORACLE_KEYS_LEN_OFFSET: usize = QUEUE_SIGNING_KEYS_OFFSET + 30 * 32 + 8 * 5 + 4;
+/// Anchor's account discriminator for `QueueAccountData`.
+pub const QUEUE_DISCRIMINATOR: [u8; 8] = [217, 194, 55, 127, 184, 83, 138, 1];
 /// The value scale of a feed result.
 pub const SWITCHBOARD_EXPO: i32 = -18;
+
+/// Switchboard On-Demand, the queue account's owner (C:13 §2.1).
+pub const SWITCHBOARD_PROGRAM_DEVNET: Pubkey = anchor_lang::pubkey!("Aio4gaXjXzJNVLtzwtNVmSqGKpANtXhybbkhtAC94ji2");
+pub const SWITCHBOARD_PROGRAM_MAINNET: Pubkey = anchor_lang::pubkey!("SBondMDrcV3K4kxZR1HNVT7osZxAHVHgYXL5Ze1oMUv");
+
+/**
+Until `T + SWITCHBOARD_PUBLIC_AFTER_SEC` only a configured attestor may record a Switchboard print (D-088 security
+review). A quote proves "these oracles ran the job around slot S", never "at T", so inside the admission window every
+validly signed quote from ≈ T + 2 to T + 60 is admissible and whoever picks the quote picks the price. The relay posts
+the first quote after `T + min_delay_sec`; the public path stays open afterwards so a stalled relay can't strand a
+Window.
+*/
+pub const SWITCHBOARD_PUBLIC_AFTER_SEC: i64 = 40;
+
+/// The queue owner this cluster expects (`config.cluster_tag`; a localnet fork carries devnet's accounts).
+pub fn queue_owner_for(cluster_tag: u8) -> Pubkey {
+    if cluster_tag == 101 { SWITCHBOARD_PROGRAM_MAINNET } else { SWITCHBOARD_PROGRAM_DEVNET }
+}
+
+/// Whether this recorder may take the slot now: a configured attestor always, anyone else from `T + 40`.
+pub fn recorder_admitted(is_attestor: bool, now: i64, t: i64) -> bool {
+    is_attestor || t.checked_add(SWITCHBOARD_PUBLIC_AFTER_SEC).is_some_and(|public_at| now >= public_at)
+}
+
+/// The queue account's own bytes: Anchor discriminator, exact size, and a live oracle count that fits the key slots.
+/// Returns that count (`SwitchboardQueueMismatch`). The caller pins the address and the owner.
+pub fn check_queue_account(queue: &[u8]) -> Result<u32, PrintError> {
+    let bad = PrintError::SwitchboardQueueMismatch;
+    if queue.len() != QUEUE_ACCOUNT_LEN || queue[..8] != QUEUE_DISCRIMINATOR {
+        return Err(bad);
+    }
+    let count = u32::from_le_bytes(queue[QUEUE_ORACLE_KEYS_LEN_OFFSET..QUEUE_ORACLE_KEYS_LEN_OFFSET + 4].try_into().expect("4 bytes"));
+    if count == 0 || count as usize > QUEUE_SIGNING_KEY_SLOTS {
+        return Err(bad);
+    }
+    Ok(count)
+}
 
 const OFFSETS_LEN: usize = 14;
 const HEADER_LEN: usize = 32;
@@ -158,15 +200,17 @@ pub fn check_slothash(quote: &QuoteView, slothashes: &[u8]) -> Result<(), PrintE
     Ok(())
 }
 
-/// Every signature's key is the queue's ed25519 signing key at its oracle index, and the index is a real slot (`< 30`,
-/// so the crate's `% 30` never aliases one oracle to two indices). `queue` is the pinned queue account's data.
-pub fn check_signers(quote: &QuoteView, queue: &[u8]) -> Result<(), PrintError> {
+/// Every signature's key is the queue's ed25519 signing key at its oracle index, and the index is a live slot
+/// (`< oracle_count ≤ 30`, so the crate's `% 30` never aliases one oracle to two indices and a swap-removed oracle's
+/// stale key slot can't verify). `queue` is the pinned queue account's data, `oracle_count` its `oracle_keys_len`.
+pub fn check_signers(quote: &QuoteView, queue: &[u8], oracle_count: u32) -> Result<(), PrintError> {
     if queue.len() != QUEUE_ACCOUNT_LEN {
         return Err(PrintError::BadAttestation);
     }
+    let live = QUEUE_SIGNING_KEY_SLOTS.min(oracle_count as usize);
     for (i, idx) in quote.oracle_idxs().iter().enumerate() {
         let idx = usize::from(*idx);
-        if idx >= QUEUE_SIGNING_KEY_SLOTS {
+        if idx >= live {
             return Err(PrintError::BadAttestation);
         }
         let expected = bytes32(queue, QUEUE_SIGNING_KEYS_OFFSET + idx * 32);

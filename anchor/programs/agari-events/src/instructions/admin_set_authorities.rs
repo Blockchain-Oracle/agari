@@ -3,6 +3,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
 
+use agari_common::print::switchboard::{check_queue_account, queue_owner_for};
 use agari_common::seeds::CONFIG_SEED;
 
 use super::args::SetAuthoritiesArgs;
@@ -17,6 +18,10 @@ pub struct AdminSetAuthorities<'info> {
     pub config: AccountLoader<'info, GlobalConfig>,
     /// CHECK: a token account of the collateral mint, checked in the handler.
     pub treasury: UncheckedAccount<'info>,
+    /// The Switchboard queue being pinned; required (and checked) when `args.switchboard_queue` is set, omitted when
+    /// it is the zero placeholder.
+    /// CHECK: key-, owner- and byte-checked in the handler (prints.md §4.4).
+    pub queue: Option<UncheckedAccount<'info>>,
 }
 
 #[derive(Accounts)]
@@ -43,7 +48,22 @@ pub fn authorities_valid(args: &SetAuthoritiesArgs) -> bool {
         && args.redstone_threshold >= 1
         && args.redstone_threshold <= args.redstone_signer_count
         && signers_ok
-        && (args.switchboard_queue == Pubkey::default() || args.switchboard_min_oracles >= 1)
+        && (args.switchboard_queue == Pubkey::default() || (1..=MAX_QUOTE_SIGNATURES_U8).contains(&args.switchboard_min_oracles))
+}
+
+/// A quote carries at most 8 ed25519 signatures, so a higher minimum could never be met (prints.md §4.4).
+const MAX_QUOTE_SIGNATURES_U8: u8 = 8;
+
+/// The pinned queue must be the account it names: the cluster's on-demand program owns it and its bytes are a queue.
+fn check_queue(ctx: &Context<AdminSetAuthorities>, args: &SetAuthoritiesArgs, cluster_tag: u8) -> Result<()> {
+    if args.switchboard_queue == Pubkey::default() {
+        return Ok(());
+    }
+    let queue = ctx.accounts.queue.as_ref().ok_or(error!(EventsError::BadAuthorities))?;
+    require_keys_eq!(queue.key(), args.switchboard_queue, EventsError::BadAuthorities);
+    require_keys_eq!(*queue.owner, queue_owner_for(cluster_tag), EventsError::BadAuthorities);
+    check_queue_account(&queue.try_borrow_data()?).map_err(|_| error!(EventsError::BadAuthorities))?;
+    Ok(())
 }
 
 pub fn admin_set_authorities(ctx: Context<AdminSetAuthorities>, args: SetAuthoritiesArgs) -> Result<()> {
@@ -51,6 +71,7 @@ pub fn admin_set_authorities(ctx: Context<AdminSetAuthorities>, args: SetAuthori
     let mut config = a.config.load_mut()?;
     require_keys_eq!(a.admin.key(), config.admin, EventsError::NotAdmin);
     require!(authorities_valid(&args), EventsError::BadAuthorities);
+    check_queue(&ctx, &args, config.cluster_tag)?;
     require_keys_eq!(*a.treasury.owner, config.token_program, EventsError::WrongMint);
     let treasury = TokenAccount::try_deserialize(&mut &a.treasury.try_borrow_data()?[..]).map_err(|_| error!(EventsError::WrongMint))?;
     require_keys_eq!(treasury.mint, config.collateral_mint, EventsError::WrongMint);
@@ -118,5 +139,9 @@ mod tests {
         let mut a = args();
         a.switchboard_queue = Pubkey::new_from_array([7; 32]);
         assert!(!authorities_valid(&a), "a queue needs min oracles");
+        a.switchboard_min_oracles = 3;
+        assert!(authorities_valid(&a));
+        a.switchboard_min_oracles = 9;
+        assert!(!authorities_valid(&a), "a quote carries at most 8 signatures");
     }
 }

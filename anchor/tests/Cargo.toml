@@ -53,6 +53,11 @@ path = "events_halt_void.rs"
 name = "events_switchboard"
 path = "events_switchboard.rs"
 
+# D-088: a Listed Window rests PostOnly quotes before its open print.
+[[test]]
+name = "events_preopen"
+path = "events_preopen.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }

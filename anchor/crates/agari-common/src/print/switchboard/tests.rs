@@ -84,7 +84,10 @@ fn the_real_quote_parses_and_prints_tslax() {
     assert_eq!((q.signature_count(), q.oracle_idxs(), q.slot()), (4, &[0u8, 1, 4, 6][..], SLOT));
     assert_eq!(q.feeds().count(), 4);
     check_quote_ix(&ED25519_PROGRAM_ID, &data, 7).unwrap();
-    check_signers(&q, &queue_bytes()).unwrap();
+    let queue = queue_bytes();
+    let oracles = check_queue_account(&queue).unwrap();
+    assert_eq!(oracles, 9, "the devnet queue had 9 live oracles when the fixture was dumped");
+    check_signers(&q, &queue, oracles).unwrap();
     check_slothash(&q, &slothashes(SLOT + 5, 30, q.signed_slothash())).unwrap();
 
     let print = quote_print(&q, &TSLAX, 20, 3, SLOT + 20, T).unwrap();
@@ -94,10 +97,38 @@ fn the_real_quote_parses_and_prints_tslax() {
 }
 
 #[test]
-fn signing_keys_offset_matches_the_crate() {
+fn queue_offsets_match_the_crate() {
     #[cfg(feature = "switchboard")]
-    assert_eq!(QUEUE_SIGNING_KEYS_OFFSET, 8 + core::mem::offset_of!(switchboard_on_demand::QueueAccountData, ed25519_oracle_signing_keys));
-    assert_eq!(QUEUE_SIGNING_KEYS_OFFSET, 4_200);
+    {
+        assert_eq!(QUEUE_SIGNING_KEYS_OFFSET, 8 + core::mem::offset_of!(switchboard_on_demand::QueueAccountData, ed25519_oracle_signing_keys));
+        assert_eq!(QUEUE_ORACLE_KEYS_LEN_OFFSET, 8 + core::mem::offset_of!(switchboard_on_demand::QueueAccountData, oracle_keys_len));
+    }
+    assert_eq!((QUEUE_SIGNING_KEYS_OFFSET, QUEUE_ORACLE_KEYS_LEN_OFFSET), (4_200, 5_204));
+}
+
+#[test]
+fn the_queue_account_must_be_a_queue() {
+    let mut queue = queue_bytes();
+    assert_eq!(check_queue_account(&queue), Ok(9));
+    assert_eq!(check_queue_account(&queue[..6_279]), Err(PrintError::SwitchboardQueueMismatch), "wrong size");
+    let mut wrong = queue.clone();
+    wrong[7] ^= 1;
+    assert_eq!(check_queue_account(&wrong), Err(PrintError::SwitchboardQueueMismatch), "another account type");
+    queue[QUEUE_ORACLE_KEYS_LEN_OFFSET..QUEUE_ORACLE_KEYS_LEN_OFFSET + 4].copy_from_slice(&31u32.to_le_bytes());
+    assert_eq!(check_queue_account(&queue), Err(PrintError::SwitchboardQueueMismatch), "more oracles than key slots");
+    queue[QUEUE_ORACLE_KEYS_LEN_OFFSET..QUEUE_ORACLE_KEYS_LEN_OFFSET + 4].copy_from_slice(&0u32.to_le_bytes());
+    assert_eq!(check_queue_account(&queue), Err(PrintError::SwitchboardQueueMismatch), "an empty queue signs nothing");
+}
+
+#[test]
+fn only_an_attestor_records_before_the_public_window() {
+    assert_eq!(SWITCHBOARD_PUBLIC_AFTER_SEC, 40);
+    assert!(recorder_admitted(true, T + 10, T), "the attestor records from T + min_delay_sec");
+    assert!(!recorder_admitted(false, T + 10, T), "a stranger cannot choose the quote");
+    assert!(!recorder_admitted(false, T + 39, T));
+    assert!(recorder_admitted(false, T + 40, T), "the public fallback keeps a stalled relay from stranding a Window");
+    assert!(recorder_admitted(true, i64::MAX, i64::MAX), "no overflow at the edge");
+    assert!(!recorder_admitted(false, i64::MAX, i64::MAX));
 }
 
 #[test]
@@ -122,14 +153,17 @@ fn instruction_shape_and_index_fields() {
 fn signers_must_be_the_queue_keys_at_real_indices() {
     let (data, mut queue) = (quote_bytes(), queue_bytes());
     let q = QuoteView::parse(&data).unwrap();
+    let oracles = check_queue_account(&queue).unwrap();
     let swapped = rebuild(&data, &[0, 1, 2, 3], &[1, 0, 4, 6], u16::MAX, |_| {});
-    assert_eq!(check_signers(&QuoteView::parse(&swapped).unwrap(), &queue), Err(PrintError::BadAttestation), "keys at the wrong indices");
+    assert_eq!(check_signers(&QuoteView::parse(&swapped).unwrap(), &queue, oracles), Err(PrintError::BadAttestation), "keys at the wrong indices");
     // Index 30 is the crate's `% 30` alias of oracle 0.
     let alias = rebuild(&data, &[0, 0], &[0, 30], u16::MAX, |_| {});
-    assert_eq!(check_signers(&QuoteView::parse(&alias).unwrap(), &queue), Err(PrintError::BadAttestation));
-    assert_eq!(check_signers(&q, &queue[..6_279]), Err(PrintError::BadAttestation), "not a queue account");
+    assert_eq!(check_signers(&QuoteView::parse(&alias).unwrap(), &queue, oracles), Err(PrintError::BadAttestation));
+    assert_eq!(check_signers(&q, &queue[..6_279], oracles), Err(PrintError::BadAttestation), "not a queue account");
+    // Oracle 6 signed this quote, so a queue that has since swapped down to 4 live oracles must refuse it.
+    assert_eq!(check_signers(&q, &queue, 4), Err(PrintError::BadAttestation), "a key slot past oracle_keys_len is stale");
     queue[QUEUE_SIGNING_KEYS_OFFSET + 4 * 32] ^= 1;
-    assert_eq!(check_signers(&q, &queue), Err(PrintError::BadAttestation), "oracle 4 rotated its key");
+    assert_eq!(check_signers(&q, &queue, oracles), Err(PrintError::BadAttestation), "oracle 4 rotated its key");
 }
 
 #[test]

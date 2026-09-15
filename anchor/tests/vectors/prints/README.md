@@ -12,8 +12,8 @@ Real, archived oracle data that the pure verifiers in `anchor/crates/agari-commo
 | `pyth-{qqq,voo}-1789156800.account.b64` | QQQ and VOO `PriceUpdateV2` accounts from the same Fri 09-11 16:00:00 ET update, posted on a Surfpool devnet fork by `scripts/fixtures/pyth-accounts.ts` (S6a) | `anchor/tests/events_gap.rs` |
 | `pyth-{tsla,qqq,voo}-1789392600.account.b64` | The Mon 2026-09-14 13:30:00Z (09:30:00 ET) trial update, `data/archive/pyth/2026-09-14.jsonl`, posted the same way: TSLA 359.81147, QQQ 703.325, VOO 697.68105, all `publish_time == T`, `prev == T − 1` | `anchor/tests/events_gap.rs` |
 | `redstone-tsla-1789392600.{json,hex}` | The 5 TSLA packages at Mon 09-14 09:30:00 ET (the Gap's closing boundary; median 359.62395785), built by `scripts/fixtures/redstone-tsla.ts` | `anchor/tests/events_gap.rs` (TSLA v1 check close) |
-| `switchboard-498638533.hex` | A real devnet Surge quote (S6 spike (a), 2026-09-15 ~06:39Z): the 687 B ed25519 instruction data `fetchSurgeQuote` returned for TSLAX/NVDAX/SPYX/QQQX with 4 oracles (0, 1, 4, 6) at slot 498,638,533; TSLAx 358.99 | `print/switchboard/tests.rs`, `anchor/tests/events_switchboard.rs` (LiteSVM, real precompile) |
-| `switchboard-queue-EYiAm-498638714.b64` | The devnet queue account `EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7` (6,280 B, owner `Aio4gaXj…`) at slot 498,638,714, whose ed25519 signing keys the quote verifies against | same |
+| `switchboard-498638533.hex` | A real devnet Surge quote (S6 spike (a), 2026-09-15 **06:38Z**): the 687 B ed25519 instruction data `fetchSurgeQuote` returned for TSLAX/NVDAX/SPYX/QQQX with 4 oracles (0, 1, 4, 6) at slot 498,638,533; TSLAx 358.99 | `print/switchboard/tests.rs`, `anchor/tests/events_switchboard.rs` (LiteSVM, real precompile) |
+| `switchboard-queue-EYiAm-498638714.b64` | The devnet queue account `EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7` (6,280 B, owner `Aio4gaXj…`), dumped a minute after the quote at slot 498,638,714: `oracle_keys_len` 9, ed25519 key slots 0–8 set, `last_heartbeat` 2026-09-15T06:38:24Z, so it is the set the quote's signers belong to | same |
 
 ## Regenerating the RedStone fixture
 

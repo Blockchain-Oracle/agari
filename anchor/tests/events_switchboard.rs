@@ -2,12 +2,14 @@
 //! Surge quote (TSLAX/NVDAX/SPYX/QQQX, oracles 0/1/4/6 at slot 498,638,533) is verified by the real ed25519
 //! precompile against the devnet queue account as dumped by spike (a); SlotHashes and the clock are set around the
 //! quote's slot. Every refusal re-encodes those real signatures, so the precompile still passes and the program decides.
+//! The D-088 security review adds the recorder window (attestor until `T + 40`, public after) and the rule that an
+//! Open whose previous Close exists belongs to `public_copy_open_from_prev`.
 
 use agari_common::print::attested::ED25519_PROGRAM_ID;
 use agari_common::seeds::event_authority_address;
 use agari_events::instructions::{PolicyVersionArgs, PrintPolicyArgs};
 use agari_events_tests::fixtures::{regular_window, series_args, TRIAL_FROM};
-use agari_events_tests::harness::key;
+use agari_events_tests::harness::{key, SOL};
 use agari_events_tests::prints::{print_authorities, World};
 use anchor_lang::prelude::Pubkey;
 use anchor_lang::solana_program::instruction::Instruction;
@@ -26,6 +28,8 @@ const SWITCHBOARD_QUEUE_MISMATCH: u32 = 6215;
 const DUPLICATE_ORACLE: u32 = 6216;
 const TOO_FEW_ORACLES: u32 = 6217;
 const QUOTE_SLOT_STALE: u32 = 6218;
+const UNKNOWN_ATTESTOR: u32 = 6209;
+const PRINT_NOT_ADJACENT: u32 = 6228;
 
 /// Tue 2026-09-15 06:40:00Z, a 5-minute boundary.
 const T: i64 = 1_789_452_000;
@@ -75,6 +79,15 @@ fn rebuild(data: &[u8], picks: &[usize], idxs: &[u8], index: u16) -> Vec<u8> {
     out
 }
 
+fn queue_bytes() -> Vec<u8> {
+    base64::engine::general_purpose::STANDARD.decode(vector("switchboard-queue-EYiAm-498638714.b64").trim()).unwrap()
+}
+
+fn put_queue(w: &mut World, address: Pubkey, owner: Pubkey, data: Vec<u8>) {
+    let lamports = w.h.svm.minimum_balance_for_rent_exemption(data.len());
+    w.h.svm.set_account(address, Account { lamports, data, owner, executable: false, rent_epoch: 0 }).unwrap();
+}
+
 fn quote_ix(data: Vec<u8>) -> Instruction {
     Instruction { program_id: ED25519_PROGRAM_ID, accounts: vec![], data }
 }
@@ -101,14 +114,14 @@ impl Sb {
     fn new(feed: &str, min_oracles: u8) -> Self {
         let feed_id: [u8; 32] = unhex(feed).try_into().unwrap();
         let mut w = World::new(series_args(1, 300, 2), switchboard_policy(feed_id), 1);
+        put_queue(&mut w, QUEUE, QUEUE_OWNER, queue_bytes());
         let mut authorities = print_authorities(&w.keys);
         (authorities.switchboard_queue, authorities.switchboard_min_oracles) = (QUEUE, min_oracles);
         let admin = key(1);
-        let ix = w.h.set_authorities_ix(&admin.pubkey(), authorities);
+        // The handler checks the queue account whenever the pin is set (D-088 low finding).
+        let ix = w.h.set_authorities_queue_ix(&admin.pubkey(), authorities, Some(QUEUE));
         w.h.ok(&[ix], &[&admin]);
-        let queue = base64::engine::general_purpose::STANDARD.decode(vector("switchboard-queue-EYiAm-498638714.b64").trim()).unwrap();
-        let lamports = w.h.svm.minimum_balance_for_rent_exemption(queue.len());
-        w.h.svm.set_account(QUEUE, Account { lamports, data: queue, owner: QUEUE_OWNER, executable: false, rent_epoch: 0 }).unwrap();
+        w.h.svm.airdrop(&w.keys.attestor.pubkey(), 10 * SOL).expect("airdrop the attestor");
         let market = w.open(regular_window(0, T, 300, 0));
         Self { w, market, quote: unhex(&vector("switchboard-498638533.hex")) }
     }
@@ -130,11 +143,18 @@ impl Sb {
     }
 
     fn record_ix(&self, which: u8, queue: Pubkey) -> Instruction {
+        self.record_ix_as(which, queue, self.w.keys.attestor.pubkey(), None)
+    }
+
+    /// The print instruction as `recorder`, optionally naming the previous Window (an Open past index 0 needs it).
+    fn record_ix_as(&self, which: u8, queue: Pubkey, recorder: Pubkey, prev_market: Option<Pubkey>) -> Instruction {
         let accounts = agari_events::accounts::PublicRecordPrintSwitchboard {
+            recorder,
             series: self.w.series,
             market: self.market,
             config: agari_events_tests::ix::config(),
             queue,
+            prev_market,
             slothashes: SLOT_HASHES,
             instructions: INSTRUCTIONS,
             event_authority: event_authority_address(&agari_events::ID).0,
@@ -143,9 +163,11 @@ impl Sb {
         Instruction { program_id: agari_events::ID, accounts: accounts.to_account_metas(None), data: agari_events::instruction::PublicRecordPrintSwitchboard { which }.data() }
     }
 
+    /// A print by the attestor, the way the relay sends it.
     fn print(&mut self, quote: Vec<u8>) -> Result<agari_events_tests::Sent, u32> {
         let ixs = [quote_ix(quote), self.record_ix(0, QUEUE)];
-        self.w.send(&ixs)
+        let attestor = self.w.keys.attestor.insecure_clone();
+        self.w.h.send(&ixs, &[&attestor])
     }
 }
 
@@ -164,7 +186,8 @@ fn a_real_devnet_quote_prints_tslax_and_fits_a_legacy_transaction() {
     let mut four = Sb::new(TSLAX, 3);
     four.at(T + 60, SLOT + 1, None);
     let ixs = [compute_limit(60_000), quote_ix(four.quote.clone()), four.record_ix(0, QUEUE)];
-    let sent = four.w.send(&ixs).unwrap();
+    let attestor = four.w.keys.attestor.insecure_clone();
+    let sent = four.w.h.send(&ixs, &[&attestor]).unwrap();
     println!("Switchboard print, 4 oracles + SetComputeUnitLimit: {} CU, {} transaction bytes", sent.compute_units, sent.tx_bytes);
     assert!(sent.tx_bytes <= 1_232 && sent.compute_units <= 60_000);
     assert_eq!(four.w.h.market_state(&four.market).open.signers, 4);
@@ -195,18 +218,27 @@ fn refused_for_a_stale_or_foreign_slot() {
 fn refused_for_the_wrong_queue_or_an_unset_one() {
     let mut sb = Sb::new(TSLAX, 3);
     sb.at(T + 30, SLOT + 5, None);
+    let attestor = sb.w.keys.attestor.insecure_clone();
     let copy = Pubkey::new_from_array([0x51; 32]);
-    let data = sb.w.h.account_data(&QUEUE);
-    let lamports = sb.w.h.svm.minimum_balance_for_rent_exemption(data.len());
-    sb.w.h.svm.set_account(copy, Account { lamports, data, owner: QUEUE_OWNER, executable: false, rent_epoch: 0 }).unwrap();
+    put_queue(&mut sb.w, copy, QUEUE_OWNER, queue_bytes());
     let ixs = [quote_ix(sb.quote.clone()), sb.record_ix(0, copy)];
-    assert_eq!(sb.w.send(&ixs).unwrap_err(), SWITCHBOARD_QUEUE_MISMATCH, "same bytes, unpinned address");
+    assert_eq!(sb.w.h.send(&ixs, &[&attestor]).unwrap_err(), SWITCHBOARD_QUEUE_MISMATCH, "same bytes, unpinned address");
+
+    // The pinned address with a foreign owner, or with another account type's bytes, is not the queue either.
+    put_queue(&mut sb.w, QUEUE, Pubkey::new_from_array([0x99; 32]), queue_bytes());
+    let ixs = [quote_ix(sb.quote.clone()), sb.record_ix(0, QUEUE)];
+    assert_eq!(sb.w.h.send(&ixs, &[&attestor]).unwrap_err(), SWITCHBOARD_QUEUE_MISMATCH, "another program's account at the pinned address");
+    let mut forged = queue_bytes();
+    forged[7] ^= 1;
+    put_queue(&mut sb.w, QUEUE, QUEUE_OWNER, forged);
+    let ixs = [quote_ix(sb.quote.clone()), sb.record_ix(0, QUEUE)];
+    assert_eq!(sb.w.h.send(&ixs, &[&attestor]).unwrap_err(), SWITCHBOARD_QUEUE_MISMATCH, "not a queue discriminator");
 
     let admin = key(1);
     let ix = sb.w.h.set_authorities_ix(&admin.pubkey(), print_authorities(&sb.w.keys));
     sb.w.h.ok(&[ix], &[&admin]);
     let ixs = [quote_ix(sb.quote.clone()), sb.record_ix(0, Pubkey::default())];
-    assert_eq!(sb.w.send(&ixs).unwrap_err(), SWITCHBOARD_QUEUE_MISMATCH, "the zero placeholder is never a queue");
+    assert_eq!(sb.w.h.send(&ixs, &[&attestor]).unwrap_err(), SWITCHBOARD_QUEUE_MISMATCH, "the zero placeholder is never a queue");
 }
 
 #[test]
@@ -235,9 +267,65 @@ fn refused_for_the_wrong_feed_or_a_foreign_index_field() {
     sb.at(T + 30, SLOT + 5, None);
     // Instruction 1 verifies instruction 0's bytes (index fields = 0), so the precompile passes but it is not "this
     // instruction" for the record at index 2.
+    let attestor = sb.w.keys.attestor.insecure_clone();
     let pointing = rebuild(&sb.quote, &[0, 1, 2, 3], &[0, 1, 4, 6], 0);
     let ixs = [quote_ix(sb.quote.clone()), quote_ix(pointing), sb.record_ix(0, QUEUE)];
-    assert_eq!(sb.w.send(&ixs).unwrap_err(), BAD_ATTESTATION, "offsets naming another instruction");
+    assert_eq!(sb.w.h.send(&ixs, &[&attestor]).unwrap_err(), BAD_ATTESTATION, "offsets naming another instruction");
     let ixs = [quote_ix(sb.quote.clone()), compute_limit(100_000), sb.record_ix(0, QUEUE)];
-    assert_eq!(sb.w.send(&ixs).unwrap_err(), BAD_ATTESTATION, "the quote is not immediately before the record");
+    assert_eq!(sb.w.h.send(&ixs, &[&attestor]).unwrap_err(), BAD_ATTESTATION, "the quote is not immediately before the record");
+}
+
+#[test]
+fn only_an_attestor_may_choose_the_quote_until_the_public_window() {
+    let mut sb = Sb::new(TSLAX, 3);
+    sb.at(T + 10, SLOT + 5, None);
+    let stranger = key(3);
+    let ixs = [quote_ix(sb.quote.clone()), sb.record_ix_as(0, QUEUE, stranger.pubkey(), None)];
+    assert_eq!(sb.w.h.send(&ixs, &[&stranger]).unwrap_err(), UNKNOWN_ATTESTOR, "a trader may not pick the quote at T + 10");
+    // The attestor records at once; the relay's own path is unchanged.
+    sb.print(sb.quote.clone()).unwrap();
+    assert_eq!(sb.w.h.market_state(&sb.market).open.signers, 4);
+
+    // A second Window, left to the public fallback: refused at T + 39, taken at T + 40.
+    let mut late = Sb::new(TSLAX, 3);
+    late.at(T + 39, SLOT + 5, None);
+    let ixs = [quote_ix(late.quote.clone()), late.record_ix_as(0, QUEUE, stranger.pubkey(), None)];
+    assert_eq!(late.w.h.send(&ixs, &[&stranger]).unwrap_err(), UNKNOWN_ATTESTOR);
+    late.at(T + 40, SLOT + 5, None);
+    let ixs = [quote_ix(late.quote.clone()), late.record_ix_as(0, QUEUE, stranger.pubkey(), None)];
+    late.w.h.send(&ixs, &[&stranger]).expect("the public fallback keeps a stalled relay from stranding a Window");
+    assert_eq!(late.w.h.market_state(&late.market).open.source, 3);
+}
+
+#[test]
+fn an_open_whose_previous_close_exists_must_be_copied() {
+    let mut sb = Sb::new(TSLAX, 3);
+    // Window 0 takes its close at its own boundary T + 300, which is Window 1's opening boundary.
+    let (t1, slot1) = (T + 300, SLOT + 15);
+    sb.w.h.warp_to(t1 - 60);
+    // Window 0 still holds the only Book, so the next Window needs its own.
+    let book = sb.w.h.add_book(&sb.w.series, 256);
+    sb.w.h.open_window(&sb.w.series, &book, regular_window(1, t1, 300, 0)).expect("second window");
+    let market1 = agari_events_tests::ix::window_accounts(&sb.w.series, 1).market;
+    let prev = sb.market;
+
+    sb.at(t1 + 12, slot1, None);
+    // The close of Window 0 lands first, from the same quote the relay holds.
+    sb.market = prev;
+    let close = [quote_ix(sb.quote.clone()), sb.record_ix(1, QUEUE)];
+    let attestor = sb.w.keys.attestor.insecure_clone();
+    sb.w.h.send(&close, &[&attestor]).expect("close of window 0");
+
+    // Window 1's open is now the previous Close's print: a direct print is refused, even for the attestor.
+    sb.market = market1;
+    let direct = [quote_ix(sb.quote.clone()), sb.record_ix_as(0, QUEUE, attestor.pubkey(), Some(prev))];
+    assert_eq!(sb.w.h.send(&direct, &[&attestor]).unwrap_err(), PRINT_NOT_ADJACENT, "that slot belongs to public_copy_open_from_prev");
+    let without = [quote_ix(sb.quote.clone()), sb.record_ix_as(0, QUEUE, attestor.pubkey(), None)];
+    assert_eq!(sb.w.h.send(&without, &[&attestor]).unwrap_err(), PRINT_NOT_ADJACENT, "the previous Window may not be omitted");
+
+    // The copy fills it, and both Windows carry the same print.
+    let copy = sb.w.copy_open_ix(market1, prev);
+    sb.w.h.send(&[copy], &[&attestor]).expect("copy open");
+    let (close_print, open_print) = (sb.w.h.market_state(&prev).close, sb.w.h.market_state(&market1).open);
+    assert_eq!((open_print.price, open_print.source_ts), (close_print.price, close_print.source_ts));
 }
