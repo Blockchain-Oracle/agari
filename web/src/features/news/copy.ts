@@ -4,12 +4,13 @@ import type { Sentiment } from "./protocol";
 export const NEWS = {
   title: "News",
   live: "Updated live",
-  /** "Bitcoin News" in the reference; the venue here lists more than one asset. */
+  /** "Bitcoin News" in the reference; the venue here lists more than one asset, and `?symbol=` names the one. */
   heading: "Market",
   headingAccent: "News",
   /** Verbatim from the reference — "headlines that move the market". */
   headingJp: "市場を動かす見出し。",
-  intro: "Sentiment-tagged and refreshed live. Read the room before you ring the bell.",
+  /** The reference's line, plus the provider credit (Q-S13-6: the Finnhub free tier, credited). */
+  intro: "Sentiment-tagged and refreshed live. Read the room before you ring the bell. Headlines via Finnhub.",
   quiet: "The wire is quiet. Headlines return shortly.",
   sentiment: { positive: "bullish", negative: "bearish", neutral: "neutral" } satisfies Record<Sentiment, string>,
   /** "now", "5m", "2h", "3d" — the reference's `timeAgo`. */
