@@ -32,6 +32,7 @@ coverage/
 /reference/
 /data/archive/
 /data/soak/
+/data/*.log
 
 # local AI authoring tools and prompts (CLAUDE.md and context/ ARE tracked)
 /.claude/

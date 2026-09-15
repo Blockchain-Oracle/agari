@@ -52,7 +52,8 @@ describe("vault instruction encoding", () => {
     expect(() => ticksOf(0n, 1_000n)).toThrow(/outside/);
     expect(lotsOf(5_000_000n, 1_000n)).toBe(5_000n);
     expect(() => lotsOf(5_000_500n, 1_000n)).toThrow(/whole number/);
-    expect(capsArgsOf({ caps }, 1_000n)).toEqual({ maxStakePerTrade: 5_000_000n, maxDailySpend: 25_000_000n, maxOpenPositions: 4, maxPriceTicks: 950 });
+    expect(capsArgsOf({ caps }, 1_000n)).toEqual({ maxStakePerTrade: 5_000_000n, maxDailySpend: 25_000_000n, maxOpenPositions: 4, maxPriceTicks: 950, market: key(0) });
+    expect(capsArgsOf({ caps: { ...caps, market: toMarketId(MARKET) } }, 1_000n).market).toBe(MARKET);
     expect(capsArgsOf({ caps: { ...caps, maxPriceRaw: 0n } }, 1_000n).maxPriceTicks).toBe(0);
     expect(() => capsArgsOf({ caps: { ...caps, maxPriceRaw: 950_001n } }, 1_000n)).toThrow(/whole number/);
   });
@@ -95,9 +96,16 @@ describe("vault account decoding", () => {
 
     const grant = getGrantDecoder().decode(getGrantEncoder().encode({
       owner: OWNER, actor: KEY, grantId: 9n, expiresAtSec: 1_788_486_400n, spentDay: 20_699n, spentToday: 4n, budget: 21_000_000n, maxStakePerTrade: 5_000_000n,
-      maxDailySpend: 25_000_000n, maxOpenPositions: 4, openPositions: 1, maxPriceTicks: 950, kind: 0, revoked: 0, bump: 250, pad: new Uint8Array(3), reserved: new Uint8Array(32),
+      maxDailySpend: 25_000_000n, maxOpenPositions: 4, openPositions: 1, maxPriceTicks: 950, kind: 0, revoked: 0, bump: 250, pad: new Uint8Array(3), market: key(0),
     }));
     expect(toVaultGrant(grant, 1_000n)).toMatchObject({ grantId: 9n, kind: "session", revoked: false, openPositions: 1, budgetBase: 21_000_000n, caps: { maxPriceRaw: 950_000n, maxOpenPositions: 4 } });
+    expect(toVaultGrant(grant, 1_000n).caps.market).toBeUndefined();
+    // A market-scoped grant (D-091) reads its Window back; the default key above reads as no scope.
+    const scoped = getGrantDecoder().decode(getGrantEncoder().encode({
+      owner: OWNER, actor: KEY, grantId: 10n, expiresAtSec: 1_788_486_400n, spentDay: 20_699n, spentToday: 0n, budget: 21_000_000n, maxStakePerTrade: 5_000_000n,
+      maxDailySpend: 25_000_000n, maxOpenPositions: 4, openPositions: 0, maxPriceTicks: 0, kind: 1, revoked: 0, bump: 250, pad: new Uint8Array(3), market: MARKET,
+    }));
+    expect(toVaultGrant(scoped, 1_000n)).toMatchObject({ grantId: 10n, kind: "executor", caps: { maxPriceRaw: 0n, market: MARKET } });
   });
 });
 

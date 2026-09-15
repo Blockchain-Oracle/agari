@@ -1602,6 +1602,11 @@
       "msg": "grant id is not the next grant id"
     },
     {
+      "code": 7115,
+      "name": "GrantMarketMismatch",
+      "msg": "grant is scoped to another Window"
+    },
+    {
       "code": 7200,
       "name": "UnknownMarket",
       "msg": "market, series, book or ledger is not a bound agari-events Window"
@@ -1694,6 +1699,13 @@
           {
             "name": "max_price_ticks",
             "type": "u16"
+          },
+          {
+            "name": "market",
+            "docs": [
+              "The one Window the grant may trade (D-091); `Pubkey::default()` = any."
+            ],
+            "type": "pubkey"
           }
         ]
       }
@@ -1778,7 +1790,7 @@
     {
       "name": "Grant",
       "docs": [
-        "168 B struct, 176 B account. Never closed in S7."
+        "168 B struct, 176 B account. Never closed in S7. `market` (D-091) took the reserved tail before the first deploy."
       ],
       "serialization": "bytemuck",
       "repr": {
@@ -1878,13 +1890,11 @@
             }
           },
           {
-            "name": "_reserved",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            "name": "market",
+            "docs": [
+              "The one Window this grant may trade (D-091); `Pubkey::default()` = any Window. Occupies the former reserve."
+            ],
+            "type": "pubkey"
           }
         ]
       }

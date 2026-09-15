@@ -3,7 +3,7 @@
 
 use anchor_lang::prelude::*;
 
-/// 168 B struct, 176 B account. Never closed in S7.
+/// 168 B struct, 176 B account. Never closed in S7. `market` (D-091) took the reserved tail before the first deploy.
 #[account(zero_copy)]
 pub struct Grant {
     pub owner: Pubkey,
@@ -29,7 +29,8 @@ pub struct Grant {
     pub revoked: u8,
     pub bump: u8,
     pub _pad: [u8; 3],
-    pub _reserved: [u8; 32],
+    /// The one Window this grant may trade (D-091); `Pubkey::default()` = any Window. Occupies the former reserve.
+    pub market: Pubkey,
 }
 
 impl Grant {

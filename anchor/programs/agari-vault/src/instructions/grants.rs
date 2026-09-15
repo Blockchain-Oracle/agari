@@ -21,6 +21,8 @@ pub struct CapsArgs {
     pub max_daily_spend: u64,
     pub max_open_positions: u32,
     pub max_price_ticks: u16,
+    /// The one Window the grant may trade (D-091); `Pubkey::default()` = any.
+    pub market: Pubkey,
 }
 
 #[event_cpi]
@@ -171,7 +173,7 @@ pub fn create_grant(n: &NewGrant, t: Terms) -> Result<(Option<GrantRevoked>, Gra
             revoked: 0,
             bump: n.grant_bump,
             _pad: [0; 3],
-            _reserved: [0; 32],
+            market: t.caps.market,
         };
     }
     let mut config = n.vault_config.load_mut()?;

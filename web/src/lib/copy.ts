@@ -116,14 +116,10 @@ export const MARKETS = {
   trades: (n: number) => `${n} ${n === 1 ? "trade" : "trades"}`,
   fixedStrikeHidden: (n: number) => `${n} fixed-strike ${n === 1 ? "Window" : "Windows"} hidden — v1 lists up/down Windows only.`,
   noLiveWindows: { why: "No live Windows on this venue right now — Windows roll continuously, so this fills in as the next one opens." },
-  /** Outside regular hours a stock lane has no Window at all; the session label says when that changes. */
-  closedWindows: (label: string) => ({ why: `The stock market is closed · ${label}. Windows roll through each regular NYSE session.` }),
   ticketPlaceholder: { why: "Choose a Window and a side to open your call." },
-  /** The market-session chip: the NYSE state word, then core `sessionLabel`. */
+  /** The market-session chip: the session word (core `sessionStateWord`, D-087), then the phrase's tail or a halt. */
   session: {
     aria: (state: string, label: string) => `Stock market ${state}: ${label}`,
-    open: "Open",
-    closed: "Closed",
     halted: "halted",
   },
   /** A ticker whose `/session` lane reads `paused:` lists nothing while the rest of its cadence runs. */

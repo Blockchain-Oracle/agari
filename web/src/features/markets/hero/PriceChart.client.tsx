@@ -22,6 +22,8 @@ interface PriceChartClientProps {
   points: ChartPoint[];
   /** The oracle's print; null while pending — no line is drawn at a guessed level. */
   openingRaw: bigint | null;
+  /** The reference line's axis title; the opening print by default, "prev close" on the closed hero (S18a). */
+  lineLabel?: string;
   className?: string;
 }
 
@@ -87,7 +89,7 @@ function includeInAutoscale(series: ISeriesApi<"Line">, price: number): void {
   });
 }
 
-export function PriceChartClient({ points, openingRaw, className }: PriceChartClientProps) {
+export function PriceChartClient({ points, openingRaw, lineLabel, className }: PriceChartClientProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const builtRef = useRef<Built | null>(null);
 
@@ -127,8 +129,10 @@ export function PriceChartClient({ points, openingRaw, className }: PriceChartCl
       lineWidth: 1,
       lineStyle: LineStyle.Solid,
       axisLabelVisible: true,
-      title: HERO.openingPrint,
+      title: lineLabel ?? HERO.openingPrint,
     });
+    // The label names the line at creation; it is fixed for the life of the chart, as the line is.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openingRaw]);
 
   return <div ref={containerRef} className={cn("h-56 w-full", className)} />;

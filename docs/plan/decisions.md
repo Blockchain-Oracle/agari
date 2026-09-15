@@ -922,6 +922,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - No new error codes; the IDL gains `recorder`, optional `prev_market` and optional `queue`.
 - **User-visible:** none; token prints land from the attestor key, and price-attestor becomes a paying writer (≈ 0.04–0.07 SOL/day).
 - **Approval:** stage owner, 2026-09-15.
+
 ### D-081 — Fidelity reconciled: Masayume exact where it exists, creative where it does not (amends D-036)
 - **Date / owner:** 2026-09-15 · user (voice) + S18 owner
 - **Evidence:** the user, testing while NYSE was closed: the app must never be empty, must carry real stock logos, and the news page and take cards should be designed "creatively" with 21st.dev; the D-036 replica rule had no answer for surfaces Masayume never had (a 24/7 crypto venue has no closed state).
@@ -970,6 +971,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **Rule:** `packages/core/src/copy/session-words.ts` (pure, tested) gives `sessionStateWord` and `sessionPhrase` ("Pre-market · opens in 1h 12m", "After hours · reopens Tue 09:30 ET", "Open · closes in 2h 05m"). The chip, marquee, hero foot and cards use them; the enum is unchanged. The chip mounts in the global header above 768 px.
 - **User-visible:** the session state is a word and a countdown, everywhere.
 - **Approval:** stage owner.
+- **Amendment (2026-09-15, 18a 83404ea):** the header chip mounts from **1024 px**, not 768: at 768 the desktop nav already fills the bar and the chip pushed Connect off it; below 1024 the marquee's session cell carries the state. Verified at 390/768/1024/1440.
 
 ### D-088 — Pre-open calls: post-only orders may rest on a Listed Window; takers are refused
 - **Date / owner:** 2026-09-15 · user ("trade in advance") + S18 owner; program change carried by lane 6b in its upgrade

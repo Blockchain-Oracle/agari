@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosisCopy } from "@agari/core/copy";
-import { LAUNCH_TICKERS } from "@agari/core/market";
+import { diagnosisCopy, formatSessionSpan, sessionCountdown } from "@agari/core/copy";
+import { etDateOf, LAUNCH_TICKERS } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import { remainingSec } from "@agari/core/units";
 import { useLanes } from "@agari/markets/react";
@@ -9,10 +9,13 @@ import { useMemo } from "react";
 import { TICKER_SLOTS, useTickerPrices } from "@/components/chrome/useTickerPrices";
 import { useNowMs } from "@/components/data/useNowMs";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
+import { CLOSED_POLL_MS } from "@/features/markets/asset-history";
+import { etWhen } from "@/features/markets/lanes/lane-view";
 import { useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
 import { useVenue } from "@/features/markets/useVenue";
 import type { SentimentReading } from "@/features/news/protocol";
 import { useSentiment } from "@/features/news/useSentiment";
+import { SESSION_COPY } from "@/lib/copy-session";
 
 // The ticker earns its motion by carrying live signal: asset prices, the countdown to the next close (or, off-hours,
 // the next open) and the crowd's lean. Every figure here is a real Agari reading — when there is nothing to show it
@@ -25,6 +28,8 @@ interface MarqueeItem {
   direction?: "up" | "down" | "";
   /** Words in the direction's ink instead of its arrow (the sentiment cell's `UP` / `DOWN`). */
   tag?: string;
+  /** A quiet word after the value in the label's ink: `CLOSE` on a last close standing in for a live price. */
+  note?: string;
 }
 
 function mmss(totalSec: number): string {
@@ -32,10 +37,19 @@ function mmss(totalSec: number): string {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** Off-hours: "Opens Mon 09:30 ET" → `OPENS MON 09:30 ET`; a closed day with no known open, or a halt, says just that. */
-function sessionCell(session: MarketSession): MarqueeItem {
-  const opens = /^Opens (.+)$/.exec(session.label);
-  return opens ? { label: "OPENS", value: (opens[1] as string).toUpperCase() } : { label: "NYSE", value: session.label.toUpperCase() };
+/**
+ * The session as the strip says it (D-087): `OPENS IN · 1H 12M` while the open is today, `REOPENS · TUE 09:30 ET`
+ * across a night, weekend or holiday, `CLOSES IN · 2H 05M` in session; a halt, or a calendar with no next open,
+ * says `NYSE · <word>`.
+ */
+function sessionCell(session: MarketSession, nowSec: number): MarqueeItem {
+  const countdown = session.status.state === "halted" ? null : sessionCountdown(session.status, nowSec);
+  if (!countdown) return { label: SESSION_COPY.marquee.nyse, value: session.label.toUpperCase() };
+  if (countdown.kind === "closes") return { label: SESSION_COPY.marquee.closesIn, value: formatSessionSpan(countdown.remainingSec).toUpperCase() };
+  // The same rule as core `sessionPhrase`: a countdown only while the open is today, else the day it reopens.
+  return etDateOf(countdown.atSec) === session.status.date
+    ? { label: SESSION_COPY.marquee.opensIn, value: formatSessionSpan(countdown.remainingSec).toUpperCase() }
+    : { label: SESSION_COPY.marquee.reopens, value: `${etWhen(countdown.atSec)} ET`.toUpperCase() };
 }
 
 /** Q-S13-1: the crowd's lean as its majority side in whole percent, `SENTIMENT —` below the fill floor or unread. */
@@ -52,6 +66,7 @@ export default function Marquee() {
   const session = useMarketSession();
   const sentiment = useSentiment();
   const nowMs = useNowMs();
+  const closed = session !== null && !session.open;
 
   // Live-lane tickers first, then the registry's launch order, so off-hours the strip still carries the last prices.
   const assets = useMemo(() => {
@@ -60,7 +75,8 @@ export default function Marquee() {
     return [...new Set([...[...live].sort(), ...LAUNCH_TICKERS])].slice(0, TICKER_SLOTS);
   }, [lanes]);
 
-  const prices = useTickerPrices(assets);
+  // Closed, the fallback poll slows to a minute and a slot the feed has nothing for shows the archived close (D-086).
+  const prices = useTickerPrices(assets, closed ? { pollMs: CLOSED_POLL_MS, session } : {});
 
   // The soonest close across every live window — the same clock the hero counts down.
   const nextExpirySec = useMemo(() => {
@@ -79,20 +95,21 @@ export default function Marquee() {
     label: p.asset,
     value: p.priceText,
     direction: p.direction === "flat" ? "" : p.direction,
+    ...(p.closeAsOfSec === undefined ? {} : { note: SESSION_COPY.marquee.close }),
   }));
 
-  // In session (or while the session is unknown) the next close; outside it, when the market next opens.
-  if (session && !session.open) items.push(sessionCell(session));
-  else if (nextExpirySec !== null && nowMs > 0) {
-    items.push({ label: "NEXT CLOSE", value: mmss(remainingSec(nowMs, nextExpirySec)), direction: "" });
-  }
-
   // An honest holding state: loading is a product state, invented prices are not. A read that failed is not
-  // loading, so it says why instead of spinning forever.
+  // loading, so it says why instead of spinning forever; a market that is simply shut is never "loading" either.
   if (items.length === 0) {
     const failure = lanes && !isOk(lanes) ? lanes.error : venueFailure;
     const failed = failure ? diagnosisCopy(failure.kind).headline.toUpperCase() : null;
-    items.push({ label: "AGARI", value: failed ?? "LOADING", direction: "" });
+    items.push({ label: "AGARI", value: failed ?? (session ? SESSION_COPY.marquee.noFeed : SESSION_COPY.marquee.loading), direction: "" });
+  }
+
+  // In session (or while the session is unknown) the next close; outside it, when the market next opens.
+  if (session && !session.open) items.push(sessionCell(session, Math.floor((nowMs > 0 ? nowMs : Date.now()) / 1000)));
+  else if (nextExpirySec !== null && nowMs > 0) {
+    items.push({ label: "NEXT CLOSE", value: mmss(remainingSec(nowMs, nextExpirySec)), direction: "" });
   }
 
   items.push(sentimentCell(sentiment?.ok ? sentiment.value : null));
@@ -104,6 +121,7 @@ export default function Marquee() {
         <span className="lbl">{item.label}</span>
         <span className="val">{item.value}</span>
         {item.direction && <span className={item.direction}>{item.tag ?? (item.direction === "up" ? "↑" : "↓")}</span>}
+        {item.note && <span className="lbl">{item.note}</span>}
       </span>
     ));
 

@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { LoadingState, ReadingBoundary } from "@/components/states";
 import { HeroMarket } from "@/features/markets/hero";
+import { HeroFixtures } from "./HeroFixtures";
 import { HERO, SECTIONS } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
 
@@ -44,6 +45,7 @@ export default function DevHeroPage() {
       <Suspense fallback={<LoadingState shape="chart" />}>
         <HeroPicker />
       </Suspense>
+      <HeroFixtures />
     </div>
   );
 }

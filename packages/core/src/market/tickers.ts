@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { LaneBasis } from "../types/market";
+import { GAP_CADENCE_SEC, type LaneBasis } from "../types/market";
 import { toAddress, type Address, type Hash32 } from "../types/primitives";
 
 /**
@@ -191,6 +191,28 @@ export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: numb
   if (basis === "gap") return `${symbol}-gap`;
   const asset = basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? symbol) : symbol;
   return `${asset}-${cadenceSec / 60}m`;
+}
+
+export interface LaneKeyParts {
+  symbol: TickerSymbol;
+  basis: LaneBasis;
+  cadenceSec: number;
+}
+
+/** The inverse of `laneKey`: `TSLA-60m` → Regular 3,600 s, `TSLA-gap` → Gap, `TSLAx-5m` → the TSLA token lane. Null for anything else. */
+export function parseLaneKey(key: string): LaneKeyParts | null {
+  const dash = key.lastIndexOf("-");
+  if (dash <= 0) return null;
+  const asset = key.slice(0, dash);
+  const tail = key.slice(dash + 1);
+  if (tail === "gap") return isTickerSymbol(asset) ? { symbol: asset, basis: "gap", cadenceSec: GAP_CADENCE_SEC } : null;
+  const minutes = /^(\d+)m$/.exec(tail);
+  if (!minutes) return null;
+  const cadenceSec = Number(minutes[1]) * 60;
+  if (cadenceSec <= 0) return null;
+  if (isTickerSymbol(asset)) return { symbol: asset, basis: "regular", cadenceSec };
+  const underlying = TICKER_SYMBOLS.map((s) => TICKERS[s]).find((t) => t.xstock?.symbol === asset);
+  return underlying ? { symbol: underlying.symbol, basis: "token", cadenceSec } : null;
 }
 
 export const isTickerSymbol = (v: unknown): v is TickerSymbol => typeof v === "string" && (TICKER_SYMBOLS as readonly string[]).includes(v);

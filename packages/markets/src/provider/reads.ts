@@ -13,7 +13,7 @@ export { readRecoveryCursor, syncClock } from "./clock-sync";
 export { listWalletFills, listWalletHistory, type WalletFillsQuery } from "./history";
 export { getMarket, getMarketsLite, getResolution, laneNextStart, listLiveLanes, listSettled, nextWindow } from "./markets";
 export { getHoldings, getOnchain, getOpeningPrice } from "./onchain";
-export { getAssetPrice, getPriceHistory } from "./prices";
+export { getArchiveSeries, getAssetPrice, getPriceHistory } from "./prices";
 export { getBalanceSheet, getWalletCollateral, listClaimables, listOpenPositions } from "./wallet";
 export { getVaultHoldings, getVaultSnapshot } from "../vault/read";
 
