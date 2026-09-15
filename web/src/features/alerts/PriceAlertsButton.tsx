@@ -1,22 +1,15 @@
 "use client";
 
-import { oneUnit } from "@agari/core/units";
 import { BellIcon, PlusIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFloatingMenus } from "@/components/shell/header/useFloatingMenus";
-import { ORACLE_SCALE } from "@/features/markets/hero";
+import { ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { cn } from "@/lib/utils";
+import "./alerts-basis.css";
 import { ALERTS } from "./copy";
-import {
-  addAlert,
-  loadAlerts,
-  notificationState,
-  removeAlert,
-  requestNotificationPermission,
-  subscribeAlerts,
-  type AlertDirection,
-  type PriceAlert,
-} from "./store";
+import { notificationState, requestNotificationPermission } from "./notifications";
+import { addAlert, centsToRaw, loadAlerts, parseTargetCents, removeAlert, subscribeAlerts, type AlertDirection, type PriceAlert } from "./store";
 
 interface PriceAlertsButtonProps {
   asset: string;
@@ -24,9 +17,9 @@ interface PriceAlertsButtonProps {
   currentRaw: bigint | null;
 }
 
-/** Whole dollars as the input wants them — no grouping, since it is `type="number"`. */
-function wholeDollars(raw: bigint): string {
-  return (raw / oneUnit(ORACLE_SCALE)).toString();
+/** The live price at the headline's scale (`usdLine`: cents below $1,000), as a `type="number"` input wants it. */
+function defaultTarget(raw: bigint): string {
+  return usdLine(raw).replace(/[$,]/g, "");
 }
 
 /**
@@ -38,6 +31,10 @@ function wholeDollars(raw: bigint): string {
  * it sits in the hero foot, and the panel clips its overflow, so downward would be cut
  * off. And the foot line says where an alert fires — in the pinned source `checkAlerts`
  * has no caller, so the reference could not say.
+ *
+ * S13 (spec §1.5): targets are cents, shown with `usdLine`; a basis row above Above/Below
+ * names the spot a rule watches, with the 24/7 token basis disabled until S6; and outside
+ * the NYSE session the foot says the rule waits for the open.
  */
 export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps) {
   const [open, setOpen] = useState(false);
@@ -45,6 +42,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
   const [targetPrice, setTargetPrice] = useState("");
   const [direction, setDirection] = useState<AlertDirection>("above");
   const [notifications, setNotifications] = useState(notificationState());
+  const session = useMarketSession();
   const wrapRef = useRef<HTMLDivElement>(null);
   const refs = useRef([wrapRef]);
 
@@ -57,18 +55,18 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
   }, []);
 
   useEffect(() => {
-    if (currentRaw !== null && !targetPrice) setTargetPrice(wholeDollars(currentRaw));
+    if (currentRaw !== null && !targetPrice) setTargetPrice(defaultTarget(currentRaw));
   }, [currentRaw, targetPrice]);
 
   const close = useCallback(() => setOpen(false), []);
   useFloatingMenus(refs.current, close);
 
   const handleAdd = async () => {
-    const price = parseFloat(targetPrice);
-    if (Number.isNaN(price) || price <= 0) return;
+    const targetCents = parseTargetCents(targetPrice);
+    if (targetCents === null) return;
     await requestNotificationPermission();
     setNotifications(notificationState());
-    addAlert(asset, price, direction);
+    addAlert(asset, "regular", targetCents, direction);
     setTargetPrice("");
   };
 
@@ -99,6 +97,14 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
           </div>
 
           <div className="alerts-form">
+            <div className="alerts-dir" role="group" aria-label={ALERTS.basis.label}>
+              <button type="button" className="alerts-dir-btn alerts-basis on" aria-pressed data-cursor="hover">
+                {ALERTS.basis.regular}
+              </button>
+              <button type="button" className="alerts-dir-btn alerts-basis" disabled title={ALERTS.basis.tokenPending} aria-label={`${ALERTS.basis.token}: ${ALERTS.basis.tokenPending}`}>
+                {ALERTS.basis.token}
+              </button>
+            </div>
             <div className="alerts-dir">
               <button type="button" onClick={() => setDirection("above")} className={cn("alerts-dir-btn above", direction === "above" && "on")} data-cursor="hover">
                 {ALERTS.above}
@@ -111,6 +117,8 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
               <input
                 type="number"
                 inputMode="decimal"
+                step="0.01"
+                min="0.01"
                 value={targetPrice}
                 onChange={(event) => setTargetPrice(event.target.value)}
                 placeholder={ALERTS.targetPlaceholder}
@@ -129,7 +137,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
                 <li key={alert.id} className="alerts-row">
                   <span className="alerts-row-label">
                     <span className={alert.direction === "above" ? "alerts-up" : "alerts-down"}>{alert.direction === "above" ? "↑" : "↓"}</span>{" "}
-                    ${alert.targetPrice.toLocaleString()}
+                    {usdLine(centsToRaw(alert.targetCents, ORACLE_SCALE))}
                   </span>
                   <button type="button" onClick={() => removeAlert(alert.id)} className="alerts-remove" aria-label={ALERTS.remove} data-cursor="hover">
                     <XIcon className="alerts-icon-xxs" aria-hidden />
@@ -139,7 +147,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
             </ul>
           )}
 
-          <p className="alerts-foot">{notifications === "granted" ? ALERTS.foot.on : ALERTS.foot.off}</p>
+          <p className="alerts-foot">{!session?.open ? ALERTS.foot.waiting(session?.label ?? null) : notifications === "granted" ? ALERTS.foot.on : ALERTS.foot.off}</p>
         </div>
       )}
     </div>

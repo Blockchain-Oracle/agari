@@ -1,0 +1,22 @@
+/* Price-alert basis row (S13, social-assistant.md §1.5) — additive to styles/alerts.css.
+ *
+ * It reuses the Above/Below segment (`.alerts-dir-btn`) as is; only the on-state differs, because a basis is not a
+ * direction and must not borrow the profit or loss ink. The on-state is the popover input's own language
+ * (`bg-white/5 border-white/30 text-white`, the `.alerts-input:focus` values), and the disabled 24/7 token segment
+ * keeps the off-state ink at reduced opacity. */
+
+.alerts-dir-btn.alerts-basis.on {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--white);
+}
+
+.alerts-dir-btn.alerts-basis:disabled {
+  opacity: 0.5;
+}
+
+[data-theme="light"] .alerts-dir-btn.alerts-basis.on {
+  background: rgba(20, 18, 16, 0.05);
+  border-color: rgba(20, 18, 16, 0.3);
+  color: #141210;
+}
