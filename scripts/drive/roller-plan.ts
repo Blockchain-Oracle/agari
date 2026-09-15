@@ -12,6 +12,7 @@ import { createOpsClient, listSeries, seriesBasis, seriesLaneKey } from "@agari/
 import { createSessionService } from "../../services/ops/src/calendar/session-service";
 import { DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC, spanOf, type PlanSeries } from "../../services/ops/src/actors/window-roller/plan";
 import { planByBasis } from "../../services/ops/src/actors/window-roller/plan-basis";
+import { gapSpanOf } from "../../services/ops/src/actors/window-roller/plan-gap";
 import { createSessionEvents } from "../../services/ops/src/runtime/session-events";
 import { versionWindow } from "../../services/ops/src/actors/window-roller/versions";
 import { arg, clusterArg, endpoints, readJson, redactKey, roleSecret } from "../deploy/ops-cluster";
@@ -35,9 +36,11 @@ console.log(`roller plan at ${new Date(atSec * 1000).toISOString()} on ${cluster
 
 const sources = readJson<PriceSources>("services/ops/config/price-sources.json");
 const onChain = new Map((await listSeries(client)).filter((s) => s.symbol && seriesBasis(s)).map((s) => [seriesLaneKey(s), s]));
+const events = createSessionEvents();
+// No halt-watch runs here: the printed plan assumes no asset is halted at `--at`.
 const clock = {
   calendar: sessions.calendar(), nowSec: atSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC,
-  minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: createSessionEvents().skips(),
+  minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: events.skips(), multipliers: events.multipliers(), halts: {},
 };
 
 const launch = TICKER_SYMBOLS.filter((s) => TICKERS[s].launch);
@@ -66,7 +69,7 @@ for (const [symbol, basis, cadenceSec] of lanes) {
   }
   const plan = planByBasis(basis, series, clock);
   const state = plan.kind === "open" ? plan.state.replace("opening", chain ? "would open" : "would list") : plan.state;
-  const window = "window" in plan ? ` (${spanOf(plan.window)})` : "";
+  const window = "window" in plan ? ` (${basis === "gap" ? gapSpanOf(plan.window) : spanOf(plan.window)})` : "";
   console.log(`  ${key.padEnd(10)} ${(chain ? "registered" : "not registered").padEnd(15)} ${state}${plan.kind === "open" ? "" : window}`);
 }
 process.exit(0);

@@ -12,7 +12,7 @@ const LATEST = "https://oracle-gateway-2.a.redstone.finance/data-packages/latest
 const POLL_MS = 5_000;
 
 function devRedstoneSpot(log: (why: string) => void): SpotFeed {
-  const quotes = new Map<TickerSymbol, SpotQuote>();
+  const quotes = new Map<string, SpotQuote>();
   const listeners = new Set<(q: SpotQuote) => void>();
   const poll = async () => {
     try {

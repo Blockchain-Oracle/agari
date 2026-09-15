@@ -2,8 +2,19 @@
  * What the roller does next on one Regular Series (venue-ops.md §5.2). Pure: plain Series data, the agreed calendar
  * and the chain clock in, one decision out. The executor recycles Books before it asks, and re-reads before it sends.
  */
-import { etDateOf, regularWindows, type BoundaryKind, type ScheduledWindow, type SessionCalendar } from "@agari/core/market";
-import type { CorporateSkip } from "@agari/core/types";
+import {
+  corporateActionFor,
+  corporatePausedState,
+  haltOf,
+  haltPausedState,
+  regularWindows,
+  type BoundaryKind,
+  type HaltAsset,
+  type ScheduledWindow,
+  type SessionCalendar,
+  type TickerSymbol,
+} from "@agari/core/market";
+import type { CorporateSkip, HaltBoard, MultiplierChange } from "@agari/core/types";
 import { describeVersion, highestCoveringVersion, openPrintsAdmissible, type VersionWindow } from "./versions";
 
 /** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */
@@ -34,6 +45,10 @@ export interface PlanClock {
   /** Never open a Window with less than this left before `lock_at`. */
   minTradableSec: number;
   skips: readonly CorporateSkip[];
+  /** xStock multiplier changes (token lane only, core `multiplierApplies`). */
+  multipliers: readonly MultiplierChange[];
+  /** `deps.halts.board()` at plan time: keyed by ticker for Regular/Gap, by xStock for token (session-lanes.md §3.1). */
+  halts: HaltBoard;
 }
 
 export type SeriesPlan =
@@ -77,8 +92,10 @@ export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
     return { kind: "wait", window: w, wakeSec: w.tradingStartSec - clock.leadSec, state };
   }
   const passSec = w.lockAtSec - clock.minTradableSec + 1;
-  const skip = clock.skips.find((k) => k.symbol === series.symbol && (!k.lanes || k.lanes.includes("regular")) && k.date === etDateOf(w.tradingStartSec));
-  if (skip) return { kind: "paused", window: w, wakeSec: passSec, state: `paused: corporate action (${skip.why})` };
+  const halt = haltOf(clock.halts, series.symbol as HaltAsset);
+  if (halt) return { kind: "paused", window: w, wakeSec: passSec, state: haltPausedState(halt) };
+  const action = corporateActionFor({ symbol: series.symbol as TickerSymbol, lane: "regular", window: w }, clock.skips);
+  if (action) return { kind: "paused", window: w, wakeSec: passSec, state: corporatePausedState(action.why) };
   const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
   if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: "paused: no signed source" };
   const book = series.freeBooks[0];
