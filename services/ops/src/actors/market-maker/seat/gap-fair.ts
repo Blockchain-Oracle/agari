@@ -79,6 +79,7 @@ export function gapQuote(input: LaneQuoteInput): LaneQuote {
   const why =
     openE8 === null ? "waiting for the Friday print"
     : referenceE8 !== null ? `${xstock} reference`
+    : xstock && input.halts[xstock] ? `${xstock} halted (${input.halts[xstock]!.reason}): ${GAP_BLIND_FAIR_TICKS}`
     : xstock ? `${xstock} spot unavailable: ${GAP_BLIND_FAIR_TICKS}`
     : `no weekend reference: ${GAP_BLIND_FAIR_TICKS}`;
   return { phase, fairTicks, maxCashPerWindow: cap, why };
