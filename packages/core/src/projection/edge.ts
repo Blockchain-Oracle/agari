@@ -1,11 +1,15 @@
+import { etMinutesOf } from "../market/et-time";
 import { equityCurve, maxDrawdownBase, winStreaks, type EquityPoint } from "./equity";
-import { roundSettledAtMs } from "./settle";
 import type { SettledRound } from "./types";
 
+/** The four regular-session buckets a Window's close falls in (proof-analytics.md §2.2, Q-S5-6). */
+export type EdgeWindowKey = "open" | "morning" | "midday" | "close";
+
 export interface EdgeWindow {
-  key: "late-night" | "morning" | "afternoon" | "evening";
-  fromHour: number;
-  toHour: number;
+  key: EdgeWindowKey;
+  /** ET minutes after midnight: the bucket holds closes with `fromMin ≤ etMinutesOf(expirySec − 1) < toMin`. */
+  fromMin: number;
+  toMin: number;
   count: number;
   wins: number;
   netBase: bigint;
@@ -43,11 +47,12 @@ export interface TraderEdge {
   readout: EdgeReadout;
 }
 
-const WINDOW_DEFS: ReadonlyArray<Pick<EdgeWindow, "key" | "fromHour" | "toHour">> = [
-  { key: "late-night", fromHour: 0, toHour: 6 },
-  { key: "morning", fromHour: 6, toHour: 12 },
-  { key: "afternoon", fromHour: 12, toHour: 18 },
-  { key: "evening", fromHour: 18, toHour: 24 },
+/** 09:30, 10:30, 12:00, 15:00 and 16:00 ET in minutes. An early close (13:00) lands in `midday`. */
+const WINDOW_DEFS: ReadonlyArray<Pick<EdgeWindow, "key" | "fromMin" | "toMin">> = [
+  { key: "open", fromMin: 570, toMin: 630 },
+  { key: "morning", fromMin: 630, toMin: 720 },
+  { key: "midday", fromMin: 720, toMin: 900 },
+  { key: "close", fromMin: 900, toMin: 960 },
 ];
 
 /** Five settled rounds before a pattern is called one — the reference's own floor. */
@@ -59,8 +64,15 @@ function ratio(numerator: bigint, denominator: bigint): number {
   return Number((numerator * 1_000_000n) / denominator) / 1_000_000;
 }
 
-function localHour(atMs: number): number {
-  return new Date(atMs).getHours();
+/**
+ * The session bucket a round's Window closed in, keyed on its close boundary in ET; null outside the regular session
+ * (S6's Gap and token lanes). The reference grouped by the browser-local hour of the settle time, but settlement lands
+ * seconds to minutes after the boundary and would move a 16:00 close out of the session. One second before the
+ * boundary puts a 10:30:00 close in the hour it ends.
+ */
+export function etSessionBucket(round: Pick<SettledRound, "expirySec">): EdgeWindowKey | null {
+  const minutes = etMinutesOf(round.expirySec - 1);
+  return WINDOW_DEFS.find((def) => minutes >= def.fromMin && minutes < def.toMin)?.key ?? null;
 }
 
 function readoutOf(settled: number, best: EdgeWindow | null, grossProfit: bigint, grossLoss: bigint, net: bigint, drawdown: bigint): EdgeReadout {
@@ -74,9 +86,9 @@ function readoutOf(settled: number, best: EdgeWindow | null, grossProfit: bigint
 /**
  * An honest report over settled rounds: what pays, what costs, and when. Ported from the
  * reference's `computeTraderEdge729`; money stays in base units, only ratios become floats.
- * `hourOf` is injectable so tests do not depend on the machine's time zone.
+ * `bucketOf` is injectable so a test can place rounds without building ET instants.
  */
-export function computeTraderEdge(rounds: readonly SettledRound[], openRounds: number, hourOf: (atMs: number) => number = localHour): TraderEdge {
+export function computeTraderEdge(rounds: readonly SettledRound[], openRounds: number, bucketOf: (round: SettledRound) => EdgeWindowKey | null = etSessionBucket): TraderEdge {
   const wins = rounds.filter((round) => round.outcome === "win");
   const losses = rounds.filter((round) => round.outcome === "loss");
   const voids = rounds.filter((round) => round.outcome === "void");
@@ -89,11 +101,9 @@ export function computeTraderEdge(rounds: readonly SettledRound[], openRounds: n
   const drawdown = maxDrawdownBase(equity);
   const streaks = winStreaks(rounds);
 
+  const buckets = rounds.map((round) => bucketOf(round));
   const windows: EdgeWindow[] = WINDOW_DEFS.map((def) => {
-    const inWindow = rounds.filter((round) => {
-      const hour = hourOf(roundSettledAtMs(round));
-      return hour >= def.fromHour && hour < def.toHour;
-    });
+    const inWindow = rounds.filter((_, i) => buckets[i] === def.key);
     return { ...def, count: inWindow.length, wins: inWindow.filter((round) => round.outcome === "win").length, netBase: inWindow.reduce((sum, round) => sum + round.pnlBase, 0n) };
   });
   const populated = windows.filter((window) => window.count > 0);

@@ -7,16 +7,20 @@ import { DECIMALS, FIXED_NOW_MS, TX_HASH } from "../states/fixtures";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 const ONE = oneUnit(DECIMALS);
-const HOUR_MS = 3_600_000;
+const MIN_MS = 60_000;
+/** The session before `FIXED_NOW_MS`: Monday 2026-08-31 closed at 16:00 ET (20:00Z, EDT). */
+const LAST_CLOSE_MS = Date.UTC(2026, 7, 31, 20, 0);
 
 const id = (n: number): MarketId => fixtureMarketId(n);
+/** Round n closes 45 min before round n − 1, so the nine rounds reach every Trader Edge session bucket (16:00 back to 10:00 ET). */
+const expiryMsOf = (n: number): number => LAST_CLOSE_MS - (n - 1) * 45 * MIN_MS;
 
 function ledger(n: number, over: Partial<MarketLedger>): MarketLedger {
-  return { marketId: id(n), heldUpRaw: 10n * ONE, heldDownRaw: 0n, costBase: 4n * ONE, proceedsBase: 0n, sidesTraded: [0], fillCount: 1, shortCount: 0, firstAtMs: FIXED_NOW_MS - (n + 1) * HOUR_MS, lastAtMs: FIXED_NOW_MS - n * HOUR_MS, entryTxHash: TX_HASH, ...over };
+  return { marketId: id(n), heldUpRaw: 10n * ONE, heldDownRaw: 0n, costBase: 4n * ONE, proceedsBase: 0n, sidesTraded: [0], fillCount: 1, shortCount: 0, firstAtMs: expiryMsOf(n) - 4 * MIN_MS, lastAtMs: expiryMsOf(n) - MIN_MS, entryTxHash: TX_HASH, ...over };
 }
 
 function market(n: number, over: Partial<RoundMarket>): RoundMarket {
-  const expirySec = Math.floor((FIXED_NOW_MS - n * HOUR_MS) / 1000);
+  const expirySec = expiryMsOf(n) / 1000;
   return { marketId: id(n), asset: "TSLA", intervalSec: 300, expirySec, decimals: DECIMALS, settled: true, voided: false, winningOutcome: 0, resolvedAtMs: expirySec * 1000 + 4_000, ...over };
 }
 
