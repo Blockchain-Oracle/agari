@@ -80,7 +80,7 @@ async function plan() {
     key: spec.key, symbol: spec.symbol, cadenceSec: s.cadenceSec, nextIndex: s.nextIndex, lastExpirySec: Number(s.lastExpiry),
     versions: s.policyVersions.slice(0, s.versionCount).map(versionWindow), freeBooks: s.freeBooks.slice(0, s.freeBookCount),
   };
-  const clock = { calendar: sessions.calendar(), nowSec: clockSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC, minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: [] };
+  const clock = { calendar: sessions.calendar(), nowSec: clockSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC, minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: [], multipliers: [], halts: {} };
   const result = planGapSeries(planSeries, clock);
   console.log(`  roller plan @ ${iso(clockSec)}: ${result.state}`);
   return result;

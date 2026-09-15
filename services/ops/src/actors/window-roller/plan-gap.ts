@@ -1,9 +1,9 @@
 /**
  * What the roller does next on one Gap Series (session-lanes.md §1.4): the earliest `gapWindows` candidate inside
- * `gapLeadSec`, the check-bound exception, and the corporate skip on either the Friday or the Monday. Pure, like
- * `plan.ts`. Lane 6a owns this file.
+ * `gapLeadSec`, the check-bound exception, a halt on the ticker, and the corporate skip on either the Friday or the
+ * Monday. Pure, like `plan.ts`. Lane 6a owns this file.
  */
-import { etDateOf, gapWindows, type ScheduledWindow } from "@agari/core/market";
+import { corporateActionFor, corporatePausedState, gapWindows, haltOf, haltPausedState, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { describeVersion, highestCoveringVersion, openPrintsAdmissible } from "./versions";
 
@@ -27,12 +27,6 @@ export function nextGapCandidate(series: PlanSeries, clock: PlanClock): Schedule
   );
 }
 
-/** A skip names an ET date; a Gap matches its Friday (the opening session's date) or its Monday (the closing one's). */
-export function gapSkip(series: PlanSeries, clock: PlanClock, w: ScheduledWindow) {
-  const dates = [etDateOf(w.tradingStartSec), etDateOf(w.expirySec)];
-  return clock.skips.find((k) => k.symbol === series.symbol && (!k.lanes || k.lanes.includes("gap")) && dates.includes(k.date)) ?? null;
-}
-
 export function planGapSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
   if (!clock.calendar) return { kind: "closed", wakeSec: null, state: "closed: no calendar" };
   const w = nextGapCandidate(series, clock);
@@ -40,8 +34,11 @@ export function planGapSeries(series: PlanSeries, clock: PlanClock): SeriesPlan 
   const listSec = w.tradingStartSec - clock.gapLeadSec;
   if (clock.nowSec < listSec) return { kind: "wait", window: w, wakeSec: listSec, state: `waiting: lists ${day(listSec)}Z for ${gapSpanOf(w)}` };
   const passSec = w.lockAtSec - clock.minTradableSec + 1;
-  const skip = gapSkip(series, clock, w);
-  if (skip) return { kind: "paused", window: w, wakeSec: passSec, state: `paused: corporate action (${skip.why})` };
+  // Gap halts are keyed by ticker; a corporate skip matches the Friday or the Monday ET date (core `skipApplies`).
+  const halt = haltOf(clock.halts, series.symbol as TickerSymbol);
+  if (halt) return { kind: "paused", window: w, wakeSec: passSec, state: haltPausedState(halt) };
+  const action = corporateActionFor({ symbol: series.symbol as TickerSymbol, lane: "gap", window: w }, clock.skips);
+  if (action) return { kind: "paused", window: w, wakeSec: passSec, state: corporatePausedState(action.why) };
   const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
   if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: "paused: no signed source" };
   const book = series.freeBooks[0];

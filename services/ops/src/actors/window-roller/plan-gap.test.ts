@@ -60,7 +60,7 @@ describe("window-roller Gap plan", () => {
     expect(planGapSeries(gapSeries("NVDA"), clock("2026-11-25T17:59:59Z")).kind).toBe("wait");
   });
 
-  it("runs a synthetic holiday Monday to the Tuesday open, and a corporate skip on either end pauses it", () => {
+  it("runs a synthetic holiday Monday to the Tuesday open; a corporate skip on either end or a ticker halt pauses it", () => {
     const at = "2026-10-08T20:00:00Z";
     const holiday = { calendar: calendarAt(utc(at), ["2026-10-12"]) };
     const plan = planGapSeries(gapSeries("AAPL"), clock(at, holiday));
@@ -70,6 +70,11 @@ describe("window-roller Gap plan", () => {
     expect(skip("2026-10-13")).toMatchObject({ kind: "paused", state: "paused: corporate action (split)" });
     expect(skip("2026-10-13", ["regular"]).kind).toBe("open");
     expect(skip("2026-10-12").kind).toBe("open");
+    // A halt keyed by the ticker pauses its Gap; another ticker's halt or its xStock's doesn't.
+    const halted = (halts: PlanClock["halts"]) => planGapSeries(gapSeries("AAPL"), clock(at, { ...holiday, halts }));
+    expect(halted({ AAPL: { reason: "redstone-stale", sinceSec: utc(at) - 90 } })).toMatchObject({ kind: "paused", state: "paused: halted (redstone-stale)" });
+    expect(halted({ NVDA: { reason: "redstone-stale", sinceSec: utc(at) - 90 } }).kind).toBe("open");
+    expect(planGapSeries(gapSeries("TSLA"), clock("2026-09-17T20:00:00Z", { halts: { TSLAx: { reason: "issuer-halt", sinceSec: 0 } } })).kind).toBe("open");
   });
 
   it("lists a Gap past its check bound (single-source), but never one that can't take its opening print", () => {
