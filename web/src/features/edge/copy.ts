@@ -82,7 +82,7 @@ export const EDGE = {
       noLosses: "No losses yet",
       provenanceLabel: "How this is verified",
       provenance:
-        "The report is calculated in your browser from your fills and complete-set actions on Agari's indexer, settled by the program's own rule and checked against each seat's redemption on-chain. Redeeming a position does not erase it from this ledger.",
+        "The report is calculated in your browser from your fills and complete-set actions on Agari's indexer, settled by the chain's own rule and checked against your redemptions. Redeeming a position does not erase it from this ledger.",
     },
     footer: "This report measures settled Windows because a Window is what settles. Every figure is a fill, or the settlement rule applied to one — never an estimate.",
   },
