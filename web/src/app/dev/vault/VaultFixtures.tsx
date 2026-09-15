@@ -2,12 +2,13 @@
 
 import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";
+import { BetRow } from "@/features/markets/portfolio";
 import { TradingBalancePanel, TradingBalanceView, VAULT, VaultBetRow, VaultRow } from "@/features/vault";
-import { FIXTURE_NOW_MS, FIXTURE_SYMBOL, OPEN_BETS, VAULT_FIXTURES, WALLET_SPENDABLE } from "./fixtures";
+import { CASH_OUT_STATES, FIXTURE_NOW_MS, FIXTURE_SYMBOL, OPEN_BETS, VAULT_FIXTURES, WALLET_POSITION, WALLET_SPENDABLE } from "./fixtures";
 
 const noop = () => undefined;
 
-/** Every Trading Balance state from canned readings through the real view, the pool row both ways, the open-bet rows, then the live panel. */
+/** Every Trading Balance state from canned readings through the real view, the pool row both ways, the open-bet rows with their cash-out states, then the live panel. */
 export function VaultFixtures() {
   return (
     <div className="mx-auto flex w-full max-w-(--content-wide) flex-col gap-8 px-gutter py-8 lg:px-gutter-desktop">
@@ -56,7 +57,17 @@ export function VaultFixtures() {
         ))}
       </ul>
 
-      <SectionHeader index="04" title={VAULT.fixtures.live} />
+      <SectionHeader index="04" title={VAULT.fixtures.cashOut} />
+      <ul className="flex flex-col">
+        {CASH_OUT_STATES.map(({ label, state }) => (
+          <BetRow key={`wallet-${label}`} position={WALLET_POSITION} symbol={FIXTURE_SYMBOL} nowMs={FIXTURE_NOW_MS} cashOutPreview={state} />
+        ))}
+        {CASH_OUT_STATES.slice(2, 4).map(({ label, state }) => (
+          <VaultBetRow key={`vault-${label}`} bet={OPEN_BETS[0]!} symbol={FIXTURE_SYMBOL} nowMs={FIXTURE_NOW_MS} cashOutPreview={state} />
+        ))}
+      </ul>
+
+      <SectionHeader index="05" title={VAULT.fixtures.live} />
       <div className="max-w-(--content-reading)">
         <TradingBalancePanel />
       </div>

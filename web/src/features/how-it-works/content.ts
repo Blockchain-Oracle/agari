@@ -199,6 +199,6 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "Can I sell a position before settlement?",
-    answer: "The venue allows it — a position can be sold back to the book at the live price. Masayume's cash-out control is not connected yet; until it is, a position is held to the close and redeemed.",
+    answer: "Yes, until the Window locks. Cash out on an open bet sells it back to the book immediate-or-cancel, at the best bids there are right now and never below the floor it shows. If nobody is bidding it says there is no exit liquidity and nothing is sold. Once the Window locks a position can't be sold; it pays at settlement.",
   },
 ];

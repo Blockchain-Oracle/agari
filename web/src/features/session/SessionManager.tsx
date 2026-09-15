@@ -8,7 +8,7 @@ import { notify } from "@/lib/toast";
 import { priceCapText } from "./caps";
 import { SESSION } from "./copy";
 import { LAMPORTS_PER_TAP, SESSION_KEY_TOPUP_LAMPORTS, SOL_DECIMALS } from "./fees";
-import { useSessionKey } from "./SessionKeyProvider";
+import { useSessionKey, useSponsorWhileOpen } from "./SessionKeyProvider";
 import { SessionModalShell } from "./SessionModal";
 import { SessionDetail } from "./SessionDetail";
 import styles from "./SessionDetails.module.css";
@@ -158,6 +158,7 @@ export function SessionManagerBody({ view, actions, busy, symbol, onArmNew }: { 
 
 export function SessionManager({ open, onOpenChange, onArmNew, symbol }: SessionManagerProps) {
   const { view, actions, busy } = useSessionKey();
+  useSponsorWhileOpen(open);
   return (
     <SessionModalShell open={open} onClose={() => onOpenChange(false)} title={SESSION.manager.title} description={SESSION.manager.description} labelId="session-manager-title">
       <SessionManagerBody view={view} actions={actions} busy={busy} symbol={symbol} onArmNew={onArmNew} />

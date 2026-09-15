@@ -9,6 +9,7 @@ import { SectionHeader } from "@/components/chrome";
 import { RouteControl, SESSION, SessionChip, SessionControl, SessionManagerBody, type FundingSource, type SessionKeyView, type SessionStatus } from "@/features/session";
 import { SessionModalShell } from "@/features/session/SessionModal";
 import { CapabilityReceipt } from "@/features/session/CapabilityReceipt";
+import { SESSION_KEY_TOPUP_LAMPORTS } from "@/features/session/fees";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 const ONE = 1_000_000n;
@@ -18,6 +19,8 @@ const OTHER_KEY = fixtureAddress("0x00000000000000000000000000000000000000bb");
 const VAULT = fixtureAddress("0x0000000000000000000000000000000000000ee1");
 const NOW_SEC = 1_788_400_000;
 const SYMBOL = "tUSDC";
+/** The wire allowlist `GET /api/sponsor` reports (tap-trading.md §3); a copy here keeps the client bundle free of the server policy. */
+const SPONSOR_ALLOWLIST = ["agari_vault:actor_place_for", "agari_vault:public_crank_settle", "agari_vault:owner_withdraw", "agari_vault:owner_withdraw_private", "agari_vault:owner_revoke"];
 
 function grant(actor: Address, expiresAtSec: number, revoked = false): VaultGrant {
   return {
@@ -68,14 +71,14 @@ const VIEWS: Array<{ label: string; view: SessionKeyView }> = [
   { label: "armed · key pays", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600) }) },
   {
     label: "armed · sponsor on",
-    view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), sponsor: { configured: true, sponsor: VAULT, balanceLamports: 5n * LAMPORTS_PER_SOL, allowlist: ["agari-vault:place_for"] }, keyFeeLamports: 0n }),
+    view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), sponsor: { configured: true, sponsor: VAULT, balanceLamports: 5n * LAMPORTS_PER_SOL, allowlist: SPONSOR_ALLOWLIST }, keyFeeLamports: 0n }),
   },
   { label: "armed · key empty", view: view("armed", { grant: grant(KEY, NOW_SEC + 6 * 3600), keyFeeLamports: 0n }) },
   {
     label: "armed · sponsor declined",
     view: view("armed", {
       grant: grant(KEY, NOW_SEC + 6 * 3600),
-      sponsor: { configured: true, sponsor: VAULT, balanceLamports: 0n, allowlist: ["agari-vault:place_for"] },
+      sponsor: { configured: true, sponsor: VAULT, balanceLamports: 0n, allowlist: SPONSOR_ALLOWLIST },
       sponsorRefusal: "The sponsorship allowance for this transaction has been exhausted. The browser key must cover the network fee.",
     }),
   },
@@ -124,6 +127,7 @@ export function SessionFixtures() {
         <SectionHeader index="01" title={SESSION.dev.states} />
         {VIEWS.map(({ label, view: v }) => <ManagerFixture key={label} label={label} view={v} />)}
         <CapabilityReceipt keyAddress={KEY} expiresAtSec={NOW_SEC + 6 * 3600} sponsorConfigured topUpLamports={0n} />
+        <CapabilityReceipt keyAddress={KEY} expiresAtSec={NOW_SEC + 6 * 3600} sponsorConfigured={false} topUpLamports={SESSION_KEY_TOPUP_LAMPORTS} />
       </section>
 
       <section className="flex flex-col gap-4">

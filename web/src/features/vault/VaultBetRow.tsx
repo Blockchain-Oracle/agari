@@ -2,18 +2,23 @@
 
 import { countdown } from "@agari/core/lifecycle";
 import { marketDeepLink } from "@agari/core/urls";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { useWalletSession } from "@/lib/wallet-session";
+import { CashOutLink, CashOutLinkView, heldSide, type CashOutState } from "../markets/portfolio/BetRow";
 import { SIDE_WORD } from "../markets/side-styles";
 import { VAULT } from "./copy";
-import type { VaultOpenBet } from "./useVaultOpenBets";
+import { invalidateVaultOpenBets, type VaultOpenBet } from "./useVaultOpenBets";
 
 interface VaultBetRowProps {
   bet: VaultOpenBet;
   symbol: string | undefined;
   nowMs: number;
+  /** Fixtures only: a canned cash-out state instead of the live link. */
+  cashOutPreview?: CashOutState;
 }
 
 function sideLabel(bet: VaultOpenBet): string {
@@ -26,11 +31,15 @@ function sideLabel(bet: VaultOpenBet): string {
 /**
  * One open bet the vault holds — `BetRow`'s grammar (reference `Portfolio624Section` L431) with
  * the seat named. No "worth now": the venue prices a wallet's positions, not the vault's per
- * owner, so the row says what was staked and says why that is all it says.
+ * owner, so the row says what was staked and says why that is all it says. Before lock the owner can sell a
+ * one-sided holding back to the book from the vault's slot (L-35); proceeds land in the Trading Balance.
  */
-export function VaultBetRow({ bet, symbol, nowMs }: VaultBetRowProps) {
+export function VaultBetRow({ bet, symbol, nowMs, cashOutPreview }: VaultBetRowProps) {
   const state = nowMs > 0 ? countdown(nowMs, bet.expirySec, bet.intervalSec) : null;
   const settling = state?.settling ?? false;
+  const side = heldSide(bet.heldUpRaw, bet.heldDownRaw);
+  const queryClient = useQueryClient();
+  const { address } = useWalletSession();
 
   return (
     <li className="bets-row">
@@ -62,6 +71,20 @@ export function VaultBetRow({ bet, symbol, nowMs }: VaultBetRowProps) {
         {VAULT.bets.staked} <Money value={bet.stakeBase} decimals={bet.decimals} symbol={symbol} />
       </span>
       <span className="type-caption text-ink-muted">{VAULT.bets.unpriced}</span>
+      {!settling && side && cashOutPreview && <CashOutLinkView {...cashOutPreview} onCashOut={() => undefined} />}
+      {!settling && side && !cashOutPreview && (
+        <CashOutLink
+          marketId={bet.marketId}
+          side={side}
+          heldRaw={side === "up" ? bet.heldUpRaw : bet.heldDownRaw}
+          decimals={bet.decimals}
+          symbol={symbol}
+          route={{ kind: "vault" }}
+          onConfirmed={async () => {
+            if (address) await invalidateVaultOpenBets(queryClient, address);
+          }}
+        />
+      )}
     </li>
   );
 }

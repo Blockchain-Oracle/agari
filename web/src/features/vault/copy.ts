@@ -58,7 +58,7 @@ export const VAULT = {
   },
   notDeployed: {
     why: VAULT_NOT_DEPLOYED,
-    how: "A record in contracts/deployments, or the NEXT_PUBLIC_EVENT_VAULT_ADDRESS override, connects it. Wallet orders keep working.",
+    how: "The agari-vault program id (scripts/deploy/addresses.devnet.json, or the NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID override) connects it once the program is live. Wallet orders keep working.",
   },
   positionsNote: "Positions the vault holds for you appear under Your bets.",
   /** Open bets the vault holds (`BetRow` grammar, plus the seat). */
@@ -103,6 +103,7 @@ export const VAULT = {
     error: "First read failed",
     loading: "Nothing known yet",
     bets: "Open bets the vault holds",
+    cashOut: "Cash out — idle, selling, no exit liquidity, locked, requote, not live",
     live: "Live — connected wallet",
   },
 } as const;
