@@ -1,6 +1,6 @@
 "use client";
 
-import { SHARE_TOKENS, type ShareToken, type TickerSymbol } from "@agari/core/market";
+import { SHARE_TOKENS, type ShareSymbol, type ShareToken, type TickerSymbol } from "@agari/core/market";
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import type { Address } from "@agari/core/types";
 import { useReadingQuery } from "@agari/markets/react";
@@ -13,7 +13,7 @@ const holdingsKey = (owner: Address | null) => ["agari", "hedge", "holdings", ow
 /** One verified holding with its integers back as bigints. */
 export interface HoldingView {
   mint: string;
-  symbol: ShareToken["symbol"];
+  symbol: ShareSymbol;
   issuer: ShareToken["issuer"];
   underlying: TickerSymbol;
   sharesE8: bigint;
@@ -21,7 +21,7 @@ export interface HoldingView {
 }
 
 const digits = z.string().regex(/^\d+$/).transform((text) => BigInt(text));
-const SYMBOLS = SHARE_TOKENS.map((token) => token.symbol) as [ShareToken["symbol"], ...ShareToken["symbol"][]];
+const SYMBOLS = SHARE_TOKENS.map((token) => token.symbol) as [ShareSymbol, ...ShareSymbol[]];
 const UNDERLYINGS = [...new Set(SHARE_TOKENS.map((token) => token.underlying))] as [TickerSymbol, ...TickerSymbol[]];
 
 /** `GET /api/holdings` (`app/api/holdings/route.ts`): bigints travel as decimal strings. */
