@@ -46,9 +46,10 @@
   - Add `@switchboard-xyz/on-demand@3.10.6` and `@switchboard-xyz/common@5.8.5` (Context7 first).
   - `price-sources.json`: `gap` block and `tokenLane.*.feedHash` placeholders.
   - Create the lane worktrees and ports.
-- [ ] **6c core (merges first):**
+- [x] **6c core (merges first):**
   - `packages/core/src/market/{halts,void-reason,events-calendar,corporate}.ts` with vitests (`skipApplies` on Gap spans, `voidDetail`, `earningsFlag`).
   - `corporate-actions.json` gains `lanes` and `multipliers`.
+  - Merged 5968db4 (core) and 8b85afb (ops, scripts, LiteSVM 3/3). The roller's Regular plan reads `clock.halts` (`haltPausedState`) and `corporateActionFor`; `PlanClock` also carries `multipliers` for the token lane.
 - [ ] **6a Gap:**
   - `plan-gap.ts` (48 h lead, check-bound exception, two-date corporate skip) and vitests at `--at` clocks.
   - Relay `gap-slots.ts` (RedStone open from `print_archive` until `lock_at`); maker `gap-fair.ts`.
@@ -77,11 +78,11 @@
   - Codegen and IDL republish.
   - `admin_set_authorities` with the full set, the queue and min oracles.
   - Register 12 token Series (5.554 SOL); fund the relay to 1 SOL. Acceptance rows for each.
-- [ ] **6c ops:**
-  - `halt-watch` actor (Pyth confidence and staleness, RedStone staleness, xStocks issuer halt, quote failures) over one full live session.
-  - `calendar/earnings.ts` (Finnhub, 6 h).
-  - `scripts/drive/corporate-check.ts` (proposes, never writes).
-  - LiteSVM `events_halt_void.rs`: wide-confidence Pyth account → ConfidenceTooWide → void at T + 901, both orders.
+- [ ] **6c ops:** (all built and merged at 8b85afb; open only for the full-session run)
+  - [ ] `halt-watch` actor (Pyth confidence and staleness, RedStone staleness, xStocks issuer halt, quote failures) over one full live session. Fixture run passed 06:50Z 09-15 (NVDAx issuer-halt, QQQx quote-unavailable, TSLA pyth-wide, NVDA redstone-stale after the 20 s boot grace); live run 09-15 13:30–20:00Z pending.
+  - [x] `calendar/earnings.ts` (Finnhub, 6 h): 7 per-symbol calls every 6 h, 3 s apart (the unfiltered calendar caps at 1,500 rows). Unknown-hour and `dmh` rows raise no `earnings-gap` flag (spec §3.3 as written).
+  - [x] `scripts/drive/corporate-check.ts` (proposes, never writes). Finnhub `/stock/split` is 403 on the free key, so split skips come only from xStocks multiplier reasons and a person's review (answers C:02 §B "unverified").
+  - [x] LiteSVM `events_halt_void.rs`: wide-confidence Pyth account → ConfidenceTooWide → void at T + 901, both orders (3/3; conf 182,739 refused, 182,738 prints).
 - [ ] **6d states and hedge:**
   - Every spec §5 row: basis-aware lane tabs and `laneState`; Gap card (listed, trading, locked); token labels; halted chip; new ticket blockers; claim-card void copy (Q-S6-7).
   - Fixtures in `/dev/states`, `/dev/session`, `/dev/hedge`.
