@@ -26,3 +26,5 @@ export * from "./strategy-attempts";
 export * from "./faucet";
 export * from "./print-archive";
 export * from "./index-store";
+export * from "./sponsor";
+export * from "./schema-sponsor";
