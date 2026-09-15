@@ -10,19 +10,22 @@ import type { Slide } from "./types";
 import type { VenueUsage } from "./useVenueUsage";
 
 /**
- * Slides 09–15 — ported from `reference/yosuku/app/pitch/page.tsx` L471–634. The
- * "real usage" slide is the one that reads the venue live (`useVenueUsage`); the deck
- * threads the reading in so the slide never fetches on its own each time it mounts.
+ * Slides 09–15 — ported from `reference/yosuku/app/pitch/page.tsx` L471–634, layout for
+ * layout; the facts are Agari's and each is sourced in `copy.ts`. The "real usage" slide
+ * reads this venue live through `/api/leaderboard` (`useVenueUsage`), the same route the
+ * board serves; the deck threads the reading in so the slide never fetches on its own
+ * each time it mounts.
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
-/** The one program every Window runs on; the deck says so honestly until it is deployed (S2 devnet, S15 story pass). */
+/** The one program every Window runs on, and the one that holds a Trading Balance; honest when either is unset. */
 const EVENTS_PROGRAM = webEnv.markets.eventsProgramId ?? "not deployed";
+const VAULT_PROGRAM = webEnv.markets.vaultProgramId ?? "not deployed";
 
 const A = PITCH.agents;
 const U = PITCH.demand;
 const R = PITCH.revenue;
-const W = PITCH.whySomnia;
+const W = PITCH.whySolana;
 const T = PITCH.team;
 const RM = PITCH.roadmap;
 const CL = PITCH.close;
@@ -109,9 +112,9 @@ export function slidesB(usage: VenueUsage): Slide[] {
       ),
     },
 
-    // 12 · TECHNICAL + WHY SOMNIA
+    // 12 · TECHNICAL + WHY SOLANA
     {
-      id: "why-somnia",
+      id: "why-solana",
       section: W.section,
       paper: 2,
       render: () => (
@@ -135,9 +138,9 @@ export function slidesB(usage: VenueUsage): Slide[] {
             badge={W.panelBadge}
             rows={[
               [W.labels.venue, `${W.labels.venueValue} · ${shortAddr(EVENTS_PROGRAM)}`, true],
-              [W.labels.settlement, shortAddr(EVENTS_PROGRAM), true],
-              [W.labels.oracle, shortAddr(EVENTS_PROGRAM)],
-              [W.labels.tokens, W.labels.tokensValue],
+              [W.labels.settlement, W.labels.settlementValue, true],
+              [W.labels.oracle, W.labels.oracleValue],
+              [W.labels.tokens, `${W.labels.tokensValue} · ${shortAddr(VAULT_PROGRAM)}`],
               [W.labels.indexer, W.labels.indexerValue],
               [W.labels.gas, W.labels.gasValue],
             ]}
