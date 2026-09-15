@@ -1,5 +1,6 @@
 "use client";
 
+import type { TickerSymbol } from "@agari/core/market";
 import { NEWS } from "./copy";
 import type { Article, Sentiment } from "./protocol";
 import { useNews } from "./useNews";
@@ -21,7 +22,7 @@ function Meta({ article }: { article: Article }) {
 }
 
 /** Reference L69–84: a display-size lead and five wire lines, pulsing. */
-function Skeleton() {
+export function NewsSkeleton() {
   const widths = ["85%", "76%", "67%", "58%", "49%"];
   return (
     <div className="news-feed news-skeleton" role="status" aria-busy="true">
@@ -45,12 +46,12 @@ function Skeleton() {
  * "Editorial front page, not a widget: one lead story at display size, then numbered ruled
  * rows. Sentiment is a labeled tag; metadata is mono; whitespace and hairlines do the layout."
  * The tag is the route's keyword heuristic over the headline, and says so by being a word,
- * never a number.
+ * never a number. `symbol` narrows the wire to one ticker's company news (`/news?symbol=`, the ticker hub).
  */
-export function NewsFeed() {
-  const reading = useNews();
+export function NewsFeed({ symbol = null }: { symbol?: TickerSymbol | null }) {
+  const reading = useNews(symbol);
 
-  if (reading === null) return <Skeleton />;
+  if (reading === null) return <NewsSkeleton />;
   const articles = reading.ok ? reading.value : [];
   if (articles.length === 0) return <p className="news-quiet">{NEWS.quiet}</p>;
 
