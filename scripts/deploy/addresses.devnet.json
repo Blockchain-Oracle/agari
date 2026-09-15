@@ -18,7 +18,16 @@
       "extendSignature": "63eKut7v4crVrTovjg2FPWrYJiJmCRR1cGsrxxohFPcmThtYCuigGNtrqYLVsK1AeHTB6sR6ErF27U8Uk3gNYwgN"
     },
     "agari_vault": {
-      "programId": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
+      "programId": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9",
+      "programData": "88v6d5jh5WtEoP1Yq8RACohRR97LB6Zg4cmreaHXZB2G",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "42p43jqnerGtbkEgtAx94mk2eWXgrfVjkfop7D6KEpxUsPJye3tN1cqELATccUXZM5iuQ5NH8iFmws13GxoBNj25",
+      "deployedSlot": 498945413,
+      "fromSlot": 498945413,
+      "sbpfArch": "v0",
+      "soBytes": 519296,
+      "soSha256": "b6eab3a1776b283440d701a87fdb095106cb6c454cb6779249087f030cde61af",
+      "sourceCommit": "9adaf66"
     }
   },
   "venue": {
