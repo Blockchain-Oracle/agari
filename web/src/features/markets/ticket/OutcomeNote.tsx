@@ -1,12 +1,13 @@
 "use client";
 
+import { ownCentsOf } from "@agari/core/orders";
 import type { Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
 import { Hash, Money, Odds } from "@/components/data";
 import { ErrorState } from "@/components/states";
-import { SUBMITTED_UNKNOWN, TICKET } from "@/lib/copy";
+import { PREOPEN, SUBMITTED_UNKNOWN, TICKET } from "@/lib/copy";
 import { SIDE_WORD } from "../side-styles";
 import type { PlaceBetState } from "./usePlaceBet";
 
@@ -49,6 +50,10 @@ export function OutcomeNote({ state, decimals, symbol, onDismiss }: OutcomeNoteP
           <Odds bps={booked.avgPriceBps} /> · <Money value={booked.costBase} decimals={decimals} symbol={symbol} />
         </Line>
       );
+    }
+    case "resting": {
+      const { rested } = outcome;
+      return <Line txHash={rested.txHash}>{PREOPEN.ticket.resting(formatContracts(rested.contractsRaw, decimals), SIDE_WORD[rested.side], ownCentsOf(rested.side, rested.priceTicks))}</Line>;
     }
     case "nothingFilled":
       return <Line txHash={outcome.txHash}>{TICKET.nothingFilled}</Line>;

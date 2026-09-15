@@ -3,6 +3,7 @@ export * from "./csv";
 export * from "./edge";
 export * from "./equity";
 export * from "./leaderboard";
+export * from "./orders";
 export * from "./ledger";
 export * from "./reputation";
 export * from "./settle";

@@ -44,7 +44,7 @@ export interface BoostState {
   error: Diagnosis | null;
 }
 
-const PHASE_BLOCKERS: Partial<Record<MarketPhase, BlockerKind>> = {
+export const PHASE_BLOCKERS: Partial<Record<MarketPhase, BlockerKind>> = {
   upcoming: "upcoming",
   pendingOpeningPrint: "pending-opening-print",
   noEntryBuffer: "no-entry-buffer",
@@ -54,7 +54,7 @@ const PHASE_BLOCKERS: Partial<Record<MarketPhase, BlockerKind>> = {
   voided: "locked",
 };
 
-function fundingBlocker(funding: FundingCheck | null): BlockerKind | null {
+export function fundingBlocker(funding: FundingCheck | null): BlockerKind | null {
   if (!funding || funding.ok) return null;
   if (funding.diagnosis.kind === "out-of-gas") return "out-of-gas";
   if (funding.diagnosis.kind === "insufficient-collateral") return "over-balance";
@@ -64,8 +64,9 @@ function fundingBlocker(funding: FundingCheck | null): BlockerKind | null {
 
 /**
  * Why this Window can't take a call for a session, source or corporate reason, named before the generic phase word:
- * a halt holds any Window still open to calls; a paused lane holds one waiting on its opening print; a listed Gap says
- * when its calls open; a Regular Window outside the session says when the market opens.
+ * a halt holds any Window still open to calls; a paused lane holds one waiting on its opening print; a settled Regular
+ * Window outside the session says when the market opens. A listed Window before its open is no longer a blocker on the
+ * Regular and Gap lanes: it takes a scheduled call (D-088, `isRestable`), so the ticket switches modes instead.
  */
 export function laneBlocker(phase: MarketPhase, lane: LaneGuardInput | null | undefined): BlockerKind | null {
   if (!lane) return null;
@@ -73,8 +74,7 @@ export function laneBlocker(phase: MarketPhase, lane: LaneGuardInput | null | un
   if (lane.halt && (beforeOpen || phase === "trading")) return "halted";
   if (beforeOpen && lane.laneState?.startsWith("paused: corporate action")) return "corporate-action";
   if (beforeOpen && lane.laneState?.startsWith("paused")) return "lane-paused";
-  if (lane.basis === "gap" && phase === "upcoming") return "gap-listed";
-  if (lane.basis === "regular" && lane.sessionOpen === false && (phase === "upcoming" || isSettled(phase))) return "session-closed";
+  if (lane.basis === "regular" && lane.sessionOpen === false && isSettled(phase)) return "session-closed";
   return null;
 }
 

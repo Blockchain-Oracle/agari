@@ -77,17 +77,19 @@ function terminal(i: SettleInput): SettleAction {
   }
   if (!i.ledgerClosed) {
     if (i.seats === null) return { kind: "read", need: "seats", why: "ledger seats" };
-    const redeemable = i.seats.filter((s) => !s.program).map((s) => s.index);
+    const redeemable = i.seats.filter((s) => !s.program);
     const graceEnds = i.resolvedSec + i.redeemGraceSec;
-    if (redeemable.length > 0 && i.nowSec < graceEnds) {
-      // The claim grace (D-032): the Book still goes back at once, the seats wait for their owners' own redeem.
-      if (!i.bookReleased) return { kind: "releaseBook", why: "book empty; seats in their claim grace" };
-      return { kind: "wait", untilSec: graceEnds, why: `${redeemable.length} seats in their claim grace until ${graceEnds}` };
+    const inGrace = i.nowSec < graceEnds;
+    // The claim grace (D-032): the Book still goes back at once, the seats wait for their owners' own redeem. A drained
+    // public seat holds only its bond — a scheduled call that never filled, or was cancelled and withdrawn (D-088) —
+    // so nothing is its owner's to claim and it is cranked at once; the Ledger never waits on it.
+    if (redeemable.length > 0 && inGrace && !i.bookReleased) return { kind: "releaseBook", why: "book empty; seats in their claim grace" };
+    const due = redeemable.filter((s) => !inGrace || s.drained).map((s) => s.index);
+    if (due.length > 0) {
+      const batch = due.slice(0, REDEEM_BATCH);
+      return { kind: "redeemFor", seats: batch, why: `seats ${batch.join(",")} of ${due.length} to redeem${inGrace ? " (bond-only, nothing to claim)" : ""}` };
     }
-    if (redeemable.length > 0) {
-      const batch = redeemable.slice(0, REDEEM_BATCH);
-      return { kind: "redeemFor", seats: batch, why: `seats ${batch.join(",")} of ${redeemable.length} to redeem` };
-    }
+    if (redeemable.length > 0) return { kind: "wait", untilSec: graceEnds, why: `${redeemable.length} seats in their claim grace until ${graceEnds}` };
   }
   // Released before the products' seats are waited on: the next Window needs the Book, whatever products still hold.
   if (!i.bookReleased) return { kind: "releaseBook", why: "book empty" };

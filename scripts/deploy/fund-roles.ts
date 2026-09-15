@@ -9,7 +9,7 @@ import { collateralBalanceOf, COLLATERAL_DECIMALS, lamportsOf, mintCollateral, r
 import { arg, clusterArg, endpoints, flag, redactKey, rolePubkey, roleSecret, sol, solToLamports } from "./ops-cluster";
 
 /** Spec §1 floats: roller pays Market/Ledger rent, settler pays MarketResult rent, relay posts Pyth, maker pays fees. */
-const DEFAULT_TARGETS: Record<string, string> = { roller: "4", settler: "2.5", "price-relay": "0.3", maker: "0.2" };
+const DEFAULT_TARGETS: Record<string, string> = { roller: "4", settler: "2.5", "price-relay": "0.3", maker: "0.2", "price-attestor": "0.3", sponsor: "0.5" };
 const MARGIN = 500_000_000n;
 
 const cluster = clusterArg();

@@ -44,3 +44,9 @@
     font-size: 13px;
   }
 }
+
+/* The selected listed Window's line under the price (D-088): the reference's `.pair-meta`, on its own line. */
+.mh-window-line {
+  display: block;
+  margin-top: 2px;
+}

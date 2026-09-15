@@ -17,10 +17,11 @@ const UP_KINDS = new Set([0, 3]);
 const asset = (symbol: string | null) => (symbol && isTickerSymbol(symbol) ? symbol : null);
 const seconds = (value: string | null) => (value === null ? null : Number(value));
 
+/** A fill from the taker's seat is a call; from the maker's seat it is a resting call that was taken (D-088). */
 export function fillItem(row: SocialFillRow): ActivityItem {
   return {
     id: `fill:${row.signature}:${row.outer_ix}:${row.inner_ix}:${row.fill_ix}:${row.wallet}`,
-    kind: "fill",
+    kind: row.seat === "maker" ? "resting-filled" : "fill",
     wallet: row.wallet as Address,
     marketId: row.market as MarketId,
     asset: asset(row.symbol),

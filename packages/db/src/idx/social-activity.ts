@@ -28,6 +28,8 @@ export interface SocialFillRow {
   wallet: string;
   /** The wallet's own order kind: 0 BUY_YES, 1 SELL_YES, 2 BUY_NO, 3 SELL_NO. */
   kind: number;
+  /** Which seat the wallet held in the fill: the taker crossed the book; the maker's order rested and was taken (D-088). */
+  seat: "taker" | "maker";
   symbol: string;
   cadence_sec: number | null;
   lots: string;
@@ -69,7 +71,7 @@ export interface SocialActivityQuery {
 
 export function socialActivityReader(sql: Sql) {
   const fillCols = (seat: "taker" | "maker") => sql`
-    f.signature, f.outer_ix, f.inner_ix, f.fill_ix, f.market, f.${sql(seat)} AS wallet, f.${sql(`${seat}_kind`)} AS kind, m.symbol, m.cadence_sec,
+    f.signature, f.outer_ix, f.inner_ix, f.fill_ix, f.market, f.${sql(seat)} AS wallet, f.${sql(`${seat}_kind`)} AS kind, ${seat}::text AS seat, m.symbol, m.cadence_sec,
     f.lots::text AS lots,
     (CASE WHEN f.${sql(`${seat}_kind`)} IN (0, 1) THEN f.price_ticks * f.lots * s.cash_unit
           ELSE (${PAIR_TICKS} - f.price_ticks) * f.lots * s.cash_unit END)::text AS amount_base,

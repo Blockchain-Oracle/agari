@@ -15,6 +15,8 @@ const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "market-not-trading": { headline: "The Window closed under you", body: "Your stake was never taken. The next Window is pre-armed." },
   "order-expired": { headline: "Order expired before it filled", body: "The book moved past your quote. Nothing was taken." },
   "post-only-would-cross": { headline: "Your price would fill immediately", body: "A backing order rests, it doesn't take. Adjust the level." },
+  "pre-open-taker": { headline: "Nothing fills before the open", body: "This Window is listed, not trading yet. Schedule a call that rests until the bell instead." },
+  "too-many-resting": { headline: "Too many resting calls", body: "Sixteen of your calls already rest on this Window. Cancel one to place another." },
   "no-liquidity": { headline: "No liquidity at this size", body: "Nobody is on the other side of this book right now. The next Window may have one." },
   "thin-book": { headline: "The book is too thin for this size", body: "Fewer contracts are resting than this order needs, or the spread is too wide to price. Nothing was taken." },
   "reserve-cap": { headline: "Above the reserve's cap for this Window", body: "The reserve limits what it fronts per position and per Window. A smaller stake fits; the cap is not a shortage." },

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ChromeSection } from "./_sections/ChromeSection";
 import { DataSection } from "./_sections/DataSection";
 import { HonestStatesSection } from "./_sections/HonestStatesSection";
+import { PreOpenSection } from "./_sections/PreOpenSection";
 import { ReceiptSection } from "./_sections/ReceiptSection";
 import { SessionLanesSection } from "./_sections/SessionLanesSection";
 import { TypeSection } from "./_sections/TypeSection";
@@ -15,6 +16,7 @@ export default function StatesPage() {
       <TypeSection />
       <HonestStatesSection />
       <SessionLanesSection />
+      <PreOpenSection />
       <DataSection />
       <ChromeSection />
       <ReceiptSection />
