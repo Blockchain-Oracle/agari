@@ -1,4 +1,4 @@
-import { COUNTRY_HEADER, isRestrictedCountry, REGION_HEADER, RESTRICTED } from "./region";
+import { COUNTRY_HEADER, isRestrictedCountry, REGION_HEADER, RESTRICTED } from "./region-mark";
 
 /**
  * The server half of the geofence (D-095): every funded route answers this before it touches a key,

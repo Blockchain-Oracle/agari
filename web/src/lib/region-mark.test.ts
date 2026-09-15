@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { readRegionRestricted } from "./region";
+import { readRegionRestricted } from "./region-mark";
 
 const setCookie = (cookie: string) => Object.defineProperty(globalThis, "document", { value: { cookie }, configurable: true });
 

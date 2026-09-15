@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { COUNTRY_HEADER, isRestrictedCountry, REGION_COOKIE, REGION_HEADER, RESTRICTED } from "@/lib/region";
+import { COUNTRY_HEADER, isRestrictedCountry, REGION_COOKIE, REGION_HEADER, RESTRICTED } from "@/lib/region-mark";
 
 /**
  * The geofence (D-095). Next 16 replaced `middleware.ts` with this file and the export is named `proxy`.

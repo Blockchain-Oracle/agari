@@ -2,6 +2,7 @@ import { privateCashoutRequestSchema, type PrivateClaim } from "@agari/core/priv
 import { toMarketId } from "@agari/core/types";
 import { cashOutPrivateBet, ClaimRefusedError, publicReason } from "@agari/markets/private";
 import { NextResponse } from "next/server";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { getDesk } from "@/features/private/desk.server";
 
 /**
@@ -16,6 +17,8 @@ export const maxDuration = 120;
 const refuse = (status: number, error: string) => NextResponse.json({ error }, { status });
 
 export async function POST(req: Request) {
+  // The geofence comes before any key, balance or co-signature (D-095).
+  if (regionRestricted(req)) return regionRestrictedResponse();
   const parsed = privateCashoutRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return refuse(400, "malformed private cash-out request");
   const desk = await getDesk().catch(() => null);
