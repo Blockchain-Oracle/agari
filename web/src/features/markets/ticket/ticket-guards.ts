@@ -1,9 +1,9 @@
 import type { BlockerKind } from "@agari/core/copy";
 import type { LeverageQuote } from "@agari/core/leverage";
-import type { MarketPhase } from "@agari/core/lifecycle";
+import { isSettled, type MarketPhase } from "@agari/core/lifecycle";
 import type { Reading } from "@agari/core/schemas";
 import { admissibilityBlocker, belowMinStake } from "@agari/core/sizing";
-import type { Diagnosis, Quote, Side } from "@agari/core/types";
+import type { Diagnosis, HaltEntry, LaneBasis, Quote, Side } from "@agari/core/types";
 import type { FundingCheck } from "@agari/markets";
 import type { WalletSession } from "@/lib/wallet-session";
 
@@ -23,6 +23,18 @@ export interface TicketBlockerInput {
   quoting: boolean;
   quoteStale: boolean;
   funding: FundingCheck | null;
+  /** The Window's lane as ops sees it (session-lanes.md §5); absent = no session read to judge by. */
+  lane?: LaneGuardInput | null;
+}
+
+export interface LaneGuardInput {
+  basis: LaneBasis;
+  /** Regular hours now; null while the session read hasn't answered. */
+  sessionOpen: boolean | null;
+  /** This Window's asset on `/session.halts`. */
+  halt: HaltEntry | null;
+  /** The roller's word for this Window's lane key (`paused: no signed source`, `paused: corporate action (split)`). */
+  laneState: string | null;
 }
 
 /** What the reserve said about the boost this stake asks for. */
@@ -50,6 +62,22 @@ function fundingBlocker(funding: FundingCheck | null): BlockerKind | null {
   return null;
 }
 
+/**
+ * Why this Window can't take a call for a session, source or corporate reason, named before the generic phase word:
+ * a halt holds any Window still open to calls; a paused lane holds one waiting on its opening print; a listed Gap says
+ * when its calls open; a Regular Window outside the session says when the market opens.
+ */
+export function laneBlocker(phase: MarketPhase, lane: LaneGuardInput | null | undefined): BlockerKind | null {
+  if (!lane) return null;
+  const beforeOpen = phase === "upcoming" || phase === "pendingOpeningPrint";
+  if (lane.halt && (beforeOpen || phase === "trading")) return "halted";
+  if (beforeOpen && lane.laneState?.startsWith("paused: corporate action")) return "corporate-action";
+  if (beforeOpen && lane.laneState?.startsWith("paused")) return "lane-paused";
+  if (lane.basis === "gap" && phase === "upcoming") return "gap-listed";
+  if (lane.basis === "regular" && lane.sessionOpen === false && (phase === "upcoming" || isSettled(phase))) return "session-closed";
+  return null;
+}
+
 /** Everything before the quote: the session, the Window, the stake against what can back it. */
 export function commonBlocker(i: TicketBlockerInput): BlockerKind | null {
   if (!i.session.isConnected) return i.session.isConnecting ? "connecting" : "disconnected";
@@ -58,6 +86,8 @@ export function commonBlocker(i: TicketBlockerInput): BlockerKind | null {
   if (!i.hasSigner) return "connecting";
   if (i.placing) return "placing";
   if (i.phase === null) return "syncing";
+  const lane = laneBlocker(i.phase, i.lane);
+  if (lane) return lane;
   const phaseBlocker = PHASE_BLOCKERS[i.phase];
   if (phaseBlocker) return phaseBlocker;
   if (i.availableBase === 0n) return "no-funds";

@@ -1,7 +1,8 @@
 import type { Address } from "@agari/core/types";
-import { createSponsorService, type SponsorService } from "@agari/markets/sponsor";
+import { createDbCosignLedger } from "@agari/db";
+import { createSponsorService, gateVerdict, SPONSOR_ALLOWLIST, type SponsorService } from "@agari/markets/sponsor";
 import { NextResponse } from "next/server";
-import { marketsEnvFromProcess, vaultDeploymentFromProcess } from "@/features/session/sponsor.server";
+import { vaultProgramFromProcess } from "@/features/session/sponsor.server";
 import type { SponsorWire } from "@/features/session/useSponsorStatus";
 
 /**
@@ -15,14 +16,40 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_BODY_BYTES = 8_192;
+const UNREADABLE = "the vault deployment could not be read";
 const noStore = { "Cache-Control": "no-store" };
 
 let service: SponsorService | null = null;
-const sponsor = () => (service ??= createSponsorService(process.env));
-const vaultProgram = (): Address | null => vaultDeploymentFromProcess(marketsEnvFromProcess())?.eventVault ?? null;
+
+/**
+ * One service per process. With `DATABASE_URL` the co-signs are counted in `sponsor_cosigns`, one decision per
+ * transaction, so the daily budgets hold across instances; without it the service keeps its in-process counters and
+ * the GET says "local counters" rather than pretending the budget is enforced.
+ */
+const sponsor = () => {
+  if (!service) {
+    const ledger = createDbCosignLedger(gateVerdict);
+    service = createSponsorService(process.env, ledger ? { ledger } : {});
+  }
+  return service;
+};
+
+/** A chain read that did not answer is not a vault that is missing, so the two are told apart rather than merged. */
+async function vaultProgram(): Promise<{ program: Address | null } | { unreadable: true }> {
+  try {
+    return { program: await vaultProgramFromProcess() };
+  } catch {
+    // The reason never carries the error: an RPC message can name the endpoint (and its key).
+    return { unreadable: true };
+  }
+}
 
 export async function GET() {
-  const status = await sponsor().status(vaultProgram());
+  const vault = await vaultProgram();
+  if ("unreadable" in vault) {
+    return NextResponse.json({ configured: false, sponsor: null, balanceLamports: null, allowlist: SPONSOR_ALLOWLIST, reason: UNREADABLE } satisfies SponsorWire, { headers: noStore });
+  }
+  const status = await sponsor().status(vault.program);
   const wire: SponsorWire = {
     configured: status.configured,
     sponsor: status.sponsor,
@@ -46,7 +73,9 @@ export async function POST(request: Request) {
   }
   // The first forwarded hop names the caller for the attempt limit; which proxies to trust is S16's decision.
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
-  const result = await sponsor().cosign(vaultProgram(), body, request.headers.get("x-agari-device") ?? "", ip);
+  const vault = await vaultProgram();
+  if ("unreadable" in vault) return refuse(502, UNREADABLE);
+  const result = await sponsor().cosign(vault.program, body, request.headers.get("x-agari-device") ?? "", ip);
   if (!result.ok) return refuse(result.status, result.error);
   return NextResponse.json({ signature: result.signature, transaction: result.transaction, instruction: result.instruction }, { headers: noStore });
 }

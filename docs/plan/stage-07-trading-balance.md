@@ -51,7 +51,7 @@
   - CU and transaction bytes measured into vault.md §9;
   - `.so` size of both CPI-client options (D-064).
   - Merged ebf9259 (f842877): vault_caps 10/10 vectors, vault_funding 8/8, vault_trading 13/13, events 34/34; program_autofixer clean. Measured CU/bytes and sizes in vault.md §9; D-064 outcome keeps (a); budget ≈ 6 SOL.
-- [ ] 7b adapter:
+- [x] 7b adapter:
   - vault reads and `vaultBase`;
   - every vault TxIntent;
   - order route through the vault (`order-lane.ts:63`);
@@ -60,6 +60,7 @@
   - session-key session `{ keyPair }`;
   - vault event decoder, index tables and tally route, settler crank helper;
   - Surfpool fork proofs (tap-trading.md §6), policy vitests.
+  - Merged 47f31dd (5 commits; 54 vitests) + 7c e45edd6 (route awaits `loadVaultDeployment`, key session co-signs through `createSponsorTransport`, `sponsor_cosigns` DB ledger). Fork proofs on 7a's exact .so: enable in one signature, three sponsored taps with the key at 0 SOL, cap refusal with no send, cash-out on both routes, a killed co-signed tap reconciled by signature, revoke, stranger crank, Ledger close, withdraw. Findings: a tap above ~606 ticks exceeds the 95¢ cap once the 5m cost-cap buffer pads the limit (feeds the open cost-cap decision); fork drives must `syncClock()` after time travel. Still unprovable until the devnet deploy: sponsored taps with zero popups, armed/expired/revoked with real data, a cap refusal, a cash-out fill. Open for the stage owner: the `wallet/:w/vault-tallies` index route + `idx_vault_fills`/`idx_vault_settlements` writer.
 - [x] 7c web:
   - session key v2 store and one-transaction enable;
   - `/api/sponsor` GET/POST on the policy, with P-11 gating;

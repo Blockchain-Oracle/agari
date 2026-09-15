@@ -50,7 +50,7 @@ function HeroBody({ market, side }: { market: EventMarket; side?: Side }) {
         <DistanceReadout openingRaw={openingRaw} currentRaw={latestRaw} side={side} />
       </div>
       <DepthStrip market={market} />
-      <PriceSourceNote />
+      <PriceSourceNote market={market} />
     </article>
   );
 }

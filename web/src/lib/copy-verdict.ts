@@ -38,6 +38,9 @@ export const VERDICT_UI = {
     paidAuto: "Paid automatically",
     paidTx: "payout tx",
     foot: "Collect it with one signature now, or the venue pays it to your wallet automatically a few minutes after settlement.",
+    /** Q-S6-7: a void is not "You won" — the reference's trophy branch is only a loss's opposite (M `ClaimWinnings.tsx:50-57`). */
+    returned: "Returned",
+    voidFoot: "Collect the returned 0.5 per contract with one signature now, or the venue pays it to your wallet a few minutes after settlement.",
   },
   devTitle: "Verdict moment",
   devEyebrow: "?m=<marketId> stamps a live window for the connected wallet",
@@ -68,6 +71,7 @@ export const CLAIM = {
     "vault-credit": "Vault credit — withdrawal",
   },
   leg: { up: "UP leg", down: "DOWN leg" },
+
   status: {
     pending: "waiting",
     claiming: "claiming…",

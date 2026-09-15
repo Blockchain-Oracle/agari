@@ -139,21 +139,49 @@ export const RESERVED_SERIES_IDS: Readonly<Record<number, string>> = { 11: "COIN
 export const LAUNCH_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].launch);
 export const TOKEN_LANE_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].xstock !== null);
 
+/**
+ * Tokenized shares of a launch ticker that no lane prices: a wallet holding one hedges the underlying's Regular or Gap
+ * Window (S6 §4), so the holdings reader keeps them while `xstock` — which decides the 24/7 token lane — stays null.
+ *
+ * Mints from C:01 §3.1 (xStocks `api.xstocks.fi/api/v2/public/assets`; Ondo via Jupiter's verified `ondo` tag), each
+ * checked on mainnet through Helius on 2026-09-15: Token-2022, 8 dp (xStocks) / 9 dp (Ondo), DAS symbol and name match,
+ * `scaledUiAmountConfig` present, and the mint, freeze and multiplier authorities equal to the issuer's already-verified
+ * TSLAx / TSLAon mints (D-011, D-058).
+ */
+const HEDGE_ONLY_SHARES = [
+  { symbol: "AAPLx", mint: "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp", issuer: "xstocks", underlying: "AAPL" },
+  { symbol: "MSFTx", mint: "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX", issuer: "xstocks", underlying: "MSFT" },
+  { symbol: "METAx", mint: "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu", issuer: "xstocks", underlying: "META" },
+  { symbol: "AMZNx", mint: "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg", issuer: "xstocks", underlying: "AMZN" },
+  { symbol: "GOOGLx", mint: "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN", issuer: "xstocks", underlying: "GOOGL" },
+  { symbol: "AAPLon", mint: "123mYEnRLM2LLYsJW3K6oyYh8uP1fngj732iG638ondo", issuer: "ondo", underlying: "AAPL" },
+  { symbol: "GOOGLon", mint: "bbahNA5vT9WJeYft8tALrH1LXWffjwqVoUbqYa1ondo", issuer: "ondo", underlying: "GOOGL" },
+] as const satisfies readonly { symbol: string; mint: string; issuer: "xstocks" | "ondo"; underlying: TickerSymbol }[];
+
+export type HedgeShareSymbol = (typeof HEDGE_ONLY_SHARES)[number]["symbol"];
+/** Every verified share token's symbol: the token lane's four xStocks, their Ondo twins, and the hedge-only shares. */
+export type ShareSymbol = XStockSymbol | OndoSymbol | HedgeShareSymbol;
+
 /** One verified tokenized share of a registry ticker, as the holdings reader keys it (always by mint, never by symbol). */
 export interface ShareToken {
-  symbol: XStockSymbol | OndoSymbol;
+  symbol: ShareSymbol;
   mint: Address;
   issuer: "xstocks" | "ondo";
   underlying: TickerSymbol;
+  /** True for the four xStocks the token lane prices; the rest are read-only for the hedge. */
+  traded: boolean;
 }
 
-export const SHARE_TOKENS: readonly ShareToken[] = TICKER_SYMBOLS.flatMap((symbol) => {
-  const { xstock: x, ondo: o } = TICKERS[symbol];
-  return [
-    ...(x ? [{ symbol: x.symbol, mint: x.mint, issuer: "xstocks" as const, underlying: symbol }] : []),
-    ...(o ? [{ symbol: o.symbol, mint: o.mint, issuer: "ondo" as const, underlying: symbol }] : []),
-  ];
-});
+export const SHARE_TOKENS: readonly ShareToken[] = [
+  ...TICKER_SYMBOLS.flatMap((symbol) => {
+    const { xstock: x, ondo: o } = TICKERS[symbol];
+    return [
+      ...(x ? [{ symbol: x.symbol, mint: x.mint, issuer: "xstocks" as const, underlying: symbol, traded: true }] : []),
+      ...(o ? [{ symbol: o.symbol, mint: o.mint, issuer: "ondo" as const, underlying: symbol, traded: false }] : []),
+    ];
+  }),
+  ...HEDGE_ONLY_SHARES.map((share) => ({ ...share, mint: toAddress(share.mint), traded: false })),
+];
 
 /**
  * The ops lane key (roller heartbeat, `/session.lanes`): `TSLA-5m` Regular, `TSLA-gap` Gap, `TSLAx-5m` token. Cadences
