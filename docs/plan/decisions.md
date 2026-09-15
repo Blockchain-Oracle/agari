@@ -922,6 +922,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - No new error codes; the IDL gains `recorder`, optional `prev_market` and optional `queue`.
 - **User-visible:** none; token prints land from the attestor key, and price-attestor becomes a paying writer (≈ 0.04–0.07 SOL/day).
 - **Approval:** stage owner, 2026-09-15.
+
 ### D-081 — Fidelity reconciled: Masayume exact where it exists, creative where it does not (amends D-036)
 - **Date / owner:** 2026-09-15 · user (voice) + S18 owner
 - **Evidence:** the user, testing while NYSE was closed: the app must never be empty, must carry real stock logos, and the news page and take cards should be designed "creatively" with 21st.dev; the D-036 replica rule had no answer for surfaces Masayume never had (a 24/7 crypto venue has no closed state).

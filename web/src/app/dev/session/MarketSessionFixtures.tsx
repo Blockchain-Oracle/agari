@@ -17,12 +17,12 @@ export function MarketSessionFixtures() {
       <SectionHeader index="S6" title={DEV.title} />
       <p className="type-body text-ink-secondary">{DEV.intro}</p>
       <FixtureGrid>
-        {SESSION_STATES.map(({ label, session, asset }) => (
+        {SESSION_STATES.map(({ label, session, nowSec, asset }) => (
           <Fixture key={label} label={label}>
             <div className="flex flex-col gap-3">
-              <MarketSessionChipView session={session} asset={asset} />
+              <MarketSessionChipView session={session} asset={asset} nowSec={nowSec} />
               <div className="mh-asset-row">
-                <MarketSessionChipView session={session} asset={asset} />
+                <MarketSessionChipView session={session} asset={asset} nowSec={nowSec} />
               </div>
               <p className="type-caption text-ink-muted">
                 {session.status.state} · {session.label}

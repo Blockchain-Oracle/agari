@@ -38,8 +38,11 @@ export function startOpsHttp(input: {
       return json(body.ok ? 200 : 503, body);
     }
     if (path === "/session") return json(200, sessionBody({ sessions: input.sessions ?? null, halts: input.halts ?? null, events: input.events ?? null }));
-    if (path === "/prices/latest") return input.spot ? json(200, latestBody(input.spot)) : json(503, { error: "no spot feed in this process" });
-    if (path === "/prices/stream") return input.spot ? streamSpot(req, res, input.spot, CORS) : json(503, { error: "no spot feed in this process" });
+    if (path === "/prices/latest") {
+      if (!input.spot) return json(503, { error: "no spot feed in this process" });
+      return void latestBody(input.spot).then((body) => json(200, body), (error: unknown) => json(503, { error: `prices unavailable: ${error instanceof Error ? error.message : String(error)}` }));
+    }
+    if (path === "/prices/stream") return input.spot ? void streamSpot(req, res, input.spot, CORS) : json(503, { error: "no spot feed in this process" });
     return json(404, { error: "not found" });
   });
   return new Promise((resolve, reject) => {

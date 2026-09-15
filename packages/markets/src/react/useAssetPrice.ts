@@ -14,16 +14,21 @@ import { useTick } from "./useTick";
 const AGE_TICK_MS = 1_000;
 const NOT_LIVE = { tick: null, live: false } as const;
 
+export interface AssetPriceOptions {
+  /** How often the `/prices/latest` fallback polls while the stream is not live; a closed surface asks for 60 s (D-086). */
+  pollMs?: number;
+}
+
 /**
  * Spot for one ticker: the tab's one shared stream while it is live, the polled `/prices/latest` snapshot otherwise.
  * Either way a price older than the freshness budget is flagged stale, re-evaluated every second without a new tick.
  */
-export function useAssetPrice(asset: TickerSymbol | null): Reading<AssetPrice | null> | null {
+export function useAssetPrice(asset: TickerSymbol | null, { pollMs = PRICE_POLL_MS }: AssetPriceOptions = {}): Reading<AssetPrice | null> | null {
   const subscribe = useCallback((onChange: () => void) => (asset === null ? () => undefined : subscribeSpot(asset, onChange)), [asset]);
   const view = useSyncExternalStore(subscribe, () => (asset === null ? NOT_LIVE : spotView(asset)), () => NOT_LIVE);
   const fallback = useReadingQuery(keys.assetPrice(asset), () => getAssetPrice(asset as TickerSymbol), {
     enabled: asset !== null && !(view.live && view.tick),
-    pollMs: PRICE_POLL_MS,
+    pollMs,
     needs: [],
   });
   const tick = useTick(AGE_TICK_MS);

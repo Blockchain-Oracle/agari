@@ -8,7 +8,7 @@ const FIXTURES = [
   { href: "/dev/status", label: "Status", note: "off-hours expected, in session, a stopped actor" },
   { href: "/dev/leaderboard", label: "Leaderboard", note: "period and ticker tabs, an earlier session, partial, empty, reading, failed" },
   { href: "/dev/stats", label: "Traction", note: "a session of calls, a capped scan, no calls, reading, failed" },
-  { href: "/dev/hero", label: "Hero market", note: "chart as ticket on the soonest live window (?m= to pick one)" },
+  { href: "/dev/hero", label: "Hero market", note: "chart as ticket on the soonest live window (?m= to pick one); the closed-market hero at pre, post, weekend and holiday clocks" },
   { href: "/dev/balance", label: "Balance plate", note: "every money state from canned sheets, then live" },
   { href: "/dev/verdict", label: "Verdict", note: "win, loss, void, both-sides-net, then live (?m=)" },
   { href: "/dev/claims", label: "Claim-all", note: "idle plate, mid-run progress, success receipt, then live" },
