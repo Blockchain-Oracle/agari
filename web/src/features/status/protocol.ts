@@ -20,6 +20,10 @@ export const statusPipelineSchema = z.object({
   optional: z.boolean(),
   /** False when an optional capability is simply not set up on this deployment, which is not a failure. */
   configured: z.boolean(),
+  /** Ours (proof-analytics.md §2.5): a session-bound row outside regular hours — "closed (expected)", never degrades. */
+  expected: z.boolean(),
+  /** Ours: the row's own thresholds judged an ok reading (slots, bps, balances); null keeps the reference's lag ladder. */
+  grade: z.enum(["good", "warn"]).nullable(),
 });
 
 export const statusPayloadSchema = z.object({
@@ -29,6 +33,8 @@ export const statusPayloadSchema = z.object({
   maxLagPipeline: z.string().nullable(),
   /** The chain head at read time — the reference's "checkpoint". */
   slot: z.number().nullable(),
+  /** Ours: the NYSE session as ops agrees it; null when ops could not say. */
+  session: z.object({ open: z.boolean(), label: z.string().nullable() }).nullable(),
   pipelines: z.array(statusPipelineSchema),
 });
 
@@ -44,9 +50,14 @@ export const LAG_BAD_SEC = 300;
 export type LagTone = "good" | "warn" | "bad" | "off";
 
 export function lagTone(pipeline: StatusPipeline): LagTone {
+  if (pipeline.expected) return "off";
   if (!pipeline.ok) return pipeline.optional && !pipeline.configured ? "off" : "bad";
+  if (pipeline.grade !== null) return pipeline.grade;
   if (pipeline.lagSec === null) return "good";
   if (pipeline.lagSec < LAG_WARN_SEC) return "good";
   if (pipeline.lagSec < LAG_BAD_SEC) return "warn";
   return "bad";
 }
+
+/** Rows that count toward the verdict: required, and not closed for the session. */
+export const countsTowardOverall = (pipeline: StatusPipeline): boolean => !pipeline.optional && !pipeline.expected;
