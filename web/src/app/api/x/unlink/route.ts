@@ -1,6 +1,5 @@
 import { isDbConfigured, xLinkByAuthor, xLinkRevoke } from "@agari/db";
 import { NextResponse, type NextRequest } from "next/server";
-import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { X_ERRORS } from "@/features/x/copy";
 import { readXGate, signatureFresh, verifyLinkSignature } from "@/features/x/gate.server";
 import { xUnlinkRequestSchema } from "@/features/x/protocol";
@@ -14,8 +13,6 @@ function refuse(reason: string, status: number) {
 
 /** Removes the X route only; the Trading Balance stays with the wallet. Signed by the bound wallet, as the reference requires. */
 export async function POST(req: NextRequest) {
-  // The geofence comes before any key, balance or co-signature (D-095).
-  if (regionRestricted(req)) return regionRestrictedResponse();
   const gate = await readXGate(req.nextUrl.origin);
   if (!gate.configured) return NextResponse.json({ ok: false, configured: false, missing: gate.missing });
   if (!isDbConfigured()) return refuse(X_ERRORS.storeUnavailable, 503);
