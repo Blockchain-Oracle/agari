@@ -119,6 +119,12 @@ describe("decideSettle: the claim grace (D-032)", () => {
     expect(decideSettle(input({ ...terminal, nowSec: T1 + 30 }))).toMatchObject({ kind: "releaseBook" });
     expect(decideSettle(input({ ...terminal, bookReleased: true, nowSec: T1 + 30 }))).toMatchObject({ kind: "wait", untilSec: T1 + 320 });
   });
+  it("cranks a bond-only seat during the grace — nothing is its owner's to claim (D-088) — and leaves the rest to theirs", () => {
+    const seats = [seat(8, { drained: true }), seat(9)];
+    expect(decideSettle(input({ ...terminal, seats, nowSec: T1 + 30 }))).toMatchObject({ kind: "releaseBook" });
+    expect(decideSettle(input({ ...terminal, seats, bookReleased: true, nowSec: T1 + 30 }))).toMatchObject({ kind: "redeemFor", seats: [8] });
+    expect(decideSettle(input({ ...terminal, seats: [seat(9)], bookReleased: true, nowSec: T1 + 30 }))).toMatchObject({ kind: "wait", untilSec: T1 + 320 });
+  });
   it("cranks redeem_for once the grace has passed, and never waits when the seats are already gone", () => {
     expect(decideSettle(input({ ...terminal, bookReleased: true, nowSec: T1 + 320 }))).toMatchObject({ kind: "redeemFor", seats: [8, 9] });
     expect(decideSettle(input({ ...terminal, bookReleased: true, nowSec: T1 + 30, seats: [] }))).toMatchObject({ kind: "closeLedger" });
