@@ -1,7 +1,12 @@
-import { redirect } from "next/navigation";
-import { MARKETS_PATH } from "@/lib/routes";
+import type { Metadata } from "next";
+import { LANDING, LandingPage } from "@/features/landing";
 
-/** The landing page lands in Epic 4; until then the root is the markets loop. */
+export const metadata: Metadata = {
+  title: { absolute: LANDING.meta.title },
+  description: LANDING.meta.description,
+};
+
+/** `/` is the landing (L-11, D-093): a static shell with three client islands, so nothing here depends on the request. */
 export default function Home() {
-  redirect(MARKETS_PATH);
+  return <LandingPage />;
 }
