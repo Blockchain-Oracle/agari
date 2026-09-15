@@ -44,6 +44,7 @@ const VAULT_ERRORS = new Map<number, readonly [string, DiagnosisKind, string?]>(
   [7112, ["GrantAccountMissing", "grant-refused"]],
   [7113, ["ActiveGrantMismatch", "grant-refused"]],
   [7114, ["StaleGrantId", "grant-refused"]],
+  [7115, ["GrantMarketMismatch", "grant-refused", "this grant trades one Window only"]],
   [7200, ["UnknownMarket", "market-not-trading"]],
   [7201, ["MarketNotTrading", "market-not-trading"]],
   [7202, ["MarketNotSettled", "not-settled"]],

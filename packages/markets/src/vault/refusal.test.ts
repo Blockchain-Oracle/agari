@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { encodeBase58, toAddress, type Address } from "@agari/core/types";
+import { encodeBase58, toAddress, type Address, type MarketId } from "@agari/core/types";
 import { utcDayOf, type VaultGrant } from "@agari/core/vault";
 import golden from "../../../core/src/vault/caps.vectors.json";
 import { grantBuyRefusal } from "./refusal";
@@ -10,6 +10,8 @@ const NOW_SEC = 1_788_400_000;
 const address = (n: number): Address => toAddress(encodeBase58(new Uint8Array(32).fill(n)));
 const OWNER = address(1);
 const ACTOR = address(2);
+const WINDOW = address(3) as MarketId;
+const OTHER_WINDOW = address(4) as MarketId;
 
 interface Vector {
   name: string;
@@ -41,7 +43,7 @@ describe("the tap's client-side cap check refuses exactly what agari-vault would
       const quote = { limitPriceRaw: BigInt(v.order.priceRaw), contractsRaw: BigInt(v.order.quantityRaw), expectedCostBase: charge(v.order.outcomeIdx, BigInt(v.order.priceRaw), BigInt(v.order.quantityRaw)) };
       // A prior buy on the same side left lots in the slot attributed to this grant, so this buy opens nothing new.
       const held = v.prior && v.prior.outcomeIdx === v.order.outcomeIdx ? { lots: 1n, grantId: 7n } : { lots: 0n, grantId: 0n };
-      const refusal = grantBuyRefusal({ grant: grantFor(v), actor: ACTOR, side: v.order.outcomeIdx === 0 ? "up" : "down", quote, decimals: 6, nowSec: NOW_SEC, held });
+      const refusal = grantBuyRefusal({ grant: grantFor(v), actor: ACTOR, marketId: WINDOW, side: v.order.outcomeIdx === 0 ? "up" : "down", quote, decimals: 6, nowSec: NOW_SEC, held });
       if (v.expect.ok || v.expect.refusal === "venue") expect(refusal).toBeNull();
       else {
         expect(refusal?.kind).toBe("grant-refused");
@@ -53,15 +55,25 @@ describe("the tap's client-side cap check refuses exactly what agari-vault would
   it("refuses a key that is not the grant's actor, by name", () => {
     const v = vectors[0]!;
     const quote = { limitPriceRaw: 700_000n, contractsRaw: 1_000_000n, expectedCostBase: 600_000n };
-    const refusal = grantBuyRefusal({ grant: grantFor(v), actor: address(9), side: "up", quote, decimals: 6, nowSec: NOW_SEC, held: { lots: 0n, grantId: 0n } });
+    const refusal = grantBuyRefusal({ grant: grantFor(v), actor: address(9), marketId: WINDOW, side: "up", quote, decimals: 6, nowSec: NOW_SEC, held: { lots: 0n, grantId: 0n } });
     expect(refusal?.errorName).toBe("NotGrantActor");
+  });
+
+  it("refuses a market-scoped grant on any other Window, by name, and admits its own and an unscoped one anywhere (D-091)", () => {
+    const v = vectors[0]!;
+    const quote = { limitPriceRaw: 700_000n, contractsRaw: 1_000_000n, expectedCostBase: 600_000n };
+    const input = { actor: ACTOR, side: "up" as const, quote, decimals: 6, nowSec: NOW_SEC, held: { lots: 0n, grantId: 0n } };
+    const scoped = { ...grantFor(v), caps: { ...grantFor(v).caps, market: WINDOW } };
+    expect(grantBuyRefusal({ ...input, grant: scoped, marketId: OTHER_WINDOW })?.errorName).toBe("GrantMarketMismatch");
+    expect(grantBuyRefusal({ ...input, grant: scoped, marketId: WINDOW })).toBeNull();
+    expect(grantBuyRefusal({ ...input, grant: grantFor(v), marketId: OTHER_WINDOW })).toBeNull();
   });
 
   it("counts a new position as the program books it: a side sold to zero but still attributed opens nothing", () => {
     const v = { ...vectors[0]!, caps: { ...vectors[0]!.caps, maxOpenPositions: 1 } };
     const grant = { ...grantFor(v), openPositions: 1 };
     const quote = { limitPriceRaw: 700_000n, contractsRaw: 1_000_000n, expectedCostBase: 600_000n };
-    const input = { grant, actor: ACTOR, side: "up" as const, quote, decimals: 6, nowSec: NOW_SEC };
+    const input = { grant, actor: ACTOR, marketId: WINDOW, side: "up" as const, quote, decimals: 6, nowSec: NOW_SEC };
     expect(grantBuyRefusal({ ...input, held: { lots: 0n, grantId: 0n } })?.errorName).toBe("OverPositionCap");
     expect(grantBuyRefusal({ ...input, held: { lots: 0n, grantId: 7n } })).toBeNull();
   });

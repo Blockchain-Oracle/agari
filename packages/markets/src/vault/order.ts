@@ -117,7 +117,7 @@ async function prepareVaultBuy(ctx: OrderLaneContext, deployment: VaultDeploymen
   const tickBase = tickBaseOf(gate.venue.decimals);
   if (grant) {
     const refusal = grantBuyRefusal({
-      grant: toVaultGrant(grant, tickBase), actor: ctx.wallet, side: req.side, quote, decimals: req.market.decimals, nowSec: Math.floor(nowMs / 1000),
+      grant: toVaultGrant(grant, tickBase), actor: ctx.wallet, marketId: req.market.marketId, side: req.side, quote, decimals: req.market.decimals, nowSec: Math.floor(nowMs / 1000),
       held: sideOf(slotOf(account, req.market.marketId), SIDE_TO_OUTCOME[req.side]),
     });
     if (refusal) throw new OrderRefusedError(refusal);
