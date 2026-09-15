@@ -26,7 +26,7 @@ export { profileOnSurfpool, type TransactionProfile } from "./cycle/profile";
 export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, placeOrderInstruction, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
 export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
 export { attestedMessage, ed25519Instruction } from "../prices/attested";
-export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX } from "./vault";
+export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX, vaultAddresses } from "./vault";
 export { packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, redstonePayload, decimalToE8, type RedStonePackage } from "../prices/redstone";
 
 export type InitEventsInput = {

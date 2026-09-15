@@ -14,6 +14,13 @@ const BPF_LOADER_UPGRADEABLE = "BPFLoaderUpgradeab1e11111111111111111111111" as 
 /** The fixed table (D-063): 0 agari-vault · 1 agari-maker · 2 agari-leverage · 3 agari-private · 4 agari-arena. */
 export const VAULT_AUTHORITY_INDEX = 0;
 
+/** The vault's addresses for scripts (which never import the clients package): program id, ["seat"] and ["vault-config"] PDAs. */
+export async function vaultAddresses(): Promise<{ program: Address; seat: Address; config: Address }> {
+  const [seat] = await findSeatPda();
+  const [config] = await findVaultConfigPda();
+  return { program: AGARI_VAULT_PROGRAM_ADDRESS, seat, config };
+}
+
 export async function programDataAddress(program: Address): Promise<Address> {
   const [pda] = await getProgramDerivedAddress({ programAddress: BPF_LOADER_UPGRADEABLE, seeds: [getAddressEncoder().encode(program)] });
   return pda;
