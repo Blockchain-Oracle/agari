@@ -5,7 +5,6 @@ import type { VaultDeployment } from "@agari/core/vault";
 import { createLocalStorageJournal, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
 import { useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
-import { keySessionWallet } from "./key-signer";
 import type { StoredSessionKey } from "./store";
 
 interface KeySessionInput {
@@ -54,8 +53,8 @@ export function useKeySession({ armed, sessionKey, deployment }: KeySessionInput
     }
     let cancelled = false;
     let created: SubmitterSession | null = null;
-    const wallet = keySessionWallet(sessionKey);
-    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { wallet }, journal: createLocalStorageJournal(nowMs), nowMs })
+    // The non-extractable pair signs through Kit's createSignerFromKeyPair inside markets (D-066).
+    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { keyPair: sessionKey.keyPair }, journal: createLocalStorageJournal(nowMs), nowMs })
       .then((next) => {
         created = next;
         if (cancelled) return next.dispose();
