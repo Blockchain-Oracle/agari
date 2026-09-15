@@ -5,6 +5,8 @@ import { usdLine } from "./units";
 
 interface HeroQuestionProps {
   asset: string;
+  /** The ask before the line: "TSLA holds above" by default, "TSLA opens Mon above" on a Gap (session-lanes.md §5). */
+  ask?: string;
   /** The line the Window settles against — the oracle's opening print. Null until it exists. */
   openingRaw: bigint | null;
   currentRaw: bigint | null;
@@ -37,7 +39,7 @@ function HeroDistance({ openingRaw, currentRaw }: { openingRaw: bigint; currentR
  * above the opening print, so the print is the line. Before it exists there is no
  * line to ask about, and the headline names the pair instead of inventing a level.
  */
-export function HeroQuestion({ asset, openingRaw, currentRaw }: HeroQuestionProps) {
+export function HeroQuestion({ asset, ask, openingRaw, currentRaw }: HeroQuestionProps) {
   return (
     <>
       <h2 className="mh-question">
@@ -45,7 +47,7 @@ export function HeroQuestion({ asset, openingRaw, currentRaw }: HeroQuestionProp
           HERO_HEAD.pair(asset)
         ) : (
           <>
-            {HERO_HEAD.holdsAbove(asset)} <span className="mh-question-line">{usdLine(openingRaw)}</span>?
+            {ask ?? HERO_HEAD.holdsAbove(asset)} <span className="mh-question-line">{usdLine(openingRaw)}</span>?
           </>
         )}
       </h2>

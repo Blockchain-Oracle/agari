@@ -3,6 +3,7 @@ import { ChromeSection } from "./_sections/ChromeSection";
 import { DataSection } from "./_sections/DataSection";
 import { HonestStatesSection } from "./_sections/HonestStatesSection";
 import { ReceiptSection } from "./_sections/ReceiptSection";
+import { SessionLanesSection } from "./_sections/SessionLanesSection";
 import { TypeSection } from "./_sections/TypeSection";
 import { UiSection } from "./_sections/UiSection";
 
@@ -13,6 +14,7 @@ export default function StatesPage() {
     <div className="mx-auto flex w-full max-w-(--content-wide) flex-col gap-section px-gutter py-8 lg:px-gutter-desktop">
       <TypeSection />
       <HonestStatesSection />
+      <SessionLanesSection />
       <DataSection />
       <ChromeSection />
       <ReceiptSection />
