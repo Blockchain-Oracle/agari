@@ -11,6 +11,7 @@ import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { basisRaw, feedRawToOracleRaw, usdLine } from "@/features/markets/hero/units";
 import { MarketSessionChip } from "@/features/markets/session";
 import { NEWS } from "@/features/news/copy";
+import { articleSymbols, Cashtags, MarkCluster, NewsRow } from "@/features/news/NewsRow";
 import type { Article } from "@/features/news/protocol";
 import { TickerRoomButton } from "@/features/room/TickerRoom";
 import { TICKER_HUB } from "./copy";
@@ -24,28 +25,33 @@ function reportDay(dateEt: string, hour: keyof typeof TICKER_HUB.hour | null): s
   return hour ? `${day} · ${TICKER_HUB.hour[hour]}` : day;
 }
 
+/** The ticker's headlines in the wire's row grammar (`NewsRow`, D-082): the marks and cashtags of every stock a story names. */
 function Headlines({ articles }: { articles: Article[] }) {
   return (
-    <ol className="act-list">
-      {articles.map((article, i) => (
-        <li key={article.url} className="news-row">
-          <span className="news-index">{String(i + 1).padStart(2, "0")}</span>
-          <a href={article.url} target="_blank" rel="noopener noreferrer" className="news-row-body" data-cursor="hover">
-            <span className="news-row-title">{article.title}</span>
-            <span className="news-row-meta">
-              <span className="news-tag" data-tone={article.sentiment}>
-                {NEWS.sentiment[article.sentiment]}
-              </span>
-              <span className="news-meta">
-                {NEWS.timeAgo(new Date(article.publishedAt).getTime())} · {article.source}
-              </span>
-            </span>
-          </a>
-          <span className="news-row-arrow" aria-hidden>
-            ↗
-          </span>
-        </li>
-      ))}
+    <ol className="news-wire tkh-headlines">
+      {articles.map((article, i) => {
+        const symbols = articleSymbols(article.symbols);
+        return (
+          <NewsRow
+            key={article.url}
+            index={i + 1}
+            title={article.title}
+            href={article.url}
+            external
+            mark={<MarkCluster symbols={symbols} />}
+            meta={
+              <>
+                <span className="news-meta">
+                  {NEWS.timeAgo(new Date(article.publishedAt).getTime())} · {article.source}
+                </span>
+                <Cashtags symbols={symbols} />
+              </>
+            }
+            tone={article.sentiment}
+            toneWord={NEWS.sentiment[article.sentiment]}
+          />
+        );
+      })}
     </ol>
   );
 }

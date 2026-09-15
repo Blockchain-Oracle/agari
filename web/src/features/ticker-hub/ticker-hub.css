@@ -52,6 +52,7 @@
   white-space: nowrap;
 }
 
-.tkh-page .news-row-body {
-  display: block;
+/* The headlines list takes the activity list's rhythm under its section head. */
+.tkh-headlines {
+  margin-top: 24px;
 }

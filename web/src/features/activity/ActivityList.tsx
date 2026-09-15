@@ -5,6 +5,7 @@ import Link from "next/link";
 import { memo, useMemo, type CSSProperties } from "react";
 import { useNowMs } from "@/components/data";
 import { timeAgo } from "@/features/markets/history/time-ago";
+import { NewsRow } from "@/features/news/NewsRow";
 import { profileHref } from "@/features/takes/cashtags";
 import type { FeedTake } from "@/features/takes/protocol";
 import { addressHue } from "@/lib/address-hue";
@@ -27,49 +28,36 @@ interface RowProps {
 }
 
 /**
- * One event as a wire row: `/news`'s numbered, ruled line (`NewsFeed.tsx`), with the kind as its labelled tag and the
- * wallet and time as mono metadata. The headline links to the transaction or the Window; the wallet to its profile.
+ * One event as a wire row — `/news`'s grammar (`NewsRow`, D-082): the wallet's hue avatar in the mark slot, the kind
+ * as the tone's word in the kind's ink, the time (and, on a following or ticker feed, the wallet) as mono metadata.
+ * The headline links to the transaction or the Window; the wallet to its profile.
  */
 const ActivityRow = memo(function ActivityRow({ index, item, take, units, showWho, nowMs }: RowProps) {
   const view = describeItem(item, units, take);
-  const title = <span className="news-row-title">{view.title}</span>;
   return (
-    <li className="news-row act-row" data-kind={item.kind}>
-      <span className="news-index">{String(index + 1).padStart(2, "0")}</span>
-      <span className="news-row-body">
-        {view.href === null ? (
-          title
-        ) : view.external ? (
-          <a href={view.href} target="_blank" rel="noopener noreferrer" className="act-title" data-cursor="hover">
-            {title}
-          </a>
-        ) : (
-          <Link href={view.href} className="act-title" data-cursor="hover">
-            {title}
-          </Link>
-        )}
-        <span className="news-row-meta">
-          <span className="news-tag" data-tone={view.tone}>
-            {ACTIVITY.tag[item.kind]}
-          </span>
-          <span className="news-meta">
-            {nowMs > 0 ? timeAgo(item.atSec * 1000, nowMs) : ""}
-            {showWho && (
-              <>
-                {nowMs > 0 ? " · " : ""}
-                <Link href={profileHref(item.wallet)} className="act-who" data-cursor="hover">
-                  <span aria-hidden className="act-avatar" style={{ "--act-hue": addressHue(item.wallet) } as CSSProperties} />
-                  {shortHex(item.wallet)}
-                </Link>
-              </>
-            )}
-          </span>
+    <NewsRow
+      index={index + 1}
+      title={view.title}
+      href={view.href}
+      external={view.external}
+      kind={item.kind}
+      mark={<span aria-hidden className="news-mark act-avatar" style={{ "--act-hue": addressHue(item.wallet) } as CSSProperties} />}
+      meta={
+        <span className="news-meta">
+          {nowMs > 0 ? timeAgo(item.atSec * 1000, nowMs) : ""}
+          {showWho && (
+            <>
+              {nowMs > 0 ? " · " : ""}
+              <Link href={profileHref(item.wallet)} className="act-who" data-cursor="hover">
+                {shortHex(item.wallet)}
+              </Link>
+            </>
+          )}
         </span>
-      </span>
-      <span className="news-row-arrow" aria-hidden>
-        {view.external ? "↗" : "→"}
-      </span>
-    </li>
+      }
+      tone={view.tone}
+      toneWord={ACTIVITY.tag[item.kind]}
+    />
   );
 });
 
@@ -98,7 +86,7 @@ export function ActivityList({ feed, failed, units, showWho, empty, limit }: Act
   const items = limit === undefined ? feed.items : feed.items.slice(0, limit);
   if (items.length === 0) return <p className="news-quiet">{empty}</p>;
   return (
-    <ol className="act-list">
+    <ol className="news-wire act-list">
       {items.map((item, index) => (
         <ActivityRow key={item.id} index={index} item={item} take={item.takeId ? takes.get(item.takeId) : undefined} units={units} showWho={showWho} nowMs={nowMs} />
       ))}
