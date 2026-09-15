@@ -1,3 +1,4 @@
+import type { SessionState } from "@agari/core/market";
 import { z } from "zod";
 
 /**
@@ -28,6 +29,34 @@ export const senseiSnapshotSchema = z.object({
   markets: z.array(senseiMarketSchema).max(8),
 });
 
+/** The NYSE session as `useMarketSession()` states it: the core state and its one-line label. */
+const SESSION_STATES = ["pre", "regular", "early-close", "halted", "post", "closed", "holiday"] as const satisfies readonly SessionState[];
+
+export const senseiSessionSchema = z.object({
+  state: z.enum(SESSION_STATES),
+  label: z.string().max(40),
+});
+
+/** One of the reader's open Windows. Money is integer cents; nothing here names the wallet. */
+export const senseiPositionSchema = z.object({
+  asset: z.string().max(16),
+  cadence: z.string().max(8),
+  side: z.enum(["up", "down", "both"]),
+  /** What stayed in, from the fills. */
+  stakeCents: z.number().int().min(0).max(1e12),
+  /** Held lots at the last trade, each side in its own terms. */
+  markCents: z.number().int().min(0).max(1e12),
+  minsToClose: z.number().int().min(0).max(100_000),
+});
+
+/** Settled rounds. `streak` is signed: +3 won the last three, −3 lost the last three, over decided rounds. */
+export const senseiRecordSchema = z.object({
+  settled: z.number().int().min(0).max(1e6),
+  wins: z.number().int().min(0).max(1e6),
+  losses: z.number().int().min(0).max(1e6),
+  streak: z.number().int().min(-1e6).max(1e6),
+});
+
 export const senseiRequestSchema = z.object({
   messages: z
     .array(
@@ -41,10 +70,18 @@ export const senseiRequestSchema = z.object({
   snapshot: senseiSnapshotSchema.nullable(),
   /** The client saw rapid-fire asking — a tilt cue for the brake. */
   restless: z.boolean(),
+  // Additive and optional (S13 spec §1.1): absent means unknown, never "none".
+  session: senseiSessionSchema.nullable().optional(),
+  /** Read only while the drawer is open and a wallet is connected. */
+  positions: z.array(senseiPositionSchema).max(8).optional(),
+  record: senseiRecordSchema.optional(),
 });
 
 export type SenseiMarket = z.infer<typeof senseiMarketSchema>;
 export type SenseiSnapshot = z.infer<typeof senseiSnapshotSchema>;
+export type SenseiSession = z.infer<typeof senseiSessionSchema>;
+export type SenseiPosition = z.infer<typeof senseiPositionSchema>;
+export type SenseiRecord = z.infer<typeof senseiRecordSchema>;
 export type SenseiRequest = z.infer<typeof senseiRequestSchema>;
 
 export interface SenseiMessage {

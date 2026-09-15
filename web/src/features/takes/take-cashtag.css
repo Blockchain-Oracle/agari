@@ -1,0 +1,17 @@
+/* A cashtag inside a take's caption (social-assistant.md §1.3): `$TSLA` links to its ticker hub.
+ * It keeps the caption's type and takes the card's one accent — the vermilion of the call chip's
+ * direction (take.css `.take-chip-dir`) — so the words still read as one sentence. */
+.take-cashtag {
+  color: var(--vermilion);
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+  transition: text-decoration-color 150ms var(--ease);
+}
+
+.take-cashtag:hover,
+.take-cashtag:focus-visible {
+  text-decoration-color: color-mix(in srgb, var(--vermilion) 60%, transparent);
+  outline: none;
+}

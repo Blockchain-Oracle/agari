@@ -1,0 +1,25 @@
+/* /tickers/[SYMBOL] (S13d): /news's frame and the profile's figure bar (profile.css); the session chip is the markets
+ * hero's (market-session.css). Only the eyebrow row and the quiet board line are new. */
+
+.tkh-live {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.tkh-page .prf-actions .mh-room {
+  margin: 0;
+}
+
+.tkh-pending {
+  margin-top: 0;
+  line-height: 1.7;
+}
+
+.tkh-link {
+  color: var(--vermilion);
+  white-space: nowrap;
+}
+
+.tkh-page .news-row-body {
+  display: block;
+}

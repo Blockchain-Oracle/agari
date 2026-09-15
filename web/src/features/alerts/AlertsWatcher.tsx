@@ -1,39 +1,60 @@
 "use client";
 
 import { isTickerSymbol } from "@agari/core/market";
-import { oneUnit } from "@agari/core/units";
+import { marketsProvider } from "@agari/markets";
 import { useAssetPrice } from "@agari/markets/react";
 import { useEffect, useState } from "react";
-import { basisRaw, feedRawToOracleRaw, ORACLE_SCALE } from "@/features/markets/hero/units";
+import { basisRaw, feedRawToOracleRaw, ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { notify } from "@/lib/toast";
 import { ALERTS } from "./copy";
-import { checkAlerts, loadAlerts, pendingAssets, sendNotification, subscribeAlerts } from "./store";
+import { sendNotification } from "./notifications";
+import { centsToRaw, checkAlerts, loadAlerts, pendingAssets, subscribeAlerts } from "./store";
 
-const dollars = (raw: bigint): string => `$${(raw / oneUnit(ORACLE_SCALE)).toLocaleString("en-US")}`;
+/** Spec §1.5: a Regular-basis rule reads only a tick the source published within the last minute. */
+const FRESH_TICK_SEC = 60;
 
 /**
  * One asset's watch. Reads the same live price every other surface reads, on the oracle's
- * display scale, and runs the stored rules against it on every tick that moves.
+ * display scale, and runs the stored rules against it on every tick that moves — only a tick that
+ * is fresh and inside today's regular session, so a closed or stale print never fires a rule.
  */
-function AssetWatch({ asset }: { asset: string }) {
+function AssetWatch({ asset, closesAtSec }: { asset: string; closesAtSec: number }) {
   // A stored rule for an asset Agari doesn't list (an old BTC alert) reads nothing rather than a wrong price.
   const reading = useAssetPrice(isTickerSymbol(asset) ? asset : null);
-  const price = reading?.ok ? reading.value : null;
+  const price = reading?.ok && !reading.stale ? reading.value : null;
   const raw = price ? feedRawToOracleRaw(basisRaw(price), price.decimals) : null;
+  const publishTimeSec = price?.publishTimeSec ?? null;
 
   useEffect(() => {
-    if (raw === null) return;
-    // Display dollars, as the rules are stored; the comparison is not money.
-    const fired = checkAlerts({ [asset]: Number(raw) / Number(oneUnit(ORACLE_SCALE)) });
+    if (raw === null || publishTimeSec === null) return;
+    const nowSec = Math.floor(marketsProvider.nowMs() / 1000);
+    // The session poll can trail the bell by a minute; the close itself is known, so a post-market tick never counts.
+    if (nowSec >= closesAtSec || nowSec - publishTimeSec > FRESH_TICK_SEC) return;
+    const fired = checkAlerts(asset, "regular", raw, ORACLE_SCALE);
     for (const alert of fired) {
-      const title = ALERTS.fired.title(asset, alert.direction, `$${alert.targetPrice.toLocaleString("en-US")}`);
-      const body = ALERTS.fired.body(dollars(raw));
+      const title = ALERTS.fired.title(asset, alert.direction, usdLine(centsToRaw(alert.targetCents, ORACLE_SCALE)));
+      const body = ALERTS.fired.body(usdLine(raw));
       sendNotification(title, body);
       notify.neutral(title, body);
     }
-  }, [asset, raw]);
+  }, [asset, raw, publishTimeSec, closesAtSec]);
 
   return null;
+}
+
+/** Regular-basis rules wait for the open: no price watch runs outside the NYSE session, or while it is unknown. */
+function SessionWatch({ assets }: { assets: string[] }) {
+  const session = useMarketSession();
+  const closesAtSec = session?.open ? session.status.closesAtSec : null;
+  if (closesAtSec === null) return null;
+  return (
+    <>
+      {assets.map((asset) => (
+        <AssetWatch key={asset} asset={asset} closesAtSec={closesAtSec} />
+      ))}
+    </>
+  );
 }
 
 /**
@@ -42,22 +63,17 @@ function AssetWatch({ asset }: { asset: string }) {
  * The reference stores rules and exposes `checkAlerts`, but in the pinned source nothing
  * calls it, so an alert could be set and never fire. This mounts once, inside the shared
  * read runtime, and keeps one price watch per asset that still has a pending rule. A rule
- * saved by the button is picked up through the store's subscription, not a reload.
+ * saved by the button is picked up through the store's subscription, not a reload. With no
+ * pending rule it reads nothing at all, not even the session.
  */
 export function AlertsWatcher() {
   const [assets, setAssets] = useState<string[]>([]);
 
   useEffect(() => {
-    const sync = () => setAssets(pendingAssets(loadAlerts()));
+    const sync = () => setAssets(pendingAssets(loadAlerts(), "regular"));
     sync();
     return subscribeAlerts(sync);
   }, []);
 
-  return (
-    <>
-      {assets.map((asset) => (
-        <AssetWatch key={asset} asset={asset} />
-      ))}
-    </>
-  );
+  return assets.length > 0 ? <SessionWatch assets={assets} /> : null;
 }

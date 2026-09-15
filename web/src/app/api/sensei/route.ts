@@ -1,8 +1,10 @@
 import { APICallError, generateText, InvalidPromptError } from "ai";
 import { NextResponse } from "next/server";
+import { earningsTurn } from "@/features/sensei/earnings.server";
 import { missingCredentialHint, resolveModel } from "@/features/sensei/model.server";
-import { SENSEI_ERRORS, SENSEI_SYSTEM, senseiTurnContext } from "@/features/sensei/prompt";
+import { asksForAdvice, SENSEI_ERRORS, SENSEI_SYSTEM, senseiTurnContext } from "@/features/sensei/prompt";
 import { type SenseiRequest, senseiRequestSchema } from "@/features/sensei/protocol";
+import { clientIp, senseiGate } from "@/features/sensei/rate.server";
 
 /**
  * Sensei's brain — ported from `reference/yosuku/app/api/sensei/route.ts`.
@@ -19,8 +21,13 @@ import { type SenseiRequest, senseiRequestSchema } from "@/features/sensei/proto
  * route says so, names what is missing, and the dock renders in full either way.
  *
  * No trade is placed here. Sensei reads and recommends; the user places the trade.
+ *
+ * S13 (spec §1.1) adds, all per turn and outside the stable prefix: the session, the reader's positions and record,
+ * the advice tripwire, and a rate gate in front of the model call. The call itself stays Masayume's non-streaming
+ * `generateText` (Q-S13-2).
  */
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** Two to four sentences, with the model's own reasoning tokens on top of them. */
@@ -31,8 +38,10 @@ const MAX_OUTPUT_TOKENS = 4096;
  */
 const REASONING = "low" as const;
 
+const NO_STORE = { "cache-control": "no-store" };
+
 function bad(error: string, status: number) {
-  return NextResponse.json({ error }, { status });
+  return NextResponse.json({ error }, { status, headers: NO_STORE });
 }
 
 /**
@@ -70,7 +79,9 @@ export async function POST(req: Request) {
     return bad(SENSEI_ERRORS.badRequest, 400);
   }
   if (body.messages.length === 0) return bad(SENSEI_ERRORS.saySomething, 400);
+  if (!senseiGate(clientIp(req), Date.now())) return bad(SENSEI_ERRORS.rateLimited, 429);
 
+  const earnings = await earningsTurn(body);
   try {
     const { text } = await generateText({
       model: resolved.model,
@@ -80,13 +91,13 @@ export async function POST(req: Request) {
       messages: [
         // The volatile per-turn figures sit in their own user turn, after the stable
         // system prompt, so a provider that caches a prefix can still do so.
-        { role: "user", content: senseiTurnContext(body) },
+        { role: "user", content: senseiTurnContext(body, { adviceAsked: asksForAdvice(body.messages), earnings }) },
         ...body.messages.map((message) => ({ role: message.role, content: message.content })),
       ],
     });
 
     const reply = text.trim();
-    return reply ? NextResponse.json({ reply }) : bad(SENSEI_ERRORS.wentQuiet, 502);
+    return reply ? NextResponse.json({ reply }, { headers: NO_STORE }) : bad(SENSEI_ERRORS.wentQuiet, 502);
   } catch (error) {
     if (error instanceof InvalidPromptError) return bad(SENSEI_ERRORS.badRequest, 400);
     const status = statusOf(error);

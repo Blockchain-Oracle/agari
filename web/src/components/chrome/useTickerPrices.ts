@@ -21,13 +21,14 @@ function basisRaw(price: AssetPrice): bigint {
 
 function useAssetSlot(asset: string | null): TickerEntry | null {
   const reading = useAssetPrice(asset !== null && isTickerSymbol(asset) ? asset : null);
-  // Direction is "last move", so it must survive renders where the price did not change; a ref carries it.
-  const last = useRef<{ raw: bigint; direction: TickerDirection } | null>(null);
+  // Direction is "last move", so it must survive renders where the price did not change; a ref carries it. A slot can
+  // change ticker (the marquee's registry order gives way to live lanes), and one ticker's price is no move for another.
+  const last = useRef<{ asset: string; raw: bigint; direction: TickerDirection } | null>(null);
 
   if (asset === null || reading === null || !isOk(reading) || reading.value === null) return null;
   const raw = basisRaw(reading.value);
-  if (last.current === null) last.current = { raw, direction: "flat" };
-  else if (last.current.raw !== raw) last.current = { raw, direction: raw > last.current.raw ? "up" : "down" };
+  if (last.current === null || last.current.asset !== asset) last.current = { asset, raw, direction: "flat" };
+  else if (last.current.raw !== raw) last.current = { asset, raw, direction: raw > last.current.raw ? "up" : "down" };
 
   return {
     asset,

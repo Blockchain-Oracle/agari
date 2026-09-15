@@ -37,6 +37,24 @@ export const ROOM = {
       body: "Sign once to prove the wallet is yours. It moves no funds and costs nothing.",
     },
   },
+
+  /** A ticker's standing Room (`$TSLA`): everyone who ever traded one of its Windows. */
+  ticker: {
+    /** The sheet head's two segments. */
+    window: "This Window",
+    room: (symbol: string) => `$${symbol}`,
+    switchLabel: "Which Room",
+    title: (symbol: string) => `$${symbol} · every Window`,
+    open: (symbol: string) => `$${symbol} Room`,
+    locked: {
+      title: (symbol: string) => `You need a position in a ${symbol} Window.`,
+      body: "The Room is bettors only, and the check is on-chain — not a setting we can wave. Trade any Window of this stock and it opens.",
+    },
+    joinable: {
+      title: (symbol: string) => `You've traded ${symbol}.`,
+      body: "Sign once to prove the wallet is yours. It moves no funds and costs nothing.",
+    },
+  },
 } as const;
 
 /** Every way the endpoints refuse, said as the reason rather than as a status. */
@@ -46,7 +64,10 @@ export const ROOM_ERRORS = {
   staleSignature: "That signature has expired. Try joining again.",
   badSignature: "That signature doesn't match the wallet.",
   noPosition: "No position on this Window for that wallet. The Room is bettors only.",
+  noTickerPosition: "That wallet hasn't traded a Window of this stock. The Room is bettors only.",
   gateUnreadable: "Couldn't read your position from the chain just now, so the Room stayed shut. Try again in a moment.",
   notJoined: "Your Room session has expired. Join again to keep reading.",
   postFailed: "That didn't post. Try again.",
+  rateLimited: "That's a lot at once. Give it a few seconds and try again.",
+  notDeployed: "That route's positions aren't indexed yet, so the Room can't record them.",
 } as const;

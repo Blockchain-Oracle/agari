@@ -30,3 +30,4 @@ export * from "./index-store";
 export * from "./proofs";
 export * from "./sponsor";
 export * from "./schema-sponsor";
+export * from "./follows";

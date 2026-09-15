@@ -868,6 +868,49 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Gate row moved here:** "sponsored fill (fee payer = sponsor)" becomes S7's "3 session taps with zero popups, fee payer = `sponsor`, signer = session key". This is the D-entry S4's "Sponsor → S7" step names.
 - **User-visible:** none until 7b and 7c land.
 - **Approval:** stage owner, following the user's D-023.
+### D-071 — The S13 contract, lanes and default answers
+- **Date / owner:** 2026-09-15 · S13 owner (spec architect pass, reviewed)
+- **Evidence:** `docs/plan/specs/social-assistant.md`:
+  - Code state at `c5ddb60`: Sensei, Room, Takes, alerts, news, reels and brain are already ported and signing works.
+  - Gaps: `POST /api/room/bet` returns 503, so the bettors registry is never written; the Room gate only counts open lots; news is crypto RSS; Sensei lacks session/earnings/positions; alerts truncate to dollars; the marquee shows a failure headline off-hours; cashtags, ticker rooms, profiles, follows, the activity feed and notifications don't exist.
+- **Rule:**
+  - **Contract:** the S13 contract is the spec.
+  - **Lanes:**
+    - 13a Sensei;
+    - 13b Room, Takes, Reels (plus ticker rooms and cashtags; the only lane editing `lib/copy.ts` REELS);
+    - 13c news, alerts, marquee (plus the frozen Finnhub client);
+    - 13d profiles, follows, activity feed, lifecycle notifications.
+  - **Merge order:** 13c.1 → 13b.1 → 13a → 13c → 13b → 13d.
+  - **Room gate:** the registry, then the index's "ever bet", then the on-chain seat; registry writes are verified against `idx_fills`.
+  - **Data:** lanes write only social tables in the shared `agari` DB, never `idx_*`.
+  - **Defaults** (spec §6, recommended; the user may change them):
+    - Q-S13-1: crowd-flow sentiment from the index (`CROWD 62% UP`, `—` below 20 fills), not CNN Fear & Greed.
+    - Q-S13-2: keep `generateText`.
+    - Q-S13-3: the ticker-room gate is "ever traded that ticker".
+    - Q-S13-4: moderation by rate limits only.
+    - Q-S13-5: in-tab notifications only (Masayume parity); `/activity` is the durable record.
+    - Q-S13-6: Finnhub free tier for the devnet demo, credited and disclosed in the README.
+    - Q-S13-7: no free-text handles.
+    - Q-S13-8: the second of S5/S13 to merge mounts the Friends tab.
+    - Q-S13-9: one `EarningsEvent` type, reconciled with S6 at merge.
+    - Q-S13-10: the shared DB.
+- **User-visible:** stock news, a stock/session-aware Sensei, Rooms that stay open to anyone who bet, cashtag takes, profiles, follows, ticker hubs, an activity feed and in-tab notifications.
+- **Approval:** stage owner on the spec defaults (user decisions Q-S13-1/5/6 flagged to the user).
+
+### D-072 — Sensei refinements found in lane 13a
+- **Date / owner:** 2026-09-15 · S13 owner (lane 13a report)
+- **Evidence:**
+  - Sensei's prompt style rule bans dashes in replies, and a dash in the prompt invites one.
+  - 13c's Finnhub client makes one call per ticker from a web budget of 10 calls/min; ETFs never report earnings.
+  - Latency on a production build, n = 20: p50 3,460 ms, p95 4,630 ms; in-session (synthetic snapshot) p50 3,655 ms, p95 4,996 ms.
+- **Rule:**
+  - **Session wording:** the prompt's session rule reads "09:30 to 16:00 ET" (no dash).
+  - **Earnings:** the line asks for the seven registry stocks only (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL), cached 6 h, waiting at most 1.5 s. A null or late read renders "The earnings calendar could not be read this turn. Do not guess report dates."; "no earnings report within 14 days" appears only when a non-null list has nothing in range.
+  - **Response mode:** Sensei stays non-streaming (`generateText`, Q-S13-2); the p50 ≤ 4 s gate is met.
+  - **Off-hours:** a refusal still offers a Window read at the open.
+  - **Rate-limit key:** the IP comes from `x-forwarded-for` (as `previewGate`); the host must overwrite that header in production (S16), and the 600/h house cap bounds cost meanwhile.
+- **User-visible:** Sensei says when earnings are unknown instead of guessing; off-hours it points to the open.
+- **Approval:** stage owner.
 
 ## Open questions
 
