@@ -86,7 +86,7 @@ export async function vaultForkDrive(d: Drive, fixturesDir: string) {
   const w = await openWindow(d.ctx, { roller: await keypairSigner(d.secretOf("roller")), series: series.address as never, mint: d.mint, tradingStartSec: tSec });
   await attest(d, w, WHICH.open, tSec, OPEN_E8);
   const market = eventMarket(d, w);
-  const vaultSeat = (await readLedger(d.client, w.ledger))!.seats.find((s) => s.owner === deployment.seat);
+  const vaultSeat = (await readLedger(d.client, w.ledger))!.seats.find((s) => String(s.owner) === String(deployment.seat));
   check(vaultSeat?.index === 0 && isProgramSeat(vaultSeat), `Window ${w.market}: seat 0 is the vault's PROGRAM seat`);
   // The seed maker: an ask at 550 (Up pays 55¢) and a bid at 400 (Down pays 60¢). Both sides must stay under the
   // grant's 95¢ price cap once `quote_stake` pads the protective limit by the 5-minute cost-cap buffer (5,661 bps).
