@@ -1,0 +1,33 @@
+/* The scheduled call's few additions to the ticket (D-088), in the composer's own tokens: a pressed price chip, the
+   stepper beside the figure, and the rest-until-lock row. Everything else reuses `ticket-composer.css` as is. */
+
+.tk-add[aria-pressed="true"] {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+}
+
+.tk-price .tk-amount-field {
+  align-items: center;
+  gap: 8px;
+}
+
+.tk-price-step {
+  min-width: 32px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tk-price-step:disabled {
+  opacity: 0.35;
+}
+
+.tk-rest-until {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tk-rest-until-note {
+  margin-top: -6px;
+}
