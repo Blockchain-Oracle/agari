@@ -73,7 +73,7 @@ A first-time owner pays ≈ 0.00803 SOL of rent, plus 0.00154 SOL per grant.
 - `max_open_positions` u32 @120, `open_positions` u32 @124
 - `max_price_ticks` u16 @128 (own-side ticks; 0 = no cap)
 - `kind` u8 @130, `revoked` u8 @131, `bump` u8 @132, `_pad` [u8;3] @133
-- `_reserved` [u8;32] @136
+- `market` Pubkey @136 (D-091: the one Window the grant may trade; `Pubkey::default()` = any. Took the reserved tail before the first deploy)
 
 Masayume's caps are `uint128`/`uint64` raw (`IEventVault.sol:16-21`). On chain here they become u64 base units and u16 ticks. "No cap" in Masayume tests is `type(uint128).max` (`EventVault.trading.t.sol:104`), which maps to `u64::MAX`.
 
@@ -107,7 +107,7 @@ The adapter prepends `owner_open_account` when the account is absent, and an ide
 
 ### 3.3 Grants (`EventVault.sol:98-133, 264-319`)
 
-`CapsArgs { max_stake_per_trade u64, max_daily_spend u64, max_open_positions u32, max_price_ticks u16 }`.
+`CapsArgs { max_stake_per_trade u64, max_daily_spend u64, max_open_positions u32, max_price_ticks u16, market Pubkey }` (`market` default = any Window, D-091).
 
 | Instruction | Accounts | Checks → effects |
 |---|---|---|
@@ -138,7 +138,8 @@ The adapter prepends `owner_open_account` when the account is absent, and an ide
 1. **`place_for` only:**
    - `actor == grant.actor` (NotGrantActor);
    - `grant.revoked == 0` (GrantIsRevoked);
-   - `now ≤ grant.expires_at_sec` (GrantExpired; equality is live, `:318`).
+   - `now ≤ grant.expires_at_sec` (GrantExpired; equality is live, `:318`);
+   - `grant.market == default ∨ grant.market == market` (GrantMarketMismatch; D-091: a market-scoped grant trades one Window, buys and sells alike).
 2. **R:**
    - `events_program == agari_events::ID`;
    - `load_checked` Market, Series and Ledger, with the bindings from `events-accounts.md` §6 (UnknownMarket);
@@ -280,7 +281,7 @@ A CPI failure surfaces as `Custom(code)` at the *vault* instruction's index. Dis
 | Range | Codes |
 |---|---|
 | 7000 funding | 7000 ZeroAmount · 7001 Insufficient · 7002 WrongCollateral · 7003 WrongTokenOwner · 7004 NotAdmin · 7005 MathOverflow |
-| 7100 grants / caps | 7100 NoSuchGrant · 7101 NotGrantActor · 7102 NotGrantOwner · 7103 GrantIsRevoked · 7104 GrantExpired · 7105 BadExpiry · 7106 ZeroActor · 7107 BadGrantKind · 7108 OverStakeCap · 7109 OverDailyCap · 7110 OverPositionCap · 7111 OverPriceCap · 7112 GrantAccountMissing · 7113 ActiveGrantMismatch · 7114 StaleGrantId |
+| 7100 grants / caps | 7100 NoSuchGrant · 7101 NotGrantActor · 7102 NotGrantOwner · 7103 GrantIsRevoked · 7104 GrantExpired · 7105 BadExpiry · 7106 ZeroActor · 7107 BadGrantKind · 7108 OverStakeCap · 7109 OverDailyCap · 7110 OverPositionCap · 7111 OverPriceCap · 7112 GrantAccountMissing · 7113 ActiveGrantMismatch · 7114 StaleGrantId · 7115 GrantMarketMismatch |
 | 7200 trading / settle | 7200 UnknownMarket · 7201 MarketNotTrading · 7202 MarketNotSettled · 7203 NothingToSettle · 7204 BadOutcome · 7205 BadPrice · 7206 VaultNotRegistered · 7207 WindowPredatesVault · 7208 PositionSlotsFull · 7209 EngineResultMissing · 7210 EngineAccountingMismatch |
 
 Adapter kinds follow Masayume's table (`M:packages/markets/src/vault/errors.ts:6-29`):

@@ -25,6 +25,12 @@ pub fn side_ticks(outcome: u8, price_ticks: u16) -> u16 {
     }
 }
 
+/// D-091: a grant scoped to one Window (`market` set) acts nowhere else; the default key admits any Window.
+pub fn require_market(grant: &Grant, market: &Pubkey) -> Result<()> {
+    require!(grant.market == Pubkey::default() || grant.market == *market, VaultError::GrantMarketMismatch);
+    Ok(())
+}
+
 /// §4 row 3: a non-zero price cap refuses a dearer own-side limit.
 pub fn require_price_cap(grant: &Grant, side_ticks: u16) -> Result<()> {
     require!(grant.max_price_ticks == 0 || side_ticks <= grant.max_price_ticks, VaultError::OverPriceCap);

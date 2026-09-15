@@ -36,6 +36,7 @@ pub const MIDNIGHT: i64 = 1_789_171_200;
 pub const BUY_YES: u8 = 0;
 pub const BUY_NO: u8 = 2;
 pub const SESSION: u8 = 0;
+pub const EXECUTOR: u8 = 1;
 pub const STRATEGY: u8 = 2;
 pub const MAKER_PRICE: u16 = 600;
 
@@ -277,9 +278,9 @@ impl Harness {
     }
 }
 
-/// Masayume's `caps(perTrade, daily, open, maxPrice)` in base units and own-side ticks.
+/// Masayume's `caps(perTrade, daily, open, maxPrice)` in base units and own-side ticks, on any Window (D-091 default).
 pub fn caps(max_stake_per_trade: u64, max_daily_spend: u64, max_open_positions: u32, max_price_ticks: u16) -> CapsArgs {
-    CapsArgs { max_stake_per_trade, max_daily_spend, max_open_positions, max_price_ticks }
+    CapsArgs { max_stake_per_trade, max_daily_spend, max_open_positions, max_price_ticks, market: Pubkey::default() }
 }
 
 /// `SetComputeUnitLimit(units)` (ComputeBudget instruction 2).

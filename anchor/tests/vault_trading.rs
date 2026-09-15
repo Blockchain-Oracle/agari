@@ -4,9 +4,10 @@
 //! last crank. The measured rows feed vault.md §9.
 
 use agari_events_tests::settlement::Outcome;
-use agari_events_tests::vault::{caps, ledger_open, VaultWorld, BUY_NO, MIDNIGHT, ONE, STRATEGY};
+use agari_events_tests::vault::{caps, ledger_open, VaultWorld, BUY_NO, EXECUTOR, MIDNIGHT, ONE, STRATEGY};
 use agari_events_tests::vault_ix::{buy, sell, GrantArgs};
 use agari_events_tests::vault_trade::{report, Refused, DEPOSIT};
+use agari_vault::instructions::CapsArgs;
 use solana_signer::Signer;
 
 const ZERO_AMOUNT: u32 = 7000;
@@ -21,6 +22,7 @@ const OVER_DAILY_CAP: u32 = 7109;
 const OVER_POSITION_CAP: u32 = 7110;
 const OVER_PRICE_CAP: u32 = 7111;
 const GRANT_ACCOUNT_MISSING: u32 = 7112;
+const GRANT_MARKET_MISMATCH: u32 = 7115;
 const MARKET_NOT_TRADING: u32 = 7201;
 const MARKET_NOT_SETTLED: u32 = 7202;
 const NOTHING_TO_SETTLE: u32 = 7203;
@@ -305,4 +307,31 @@ fn a_window_listed_before_the_vault_registered_is_refused_until_the_next_one() {
     vw.liquidity_on(&next, 0, DEEP);
     let (e, _) = vw.place(&owner, &next, buy(0, 700, 1_000)).expect("the next Window pre-allocates the vault seat");
     assert_eq!(e.lots_delta, 1_000);
+}
+
+#[test]
+fn a_market_scoped_grant_trades_its_window_and_nowhere_else() {
+    let mut vw = VaultWorld::new();
+    let (owner, win) = (vw.owner(DEPOSIT), vw.win);
+    let actor = vw.key();
+    let now = vw.h().now();
+    // An EXECUTOR grant scoped to Window 0 (D-091): `market` is the Market PDA; the default key admits any Window.
+    let scoped = CapsArgs { market: win.market, ..caps(50 * ONE, 100 * ONE, 5, 0) };
+    let g = GrantArgs { grant_id: 1, kind: EXECUTOR, actor: actor.pubkey(), caps: scoped, expires_at_sec: now + 86_400, budget: 200 * ONE };
+    let ix = vw.h().vault_grant_ix(&owner.pubkey(), g, None);
+    vw.h().ok(&[ix], &[&owner.key]);
+    assert_eq!(vw.grant(1).market, win.market);
+    vw.liquidity(0, DEEP);
+    let (e, _) = vw.place_for(&actor, &owner, 1, &win, buy(0, 700, 10_000)).expect("its own Window");
+    assert_eq!((e.lots_delta, e.grant_id), (10_000, 1));
+
+    let other = vw.open_window(1, MIDNIGHT);
+    vw.liquidity_on(&other, 0, DEEP);
+    assert_eq!(vw.place_for(&actor, &owner, 1, &other, buy(0, 700, 10_000)).refused(), GRANT_MARKET_MISMATCH);
+    assert_eq!(vw.place_for(&actor, &owner, 1, &other, sell(0, 500, 1_000)).refused(), GRANT_MARKET_MISMATCH, "sells too");
+    assert_eq!((vw.grant(1).budget, vw.grant(1).open_positions), (194 * ONE, 1), "nothing moved for the other Window");
+    // An unscoped grant (the default key) still trades any Window.
+    let any = vw.grant_strategy(&owner, &actor.pubkey(), 100 * ONE, caps(50 * ONE, 100 * ONE, 5, 0));
+    assert_eq!(vw.grant(any).market, anchor_lang::prelude::Pubkey::default());
+    vw.place_for(&actor, &owner, any, &other, buy(0, 700, 10_000)).expect("any Window");
 }
