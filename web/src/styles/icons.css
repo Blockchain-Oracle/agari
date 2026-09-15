@@ -34,15 +34,31 @@
 .mark-invesco-disc { fill: var(--brand-invesco); }
 .mark-vanguard-disc { fill: var(--brand-vanguard); }
 .mark-spdr-disc { fill: var(--brand-spdr); }
+/* The glyph and the typed monogram are white on the brand disc, as Bitcoin's ₿ is. */
+.mark-glyph { fill: #fff; }
+.mark-monogram { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 17px; text-anchor: middle; dominant-baseline: central; }
+/* Apple's near-black disc would vanish on the dark ground: a hairline ring, dropped on the paper theme. */
+.mark-ring { fill: none; stroke: rgba(255, 255, 255, 0.22); stroke-width: 1; }
+[data-theme="light"] .mark-ring { stroke: none; }
 
 /* The mark fills whichever disc holds it, and carries its own circle — so the disc's paint, ring and
-   glow step aside. The four discs: the hero's badge, the rail card's glyph, the reel's badge, the word
-   board's tile. An asset with no drawing keeps the disc as it was, with its initial. */
+   glow step aside. Masayume's four discs: the hero's badge, the rail card's glyph, the reel's badge, the
+   word board's tile; then Agari's: the ticker picker's glyph, the games' discs, the hedge banner's mark,
+   the marquee cell, the ticker hub's title, the Sensei card and the portfolio row (S18c). An asset with
+   no drawing keeps the disc as it was, with its initial. */
 .asset-mark { display: block; width: 100%; height: 100%; }
 .mh-asset-badge.has-mark,
 .mc-asset .glyph.has-mark,
 .reel-badge.has-mark,
-.wq-btc.has-mark {
+.wq-btc.has-mark,
+.asset-tab .glyph.has-mark,
+.lk-asset-disc.has-mark,
+.st-asset-disc.has-mark,
+.hg-banner-mark.has-mark,
+.marquee-mark.has-mark,
+.tkh-mark.has-mark,
+.sensei-mark.has-mark,
+.bets-mark.has-mark {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
@@ -50,8 +66,41 @@
 [data-theme="light"] .mh-asset-badge.has-mark,
 [data-theme="light"] .mc-asset .glyph.has-mark,
 [data-theme="light"] .reel-badge.has-mark,
-[data-theme="light"] .wq-btc.has-mark {
+[data-theme="light"] .wq-btc.has-mark,
+[data-theme="light"] .asset-tab .glyph.has-mark,
+[data-theme="light"] .lk-asset-disc.has-mark,
+[data-theme="light"] .st-asset-disc.has-mark,
+[data-theme="light"] .hg-banner-mark.has-mark,
+[data-theme="light"] .marquee-mark.has-mark,
+[data-theme="light"] .tkh-mark.has-mark,
+[data-theme="light"] .sensei-mark.has-mark,
+[data-theme="light"] .bets-mark.has-mark {
   background: transparent;
   border-color: transparent;
   box-shadow: none;
 }
+
+/* A token lane wears its underlying's mark with the issuer's badge — xStocks' "x", Ondo's "on" — an 8 px
+   mono tag on the disc's lower edge. It flips with the theme, unlike the brand disc under it. */
+.has-mark[data-xstock] { position: relative; }
+.has-mark[data-xstock]::after {
+  content: attr(data-xstock);
+  position: absolute; right: -3px; bottom: -3px;
+  display: grid; place-items: center;
+  min-width: 10px; height: 10px; padding: 0 2px; border-radius: 9999px;
+  font-family: var(--font-mono); font-size: 8px; font-weight: 600; line-height: 1; letter-spacing: 0;
+  background: var(--black); color: var(--white);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+[data-theme="light"] .has-mark[data-xstock]::after { box-shadow: 0 0 0 1px rgba(20, 18, 16, 0.18); }
+
+/* The four new discs (S18c). Each is sized for its line; the marquee's shrinks with the strip on a phone. */
+.marquee-mark { display: inline-grid; place-items: center; flex: none; width: 12px; height: 12px; border-radius: 9999px; }
+.marquee-mark.generic { background: rgba(255, 255, 255, 0.1); color: var(--white); font-size: 7px; font-weight: 700; }
+@media (max-width: 720px) {
+  .marquee-mark { width: 10px; height: 10px; }
+}
+.sensei-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 6px; border-radius: 9999px; vertical-align: -3px; }
+.sensei-mark.generic { background: rgba(255, 255, 255, 0.1); color: var(--white); font-family: var(--font-mono); font-size: 9px; }
+[data-theme="light"] .marquee-mark.generic,
+[data-theme="light"] .sensei-mark.generic { background: rgba(20, 18, 16, 0.1); }
