@@ -319,6 +319,69 @@
           "BDUcPeoNrmUYVmZ8wPCjQSh16WeQ2b1YSjfdk1SDb4BX",
           "6qFesgnBweHWpHY71GQrfoXQcUdFB4JwguKfdxj5Rd2P"
         ]
+      },
+      "TSLA-gap": {
+        "address": "Ek9ceHDDEm81ZRAWDqNVfhUYtBVQY87xVnp78WPdjTE1",
+        "ticker": 1,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "DKUd4fqc9qZEATmtYJL6k1vy3AcF71TjTVWwQjeLH5e9"
+        ]
+      },
+      "NVDA-gap": {
+        "address": "2R9FgPGMuK3LQJg7H6L2jLnPbzbPp6VsQfz8ghuBgcqk",
+        "ticker": 2,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "3vZaBYXbTV2eDhxbKtr5HMvJJCRTn96njHWfTX4ifznM"
+        ]
+      },
+      "AAPL-gap": {
+        "address": "U12Grb9SRG9V6cxkLoYCabx5xAMQUYYwBD1kAfJRDPe",
+        "ticker": 3,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "4396KvRdLjNuF3GePkoKtYsAVoYNc3SnH8U8LfGLsWed"
+        ]
+      },
+      "META-gap": {
+        "address": "BsLGpPBC65vP1haHHboRCpxiBB7cCMsZXZwtVoxryPEE",
+        "ticker": 5,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "CGsUz1SMvDyfoYLTLtuiEv7UL7SDEg8SzQEKhUh9b96y"
+        ]
+      },
+      "GOOGL-gap": {
+        "address": "ANik1iJPvwKri7bjP6xyhrzvab8Rh35WpCYJqarj739c",
+        "ticker": 7,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "GU1SHsqqmaDoJ7YoaWPj1ZANqemJRieZvss9UFqtVrYx"
+        ]
+      },
+      "QQQ-gap": {
+        "address": "9bSaEvURoZof7o6g1S4Ac6wbw8nTy1zz1cTHDnp53tXp",
+        "ticker": 8,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "EQ9Np5txB4j87xajcpW4ULJ45WUqgxeJzbwce93QLDq7"
+        ]
+      },
+      "VOO-gap": {
+        "address": "3EDQv3aEhjEgFevHTzMCE2B5D3TDmXHATzDcxf53UhxU",
+        "ticker": 9,
+        "cadenceSec": 604800,
+        "basis": 1,
+        "books": [
+          "4msyF6LAKHcHP2zbDdqap569tcPYQR5SaaB2UhjHcC5d"
+        ]
       }
     }
   }
