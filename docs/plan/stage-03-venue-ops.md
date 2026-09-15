@@ -20,20 +20,66 @@
 - [x] Seed maker, `MAKER_MODE=seat` (lane 3c; real `SpotFeed` hookup at the main.ts step)
 - [x] Indexer + backfill + `verify-index` (lane 3d)
 - [x] Register actors in `main.ts` (DRY_RUN default) + heartbeats (stage owner; smoke on a Surfpool fork with every actor live, D-029)
-- [ ] Register series on devnet + rent accounting (stage owner; needs SOL)
-- [ ] One-session soak (stage owner)
+- [x] Register series on devnet + rent accounting (stage owner; needs SOL)
+- [x] One-session soak (stage owner)
 
 ## Gate
 
-- `pnpm typecheck && pnpm invariants`
+**S3 gate not passed (evidence run 2026-09-15 22:30Z–23:30Z).** Three items fail:
+
+1. RedStone archive within 60 s: 322 of 553 rows. Every row was archived, but 33 of 79 boundaries were backfilled late during outages.
+2. Indexer lag < 10 s: max 26.5 s, with 3 of 475 samples at 10 s or more.
+3. Soak coverage: 548 of 990 grid Windows were opened. A reboot and a DNS outage cut the session. An actor that fails to start does not exit ops, so the roller stayed down 18:47–20:25Z.
+
+Everything else passes, `verify-index` included. To close the gate, re-measure items 1 and 2 over a clean 09-16 session (13:30–20:00Z). A failed actor start should exit ops so the supervisor restarts it.
+
+Sources: S3 soak log `data/soak/ops-2026-09-14.log` (09-15 13:30–14:00:23Z), S6 soak log `../agari-wt/s6/data/soak/ops-2026-09-15.log` (15:19:03Z on), the local Postgres `print_archive`/`idx_*` tables, and read-only devnet RPC. Scripts ran from integration/w1 @ f146bcd. No transaction was sent.
+
+- `pnpm typecheck && pnpm invariants` ✅ on stage/S3-venue-ops @ 26a7f00 (10 rules, 0 errors).
 - **Soak:** N Windows with no overlaps, all resolved or voided within their windows; indexer lag < 10 s; `verify-index.ts` fill counts match chain.
+  - **No overlaps ✅.** The roller logged 548 session Windows with starts from 13:30 to before 20:00Z across 27 Series: 364 × 5m, 148 × 15m, 36 × 60m. It showed 0 overlapping spans and #N strictly increasing per Series. The chain (`idx_markets`, basis 0) holds 551. The extra 3 are TSLA-15m #17, TSLA-5m #52 and VOO-5m #46, which logged `open … failed` but landed.
+  - **Grid coverage ❌ (goal, not a gate line).** 442 grid slots were never opened: 338 × 5m, 86 × 15m, 18 × 60m. The gaps are:
+    - the reboot, 5m 14:05–15:15Z;
+    - connect timeouts at 16:20Z and 16:45–16:50Z;
+    - the stuck pass before the 17:17Z restart, 17:05–17:10Z;
+    - the DNS outage and the roller not running, 18:30Z and 18:40–19:55Z.
+  - **All resolved or voided ✅ (with late resolutions).** All 551 chain Windows are terminal: 481 resolved (12 single-source) and 70 voided. All 70 voids are MissingPrint (log: 30 no open print, 40 no close print), and none is CrossCheckDivergence. The Ledger is closed on 551/551 and none is still open.
+    - The settler logged 476 settle and 70 void lines.
+    - NVDA-5m #45 and QQQ-5m #44 logged only a failed settle send (WebSocket). The chain shows both resolved at 16:28/16:29Z.
+    - Resolution after expiry: p50 110 s, p90 1,350 s, max 4,995 s (Windows that expired during the reboot gap). 16 settles landed after the 900 s close deadline, all during the outages.
+  - **Indexer lag < 10 s ❌.** The indexer's own `lag X s` over 13:30–20:00Z (both logs, 475 samples): p50 1.5 s, p95 3.5 s, max 26.5 s. Samples of 10 s or more: 10.4 s and 13.4 s at 15:27Z (after the 15:19Z boot) and 26.5 s at 17:28:38Z (during WebSocket connect failures).
+  - **`verify-index` fill counts match chain ✅.** `pnpm drive:verify-index --cluster devnet` (w1, Helius, 3 RPS, from deploy slot 498252588):
+    - `verify-index: OK — counts match`, 0 mismatches, `marketsWithGaps 0`, `duplicateEvents 0`.
+    - `txs 10607 / 10607`, `windowsOpened 942 / 942`, `windowsResolved 912 / 912`, `event:PrintRecorded 1846 / 1846`, `event:OrderExecuted 2731 / 2731`, `event:Redeemed 271 / 271`, `fills 4 / 4`, `failedTxs 16 / 16`, `unavailableTxs 0`.
+    - `head slot 498983216; index behind chain head by 0 slot(s)`. The walk took ≈ 70 min for 10,607 signatures at 3 RPS while the soak's indexer kept writing.
 - **Prints:**
-  - every Window's source matches `price-sources.json`;
-  - 100% of RedStone boundaries fetched and archived within 60 s;
-  - TSLA cross-check agreement (bps) recorded;
-  - zero leftover `PriceUpdateV2` accounts owned by the relay.
-- **Post-trial dry run:** the roller with a clock after the 09-25 close shows TSLA on RedStone and QQQ/VOO paused.
+  - **Every Window's source matches `price-sources.json` ✅.** Roller open lines, per ticker, over all 548: TSLA `v1 pyth+redstone`; QQQ, VOO `v1 pyth`; NVDA, AAPL, MSFT, META, AMZN, GOOGL `v1 redstone`. That is config v1 for every ticker on 09-15. Chain `idx_prints` agrees: TSLA open/close are Pyth with RedStone checks, QQQ/VOO are Pyth, and the six single names are RedStone.
+  - **100% of RedStone boundaries fetched and archived within 60 s ❌.** `print_archive`, source redstone, boundaries 13:30–20:00Z: 79 boundaries × 7 feeds = 553 expected, 553 archived, 0 missing.
+    - On time (archive minus boundary ≤ 60 s): 322 rows (46 boundaries), p50 13.9 s.
+    - Late: 33 boundaries, 87–4,451 s, backfilled after outages. Late boundaries were 14:05–15:15, 16:20–16:25, 16:40–16:50, 17:05–17:15 and 18:30–19:15Z. `fetched_at_ms` equals `archived_at_ms` there.
+    - At 13:30Z the gateway returned AMZN and MSFT with 2 signers and GOOGL and META with 4. Every other row has 5.
+  - **TSLA cross-check agreement recorded ✅.** Neither the relay nor the settler logs the bps, so it was computed in integers from the recorded prints.
+    - On chain, `idx_prints` Pyth vs RedStone check per TSLA Window: 90 pairs (50 open, 40 close), p50 0.72, p95 1.36, max 3.03 bps. None is over the 25 bps limit.
+    - Archive, 79 boundaries: p50 0.79, p95 1.63, max 3.09 bps.
+    - Outcomes: 37 TSLA Windows settled with both checks, 12 single-source (check past its bound), 4 voided (missing close), 0 CrossCheckDivergence.
+  - **Zero leftover `PriceUpdateV2` accounts ✅.** `getProgramAccounts` on `rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ` (devnet, read-only) with memcmp offset 8 = relay `EaPNxuuZ1Tnnuqe6ZyLCsS2nGDWzTnwyLDaKSpGe2AwZ` returned 0 accounts at slot 498,983,741. The write authority sits right after the 8-byte discriminator (`packages/markets/src/ops/prints/leftovers.ts`).
+- **Post-trial dry run ✅.** `pnpm drive:roller-plan --at 2026-09-26T14:00:00Z --cluster devnet` (w1, exit 0). Saturday is `session closed`, so the plan is the 09-28 prelist:
+  - `TSLA-5m registered would prelist #65 13:30–13:35Z v2 redstone` (TSLA-15m #22 and TSLA-60m #7 also `v2 redstone`)
+  - `QQQ-5m registered paused: no signed source (13:30–13:35Z)`, likewise QQQ-15m/60m
+  - `VOO-5m registered paused: no signed source (13:30–13:35Z)`, likewise VOO-15m/60m
+  - The Gap lanes agree: `TSLA-gap … v2 redstone`, and QQQ-gap/VOO-gap `paused: no signed source`.
 - **Off-hours:** no Regular Windows listed. ✅ 09-14 20:00Z
+- **Stage-owner boxes (ticked 2026-09-15):**
+  - **Register series on devnet + rent accounting.** acceptance.md 2026-09-14 16:34–16:42:
+    - `pnpm deploy:init-series --cluster devnet` registered 25 Series + 50 Books, which with the S2 TSLA/NVDA 5m pair makes 27 Regular Series and 54 Books.
+    - It spent 13.569386280 SOL exactly as planned: Book rent 0.290047680 SOL at 512 nodes and 0.227624640 SOL at 256; deployer 23.891461686 → 10.322075406 SOL.
+    - The last re-run verified all 27 Series and spent 0. `fund-roles` 16:50 moved 7 SOL (roller 4, settler 2.5, relay 0.3, maker 0.2) and 2,000 tUSDC.
+  - **One-session soak.** Two runs:
+    - 09-14 19:19–20:12Z: 81 opened, 230 prints, 0 missed, 115 settled, 117 Ledgers closed, no restarts (Findings).
+    - 09-15 session 13:30–20:00Z: the S3 soak ran 13:30–14:00:23Z. The machine rebooted ≈ 14:27Z (s18 STATUS), and the S6 soak (`../agari-wt/s6/data/soak/run.sh`, same actors) ran from 15:19:03Z. Totals: 548 opened (551 on chain), 476 settle + 70 void lines, 115 relay `missed` lines (66 close, 30 open, 14 checkClose, 5 checkOpen).
+    - The misses cluster on the reboot (T 14:00–15:00Z, logged at the 15:19Z boot), the connect timeouts (16:15–17:15Z) and the DNS outage (T 18:30–19:00Z).
+    - Watchdog exits (`pass stuck over 10 min`) at 17:16:59Z (settler), 18:36:09Z (seed-maker, settler) and 19:04:15Z (settler); the supervisor restarted each.
+    - `window-roller failed to start: fetch failed ← getaddrinfo ENOTFOUND devnet.helius-rpc.com` at 18:47:17Z and 19:09:12Z, while the ops process stayed up. Ops restarted 20:25:22Z, the roller started 20:25:26Z, and the 09-16 prelist followed at 20:26:41Z (acceptance.md S18 row).
 
 ## Findings
 
