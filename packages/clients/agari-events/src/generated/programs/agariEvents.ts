@@ -70,6 +70,7 @@ import {
   getPublicRecordPrintAttestedInstructionAsync,
   getPublicRecordPrintPythInstruction,
   getPublicRecordPrintRedstoneInstructionAsync,
+  getPublicRecordPrintSwitchboardInstructionAsync,
   getPublicRedeemForInstructionAsync,
   getPublicReleaseBookInstruction,
   getPublicSettleWindowInstructionAsync,
@@ -99,6 +100,7 @@ import {
   parsePublicRecordPrintAttestedInstruction,
   parsePublicRecordPrintPythInstruction,
   parsePublicRecordPrintRedstoneInstruction,
+  parsePublicRecordPrintSwitchboardInstruction,
   parsePublicRedeemForInstruction,
   parsePublicReleaseBookInstruction,
   parsePublicSettleWindowInstruction,
@@ -134,6 +136,7 @@ import {
   type ParsedPublicRecordPrintAttestedInstruction,
   type ParsedPublicRecordPrintPythInstruction,
   type ParsedPublicRecordPrintRedstoneInstruction,
+  type ParsedPublicRecordPrintSwitchboardInstruction,
   type ParsedPublicRedeemForInstruction,
   type ParsedPublicReleaseBookInstruction,
   type ParsedPublicSettleWindowInstruction,
@@ -157,6 +160,7 @@ import {
   type PublicRecordPrintAttestedAsyncInput,
   type PublicRecordPrintPythInput,
   type PublicRecordPrintRedstoneAsyncInput,
+  type PublicRecordPrintSwitchboardAsyncInput,
   type PublicRedeemForAsyncInput,
   type PublicReleaseBookInput,
   type PublicSettleWindowAsyncInput,
@@ -535,6 +539,7 @@ export enum AgariEventsInstruction {
   PublicRecordPrintAttested,
   PublicRecordPrintPyth,
   PublicRecordPrintRedstone,
+  PublicRecordPrintSwitchboard,
   PublicRedeemFor,
   PublicReleaseBook,
   PublicSettleWindow,
@@ -719,6 +724,17 @@ export function identifyAgariEventsInstruction(
     )
   ) {
     return AgariEventsInstruction.PublicRecordPrintRedstone;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([173, 209, 187, 79, 234, 0, 150, 224]),
+      ),
+      0,
+    )
+  ) {
+    return AgariEventsInstruction.PublicRecordPrintSwitchboard;
   }
   if (
     containsBytes(
@@ -929,6 +945,9 @@ export type ParsedAgariEventsInstruction<
       instructionType: AgariEventsInstruction.PublicRecordPrintRedstone;
     } & ParsedPublicRecordPrintRedstoneInstruction<TProgram>)
   | ({
+      instructionType: AgariEventsInstruction.PublicRecordPrintSwitchboard;
+    } & ParsedPublicRecordPrintSwitchboardInstruction<TProgram>)
+  | ({
       instructionType: AgariEventsInstruction.PublicRedeemFor;
     } & ParsedPublicRedeemForInstruction<TProgram>)
   | ({
@@ -1079,6 +1098,13 @@ export function parseAgariEventsInstruction<TProgram extends string>(
       return {
         instructionType: AgariEventsInstruction.PublicRecordPrintRedstone,
         ...parsePublicRecordPrintRedstoneInstruction(instruction),
+      };
+    }
+    case AgariEventsInstruction.PublicRecordPrintSwitchboard: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: AgariEventsInstruction.PublicRecordPrintSwitchboard,
+        ...parsePublicRecordPrintSwitchboardInstruction(instruction),
       };
     }
     case AgariEventsInstruction.PublicRedeemFor: {
@@ -1274,6 +1300,10 @@ export type AgariEventsPluginInstructions = {
     input: PublicRecordPrintRedstoneAsyncInput,
   ) => ReturnType<typeof getPublicRecordPrintRedstoneInstructionAsync> &
     SelfPlanAndSendFunctions;
+  publicRecordPrintSwitchboard: (
+    input: PublicRecordPrintSwitchboardAsyncInput,
+  ) => ReturnType<typeof getPublicRecordPrintSwitchboardInstructionAsync> &
+    SelfPlanAndSendFunctions;
   publicRedeemFor: (
     input: PublicRedeemForAsyncInput,
   ) => ReturnType<typeof getPublicRedeemForInstructionAsync> &
@@ -1438,6 +1468,11 @@ export function agariEventsProgram() {
             addSelfPlanAndSendFunctions(
               client,
               getPublicRecordPrintRedstoneInstructionAsync(input),
+            ),
+          publicRecordPrintSwitchboard: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getPublicRecordPrintSwitchboardInstructionAsync(input),
             ),
           publicRedeemFor: (input) =>
             addSelfPlanAndSendFunctions(

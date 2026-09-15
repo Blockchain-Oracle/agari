@@ -21,6 +21,7 @@ export * from "./publicGrowLedger";
 export * from "./publicRecordPrintAttested";
 export * from "./publicRecordPrintPyth";
 export * from "./publicRecordPrintRedstone";
+export * from "./publicRecordPrintSwitchboard";
 export * from "./publicRedeemFor";
 export * from "./publicReleaseBook";
 export * from "./publicSettleWindow";

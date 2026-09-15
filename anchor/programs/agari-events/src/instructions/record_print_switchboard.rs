@@ -27,8 +27,8 @@ pub struct PublicRecordPrintSwitchboard<'info> {
     pub market: AccountLoader<'info, Market>,
     #[account(seeds = [CONFIG_SEED], bump = config.load()?.bump)]
     pub config: AccountLoader<'info, GlobalConfig>,
-    /// CHECK: key-pinned to `config.switchboard_queue` in the handler (the crate's verifier checks only its size);
-    /// its data is read only as the queue's oracle signing keys.
+    /// The Switchboard queue whose ed25519 oracle signing keys must have signed the quote.
+    /// CHECK: key-pinned to `config.switchboard_queue` in the handler (the crate's verifier checks only its size).
     pub queue: UncheckedAccount<'info>,
     /// CHECK: address-constrained to the SlotHashes sysvar; read as bytes by `check_slothash` and the verifier.
     #[account(address = SLOT_HASHES_ID)]

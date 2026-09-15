@@ -843,6 +843,72 @@
       ]
     },
     {
+      "name": "public_record_print_switchboard",
+      "discriminator": [
+        173,
+        209,
+        187,
+        79,
+        234,
+        0,
+        150,
+        224
+      ],
+      "accounts": [
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "queue",
+          "docs": [
+            "The Switchboard queue whose ed25519 oracle signing keys must have signed the quote."
+          ]
+        },
+        {
+          "name": "slothashes",
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "which",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "public_redeem_for",
       "discriminator": [
         0,
