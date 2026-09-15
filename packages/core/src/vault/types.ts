@@ -18,6 +18,8 @@ export interface VaultCaps {
   maxDailySpendBase: bigint;
   maxOpenPositions: number;
   maxPriceRaw: bigint;
+  /** The one Window the grant may trade (D-091); absent = any Window. Unset by every S7 surface; the opening-bell actor's scope later. */
+  market?: MarketId;
 }
 
 export interface VaultGrant {
