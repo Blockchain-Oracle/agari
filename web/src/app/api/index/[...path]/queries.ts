@@ -13,6 +13,8 @@ import { resolveTapeQuery } from "./queries-tape";
 export interface IndexQuery {
   /** `wallet/*` answers are private to the wallet and never cached by a CDN. */
   scope: "public" | "wallet";
+  /** Overrides the public 2 s cache for immutable rows (e.g. a verified proof: `public, s-maxage=60`). Wallet scope ignores it. */
+  cacheControl?: string;
   /** `db` is for lane readers with their own SQL (`idx/read-{tape,status}.ts`, `proofs.ts`; proof-analytics.md §1). */
   run(reader: IndexReader, db: Db): Promise<IdxRow[]>;
 }
