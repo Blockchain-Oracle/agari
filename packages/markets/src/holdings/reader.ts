@@ -1,8 +1,13 @@
 /**
  * The holdings read (session-lanes.md §4, D-058): one owner's verified share tokens on mainnet, read-only, sized in
  * integers. Two RPC calls per owner — every Token-2022 account the owner has, then the few verified mints it holds for
- * their `scaledUiAmountConfig` — plus one ops `/prices/latest` snapshot for the underlyings. Server-only: the RPC URL
- * carries the Helius key, so it is never logged, echoed or thrown.
+ * their `scaledUiAmountConfig` — plus one ops `/prices/latest` snapshot. Server-only: the RPC URL carries the Helius
+ * key, so it is never logged, echoed or thrown.
+ *
+ * Pricing: ops serves the xStock's own 24/7 quote (Jupiter, per UI token with the multiplier already in it) once 6b
+ * joins that feed; a UI amount times that price is the exposure. Without one — an Ondo token, or a weekday before the
+ * feed lands — it falls back to the underlying's signed spot, which is per share and so takes the same UI amount. Ops
+ * drops a quote older than 60 s, so a weekend without the xStock feed leaves the exposure unknown, never zero.
  */
 import { SHARE_TOKENS, type ShareToken, type TickerSymbol } from "@agari/core/market";
 import { z } from "zod";
@@ -22,8 +27,12 @@ export interface Holding {
   decimals: number;
   multiplierE12: string;
   sharesE8: string;
-  /** Null when ops has no fresh spot for the underlying (it serves ≤ 60 s old quotes only). */
+  /** Null when ops has no fresh quote for the token or its underlying (it serves ≤ 60 s old quotes only). */
   priceE8: string | null;
+  /** Which quote priced it: the xStock's own ("jupiter"), or the underlying's signed source ("pyth", "redstone", …). */
+  priceSource: string | null;
+  /** The asset the quote prices: the xStock symbol, or the underlying ticker. */
+  pricedAs: string | null;
   exposureUsdE6: string | null;
 }
 
@@ -70,7 +79,7 @@ const mintsSchema = z.object({
       .nullable(),
   ),
 });
-const latestSchema = z.record(z.string(), z.object({ priceE8: z.string().regex(/^\d+$/) }));
+const latestSchema = z.record(z.string(), z.object({ priceE8: z.string().regex(/^\d+$/), source: z.string().optional() }));
 
 async function rpc(url: string, method: string, params: unknown[]): Promise<unknown> {
   let response: Response;
@@ -125,7 +134,7 @@ async function mintStates(rpcUrl: string): Promise<Map<string, ScaledUiAmountSta
 }
 
 /** Spot is display-only context for the card; a dead ops process leaves exposure unknown, never zero. */
-async function latestPrices(priceFeedUrl: string | null): Promise<Record<string, { priceE8: string }>> {
+async function latestPrices(priceFeedUrl: string | null): Promise<Record<string, { priceE8: string; source?: string }>> {
   if (!priceFeedUrl) return {};
   try {
     const response = await fetch(`${priceFeedUrl.replace(/\/$/, "")}/prices/latest`, { cache: "no-store", signal: AbortSignal.timeout(RPC_TIMEOUT_MS) });
@@ -149,7 +158,9 @@ export async function readHoldings(input: HoldingsInput): Promise<HoldingsBody> 
     // A multiplier the RPC printed in a form we can't read exactly is a holding we won't size.
     if (multiplier === null) continue;
     const shares = sharesE8(raw, decimals, multiplier);
-    const price = prices[token.underlying]?.priceE8;
+    // The token's own quote first: it prices this exact token, and it is the only one that runs at a weekend.
+    const pricedAs = prices[token.symbol] ? token.symbol : prices[token.underlying] ? token.underlying : null;
+    const quote = pricedAs === null ? null : prices[pricedAs];
     holdings.push({
       mint,
       symbol: token.symbol,
@@ -159,8 +170,10 @@ export async function readHoldings(input: HoldingsInput): Promise<HoldingsBody> 
       decimals,
       multiplierE12: multiplier.toString(),
       sharesE8: shares.toString(),
-      priceE8: price ?? null,
-      exposureUsdE6: price ? exposureUsdE6(shares, BigInt(price)).toString() : null,
+      priceE8: quote?.priceE8 ?? null,
+      priceSource: quote?.source ?? null,
+      pricedAs,
+      exposureUsdE6: quote ? exposureUsdE6(shares, BigInt(quote.priceE8)).toString() : null,
     });
   }
   holdings.sort((a, b) => descending(BigInt(a.exposureUsdE6 ?? "0"), BigInt(b.exposureUsdE6 ?? "0")) || descending(BigInt(a.sharesE8), BigInt(b.sharesE8)));
