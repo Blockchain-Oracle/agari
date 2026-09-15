@@ -35,9 +35,11 @@ console.log(`roller plan at ${new Date(atSec * 1000).toISOString()} on ${cluster
 
 const sources = readJson<PriceSources>("services/ops/config/price-sources.json");
 const onChain = new Map((await listSeries(client)).filter((s) => s.symbol && seriesBasis(s)).map((s) => [seriesLaneKey(s), s]));
+const events = createSessionEvents();
+// No halt-watch runs here: the printed plan assumes no asset is halted at `--at`.
 const clock = {
   calendar: sessions.calendar(), nowSec: atSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC,
-  minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: createSessionEvents().skips(),
+  minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: events.skips(), multipliers: events.multipliers(), halts: {},
 };
 
 const launch = TICKER_SYMBOLS.filter((s) => TICKERS[s].launch);
