@@ -2,12 +2,14 @@
  * The token lane's chart spot (session-lanes.md §2.4): Jupiter Price v3 `usdPrice` for the four verified xStock mints
  * every 5 s (keyless 0.5 RPS), per UI token, × 10⁸ floored. Labelled "chart follows Jupiter"; it never settles
  * anything. It also keeps two hours of samples, so the token maker can read the spot at a Window's start and the opt-in
- * attested fallback can read its T − 40 / T − 20 / T samples. Lane 6b owns this file.
+ * attested fallback can read its T − 40 / T − 20 / T samples. `joinXStockSpot` publishes it under the xStock symbols of
+ * the process `SpotFeed` (source `"jupiter"`), which the Gap maker reads as its weekend reference. Lane 6b owns this file.
  */
-import { TICKERS, TOKEN_LANE_TICKERS, type XStockSymbol } from "@agari/core/market";
+import { TICKERS, TOKEN_LANE_TICKERS, XSTOCK_SYMBOLS, type XStockSymbol } from "@agari/core/market";
 import { fetchJupiterPrices } from "@agari/markets/ops/prints";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
+import type { SpotFeed, SpotQuote } from "./spot";
 
 export interface XStockSpotQuote {
   xstock: XStockSymbol;
@@ -109,4 +111,26 @@ export function createXStockSpotFeed(input: { log: (why: string) => void; apiKey
     },
   };
   return feed;
+}
+
+const isXStock = (symbol: string): symbol is XStockSymbol => (XSTOCK_SYMBOLS as readonly string[]).includes(symbol);
+const asSpot = (q: XStockSpotQuote): SpotQuote => ({ symbol: q.xstock, priceE8: q.priceE8, publishTimeSec: q.sampledSec, source: "jupiter" });
+
+/** One `SpotFeed` over both: xStock symbols read Jupiter, every other symbol reads `base` (the relay's Pyth/RedStone feed). */
+export function joinXStockSpot(base: SpotFeed | null, xstock: XStockSpotFeed): SpotFeed {
+  return {
+    latest(symbol, maxAgeSec) {
+      if (!isXStock(symbol)) return base?.latest(symbol, maxAgeSec) ?? null;
+      const q = xstock.latest(symbol, maxAgeSec);
+      return q ? asSpot(q) : null;
+    },
+    subscribe(listener) {
+      const offBase = base?.subscribe(listener);
+      const offXStock = xstock.subscribe((q) => listener(asSpot(q)));
+      return () => {
+        offBase?.();
+        offXStock();
+      };
+    },
+  };
 }

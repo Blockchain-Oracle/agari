@@ -8,7 +8,7 @@
  * A failed read keeps the last observation, so a source that stays unreadable ages into a stale halt on its own.
  */
 import { readFileSync } from "node:fs";
-import { TICKER_SYMBOLS, XSTOCK_SYMBOLS, type PythTick, type SourceVersion, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
+import { isTickerSymbol, TICKER_SYMBOLS, XSTOCK_SYMBOLS, type PythTick, type SourceVersion, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
 import type { PrintSource } from "@agari/core/types";
 import type { SpotFeed } from "../../prices/spot";
 import { HERMES, parsePythEntries } from "../price-relay/hermes-fetch";
@@ -68,7 +68,8 @@ export async function readPyth(book: SignalBook, feeds: RelaySources["pythFeeds"
 /** Keeps `book.redstoneNewestSec` current from the spot feed's RedStone quotes; returns the unsubscribe. */
 export function followSpot(book: SignalBook, spot: SpotFeed): () => void {
   return spot.subscribe((quote) => {
-    if (quote.source !== "redstone") return;
+    // Only RedStone ticks of a ticker: Pyth has its own read, and xStock (Jupiter) quotes never halt a stock lane.
+    if (quote.source !== "redstone" || !isTickerSymbol(quote.symbol)) return;
     book.redstoneNewestSec[quote.symbol] = Math.max(book.redstoneNewestSec[quote.symbol] ?? 0, quote.publishTimeSec);
   });
 }
