@@ -9,10 +9,13 @@
       "deploySignature": "535nHdsRyvVbmuKVHPsuaBV9HCVEcfkTRbZnk2Gpr35DSnC8SAsFzkDJnm4qW6L6EKptVSrNzuhHkwzQ56hKRpQS",
       "deployedSlot": 498252588,
       "sbpfArch": "v0",
-      "soBytes": 764200,
-      "soSha256": "310e14d7265d3fb32662de0035d0e0b9a7322a3c48860468087b90962bc44309",
-      "sourceCommit": "36f1384",
-      "idlMetadata": "97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH"
+      "soBytes": 813328,
+      "soSha256": "2e4bf8cce4ceffb8387496f37752cb41a18edeb47e3cd911e241579f2efc54fe",
+      "sourceCommit": "9adaf66",
+      "idlMetadata": "97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH",
+      "upgradeSignature": "2qRw9u5ZGbaZhjaeZeHaim3M5kw81TPJkYfUMbDeGku7VzdF67zzqXypVptkJjAKBqutzWJEtHFsSKQ2pjMtJp5k",
+      "upgradedSlot": 498944324,
+      "extendSignature": "63eKut7v4crVrTovjg2FPWrYJiJmCRR1cGsrxxohFPcmThtYCuigGNtrqYLVsK1AeHTB6sR6ErF27U8Uk3gNYwgN"
     },
     "agari_vault": {
       "programId": "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
