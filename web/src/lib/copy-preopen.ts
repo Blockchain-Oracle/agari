@@ -61,6 +61,10 @@ export const PREOPEN = {
     hint: "post-only · your price",
     aria: (asset: string) => `Schedule a call on this ${asset} Window`,
   },
+  /** The closed hero while a listed Window is selected (D-088): its head names the Window under the last price. */
+  hero: {
+    listedWindow: (cadence: string, opens: string) => `${cadence} Window · opens ${opens} ET`,
+  },
   /** The schedule seam on the closed surfaces (the asset hero's foot, the ticket placeholder, the next-Window card). */
   seam: {
     cta: "Schedule a call",

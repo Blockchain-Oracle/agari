@@ -34,10 +34,10 @@ function replaceSelection(marketId: MarketId, side: Side | null): void {
  * chain-corrected clock (AD-1). Null before the first client tick. The dock reads it to pick the composer (a listed
  * Window takes a scheduled call, D-088); the ticket reads it for everything else.
  */
-export function useWindowPhase(market: EventMarket, nowMs: number): MarketPhase | null {
-  const opening = useOpeningPrice(market.marketId);
-  const onchain = useOnchain(market.marketId);
-  return nowMs > 0
+export function useWindowPhase(market: EventMarket | null, nowMs: number): MarketPhase | null {
+  const opening = useOpeningPrice(market?.marketId ?? null);
+  const onchain = useOnchain(market?.marketId ?? null);
+  return market && nowMs > 0
     ? phaseOf(
         {
           ...market,

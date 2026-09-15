@@ -16,21 +16,28 @@ const DEV = {
     "The asset hero, the ticket rail, the next-Window cards and the session chip at the /dev/session clocks — pre-market, after hours, the weekend and a holiday — over a canned signed-archive session. The same views /markets renders when no Window is live (D-086/D-087).",
   hero: "hero + rail — as /markets lays them out",
   cards: "next-Window cards — 5m and 60m lanes",
+  rail: "the rail is the schedule ticket (live only — see /dev/states · Pre-open calls)",
   chip: "session chip — header and hero",
 } as const;
 
 const noop = () => undefined;
 
 function ClosedHero({ fixture }: { fixture: HeroFixture }) {
-  const { asset, session, nowSec, history } = fixture;
+  const { asset, session, nowSec, history, window = null } = fixture;
   return (
     <div className="flex flex-col gap-4">
       <Fixture label={DEV.hero}>
         {/* `.markets-hero` scopes Masayume's mini-hero grid (the fixed rail column, the chart's height floor, the top-aligned rail on desktop). */}
         <div className="markets-hero">
           <div className="hero-grid hero-grid-mini">
-            <HeroAssetChartView asset={asset} tickers={LAUNCH_TICKERS} onPickAsset={noop} session={session} history={ok(history, nowSec * 1000)} nowSec={nowSec} range="1D" onRange={noop} />
-            <TicketPlaceholderView asset={asset} session={session} nowSec={nowSec} />
+            <HeroAssetChartView asset={asset} tickers={LAUNCH_TICKERS} onPickAsset={noop} session={session} history={ok(history, nowSec * 1000)} nowSec={nowSec} range="1D" onRange={noop} window={window} />
+            {window ? (
+              <div className="mh-rail">
+                <p className="type-caption text-ink-muted">{DEV.rail}</p>
+              </div>
+            ) : (
+              <TicketPlaceholderView asset={asset} session={session} nowSec={nowSec} />
+            )}
           </div>
         </div>
       </Fixture>

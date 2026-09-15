@@ -1,15 +1,19 @@
 "use client";
 
+import { isRestable } from "@agari/core/lifecycle";
 import { LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
-import type { MarketId, Side } from "@agari/core/types";
+import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import { marketsProvider } from "@agari/markets";
 import { mark } from "@agari/markets/perf";
 import type { ReactNode } from "react";
 import { ErrorState, LoadingState } from "@/components/states";
 import { HeroAssetChart } from "./hero/HeroAssetChart";
 import { HeroChart } from "./hero/HeroChart";
 import type { LanesState } from "./lanes";
+import { nextListedWindow } from "./lanes/next-window";
 import { TicketPlaceholder } from "./ticket/TicketPlaceholder";
+import { useWindowPhase } from "./ticket/useTicket";
 import type { MarketsSelection } from "./useMarketsSelection";
 
 export interface MarketsHeroProps {
@@ -48,9 +52,32 @@ function HeroPlaceholder({ lanes }: { lanes: LanesState }) {
   return <LoadingState shape="chart" />;
 }
 
+/**
+ * A selected Window that is listed but not yet open on the Regular or Gap lane (D-088). Before the first clock tick
+ * the index's own status stands in, so the page never flashes the live hero on a Window with no print.
+ */
+function isListedSelection(market: EventMarket | null, phase: ReturnType<typeof useWindowPhase>): market is EventMarket {
+  if (!market || market.lane === "token") return false;
+  return phase ? isRestable(phase) : market.status === "Listed";
+}
+
 export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTicket }: MarketsHeroProps) {
   const laneList = lanes.laneSet?.lanes ?? [];
-  if (selection.market) mark("route.useful", "markets.hero");
+  const { market } = selection;
+  const phase = useWindowPhase(market, selection.nowMs);
+  // The closed page keeps the asset hero while a listed Window is selected (D-086 over D-088): the last session's
+  // chart, price and change, with the head naming the Window and the rail already its schedule ticket. The live hero
+  // takes over the moment the Window's opening print lands. The picker offers only assets with a listed Window in
+  // the same cadence, so every pick resolves to a Window; the selection never silently outlives the pin.
+  const listed = isListedSelection(market, phase);
+  const nowSec = Math.floor((selection.nowMs > 0 ? selection.nowMs : marketsProvider.nowMs()) / 1000);
+  const listedTickers = listed ? LAUNCH_TICKERS.filter((ticker) => nextListedWindow(lanes.laneSet, ticker, nowSec, market.intervalSec) !== null) : LAUNCH_TICKERS;
+  const pickListed = (ticker: TickerSymbol | null) => {
+    lanes.pinTicker(ticker);
+    const next = ticker && listed ? nextListedWindow(lanes.laneSet, ticker, nowSec, market.intervalSec) : null;
+    if (next) onSelect(next.marketId);
+  };
+  if (market) mark("route.useful", "markets.hero");
   return (
     <section className="page-hero markets-hero">
       <span className="crop tl" />
@@ -60,9 +87,11 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
 
       <div className="container">
         <div className="hero-grid hero-grid-mini">
-          {selection.market ? (
+          {listed ? (
+            <HeroAssetChart asset={market.asset} tickers={listedTickers} onPickAsset={pickListed} window={market} />
+          ) : market ? (
             <HeroChart
-              market={selection.market}
+              market={market}
               nowMs={selection.nowMs}
               lanes={laneList}
               activeLaneKey={lanes.activeKey}
@@ -78,7 +107,7 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
               <HeroPlaceholder lanes={lanes} />
             </div>
           )}
-          {selection.market ? renderTicket(selection) : lanes.laneSet ? <TicketPlaceholder asset={lanes.ticker ?? DEFAULT_ASSET} onSelect={onSelect} /> : null}
+          {market ? renderTicket(selection) : lanes.laneSet ? <TicketPlaceholder asset={lanes.ticker ?? DEFAULT_ASSET} onSelect={onSelect} /> : null}
         </div>
       </div>
     </section>
