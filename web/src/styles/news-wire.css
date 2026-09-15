@@ -157,14 +157,13 @@
   color: var(--vermilion);
 }
 
-/* A phone: the title spans to the arrow and the tone drops to the meta row, right-aligned, so the
-   headline never shares its line with a word (the second tweak). */
+/* A phone: the title spans every column to the row's edge, and the tone and the arrow drop to the meta row,
+   right-aligned, so the headline never shares its line with a word (the second tweak). */
 @media (max-width: 639px) {
   .news-row {
-    grid-template-columns: 24px 16px minmax(0, 1fr) auto;
     grid-template-areas:
-      "idx mark title arrow"
-      "idx mark meta tone";
+      "idx mark title title title"
+      "idx mark meta tone arrow";
     column-gap: 12px;
   }
 
@@ -180,8 +179,8 @@
     grid-area: meta;
   }
 
-  .news-row-tone {
-    grid-area: tone;
+  .news-row-tone,
+  .news-row-arrow {
     justify-self: end;
     padding-top: 0;
     margin-top: 6px;
