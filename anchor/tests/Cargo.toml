@@ -38,6 +38,10 @@ path = "events_redeem.rs"
 name = "events_closure"
 path = "events_closure.rs"
 
+[[test]]
+name = "events_gap"
+path = "events_gap.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
