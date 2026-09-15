@@ -1,3 +1,5 @@
+import { ADVICE_COPY } from "@agari/core/copy";
+
 /**
  * `/` — the landing's words (L-11, D-093). Masayume never finished a landing page, so the layout is Agari's own; the
  * voice is Masayume's: short, declarative, no hype, and nothing claimed that the chain cannot show. Session words and
@@ -96,7 +98,7 @@ export const LANDING = {
 } as const;
 
 /**
- * The "not investment advice" line arrives from lane 15d (`ADVICE_COPY.notAdvice`, `@agari/core/copy`) at merge. Until
- * then the landing footer's advice slot renders nothing: the stage owner swaps this null for that import.
+ * The "not investment advice" line (`ADVICE_COPY.notAdvice`, lane 15d), wired into the landing footer at the S15 merge.
+ * Null would hide the footer's advice paragraph.
  */
-export const LANDING_ADVICE_SLOT: string | null = null;
+export const LANDING_ADVICE_SLOT: string | null = ADVICE_COPY.notAdvice;

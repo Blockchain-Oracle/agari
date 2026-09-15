@@ -31,7 +31,7 @@ Agari's pixel-grid artwork (ported from Masayume) is defined in [`PixelArt.tsx`]
 | Material | Attribution and terms | Location |
 | --- | --- | --- |
 | m6x11plus | **m6x11plus by Daniel Linssen**, [author's distribution page](https://managore.itch.io/m6x11). The author permits use with attribution; no standardized SPDX license is substituted for that wording. | [`web/public/fonts/m6x11plus.ttf`](web/public/fonts/m6x11plus.ttf); credited in game settings and [`SOURCES.md`](web/public/fonts/SOURCES.md) |
-| Sora SemiBold receipt font | Copyright 2019 The Sora Project Authors. SIL Open Font License 1.1. | [`Sora-OFL.txt`](services/ops/src/actors/x-relay/reply-card-assets/Sora-OFL.txt), beside the font file |
+| Sora SemiBold receipt and Open Graph font | Copyright 2019 The Sora Project Authors. SIL Open Font License 1.1. | [`Sora-OFL.txt`](services/ops/src/actors/x-relay/reply-card-assets/Sora-OFL.txt) beside the X receipt copy; [`Sora-OFL.txt`](web/src/features/landing/og/fonts/Sora-OFL.txt) beside the landing Open Graph copy |
 | Inter Regular receipt font | Copyright 2020 The Inter Project Authors. SIL Open Font License 1.1. | [`Inter-OFL.txt`](services/ops/src/actors/x-relay/reply-card-assets/Inter-OFL.txt), beside the font file |
 | Sora and Inter web fonts | The same font families are loaded through `next/font/google`; their respective font licenses apply. | [`web/src/lib/fonts.ts`](web/src/lib/fonts.ts) |
 | JetBrains Mono web font | Copyright 2020 The JetBrains Mono Project Authors. [SIL Open Font License 1.1](https://github.com/google/fonts/blob/main/ofl/jetbrainsmono/OFL.txt). | Loaded through [`web/src/lib/fonts.ts`](web/src/lib/fonts.ts) |
