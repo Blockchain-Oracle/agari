@@ -14,14 +14,21 @@ export interface PairInput {
   minTick: number;
   bestBidTicks: number | null;
   bestAskTicks: number | null;
+  /** Limit quotes (`MM_ORDER_TYPE=limit`) keep their price and take what rests inside it (D-090). */
+  crossing?: boolean;
 }
 
-/** Bid `fair − half`, ask `fair + half`, pulled strictly inside the opposite best so PostOnly can't cross; out-of-range sides drop. */
+/**
+ * Bid `fair − half`, ask `fair + half`; out-of-range sides drop.
+ * A PostOnly pair is pulled strictly inside the opposite best, because a crossing PostOnly order is refused. A limit
+ * pair stays where fair says: it takes any resting order on its side, at that order's price, which is how a user's
+ * pre-open call gets filled at the bell.
+ */
 export function quotePair(i: PairInput): QuotePair {
   let bid = i.fairTicks - i.halfSpreadTicks;
   let ask = i.fairTicks + i.halfSpreadTicks;
-  if (i.bestAskTicks !== null && bid >= i.bestAskTicks) bid = i.bestAskTicks - 1;
-  if (i.bestBidTicks !== null && ask <= i.bestBidTicks) ask = i.bestBidTicks + 1;
+  if (!i.crossing && i.bestAskTicks !== null && bid >= i.bestAskTicks) bid = i.bestAskTicks - 1;
+  if (!i.crossing && i.bestBidTicks !== null && ask <= i.bestBidTicks) ask = i.bestBidTicks + 1;
   const inRange = (t: number) => t >= i.minTick && t <= 1000 - i.minTick;
   const bidTicks = inRange(bid) ? bid : null;
   let askTicks = inRange(ask) ? ask : null;
