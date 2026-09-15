@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { SENSEI_INTRO, SENSEI_UI } from "./copy";
 import type { SenseiMessage, SenseiSnapshot } from "./protocol";
+import type { SenseiContext } from "./useSenseiContext";
 
 /** 4+ asks inside 3 minutes is the reference's tilt cue for the brake (L182–183). */
 const RESTLESS_WINDOW_MS = 180_000;
@@ -27,7 +28,7 @@ export interface SenseiChat {
  * Sensei's system prompt is told about it. It is a count of local timestamps; no
  * identity is attached to it and nothing about it is stored.
  */
-export function useSenseiChat(snapshot: SenseiSnapshot | null): SenseiChat {
+export function useSenseiChat(snapshot: SenseiSnapshot | null, context: SenseiContext): SenseiChat {
   const [messages, setMessages] = useState<SenseiMessage[]>([SENSEI_INTRO]);
   const [loading, setLoading] = useState(false);
   const [typingIndex, setTypingIndex] = useState(-1);
@@ -54,6 +55,7 @@ export function useSenseiChat(snapshot: SenseiSnapshot | null): SenseiChat {
             messages: next.slice(-HISTORY_TURNS).map(({ role, content }) => ({ role, content })),
             snapshot,
             restless,
+            ...context,
           }),
         });
         const body = (await response.json()) as { reply?: string; error?: string };
@@ -70,7 +72,7 @@ export function useSenseiChat(snapshot: SenseiSnapshot | null): SenseiChat {
         setLoading(false);
       }
     },
-    [messages, snapshot, loading],
+    [messages, snapshot, context, loading],
   );
 
   return { messages, loading, typingIndex, send, doneTyping: useCallback(() => setTypingIndex(-1), []) };

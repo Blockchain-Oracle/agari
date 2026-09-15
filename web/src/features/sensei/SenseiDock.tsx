@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { SENSEI_TEASERS, SENSEI_UI } from "./copy";
 import { SenseiDrawer } from "./SenseiDrawer";
 import { useSenseiChat } from "./useSenseiChat";
+import { useSenseiContext } from "./useSenseiContext";
 import { useSenseiSnapshot } from "./useSenseiSnapshot";
 
 /** The ring's geometry, from the reference's `R = 30` on a 72-unit viewBox. */
@@ -82,7 +83,8 @@ function useTeaser(open: boolean): number {
 export function SenseiDock({ laneSet, nowMs }: SenseiDockProps) {
   const [open, setOpen] = useState(false);
   const reading = useSenseiSnapshot(laneSet, nowMs);
-  const chat = useSenseiChat(reading.snapshot);
+  const context = useSenseiContext(open, nowMs);
+  const chat = useSenseiChat(reading.snapshot, context);
   const teaserIndex = useTeaser(open);
 
   // The nav points at `?sensei=1`. A client-side nav to the page you are already on
