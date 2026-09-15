@@ -54,8 +54,13 @@ impl Harness {
     }
 
     pub fn set_authorities_ix(&self, admin: &Pubkey, args: SetAuthoritiesArgs) -> Instruction {
+        self.set_authorities_queue_ix(admin, args, None)
+    }
+
+    /// With the Switchboard queue account, which the handler requires whenever `args.switchboard_queue` is set.
+    pub fn set_authorities_queue_ix(&self, admin: &Pubkey, args: SetAuthoritiesArgs, queue: Option<Pubkey>) -> Instruction {
         ix(
-            agari_events::accounts::AdminSetAuthorities { admin: *admin, config: config(), treasury: self.treasury },
+            agari_events::accounts::AdminSetAuthorities { admin: *admin, config: config(), treasury: self.treasury, queue },
             agari_events::instruction::AdminSetAuthorities { args },
         )
     }

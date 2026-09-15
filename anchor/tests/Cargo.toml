@@ -48,6 +48,16 @@ path = "events_gap.rs"
 name = "events_halt_void"
 path = "events_halt_void.rs"
 
+# S6 lane 6b: a real Switchboard quote on the upgraded program (session-lanes.md §2.6).
+[[test]]
+name = "events_switchboard"
+path = "events_switchboard.rs"
+
+# D-088: a Listed Window rests PostOnly quotes before its open print.
+[[test]]
+name = "events_preopen"
+path = "events_preopen.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
@@ -68,3 +78,6 @@ base64 = "0.22"
 k256 = { version = "0.13.4", features = ["ecdsa"] }
 pyth-solana-receiver-sdk = "=2.0.0"
 sha3 = "0.10"
+# S6 lane 6b: a real Switchboard quote needs its slot in SlotHashes.
+solana-hash = "4.5"
+solana-slot-hashes = "=3.1.0"

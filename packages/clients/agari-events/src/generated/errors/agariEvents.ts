@@ -100,6 +100,8 @@ export const AGARI_EVENTS_ERROR__REDUCE_NOT_SMALLER = 0x17e6; // 6118
 export const AGARI_EVENTS_ERROR__SELF_MATCH_CANCEL_TAKER = 0x17e7; // 6119
 /** InvalidOrderArgs: order arguments are out of range */
 export const AGARI_EVENTS_ERROR__INVALID_ORDER_ARGS = 0x17e8; // 6120
+/** PreOpenTakerRefused: market is listed: only post-only orders may rest before the open */
+export const AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED = 0x17e9; // 6121
 /** WrongPrintSource: print source does not match the window's policy */
 export const AGARI_EVENTS_ERROR__WRONG_PRINT_SOURCE = 0x1838; // 6200
 /** PrintAlreadyRecorded: print slot already recorded */
@@ -240,6 +242,7 @@ export type AgariEventsError =
   | typeof AGARI_EVENTS_ERROR__PARTIAL_REDEEM_NOT_ALLOWED
   | typeof AGARI_EVENTS_ERROR__POLICY_VERSION_IMMUTABLE
   | typeof AGARI_EVENTS_ERROR__POST_ONLY_WOULD_CROSS
+  | typeof AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED
   | typeof AGARI_EVENTS_ERROR__PRINT_ALREADY_RECORDED
   | typeof AGARI_EVENTS_ERROR__PRINT_NOT_ADJACENT
   | typeof AGARI_EVENTS_ERROR__PRINT_NOT_UNIQUE
@@ -329,6 +332,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [AGARI_EVENTS_ERROR__PARTIAL_REDEEM_NOT_ALLOWED]: `partial redeem is for program seats only`,
     [AGARI_EVENTS_ERROR__POLICY_VERSION_IMMUTABLE]: `policy versions are immutable once written`,
     [AGARI_EVENTS_ERROR__POST_ONLY_WOULD_CROSS]: `post-only order would cross`,
+    [AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED]: `market is listed: only post-only orders may rest before the open`,
     [AGARI_EVENTS_ERROR__PRINT_ALREADY_RECORDED]: `print slot already recorded`,
     [AGARI_EVENTS_ERROR__PRINT_NOT_ADJACENT]: `previous window is not adjacent or uses another policy`,
     [AGARI_EVENTS_ERROR__PRINT_NOT_UNIQUE]: `price update is not the unique update at the boundary`,

@@ -61,6 +61,7 @@ export type AdminSetAuthoritiesInstruction<
   TAccountAdmin extends string | AccountMeta<string> = string,
   TAccountConfig extends string | AccountMeta<string> = string,
   TAccountTreasury extends string | AccountMeta<string> = string,
+  TAccountQueue extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
@@ -76,6 +77,9 @@ export type AdminSetAuthoritiesInstruction<
       TAccountTreasury extends string
         ? ReadonlyAccount<TAccountTreasury>
         : TAccountTreasury,
+      TAccountQueue extends string
+        ? ReadonlyAccount<TAccountQueue>
+        : TAccountQueue,
       ...TRemainingAccounts,
     ]
   >;
@@ -161,10 +165,16 @@ export type AdminSetAuthoritiesAsyncInput<
   TAccountAdmin extends string = string,
   TAccountConfig extends string = string,
   TAccountTreasury extends string = string,
+  TAccountQueue extends string = string,
 > = {
   admin: TransactionSigner<TAccountAdmin>;
   config?: Address<TAccountConfig>;
   treasury: Address<TAccountTreasury>;
+  /**
+   * The Switchboard queue being pinned; required (and checked) when `args.switchboard_queue` is set, omitted when
+   * it is the zero placeholder.
+   */
+  queue?: Address<TAccountQueue>;
   rollers: AdminSetAuthoritiesInstructionDataArgs["rollers"];
   attestors: AdminSetAuthoritiesInstructionDataArgs["attestors"];
   redstoneSigners: AdminSetAuthoritiesInstructionDataArgs["redstoneSigners"];
@@ -180,12 +190,14 @@ export async function getAdminSetAuthoritiesInstructionAsync<
   TAccountAdmin extends string,
   TAccountConfig extends string,
   TAccountTreasury extends string,
+  TAccountQueue extends string,
   TProgramAddress extends Address = typeof AGARI_EVENTS_PROGRAM_ADDRESS,
 >(
   input: AdminSetAuthoritiesAsyncInput<
     TAccountAdmin,
     TAccountConfig,
-    TAccountTreasury
+    TAccountTreasury,
+    TAccountQueue
   >,
   config?: { programAddress?: TProgramAddress },
 ): Promise<
@@ -193,7 +205,8 @@ export async function getAdminSetAuthoritiesInstructionAsync<
     TProgramAddress,
     TAccountAdmin,
     TAccountConfig,
-    TAccountTreasury
+    TAccountTreasury,
+    TAccountQueue
   >
 > {
   // Program address.
@@ -204,6 +217,7 @@ export async function getAdminSetAuthoritiesInstructionAsync<
     admin: { value: input.admin ?? null, isWritable: false },
     config: { value: input.config ?? null, isWritable: true },
     treasury: { value: input.treasury ?? null, isWritable: false },
+    queue: { value: input.queue ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -224,6 +238,7 @@ export async function getAdminSetAuthoritiesInstructionAsync<
       getAccountMeta("admin", accounts.admin),
       getAccountMeta("config", accounts.config),
       getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("queue", accounts.queue),
     ],
     data: getAdminSetAuthoritiesInstructionDataEncoder().encode(
       args as AdminSetAuthoritiesInstructionDataArgs,
@@ -233,7 +248,8 @@ export async function getAdminSetAuthoritiesInstructionAsync<
     TProgramAddress,
     TAccountAdmin,
     TAccountConfig,
-    TAccountTreasury
+    TAccountTreasury,
+    TAccountQueue
   >);
 }
 
@@ -241,10 +257,16 @@ export type AdminSetAuthoritiesInput<
   TAccountAdmin extends string = string,
   TAccountConfig extends string = string,
   TAccountTreasury extends string = string,
+  TAccountQueue extends string = string,
 > = {
   admin: TransactionSigner<TAccountAdmin>;
   config: Address<TAccountConfig>;
   treasury: Address<TAccountTreasury>;
+  /**
+   * The Switchboard queue being pinned; required (and checked) when `args.switchboard_queue` is set, omitted when
+   * it is the zero placeholder.
+   */
+  queue?: Address<TAccountQueue>;
   rollers: AdminSetAuthoritiesInstructionDataArgs["rollers"];
   attestors: AdminSetAuthoritiesInstructionDataArgs["attestors"];
   redstoneSigners: AdminSetAuthoritiesInstructionDataArgs["redstoneSigners"];
@@ -260,19 +282,22 @@ export function getAdminSetAuthoritiesInstruction<
   TAccountAdmin extends string,
   TAccountConfig extends string,
   TAccountTreasury extends string,
+  TAccountQueue extends string,
   TProgramAddress extends Address = typeof AGARI_EVENTS_PROGRAM_ADDRESS,
 >(
   input: AdminSetAuthoritiesInput<
     TAccountAdmin,
     TAccountConfig,
-    TAccountTreasury
+    TAccountTreasury,
+    TAccountQueue
   >,
   config?: { programAddress?: TProgramAddress },
 ): AdminSetAuthoritiesInstruction<
   TProgramAddress,
   TAccountAdmin,
   TAccountConfig,
-  TAccountTreasury
+  TAccountTreasury,
+  TAccountQueue
 > {
   // Program address.
   const programAddress = config?.programAddress ?? AGARI_EVENTS_PROGRAM_ADDRESS;
@@ -282,6 +307,7 @@ export function getAdminSetAuthoritiesInstruction<
     admin: { value: input.admin ?? null, isWritable: false },
     config: { value: input.config ?? null, isWritable: true },
     treasury: { value: input.treasury ?? null, isWritable: false },
+    queue: { value: input.queue ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -297,6 +323,7 @@ export function getAdminSetAuthoritiesInstruction<
       getAccountMeta("admin", accounts.admin),
       getAccountMeta("config", accounts.config),
       getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("queue", accounts.queue),
     ],
     data: getAdminSetAuthoritiesInstructionDataEncoder().encode(
       args as AdminSetAuthoritiesInstructionDataArgs,
@@ -306,7 +333,8 @@ export function getAdminSetAuthoritiesInstruction<
     TProgramAddress,
     TAccountAdmin,
     TAccountConfig,
-    TAccountTreasury
+    TAccountTreasury,
+    TAccountQueue
   >);
 }
 
@@ -319,6 +347,11 @@ export type ParsedAdminSetAuthoritiesInstruction<
     admin: TAccountMetas[0];
     config: TAccountMetas[1];
     treasury: TAccountMetas[2];
+    /**
+     * The Switchboard queue being pinned; required (and checked) when `args.switchboard_queue` is set, omitted when
+     * it is the zero placeholder.
+     */
+    queue?: TAccountMetas[3] | undefined;
   };
   data: AdminSetAuthoritiesInstructionData;
 };
@@ -331,12 +364,12 @@ export function parseAdminSetAuthoritiesInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedAdminSetAuthoritiesInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 3) {
+  if (instruction.accounts.length < 4) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
       {
         actualAccountMetas: instruction.accounts.length,
-        expectedAccountMetas: 3,
+        expectedAccountMetas: 4,
       },
     );
   }
@@ -346,12 +379,19 @@ export function parseAdminSetAuthoritiesInstruction<
     accountIndex += 1;
     return accountMeta;
   };
+  const getNextOptionalAccount = () => {
+    const accountMeta = getNextAccount();
+    return accountMeta.address === AGARI_EVENTS_PROGRAM_ADDRESS
+      ? undefined
+      : accountMeta;
+  };
   return {
     programAddress: instruction.programAddress,
     accounts: {
       admin: getNextAccount(),
       config: getNextAccount(),
       treasury: getNextAccount(),
+      queue: getNextOptionalAccount(),
     },
     data: getAdminSetAuthoritiesInstructionDataDecoder().decode(
       instruction.data,
