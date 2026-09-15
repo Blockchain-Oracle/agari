@@ -20,7 +20,7 @@ import { fixtureGapWindow } from "../../fixture-window";
 import { CLOCK, fixtureSession, HALTS } from "../../session/market-session-fixtures";
 import { VERDICT_FIXTURES } from "../../verdict/fixtures";
 import { SYMBOL } from "../fixtures";
-import { GAP_CARDS, GAP_LISTED, PAUSED_CARDS, PAUSED_UPCOMING, REGULAR_SETTLED, REGULAR_TRADING, REGULAR_UPCOMING, TOKEN_CARD, TOKEN_WINDOW, VOID_DETAILS, type CardFixture } from "../lane-fixtures";
+import { GAP_CARDS, GAP_LISTED, PAUSED_CARDS, PAUSED_UPCOMING, REGULAR_SETTLED, REGULAR_TRADING, REGULAR_UPCOMING, TOKEN_CARD, TOKEN_WINDOW, VOID_FIXTURES, type CardFixture } from "../lane-fixtures";
 import { Fixture, FixtureGrid } from "./Fixture";
 
 const noop = () => undefined;
@@ -104,11 +104,11 @@ export function SessionLanesSection() {
         </Fixture>
       </FixtureGrid>
       <FixtureGrid>
-        {VOID_DETAILS.map(({ label, detail }) => (
+        {VOID_FIXTURES.map(({ label, given }) => (
           <Fixture key={label} label={`Void claim — ${label}`}>
-            <ClaimWinnings verdict={VERDICT_FIXTURES.void} marketId={VOID_ROW.marketId} symbol={SYMBOL} voidDetail={detail} />
+            <ClaimWinnings verdict={VERDICT_FIXTURES.void} marketId={VOID_ROW.marketId} symbol={SYMBOL} voidGiven={given} />
             <ul>
-              <ClaimRow row={VOID_ROW} voidDetail={detail} />
+              <ClaimRow row={VOID_ROW} voidGiven={given} />
             </ul>
           </Fixture>
         ))}

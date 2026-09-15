@@ -2,9 +2,8 @@
  * How a lane reads on every surface (session-lanes.md §5): its tab key and label, the asset it prices, its ET clock
  * words and its source note. Pure, so the cards, the hero, the ticket and the `/dev` fixtures say the same thing.
  */
-import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, TICKERS, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
-import type { EarningsEvent, EventMarket, HaltReason, LaneBasis } from "@agari/core/types";
-import { TRADING_HALT_REASONS } from "@agari/core/types";
+import { earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, TICKERS, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
+import { HALT_REASONS, type EarningsEvent, type EventMarket, type HaltReason, type LaneBasis } from "@agari/core/types";
 import { formatCadence, HERO, LANE_STATE, MARKETS } from "@/lib/copy";
 
 /** One lane per (basis, cadence), keyed as core `groupIntoLanes` keys it, so a 5m stock lane and a 5m token lane stay apart. */
@@ -68,6 +67,7 @@ export function priceSourceLine(market: Pick<EventMarket, "asset" | "lane" | "tr
   return HERO.source;
 }
 
+/** Core `haltPausedState`: `paused: halted (<reason>)`. */
 const HALTED_STATE = /^paused: halted \(([a-z-]+)\)/;
 
 /**
@@ -76,30 +76,25 @@ const HALTED_STATE = /^paused: halted \(([a-z-]+)\)/;
  */
 export function pausedCopy(state: string, asset: string, basis: LaneBasis, intervalSec: number): { headline: string; why: string } {
   const [lead, tail] = basis === "gap" ? [`${asset} ${LANE_STATE.tab.gap}`, ""] : [asset, laneCadenceLabel(basis, intervalSec)];
-  const halted = HALTED_STATE.exec(state);
-  if (halted) {
-    const trading = TRADING_HALT_REASONS.includes(halted[1] as HaltReason);
-    return { headline: trading ? MARKETS.halt.trading : MARKETS.halt.stale, why: LANE_STATE.haltWhy(lead, tail) };
+  const reason = HALTED_STATE.exec(state)?.[1];
+  if (reason && (HALT_REASONS as readonly string[]).includes(reason)) {
+    return { headline: haltLabel(reason as HaltReason), why: LANE_STATE.haltWhy(lead, tail) };
   }
   const corporate = state.startsWith("paused: corporate action");
   return { headline: corporate ? MARKETS.paused.corporateAction : MARKETS.paused.noSource, why: tail ? MARKETS.paused.why(lead, tail) : LANE_STATE.pausedWhy(lead) };
 }
 
 /**
- * The earnings line for a Window (spec §3.3): a Regular Window on a report date, or a Gap over an after-close Friday or
- * a before-open Monday. The rule is 6c's core `earningsFlag`; this renders its words.
+ * The earnings line for a Window: core `earningsEventFor` decides (a Regular Window on a report date, a Gap over an
+ * after-close Friday or a before-open Monday; token Windows never); this is only its words. Null events = unknown.
  */
 export function earningsWarning(market: Pick<EventMarket, "asset" | "lane" | "tradingStartSec" | "expirySec">, events: readonly EarningsEvent[] | null): string | null {
-  if (!events || market.lane === "token") return null;
-  const mine = events.filter((event) => event.symbol === market.asset);
-  if (market.lane === "regular") {
-    const today = mine.find((event) => event.dateEt === etDateOf(market.tradingStartSec));
-    if (!today) return null;
-    return LANE_STATE.earnings.session(market.asset, today.hour ? `${LANE_STATE.earnings.hour[today.hour]} ${LANE_STATE.earnings.today}` : LANE_STATE.earnings.today);
+  const hit = events ? earningsEventFor(market.asset, market, events) : null;
+  if (!hit) return null;
+  const { hour } = hit.event;
+  if (hit.flag === "earnings-session") {
+    return LANE_STATE.earnings.session(market.asset, hour ? `${LANE_STATE.earnings.hour[hour]} ${LANE_STATE.earnings.today}` : LANE_STATE.earnings.today);
   }
-  const friday = mine.find((event) => event.hour === "amc" && event.dateEt === etDateOf(market.tradingStartSec));
-  const monday = mine.find((event) => event.hour === "bmo" && event.dateEt === etDateOf(market.expirySec));
-  if (friday) return LANE_STATE.earnings.gap(market.asset, `${LANE_STATE.earnings.hour.amc} ${etWeekday(market.tradingStartSec)}`);
-  if (monday) return LANE_STATE.earnings.gap(market.asset, `${LANE_STATE.earnings.hour.bmo} ${etWeekday(market.expirySec)}`);
-  return null;
+  const friday = hour === "amc";
+  return LANE_STATE.earnings.gap(market.asset, `${LANE_STATE.earnings.hour[friday ? "amc" : "bmo"]} ${etWeekday(friday ? market.tradingStartSec : market.expirySec)}`);
 }

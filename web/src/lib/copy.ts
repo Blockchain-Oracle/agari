@@ -126,11 +126,6 @@ export const MARKETS = {
     closed: "Closed",
     halted: "halted",
   },
-  /** Q-S6-9: "Trading halted" only for a wide Pyth confidence or the issuer's flag; the stale reasons say so instead. */
-  halt: {
-    trading: "Trading halted",
-    stale: "Signed price stale",
-  },
   /** A ticker whose `/session` lane reads `paused:` lists nothing while the rest of its cadence runs. */
   paused: {
     noSource: "Paused: no signed price source",

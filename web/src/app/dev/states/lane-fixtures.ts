@@ -2,7 +2,9 @@
  * Canned Windows for the S6 lane states (session-lanes.md §5): the real 09-18 Gap at each of its phases, a weekend TSLAx
  * token Window, and the Regular Windows the ticket blockers and void claims are shown on. Prints are × 10⁻⁸.
  */
-import type { EventMarket, VoidDetail } from "@agari/core/types";
+import { corporatePausedState, haltPausedState, voidDetail } from "@agari/core/market";
+import type { EventMarket } from "@agari/core/types";
+import type { GivenVoid } from "@/features/markets/claims/void-line";
 import type { MarketCardData } from "@/features/markets/lanes/MarketCardView";
 import { fixtureAddress, fixtureMarketId } from "../fixture-ids";
 import { fixtureGapWindow, fixtureWindow, GAP_0918 } from "../fixture-window";
@@ -77,9 +79,9 @@ export const TOKEN_CARD: CardFixture = {
 /** The roller's paused lanes, each with the state string ops sends. */
 export const PAUSED_CARDS = [
   { label: "Paused — no signed source (QQQ Gap, 09-25)", asset: "QQQ", basis: "gap", intervalSec: 604_800, state: "paused: no signed source" },
-  { label: "Paused — corporate action (NVDA split)", asset: "NVDA", basis: "regular", intervalSec: 300, state: "paused: corporate action (4-for-1 split)" },
-  { label: "Paused — halted, pyth-wide (Trading halted)", asset: "TSLA", basis: "regular", intervalSec: 300, state: "paused: halted (pyth-wide)" },
-  { label: "Paused — halted, redstone-stale (Signed price stale)", asset: "AAPL", basis: "regular", intervalSec: 900, state: "paused: halted (redstone-stale)" },
+  { label: "Paused — corporate action (NVDA split)", asset: "NVDA", basis: "regular", intervalSec: 300, state: corporatePausedState("4-for-1 split") },
+  { label: "Paused — halted, pyth-wide (Trading halted)", asset: "TSLA", basis: "regular", intervalSec: 300, state: haltPausedState({ reason: "pyth-wide", sinceSec: 0 }) },
+  { label: "Paused — halted, redstone-stale (Signed price stale)", asset: "AAPL", basis: "regular", intervalSec: 900, state: haltPausedState({ reason: "redstone-stale", sinceSec: 0 }) },
 ] as const;
 
 /** Windows the ticket blockers read: a Regular Window in session, before the open, and a Gap before its calls. */
@@ -89,11 +91,24 @@ export const REGULAR_SETTLED = fixtureWindow({ marketId: id(22), intervalSec: 3_
 export const PAUSED_UPCOMING = fixtureWindow({ marketId: id(23), asset: "NVDA", intervalSec: 300, expirySec: CLOCK.regularTue + 300, decimals: DECIMALS, status: "Listed" });
 export const GAP_LISTED = GAP_CARDS[0]!.market;
 
-/** Each void reason as the claim card and row name it. */
-export const VOID_DETAILS: ReadonlyArray<{ label: string; detail: VoidDetail }> = [
-  { label: "missing print — the closing Pyth print never landed", detail: { reason: "missing-print", slot: "close", source: "pyth", boundarySec: 1_789_502_400, deadlineSec: 1_789_503_300 } },
-  { label: "missing print — a RedStone open with no deadline known", detail: { reason: "missing-print", slot: "open", source: "redstone", boundarySec: 1_789_479_000, deadlineSec: null } },
-  { label: "cross-check divergence — Pyth vs RedStone over 0.25%", detail: { reason: "cross-check-divergence", slot: "close", source: "pyth", boundarySec: 1_789_502_400, deadlineSec: null } },
+/** Each void reason as the claim card and row name it, decided by core `voidDetail` from a Window's prints. */
+const tue = { tradingStartSec: 1_789_501_500, lockAtSec: 1_789_502_400, expirySec: 1_789_502_400 }; // 15:45–16:00 ET
+export const VOID_FIXTURES: ReadonlyArray<{ label: string; given: GivenVoid }> = [
+  {
+    label: "missing print — the 16:00 Pyth close never landed",
+    given: { detail: voidDetail({ voidReason: "missing-print", lane: "regular", primarySource: "pyth", ...tue, openE8: TSLA_WEEKEND, closeE8: null }) },
+  },
+  {
+    label: "missing print — a Gap's Friday RedStone open, admissible until the lock",
+    given: { detail: voidDetail({ voidReason: "missing-print", lane: "gap", primarySource: "redstone", ...GAP_0918, openE8: null, closeE8: null }) },
+  },
+  {
+    label: "cross-check divergence — Pyth vs RedStone past 0.25%",
+    given: {
+      detail: voidDetail({ voidReason: "cross-check-divergence", lane: "regular", primarySource: "pyth", checkSource: "redstone", ...tue, openE8: TSLA_WEEKEND, closeE8: 35_990_000_000n, checkOpenE8: TSLA_WEEKEND, checkCloseE8: 35_870_000_000n }),
+      checkSource: "redstone",
+    },
+  },
 ];
 
 export const VOID_SEAT = fixtureAddress("0x5ea7");

@@ -1,8 +1,8 @@
 "use client";
 
 import type { BlockerContext } from "@agari/core/copy";
-import { TRADING_HALT_REASONS, type EventMarket } from "@agari/core/types";
-import { etDateOf, formatEtClock } from "@agari/core/market";
+import { etDateOf, formatEtClock, haltLabel } from "@agari/core/market";
+import type { EventMarket } from "@agari/core/types";
 import { earningsWarning, etWhen, laneAssetLabel } from "../lanes/lane-view";
 import { laneState, useMarketSession, type MarketSession } from "../session";
 import type { LaneGuardInput } from "./ticket-guards";
@@ -28,7 +28,7 @@ export function laneGuardOf(market: EventMarket, session: MarketSession | null):
       : null,
     ctx: {
       opensText: opensSec === null ? undefined : `${sameDay ? formatEtClock(opensSec) : etWhen(opensSec)} ET`,
-      haltStale: halt ? !TRADING_HALT_REASONS.includes(halt.reason) : undefined,
+      haltStale: halt ? haltLabel(halt.reason) === "Signed price stale" : undefined,
     },
     earnings: session ? earningsWarning(market, session.earnings) : null,
   };

@@ -1,7 +1,8 @@
 "use client";
 
+import { VOID_HEADLINE } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
-import type { MarketId, Verdict, VoidDetail } from "@agari/core/types";
+import type { MarketId, Verdict } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { invalidateAfterWrite, useClaimables, useSubmitter } from "@agari/markets/react";
@@ -12,7 +13,7 @@ import { Hash } from "@/components/data";
 import { itemsFromRows } from "@/features/markets/claims/claim-run";
 import { redeemOne } from "@/features/markets/claims/useClaimAll";
 import { useRedemption } from "@/features/markets/claims/useRedemption";
-import { useVoidLine } from "@/features/markets/claims/void-line";
+import { useVoidWords, type GivenVoid } from "@/features/markets/claims/void-line";
 import { useVenue } from "@/features/markets/useVenue";
 import { diagnosisCopy, VERDICT_UI } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
@@ -25,7 +26,7 @@ interface ClaimWinningsProps {
   marketId: MarketId;
   symbol: string;
   /** A void's reason, when the caller already holds it (`/dev` fixtures); omitted, a void reads its Window's result. */
-  voidDetail?: VoidDetail | null;
+  voidGiven?: GivenVoid;
 }
 
 /**
@@ -41,7 +42,7 @@ interface ClaimWinningsProps {
  * A void is neither (Q-S6-7): the reference only branches on a loss, so a void wore the "You won" trophy. Here it takes
  * the loss card's quiet anatomy with the void stamp, "Returned", Masayume's void line and the reason (spec §3.2).
  */
-export function ClaimWinnings({ verdict, marketId, symbol, voidDetail }: ClaimWinningsProps) {
+export function ClaimWinnings({ verdict, marketId, symbol, voidGiven }: ClaimWinningsProps) {
   const { address } = useWalletSession();
   const { venueId } = useVenue();
   const submitter = useSubmitter();
@@ -54,7 +55,7 @@ export function ClaimWinnings({ verdict, marketId, symbol, voidDetail }: ClaimWi
   const rows = claimables && isOk(claimables) ? claimables.value.filter((row) => row.marketId === marketId) : [];
   const items = itemsFromRows(rows);
   const isVoid = verdict.outcome === "void";
-  const voidLine = useVoidLine(marketId, isVoid, voidDetail);
+  const voidWords = useVoidWords(marketId, isVoid, voidGiven);
   const won = verdict.outcome !== "loss" && verdict.payoutBase > 0n;
   // Only once the claimables have answered with nothing left for this Window is there a payout to trace.
   const settledOut = won && claimables !== null && isOk(claimables) && items.length === 0;
@@ -103,8 +104,9 @@ export function ClaimWinnings({ verdict, marketId, symbol, voidDetail }: ClaimWi
             <div className="cw-loss-eyebrow">{VERDICT_UI.claim.returned}</div>
           </div>
         </div>
-        <p className="cw-loss-body">{VERDICT_UI.claim.voidLine}</p>
-        {voidLine && <p className="cw-void-reason">{voidLine}</p>}
+        {voidWords && <div className="cw-loss-eyebrow">{voidWords.shareWord}</div>}
+        <p className="cw-loss-body">{voidWords?.headline ?? VOID_HEADLINE}</p>
+        {voidWords && <p className="cw-void-reason">{voidWords.reason}</p>}
         <div className="cw-win-flow">
           <span>
             {VERDICT_UI.claim.stake} <span className="cw-num">{money(stake)}</span>

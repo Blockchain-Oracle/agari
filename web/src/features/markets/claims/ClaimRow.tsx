@@ -1,5 +1,5 @@
 import { formatCadence } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow, type VoidDetail } from "@agari/core/types";
+import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { Hash, Money, UtcTime } from "@/components/data";
@@ -8,7 +8,7 @@ import { webEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { itemKey } from "./claim-run";
 import type { ClaimItem } from "./types";
-import { useVoidLine } from "./void-line";
+import { useVoidWords, type GivenVoid } from "./void-line";
 
 interface ClaimRowProps {
   row: ClaimableRow;
@@ -16,13 +16,13 @@ interface ClaimRowProps {
   items?: readonly ClaimItem[];
   className?: string;
   /** A void's reason when the caller holds it (`/dev` fixtures); omitted, the row reads its Window's result. */
-  voidDetail?: VoidDetail | null;
+  voidGiven?: GivenVoid;
 }
 
 /** Under a void's kind line: why it voided (session-lanes.md §3.2), read only for a void row. */
-function VoidReason({ row, given }: { row: ClaimableRow; given: VoidDetail | null | undefined }) {
-  const line = useVoidLine(row.marketId, row.kind === "void", given);
-  return line ? <span className="type-caption text-ink-muted">{line}</span> : null;
+function VoidReason({ row, given }: { row: ClaimableRow; given: GivenVoid | undefined }) {
+  const words = useVoidWords(row.marketId, row.kind === "void", given);
+  return words ? <span className="type-caption text-ink-muted">{words.reason}</span> : null;
 }
 
 function LegLine({ row, leg, item }: { row: ClaimableRow; leg: ClaimLeg; item: ClaimItem | undefined }) {
@@ -47,7 +47,7 @@ function LegLine({ row, leg, item }: { row: ClaimableRow; leg: ClaimLeg; item: C
 }
 
 /** One settled Window: a void is ONE row whose two legs share the Window's one redemption; a Vault credit reads as a withdrawal. */
-export function ClaimRow({ row, items, className, voidDetail }: ClaimRowProps) {
+export function ClaimRow({ row, items, className, voidGiven }: ClaimRowProps) {
   const cadence = formatCadence(row.intervalSec);
   const timeLabel = row.settledAtMs === null ? CLAIM.closed : CLAIM.settled;
   const timeMs = row.settledAtMs ?? secToMs(row.expirySec);
@@ -62,7 +62,7 @@ export function ClaimRow({ row, items, className, voidDetail }: ClaimRowProps) {
           <span className="type-caption text-ink-secondary">
             {CLAIM.kind[row.kind]} · {timeLabel} <UtcTime ms={timeMs} withSeconds={false} />
           </span>
-          {row.kind === "void" && <VoidReason row={row} given={voidDetail} />}
+          {row.kind === "void" && <VoidReason row={row} given={voidGiven} />}
         </div>
         <Money value={row.netPayoutBase} decimals={row.decimals} className="type-data-lg text-ink" />
       </div>

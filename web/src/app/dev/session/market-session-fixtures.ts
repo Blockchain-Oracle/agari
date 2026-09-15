@@ -3,7 +3,7 @@
  * builds (`toMarketSession`), over an Alpaca-shaped calendar and fixed clocks, so a chip or a blocker renders here exactly
  * as it would on `/markets`.
  */
-import { calendarFromAlpaca, datesBetween, weekdayOfDate, type SessionCalendar } from "@agari/core/market";
+import { calendarFromAlpaca, corporatePausedState, datesBetween, haltPausedState, weekdayOfDate, type SessionCalendar } from "@agari/core/market";
 import type { CorporateSkip, EarningsEvent, HaltBoard } from "@agari/core/types";
 import { toMarketSession, type MarketSession } from "@/features/markets/session";
 
@@ -36,8 +36,8 @@ export const CLOCK = {
 export const LANES: Record<string, string> = {
   "TSLA-5m": "open → 1789491900",
   "TSLA-60m": "open → 1789495200",
-  "NVDA-5m": "paused: corporate action (4-for-1 split)",
-  "AAPL-15m": "paused: halted (redstone-stale)",
+  "NVDA-5m": corporatePausedState("4-for-1 split"),
+  "AAPL-15m": haltPausedState({ reason: "redstone-stale", sinceSec: 0 }),
   "TSLA-gap": "open → 1789997400",
   "QQQ-gap": "paused: no signed source",
   "VOO-gap": "paused: no signed source",

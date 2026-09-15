@@ -1,9 +1,9 @@
 "use client";
 
-import { isTickerSymbol } from "@agari/core/market";
+import { haltLabel, isTickerSymbol } from "@agari/core/market";
 import { MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { haltLabel, useMarketSession, type MarketSession } from "./useMarketSession";
+import { useMarketSession, type MarketSession } from "./useMarketSession";
 import "./market-session.css";
 
 interface MarketSessionChipProps {
@@ -27,7 +27,7 @@ function haltShown(session: MarketSession, asset: string | undefined): boolean {
  */
 export function MarketSessionChipView({ session, asset, className }: MarketSessionChipProps & { session: MarketSession }) {
   if (session.halt && haltShown(session, asset)) {
-    const label = haltLabel(session.halt);
+    const label = haltLabel(session.halt.reason);
     return (
       <span className={cn("mks-chip", className)} data-state="halted" role="status" aria-label={MARKETS.session.aria(MARKETS.session.halted, label)}>
         <span className="mks-chip-dot" aria-hidden />

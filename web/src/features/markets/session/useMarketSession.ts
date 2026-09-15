@@ -1,12 +1,11 @@
 "use client";
 
-import { laneKey, sessionLabel, sessionStatus, type SessionCalendar, type SessionStatus, type TickerSymbol, type TradingSession } from "@agari/core/market";
+import { haltLabel, laneKey, sessionLabel, sessionStatus, type SessionCalendar, type SessionStatus, type TickerSymbol, type TradingSession } from "@agari/core/market";
 import { err, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, HALT_REASONS, TRADING_HALT_REASONS, type CorporateSkip, type EarningsEvent, type HaltBoard, type HaltEntry, type LaneBasis } from "@agari/core/types";
+import { diagnosis, HALT_REASONS, type CorporateSkip, type EarningsEvent, type HaltBoard, type HaltEntry, type LaneBasis } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { useReadingQuery } from "@agari/markets/react";
 import { z } from "zod";
-import { MARKETS } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
 
 /** first-call.md §6: the chip polls ops once a minute; a label only turns over at a session boundary. */
@@ -68,11 +67,6 @@ function calendarOf(body: SessionBody): SessionCalendar | null {
   return { fromDate: body.calendar.fromDate, toDate: body.calendar.toDate, unknownDates: body.calendar.unknownDates, sessions };
 }
 
-/** Q-S6-9: only a wide Pyth confidence or the issuer's own flag is a halt; the stale reasons are a stale signed price. */
-export function haltLabel(entry: HaltEntry): string {
-  return TRADING_HALT_REASONS.includes(entry.reason) ? MARKETS.halt.trading : MARKETS.halt.stale;
-}
-
 /** The roller's word for one lane, keyed as ops keys it (`TSLA-60m`, `TSLA-gap`, `TSLAx-5m`). */
 export function laneState(session: MarketSession | null, asset: TickerSymbol, basis: LaneBasis, intervalSec: number): string | null {
   return session?.lanes[laneKey(asset, basis, intervalSec)] ?? null;
@@ -99,7 +93,8 @@ export function toMarketSession(body: SessionLaneInputs, calendar: SessionCalend
   if (!status) return null;
   return {
     status,
-    label: status.state === "halted" && halt ? haltLabel(halt) : sessionLabel(status),
+    // Core `haltLabel` (Q-S6-9): "Trading halted" only for pyth-wide / issuer-halt, else "Signed price stale".
+    label: status.state === "halted" && halt ? haltLabel(halt.reason) : sessionLabel(status),
     open: status.state === "regular" || status.state === "early-close" || status.state === "halted",
     halt,
     halted: halt !== null,
