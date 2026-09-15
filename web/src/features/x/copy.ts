@@ -158,7 +158,7 @@ export const CLAIM = {
   openPortfolio: "Open Portfolio",
   setUp: "Trade from X",
   card: {
-    brand: "masayume",
+    brand: "agari",
     claimed: "CLAIMED",
     settled: "TRADING BALANCE",
     waiting: "WAITING",
