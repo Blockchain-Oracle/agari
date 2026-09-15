@@ -67,6 +67,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "agari-vault"
+version = "0.1.0"
+dependencies = [
+ "agari-common",
+ "agari-events",
+ "anchor-lang",
+ "anchor-spl",
+ "bytemuck",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -1,0 +1,32 @@
+[package]
+name = "agari-vault"
+version = "0.1.0"
+description = "Masayume's EventVault on Solana: Trading Balance custody, grants and IOC taps through the agari-events PROGRAM seat"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_vault"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["event-cpi"] }
+anchor-spl = { workspace = true }
+bytemuck = { workspace = true }
+agari-common = { path = "../../crates/agari-common" }
+# CPI client option (a) of D-064: the engine crate itself, so `load_checked` reads its real state types.
+agari-events = { path = "../agari-events", features = ["cpi"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
