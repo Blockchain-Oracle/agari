@@ -202,6 +202,7 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
   const clock: PlanClock = {
     calendar: deps.sessions.calendar(), nowSec, leadSec: state.settings.leadSec, gapLeadSec: state.settings.gapLeadSec,
     minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(),
+    multipliers: deps.events.multipliers(), halts: deps.halts.board(),
   };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;
