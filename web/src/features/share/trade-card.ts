@@ -5,6 +5,7 @@ import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/cor
 import { ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
+import { CARD_MARK, CARD_MARK_GAP, drawAssetMark } from "./marks";
 import { drawStub, encodeQr } from "./stub";
 
 /**
@@ -139,9 +140,11 @@ export async function renderTradeShareCard(card: TradeCard): Promise<Blob> {
 
   drawMasthead(ctx, fonts, SHARE.brand, shortTradeId(card), look.recordType);
 
+  // the asset's mark, the record's label beside it (centred on the label's caps)
+  drawAssetMark(ctx, card.asset, CARD_MARGIN, LABEL_Y - 6 - CARD_MARK / 2, CARD_MARK, fonts);
   ctx.font = font(600, 17, fonts.mono);
   ctx.fillStyle = "rgba(255,255,255,0.45)";
-  drawTracked(ctx, heroLabel, CARD_MARGIN, LABEL_Y, 5, "left");
+  drawTracked(ctx, heroLabel, CARD_MARGIN + CARD_MARK + CARD_MARK_GAP, LABEL_Y, 5, "left");
 
   const pnlPx = fitFontPx(ctx, heroText, fonts.display, 800, 200, RECORD_W, 60);
   ctx.font = font(800, pnlPx, fonts.display);

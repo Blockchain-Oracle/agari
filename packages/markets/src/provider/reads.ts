@@ -14,7 +14,7 @@ export { listWalletFills, listWalletHistory, type WalletFillsQuery } from "./his
 export { getMarket, getMarketsLite, getResolution, laneNextStart, listLiveLanes, listSettled, nextWindow } from "./markets";
 export { getHoldings, getOnchain, getOpeningPrice } from "./onchain";
 export { listRestingOrders } from "./orders";
-export { getAssetPrice, getPriceHistory } from "./prices";
+export { getArchiveSeries, getAssetPrice, getPriceHistory } from "./prices";
 export { getBalanceSheet, getWalletCollateral, listClaimables, listOpenPositions } from "./wallet";
 export { getVaultHoldings, getVaultSnapshot } from "../vault/read";
 

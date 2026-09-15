@@ -61,6 +61,10 @@
 }
 .bets-row:hover { background: rgba(255, 255, 255, 0.02); }
 [data-theme="light"] .bets-row:hover { background: rgba(20, 18, 16, 0.03); }
+/* The asset's mark leads the call (S18c, D-085): 18 px on the body line. */
+.bets-mark { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 9999px; vertical-align: -4px; }
+.bets-mark.generic { background: rgba(255, 255, 255, 0.1); color: var(--white); font-family: var(--font-mono); font-size: 10px; }
+[data-theme="light"] .bets-mark.generic { background: rgba(20, 18, 16, 0.1); }
 .bets-break { flex-basis: 100%; height: 0; }
 @media (min-width: 640px) {
   .bets-break { display: none; }

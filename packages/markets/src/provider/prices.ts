@@ -9,7 +9,7 @@ import { diagnosis, type AssetPrice, type PricePoint } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { peekClient } from "../runtime/read-runtime";
 import { liveSpot } from "../runtime/spot-stream";
-import { indexRows, NO_STORE, sec, type PrintHistoryRow } from "./index-api";
+import { indexRows, NO_STORE, sec, type ArchiveRow, type PrintHistoryRow } from "./index-api";
 import { withReading } from "./reading";
 
 /** Spot and prints are `PRINT_EXPO` (× 10⁻⁸) integers. */
@@ -72,5 +72,13 @@ export async function getPriceHistory(asset: TickerSymbol, fromSec: number, toSe
       points.push({ priceRaw: BigInt(row.price), emaRaw: BigInt(row.price), publishTimeSec: atSec });
     }
     return points;
+  });
+}
+
+/** The signed 5-minute archive of a ticker between two instants (D-086): one point per boundary, ascending, on the print scale. */
+export async function getArchiveSeries(asset: TickerSymbol, fromSec: number, toSec: number): Promise<Reading<PricePoint[]>> {
+  return withReading(`archive:${asset}:${fromSec}:${toSec}`, async () => {
+    const rows = await indexRows<ArchiveRow>(`archive/${asset}`, { from: Math.floor(fromSec), to: Math.ceil(toSec), limit: 1_000 });
+    return rows.map((row) => ({ priceRaw: BigInt(row.price_e8), emaRaw: BigInt(row.price_e8), publishTimeSec: sec(row.boundary_sec) }));
   });
 }

@@ -1,10 +1,12 @@
 "use client";
 
 import { groupByHorizon, type TickerSymbol } from "@agari/core/market";
-import { diagnosisCopy } from "@agari/core/copy";
+import { diagnosisCopy, sessionPhrase } from "@agari/core/copy";
 import type { Diagnosis, LaneSet } from "@agari/core/types";
 import { useMemo } from "react";
-import { MARKETS, WORD_BOARD } from "@/lib/copy";
+import { EmptyState } from "@/components/states";
+import { WORD_BOARD } from "@/lib/copy";
+import { SESSION_COPY } from "@/lib/copy-session";
 import { useMarketSession } from "../session";
 import { WordCard } from "./WordCard";
 
@@ -46,7 +48,11 @@ export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: W
   if (laneSet === null && failure) return <div className="words-empty">{diagnosisCopy(failure.kind).body}</div>;
 
   if (laneSet === null || nowMs === 0) return <div className="words-empty">{WORD_BOARD.reading}</div>;
-  if (groups.length === 0) return <div className="words-empty">{session && !session.open ? MARKETS.closedWindows(session.label).why : WORD_BOARD.between}</div>;
+  // Closed: the phrase says when the questions return, and the wire is the next thing to read (D-086).
+  if (groups.length === 0 && session && !session.open) {
+    return <EmptyState why={SESSION_COPY.board.closed(sessionPhrase(session.status, Math.floor(nowMs / 1000)))} nextAction={{ label: SESSION_COPY.board.nextAction, href: "/news" }} />;
+  }
+  if (groups.length === 0) return <div className="words-empty">{WORD_BOARD.between}</div>;
 
   return (
     <>

@@ -78,7 +78,8 @@ export type Grant = {
   revoked: number;
   bump: number;
   pad: ReadonlyUint8Array;
-  reserved: ReadonlyUint8Array;
+  /** The one Window this grant may trade (D-091); `Pubkey::default()` = any Window. Occupies the former reserve. */
+  market: Address;
 };
 
 export type GrantArgs = {
@@ -105,7 +106,8 @@ export type GrantArgs = {
   revoked: number;
   bump: number;
   pad: ReadonlyUint8Array;
-  reserved: ReadonlyUint8Array;
+  /** The one Window this grant may trade (D-091); `Pubkey::default()` = any Window. Occupies the former reserve. */
+  market: Address;
 };
 
 /** Gets the encoder for {@link GrantArgs} account data. */
@@ -129,7 +131,7 @@ export function getGrantEncoder(): FixedSizeEncoder<GrantArgs> {
       ["revoked", getU8Encoder()],
       ["bump", getU8Encoder()],
       ["pad", fixEncoderSize(getBytesEncoder(), 3)],
-      ["reserved", fixEncoderSize(getBytesEncoder(), 32)],
+      ["market", getAddressEncoder()],
     ]),
     (value) => ({ ...value, discriminator: GRANT_DISCRIMINATOR }),
   );
@@ -155,7 +157,7 @@ export function getGrantDecoder(): FixedSizeDecoder<Grant> {
     ["revoked", getU8Decoder()],
     ["bump", getU8Decoder()],
     ["pad", fixDecoderSize(getBytesDecoder(), 3)],
-    ["reserved", fixDecoderSize(getBytesDecoder(), 32)],
+    ["market", getAddressDecoder()],
   ]);
 }
 

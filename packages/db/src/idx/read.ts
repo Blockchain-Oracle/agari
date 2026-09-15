@@ -101,6 +101,20 @@ export function indexReader(sql: Sql) {
         ORDER BY p.source_ts_sec, p.source LIMIT ${clamp(limit, 500)}`;
     },
 
+    /**
+     * The signed 5-minute series a ticker's archive holds between two instants (D-086): one row per boundary, RedStone
+     * preferred where both sources printed it. `keys` are the archive's own `(source, feed)` pairs for the ticker.
+     */
+    async printArchiveSeries(keys: readonly { source: string; feed: string }[], fromSec: number, toSec: number, limit?: number): Promise<IdxRow[]> {
+      if (keys.length === 0) return [];
+      const sources = [...new Set(keys.map((k) => k.source))];
+      const feeds = [...new Set(keys.map((k) => k.feed))];
+      return sql`
+        SELECT DISTINCT ON (boundary_sec) boundary_sec::text, source, price_e8, signers FROM print_archive
+        WHERE source = ANY(${sources}::text[]) AND feed = ANY(${feeds}::text[]) AND boundary_sec BETWEEN ${fromSec} AND ${toSec}
+        ORDER BY boundary_sec, (source = 'redstone') DESC LIMIT ${clamp(limit, 500)}`;
+    },
+
     /** A wallet's positions with the Window's state (Masayume `getPortfolio` / `getOpenPositionsWithPnL`). */
     async positions(owner: string, q: { unredeemedOnly?: boolean; limit?: number } = {}): Promise<IdxRow[]> {
       return sql`

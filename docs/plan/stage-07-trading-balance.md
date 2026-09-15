@@ -70,6 +70,7 @@
   - dev fixtures;
   - checked against masayume.app.
   - Merged f11ff6d and 034738c (651b5c1): `useKeySession` signs with `{ keyPair }`; the sponsor policy, chain checks, gates, co-sign and service live in `packages/markets/src/sponsor` (`@agari/markets/sponsor`, server-only: its index pulls node:fs); `/api/sponsor` is a thin route. 17 sponsor vitests on real Kit v0 transactions, build green. The invariant is no longer optional; P-11 closed. Top-up writes: `vault-grant.keyTopUpLamports?` and `vault-key-top-up` (7b builds, 7c wires). Still 7b: client sponsor transport, DB `SponsorLedger`, real `resolveVaultDeployment`.
+- [x] **7d `Grant.market` scope (D-091; `slice/S7d-grant-scope`, 70073c3 + c97c617 + this commit):** before the vault's first deploy, `Grant._reserved` → `market: Pubkey` @136 (168 B, rent and every other offset unchanged; default key = any Window); `CapsArgs.market`; `actor_place_for` refuses another Window with `GrantMarketMismatch` 7115 before any cap, buys and sells alike; layout tests + LiteSVM `a_market_scoped_grant_trades_its_window_and_nowhere_else` (vault suites 23/23, caps vectors 10/10); `pnpm codegen`; core `VaultCaps.market?` threaded through `capsArgsOf`, `toVaultGrant` and the pre-send `grantBuyRefusal` (`GrantBuyCheck.marketId`), unset by every S7 surface so nothing user-visible changes; vault.md §2/§3.3/§3.4/§6. The `opening-bell` actor that uses the scope is the S18 follow-on, not built.
 - [ ] Deploy (stage owner):
   - `solana program deploy` `--arch v0` binary;
   - IDL metadata (D-026);

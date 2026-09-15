@@ -6,6 +6,7 @@ Seeded 2026-09-13 in S0 from `context/05-masayume-baseline-parity-inventory.md` 
 - **Status:** Pending → Shell → Partial → Done, or Blocked with its resolution.
 - **Owner:** the stage that completes the row (plan §7). Earlier stages may advance it to Shell or Partial.
 - **Rules:** rows are only added or advanced, and only at stage gates. Evidence is a commit, a route check or an `acceptance.md` row.
+- **Deferral (D-084, 2026-09-15):** rows owned by S8–S12 and S14 stay Pending past the 2026-09-18 deadline; their routes keep their "not live" states (S18 lane 18e checks every nav route).
 
 ## Baseline (L)
 

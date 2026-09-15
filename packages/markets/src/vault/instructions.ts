@@ -24,7 +24,7 @@ import type { GrantTerms } from "@agari/core/ports";
 import { GRANT_KIND_INDEX } from "@agari/core/vault";
 import type { Address, Instruction, TransactionSigner } from "@solana/kit";
 import type { MarketAccount } from "../runtime/mappers";
-import { grantAddress, NO_GRANT, vaultEventAuthority } from "./accounts";
+import { ANY_MARKET, grantAddress, NO_GRANT, vaultEventAuthority } from "./accounts";
 
 const U32_MAX = 0xffff_ffff;
 
@@ -45,7 +45,7 @@ export function engineBlockOf(market: MarketAccount, collateralMint: Address): E
 
 const emit = async () => ({ eventAuthority: await vaultEventAuthority(), program: AGARI_VAULT_PROGRAM_ADDRESS });
 
-/** Port caps → `CapsArgs`: base units as they are, the price cap in own-side ticks (`maxPriceRaw / tick_base`, exact). */
+/** Port caps → `CapsArgs`: base units as they are, the price cap in own-side ticks (`maxPriceRaw / tick_base`, exact), the Window scope or any (D-091). */
 export function capsArgsOf(terms: Pick<GrantTerms, "caps">, tickBase: bigint): CapsArgsArgs {
   const { caps } = terms;
   if (tickBase <= 0n || caps.maxPriceRaw % tickBase !== 0n) throw new Error(`price cap ${caps.maxPriceRaw} is not a whole number of ${tickBase}-unit ticks`);
@@ -55,7 +55,8 @@ export function capsArgsOf(terms: Pick<GrantTerms, "caps">, tickBase: bigint): C
   if (!Number.isInteger(caps.maxOpenPositions) || caps.maxOpenPositions < 0 || caps.maxOpenPositions > U32_MAX) {
     throw new Error(`position cap ${caps.maxOpenPositions} is not a u32`);
   }
-  return { maxStakePerTrade: caps.maxStakePerTradeBase, maxDailySpend: caps.maxDailySpendBase, maxOpenPositions: caps.maxOpenPositions, maxPriceTicks: Number(capTicks) };
+  const market = caps.market === undefined ? ANY_MARKET : (caps.market as string as Address);
+  return { maxStakePerTrade: caps.maxStakePerTradeBase, maxDailySpend: caps.maxDailySpendBase, maxOpenPositions: caps.maxOpenPositions, maxPriceTicks: Number(capTicks), market };
 }
 
 export async function openAccountIx(owner: TransactionSigner, collateralMint: Address): Promise<Instruction> {

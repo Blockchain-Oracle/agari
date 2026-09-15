@@ -15,7 +15,7 @@ import {
   type PositionSlot,
   type VaultAccount,
 } from "@agari/clients/agari-vault";
-import type { Address as CoreAddress } from "@agari/core/types";
+import type { Address as CoreAddress, MarketId } from "@agari/core/types";
 import { grantKindOf, type VaultGrant } from "@agari/core/vault";
 import { getProgramDerivedAddress, type Address } from "@solana/kit";
 import { loadAccount } from "../runtime/account-loader";
@@ -28,6 +28,8 @@ const core = (value: Address) => value as string as CoreAddress;
 export const VAULT_ACCOUNT_SHARE_MS = 1_000;
 /** `Market` default key: a free slot. */
 const FREE_SLOT = "11111111111111111111111111111111";
+/** `Grant.market` = the default key: the grant trades any Window (D-091). */
+export const ANY_MARKET = FREE_SLOT as Address;
 /** Grant ids are 1-based and global; 0 means "attended" on a slot and "none" in `active_grants`. */
 export const NO_GRANT = 0n;
 
@@ -93,6 +95,7 @@ export function toVaultGrant(grant: Grant, tickBase: bigint): VaultGrant {
       maxDailySpendBase: grant.maxDailySpend,
       maxOpenPositions: grant.maxOpenPositions,
       maxPriceRaw: BigInt(grant.maxPriceTicks) * tickBase,
+      ...(grant.market === ANY_MARKET ? {} : { market: core(grant.market) as MarketId }),
     },
     budgetBase: grant.budget,
   };

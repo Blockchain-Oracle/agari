@@ -42,7 +42,7 @@ fn offsets() {
     offsets!(PositionSlot { market @ 0, yes_lots @ 32, no_lots @ 40, yes_grant @ 48, no_grant @ 56 });
     offsets!(Grant { owner @ 0, actor @ 32, grant_id @ 64, expires_at_sec @ 72, spent_day @ 80, spent_today @ 88, budget @ 96,
         max_stake_per_trade @ 104, max_daily_spend @ 112, max_open_positions @ 120, open_positions @ 124, max_price_ticks @ 128,
-        kind @ 130, revoked @ 131, bump @ 132, _pad @ 133, _reserved @ 136 });
+        kind @ 130, revoked @ 131, bump @ 132, _pad @ 133, market @ 136 });
 }
 
 #[test]

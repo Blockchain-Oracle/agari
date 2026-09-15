@@ -5,6 +5,7 @@ import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
 import { usdLine } from "@/features/markets/hero/units";
 import { CARD_MARGIN, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawSpark, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
+import { CARD_MARK, CARD_MARK_GAP, drawAssetMark } from "./marks";
 import { drawStub, encodeQr } from "./stub";
 
 /**
@@ -109,10 +110,11 @@ export async function renderCallShareCard(card: CallCard): Promise<Blob> {
   drawMasthead(ctx, fonts, SHARE.brand, shortCallId(card), SHARE.call.recordType);
   drawSpark(ctx, verm(0.6));
 
-  // direction eyebrow
+  // the asset's mark, the direction eyebrow beside it (centred on the eyebrow's caps)
+  drawAssetMark(ctx, card.asset, CARD_MARGIN, EYEBROW_Y - 9 - CARD_MARK / 2, CARD_MARK, fonts);
   ctx.font = font(600, 24, fonts.mono);
   ctx.fillStyle = vermilion;
-  drawTracked(ctx, callDirLabel(card), CARD_MARGIN, EYEBROW_Y, 4, "left");
+  drawTracked(ctx, callDirLabel(card), CARD_MARGIN + CARD_MARK + CARD_MARK_GAP, EYEBROW_Y, 4, "left");
 
   // hero: the call
   const heroPx = fitFontPx(ctx, band, fonts.display, 800, 112, RECORD_W, 48);

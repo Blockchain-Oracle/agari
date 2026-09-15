@@ -69,4 +69,6 @@ export const keys = {
   clock: () => [QUERY_KEY_SCOPE, APP, "boot", "clock"] as const,
   onchain: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "onchain", marketId] as const,
   fee: (marketId: MarketId | null) => [QUERY_KEY_SCOPE, APP, "fee", marketId] as const,
+  /** The signed print archive over one span (S18a, D-086): the 1D chart and the daily closes read the same entry. */
+  archive: (asset: string | null, fromSec: number, toSec: number) => [QUERY_KEY_SCOPE, APP, "archive", asset, fromSec, toSec] as const,
 };

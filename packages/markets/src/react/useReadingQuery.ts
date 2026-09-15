@@ -35,6 +35,8 @@ export interface ReadingQueryOptions<T> {
   pollMs?: PollInterval<T>;
   enabled?: boolean;
   staleTimeMs?: number;
+  /** How long an unused entry stays in the cache (TanStack `gcTime`); a closed surface keeps its archive read 30 min. */
+  gcTimeMs?: number;
   /**
    * The boot facts this read genuinely cannot be correct without.
    *
@@ -68,7 +70,7 @@ export function useReadingQuery<T>(
   read: () => Promise<Reading<T>>,
   options: ReadingQueryOptions<T> = {},
 ): Reading<T> | null {
-  const { pollMs, enabled = true, staleTimeMs, needs = BOOT_FACTS } = options;
+  const { pollMs, enabled = true, staleTimeMs, gcTimeMs, needs = BOOT_FACTS } = options;
   const facts = useBootFactState();
   const needsMet = needs.every((fact) => facts.ready[fact]);
   // A needed fact that has failed is the read's answer: waiting on it would show "loading" forever.
@@ -87,6 +89,7 @@ export function useReadingQuery<T>(
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: staleTimeMs ?? (typeof pollMs === "number" ? pollMs : DEFAULT_STALE_MS),
+    ...(gcTimeMs === undefined ? {} : { gcTime: gcTimeMs }),
   });
 
   const data = query.data ?? null;
