@@ -44,7 +44,9 @@ export async function POST(request: Request) {
   } catch {
     return refuse(400, "request is not valid JSON");
   }
-  const result = await sponsor().cosign(vaultProgram(), body, request.headers.get("x-agari-device") ?? "");
+  // The first forwarded hop names the caller for the attempt limit; which proxies to trust is S16's decision.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
+  const result = await sponsor().cosign(vaultProgram(), body, request.headers.get("x-agari-device") ?? "", ip);
   if (!result.ok) return refuse(result.status, result.error);
   return NextResponse.json({ signature: result.signature, transaction: result.transaction, instruction: result.instruction }, { headers: noStore });
 }
