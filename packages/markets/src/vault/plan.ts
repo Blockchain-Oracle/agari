@@ -64,7 +64,8 @@ async function planGrant(ctx: WriteContext, deployment: VaultDeployment, intent:
   const input = { grantId, terms, tickBase: tickBaseOf(venue.decimals), previousGrantId: account?.activeGrants[GRANT_KIND_INDEX[terms.kind]] ?? NO_GRANT };
   const instructions: Instruction[] = [];
   if (!account) instructions.push(await openAccountIx(owner, mint));
-  const topUp = intent.kind === "vault-deposit-and-grant" ? (intent.keyTopUpLamports ?? 0n) : 0n;
+  // The new key's own SOL rides along, so arming it is still one signature when no sponsor pays its taps.
+  const topUp = intent.keyTopUpLamports ?? 0n;
   if (topUp > 0n) instructions.push(getTransferSolInstruction({ source: owner, destination: kit(terms.actor), amount: topUp }));
   instructions.push(intent.kind === "vault-deposit-and-grant" ? await depositAndGrantIx(owner, token.ata, mint, deposit, input) : await grantIx(owner, input));
   return { instructions, sponsorable: false, extraLamports: topUp, owner: owner.address };
@@ -114,6 +115,12 @@ async function planOwned(ctx: WriteContext, deployment: VaultDeployment, intent:
   }
 }
 
+/** The manager's top-up button: a plain owner → key transfer, journaled and booked on the vault lane, never sponsored. */
+function planKeyTopUp(ctx: WriteContext, key: Address, lamports: bigint): VaultPlan {
+  positive(lamports, "the top-up");
+  return { instructions: [getTransferSolInstruction({ source: ctx.signer, destination: key, amount: lamports })], sponsorable: false, extraLamports: lamports, owner: ctx.signer.address };
+}
+
 /** Anyone may crank; the payout always lands on the slot's owner (vault.md §3.5). */
 async function planCrank(ctx: WriteContext, deployment: VaultDeployment, owner: Address, marketId: MarketId): Promise<VaultPlan> {
   const [account, market] = await Promise.all([readVaultAccount(owner), readMarket(marketId)]);
@@ -136,6 +143,8 @@ export async function planVaultIntent(ctx: WriteContext, deployment: VaultDeploy
     case "vault-withdraw":
     case "vault-withdraw-private":
       return planWithdraw(ctx, deployment, intent.amountBase, intent.kind === "vault-withdraw-private");
+    case "vault-key-top-up":
+      return planKeyTopUp(ctx, kit(intent.key), intent.lamports);
     case "vault-crank-settle":
       return planCrank(ctx, deployment, kit(intent.owner), intent.marketId);
     case "vault-sweep":

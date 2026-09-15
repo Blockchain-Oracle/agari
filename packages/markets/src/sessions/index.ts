@@ -11,3 +11,4 @@ export {
   type SubmitterSessionConfig,
 } from "./submitter-session";
 export { signingMode, signWrite, type SignableMessage, type SignedWrite, type SigningMode } from "./wallet-signer";
+export { createSponsorTransport, type SponsorTransport, type SponsorTransportConfig } from "./sponsor-transport";

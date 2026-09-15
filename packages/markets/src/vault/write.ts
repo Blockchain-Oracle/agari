@@ -40,6 +40,8 @@ export function summarizeVault(intent: VaultIntent, decimals: number): string {
       return `add ${amount(intent.amountBase)} to grant #${intent.grantId}`;
     case "vault-revoke":
       return `revoke grant #${intent.grantId}`;
+    case "vault-key-top-up":
+      return `top up the session key ${intent.key} with ${intent.lamports} lamports`;
     case "vault-crank-settle":
       return `settle ${intent.marketId} into ${intent.owner}'s Trading Balance`;
     case "vault-sweep":

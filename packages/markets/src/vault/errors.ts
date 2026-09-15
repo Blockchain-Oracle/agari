@@ -8,6 +8,16 @@ import { customCode, failureDiagnosis } from "../submitter/chain-failure";
 import { describeChainFailure, type ChainFailure } from "../submitter/errors";
 
 export const VAULT_ERROR_RANGE = { min: 7000, max: 7299 } as const;
+/**
+ * Anchor's own constraint failures run before any `#[error_code]` of ours (D-019): a grant account that does not exist
+ * fails `AccountNotInitialized` (3012) or `AccountOwnedByWrongProgram` (3007), and an account whose seeds name another
+ * owner fails `ConstraintSeeds` (2006). They mean the same thing to a person as 7100/7102, so they read the same.
+ */
+const ANCHOR_ERRORS = new Map<number, readonly [string, DiagnosisKind, string?]>([
+  [2006, ["ConstraintSeeds", "grant-refused", "this account does not belong to that owner"]],
+  [3007, ["AccountOwnedByWrongProgram", "grant-refused", "no grant with this id"]],
+  [3012, ["AccountNotInitialized", "grant-refused", "no grant with this id"]],
+]);
 /** 7207's copy: a Window listed before the vault registered keeps a user in seat 0 (D-063). */
 export const WINDOW_PREDATES_VAULT = "Trading Balance opens with the next Window";
 
@@ -50,7 +60,9 @@ const VAULT_ERRORS = new Map<number, readonly [string, DiagnosisKind, string?]>(
 /** The vault's own code for a failure, or null when it is not a vault refusal. */
 export function vaultCodeOf(failure: Pick<ChainFailure, "err">): number | null {
   const code = customCode(failure.err);
-  return code !== null && code >= VAULT_ERROR_RANGE.min && code <= VAULT_ERROR_RANGE.max ? code : null;
+  if (code === null) return null;
+  if (ANCHOR_ERRORS.has(code)) return code;
+  return code >= VAULT_ERROR_RANGE.min && code <= VAULT_ERROR_RANGE.max ? code : null;
 }
 
 export const VAULT_CODE = {
@@ -63,7 +75,7 @@ export const VAULT_CODE = {
 
 /** A named vault refusal as a diagnosis; unknown codes in the range are a plain revert with the code. */
 export function vaultDiagnosis(code: number, technical: string): Diagnosis {
-  const known = VAULT_ERRORS.get(code);
+  const known = VAULT_ERRORS.get(code) ?? ANCHOR_ERRORS.get(code);
   if (!known) return diagnosis("contract-revert", `agari-vault ${code}: ${technical}`);
   const [name, kind, copy] = known;
   return diagnosis(kind, copy ? `${copy} (${name}): ${technical}` : `${name}: ${technical}`, { errorName: name });
