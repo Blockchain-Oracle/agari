@@ -1,14 +1,13 @@
 /**
- * `/download` — the reference's `app/download/page.tsx`, its words truth-corrected: Agari has
- * no native build, no Google sign-in and no gas sponsor, so every sentence here is about the
- * installable web app on Solana devnet as it exists.
+ * `/download` — the reference's `app/download/page.tsx`, its words truth-corrected: Agari has no native build and
+ * no Google sign-in, so every sentence here is about the installable web app on Solana devnet as it exists.
  */
 export const INSTALL = {
   title: "Get Agari",
   eyebrow: "Agari on your phone",
   titleLead: "Call it in ",
   titleEm: "ten seconds.",
-  line: "Will the stock close this Window higher or lower? Pick a side, pick a stake, and the payout lands in your wallet the moment it settles. Test funds on Solana devnet, real settlement, and only you can cash out.",
+  line: "Will the stock close this Window higher or lower? Pick a side, pick a stake, and the payout is yours to collect the moment it settles. Test funds on Solana devnet, real settlement, and only you can cash out.",
   cta: {
     prompt: "Install Agari",
     installing: "Opening the install sheet…",
@@ -24,10 +23,10 @@ export const INSTALL = {
     { label: "Native", note: "not built — the web app is the product" },
   ],
   points: [
-    { title: "Connect and go", body: "Any Solana wallet, through Wallet Standard. The faucet hands you test collateral, and there is nothing else to install." },
-    { title: "Windows all session", body: "New stock Windows open every few minutes while US markets are open. Take one on the walk to work, or sit one out." },
-    { title: "Paid on the close", body: "Settlement reads the same oracle print you watched. Win and it is yours to claim — nobody else can." },
+    { title: "Connect and go", body: "Any Solana wallet that speaks the Wallet Standard. The faucet hands you test tUSDC, and a little SOL for fees if you are short. There is nothing else to install." },
+    { title: "Open after the bell", body: "Stock Windows every few minutes while US markets trade, a weekend Window from Friday's close to Monday's open, and 24/7 Windows on tokenised stock. When the exchange is shut, rest a call at your price for the open." },
+    { title: "Paid on the close", body: "Settlement reads the signed price for the closing second, the same feed you watched. Win and it is yours to claim — nobody else can." },
   ],
-  foot: "Agari runs on Solana devnet while it is in beta, so you are playing with practice funds. Everything else is real: real markets, real settlement, real code.",
-  shotAlt: "A phone showing a Window with the live price, the time left, the Up and Down calls, and the stake.",
+  foot: "Agari runs on Solana devnet while it is in beta, so you are playing with practice funds. Everything else is real: real order books, real signed prices, real settlement, real code.",
+  shotAlt: "Agari on a phone after the close: the stock's last price, the next session on the clock, and a call that can be scheduled for the open.",
 } as const;

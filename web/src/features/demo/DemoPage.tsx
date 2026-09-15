@@ -4,17 +4,18 @@ import type { ReactNode } from "react";
 import { DEMO } from "./copy";
 import { Eyebrow, Frame, Kicker, ProofLink, Reveal, Serif } from "./DemoBlocks";
 import { DemoTraction } from "./DemoTraction";
-import { DemoVideo } from "./DemoVideo";
-import { CONTRACT_PROOFS, contractProof, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProofHref, txProofLabel } from "./proofs";
+import { demoVideoAvailable, DemoVideo } from "./DemoVideo";
+import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProof, txProofHref, txProofLabel } from "./proofs";
 
 /**
  * `/demo` — ported from `reference/yosuku/app/demo/page.tsx`, section for section.
  *
  * The reference is "the walkthrough, in place of a video": the real product, with
  * every claim a transaction anyone can open. That is kept exactly. What changes is
- * every fact: the official video is hosted on YouTube, the traction line is read
- * live from the venue, the screenshots are dated captures of this product, and the
- * proofs are this project's confirmed actions and pinned contracts on the Shannon explorer.
+ * every fact: the video is Agari's own recording, or an honest notice until it exists
+ * (D-097); the traction line is read live from the venue; the screenshots are dated
+ * captures of this product; and the proofs are confirmed devnet signatures from
+ * `docs/plan/acceptance.md` and the configured programs, on Solana Explorer.
  *
  * The reference draws its own near-black page outside the app shell. Here it sits in
  * the shell like every other route and its ground follows the theme — the user's
@@ -65,7 +66,7 @@ function Hero() {
           <Serif>{DEMO.hero.headlineSerif}</Serif>
         </h1>
       </Reveal>
-      <div className="demo-video-label">{DEMO.hero.videoLabel}</div>
+      <div className="demo-video-label">{demoVideoAvailable() ? DEMO.hero.videoLabel : DEMO.hero.videoLabelPending}</div>
       <Reveal immediate>
         <DemoVideo />
       </Reveal>
@@ -89,9 +90,10 @@ function Hero() {
 }
 
 export function DemoPage() {
-  const book = contractProof("marketsCore");
-  const settlement = contractProof("binarySettlement");
-  const windows = contractProof("binaryModule");
+  // Each depth card cites the transaction that proves it, not only the program it ran on.
+  const book = txProof("fill");
+  const settlement = txProof("settlement");
+  const payout = txProof("payout");
 
   return (
     <div className="demo-page">
@@ -170,7 +172,7 @@ export function DemoPage() {
           {[
             { icon: <ChartCandlestickIcon className="demo-card-icon" aria-hidden />, card: S.depth.cards.book, proof: book },
             { icon: <ScrollTextIcon className="demo-card-icon" aria-hidden />, card: S.depth.cards.receipts, proof: settlement },
-            { icon: <TrendingUpIcon className="demo-card-icon" aria-hidden />, card: S.depth.cards.edge, proof: windows },
+            { icon: <TrendingUpIcon className="demo-card-icon" aria-hidden />, card: S.depth.cards.edge, proof: payout },
           ].map(({ icon, card, proof }) => (
             <Reveal key={card.title}>
               <div className="demo-card">
@@ -178,11 +180,7 @@ export function DemoPage() {
                 <div className="demo-card-title">{card.title}</div>
                 <div className="demo-card-body">{card.body}</div>
                 <div className="demo-card-proof">
-                  {proof.address === null ? (
-                    <span className="demo-proof-note">{S.verify.pending}</span>
-                  ) : (
-                    <ProofLink href={contractProofHref(proof) ?? ""} label={`${S.depth.proven} · ${proof.label}`} reference={proof.address} />
-                  )}
+                  <ProofLink href={txProofHref(proof)} label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} />
                 </div>
               </div>
             </Reveal>
