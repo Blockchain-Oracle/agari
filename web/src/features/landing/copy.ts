@@ -24,16 +24,19 @@ export const LANDING = {
         kicker: "Pick",
         title: "Pick a Window",
         body: "A Window is a question with a clock: will the stock close higher than it opened, five, fifteen or sixty minutes from now?",
+        art: [{ word: "5m" }, { word: "15m" }, { word: "1h" }],
       },
       {
         kicker: "Call",
         title: "Make the call",
         body: "Up or Down, and a stake in test tUSDC. The price is the book's, and the fill lands on Solana.",
+        art: [{ word: "Up", tone: "up" }, { word: "Down", tone: "down" }],
       },
       {
         kicker: "Settle",
         title: "See it settle",
         body: "At the close the program records the signed print and checks it against the open. The receipt links to both.",
+        art: [{ word: "open print" }, { word: "close print" }, { word: "settled", tone: "accent" }],
       },
     ],
   },
@@ -85,6 +88,7 @@ export const LANDING = {
     line: "No store and no native build. Add Agari to your home screen and a call is one tap away.",
   },
   foot: {
+    nav: "Agari pages",
     markets: "Markets",
     howItWorks: "How it works",
     download: "Get the app",

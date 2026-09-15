@@ -4,17 +4,21 @@ import { BRAND } from "@/lib/copy";
 import { MARKETS_PATH } from "@/lib/routes";
 import { LANDING } from "./copy";
 import { LandingDial } from "./LandingDial";
+import { LandingFooter } from "./LandingFooter";
+import { LandingInstall } from "./LandingInstall";
 import { LandingLanes } from "./LandingLanes";
 import { LandingProof } from "./LandingProof";
-
-const HOW_IT_WORKS_PATH = "/how-it-works";
+import { LandingSteps } from "./LandingSteps";
+import { HOW_IT_WORKS_PATH } from "./paths";
+import "./landing.css";
 
 /**
  * `/` (L-11, D-093): a server-rendered shell in Masayume's tokens with three client islands — the dial, the lanes and
- * the settled Windows. Every figure comes from a read the markets page already makes; the shell adds no data path.
+ * the settled Windows (plus the install page's own stateful button). Every figure comes from a read the markets page
+ * already makes; the shell adds no data path. Order: hero, three steps, three lanes, proof, install, honesty footer.
  */
 export function LandingPage() {
-  const { hero } = LANDING;
+  const { hero, steps, lanes, proof } = LANDING;
   return (
     <div className="lp">
       <section className="page-hero lp-hero">
@@ -45,26 +49,43 @@ export function LandingPage() {
                 </Link>
               </div>
             </div>
-            <div className="lp-hero-dial">
+            <div className="lp-hero-dial" role="group" aria-label={hero.dialLabel("TSLA")}>
               <LandingDial />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="lp-section" aria-label={LANDING.lanes.section.title}>
+      <section className="lp-section" aria-label={steps.section.title}>
         <div className="container">
-          <SectionHead number={LANDING.lanes.section.index} title={LANDING.lanes.section.title} desc={LANDING.lanes.section.desc} />
+          <SectionHead number={steps.section.index} title={steps.section.title} desc={steps.section.desc} />
+          <LandingSteps />
+        </div>
+      </section>
+
+      <section className="lp-section" aria-label={lanes.section.title}>
+        <div className="container">
+          <SectionHead number={lanes.section.index} title={lanes.section.title} desc={lanes.section.desc} />
           <LandingLanes />
         </div>
       </section>
 
-      <section className="lp-section" aria-label={LANDING.proof.section.title}>
+      <section className="lp-section" aria-label={proof.section.title}>
         <div className="container">
-          <SectionHead number={LANDING.proof.section.index} title={LANDING.proof.section.title} desc={LANDING.proof.section.desc} />
+          <SectionHead number={proof.section.index} title={proof.section.title} desc={proof.section.desc} />
           <LandingProof />
         </div>
       </section>
+
+      <section className="lp-section lp-section-install" aria-label={LANDING.install.title}>
+        <div className="container">
+          <LandingInstall />
+        </div>
+      </section>
+
+      <div className="container">
+        <LandingFooter />
+      </div>
     </div>
   );
 }
