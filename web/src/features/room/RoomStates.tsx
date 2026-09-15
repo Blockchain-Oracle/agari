@@ -1,5 +1,6 @@
 "use client";
 
+import type { TickerSymbol } from "@agari/core/market";
 import { ArrowRightIcon, LoaderIcon, LockIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
@@ -35,6 +36,8 @@ interface RoomStatesProps {
   gate: Exclude<RoomGate, "joined">;
   onJoin: () => void;
   onBet?: () => void;
+  /** A ticker's standing Room names the stock rather than "this Window". */
+  ticker?: TickerSymbol | null;
 }
 
 /**
@@ -45,7 +48,7 @@ interface RoomStatesProps {
  * room"; ours also names *where* the rule lives, because "the check is on-chain"
  * is the difference between a gate and a setting somebody could be asked to waive.
  */
-export function RoomStates({ gate, onJoin, onBet }: RoomStatesProps) {
+export function RoomStates({ gate, onJoin, onBet, ticker = null }: RoomStatesProps) {
   if (gate === "unavailable") {
     return (
       <div className="room-state">
@@ -77,8 +80,8 @@ export function RoomStates({ gate, onJoin, onBet }: RoomStatesProps) {
         <StateIcon>
           <LockIcon size={24} strokeWidth={1.8} />
         </StateIcon>
-        <p className="room-state-title">{ROOM.states.locked.title}</p>
-        <p className="room-state-body">{ROOM.states.locked.body}</p>
+        <p className="room-state-title">{ticker ? ROOM.ticker.locked.title(ticker) : ROOM.states.locked.title}</p>
+        <p className="room-state-body">{ticker ? ROOM.ticker.locked.body : ROOM.states.locked.body}</p>
         {onBet && (
           <button type="button" className="room-cta" onClick={onBet} data-cursor="hover">
             {ROOM.bet} <ArrowRightIcon size={15} />
@@ -93,8 +96,8 @@ export function RoomStates({ gate, onJoin, onBet }: RoomStatesProps) {
       <StateIcon tone="vermilion">
         <ShieldCheckIcon size={26} strokeWidth={1.8} />
       </StateIcon>
-      <p className="room-state-title">{ROOM.states.joinable.title}</p>
-      <p className="room-state-body">{ROOM.states.joinable.body}</p>
+      <p className="room-state-title">{ticker ? ROOM.ticker.joinable.title(ticker) : ROOM.states.joinable.title}</p>
+      <p className="room-state-body">{ticker ? ROOM.ticker.joinable.body : ROOM.states.joinable.body}</p>
       <button type="button" className="room-cta" onClick={onJoin} disabled={gate === "joining"} data-cursor="hover">
         {gate === "joining" ? (
           <>

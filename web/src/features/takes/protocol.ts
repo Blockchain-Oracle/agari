@@ -1,6 +1,7 @@
 import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
 import { DEFAULT_CLUSTER } from "@agari/core/constants";
 import { COMPOSER_PERMANENCE } from "@agari/core/copy";
+import type { TickerSymbol } from "@agari/core/market";
 import { addressSchema, marketIdSchema, type Address, type MarketId, type Side } from "@agari/core/types";
 import { z } from "zod";
 
@@ -10,6 +11,9 @@ export const TAKE_MAX_CAPTION = 240;
 export const TAKE_SIGNATURE_TTL_MS = 5 * 60_000;
 /** How many takes the reel weaves in — the reference reads 30 (`app/reels/page.tsx` L267). */
 export const TAKES_FEED_LIMIT = 30;
+/** The most rows one `GET /api/takes` returns, and the most authors one `?authors=` names. */
+export const TAKES_PAGE_MAX = 100;
+export const TAKES_AUTHORS_MAX = 50;
 
 /** Trim + hard-cap, as the reference's `normalizeCaption`, so a take stays a take. */
 export function normalizeCaption(raw: string): string {
@@ -72,6 +76,8 @@ export interface FeedTake {
   /** Held a position on the Window when the call was posted — a chain read the server made. */
   backed: boolean;
   createdAtMs: number;
+  /** The registry tickers it is filed under (`parseCashtags`), alphabetical; absent on fixtures. */
+  tags?: TickerSymbol[];
 }
 
 export interface TakesFeed {
