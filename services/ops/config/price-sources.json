@@ -72,12 +72,13 @@
     "GOOGL": { "redstoneFeedId": "GOOGL", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] }
   },
   "tokenLane": {
-    "_doc": "S6. Switchboard Surge quotes (batched); verified xStock mints only. feedHash = sha256 of the length-delimited OracleJob protobuf of [switchboardSurgeTask { source: WEIGHTED, symbol }], pinned by spike (a) (D-053); null until then, and the token lane stays unregistered while any is null. Basis: TSLAx/USD per token (UI amount).",
+    "_doc": "S6. Switchboard Surge quotes (batched); verified xStock mints only. feedHash = sha256 of the length-delimited OracleFeed protobuf { name: agari-surge-<surgeSymbol>, jobs: [[switchboardSurgeTask { source: WEIGHTED, symbol }]], minJobResponses 1, minOracleSamples 1, maxJobRangePct 0 } (@agari/markets/prices/legacy surgeFeed; any field change is a new hash and a new version), pinned by spike (a) (D-053). Basis: TSLAx/USD per token (UI amount).",
+    "spike_2026-09-15": "Devnet queue EYiAmGSd…, 06:37-06:43Z (Tue pre-market), 3 rounds + 1 probe: numSignatures 5 always answered with 4 distinct oracles (idx 0,1,4,6); asking 3 or 4 sometimes returned 1 fewer; 2 and 6 answered HTTP 500 (2 intermittently). Signed slot age at receipt 1-14 slots. Values within 13-28 bps of Jupiter usdPrice. Relay: request 5, send up to 4, require >= switchboard_min_oracles (3).",
     "tickers": {
-      "TSLAx": { "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "surgeSymbol": "TSLAX/USD", "feedHash": null },
-      "NVDAx": { "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD", "feedHash": null },
-      "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD", "feedHash": null },
-      "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD", "feedHash": null }
+      "TSLAx": { "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "surgeSymbol": "TSLAX/USD", "feedHash": "86eaad1d9bc2365013c5cb27930c19356c716a5b932b147f0ec57fdfb030c94f" },
+      "NVDAx": { "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD", "feedHash": "cd9af3920a4b689e046ee4749fd059a7dffd804467f484cded8cc652539d3b6d" },
+      "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD", "feedHash": "e7387f905604e86dca90c3d6f890ae21527f643e069e1035b758e22029d5c10c" },
+      "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD", "feedHash": "9aa22f14991485e6431dc2cdb17e130550c2414f83d4f0d20687e43d0aefefa3" }
     }
   }
 }
