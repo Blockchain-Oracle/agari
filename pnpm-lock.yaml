@@ -214,6 +214,13 @@ importers:
       '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   services/ops:
     dependencies:

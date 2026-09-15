@@ -4,10 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "invariants": "node invariants/run.mjs"
+    "invariants": "node invariants/run.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@agari/core": "workspace:*",
     "@agari/markets": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   }
 }

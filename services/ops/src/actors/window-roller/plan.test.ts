@@ -18,7 +18,7 @@ const NVDA: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySo
 const series = (over: Partial<PlanSeries> = {}): PlanSeries => ({
   key: "TSLA-5m", symbol: "TSLA", cadenceSec: 300, nextIndex: 7n, lastExpirySec: 0, versions: TSLA, freeBooks: ["BookA", "BookB"], ...over,
 });
-const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({ calendar: CALENDAR, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], ...over });
+const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({ calendar: CALENDAR, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, ...over });
 
 describe("window-roller plan", () => {
   it("opens the session's first Window within the lead, as SessionOpen on the covering trial version", () => {
@@ -62,6 +62,9 @@ describe("window-roller plan", () => {
     const skips = [{ symbol: "TSLA" as const, date: "2026-09-25", why: "split" }];
     expect(planSeries(series(), clock(FRI.openSec, { skips })).state).toBe("paused: corporate action (split)");
     expect(planSeries(series({ freeBooks: [] }), clock(FRI.openSec)).state).toBe("waiting: no free book");
+    const halts = { TSLA: { reason: "pyth-wide" as const, sinceSec: FRI.openSec - 30 } };
+    expect(planSeries(series(), clock(FRI.openSec, { halts })).state).toBe("paused: halted (pyth-wide)");
+    expect(planSeries(series(), clock(FRI.openSec, { halts: { NVDA: halts.TSLA } })).kind).toBe("open");
   });
 
   it("skips a late Window whose open print or check open can no longer be admitted (a late open would void or go single-source)", () => {

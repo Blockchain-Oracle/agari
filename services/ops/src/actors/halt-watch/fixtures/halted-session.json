@@ -1,0 +1,8 @@
+{
+  "_doc": "HALT_WATCH_FIXTURE proof (session-lanes.md §6): forces regular hours and injects raw observations; the real rules decide. TSLA's tick is the archived 2026-09-11 16:00 ET price with conf one unit past 50 bps (pyth-wide, 'Trading halted'); NVDA's newest RedStone package is 90 s old (redstone-stale); NVDAx carries the issuer's halt flag (issuer-halt); QQQx has 3 failed quotes (quote-unavailable). Every other asset stays live.",
+  "session": "regular",
+  "pyth": { "TSLA": { "price": "36547600", "conf": "182739", "ageSec": 1 } },
+  "redstone": { "NVDA": { "ageSec": 90 } },
+  "issuer": { "NVDAx": true },
+  "quoteFailures": { "QQQx": 3 }
+}

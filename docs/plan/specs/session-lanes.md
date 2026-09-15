@@ -198,7 +198,7 @@ A missed slot is reported, and the settler voids at T + 61.
   - index field not `0xFFFF` / `cur − 1`;
   - before `T + 10`;
   - after `T + 60`.
-- **Surfpool fork:** the upgraded `.so` verifies a live quote.
+- **Live quote (D-055 amendment):** Surfpool can't verify one (fake SlotHashes), so LiteSVM on a real devnet quote and queue dump, then the first devnet print after the upgrade.
 - **Devnet:** at least one settled token Window per ticker on a weekday before submission (acceptance rows).
 
 ## 3. Halts, voids, earnings, corporate actions (6c)
