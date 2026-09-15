@@ -21,6 +21,7 @@ const FIXTURES = [
   { href: "/dev/parlay", label: "Parlay", note: "every slip card and every ticket state from canned readings; the builder is live on /parlay" },
   { href: "/dev/private", label: "Private", note: "the route control, the budget line, the desk's quote rows, the claims list with real signatures, then the live panel" },
   { href: "/dev/surface", label: "Surface", note: "the book tiles, the depth chart, the slippage ladder and the term structure from canned books; live on /surface" },
+  { href: "/dev/hedge", label: "Hedge card", note: "the holdings-aware hedge for a Gap, a session Window and the 24/7 token lane, then live for your wallet" },
 ] as const;
 
 export default function DevIndexPage() {
