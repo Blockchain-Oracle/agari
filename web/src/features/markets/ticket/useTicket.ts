@@ -6,6 +6,7 @@ import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
 import { useNextWindow, useOnchain, useOpeningPrice } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
+import { takeStakePreset } from "./stake-preset";
 import type { TicketSelection } from "./types";
 
 export interface TicketApi {
@@ -28,8 +29,8 @@ function replaceSelection(marketId: MarketId, side: Side | null): void {
   window.history.replaceState(null, "", marketDeepLink({ marketId, dir: side ?? undefined }));
 }
 
-/** The stake starts EMPTY on the hero entry; context-carrying entries (Reels, Baku) pre-fill it in later stories. */
-export function useTicket({ market, side, nowMs }: TicketSelection): TicketApi {
+/** The stake starts EMPTY on the hero entry; a context-carrying entry (the hedge card) pre-fills it once via `presetStake`. */
+export function useTicket({ market, side, nowMs, sessionId }: TicketSelection): TicketApi {
   const [stakeText, setStakeText] = useState("");
   const [advancedFrom, setAdvancedFrom] = useState<EventMarket | null>(null);
   const opening = useOpeningPrice(market.marketId);
@@ -65,6 +66,12 @@ export function useTicket({ market, side, nowMs }: TicketSelection): TicketApi {
     [market.decimals],
   );
   const selectSide = useCallback((next: Side) => replaceSelection(market.marketId, next), [market.marketId]);
+
+  // Every tap that opens the ticket bumps `sessionId`; a preset left for this Window is taken on that tap only.
+  useEffect(() => {
+    const preset = takeStakePreset(market.marketId);
+    if (preset !== null) setStakeBase(preset);
+  }, [market.marketId, sessionId, setStakeBase]);
 
   return { market, side, stakeText, stakeBase, phase, advancedFrom, nowMs, setStakeText, setStakeBase, selectSide };
 }

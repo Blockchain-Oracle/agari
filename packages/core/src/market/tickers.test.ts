@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isHash32 } from "../types/primitives";
-import { LAUNCH_TICKERS, RESERVED_SERIES_IDS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
+import { LAUNCH_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
 
 describe("ticker registry", () => {
   it("gives every ticker a distinct, u16, never-reserved series id (it is part of every Series address)", () => {
@@ -18,5 +18,18 @@ describe("ticker registry", () => {
     expect(TOKEN_LANE_TICKERS).toEqual(["TSLA", "NVDA", "QQQ", "SPY"]);
     expect(TICKER_SYMBOLS.every((symbol) => isHash32(TICKERS[symbol].pythFeedId))).toBe(true);
     expect(tickerOfXStock("SPYx").symbol).toBe("SPY");
+  });
+
+  // Impostor "TSLAx" mints exist (C:13 §5), so the holdings reader keys by mint alone: a repeated or mistyped mint would
+  // credit a wallet for the wrong company's shares.
+  it("keys every verified share token by a distinct mint of a registry ticker", () => {
+    const mints = SHARE_TOKENS.map((token) => token.mint);
+    expect(new Set(mints).size).toBe(mints.length);
+    expect(new Set(SHARE_TOKENS.map((token) => token.symbol)).size).toBe(SHARE_TOKENS.length);
+    for (const token of SHARE_TOKENS) {
+      expect(TICKER_SYMBOLS).toContain(token.underlying);
+      expect(token.symbol.startsWith(token.underlying)).toBe(true);
+      expect(token.traded).toBe(token.issuer === "xstocks" && TOKEN_LANE_TICKERS.includes(token.underlying));
+    }
   });
 });

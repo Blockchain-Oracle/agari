@@ -44,3 +44,15 @@
 .cw-collect:disabled { opacity: 0.6; cursor: not-allowed; }
 /* text-[10px] text-gray-500 text-center mt-2 */
 .cw-foot { font-size: 10px; color: var(--gray-500); text-align: center; margin-top: 8px; }
+
+/* A void (Q-S6-7): the loser's quiet box, with the void stamp and what came back — no trophy, no profit green. */
+.cw-void-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.cw-void-figure { text-align: right; }
+.cw-void-amount { font-family: var(--font-display); font-size: 1.75rem; line-height: 0.9; font-weight: 800; letter-spacing: -0.025em; color: var(--gray-200); font-variant-numeric: tabular-nums; }
+.cw-void-unit { font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); padding-left: 6px; }
+.cw-void-figure .cw-loss-eyebrow { margin: 4px 0 0; }
+.cw-void-reason { margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--gray-500); }
+.cw-void-paid { color: var(--gray-300); background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1); }
+/* gray and black flip with the theme (yosuku/part-13), so one rule reads light-on-dark and dark-on-cream. */
+.cw-void-collect { background: var(--gray-200); color: var(--black); box-shadow: none; }
+[data-theme="light"] .cw-void-paid { background: rgba(20, 18, 16, 0.03); border-color: rgba(20, 18, 16, 0.1); }

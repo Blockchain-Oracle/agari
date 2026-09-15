@@ -2,6 +2,7 @@
 
 import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
 import { useOpeningPrice } from "@agari/markets/react";
+import type { LaneTabKey } from "../lanes/lane-view";
 import { ReadingBoundary } from "@/components/states";
 import { HeroChartFoot } from "./HeroChartFoot";
 import { HeroChartHead } from "./HeroChartHead";
@@ -14,9 +15,9 @@ export interface HeroChartProps {
   market: EventMarket;
   nowMs: number;
   lanes: readonly Lane[];
-  activeIntervalSec: number | null;
-  pinnedMissingIntervalSec: number | null;
-  onPin: (intervalSec: number) => void;
+  activeLaneKey: LaneTabKey | null;
+  pinnedMissingKey: LaneTabKey | null;
+  onPin: (key: LaneTabKey) => void;
   onSelect: (marketId: MarketId, side: Side) => void;
   onOpenRoom: () => void;
 }
@@ -32,8 +33,8 @@ export function HeroChart({
   market,
   nowMs,
   lanes,
-  activeIntervalSec,
-  pinnedMissingIntervalSec,
+  activeLaneKey,
+  pinnedMissingKey,
   onPin,
   onSelect,
   onOpenRoom,
@@ -53,8 +54,8 @@ export function HeroChart({
         currentRaw={latestRaw}
         nowMs={nowMs}
         lanes={lanes}
-        activeIntervalSec={activeIntervalSec}
-        pinnedMissingIntervalSec={pinnedMissingIntervalSec}
+        activeLaneKey={activeLaneKey}
+        pinnedMissingKey={pinnedMissingKey}
         onPin={onPin}
       />
       <div className="hero-chart-canvas">

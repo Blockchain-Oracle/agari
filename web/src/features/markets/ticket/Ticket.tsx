@@ -36,6 +36,7 @@ import { TicketHeader } from "./TicketHeader";
 import { TicketMiniChart } from "./TicketMiniChart";
 import type { TicketSelection } from "./types";
 import { useFundingCheck } from "./useFunding";
+import { useLaneGuard } from "./useLaneGuard";
 import { usePlaceBet } from "./usePlaceBet";
 import { useQuote } from "./useQuote";
 import { useTicket } from "./useTicket";
@@ -113,6 +114,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
   // A plain wallet order also funds the seat deposit on its first order in the Window; the guard and the top-up leave room for it.
   const seatDeposit = useSeatDeposit(walletRoute ? address : null, onchain?.ok ? onchain.value : null);
   const depositBase = walletRoute && !boosted && !isRange ? seatDeposit : 0n;
+  const laneGuard = useLaneGuard(market);
 
   const base: TicketBlockerInput = {
     session,
@@ -128,6 +130,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     quoting: quoteState.pending,
     quoteStale: quoteState.stale,
     funding: walletRoute ? funding : null,
+    lane: laneGuard.lane,
   };
   const priv = usePrivateTicket({ market, side, stakeBase, enabled: privateMode && hasSigner, symbol, walletSpendableBase: balances?.spendableBase ?? null, base });
   // Off by default and never silently on. The desk going away is said aloud; a band takes the wallet.
@@ -148,6 +151,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
 
   const blocker = boosted ? deriveBoostBlocker({ ...base, funding: null }, boost) : deriveBlocker(base);
   const ctx: BlockerContext = {
+    ...laneGuard.ctx,
     cadence: formatCadence(market.intervalSec),
     minStakeText: `${formatBaseUnits(minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`,
     spendableText: availableBase !== null ? `${formatBaseUnits(availableBase, decimals)} ${symbol}` : undefined,
@@ -284,7 +288,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
             leverage={isRange ? null : { value: multiple, onChange: setMultiple, available: leverageReserve !== null, maxMultiple: leverageReserve ? leverageReserve.params.maxLeverageBps / BPS_PER_X : 1, lockedReason: leverageLock }}
             costBase={costForSr}
           />
-          <ReadoutStrip cells={strip.cells} live={strip.live} caption={strip.caption} chance={strip.chance} note={boosted ? LEVERAGE.strip.knockout(multiple) : null} />
+          <ReadoutStrip cells={strip.cells} live={strip.live} caption={strip.caption} chance={strip.chance} note={[boosted ? LEVERAGE.strip.knockout(multiple) : null, laneGuard.earnings].filter(Boolean).join(" ") || null} />
           <AccountGate
             session={session}
             balanceSource={privateMode ? "private" : source}

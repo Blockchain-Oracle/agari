@@ -62,8 +62,8 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
               market={selection.market}
               nowMs={selection.nowMs}
               lanes={laneList}
-              activeIntervalSec={lanes.activeIntervalSec}
-              pinnedMissingIntervalSec={lanes.pinnedMissing ? lanes.activeIntervalSec : null}
+              activeLaneKey={lanes.activeKey}
+              pinnedMissingKey={lanes.pinnedMissing ? lanes.activeKey : null}
               onPin={lanes.pin}
               onSelect={onSelect}
               onOpenRoom={onOpenRoom}

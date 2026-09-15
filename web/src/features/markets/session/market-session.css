@@ -37,6 +37,15 @@
   color: var(--vermilion);
 }
 
+/* A halt: the open dot stops pulsing and the reason is the whole label, so it stays on a phone too. */
+.mks-chip[data-state="halted"] .mks-chip-dot {
+  background: var(--vermilion);
+}
+
+.mks-chip[data-state="halted"] .mks-chip-state {
+  color: var(--vermilion);
+}
+
 /* In the hero head the chip trails the cadence tabs at their own 9px scale, so the row stays one voice. */
 .mh-asset-row .mks-chip {
   font-size: 9px;
@@ -49,7 +58,7 @@
   .mh-asset-row .mks-chip {
     display: none;
   }
-  .mks-chip-state,
+  .mks-chip-state:not(.mks-chip-halt),
   .mks-chip-sep {
     display: none;
   }

@@ -1,6 +1,5 @@
 import type { Address } from "@agari/core/types";
-import type { VaultDeployment } from "@agari/core/vault";
-import { marketsEnvInputFrom, parseMarketsEnv, resolveVaultDeployment, type MarketsEnv } from "@agari/markets";
+import { ensureMarkets, loadVaultDeployment, marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@agari/markets";
 import { keypairAddress } from "@agari/markets/sessions";
 import { sponsorLimitsFrom, sponsorRoleSecret } from "@agari/markets/sponsor";
 
@@ -15,8 +14,15 @@ export function marketsEnvFromProcess(): MarketsEnv {
   return parseMarketsEnv(marketsEnvInputFrom(process.env));
 }
 
-export function vaultDeploymentFromProcess(env: MarketsEnv): VaultDeployment | null {
-  return resolveVaultDeployment(env);
+/**
+ * The agari-vault program id, once the chain says it is really there: `loadVaultDeployment` reads the `VaultConfig`
+ * account (an env id alone never counts, stage-07 Handoff) and re-checks an absent one after 30 s, so the route starts
+ * sponsoring the moment the vault is deployed, without a restart. The read needs the shared runtime configured.
+ */
+export async function vaultProgramFromProcess(): Promise<Address | null> {
+  const env = marketsEnvFromProcess();
+  ensureMarkets(env);
+  return (await loadVaultDeployment(env))?.eventVault ?? null;
 }
 
 /** The games' view of the shared `sponsor` role (S12): its key, RPC and the Masayume hourly gates. */

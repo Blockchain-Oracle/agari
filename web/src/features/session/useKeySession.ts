@@ -2,10 +2,11 @@
 
 import type { Address } from "@agari/core/types";
 import type { VaultDeployment } from "@agari/core/vault";
-import { createLocalStorageJournal, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
+import { createLocalStorageJournal, createSponsorTransport, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
 import { useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
-import type { StoredSessionKey } from "./store";
+import { deviceId, type StoredSessionKey } from "./store";
+import { SPONSOR_ENDPOINT } from "./useSponsorStatus";
 
 interface KeySessionInput {
   armed: boolean;
@@ -40,11 +41,13 @@ function serialised(session: SubmitterSession): SubmitterSession {
 
 /**
  * The key's own signing session, alive only while the grant is live and this browser holds the key. A change to any
- * of those disposes it; nothing is rebound in place. The fee-payer co-sign transport (`/api/sponsor`) joins the
- * session when lane 7b's adapter accepts one; until then the key pays its own fee, so there is no refusal to report.
+ * of those disposes it; nothing is rebound in place. While a sponsor is configured the session co-signs through
+ * `/api/sponsor` (tap-trading.md §3): the server signs the fee-payer slot only, markets journals and sends. A refusal
+ * is kept so the manager can say why the key paid instead.
  */
-export function useKeySession({ armed, sessionKey, deployment }: KeySessionInput): { session: SubmitterSession | null; sponsorRefusal: () => string | null } {
+export function useKeySession({ armed, sessionKey, deployment, sponsorConfigured }: KeySessionInput): { session: SubmitterSession | null; sponsorRefusal: () => string | null } {
   const [session, setSession] = useState<SubmitterSession | null>(null);
+  const [refusal, setRefusal] = useState<() => string | null>(() => noRefusal);
 
   useEffect(() => {
     if (!armed || !sessionKey || !deployment) {
@@ -53,8 +56,11 @@ export function useKeySession({ armed, sessionKey, deployment }: KeySessionInput
     }
     let cancelled = false;
     let created: SubmitterSession | null = null;
+    // One transport per session: it dies with the key's authority, never outliving a revoke or a re-key.
+    const sponsor = sponsorConfigured ? createSponsorTransport({ endpoint: SPONSOR_ENDPOINT, device: deviceId() }) : null;
+    setRefusal(() => () => sponsor?.lastRefusal() ?? null);
     // The non-extractable pair signs through Kit's createSignerFromKeyPair inside markets (D-066).
-    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { keyPair: sessionKey.keyPair }, journal: createLocalStorageJournal(nowMs), nowMs })
+    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { keyPair: sessionKey.keyPair }, journal: createLocalStorageJournal(nowMs), nowMs, ...(sponsor ? { sponsor } : {}) })
       .then((next) => {
         created = next;
         if (cancelled) return next.dispose();
@@ -67,11 +73,12 @@ export function useKeySession({ armed, sessionKey, deployment }: KeySessionInput
     return () => {
       cancelled = true;
       setSession(null);
+      setRefusal(() => noRefusal);
       void created?.dispose();
     };
-  }, [armed, sessionKey, deployment]);
+  }, [armed, sessionKey, deployment, sponsorConfigured]);
 
-  return { session, sponsorRefusal: noRefusal };
+  return { session, sponsorRefusal: refusal };
 }
 
 const noRefusal = (): string | null => null;

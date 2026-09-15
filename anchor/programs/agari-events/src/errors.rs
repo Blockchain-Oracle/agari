@@ -95,6 +95,8 @@ pub enum EventsError {
     SelfMatchCancelTaker = 119,
     #[msg("order arguments are out of range")]
     InvalidOrderArgs = 120,
+    #[msg("market is listed: only post-only orders may rest before the open")]
+    PreOpenTakerRefused = 121,
 
     // 6200 prints / settle
     #[msg("print source does not match the window's policy")]

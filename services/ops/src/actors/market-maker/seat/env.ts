@@ -7,6 +7,8 @@ export interface SeatMakerEnv {
   cadencesSec: number[];
   sigmaBps: (symbol: TickerSymbol) => number;
   halfSpreadTicks: number;
+  /** `MM_ORDER_TYPE`: `post-only` rests only (default, today's behaviour); `limit` also takes resting user calls (D-090). */
+  orderType: "post-only" | "limit";
   quoteLots: bigint;
   quoteTtlSec: number;
   requoteTicks: number;
@@ -48,6 +50,7 @@ export function readSeatMakerEnv(env: NodeJS.ProcessEnv = process.env): SeatMake
     cadencesSec: cadences.length ? cadences : [300, 900, 3_600],
     sigmaBps: sigmaTable(env.MM_SIGMA_BPS),
     halfSpreadTicks: num(env.MM_HALF_SPREAD_TICKS, 30, 1),
+    orderType: env.MM_ORDER_TYPE?.trim().toLowerCase() === "limit" ? "limit" : "post-only",
     quoteLots: BigInt(num(env.MM_QUOTE_LOTS, 5_000, 1)),
     quoteTtlSec: num(env.MM_QUOTE_TTL_SEC, 120, 30),
     requoteTicks: num(env.MM_REQUOTE_TICKS, 10, 1),

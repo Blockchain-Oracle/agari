@@ -57,22 +57,24 @@
   - LiteSVM `events_gap.rs`: real 09-11 → 09-14 weekend (Pyth fixtures, D-021 method) and the PD-6 race at `lock_at` / `lock_at + 1`.
   - Surfpool forward time-travel drive `gap-cycle.ts` on drive-only Series 901.
   - Merged 73d9f80: plan-gap on core `haltPausedState`/`corporateActionFor`; LiteSVM the real 09-11 → 09-14 weekend settles Down on archived Pyth (TSLA 365.47600 → 359.81147, QQQ 714.90 → 703.325, VOO 702.49748 → 697.68105), PD-6 race both orders; Surfpool drive 14 txs (list from the planner, 6100 at lock, settle, redeem to base unit, Book release). `SpotFeed.latest` takes xStocks, `LaneQuote.halfSpreadTicks?` (blind quote 350/650), `gapSpanOf` in roller logs. Dry run: 9 Gap Series 2.117153880 SOL (0.235239320 each); float per listed Window 0.048127920 (the mvault is 82 B, not the spec's 165 B). `roller-plan --at 2026-09-17T20:00:00Z` on devnet: all 9 Gap lanes "would list #0 09-18 20:00Z–09-21 13:30Z v1". Follow-ups: Series 902 real-print overnight mode (Q-S6-3), Q-S6-1 open re-reads 09-15/16/17.
+  - Merged 3242cbb (S18 work carried by 6a): roller prelist of the next session's first Window per Regular Series (`ROLLER_PRELIST`, `ROLLER_PRELIST_CADENCES`, margin 3,600 s; the 60m lane prelists 10:00; `grow()` on listed Windows; roller SOL in the state line) and `MM_ORDER_TYPE=post-only|limit` (default post-only; limit quotes are Normal orders that take resting user calls at their price, resting read from the placement's return data). Decision numbers: D-089 = maker order type, D-090 = roller prelist (6a's commit subjects have them reversed). Roller balance 6.28 SOL covers the ≈ 1.8 SOL prelist float. `gap-live.ts` (Series 902 drive) is committed but unproven until the 13:35Z live run.
 - [ ] **Stage owner, Gap Series on devnet (Wed 09-16):**
   - Register 9 Series (or the Q-S6-1 subset): 2.117 SOL, one 256-node Book each, acceptance rows.
   - Restart ops; `pnpm drive:roller-plan --at 2026-09-17T20:00:00Z` shows every Gap lane `open`.
   - Record the listed 09-18 Windows.
 - [ ] **Overnight devnet Gap drive (6a, Q-S6-3):** Series 902, TSLA Pyth, Thu 09-17 20:00Z → Fri 09-18 13:30Z. Open print, lock, close print, settle, redeem (acceptance rows).
-- [ ] **6b program:**
+- [x] **6b program:**
   - `agari-common::print::switchboard` (`check_quote_ix`, `quote_print`, pre-normalized to expo −8) with pure tests on a captured devnet quote.
   - `record_print_switchboard.rs` plus dispatch; error map onto 6214–6218.
   - LiteSVM `events_switchboard.rs`: wrong queue, duplicate oracle, too few oracles, stale slot, wrong feed, bad index, before T + 10, after T + 60.
   - `anchor build --arch v0` green; codegen.
-- [ ] **6b off-chain:**
+- [x] **6b off-chain:**
   - `switchboard-quote.ts` (legacy lane) and `ops/prints/switchboard.ts`.
   - Relay `switchboard-pass.ts`: one quote per T; opens via `public_copy_open_from_prev`.
   - Roller `plan-token.ts`; maker `token-fair.ts`; `xstock-spot.ts` (Jupiter chart spot).
   - `jupiter-attest.ts` fallback, proven on Surfpool only.
   - `init-token-series.ts` dry run.
+  - Merged e78cfd0 (5d3470c): `.so` 813,328 B sha256 2e4bf8cc…, LiteSVM 49/49, vitests 1,277. Security review fixes (D-073): the recorder signs and must be an attestor until T+40 (6209), a direct Open with an adjacent recorded Close is refused (6228; `prev_market` required for index > 0), `idx < oracle_keys_len`, queue owner + discriminator + 1..=30 oracles checked in the print handler and `admin_set_authorities` (optional `queue` account), `min_oracles` 1..=8. D-088 pre-open rule: PostOnly admitted on Listed, 6121 for takers; `events_preopen.rs`. Relay prints sign with price-attestor from T+10 (public fallback at T+40 when the key is missing); xstock-spot reports "keyless" without `JUPITER_API_KEY`. The token-plan test fixtures gained 6a's `maxLeadSec`/`prelist` fields at merge. price-attestor now pays ≈ 0.04–0.07 SOL/day (in the funding ask).
 - [ ] **Stage owner, program upgrade and token Series (D-055, D-056):**
   - Surfpool fork: new `.so` at `cDcHZ…`, 6b proofs, `pnpm drive:events` regression.
   - Devnet `solana program deploy --program-id … --buffer …` (auto-extend); sha256 compare.
@@ -84,10 +86,11 @@
   - [x] `calendar/earnings.ts` (Finnhub, 6 h): 7 per-symbol calls every 6 h, 3 s apart (the unfiltered calendar caps at 1,500 rows). Unknown-hour and `dmh` rows raise no `earnings-gap` flag (spec §3.3 as written).
   - [x] `scripts/drive/corporate-check.ts` (proposes, never writes). Finnhub `/stock/split` is 403 on the free key, so split skips come only from xStocks multiplier reasons and a person's review (answers C:02 §B "unverified").
   - [x] LiteSVM `events_halt_void.rs`: wide-confidence Pyth account → ConfidenceTooWide → void at T + 901, both orders (3/3; conf 182,739 refused, 182,738 prints).
-- [ ] **6d states and hedge:**
+- [x] **6d states and hedge:**
   - Every spec §5 row: basis-aware lane tabs and `laneState`; Gap card (listed, trading, locked); token labels; halted chip; new ticket blockers; claim-card void copy (Q-S6-7).
   - Fixtures in `/dev/states`, `/dev/session`, `/dev/hedge`.
   - Hedge: `@agari/markets/holdings` reader (Helius mainnet, verified mints, ScaledUiAmount in bigint), `GET /api/holdings`, and a `SeasonBanner`-anatomy card with devnet copy.
+  - Merged ce40a0c + f1a4f8a: every §5 state from fixtures at 390/768/1440 both themes; void/halt/earnings copy from 6c core; `/api/holdings` reads real mainnet holders (ScaledUiAmount multipliers applied; 30/min → 429; bad owner → 400); `SHARE_TOKENS` gains AAPLx, MSFTx, METAx, AMZNx, GOOGLx, AAPLon, GOOGLon as hedge-only shares, each verified on mainnet against the TSLAx/TSLAon anchors (Token-2022, decimals, DAS symbol/name, scaledUiAmountConfig, authorities); exposure priced from the token's own Jupiter quote, else the underlying's signed spot (`pricedAs`/`priceSource`). Open: a live cross-check divergence names no check source (Resolution carries no check prints); the hedge tap → ticket preset is unproven end to end; live Gap/token cards wait on Series registration.
 - [ ] **Devnet token-lane settlement on a weekday:** ≥ 1 settled Window per xStock. A devnet Down hedge IOC in session. Acceptance rows.
 - [ ] **Browser pass** at 390/768/1440 in both themes against the Masayume source for every §5 state; audit doc updated (D-036).
 - [ ] **Pre-deadline gate (D-059)**, STATUS, commit. Then post-deadline evidence rows:

@@ -4,6 +4,7 @@ import type { EventMarket } from "@agari/core/types";
 import { formatCadence } from "@agari/core/market";
 import { useCallback, useState, type ReactNode } from "react";
 import { SectionHeader } from "@/components/chrome";
+import { LiveHedgeCard } from "@/features/hedge";
 import { MarketRoom } from "@/features/room";
 import { HERO_HEAD, SECTIONS } from "@/lib/copy";
 import { usdLine } from "./hero/units";
@@ -55,6 +56,8 @@ export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProp
 
       <div className="markets-main">
         <div className="container">
+          {/* S6 §4: a wallet's mainnet xStocks, read-only, with a one-tap devnet hedge — only when it holds one. */}
+          <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={setSelection} />
           {renderVerdict(selection)}
 
           <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.lanes.title}>

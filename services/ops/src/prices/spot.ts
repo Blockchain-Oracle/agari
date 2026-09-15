@@ -5,11 +5,11 @@
 import type { TickerSymbol, XStockSymbol } from "@agari/core/market";
 
 export interface SpotQuote {
-  symbol: TickerSymbol;
+  symbol: TickerSymbol | XStockSymbol;
   priceE8: bigint;
   /** The source's own publish time. */
   publishTimeSec: number;
-  source: "pyth" | "redstone";
+  source: "pyth" | "redstone" | "jupiter";
 }
 
 export interface SpotFeed {
