@@ -1,4 +1,5 @@
 import { StaleTick } from "@/components/states/StaleTick";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { cn } from "@/lib/utils";
 
 export type TickerDirection = "up" | "down" | "flat";
@@ -22,6 +23,7 @@ export function TickerItem({ asset, priceText, direction, staleAsOfMs }: TickerE
   const d = DIRECTION[direction];
   return (
     <div role="listitem" className="flex shrink-0 items-center gap-2">
+      <AssetDisc asset={asset} className="marquee-mark" />
       <span className="type-label-micro text-ink-secondary">{asset}</span>
       <span className="type-data text-ink">{priceText}</span>
       <span className={cn("type-data", d.ink)} aria-label={d.word}>
