@@ -23,6 +23,15 @@
   color: var(--reel-ink);
 }
 
+/* Agari: the closed line is longer than the reference's holding copy, and the take pill
+   (below) is fixed to the viewport's right rail at mid-height, where this centred title
+   sits. Below 660px (a 460px card plus the pill's ~100px lane) the title keeps clear of it. */
+@media (max-width: 659px) {
+  .reel-card.holding {
+    padding-right: 88px;
+  }
+}
+
 /* mt-0.5 flex items-center gap-1.5 — the motion cue that keeps the state reading
    as live and working rather than frozen */
 .reel-dots {
