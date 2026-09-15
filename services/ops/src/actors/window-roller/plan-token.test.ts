@@ -8,10 +8,10 @@ const SAT = 1_789_826_400;
 const V1: VersionWindow[] = [{ validFromSec: 1_789_430_400, validUntilSec: null, primarySource: 3, checkSource: 0, openAdmissionSec: 60, checkAdmissionSec: 0 }];
 
 const series = (over: Partial<PlanSeries> = {}): PlanSeries => ({
-  key: "TSLAx-5m", symbol: "TSLA", cadenceSec: 300, nextIndex: 4n, lastExpirySec: 0, versions: V1, freeBooks: ["BookA", "BookB"], ...over,
+  key: "TSLAx-5m", symbol: "TSLA", cadenceSec: 300, maxLeadSec: 400_000, nextIndex: 4n, lastExpirySec: 0, versions: V1, freeBooks: ["BookA", "BookB"], ...over,
 });
 const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({
-  calendar: null, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, ...over,
+  calendar: null, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], ...over,
 });
 
 describe("window-roller token plan", () => {
