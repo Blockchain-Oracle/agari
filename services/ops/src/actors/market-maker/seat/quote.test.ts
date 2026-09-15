@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readSeatMakerEnv } from "./env";
 import { fairYesTicks, normalCdf } from "./fair";
 import { askEscrowPerLot, bidEscrowPerLot, makerPhase, needsRequote, quoteExpirySec, quotePair, sizeLots } from "./quote";
 
@@ -42,6 +43,19 @@ describe("quotePair and escrow", () => {
 
   it("stays strictly inside the opposite best so PostOnly cannot cross", () => {
     expect(quotePair({ fairTicks: 540, halfSpreadTicks: 30, minTick: 20, bestBidTicks: 580, bestAskTicks: 500 })).toEqual({ bidTicks: 499, askTicks: 581 });
+  });
+
+  it("keeps a limit pair at the fair, so it takes the resting orders inside it (D-090)", () => {
+    // A user's pre-open call rests at 500 (and another at 580): the bell quote crosses both instead of hiding behind them.
+    expect(quotePair({ fairTicks: 540, halfSpreadTicks: 30, minTick: 20, bestBidTicks: 580, bestAskTicks: 500, crossing: true })).toEqual({ bidTicks: 510, askTicks: 570 });
+    // The clamps still hold, and one-sided books behave as before.
+    expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: 940, crossing: true })).toEqual({ bidTicks: 945, askTicks: null });
+  });
+
+  it("defaults to post-only and switches on MM_ORDER_TYPE=limit", () => {
+    expect(readSeatMakerEnv({}).orderType).toBe("post-only");
+    expect(readSeatMakerEnv({ MM_ORDER_TYPE: "LIMIT" }).orderType).toBe("limit");
+    expect(readSeatMakerEnv({ MM_ORDER_TYPE: "post-only" }).orderType).toBe("post-only");
   });
 
   it("drops a side outside [minTick, 1000 − minTick]", () => {

@@ -27,6 +27,8 @@ export interface PlanSeries {
   key: string;
   symbol: string;
   cadenceSec: number;
+  /** `series.max_lead_sec`: how far ahead the chain lets this Series list (`check_window` step 8). */
+  maxLeadSec: number;
   nextIndex: bigint;
   lastExpirySec: number;
   versions: readonly VersionWindow[];
@@ -44,6 +46,10 @@ export interface PlanClock {
   gapLeadSec: number;
   /** Never open a Window with less than this left before `lock_at`. */
   minTradableSec: number;
+  /** Prelist the next session's first Regular Window at the previous close (`ROLLER_PRELIST`, D-089). */
+  prelist: boolean;
+  /** Cadences the prelist covers (`ROLLER_PRELIST_CADENCES`): a narrower set holds less SOL float overnight. */
+  prelistCadencesSec: readonly number[];
   skips: readonly CorporateSkip[];
   /** xStock multiplier changes (token lane only, core `multiplierApplies`). */
   multipliers: readonly MultiplierChange[];
@@ -59,6 +65,10 @@ export type SeriesPlan =
   | { kind: "closed"; wakeSec: number | null; state: string };
 
 export const DEFAULT_LEAD_SEC = 120;
+export const DEFAULT_PRELIST = true;
+export const DEFAULT_PRELIST_CADENCES_SEC = [300, 900, 3_600];
+/** Kept in reserve from the Series' `max_lead_sec`, so a prelist never races the chain's own horizon check. */
+export const PRELIST_MARGIN_SEC = 3_600;
 export const DEFAULT_GAP_LEAD_SEC = 172_800;
 export const DEFAULT_MIN_TRADABLE_SEC = 60;
 /** Time the relay needs after a late open to fetch and record the opening prints before their deadline. */
@@ -66,6 +76,39 @@ export const PRINT_MARGIN_SEC = 45;
 
 const hhmm = (sec: number) => new Date(sec * 1000).toISOString().slice(11, 16);
 export const spanOf = (w: { tradingStartSec: number; expirySec: number }) => `${hhmm(w.tradingStartSec)}–${hhmm(w.expirySec)}Z`;
+
+/** The close of the session in progress, or null when nothing is trading. */
+export function liveSessionCloseSec(clock: PlanClock): number | null {
+  return clock.calendar?.sessions.find((s) => s.openSec <= clock.nowSec && clock.nowSec < s.closeSec)?.closeSec ?? null;
+}
+
+/** This Series' first Window of the first session that hasn't opened yet (60m starts at 10:00 ET, not the bell). */
+function firstWindowOfNextSession(series: PlanSeries, clock: PlanClock): ScheduledWindow | null {
+  const next = clock.calendar?.sessions.find((s) => s.openSec > clock.nowSec);
+  return next ? (regularWindows(next, series.cadenceSec)[0] ?? null) : null;
+}
+
+/**
+ * Whether `w` may be listed before its lead (D-089): the Series' first Window of the next session, once nothing is
+ * trading and the Series' own horizon has room to spare. Users can then rest pre-open calls on it overnight.
+ */
+export function prelistable(series: PlanSeries, clock: PlanClock, w: ScheduledWindow): boolean {
+  if (!clock.prelist || !clock.prelistCadencesSec.includes(series.cadenceSec)) return false;
+  if (liveSessionCloseSec(clock) !== null) return false;
+  if (firstWindowOfNextSession(series, clock)?.tradingStartSec !== w.tradingStartSec) return false;
+  return w.tradingStartSec - clock.nowSec <= series.maxLeadSec - PRELIST_MARGIN_SEC;
+}
+
+/** The same Window, before the horizon or the close lets it list: what the lane is waiting for. */
+function prelistWait(series: PlanSeries, clock: PlanClock, w: ScheduledWindow): SeriesPlan | null {
+  if (!clock.prelist || !clock.prelistCadencesSec.includes(series.cadenceSec)) return null;
+  if (firstWindowOfNextSession(series, clock)?.tradingStartSec !== w.tradingStartSec) return null;
+  // Whichever comes first: the session's close, the Series' horizon reaching back this far, or the ordinary lead.
+  const horizonSec = w.tradingStartSec - series.maxLeadSec + PRELIST_MARGIN_SEC;
+  const live = liveSessionCloseSec(clock);
+  const wakeSec = Math.min(w.tradingStartSec - clock.leadSec, live ?? Number.MAX_SAFE_INTEGER, horizonSec > clock.nowSec ? horizonSec : Number.MAX_SAFE_INTEGER);
+  return { kind: "wait", window: w, wakeSec, state: `waiting: lists at the close for ${spanOf(w)}` };
+}
 
 /** The earliest Window of today's or the next session that can still be opened on this Series. */
 export function nextCandidate(series: PlanSeries, clock: PlanClock): ScheduledWindow | null {
@@ -87,7 +130,11 @@ export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
   const w = nextCandidate(series, clock);
   if (!w) return { kind: "closed", wakeSec: null, state: "closed: no session" };
   const untilOpen = w.tradingStartSec - clock.nowSec;
-  if (untilOpen > clock.leadSec) {
+  const prelist = untilOpen > clock.leadSec && prelistable(series, clock, w);
+  if (untilOpen > clock.leadSec && !prelist) {
+    // The prelist's own wait: it lists at the close, or once the Series' horizon reaches back this far.
+    const waiting = prelistWait(series, clock, w);
+    if (waiting) return waiting;
     const state = untilOpen <= series.cadenceSec ? `waiting: next ${spanOf(w)}` : "closed: no session";
     return { kind: "wait", window: w, wakeSec: w.tradingStartSec - clock.leadSec, state };
   }
@@ -108,6 +155,6 @@ export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
     openKind: BOUNDARY_KIND_U8[w.openKind],
     closeKind: BOUNDARY_KIND_U8[w.closeKind],
     book,
-    state: `opening #${series.nextIndex} ${spanOf(w)} ${describeVersion(version, series.versions[version]!)}`,
+    state: `${prelist ? "prelisting" : "opening"} #${series.nextIndex} ${spanOf(w)} ${describeVersion(version, series.versions[version]!)}`,
   };
 }
