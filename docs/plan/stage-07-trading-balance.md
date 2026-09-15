@@ -67,7 +67,7 @@
   - Solana copy (`VAULT.notDeployed.how`, how-it-works cash-out answer);
   - dev fixtures;
   - checked against masayume.app.
-  - Merged f11ff6d (18 sponsor/key-signer vitests, build green). The sponsor policy lives in `web/src/features/session/sponsor/` until 7b lifts it; the invariant is no longer optional. Top-up writes: `vault-grant.keyTopUpLamports?` and `vault-key-top-up` (7b adapts both).
+  - Merged f11ff6d and 034738c (651b5c1): `useKeySession` signs with `{ keyPair }`; the sponsor policy, chain checks, gates, co-sign and service live in `packages/markets/src/sponsor` (`@agari/markets/sponsor`, server-only: its index pulls node:fs); `/api/sponsor` is a thin route. 17 sponsor vitests on real Kit v0 transactions, build green. The invariant is no longer optional; P-11 closed. Top-up writes: `vault-grant.keyTopUpLamports?` and `vault-key-top-up` (7b builds, 7c wires). Still 7b: client sponsor transport, DB `SponsorLedger`, real `resolveVaultDeployment`.
 - [ ] Deploy (stage owner):
   - `solana program deploy` `--arch v0` binary;
   - IDL metadata (D-026);
