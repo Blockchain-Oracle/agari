@@ -1,9 +1,10 @@
 /**
  * The grant pre-check a delegated buy runs before any signature or co-sign request (tap-trading.md §1.3 step 5,
- * Masayume `vault/order.ts:24-86`): the actor must be the grant's, then core `simulateCaps` in the program's order.
+ * Masayume `vault/order.ts:24-86`): the actor must be the grant's, the Window inside its scope (D-091), then core
+ * `simulateCaps` in the program's order.
  * Pure, so the caps vectors and the client mirror are checked without a chain.
  */
-import type { Quote, Side } from "@agari/core/types";
+import type { MarketId, Quote, Side } from "@agari/core/types";
 import { diagnosis, type Address, type Diagnosis } from "@agari/core/types";
 import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@agari/core/units";
 import { simulateCaps, type CapRefusal, type VaultGrant } from "@agari/core/vault";
@@ -45,6 +46,8 @@ export function capRefusalText(refusal: CapRefusal, decimals: number): string {
 export interface GrantBuyCheck {
   grant: VaultGrant;
   actor: Address;
+  /** The Window the buy is for: a market-scoped grant refuses any other (D-091). */
+  marketId: MarketId;
   side: Side;
   quote: Pick<Quote, "limitPriceRaw" | "contractsRaw" | "expectedCostBase">;
   decimals: number;
@@ -60,6 +63,9 @@ export interface GrantBuyCheck {
 export function grantBuyRefusal(input: GrantBuyCheck): Diagnosis | null {
   const { grant, quote, decimals } = input;
   if (grant.actor !== input.actor) return diagnosis("grant-refused", `${input.actor} is not grant #${grant.grantId}'s actor`, { errorName: "NotGrantActor" });
+  if (grant.caps.market !== undefined && grant.caps.market !== input.marketId) {
+    return diagnosis("grant-refused", `grant #${grant.grantId} trades only Window ${grant.caps.market}, not ${input.marketId}`, { errorName: "GrantMarketMismatch" });
+  }
   const verdict = simulateCaps({
     grant,
     nowSec: input.nowSec,

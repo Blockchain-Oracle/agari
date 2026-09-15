@@ -8,6 +8,8 @@
 
 import {
   combineCodec,
+  getAddressDecoder,
+  getAddressEncoder,
   getStructDecoder,
   getStructEncoder,
   getU16Decoder,
@@ -16,6 +18,7 @@ import {
   getU32Encoder,
   getU64Decoder,
   getU64Encoder,
+  type Address,
   type FixedSizeCodec,
   type FixedSizeDecoder,
   type FixedSizeEncoder,
@@ -26,6 +29,8 @@ export type CapsArgs = {
   maxDailySpend: bigint;
   maxOpenPositions: number;
   maxPriceTicks: number;
+  /** The one Window the grant may trade (D-091); `Pubkey::default()` = any. */
+  market: Address;
 };
 
 export type CapsArgsArgs = {
@@ -33,6 +38,8 @@ export type CapsArgsArgs = {
   maxDailySpend: number | bigint;
   maxOpenPositions: number;
   maxPriceTicks: number;
+  /** The one Window the grant may trade (D-091); `Pubkey::default()` = any. */
+  market: Address;
 };
 
 export function getCapsArgsEncoder(): FixedSizeEncoder<CapsArgsArgs> {
@@ -41,6 +48,7 @@ export function getCapsArgsEncoder(): FixedSizeEncoder<CapsArgsArgs> {
     ["maxDailySpend", getU64Encoder()],
     ["maxOpenPositions", getU32Encoder()],
     ["maxPriceTicks", getU16Encoder()],
+    ["market", getAddressEncoder()],
   ]);
 }
 
@@ -50,6 +58,7 @@ export function getCapsArgsDecoder(): FixedSizeDecoder<CapsArgs> {
     ["maxDailySpend", getU64Decoder()],
     ["maxOpenPositions", getU32Decoder()],
     ["maxPriceTicks", getU16Decoder()],
+    ["market", getAddressDecoder()],
   ]);
 }
 

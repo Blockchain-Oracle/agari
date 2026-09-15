@@ -7,7 +7,7 @@ use anchor_spl::token::{accessor, Token, TokenAccount};
 
 use agari_events::program::AgariEvents;
 
-use crate::caps::{count_opened, require_escrow, require_live, require_price_cap, side_ticks, spend};
+use crate::caps::{count_opened, require_escrow, require_live, require_market, require_price_cap, side_ticks, spend};
 use crate::constants::{ACCOUNT_SEED, ATTENDED, CUSTODY_SEED, EVENTS_CONFIG, EVENTS_EVENT_AUTHORITY, SEAT, VAULT_CONFIG};
 use crate::engine::{self, Engine};
 use crate::errors::VaultError;
@@ -223,13 +223,14 @@ pub fn owner_place(ctx: Context<OwnerPlace>, outcome: u8, is_buy: bool, price_ti
 pub fn actor_place_for(ctx: Context<ActorPlaceFor>, grant_id: u64, outcome: u8, is_buy: bool, price_ticks: u16, lots: u64, expire_ts: i64) -> Result<()> {
     let now = Clock::get()?.unix_timestamp;
     let a = &ctx.accounts;
-    // 1. The grant, its actor and owner, and liveness.
+    // 1. The grant, its actor and owner, liveness, and its Window scope (D-091).
     {
         let g = a.grant.load()?;
         require!(g.grant_id == grant_id, VaultError::NoSuchGrant);
         require_keys_eq!(g.actor, a.actor.key(), VaultError::NotGrantActor);
         require_keys_eq!(g.owner, a.owner.key(), VaultError::NotGrantOwner);
         require_live(&g, now)?;
+        require_market(&g, &a.market.key())?;
     }
     let order = Order { outcome, is_buy, price_ticks, lots, expire_ts };
     let route = Route::Grant { grant: &a.grant, id: grant_id };
