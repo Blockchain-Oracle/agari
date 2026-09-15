@@ -7,7 +7,9 @@ import {
   getBase64Encoder,
   pipe,
   setTransactionMessageComputeUnitLimit,
+  setTransactionMessageFeePayer,
   setTransactionMessageFeePayerSigner,
+  type Address,
   setTransactionMessageLifetimeUsingBlockhash,
   type Instruction,
   type Rpc,
@@ -27,11 +29,14 @@ async function simulateMessage(rpc: WriteRpc, message: Parameters<typeof compile
   return { ...value, bytes: getBase64Encoder().encode(wire).length };
 }
 
-async function composeWrite(rpc: WriteRpc, feePayer: TransactionSigner, instructions: readonly Instruction[]) {
+/** Who pays: a signer of this session, or a bare address that co-signs as fee payer only (the sponsor, tap-trading.md §3). */
+export type FeePayer = TransactionSigner | Address;
+
+async function composeWrite(rpc: WriteRpc, feePayer: FeePayer, instructions: readonly Instruction[]) {
   const { value: latest } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
   const message = pipe(
     createTransactionMessage({ version: 0 }),
-    (m) => setTransactionMessageFeePayerSigner(feePayer, m),
+    (m) => (typeof feePayer === "string" ? setTransactionMessageFeePayer(feePayer, m) : setTransactionMessageFeePayerSigner(feePayer, m)),
     (m) => setTransactionMessageLifetimeUsingBlockhash(latest, m),
     (m) => appendTransactionMessageInstructions(instructions, m),
   );
@@ -50,7 +55,7 @@ export type BuiltWrite = Awaited<ReturnType<typeof composeWrite>> & {
  * A v0 message paid by `feePayer`, simulated (`sigVerify: false`) at the ceiling, then limited to the simulated units
  * plus 10%, never above 400,000 (D-012). A failed simulation throws `SimulationFailedError`: nothing is signed or sent.
  */
-export async function buildWrite(rpc: WriteRpc, feePayer: TransactionSigner, instructions: readonly Instruction[]): Promise<BuiltWrite> {
+export async function buildWrite(rpc: WriteRpc, feePayer: FeePayer, instructions: readonly Instruction[]): Promise<BuiltWrite> {
   const composed = await composeWrite(rpc, feePayer, instructions);
   const sim = await simulateMessage(rpc, setTransactionMessageComputeUnitLimit(COMPUTE_UNIT_LIMIT_MAX, composed.message));
   if (sim.err) throw new SimulationFailedError(chainFailure(sim.err, sim.logs), "simulation");

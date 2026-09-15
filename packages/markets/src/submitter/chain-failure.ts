@@ -51,7 +51,8 @@ const KIND_BY_CODE = new Map<number, DiagnosisKind>([
   [ENGINE_CODE.marketNotTerminal, "not-settled"],
 ]);
 
-function customCode(err: unknown): number | null {
+/** The `Custom(code)` of an `InstructionError`, or null. */
+export function customCode(err: unknown): number | null {
   if (typeof err !== "object" || err === null || !("InstructionError" in err)) return null;
   const inner = (err as { InstructionError: readonly [unknown, unknown] }).InstructionError[1];
   if (typeof inner !== "object" || inner === null || !("Custom" in inner)) return null;

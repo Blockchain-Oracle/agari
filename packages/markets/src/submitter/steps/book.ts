@@ -43,17 +43,23 @@ export function bookFromEvents(events: readonly WriteEvent[], ctx: BookContext):
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * A confirmed transaction's decoded events. An RPC can answer a status before it serves the transaction itself, so this
- * retries for a while; null when it still can't read it (the order landed, but its fills aren't readable yet).
+ * A confirmed transaction as JSON. An RPC can answer a status before it serves the transaction itself, so this retries
+ * for a while; null when it still can't read it (the write landed, but its events aren't readable yet).
  */
-export async function fetchWriteEvents(rpc: WriteRpc, signature: Signature, attempts = 20, delayMs = 1_500): Promise<WriteEvent[] | null> {
+export async function fetchLandedTransaction(rpc: WriteRpc, signature: Signature, attempts = 20, delayMs = 1_500): Promise<JsonTransaction | null> {
   for (let attempt = 0; attempt < attempts; attempt++) {
     const tx = await rpc
       .getTransaction(signature as string as KitSignature, { encoding: "json", maxSupportedTransactionVersion: 0, commitment: "confirmed" })
       .send()
       .catch(() => null);
-    if (tx) return decodeWriteEvents(tx as unknown as JsonTransaction);
+    if (tx) return tx as unknown as JsonTransaction;
     await sleep(delayMs);
   }
   return null;
+}
+
+/** A confirmed transaction's decoded agari-events events; null when the transaction isn't readable yet. */
+export async function fetchWriteEvents(rpc: WriteRpc, signature: Signature, attempts = 20, delayMs = 1_500): Promise<WriteEvent[] | null> {
+  const tx = await fetchLandedTransaction(rpc, signature, attempts, delayMs);
+  return tx ? decodeWriteEvents(tx) : null;
 }

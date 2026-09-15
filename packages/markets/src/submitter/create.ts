@@ -15,6 +15,7 @@ import type { WriteContext } from "./settle-write";
 import { allowAllStopGate } from "./stop-gate";
 import { submitTx } from "./tx-lane";
 import { solana } from "../runtime/solana";
+import type { SponsorCosigner } from "../vault/cosign";
 
 export interface SubmitterDeps {
   /** The single account this submitter signs for. */
@@ -31,6 +32,8 @@ export interface SubmitterDeps {
   journal?: IntentJournal;
   attribution?: AttributionHook;
   nowMs?: () => number;
+  /** The fee-payer co-signer for sponsorable vault writes (tap-trading.md §3); absent, this account pays its own fees. */
+  sponsor?: SponsorCosigner;
 }
 
 /** The core Submitter plus the pre-send checks a surface needs before it opens a wallet popup. */
@@ -57,7 +60,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
   // Resolved per write, so a read runtime rebuilt onto other endpoints is picked up by the next send.
   const context = (): WriteContext => {
     const rpc = deps.rpc ?? solana().rpc;
-    return { wallet, signer: deps.signer, rpc, journal, evidence: evidenceOf(deps, rpc), nowMs };
+    return { wallet, signer: deps.signer, rpc, journal, evidence: evidenceOf(deps, rpc), nowMs, ...(deps.sponsor ? { sponsor: deps.sponsor } : {}) };
   };
   return {
     journal,

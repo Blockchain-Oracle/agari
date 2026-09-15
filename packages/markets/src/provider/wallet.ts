@@ -12,6 +12,8 @@ import { loadAccount, loadAccounts } from "../runtime/account-loader";
 import { readTokenBalance, readVenueStatic } from "../runtime/accounts";
 import { findSeat, type LedgerSeat } from "../runtime/decode";
 import { loadCollateral } from "../collateral";
+import { readVaultAccount } from "../vault/accounts";
+import { loadVaultDeployment } from "../vault/deployment";
 import { big, indexRows, sec, type PositionRow } from "./index-api";
 import { withReading } from "./reading";
 import { positionMarket } from "./rows";
@@ -94,7 +96,13 @@ export async function listClaimables(wallet: Address, venueId: Address): Promise
   });
 }
 
-/** Every pool of money labelled separately (FR-5): wallet tUSDC, SOL, cash locked by resting orders, seat credit. */
+/** The Trading Balance's free `available` (Masayume `balances.ts:64`): null without a vault, 0 before an account opens. */
+async function vaultAvailable(wallet: Address): Promise<bigint | null> {
+  if (!(await loadVaultDeployment())) return null;
+  return (await readVaultAccount(wallet))?.available ?? 0n;
+}
+
+/** Every pool of money labelled separately (FR-5): wallet tUSDC, SOL, cash locked by resting orders, seat credit, the Trading Balance. */
 export async function getBalanceSheet(wallet: Address): Promise<Reading<BalanceSheet>> {
   return withReading(`balances:${wallet}`, async () => {
     const [rows, venue] = await Promise.all([positionsOf(wallet, true), readVenueStatic()]);
@@ -104,7 +112,12 @@ export async function getBalanceSheet(wallet: Address): Promise<Reading<BalanceS
       .sort((a, b) => Number(b.state === "open") - Number(a.state === "open"))
       .slice(0, MAX_CREDIT_LEDGERS);
     // Index first, then one batch: the wallet, its ATA and every Ledger join the same getMultipleAccounts.
-    const [native, token, seats] = await Promise.all([loadAccount(kit(wallet)), readTokenBalance(wallet, venue.collateralMint), seatsIn(wallet, credited)]);
+    const [native, token, seats, vaultBase] = await Promise.all([
+      loadAccount(kit(wallet)),
+      readTokenBalance(wallet, venue.collateralMint),
+      seatsIn(wallet, credited),
+      vaultAvailable(wallet),
+    ]);
     const credits: VenueCredit[] = [];
     let orderEscrowBase = 0n;
     credited.forEach((row, i) => {
@@ -120,7 +133,7 @@ export async function getBalanceSheet(wallet: Address): Promise<Reading<BalanceS
       orderEscrowBase,
       venueCreditBase: credits.reduce((sum, credit) => sum + credit.amountBase, 0n),
       venueCreditByMarket: credits,
-      vaultBase: null,
+      vaultBase,
     };
   });
 }
