@@ -221,7 +221,12 @@
   .lp-step-num { font-size: 44px; }
   .lp-proof-cell { flex-direction: column; gap: 4px; }
   .lp-proof-value { text-align: left; }
+  /* Three rows on a phone: mark · name · outcome, then the close, then the links. Placed, not auto-flowed, so the
+     outcome pill never drops into the mark's 28px column under the name. */
   .lp-settled-row { grid-template-columns: 28px minmax(0, 1fr) auto; }
-  .lp-settled-when,
-  .lp-settled-links { grid-column: 2 / -1; }
+  .lp-settled-row > .lp-mark { grid-column: 1; grid-row: 1; }
+  .lp-settled-name { grid-column: 2; grid-row: 1; }
+  .lp-settled-outcome { grid-column: 3; grid-row: 1; }
+  .lp-settled-when { grid-column: 2 / -1; grid-row: 2; }
+  .lp-settled-links { grid-column: 2 / -1; grid-row: 3; }
 }
