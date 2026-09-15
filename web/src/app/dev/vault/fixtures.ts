@@ -1,7 +1,9 @@
 import { CLUSTER_ID } from "@agari/core/constants";
 import { err, ok, stale, type Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type MarketId } from "@agari/core/types";
+import { diagnosis, type Address, type MarketId, type OpenPosition } from "@agari/core/types";
 import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@agari/core/vault";
+import { CASH_OUT } from "@/features/markets/portfolio/useCashOut";
+import type { CashOutState } from "@/features/markets/portfolio/BetRow";
 import type { VAULT } from "@/features/vault";
 import type { VaultOpenBet } from "@/features/vault";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
@@ -56,7 +58,7 @@ const withGrants = snapshot(
   { session: grant(1n, "session", 50n * UNIT), strategy: grant(2n, "strategy", 160n * UNIT) },
 );
 
-export type VaultFixtureKey = Exclude<keyof typeof VAULT.fixtures, "live" | "bets">;
+export type VaultFixtureKey = Exclude<keyof typeof VAULT.fixtures, "live" | "bets" | "cashOut">;
 
 export interface VaultFixture {
   key: VaultFixtureKey;
@@ -85,3 +87,29 @@ export const OPEN_BETS: VaultOpenBet[] = [
 
 export const WALLET_SPENDABLE = 1_234n * UNIT + 560_000n;
 export const FIXTURE_NOW_MS = AS_OF_MS;
+
+/** A wallet position for the plain cash-out rows (L-35): one side held, before lock. */
+export const WALLET_POSITION: OpenPosition = {
+  marketId: id(0x11022),
+  asset: "AAPL",
+  intervalSec: 900,
+  expirySec: NOW_SEC + 600,
+  decimals: DECIMALS,
+  balanceUpRaw: 12n * UNIT,
+  balanceDownRaw: 0n,
+  costBasisBase: 6n * UNIT + 480_000n,
+  avgCostRaw: 540_000n,
+  markValueBase: 7n * UNIT + 200_000n,
+  unrealizedPnlBase: 720_000n,
+  realizedPnlBase: 0n,
+};
+
+export const CASH_OUT_STATES: readonly { label: string; state: CashOutState }[] = [
+  { label: "idle", state: { busy: false, note: null } },
+  { label: "selling", state: { busy: true, note: null } },
+  { label: "no exit liquidity", state: { busy: false, note: CASH_OUT.noLiquidity } },
+  { label: "locked", state: { busy: false, note: CASH_OUT.locked } },
+  { label: "requote", state: { busy: false, note: CASH_OUT.requote(`6.84 ${FIXTURE_SYMBOL}`) } },
+  { label: "nothing sold", state: { busy: false, note: CASH_OUT.nothingSold } },
+  { label: "not live", state: { busy: false, note: CASH_OUT.notLive } },
+];
