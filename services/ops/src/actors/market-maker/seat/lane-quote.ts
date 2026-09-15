@@ -28,6 +28,8 @@ export interface LaneQuote {
   fairTicks: number | null;
   /** Base units (6 dp): both sides' escrow on this Window. */
   maxCashPerWindow: bigint;
+  /** Half-spread in YES ticks when the lane wants its own (a blind Gap quote goes wide); absent = `MM_HALF_SPREAD_TICKS`. */
+  halfSpreadTicks?: number;
   /** Why, for the maker's heartbeat. */
   why: string;
 }

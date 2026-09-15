@@ -1,10 +1,10 @@
 /**
  * The Gap lane's quotes (session-lanes.md §1.5): Friday 16:00 → Sunday 19:59 ET, the `fair.ts` z-score against the xStock
- * weekend spot for TSLA/NVDA/QQQ and 500 ticks elsewhere, capped at `MM_GAP_MAX_CASH`. Lane 6a owns this file.
+ * weekend spot for TSLA/NVDA/QQQ and 500 ticks ± 150 elsewhere, capped at `MM_GAP_MAX_CASH`. Lane 6a owns this file.
  *
  * The underlying doesn't trade over the weekend, so the only live reference is the 24/7 xStock token (Jupiter's per-UI-token
  * price, which carries the ScaledUiAmount multiplier, so it is quoted per share like the print). A name without an xStock,
- * or whose xStock spot is stale or issuer-halted, quotes 500: it knows nothing past Friday's print.
+ * or whose xStock spot is stale or issuer-halted, quotes 500 wide: it knows nothing past Friday's print.
  */
 import { TICKERS, type XStockSymbol } from "@agari/core/market";
 import { fairYesTicks } from "./fair";
@@ -13,6 +13,8 @@ import type { MakerPhase } from "./quote";
 
 /** Fair with no weekend reference. */
 export const GAP_BLIND_FAIR_TICKS = 500;
+/** A blind quote knows nothing past Friday's print, so it rests wide: 350 / 650 around 500. */
+export const GAP_BLIND_HALF_SPREAD_TICKS = 150;
 /** Weekend uncertainty at the Friday close, as seconds of regular-session variance (one session), shrinking with the span left. */
 export const GAP_VARIANCE_SEC = 23_400;
 /** Stop quoting this long before the Sunday lock, like every lane (entry closes 30 s before it, D-011). */
@@ -76,5 +78,6 @@ export function gapQuote(input: LaneQuoteInput): LaneQuote {
     : xstock && input.halts[xstock] ? `${xstock} halted (${input.halts[xstock]!.reason}): ${GAP_BLIND_FAIR_TICKS}`
     : xstock ? `${xstock} spot unavailable: ${GAP_BLIND_FAIR_TICKS}`
     : `no weekend reference: ${GAP_BLIND_FAIR_TICKS}`;
-  return { phase, fairTicks, maxCashPerWindow: cap, why };
+  const halfSpreadTicks = referenceE8 === null ? Math.max(GAP_BLIND_HALF_SPREAD_TICKS, input.env.halfSpreadTicks) : undefined;
+  return { phase, fairTicks, maxCashPerWindow: cap, why, ...(halfSpreadTicks === undefined ? {} : { halfSpreadTicks }) };
 }

@@ -75,7 +75,7 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
   }
   await cancelAll(placed ? `requote: fair ${placed.fairTicks} → ${fair}` : "unknown resting orders");
   const top = await readBookTop(ctx.client, d.book);
-  const pair = quotePair({ fairTicks: fair, halfSpreadTicks: ctx.env.halfSpreadTicks, minTick: ctx.env.minTick, bestBidTicks: top?.bestBidTicks ?? null, bestAskTicks: top?.bestAskTicks ?? null });
+  const pair = quotePair({ fairTicks: fair, halfSpreadTicks: lane?.halfSpreadTicks ?? ctx.env.halfSpreadTicks, minTick: ctx.env.minTick, bestBidTicks: top?.bestBidTicks ?? null, bestAskTicks: top?.bestAskTicks ?? null });
   const lots = sizeLots({ wantLots: ctx.env.quoteLots, pair, cu: series.data.cashUnit, budget: lane?.maxCashPerWindow ?? ctx.env.maxCashPerWindow, minLots: series.data.minLots });
   if (lots === 0n) return { state: "idle", placed: null, note: `fair ${fair}: no admissible size or side` };
   const expireSec = quoteExpirySec(ctx.nowSec, lockAtSec, ctx.env.quoteTtlSec);
