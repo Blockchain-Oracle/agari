@@ -1029,6 +1029,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **Rule:** `web/src/proxy.ts` marks `US` requests (or `AGARI_REGION_OVERRIDE=US` locally) with header `x-agari-region: restricted` and a readable cookie `agari.region`; the client renders Masayume's disabled state with "Not available in your region" on the ticket, schedule, faucet, sponsor, private-desk and trade-from-x actions; `api/sponsor`, `api/faucet`, `api/private/*`, `api/x/*` return `451 { error: "region_restricted" }`. No header → open (local, ops). Markets, proof, news and portfolio reads stay open everywhere.
 - **User-visible:** a US visitor can read everything and fund nothing.
 - **Approval:** stage owner; the country list is the user's to change.
+- **Amended 2026-09-15 20:50Z (lane 15d report):** exits stay open to held visitors: `api/private/cashout` and `api/x/unlink` answer as before, because taking money out or unlinking is not funding. `api/x/callback` stays open because it completes a flow `x/start` already held. The held set is `api/faucet`, `api/faucet/challenge`, `api/sponsor`, `api/private/open`, `api/x/bind`, `api/x/start`. Country list: US only until the user says otherwise.
 
 ### D-096 — Program credibility: verifiable builds and on-chain IDLs after tonight's upgrade
 - **Date / owner:** 2026-09-15 · S15 owner

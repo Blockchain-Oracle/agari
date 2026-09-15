@@ -55,6 +55,9 @@
 - Masayume's own `/` is a redirect to `/markets` ("lands in Epic 4"), so the landing page is Agari's to design (D-093).
 - No `README.md` exists in the repo yet; `THIRD_PARTY_NOTICES.md` has seven sections.
 - `masayume-docs` holds 62 content files in nine sections; only a subset describes surfaces Agari ships this week.
+- Lane 15b (20:41Z): How it works describes all three lanes as the product; no "not listed yet" label, because the devnet lane registers the Gap and token Series on 09-15 night. The pitch's "137 confirmed devnet signatures" is typed from `acceptance.md` @ 4a909c3; the stage owner refreshes it at the S15 gate. `/demo` is prerendered, so the mp4 check runs at build: rebuild after `web/public/video/agari-demo.mp4` lands; an `agari-demo.vtt` beside it becomes captions.
+- Lane 15b found /reels at 390 with the Take button over the closed-state headline (an 18d surface): sent to the S18 closed-state pass.
+- Lane 15d: the chrome-devtools MCP profile lock was worked around with headless Chrome over CDP on its own profile; games/duel copy keeps three Masayume strings (deferred S12).
 
 ## Handoff
 
