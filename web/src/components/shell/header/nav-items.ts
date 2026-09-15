@@ -1,6 +1,6 @@
 import {
   Activity, BarChart3, BookOpen, Bot, ChartCandlestick, ChartLine, ChartNoAxesCombined,
-  CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, KeyRound,
+  CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
   Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, ScanSearch,
   Trophy, WalletCards, X as XLogo, type LucideIcon,
 } from "lucide-react";
@@ -159,6 +159,13 @@ export const NAV_ITEMS = {
     description: "See the strongest verified records.",
     icon: Trophy,
   },
+  activity: {
+    id: "activity",
+    name: "Activity",
+    href: "/activity",
+    description: "Your fills, verdicts, payouts and follows.",
+    icon: Inbox,
+  },
   stats: { id: "stats", name: "Stats", href: "/stats", description: "Inspect protocol and market activity.", icon: BarChart3 },
   surface: {
     id: "surface",
@@ -265,7 +272,7 @@ export const EXPLORE_GROUP: NavGroup = {
       id: "proof",
       name: "Proof",
       description: "Records and market evidence",
-      items: [NAV_ITEMS.leaderboard, NAV_ITEMS.stats, NAV_ITEMS.surface, NAV_ITEMS.edge],
+      items: [NAV_ITEMS.leaderboard, NAV_ITEMS.activity, NAV_ITEMS.stats, NAV_ITEMS.surface, NAV_ITEMS.edge],
     },
     {
       id: "learn",
@@ -305,7 +312,7 @@ export const MOBILE_OVERFLOW: readonly NavItem[] = MOBILE_DRAWER_SECTIONS.flatMa
 
 /** Every real, user-facing page that must retain an explicit navigation home. */
 export const NAVIGABLE_ROUTE_PATHS = [
-  "/agents", "/claim", "/demo",
+  "/activity", "/agents", "/claim", "/demo",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/reels", "/stats",
