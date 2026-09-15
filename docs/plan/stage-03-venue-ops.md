@@ -33,7 +33,7 @@
   - TSLA cross-check agreement (bps) recorded;
   - zero leftover `PriceUpdateV2` accounts owned by the relay.
 - **Post-trial dry run:** the roller with a clock after the 09-25 close shows TSLA on RedStone and QQQ/VOO paused.
-- **Off-hours:** no Regular Windows listed.
+- **Off-hours:** no Regular Windows listed. ✅ 09-14 20:00Z
 
 ## Findings
 
@@ -131,6 +131,8 @@
   - **18:39–18:52Z:** 24 opened, 71 prints, 0 missed. A few sends still exhausted retries at the 18:45Z burst.
     - **Fix** (`56b1951`): process-wide pacing, `RPC_MAX_RPS` 8 and `RPC_SEND_TPS` 3 (a 32-call burst flows at 8/s). Confirmations moved to the public devnet websocket (`SOLANA_WS_URL=wss://api.devnet.solana.com`) while HTTP stays on Helius. Restarted 18:54:52Z.
   - **SOL float** (roller 4 → 2.26, settler 2.5 → 2.21 by 18:52Z): live Ledger + mvault ≈ 0.046 each (≈ 50 live and closing), plus Market ≈ 0.003 × ≈ 150 Windows/h retained 6 h. The roller's steady peak in a full session is ≈ 5 SOL, so top it up before the 09-15 open.
+- **Soak 09-14 after the priority lane (19:19–20:12Z):** 81 opened, 230 prints recorded, **0 missed**, 115 settled, 117 Ledgers closed, no restarts, `/health` ok (28 exhausted-retry 429 lines, all recovered next pass). **Off-hours gate item ✅:** 0 Windows start at or after 20:00Z; all 27 Windows expiring 20:00Z resolved; every lane reads `closed: no session`.
+- **Overnight 09-14→09-15 (off-hours):** a DNS outage (119 × `getaddrinfo ENOTFOUND devnet.helius-rpc.com`) left passes stuck; the watchdog exited ops 10 times (`exiting: pass stuck over 10 min …`, exit 70) and the supervisor restarted it each time; after DNS returned the settler closed retained Markets (`closeMarket … retention elapsed`) and the indexer backfilled from its cursor. Crash-only recovery (D-030) held; no manual action.
 - **SOL for the devnet run** (5,080 lamports/B incl. header):
   - 25 missing Series × 0.0076 ≈ 0.2 SOL.
   - Books: 16 new 5m/15m Series × 2 × 0.2900 ≈ 9.3 SOL, plus 9 new 60m Series × 2 × 0.2276 ≈ 4.1 SOL, so ≈ 13.4 SOL of Books.
