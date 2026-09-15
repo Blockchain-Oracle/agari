@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { webEnv } from "@/lib/env";
 import { PITCH } from "./copy";
-import { LogoCard, SomniaMark } from "./marks";
+import { LogoCard, SolanaMark } from "./marks";
 import { FrozenPhone, PhoneMock, XBetCard } from "./mocks";
 import { CountUp, Emph, Glance, Kicker, Mono, Pill, Rise, SpecPanel } from "./primitives";
 import type { Slide } from "./types";
 
 /**
  * Slides 01–08 — ported from `reference/yosuku/app/pitch/page.tsx` L281–469, layout
- * for layout. The words are Masayume's and every claim has a source named in
- * `copy.ts`; where the reference asserts something we do not have (a live X rail, a
- * card on-ramp, native apps) the slide keeps its place and says NEXT or NOT LIVE.
+ * for layout. The words are Agari's and every claim has a source named in `copy.ts`;
+ * where the reference asserts something we do not have (a live X rail, a card on-ramp,
+ * native apps) the slide keeps its place and says LATER or NOT LIVE.
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
@@ -61,12 +61,12 @@ export const SLIDES_A: Slide[] = [
             [C.rows.engine[0], C.rows.engine[1], true],
             [C.rows.custody[0], C.rows.custody[1], true],
             // The reference draws Google + a card here (zkLogin, Paystack); neither exists
-            // on this stack, so the row says what onboarding actually is today.
+            // here, so the row says what onboarding actually is today: a wallet and a faucet.
             C.rows.onboarding,
             [
               C.rows.builtOn,
               <span key="bo" className="pitch-glance-marks">
-                <SomniaMark s={20} />
+                <SolanaMark s={20} />
                 <span className="pitch-glance-val">{C.rows.chain}</span>
               </span>,
             ],
@@ -76,7 +76,7 @@ export const SLIDES_A: Slide[] = [
     ),
   },
 
-  // 02 · THE ENGINE (DreamDEX did the hard part)
+  // 02 · THE ENGINE — the deck's one lineage slide: ported product, our own engine
   {
     id: "engine",
     section: E.section,
@@ -100,7 +100,7 @@ export const SLIDES_A: Slide[] = [
     ),
   },
 
-  // 03 · THE GAP (problem, UX-framed)
+  // 03 · THE PROBLEM — the market is shut for 135 hours of every 168
   {
     id: "gap",
     section: G.section,
@@ -158,7 +158,7 @@ export const SLIDES_A: Slide[] = [
     ),
   },
 
-  // 05 · X AS VEGAS — the distribution wedge, here a Stage-4 promise
+  // 05 · X — the distribution wedge, deferred past the deadline by D-084
   {
     id: "x",
     section: X.section,
@@ -186,7 +186,7 @@ export const SLIDES_A: Slide[] = [
     ),
   },
 
-  // 06 · PROOF — the fill projection, checked against the chain
+  // 06 · PROOF — the devnet ledger: every claim on this deck has a signature
   {
     id: "proof",
     section: P.section,
@@ -209,7 +209,7 @@ export const SLIDES_A: Slide[] = [
               {P.leftLabel}
             </Mono>
             <div className="pitch-proof-figure">
-              <CountUp to={89} /> <span className="pitch-proof-unit">markets</span>
+              <CountUp to={137} /> <span className="pitch-proof-unit">on devnet</span>
             </div>
             <div className="pitch-proof-sub">{P.leftSub}</div>
           </Rise>

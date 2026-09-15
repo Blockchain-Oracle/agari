@@ -1,0 +1,232 @@
+/* `/` — the landing (L-11, D-093). Agari's own layout in Masayume's tokens: every colour, face and ease is a Yosuku
+   variable (part-01, flipped by part-13's cream theme) and every hairline is the gray ramp, so both themes follow for
+   free. The hero panel, section heads, buttons and eyebrow are Masayume's own classes; only the arrangement is here. */
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+.lp-hero { padding-bottom: 72px; }
+.lp-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 56px;
+  align-items: center;
+}
+.lp-hero-copy { min-width: 0; }
+.lp-eyebrow { margin-bottom: 28px; }
+
+.lp-wordmark { display: flex; align-items: center; gap: 14px; color: var(--white); }
+.lp-wordmark-mark { display: inline-flex; width: 30px; height: 36px; flex-shrink: 0; }
+.lp-wordmark-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.lp-wordmark-name {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase;
+}
+
+.lp-title {
+  margin: 28px 0 0;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2.2rem, 6vw, 5.2rem); line-height: 0.94; letter-spacing: -0.035em;
+  color: var(--white);
+}
+.lp-title em {
+  display: block;
+  font-family: var(--font-serif, var(--font-display)); font-style: italic; font-weight: 500;
+  color: var(--vermilion);
+}
+.lp-line {
+  margin: 24px 0 0; max-width: 46ch;
+  font-size: clamp(1rem, 1.5vw, 1.12rem); line-height: 1.65;
+  color: var(--gray-400);
+}
+.lp-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.lp-cta { padding: 14px 26px; font-size: 14px; }
+/* part-03's outline is a white hairline, which the cream theme never flips: the gray ramp does. */
+.lp-cta.btn-outline { border-color: var(--gray-700); }
+.lp-cta.btn-outline:hover { border-color: var(--gray-500); }
+.lp-cta:focus-visible,
+.lp-link:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 3px; }
+
+/* The dial is `/markets`' asset hero panel, sized for a column instead of the markets grid. */
+.lp-hero-dial { min-width: 0; }
+.lp-hero-dial .hero-chart { aspect-ratio: auto; min-height: 460px; }
+.lp-hero-dial .hero-chart-canvas { min-height: 220px; }
+.lp-dial-wait { justify-content: center; padding: 24px; }
+
+/* ── Sections ─────────────────────────────────────────────────────────── */
+.lp-section { padding: 88px 0; border-bottom: 1px solid var(--gray-800); }
+.lp-section .section-head { margin-bottom: 40px; }
+.lp-section-install { border-bottom: 0; padding-bottom: 32px; }
+
+.lp-link {
+  color: var(--white);
+  text-decoration: underline; text-decoration-color: var(--gray-700); text-underline-offset: 3px;
+  transition: text-decoration-color 200ms var(--ease);
+}
+.lp-link:hover { text-decoration-color: var(--vermilion); }
+.lp-note { margin: 0; font-size: 14px; color: var(--gray-500); }
+
+/* ── A call in three steps ───────────────────────────────────────────── */
+.lp-steps {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--gray-800);
+}
+.lp-step { display: flex; flex-direction: column; padding: 36px 32px 8px 0; }
+.lp-step + .lp-step { padding-left: 32px; border-left: 1px solid var(--gray-800); }
+.lp-step-num {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 56px; line-height: 0.9; letter-spacing: -0.045em;
+  color: var(--white);
+}
+.lp-step[data-step="3"] .lp-step-num { color: var(--vermilion); }
+.lp-step-kicker {
+  margin: 22px 0 12px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gray-500);
+}
+.lp-step-title {
+  margin: 0 0 12px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem); line-height: 1.05; letter-spacing: -0.03em;
+  color: var(--white);
+}
+.lp-step-body { margin: 0; max-width: 38ch; font-size: 15px; line-height: 1.6; color: var(--gray-400); }
+.lp-step-art { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 24px; }
+.lp-chip {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 12px;
+  border: 1px solid var(--gray-700); border-radius: 9999px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em;
+  color: var(--gray-300);
+}
+.lp-chip[data-tone="up"] { color: var(--button-up-ink); border-color: var(--button-up-border); background: var(--button-up-fill); }
+.lp-chip[data-tone="down"] { color: var(--button-down-ink); border-color: var(--button-down-border); background: var(--button-down-fill); }
+.lp-chip[data-tone="accent"] { color: var(--vermilion); border-color: var(--vermilion); }
+
+/* ── Three lanes ─────────────────────────────────────────────────────── */
+.lp-lanes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.lp-lane {
+  display: flex; flex-direction: column; gap: 14px;
+  min-height: 280px; padding: 24px;
+  border: 1px solid var(--gray-800); border-radius: 4px;
+  background: var(--bg);
+}
+.lp-lane-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.lp-lane-name {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: -0.03em;
+  color: var(--white);
+}
+.lp-lane-clock { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray-500); }
+.lp-lane-body { margin: 0; font-size: 14px; line-height: 1.6; color: var(--gray-400); }
+.lp-lane-marks { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lp-mark {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: 9999px;
+}
+.lp-mark .asset-mark { width: 100%; height: 100%; display: block; }
+.lp-mark.generic { background: var(--gray-800); font-family: var(--font-display); font-weight: 800; font-size: 12px; color: var(--white); }
+.lp-lane-more { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); }
+.lp-lane-next {
+  display: flex; align-items: center; gap: 10px;
+  margin: auto 0 0; padding-top: 14px; border-top: 1px solid var(--gray-800);
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+  color: var(--gray-300);
+}
+.lp-lane-dot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 9999px; background: var(--gray-600); }
+.lp-lane[data-listed="true"] .lp-lane-dot { background: var(--vermilion); }
+.lp-lane[data-listed="false"] .lp-lane-next { color: var(--gray-500); }
+
+/* ── Proof ───────────────────────────────────────────────────────────── */
+.lp-proof { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 48px; align-items: start; }
+.lp-proof-ids { margin: 0; border-top: 1px solid var(--gray-800); }
+.lp-proof-cell {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 14px 0; border-bottom: 1px solid var(--gray-800);
+}
+.lp-proof-label {
+  margin: 0;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gray-500);
+}
+.lp-settled .lp-proof-label { margin-bottom: 12px; }
+.lp-proof-value { margin: 0; font-family: var(--font-mono); font-size: 13px; color: var(--white); text-align: right; }
+
+.lp-settled-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--gray-800); }
+.lp-settled-row {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto auto;
+  align-items: center; gap: 8px 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--gray-800);
+}
+.lp-settled-name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--font-display); font-weight: 600; font-size: 14px;
+  color: var(--white);
+}
+.lp-settled-when { font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); white-space: nowrap; }
+.lp-settled-outcome {
+  justify-self: start; padding: 3px 8px;
+  border: 1px solid var(--gray-700); border-radius: 9999px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+  color: var(--gray-500);
+}
+.lp-settled-outcome[data-outcome="up"] { color: var(--button-up-ink); border-color: var(--button-up-border); background: var(--button-up-fill); }
+.lp-settled-outcome[data-outcome="down"] { color: var(--button-down-ink); border-color: var(--button-down-border); background: var(--button-down-fill); }
+.lp-settled-links { display: flex; gap: 14px; font-family: var(--font-mono); font-size: 12px; white-space: nowrap; }
+
+/* ── Install strip ───────────────────────────────────────────────────── */
+.lp-install {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 32px;
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid var(--gray-800); border-radius: 4px;
+}
+.lp-install-copy .section-eyebrow { margin-bottom: 14px; }
+.lp-install-title {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1; letter-spacing: -0.035em;
+  color: var(--white);
+}
+.lp-install-line { margin: 14px 0 0; max-width: 52ch; font-size: 15px; line-height: 1.6; color: var(--gray-400); }
+.lp-install .dl-cta { margin-top: 0; }
+
+/* ── Honesty footer ──────────────────────────────────────────────────── */
+.lp-foot {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px 48px;
+  padding-block: 32px 72px;
+}
+.lp-foot-copy { display: flex; flex-direction: column; gap: 8px; max-width: 70ch; }
+.lp-foot-line { margin: 0; font-size: 13px; line-height: 1.6; color: var(--gray-500); }
+.lp-foot-links {
+  display: flex; flex-wrap: wrap; gap: 20px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+/* ── Widths ──────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .lp-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .lp-lanes { grid-template-columns: minmax(0, 1fr); }
+  .lp-lane { min-height: 0; }
+  .lp-proof { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+@media (max-width: 768px) {
+  .lp-section { padding: 56px 0; }
+  .lp-steps { grid-template-columns: minmax(0, 1fr); }
+  .lp-step,
+  .lp-step + .lp-step { padding: 28px 0; border-left: 0; }
+  .lp-step + .lp-step { border-top: 1px solid var(--gray-800); }
+  .lp-install { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .lp-hero { padding-bottom: 40px; }
+  .lp-hero-dial .hero-chart { min-height: 400px; }
+  .lp-step-num { font-size: 44px; }
+  .lp-proof-cell { flex-direction: column; gap: 4px; }
+  .lp-proof-value { text-align: left; }
+  /* Three rows on a phone: mark · name · outcome, then the close, then the links. Placed, not auto-flowed, so the
+     outcome pill never drops into the mark's 28px column under the name. */
+  .lp-settled-row { grid-template-columns: 28px minmax(0, 1fr) auto; }
+  .lp-settled-row > .lp-mark { grid-column: 1; grid-row: 1; }
+  .lp-settled-name { grid-column: 2; grid-row: 1; }
+  .lp-settled-outcome { grid-column: 3; grid-row: 1; }
+  .lp-settled-when { grid-column: 2 / -1; grid-row: 2; }
+  .lp-settled-links { grid-column: 2 / -1; grid-row: 3; }
+}

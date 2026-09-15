@@ -13,9 +13,9 @@ const tiltStyle = (tilt: number) => ({ "--tilt": `${tilt}deg` }) as CSSPropertie
  * The folio's side visuals — ported from `reference/yosuku/app/pitch/page.tsx` L87–195.
  *
  * Every one of these is a drawn illustration, not product state, and each carries a
- * tag saying so (MOCK · ILLUSTRATIVE, CONCEPT · NOT LIVE). The phone shows Masayume's
+ * tag saying so (MOCK · ILLUSTRATIVE, CONCEPT · NOT LIVE). The phone shows the product's
  * real UI grammar — the question against the opening print, the chart, UP/DOWN, the
- * stake-first ticket, the 正夢 stamp on a win — so the picture is of the product that
+ * stake-first ticket, the 上がり stamp on a win — so the picture is of the product that
  * exists, with numbers that are plainly a mock's.
  *
  * Colours live in `pitch-slides.css`; the SVG takes its strokes and fills from classes
@@ -53,7 +53,7 @@ const LockIcon = ({ s = 16 }: { s?: number }) => (
   </svg>
 );
 
-/** A dark Masayume phone screen — the Window as it is actually laid out, or the verdict that stamps it. */
+/** A dark phone screen — the Window as it is actually laid out, or the verdict that stamps it. */
 export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won?: boolean; i?: number }) {
   return (
     <Rise i={i} className="pitch-phone" style={tiltStyle(tilt)}>
@@ -67,14 +67,14 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
           <div className="pitch-phone-app">
             <span className="pitch-phone-brand">
               <AgariMark className="pitch-phone-mark" />
-              masayume
+              agari
             </span>
             <span className="pitch-phone-balance">12.74 tUSDC</span>
           </div>
           {won ? (
             <div className="pitch-phone-won">
-              <div className="pitch-phone-stamp">正夢</div>
-              <div className="pitch-phone-won-label">AGARI · IT CAME TRUE</div>
+              <div className="pitch-phone-stamp">上がり</div>
+              <div className="pitch-phone-won-label">AGARI · IT CAME IN</div>
               <div className="pitch-phone-won-figure">+14.60</div>
               <div className="pitch-phone-won-sub">paid to your wallet · settlement receipt ↗</div>
               <div className="pitch-phone-cta">Collect</div>
@@ -82,12 +82,12 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
           ) : (
             <>
               <div className="pitch-phone-card">
-                <div className="pitch-phone-q">Will BTC close above $64,000?</div>
+                <div className="pitch-phone-q">Will TSLA close above $358.20?</div>
                 <div className="pitch-phone-chart">
                   <MiniChart w={236} h={80} />
                 </div>
                 <div className="pitch-phone-meta">
-                  <span className="up">BTC $64,180 ↑</span>
+                  <span className="up">TSLA $358.74 ↑</span>
                   <span>closes in 4:12</span>
                 </div>
               </div>
@@ -106,7 +106,7 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
   );
 }
 
-/** The X post + reply-to-bet card — the Stage-4 rail, drawn as a concept (reference L152–176). */
+/** The X post + reply-to-call card — the deferred X rail, drawn as a concept (reference L152–176). */
 export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
   return (
     <Rise i={i} className="pitch-xcard" style={tiltStyle(tilt)}>
@@ -117,17 +117,17 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
             <AgariMark className="pitch-xcard-mark" />
           </span>
           <span>
-            <span className="pitch-xcard-name">Masayume</span>
+            <span className="pitch-xcard-name">Agari</span>
             <span className="pitch-xcard-handle">@ — not yet</span>
           </span>
           <span className="pitch-xcard-x">
             <LogoX s={15} />
           </span>
         </div>
-        <div className="pitch-xcard-text">Will BTC close above $64,000 by 23:40 UTC?</div>
+        <div className="pitch-xcard-text">Will TSLA close above $358.20 at 20:00 UTC?</div>
         <div className="pitch-xcard-embed">
           <div className="pitch-xcard-embed-head">
-            <span>AGARI · BTC $64,000</span>
+            <span>AGARI · TSLA $358.20</span>
             <span className="up">↑ 0.4%</span>
           </div>
           <MiniChart w={296} h={58} strikeY={34} />
@@ -137,11 +137,11 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
         <span className="pitch-xcard-reply-avatar" />
         <span>
           <div className="pitch-xcard-reply-text">
-            <span className="handle">@masayume</span> BTC up, 5
+            <span className="handle">@agari</span> TSLA up, 5
           </div>
           <div className="pitch-xcard-receipt">
             <span className="dot" />
-            POSITION OPENED · tx 0x…
+            POSITION OPENED · tx 5n12bZ…
           </div>
         </span>
       </div>

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { messageSignatureSchema } from "@agari/core/auth";
 import { FAUCET_ASSETS, FaucetError } from "@agari/core/faucet";
 import { addressSchema } from "@agari/core/types";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { createFaucetService } from "@/features/funding/faucet-service.server";
 import { faucetBody, faucetConfig, faucetErrorResponse, faucetForRequest, unavailableFaucetStatus } from "@/features/funding/faucet-config.server";
 
@@ -27,6 +28,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // The geofence comes before any key, balance or co-signature (D-095).
+  if (regionRestricted(request)) return regionRestrictedResponse();
   try {
     const { service, ipHash } = faucetForRequest(request);
     const parsed = claimSchema.safeParse(await faucetBody(request));

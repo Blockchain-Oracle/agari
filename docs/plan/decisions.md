@@ -1002,6 +1002,49 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none yet.
 - **Approval:** stage owner.
 
+### D-092 — S15 opens while S18's evidence collects
+- **Date / owner:** 2026-09-15 · S15 owner
+- **Evidence:** every S18 lane is merged (stage 810b87e, `integration/w1` b09eae9, served on :3000 and :3018); the three remaining S18 boxes are timed evidence (prelist 20:00Z, devnet Phase B + C 20:21Z, the Wed bell) and the gate, none of which any S15 deliverable depends on. The deadline is Fri 09-18 20:00Z.
+- **Rule:** `stage/S15-public-story` is cut from `integration/w1` @ b09eae9 now; four lanes (15a landing + OG, 15b story pages, 15c README/notices/submission/docs, 15d compliance + brand) run in their own worktrees on disjoint files; the S18 owner role continues in the same session for the timed evidence. S18's parity rows still advance only at S18's gate.
+- **User-visible:** the public story lands a day earlier.
+- **Approval:** stage owner.
+
+### D-093 — The landing page and OG images are Agari's own design in Masayume's tokens
+- **Date / owner:** 2026-09-15 · S15 owner
+- **Evidence:** Masayume's `web/src/app/page.tsx` redirects to `/markets` ("The landing page lands in Epic 4"); Masayume has no `opengraph-image` routes; Q-001 (2026-09-13) says build Masayume's unfinished items in its design language; D-081 makes surfaces Masayume never had creative surfaces.
+- **Rule:** `/` is an editorial landing composed from existing Agari pieces (18a asset hero, 18c marks, `InstallCta`, the index proof reads) with copy in Masayume's voice and no new data path; OG images use `next/og` with the vendored fonts and marks. `R:yosuku/app/page.tsx` stays closed unless the user asks for that layout.
+- **User-visible:** `/` stops redirecting; link previews show the wordmark, a ticker's mark and its last close.
+- **Approval:** stage owner; the user may override the layout.
+
+### D-094 — The docs site is a fresh `agari-docs` fork with only shipped surfaces documented
+- **Date / owner:** 2026-09-15 · S15 owner
+- **Evidence:** `masayume-docs` has 62 content files in nine sections; Agari ships S3–S7, S13 and S18 this week (D-084 defers S8–S12, S14); every fact must be rewritten and every capture retaken.
+- **Rule:** lane 15c copies `masayume-docs` to `/Users/abu/dev/hackathon/agari-docs` with a fresh `git init`, rewrites start/trading/architecture/explore/help/status for Agari (new pages: sessions and lanes, pre-open calls, halts and voids), collapses games/agents/builders to one honest "after the hackathon" page each, and builds green. Deploy waits for the user's go in S16 (Q-S15-1).
+- **User-visible:** a docs site whose every page is true for Agari.
+- **Approval:** stage owner.
+
+### D-095 — Geofence: US visitors browse; funded actions are read-only and server routes answer 451
+- **Date / owner:** 2026-09-15 · S15 owner
+- **Evidence:** plan §7.2 S15 "Compliance"; Next 16 replaced `middleware.ts` with `proxy.ts`; Vercel supplies `x-vercel-ip-country`.
+- **Rule:** `web/src/proxy.ts` marks `US` requests (or `AGARI_REGION_OVERRIDE=US` locally) with header `x-agari-region: restricted` and a readable cookie `agari.region`; the client renders Masayume's disabled state with "Not available in your region" on the ticket, schedule, faucet, sponsor, private-desk and trade-from-x actions; `api/sponsor`, `api/faucet`, `api/private/*`, `api/x/*` return `451 { error: "region_restricted" }`. No header → open (local, ops). Markets, proof, news and portfolio reads stay open everywhere.
+- **User-visible:** a US visitor can read everything and fund nothing.
+- **Approval:** stage owner; the country list is the user's to change.
+- **Amended 2026-09-15 20:50Z (lane 15d report):** exits stay open to held visitors: `api/private/cashout` and `api/x/unlink` answer as before, because taking money out or unlinking is not funding. `api/x/callback` stays open because it completes a flow `x/start` already held. The held set is `api/faucet`, `api/faucet/challenge`, `api/sponsor`, `api/private/open`, `api/x/bind`, `api/x/start`. Country list: US only until the user says otherwise.
+
+### D-096 — Program credibility: verifiable builds and on-chain IDLs after tonight's upgrade
+- **Date / owner:** 2026-09-15 · S15 owner
+- **Evidence:** tonight's devnet sequence (20:21Z) upgrades `agari-events` (813,328 B, sha256 2e4bf8cc…) and deploys `agari-vault` (519,296 B, sha256 b6eab3a1…); Docker 29 is installed, `solana-verify` is not.
+- **Rule:** after the sequence, the stage owner runs `anchor build --verifiable` for both programs, publishes both IDLs on-chain, and writes the deployed binaries' sha256, the build command and explorer links into the README. If the verifiable build cannot reproduce the deployed hash before Wed 20:00Z, the README states the measured hash and the exact toolchain instead, and the verified upload moves to S17.
+- **User-visible:** a reader can check the program bytes against the source.
+- **Approval:** stage owner.
+
+### D-097 — The demo is recorded Wed after the bell drive; `/demo` is honest until then
+- **Date / owner:** 2026-09-15 · S15 owner
+- **Evidence:** plan L-13 "recorded Mon–Thu during market hours"; the S18 fills drive is Wed 13:30Z; the `direct-demo-video` skill is installed.
+- **Rule:** the recording happens Wed 09-16 after the 13:30Z bell on `:3000` (Thu fallback); until `web/public/video/agari-demo.mp4` exists, `/demo` shows "Recording Wed 16 Sep during NYSE hours" with the proof table live. Provenance goes in `docs/submission/demo-media-provenance.json`.
+- **User-visible:** no placeholder video, ever.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
@@ -1023,3 +1066,4 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 | Q-S6-7 | A void claim shows Masayume's "You won" trophy? | Open. Default (pending the user): void stamp, "Returned" and the reason line (D-057) | 6d claim card |
 | Q-S6-8 | Hedge placement and size | Default: under the `/markets` hero, 10% of exposure, devnet tUSDC only (D-058) | — |
 | Q-S6-9 | Halt wording without a licensed halt feed | Default: "Trading halted" only for `pyth-wide` / `issuer-halt`, else "Signed price stale" (D-057) | — |
+| Q-S15-1 | Deploy `agari-docs` as its own Vercel project alongside the web app? | Open. Default: yes at S16, needs the user's go (D-094) | Docs URL in README |

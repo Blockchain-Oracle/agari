@@ -27,6 +27,8 @@ export interface ScheduleBlockerInput {
   /** The wallet's calls already resting on this Window; null until read. */
   restingCount: number | null;
   funding: FundingCheck | null;
+  /** The geofence's verdict for this browser (D-095); absent = open. */
+  region?: boolean;
 }
 
 /**
@@ -35,6 +37,7 @@ export interface ScheduleBlockerInput {
  * it, room on the seat, and a price that rests rather than takes. The label IS the blocker (UX-DR3/UX-DR4).
  */
 export function deriveScheduleBlocker(i: ScheduleBlockerInput): BlockerKind | null {
+  if (i.region) return "region";
   if (!i.session.isConnected) return i.session.isConnecting ? "connecting" : "disconnected";
   if (!i.session.isRightChain) return "wrong-chain";
   if (!i.hasSigner) return "connecting";

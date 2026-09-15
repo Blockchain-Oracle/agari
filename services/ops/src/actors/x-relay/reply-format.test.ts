@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { encodeBase58 } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@agari/core/x";
-import { createReplyPresentation, REFUSAL_DETAILS, REPLY_LIMIT, replyText, TRADE_FROM_X_URL } from "./reply-format";
+import { createReplyPresentation, REFUSAL_DETAILS, REPLY_LIMIT, replyText, SITE_URL, TRADE_FROM_X_URL } from "./reply-format";
 
 const HASH = encodeBase58(new Uint8Array(64).fill(0xab));
 const TX_URL = txUrl(HASH as Parameters<typeof txUrl>[0]);
@@ -86,7 +86,7 @@ describe("public X receipt text", () => {
   it("links permission refusals directly to the update controls while preserving known transactions", () => {
     const refused = receipt({ status: "refused", refusalCode: "grant-update-required", txHash: null });
     expect(createReplyPresentation(refused, 6).url).toBe(`${TRADE_FROM_X_URL}#x-trading`);
-    expect(createReplyPresentation({ ...refused, refusalCode: "position-limit" }, 6).url).toBe("https://masayume.app/portfolio");
+    expect(createReplyPresentation({ ...refused, refusalCode: "position-limit" }, 6).url).toBe(`${SITE_URL}/portfolio`);
     expect(createReplyPresentation({ ...refused, txHash: HASH }, 6).url).toBe(TX_URL);
   });
   it("preserves a closed Window's precise recovery reason and instruction-builder link", () => {
@@ -104,7 +104,7 @@ describe("public X receipt text", () => {
   it("validates all public context and defaults invalid statuses to uncertainty", () => {
     const model = createReplyPresentation(receipt({ status: "win" as XReceipt["status"], asset: "@victim💰", side: "win" as XReceipt["side"], intervalSec: 7, expirySec: Number.MAX_SAFE_INTEGER }), 6);
     expect(model.status).toBe("unknown");
-    expect(model.context).toBe("Somnia testnet");
+    expect(model.context).toBe("Solana devnet");
     const filled = createReplyPresentation(receipt({ bookedCostBase: "1" }), 6, "USD\n@victim");
     expect(filled.detail).toBe("Spent 0.000001 collateral.");
   });

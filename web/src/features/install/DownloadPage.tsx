@@ -6,7 +6,7 @@ import { PhoneShot } from "./PhoneShot";
 /**
  * `/download` — the page the app strip lands on, ported from the reference's
  * `app/download/page.tsx` element for element (`.dl-*` in part-18.css). The words are
- * Masayume's: an installable web app on Somnia testnet, and no native build claimed.
+ * Agari's: an installable web app on Solana devnet, and no native build claimed.
  */
 export function DownloadPage() {
   return (

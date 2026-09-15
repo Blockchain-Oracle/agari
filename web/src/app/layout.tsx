@@ -5,13 +5,26 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BRAND } from "@/lib/copy";
 import { fontVariables } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { webEnv } from "@/lib/env";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { AppProviders } from "@/providers";
 import "@/styles/index.css";
 
+const DESCRIPTION = `${BRAND.name} — ${BRAND.tagline}. Live price windows, one-tap calls, and settlement receipts you can click.`;
+
+/**
+ * Absolute preview URLs need an origin (L-23): `NEXT_PUBLIC_APP_ORIGIN` when the deploy sets it, else Vercel's own
+ * production host, else the env default. The `opengraph-image` / `twitter-image` routes fill `images` per segment.
+ */
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const METADATA_BASE = new URL(process.env.NEXT_PUBLIC_APP_ORIGIN || (vercelHost ? `https://${vercelHost}` : webEnv.appOrigin));
+
 export const metadata: Metadata = {
+  metadataBase: METADATA_BASE,
   title: { default: BRAND.name, template: `%s · ${BRAND.name}` },
-  description: `${BRAND.name} — ${BRAND.tagline}. Live price windows, one-tap calls, and settlement receipts you can click.`,
+  description: DESCRIPTION,
+  openGraph: { type: "website", siteName: BRAND.name, title: BRAND.name, description: DESCRIPTION, locale: "en_US" },
+  twitter: { card: "summary_large_image", title: BRAND.name, description: DESCRIPTION },
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: BRAND.name },
   other: { "mobile-web-app-capable": "yes" },
   // The installable web app: the manifest carries the identity, colours and icons (public/).
