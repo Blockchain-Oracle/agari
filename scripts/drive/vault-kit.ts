@@ -4,7 +4,7 @@
 import { writeFileSync } from "node:fs";
 import {
   configureMarkets, createSessionKeySession, createSubmitterSession, getVaultSnapshot, loadVaultDeployment, localCosigner, parseMarketsEnv,
-  readSeat, readTokenBalance, solana, type SessionKey, type SponsorCosigner, type WriteRpc,
+  readSeat, readTokenBalance, solana, syncClock, type SessionKey, type SponsorCosigner, type WriteRpc,
 } from "@agari/markets";
 import { keypairSigner } from "@agari/markets/deploy";
 import type { Address, MarketId, OnchainSnapshot } from "@agari/core";
@@ -22,6 +22,9 @@ export function vaultEnv(d: Drive) {
 
 export async function pointAtVault(d: Drive) {
   configureMarkets(vaultEnv(d));
+  // The provider's own clock backs every read that gates a write (status, exit quotes); on a time-travelled fork it
+  // has to follow the chain, exactly as the web syncs it at boot.
+  await syncClock();
   const deployment = await loadVaultDeployment();
   if (!deployment) throw new Error(`no VaultConfig for ${VAULT_PROGRAM_ID} on ${d.rpcUrl}`);
   return deployment;

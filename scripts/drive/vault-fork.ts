@@ -6,7 +6,7 @@
 
 import { spawn } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { chainReconcilerWith, generateSessionKey, indexEvidence, marketsProvider, recoverUnresolved, type SessionKey } from "@agari/markets";
+import { chainReconcilerWith, generateSessionKey, indexEvidence, marketsProvider, recoverUnresolved, syncClock, type SessionKey } from "@agari/markets";
 import { chainNowSec, initVault, KIND, keypairSigner, openWindow, ORDER_TYPE, placeOrder, recordAttestedPrint, recycleBooks, registerVaultSeat, settleWindow, DRIVE_ATTESTED_FEED, WHICH } from "@agari/markets/deploy";
 import { createOpsClient, fetchMarkets, sendOps } from "@agari/markets/ops";
 import { closeLedgerInstruction, isProgramSeat, planVaultCranks, readLedger, readVenueConfig, redeemForInstructions, sweepInstruction } from "@agari/markets/ops/settle";
@@ -31,7 +31,7 @@ function eventMarket(d: Drive, w: Awaited<ReturnType<typeof openWindow>>): Event
 
 async function travel(d: Drive, tSec: number) {
   if ((await chainNowSec(d.client)) < tSec) await timeTravel(d.rpcUrl, tSec);
-  await d.clock.sync();
+  await Promise.all([d.clock.sync(), syncClock()]);
 }
 
 async function attest(d: Drive, w: Awaited<ReturnType<typeof openWindow>>, which: number, boundaryTs: number, price: bigint) {
@@ -88,8 +88,10 @@ export async function vaultForkDrive(d: Drive, fixturesDir: string) {
   const market = eventMarket(d, w);
   const vaultSeat = (await readLedger(d.client, w.ledger))!.seats.find((s) => s.owner === deployment.seat);
   check(vaultSeat?.index === 0 && isProgramSeat(vaultSeat), `Window ${w.market}: seat 0 is the vault's PROGRAM seat`);
-  await placeOrder(d.ctx, w, maker.signer, maker.token as never, { kind: KIND.buyNo, priceTicks: 400, lots: 30_000n, orderType: ORDER_TYPE.normal });
-  await placeOrder(d.ctx, w, maker.signer, maker.token as never, { kind: KIND.buyYes, priceTicks: 350, lots: 30_000n, orderType: ORDER_TYPE.normal });
+  // The seed maker: an ask at 550 (Up pays 55¢) and a bid at 400 (Down pays 60¢). Both sides must stay under the
+  // grant's 95¢ price cap once `quote_stake` pads the protective limit by the 5-minute cost-cap buffer (5,661 bps).
+  await placeOrder(d.ctx, w, maker.signer, maker.token as never, { kind: KIND.buyNo, priceTicks: 550, lots: 30_000n, orderType: ORDER_TYPE.normal });
+  await placeOrder(d.ctx, w, maker.signer, maker.token as never, { kind: KIND.buyYes, priceTicks: 400, lots: 30_000n, orderType: ORDER_TYPE.normal });
 
   // B. Three taps: signer = session key, fee payer = sponsor, zero owner signatures; the key's SOL never moves.
   console.log("B. three sponsored session-key taps");
@@ -118,8 +120,8 @@ export async function vaultForkDrive(d: Drive, fixturesDir: string) {
   // C. A tap over the per-trade cap is refused before any simulation, send or co-sign request.
   console.log("C. cap refusal");
   const before = { ...counted.counts, cosign: sponsor.calls() };
-  const refused = await tap("C", "up", 6n * TUSDC);
-  check(refused.status === "refused" && refused.diagnosis.errorName === "OverStakeCap", `C refused ${refused.status === "refused" ? `${refused.diagnosis.kind} ${refused.diagnosis.errorName}` : refused.status}`);
+  const refused = await tap("C", "up", 9n * TUSDC);
+  check(refused.status === "refused" && refused.diagnosis.errorName === "OverStakeCap", `C refused ${refused.status === "refused" ? `${refused.diagnosis.kind} ${refused.diagnosis.errorName}: ${refused.diagnosis.technical}` : refused.status}`);
   check(counted.counts.simulate === before.simulate && counted.counts.send === before.send && sponsor.calls() === before.cosign, "C no simulation, no transaction, no co-sign request");
   results.capRefusal = { diagnosis: refused.status === "refused" ? refused.diagnosis : null };
 
@@ -127,7 +129,7 @@ export async function vaultForkDrive(d: Drive, fixturesDir: string) {
   console.log("D. vault cash-out (grant route)");
   const availableBefore = (await vaultState(owner.address)).available;
   const exitD = await marketsProvider.freshExitQuote(market, "up", held.upRaw / 2n);
-  check(exitD.ok && exitD.value !== null, "D exit quote");
+  check(exitD.ok && exitD.value !== null, `D exit quote (${exitD.ok ? `${exitD.value === null ? "no liquidity" : `${exitD.value.contractsRaw} raw for at least ${exitD.value.minProceedsBase}`}` : exitD.error.technical})`);
   const soldD = await keyed.submitter.submitCashOut({ market, side: "up", contractsRaw: exitD.value.contractsRaw, displayedExit: exitD.value, wallet: key.address, route: { kind: "vault-grant", grantId } }, phases("D"));
   check(soldD.status === "confirmed", `D confirmed (${why(soldD)})`);
   const gained = (await vaultState(owner.address)).available - availableBefore;
@@ -142,7 +144,7 @@ export async function vaultForkDrive(d: Drive, fixturesDir: string) {
   const bought = await wallet.submitter.submitOrder({ market, side: "up", stakeBase: 2n * TUSDC, displayedQuote: qe, wallet: owner.address as never }, phases("E buy"));
   check(bought.status === "confirmed", `E buy (${why(bought)})`);
   const exitE = await marketsProvider.freshExitQuote(market, "up", bought.booked.contractsRaw);
-  check(exitE.ok && exitE.value !== null, "E exit quote");
+  check(exitE.ok && exitE.value !== null, `E exit quote (${exitE.ok ? `${exitE.value === null ? "no liquidity" : `${exitE.value.contractsRaw} raw`}` : exitE.error.technical})`);
   const tokenE = (await walletHeld(w.ledger, d.mint, owner.address)).tokenBase;
   const soldE = await wallet.submitter.submitCashOut({ market, side: "up", contractsRaw: exitE.value.contractsRaw, displayedExit: exitE.value, wallet: owner.address as never }, phases("E sell"));
   check(soldE.status === "confirmed", `E sell (${why(soldE)})`);
