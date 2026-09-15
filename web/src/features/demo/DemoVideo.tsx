@@ -23,7 +23,9 @@ export function DemoVideo() {
   if (!demoVideoAvailable()) {
     return (
       <figure className="demo-video-figure">
-        <div className="demo-video" role="status" aria-describedby="demo-video-caption">
+        {/* `.demo-video-figure .demo-video` gives the player a block box on a fixed black ground. A notice is text, not
+            video, so it re-centres itself and lets the page ground through, keeping the ink legible in both themes. */}
+        <div className="demo-video" role="status" aria-describedby="demo-video-caption" style={{ display: "grid", placeItems: "center", background: "transparent" }}>
           <div style={{ display: "grid", gap: 10, padding: 24, textAlign: "center", justifyItems: "center" }}>
             <span className="demo-video-label" style={{ marginBottom: 0 }}>
               {DEMO.video.pendingEyebrow}
