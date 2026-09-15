@@ -13,7 +13,7 @@ import { CapsEditor } from "./CapsEditor";
 import { CAPS_DEFAULTS, termsFromForm, workedExample, type CapsForm } from "./caps";
 import { SESSION } from "./copy";
 import { SESSION_KEY_TOPUP_LAMPORTS } from "./fees";
-import { useSessionKey } from "./SessionKeyProvider";
+import { useSessionKey, useSponsorWhileOpen } from "./SessionKeyProvider";
 import styles from "./SessionDetails.module.css";
 
 interface ShellProps {
@@ -113,6 +113,7 @@ interface SessionModalProps {
  */
 export function SessionModal({ open, onOpenChange, symbol }: SessionModalProps) {
   const { view, actions, busy } = useSessionKey();
+  useSponsorWhileOpen(open);
   const [form, setForm] = useState<CapsForm>(CAPS_DEFAULTS);
   const [refusal, setRefusal] = useState<Diagnosis | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -121,7 +122,7 @@ export function SessionModal({ open, onOpenChange, symbol }: SessionModalProps) 
   const decimals = view.decimals;
   const terms = view.key ? termsFromForm(form, decimals, view.key.address, view.nowSec) : null;
   const example = workedExample(form, decimals, symbol);
-  const enabling = busy === "enabling" || busy === "topping-up";
+  const enabling = busy === "enabling";
   const depositShort = terms?.ok && walletBase !== null && walletBase < terms.amountBase;
   const close = () => onOpenChange(false);
 
@@ -145,7 +146,7 @@ export function SessionModal({ open, onOpenChange, symbol }: SessionModalProps) 
       {refusal && <ErrorState diagnosis={refusal} retry={() => setRefusal(null)} />}
       <Button size="lg" className="w-full" disabled={enabling || view.status === "loading" || !view.owner} onClick={() => void submit()}>
         {enabling && <Loader2 className="h-4 w-4 animate-spin" />}
-        {busy === "topping-up" ? SESSION.sheet.ctaTopUp : enabling ? SESSION.sheet.ctaBusy : SESSION.sheet.cta}
+        {enabling ? SESSION.sheet.ctaBusy : SESSION.sheet.cta}
       </Button>
     </>
   );
@@ -156,7 +157,8 @@ export function SessionModal({ open, onOpenChange, symbol }: SessionModalProps) 
         <div className="setup-line">
           <Sparkles aria-hidden />
           <p className="setup-text">
-            <strong>{SESSION.modal.lead}</strong> {view.sponsor?.configured ? SESSION.modal.sponsored : SESSION.modal.keyPays} {SESSION.modal.skip}
+            <strong>{SESSION.modal.lead}</strong> {view.sponsor && `${view.sponsor.configured ? SESSION.modal.sponsored : SESSION.modal.keyPays} `}
+            {SESSION.modal.skip}
           </p>
         </div>
       </div>

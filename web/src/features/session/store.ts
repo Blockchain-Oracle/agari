@@ -1,13 +1,18 @@
 "use client";
 
-import { isAddress, isBase58OfLength, type Address } from "@agari/core/types";
+import { isAddress, type Address } from "@agari/core/types";
+import type { SessionKey } from "@agari/markets";
 import { del, get, set } from "idb-keyval";
 
-/** One key per owner, kept in IndexedDB: it survives reloads, and clearing site data deletes it — by design. */
+/**
+ * One key per owner, kept in IndexedDB: it survives reloads, and clearing site data deletes it — by design.
+ * Record v2 (tap-trading.md §2, D-066) holds the non-extractable `CryptoKeyPair` itself: structured clone keeps
+ * `[[extractable]] = false`, so the secret never exists as bytes in the page.
+ */
 export interface StoredSessionKey {
+  v: 2;
   address: Address;
-  /** base58 of the 64-byte Solana secret key (seed ‖ public key), from `generateSessionKey`. */
-  secretKey: string;
+  keyPair: SessionKey["keyPair"];
   createdAtMs: number;
 }
 
@@ -17,10 +22,13 @@ const DEVICE_KEY = "agari.device";
 // Base58 is case-sensitive: the owner key is stored exactly as written (D-010).
 const keyFor = (owner: Address) => `${KEY_PREFIX}${owner}`;
 
-/** Anything that isn't a Solana session key (an old or corrupted record) reads as no key. */
+/** A v1 base58 record, an extractable key or anything corrupted reads as no key; the owner re-enables (devnet, no migration). */
 function isStoredSessionKey(value: unknown): value is StoredSessionKey {
   const v = value as Partial<StoredSessionKey> | null;
-  return !!v && isAddress(v.address) && isBase58OfLength(v.secretKey, 64) && typeof v.createdAtMs === "number";
+  if (!v || v.v !== 2 || !isAddress(v.address) || typeof v.createdAtMs !== "number") return false;
+  const pair = v.keyPair as { privateKey?: unknown; publicKey?: unknown } | undefined;
+  const privateKey = pair?.privateKey;
+  return typeof CryptoKey !== "undefined" && privateKey instanceof CryptoKey && pair?.publicKey instanceof CryptoKey && !privateKey.extractable;
 }
 
 export async function loadSessionKey(owner: Address): Promise<StoredSessionKey | null> {
