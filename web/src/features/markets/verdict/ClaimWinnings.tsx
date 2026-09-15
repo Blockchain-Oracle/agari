@@ -1,11 +1,10 @@
 "use client";
 
 import { isOk } from "@agari/core/schemas";
-import type { MarketId, Verdict } from "@agari/core/types";
+import type { MarketId, Verdict, VoidDetail } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
-import { useSubmitter } from "@agari/markets/react";
-import { invalidateAfterWrite, useClaimables } from "@agari/markets/react";
+import { invalidateAfterWrite, useClaimables, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, Loader2, Trophy } from "lucide-react";
 import { useState } from "react";
@@ -13,16 +12,20 @@ import { Hash } from "@/components/data";
 import { itemsFromRows } from "@/features/markets/claims/claim-run";
 import { redeemOne } from "@/features/markets/claims/useClaimAll";
 import { useRedemption } from "@/features/markets/claims/useRedemption";
+import { useVoidLine } from "@/features/markets/claims/void-line";
 import { useVenue } from "@/features/markets/useVenue";
 import { diagnosisCopy, VERDICT_UI } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
+import { VerdictStamp } from "./VerdictStamp";
 import "./claim-winnings.css";
 
 interface ClaimWinningsProps {
   verdict: Verdict;
   marketId: MarketId;
   symbol: string;
+  /** A void's reason, when the caller already holds it (`/dev` fixtures); omitted, a void reads its Window's result. */
+  voidDetail?: VoidDetail | null;
 }
 
 /**
@@ -34,8 +37,11 @@ interface ClaimWinningsProps {
  * Agari's venue works like the reference's keeper again: after a 300 s claim grace the settler's
  * `redeem_for` pays every seat (D-032), so this button hurries it. A Window paid that way says
  * "Paid automatically" with the payout transaction; one the wallet claimed says so with its own.
+ *
+ * A void is neither (Q-S6-7): the reference only branches on a loss, so a void wore the "You won" trophy. Here it takes
+ * the loss card's quiet anatomy with the void stamp, "Returned", Masayume's void line and the reason (spec §3.2).
  */
-export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps) {
+export function ClaimWinnings({ verdict, marketId, symbol, voidDetail }: ClaimWinningsProps) {
   const { address } = useWalletSession();
   const { venueId } = useVenue();
   const submitter = useSubmitter();
@@ -47,6 +53,8 @@ export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps)
 
   const rows = claimables && isOk(claimables) ? claimables.value.filter((row) => row.marketId === marketId) : [];
   const items = itemsFromRows(rows);
+  const isVoid = verdict.outcome === "void";
+  const voidLine = useVoidLine(marketId, isVoid, voidDetail);
   const won = verdict.outcome !== "loss" && verdict.payoutBase > 0n;
   // Only once the claimables have answered with nothing left for this Window is there a payout to trace.
   const settledOut = won && claimables !== null && isOk(claimables) && items.length === 0;
@@ -83,6 +91,58 @@ export function ClaimWinnings({ verdict, marketId, symbol }: ClaimWinningsProps)
     setClaiming(false);
     setClaimed(true);
   };
+
+  if (isVoid) {
+    return (
+      <div className="cw-loss cw-void">
+        <div className="cw-void-head">
+          <VerdictStamp outcome="void" size="compact" />
+          <div className="cw-void-figure">
+            <span className="cw-void-amount">{money(verdict.payoutBase)}</span>
+            <span className="cw-void-unit">{symbol}</span>
+            <div className="cw-loss-eyebrow">{VERDICT_UI.claim.returned}</div>
+          </div>
+        </div>
+        <p className="cw-loss-body">{VERDICT_UI.claim.voidLine}</p>
+        {voidLine && <p className="cw-void-reason">{voidLine}</p>}
+        <div className="cw-win-flow">
+          <span>
+            {VERDICT_UI.claim.stake} <span className="cw-num">{money(stake)}</span>
+          </span>
+          <ArrowRight className="h-3 w-3" />
+          <span>
+            {VERDICT_UI.claim.returned} <span className="cw-num">{money(verdict.payoutBase)}</span>
+          </span>
+        </div>
+        {error && <p className="cw-error">{error}</p>}
+        {collected ? (
+          <>
+            <div className="cw-paid cw-void-paid">
+              <Check className="h-4 w-4" /> {redemption?.byCrank ? VERDICT_UI.claim.paidAuto : VERDICT_UI.claim.paid}
+            </div>
+            {redemption && (
+              <p className="cw-foot">
+                {VERDICT_UI.claim.paidTx} <Hash value={redemption.txHash} href={txUrl(redemption.txHash, webEnv.markets.cluster)} />
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <button type="button" onClick={() => void collect()} disabled={claiming || !submitter} className="cw-collect cw-void-collect" data-cursor="hover">
+              {claiming ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> {VERDICT_UI.claim.collecting}
+                </>
+              ) : (
+                VERDICT_UI.claim.collect
+              )}
+            </button>
+            <p className="cw-foot">{VERDICT_UI.claim.voidFoot}</p>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="cw-win">

@@ -38,6 +38,10 @@ export const VERDICT_UI = {
     paidAuto: "Paid automatically",
     paidTx: "payout tx",
     foot: "Collect it with one signature now, or the venue pays it to your wallet automatically a few minutes after settlement.",
+    /** Q-S6-7: a void is not "You won" — the reference's trophy branch is only a loss's opposite (M `ClaimWinnings.tsx:50-57`). */
+    voidLine: "Void — no reliable print, both sides pay 0.5",
+    returned: "Returned",
+    voidFoot: "Collect the returned 0.5 per contract with one signature now, or the venue pays it to your wallet a few minutes after settlement.",
   },
   devTitle: "Verdict moment",
   devEyebrow: "?m=<marketId> stamps a live window for the connected wallet",
@@ -68,6 +72,12 @@ export const CLAIM = {
     "vault-credit": "Vault credit — withdrawal",
   },
   leg: { up: "UP leg", down: "DOWN leg" },
+  /** The reason line under a void (session-lanes.md §3.2); ET wall clocks with seconds. */
+  voidReason: {
+    missing: (source: string | null, at: string, deadline: string | null) =>
+      `No signed ${source ? `${source} ` : ""}price at ${at} ET was recorded${deadline ? ` by ${deadline} ET` : " in time"}.`,
+    divergence: (at: string) => `Pyth and RedStone differed by more than 0.25% at ${at} ET.`,
+  },
   status: {
     pending: "waiting",
     claiming: "claiming…",
