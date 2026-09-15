@@ -66,6 +66,7 @@ version = "0.1.0"
 dependencies = [
  "agari-common",
  "agari-events",
+ "agari-vault",
  "anchor-lang",
  "anchor-spl",
  "base64 0.22.1",
@@ -73,6 +74,7 @@ dependencies = [
  "k256",
  "litesvm",
  "pyth-solana-receiver-sdk",
+ "serde_json",
  "sha3",
  "solana-account",
  "solana-clock",
@@ -82,6 +84,17 @@ dependencies = [
  "solana-signer",
  "solana-transaction",
  "solana-transaction-error",
+]
+
+[[package]]
+name = "agari-vault"
+version = "0.1.0"
+dependencies = [
+ "agari-common",
+ "agari-events",
+ "anchor-lang",
+ "anchor-spl",
+ "bytemuck",
 ]
 
 [[package]]

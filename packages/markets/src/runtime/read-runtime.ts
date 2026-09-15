@@ -26,6 +26,8 @@ export interface ReadClient {
   eventsProgramId: Address | null;
   /** The configured venue id override (`NEXT_PUBLIC_AGARI_VENUE_ID`); it must equal the derived config PDA. */
   venueId: Address | null;
+  /** The agari-vault program id (`NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID`); null = no vault on this cluster (S7). */
+  vaultProgramId: Address | null;
   /** `/api/index` base (absolute); null = no indexer, lists read `indexer-down`. */
   indexerUrl: string | null;
   /** The ops HTTP base serving `/prices/latest` and `/prices/stream`; null = no spot. */
@@ -34,6 +36,15 @@ export interface ReadClient {
 
 let client: ReadClient | null = null;
 let version = 0;
+/** What `loadVaultDeployment` last learned about one vault program id on these endpoints; dropped with the runtime. */
+let vaultProbe: VaultProbe | null = null;
+
+export interface VaultProbe {
+  programId: Address;
+  /** Null = the program's `VaultConfig` account does not exist: not deployed. */
+  deployment: VaultDeployment | null;
+  checkedAtMs: number;
+}
 const listeners = new Set<() => void>();
 const teardowns = new Set<() => void>();
 
@@ -45,10 +56,12 @@ export function configureMarkets(env: MarketsEnv): void {
     rpcWsUrl: env.rpcWsUrls[0] ?? null,
     eventsProgramId: env.eventsProgramId ?? null,
     venueId: env.venueId ?? null,
+    vaultProgramId: env.vaultProgramId ?? null,
     indexerUrl: env.indexerUrl ?? null,
     priceFeedUrl: env.priceFeedUrl ?? null,
   };
   version += 1;
+  vaultProbe = null;
   mark("runtime.configured");
   for (const listener of listeners) listener();
 }
@@ -86,14 +99,25 @@ export function onRuntimeClose(teardown: () => void): () => void {
 
 export async function closeRuntime(): Promise<void> {
   client = null;
+  vaultProbe = null;
   for (const teardown of [...teardowns]) teardown();
 }
 
 /**
  * Product deployments on the configured cluster. Every product read branches on these, and each is null until its
- * program is deployed (vault S7, maker S8, strategies S9, parlay/range/leverage/private S10, arena S12).
+ * program is deployed (vault S7: once a read has found its `VaultConfig`, `vault/deployment.ts`; maker S8, strategies S9, parlay/range/leverage/private S10, arena S12).
  */
-export const getVaultDeployment = (): VaultDeployment | null => null;
+export const getVaultDeployment = (): VaultDeployment | null =>
+  client?.vaultProgramId && vaultProbe?.programId === client.vaultProgramId ? vaultProbe.deployment : null;
+
+/** The vault probe's slot (`vault/deployment.ts` writes it), kept here so every reader sees one answer per runtime. */
+export function peekVaultProbe(): VaultProbe | null {
+  return vaultProbe;
+}
+
+export function recordVaultProbe(probe: VaultProbe): void {
+  vaultProbe = probe;
+}
 export const getParlayDeployment = (): ParlayDeployment | null => null;
 export const getRangeDeployment = (): RangeDeployment | null => null;
 export const getMakerDeployment = (): MakerDeployment | null => null;

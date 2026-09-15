@@ -48,8 +48,22 @@ path = "events_gap.rs"
 name = "events_halt_void"
 path = "events_halt_void.rs"
 
+# S7a: agari-vault suites (vault.md §10).
+[[test]]
+name = "vault_caps"
+path = "vault_caps.rs"
+
+[[test]]
+name = "vault_funding"
+path = "vault_funding.rs"
+
+[[test]]
+name = "vault_trading"
+path = "vault_trading.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
+agari-vault = { path = "../programs/agari-vault", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
 anchor-lang = "=1.2.0"
 anchor-spl = "=1.2.0"
@@ -68,3 +82,5 @@ base64 = "0.22"
 k256 = { version = "0.13.4", features = ["ecdsa"] }
 pyth-solana-receiver-sdk = "=2.0.0"
 sha3 = "0.10"
+# S7a: the caps vectors are read from packages/core/src/vault/caps.vectors.json.
+serde_json = "1"

@@ -20,3 +20,8 @@ pub mod prints;
 
 // S2.12–S2.13: redeem and closure.
 pub mod settlement;
+
+// S7a: agari-vault world, builders and invariants.
+pub mod vault;
+pub mod vault_ix;
+pub mod vault_trade;

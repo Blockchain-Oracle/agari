@@ -16,11 +16,12 @@ interface CapabilityReceiptProps {
   topUpLamports: bigint;
 }
 
-/** The capability receipt (UX-DR7): what the signature grants, what it can never do, who pays, and how many taps it takes. */
-/** SPL deposits need no token approval, so arming is always one signature for the deposit and grant (D-012). */
+/**
+ * The capability receipt (UX-DR7): what the signature grants, what it can never do, who pays, and how many taps it takes.
+ * SPL deposits need no token approval and the key's SOL rides the same transaction, so arming is always one signature (D-065).
+ */
 export function CapabilityReceipt({ keyAddress, expiresAtSec, sponsorConfigured, topUpLamports }: CapabilityReceiptProps) {
   const r = SESSION.sheet.receipt;
-  const base = r.sigsOne;
   const gasText = sponsorConfigured ? r.gasSponsor : r.gasKey(formatBaseUnits(topUpLamports, SOL_DECIMALS, { maxDp: 3, minDp: 0 }));
   return (
     <div className={styles.receipt}>
@@ -33,7 +34,7 @@ export function CapabilityReceipt({ keyAddress, expiresAtSec, sponsorConfigured,
           <UtcTime ms={expiresAtSec * 1000} withDate withSeconds={false} />
         </SessionDetail>
         <SessionDetail label={r.gas}>{gasText}</SessionDetail>
-        <SessionDetail label={r.signatures}>{sponsorConfigured ? base : r.sigsTopUp(base)}</SessionDetail>
+        <SessionDetail label={r.signatures}>{sponsorConfigured ? r.sigsOne : r.sigsWithTopUp}</SessionDetail>
       </dl>
     </div>
   );

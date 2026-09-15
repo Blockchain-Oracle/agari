@@ -2,14 +2,15 @@
 
 import type { Address } from "@agari/core/types";
 import type { VaultDeployment } from "@agari/core/vault";
-import { createLocalStorageJournal, createSubmitterSession, nowMs, parseSecretKey, type SubmitterSession } from "@agari/markets";
+import { createLocalStorageJournal, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
 import { useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
+import type { StoredSessionKey } from "./store";
 
 interface KeySessionInput {
   armed: boolean;
-  /** base58 of the key's 64-byte secret key. */
-  secretKey: string | null;
+  /** This browser's key for the owner: the non-extractable pair from IndexedDB (record v2). */
+  sessionKey: StoredSessionKey | null;
   deployment: VaultDeployment | null;
   sponsorConfigured: boolean;
 }
@@ -32,33 +33,28 @@ function serialised(session: SubmitterSession): SubmitterSession {
       ...submitter,
       submitOrder: (request, onPhase) => withKeyLock(session.address, () => submitter.submitOrder(request, onPhase)),
       submitTx: (intent, onPhase) => withKeyLock(session.address, () => submitter.submitTx(intent, onPhase)),
+      submitCashOut: (request, onPhase) => withKeyLock(session.address, () => submitter.submitCashOut(request, onPhase)),
     },
   };
 }
 
 /**
  * The key's own signing session, alive only while the grant is live and this browser holds the key. A change to any
- * of those disposes it; nothing is rebound in place. The fee-payer co-sign that lets a sponsor pay the key's fees is
- * the vault stage's (S7); until then the key pays its own, so there is never a sponsor refusal to report.
+ * of those disposes it; nothing is rebound in place. The fee-payer co-sign transport (`/api/sponsor`) joins the
+ * session when lane 7b's adapter accepts one; until then the key pays its own fee, so there is no refusal to report.
  */
-export function useKeySession({ armed, secretKey, deployment }: KeySessionInput): { session: SubmitterSession | null; sponsorRefusal: () => string | null } {
+export function useKeySession({ armed, sessionKey, deployment }: KeySessionInput): { session: SubmitterSession | null; sponsorRefusal: () => string | null } {
   const [session, setSession] = useState<SubmitterSession | null>(null);
 
   useEffect(() => {
-    if (!armed || !secretKey || !deployment) {
+    if (!armed || !sessionKey || !deployment) {
       setSession(null);
       return;
     }
     let cancelled = false;
     let created: SubmitterSession | null = null;
-    let bytes: Uint8Array;
-    try {
-      bytes = parseSecretKey(secretKey);
-    } catch {
-      setSession(null);
-      return;
-    }
-    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { secretKey: bytes }, journal: createLocalStorageJournal(nowMs), nowMs })
+    // The non-extractable pair signs through Kit's createSignerFromKeyPair inside markets (D-066).
+    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { keyPair: sessionKey.keyPair }, journal: createLocalStorageJournal(nowMs), nowMs })
       .then((next) => {
         created = next;
         if (cancelled) return next.dispose();
@@ -73,7 +69,7 @@ export function useKeySession({ armed, secretKey, deployment }: KeySessionInput)
       setSession(null);
       void created?.dispose();
     };
-  }, [armed, secretKey, deployment]);
+  }, [armed, sessionKey, deployment]);
 
   return { session, sponsorRefusal: noRefusal };
 }

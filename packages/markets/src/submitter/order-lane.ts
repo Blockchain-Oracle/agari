@@ -4,7 +4,7 @@ import { diagnosis, type Diagnosis } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { diagnose } from "../errors/error-map";
 import { readSeat } from "../runtime/accounts";
-import { notDeployed } from "../stub/not-deployed";
+import { submitVaultOrder } from "../vault/order";
 import { ENGINE_CODE, failureDiagnosis } from "./chain-failure";
 import { OrderRefusedError, RequoteError, SimulationFailedError } from "./errors";
 import { assertFunded } from "./funding";
@@ -60,7 +60,7 @@ async function buildWithSeatRetry(ctx: OrderLaneContext, input: OrderBuildInput)
  * sign → send → confirm → book from `OrderExecuted`. A send with no answer is journaled unknown and never retried.
  */
 export async function submitOrder(ctx: OrderLaneContext, req: OrderRequest, onPhase?: PhaseListener): Promise<OrderOutcome> {
-  if (req.route && req.route.kind !== "wallet") return refused(notDeployed("vault order routes arrive with the EventVault (S7)"));
+  if (req.route && req.route.kind !== "wallet") return submitVaultOrder(ctx, req, req.route, onPhase);
   const { wallet } = ctx;
   const { market, side, stakeBase, displayedQuote } = req;
   let reservationId: string | null = null;

@@ -34,7 +34,10 @@ function runFileRule(rule) {
 }
 
 async function runRule(rule) {
-  if (rule.check) return { findings: await rule.check(rule, { root }) };
+  if (rule.check) {
+    const outcome = await rule.check(rule, { root });
+    return Array.isArray(outcome) ? { findings: outcome } : outcome;
+  }
   if (rule.file) return runFileRule(rule);
   return { findings: runPatternRule(rule) };
 }

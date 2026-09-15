@@ -761,6 +761,113 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Pre-deadline gate:** full gate (`pnpm typecheck && pnpm invariants`, `pnpm build`, `NO_DNA=1 anchor build --arch v0`, clean codegen diff); the Gap LiteSVM real-weekend replay and lock race, the Surfpool Gap drive, Gap Series registered and the 09-18 Windows listed, the overnight devnet drive if Q-S6-3 stands; halt/void LiteSVM voids naming their reason; the Switchboard refusals (LiteSVM, then Surfpool on the upgraded `.so`); the program upgraded on devnet and ≥ 1 settled token Window per xStock on a weekday; every spec §5 state fixture-proven and browser-checked; the hedge reading a real mainnet holder and placing one devnet hedge.
 - **User-visible:** the submission claims only what devnet shows before Fri 20:00Z.
 - **Approval:** stage owner (a factual correction of the calendar, not a scope change).
+### D-061 — The S7 contract and lanes; S7 starts before the S4 gate
+- **Date / owner:** 2026-09-15 · S7 owner (foundation)
+- **Evidence:**
+  - `docs/plan/specs/vault.md` and `docs/plan/specs/tap-trading.md`: the spec architect's pass over Masayume `68f7a09` (`EventVault`, `VenueGateway`, `VaultTally`, the funding/trading/caps tests, `packages/markets/src/vault`, `web/src/features/{vault,session}`), the S4 head `c5ddb60` stubs and the web consumers, with file:line citations.
+  - Plan §7.2 S7's precondition is S4. S4's code is merged (every lane box ticked). Its open items are the devnet drive, the browser pass and the tag, which need NYSE hours and a funded wallet, and no S7 file touches them.
+  - The web already mirrors Masayume's vault and session surfaces file for file (tap-trading.md §4), and core `simulateCaps` plus its vectors are ported.
+- **Rule:**
+  - **Contract:** vault.md (program) and tap-trading.md (adapter, session key, sponsor, web, lanes) are frozen at this foundation. A change needs a D-entry; an IDL change after the 7a.1 freeze also needs a re-codegen before 7b continues.
+  - **Branching:** `stage/S7-trading-balance` is cut from `stage/S4-first-call` @ `c5ddb60`. Nothing merges to `main` before the S1–S4 gates.
+  - **Lanes:** 7a program (`slice/S7a-vault-program`, Surfpool 8980/8981), 7b adapter (`slice/S7b-vault-adapter`, Surfpool 8990/8991, DB `agari_s7b`), 7c web (`slice/S7c-vault-web`, web 3007). Merge order: foundation → 7a.1 → codegen → (7b ∥ 7c) → 7a → 7b → 7c. File ownership per tap-trading.md §6; the stage owner alone edits manifests, the lockfile, core ports and `vault/types.ts`, markets `env`/`index`, web providers and env, `services/ops`, invariants, deploy scripts, `Anchor.toml`/`Cargo.toml`, keypairs, deploys and `docs/plan`.
+- **User-visible:** none yet.
+- **Approval:** within plan r2 S7; the pre-gate start was directed by the session lead and keeps `main` untouched.
+
+### D-062 — agari-vault account model: Masayume → Solana deltas
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; vault.md §1–3, spec Q-S7-3)
+- **Evidence:** vault.md §1 table (each row cites `EventVault.sol`/`VenueGateway.sol`/`VaultTally.sol`); plan §3.2's vault row (`00-plan.md:367`); `events-engine.md` §4.3 (IOC with `withdraw_proceeds` leaves no seat credit) and §6 (PROGRAM seats); `events-instructions.md` §5.5 check 5 (a Ledger with a non-drained PROGRAM seat can't close).
+- **Rule (amends plan §3.2's vault row):**
+  - **Custody:** per owner, an SPL token account `["custody", owner]` owned by the `["seat"]` PDA, instead of 8 USDC shards. No shared write lock across owners; a bug is bounded to one owner.
+  - **Positions:** 16 inline `PositionSlot`s in `VaultAccount ["acct", owner]` (1,160 B, ≈ 0.00654 SOL rent), instead of `VaultPosition` PDAs and `VaultWindow`. The tap path has no `init`, so the sponsor never pays rent. **Q-S7-3 answered: 16 slots** (32 would cost ≈ 0.0117 SOL); the settler cranks within ≈ 5 min of settle, so 16 open Windows per owner is the ceiling.
+  - **Grants:** `Grant ["grant", grant_id u64 LE]` with a global `VaultConfig.next_grant_id` and `VaultAccount.active_grants[3]` (index = kind), instead of `["grant", owner, kind]` plus a nonce. The port routes by `grantId` alone; the owner comes from the Grant. Kinds are SESSION, EXECUTOR, STRATEGY (GAME_SESSION and CLAIM_ONLY are dropped; nothing in Masayume consumes them).
+  - **Not on chain:** `VaultTally` (the indexer derives tallies from `Executed`/`Settled`, D-068); `sweep` (IOC + `withdraw_proceeds` keeps the seat's credit at 0, so `vault-sweep` refuses); `creditFor`/`creditPrivateFor` (no Masayume caller). The private bucket is built.
+  - **No `product_add_dependent`** (amends plan §3.2's PD-7 line for the vault): a vault position lives in the PROGRAM seat, which already keeps the Ledger, Market and result alive until every slot is cranked. The vault never reads `MarketResult`.
+  - **Settle delta:** a slot sold down to 0 still settles (pays 0, releases its grant counters). Masayume reverts `NothingToSettle` there and leaks `openPositions`; buys count exactly as Masayume, so every caps vector is unchanged.
+- **User-visible:** a first-time Trading Balance costs ≈ 0.008 SOL of rent (+ ≈ 0.0015 SOL per grant), paid once by the owner; at most 16 Windows held through the vault at a time.
+- **Approval:** stage owner on the spec defaults.
+
+### D-063 — `program_authorities` fixed index table and `set-authorities`
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; vault.md §5.1, spec Q-S7-2)
+- **Evidence:** `admin_set_authorities` replaces every field (`events-instructions.md:33-39`); `roller_open_window` pre-allocates PROGRAM seats from `program_authorities` (`roller_open_window.rs:169-174`); `venue-spec.ts:100` sets `pad([], 8)` and `ensure-config.ts:74` throws on any drift; S6 (Switchboard queue) and S8 (maker) also need the instruction.
+- **Rule:**
+  - **Q-S7-2 answered: a fixed table.** Index 0 agari-vault · 1 agari-maker · 2 agari-leverage · 3 agari-private · 4 agari-arena · 5–7 reserved. The entry is each program's `["seat"]` PDA. Programs still find their index at runtime, so a table change never needs a product upgrade.
+  - **`scripts/deploy/set-authorities.ts`** (new, ensure-style, D-026 client): reads `GlobalConfig`, rebuilds `SetAuthoritiesArgs` from every current field, sets only its own index, passes `treasury = config.treasury`, signs as `deployer` (= `config.admin`), skips when identical, and refuses when the index holds a different non-zero key.
+  - `venue-spec.ts:100` carries the table, so `ensureConfig` stops calling it drift.
+  - **One writer at a time:** the S6, S7 and S8 stage owners serialize their runs; each run re-sends every field.
+  - **Existing Windows:** Windows listed before registration keep whatever holds seat 0, so the vault refuses them with `WindowPredatesVault` (7207) and the UI says "Trading Balance opens with the next Window". Full coverage arrives after each Series rolls once (≤ 60 min).
+- **User-visible:** for up to an hour after the vault registers, some Windows accept wallet orders only.
+- **Approval:** stage owner on the spec default.
+
+### D-064 — Vault error range 7000–7299 and the engine CPI client
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; vault.md §5–6)
+- **Evidence:** engine errors occupy 6000–6307; a CPI failure surfaces as `Custom(code)` at the *vault* instruction's index, so overlapping ranges would force log parsing. Anchor 1.2's `declare_program!` reads `idls/<name>.json` from the nearest ancestor `idls/` directory and generates `cpi`, `accounts` (zero-copy types implementing `ZeroCopy`/`Owner`), `program`, `errors` and `events` (Context7 + `anchor-attribute-program` 1.2.0 source, stage-07 Findings). The path dependency with `features = ["cpi"]` shares the engine's state types with `load_checked`.
+- **Rule:**
+  - **Errors:** `#[error_code]` with explicit discriminants from 1000, so codes are 7000–7299: 7000 funding, 7100 grants/caps, 7200 trading/settle (vault.md §6 table). The adapter maps kinds per Masayume's `vault/errors.ts` (Insufficient → `insufficient-collateral`, 71xx → `grant-refused`, 7201/7207 → `market-not-trading`, 7202 → `not-settled`, 7203 → `already-claimed`, 7208 → `contract-revert`).
+  - **CPI client:** (a) `agari-events = { path, features = ["cpi"] }` by default; (b) `declare_program!(agari_events)` over the checked-in IDL if (a)'s binary exceeds 600 KB. **7a supplies the evidence:** the v0 `.so` size of both options, recorded in vault.md §9 and the stage Findings. Option (b) needs an `idls/agari_events.json` beside the vault crate's ancestors (a copy of `packages/clients/agari-events/idl.json`, refreshed by `pnpm codegen`).
+  - **Signing:** `CpiContext::new(events_program.key(), …).with_signer(&[&[b"seat", &[seat_bump]]])`; return data is read right after the CPI and its program id checked. No vault write happens before a CPI returns; loaders are dropped first.
+  - **Outcome (2026-09-15, 7a ebf9259):** (a) is 516,904 B, (b) 513,056 B (22/22 vault tests, CU within 0.6%). **Keep (a)**: under 600 KB, and (b) saves 3.8 KB for a hand-kept Seat mirror. The default release profile stays; `opt-level = "z"` (427,904 B, −0.45 SOL rent, +8–12% CU) is not applied because CU headroom matters more to the sponsored fill than a one-time refundable deposit. S7 SOL budget ≈ 6 SOL.
+- **User-visible:** none.
+- **Approval:** within plan r2 S7.
+
+### D-065 — Sponsor fee-payer co-sign policy (moved here from S4)
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; tap-trading.md §3, spec Q-S7-1)
+- **Evidence:** plan §3.2 fees and gas (`00-plan.md:376-385`); D-023 (no Privy sponsorship; external wallets and session keys use `api/sponsor`); Masayume `SPONSORABLE_FUNCTIONS` (`M:packages/markets/src/vault/sponsor.ts:25-27`) and its per-signer/per-device gates (`M:F/session/sponsor.server.ts:21-23`); Kit 8.3 `partiallySignTransactionMessageWithSigners` accepts a plain-address fee payer and leaves its signature slot empty (stage-07 Findings). Q-S7-1: a fresh wallet at the D-012 0.02 SOL top-up enabling tap trading **without** a sponsor needs ≈ 0.0197 SOL.
+- **Rule:**
+  - **Flow:** the client builds a v0 message with fee payer = the sponsor from `GET /api/sponsor`, signs partially as the key (or owner), and posts `{ transaction, lastValidBlockHeight }` with `x-agari-device`. The server checks the policy, signs as fee payer only, stores a `sponsor_cosigns` row and returns `{ signature, transaction, instruction }`. **The server never sends**; the client journals `markSent` and sends on the S4 lane.
+  - **Policy, in order** (pure `packages/markets/src/sponsor/policy.ts`, server subpath `@agari/markets/sponsor`): v0 with no address-table lookups (400); key 0 = sponsor with an empty slot (403); ≤ 2 signatures and the other one verifies (403); ≤ 3 instructions, ComputeBudget only within `SPONSOR_MAX_COMPUTE_UNITS` (≤ 400,000) and `SPONSOR_MAX_MICRO_LAMPORTS` (0 on devnet), exactly one agari-vault instruction in {`actor_place_for`, `public_crank_settle`, `owner_withdraw`, `owner_withdraw_private`, `owner_revoke`} and no other program (403); the sponsor in no instruction's account list (403); blockhash valid with ≥ 20 blocks left (409); `getFeeForMessage` ≤ `SPONSOR_MAX_FEE_LAMPORTS` 10,000 (403); simulation clean, units within the limit, sponsor delta ≤ fee (409); gates signer 30/h, device 60/h, device 5,000,000 and global 500,000,000 lamports/day, breaker below 200,000,000; an empty device id refuses (429/503).
+  - **Keys:** `SPONSOR_PRIVATE_KEY`, else the `sponsor` role file (`AGARI_KEYS_DIR`), as D-034; `SPONSOR_RPC_URL` defaults to public devnet. Deposits and grants are never sponsored.
+  - **Fallback:** a refusal returns null plus the reason; owner intents pay their own fee; a key tap is paid by the key when it holds `FEE_RESERVE_LAMPORTS`, else the ticket signs from the wallet.
+  - **Q-S7-1 answered: the sponsor is on by default and the SOL faucet target stays 0.02** (D-012). The unsponsored enable folds the key's top-up (`SESSION_KEY_TOPUP_LAMPORTS`, 10,000,000) into the same one-signature transaction; the faucet target is raised to 0.05 only if the sponsor stays off.
+  - **P-11:** `useSponsorStatus` fetches only while the enable or manage sheet is open or a key is armed.
+  - The games route (S12) shares the `sponsor` role, not this policy.
+- **User-visible:** tap trading needs no SOL in the key; three taps show zero wallet popups. When the sponsor refuses, the key pays (or the wallet signs) and the app says why.
+- **Approval:** stage owner on the spec defaults, following the user's D-023.
+
+### D-066 — The session key is a non-extractable CryptoKeyPair
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; tap-trading.md §2)
+- **Evidence:** `@solana/keys` 8.3.0 `generateKeyPair(extractable = false)` calls `crypto.subtle.generateKey("Ed25519", extractable, ["sign","verify"])`; `createSignerFromKeyPair(keyPair)` signs with it. WebCrypto marks `CryptoKey` `[Serializable]` and structured clone keeps `[[extractable]]`, so IndexedDB (`idb-keyval` `set`) stores the key without exposing it. Ed25519 WebCrypto ships in Chrome 137, Firefox 129 and Safari 17; Safari's Ed25519 signatures are randomized (valid, but a re-sign changes the txid, which D-033's "never re-sign" already covers). The S1 web keygen exported PKCS#8 bytes (`web/src/features/session/keygen.ts:18-27`), and web may not import `@solana/kit`.
+- **Rule:**
+  - `@agari/markets` exports `generateSessionKey(): Promise<{ address, keyPair }>` (`sessions/session-key.ts`, added at this foundation; the signature is frozen). A `SessionSigner` variant `{ keyPair }` joins `{ wallet } | { secretKey }` (7b).
+  - **Storage:** IndexedDB key `agari.sessionKey.<owner>`, record v2 `{ v: 2, address, keyPair, createdAtMs }`. v1 base58 records read as "no key" and the owner re-enables (devnet only, no migration). No IndexedDB → `STORAGE_UNAVAILABLE`.
+  - **Invariant `session-key-non-extractable`:** `packages/markets/src/sessions/**` and `web/src/features/session/**` may not contain `exportKey(`, `extractable: true` or `generateKeyPair(true)`. It is `optional` only while the S1 keygen still exports its key (that one file is waived; every other file is held now); 7c's v2 store removes the waiver, and the S7 gate needs the rule to run, not skip.
+- **User-visible:** the tap-trading key can't be copied out of the browser; clearing site data or forgetting the key ends tap trading on that device until re-enabled.
+- **Approval:** within plan r2 S7.
+
+### D-067 — Cash-out ports (L-35)
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; tap-trading.md §1.4, §5)
+- **Evidence:** Masayume never built a sell (`M:F/how-it-works/content.ts:201-202`), and Q-001 says build Masayume's unfinished items; plan `00-plan.md:1001` ("no exit liquidity" when closed); core `exitWalk` (`core/market/book-math.ts:118`); `events-engine.md` §9 (outcome terms, `quote_stake` padding).
+- **Rule (additive ports):**
+  - **Core type** `ExitQuote { contractsRaw, limitPriceRaw (YES terms), expectedProceedsBase, minProceedsBase, avgPriceBps }`.
+  - **Read port** `MarketsProvider.freshExitQuote(target: QuoteTarget, side, contractsRaw): Promise<Reading<ExitQuote | null>>`, null when nothing would fill.
+  - **Write port** `CashOutRequest { market, side, contractsRaw, displayedExit, wallet, route? }`; `Submitter.submitCashOut(request, onPhase?): Promise<CashOutOutcome>`, where `CashOutOutcome` is `OrderOutcome` with the requote variant carrying `exit: ExitQuote`; `BookedOrder.proceedsBase?` (a sell books `costBase: 0`).
+  - **Semantics (7b):** Up sells `SELL_YES` into bids, Down sells `SELL_NO` into asks inverted; `lots = min(held, filled)`; the own-terms limit is the last level reached minus `max(⌊p × 300 / 10,000⌋, 10)` ticks, floored at 1; `minProceedsBase = lots × limit_own × cu`. `filled == 0` → `no-liquidity` "No exit liquidity right now"; not Trading → `market-not-trading` "No exit liquidity: this Window has locked, it pays at settlement". Routes: wallet `user_place_order` (IOC, own seat, `use_credit false`, `withdraw_proceeds true`); `vault` `owner_place(is_buy false)`; `vault-grant` `actor_place_for(is_buy false)`, sponsorable. A fresh `minProceeds` below the displayed one → requote.
+  - Also additive: `vault-deposit-and-grant.keyTopUpLamports?` (D-065).
+  - Until 7b, `freshExitQuote` answers not-deployed and `submitCashOut` refuses not-deployed before anything is journaled (D-015).
+- **User-visible:** an open bet shows "Cash out" before lock; it sells back to the book or says there is no exit liquidity.
+- **Approval:** within plan r2 S7 (Q-001).
+
+### D-068 — The settler cranks the vault seat; the indexer decodes vault events
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; vault.md §1, §5.1 step 5; tap-trading.md §1.1)
+- **Evidence:** `venue-ops.md` §7:110 "a PROGRAM seat not drained → wait"; a vault slot drains only through `public_crank_settle` (vault.md §3.5), so without a crank a vault-touched Ledger never closes and its rent never returns; D-032's 300 s grace; Masayume's tallies came from `VaultTally` storage only because Somnia had no log history (`VaultTally.sol:7-10`).
+- **Rule (amends venue-ops.md §7):**
+  - **Settler:** after `resolved_ts + SETTLER_REDEEM_GRACE_SEC`, it sends `public_crank_settle` (its own role key as fee payer) for every owner with an unsettled slot on the Market, then closes the Ledger as today. Owners come from the index (`planVaultCranks(market)`, `ops/settle/vault-crank.ts`, 7b); the stage owner wires it into the settler.
+  - **Indexer:** agari-vault joins the `logsNotifications` program set (`venue-ops.md:140`). `ops/indexer/vault-decode.ts` decodes the vault's `emit_cpi` events into `idx_vault_fills` / `idx_vault_settlements` (`packages/db/src/idx/vault.ts`), with the tally query and the unsettled-slots-by-market query.
+  - **Read route:** `GET /api/index/wallet/:w/vault-tallies` feeds `listVaultTallies` (Masayume `VaultTally` fields).
+- **User-visible:** a settled Window's Trading Balance credit arrives within ≈ 5 minutes even if nobody presses Settle; Trading Balance history shows per-Window results.
+- **Approval:** within plan r2 S7.
+
+### D-069 — `VaultDeployment` reshape, the vault program id, and the sponsored-fill gate row
+- **Date / owner:** 2026-09-15 · S7 owner (foundation; tap-trading.md §1.1, §5)
+- **Evidence:** Masayume's `VaultDeployment.forwarder` was the ERC-2771 forwarder, which Solana has no use for; the adapter needs the seat and config PDAs on every read; D-023 and D-035 moved "sponsored fill (fee payer = sponsor)" out of S4.
+- **Rule:**
+  - **Type:** `VaultDeployment { chainId, eventVault, seat, config, collateral, fromBlock }` (drops `forwarder`; `eventVault` is the program id, `seat` the `["seat"]` PDA, `config` the `["vault-config"]` PDA, `fromBlock` the deploy slot). `VAULT_NOT_DEPLOYED` = "agari-vault is not deployed on this cluster yet". The dev fixtures follow the shape.
+  - **Program id:** `84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9`, from the create-once keypair `~/.config/agari/programs/agari-vault.json` (never regenerated). It is recorded in `anchor/Anchor.toml` `[programs.localnet|devnet] agari_vault` and `scripts/deploy/addresses.devnet.json` `programs.agari_vault.programId`; 7a's `declare_id!` uses it. `program-id-drift` now also holds Anchor.toml devnet == the addresses file for a program whose crate isn't written yet.
+  - **Env:** `NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID` (markets `vaultProgramId`, web env, `web/.env.example`, `web/.env.local`). `resolveVaultDeployment(env)` returns null while it is absent (7b builds it; the foundation stub still returns null).
+  - **Exports:** `@agari/markets/sponsor` (server-only; the root re-exports only `SponsorStatus`, which gains `reason?`) and `generateSessionKey` (D-066).
+  - **Gate row moved here:** "sponsored fill (fee payer = sponsor)" becomes S7's "3 session taps with zero popups, fee payer = `sponsor`, signer = session key". This is the D-entry S4's "Sponsor → S7" step names.
+- **User-visible:** none until 7b and 7c land.
+- **Approval:** stage owner, following the user's D-023.
 
 ## Open questions
 

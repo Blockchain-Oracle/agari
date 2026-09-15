@@ -1,24 +1,52 @@
+import type { Address } from "@agari/core/types";
+import { createSponsorService, type SponsorService } from "@agari/markets/sponsor";
 import { NextResponse } from "next/server";
+import { marketsEnvFromProcess, vaultDeploymentFromProcess } from "@/features/session/sponsor.server";
 import type { SponsorWire } from "@/features/session/useSponsorStatus";
 
 /**
- * The sponsor rail's server half. On Solana it becomes a fee-payer co-signer with a spending policy (plan P§3.2:
- * exact instruction allowlist, fee payer only, compute and fee caps, simulation before signing, daily budgets).
- * That policy lands with the vault program (S7); until then the route keeps its contract and answers honestly:
- * nothing is sponsored, so a signer pays its own fee (D-015); on devnet the faucet tops up SOL for fees.
+ * The sponsor rail's server half (tap-trading.md §3, D-065): a fee-payer co-signer, never a sender.
  *
- * GET answers with the client's `SponsorWire` shape (lamports, no EIP-2771 forwarder), so the session surfaces render their
- * "no sponsor here" state from real data rather than from a failed parse.
+ * GET says whether a sponsor exists, what it will pay for and why not. POST takes a v0 transaction the key (or owner)
+ * already signed with the sponsor as fee payer; `@agari/markets/sponsor` runs the policy in order, signs the sponsor's
+ * slot and hands the bytes back. The client journals the signature and sends it on its own lane.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const NOT_DEPLOYED = "no sponsor on this deployment yet: agari-vault is not deployed (S7); the signer pays its own fee";
+const MAX_BODY_BYTES = 8_192;
+const noStore = { "Cache-Control": "no-store" };
+
+let service: SponsorService | null = null;
+const sponsor = () => (service ??= createSponsorService(process.env));
+const vaultProgram = (): Address | null => vaultDeploymentFromProcess(marketsEnvFromProcess())?.eventVault ?? null;
 
 export async function GET() {
-  return NextResponse.json({ configured: false, sponsor: null, balanceLamports: null, allowlist: [] } satisfies SponsorWire);
+  const status = await sponsor().status(vaultProgram());
+  const wire: SponsorWire = {
+    configured: status.configured,
+    sponsor: status.sponsor,
+    balanceLamports: status.balanceLamports === null ? null : status.balanceLamports.toString(),
+    allowlist: status.allowlist,
+    ...(status.reason ? { reason: status.reason } : {}),
+  };
+  return NextResponse.json(wire, { headers: noStore });
 }
 
-export async function POST() {
-  return NextResponse.json({ error: NOT_DEPLOYED }, { status: 503 });
+export async function POST(request: Request) {
+  const refuse = (status: number, error: string) => NextResponse.json({ error }, { status, headers: noStore });
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) return refuse(413, "request is too large");
+  const text = await request.text().catch(() => "");
+  if (text.length > MAX_BODY_BYTES) return refuse(413, "request is too large");
+  let body: unknown;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return refuse(400, "request is not valid JSON");
+  }
+  // The first forwarded hop names the caller for the attempt limit; which proxies to trust is S16's decision.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
+  const result = await sponsor().cosign(vaultProgram(), body, request.headers.get("x-agari-device") ?? "", ip);
+  if (!result.ok) return refuse(result.status, result.error);
+  return NextResponse.json({ signature: result.signature, transaction: result.transaction, instruction: result.instruction }, { headers: noStore });
 }

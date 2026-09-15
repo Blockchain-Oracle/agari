@@ -2,3 +2,4 @@
 export { closeLedgerInstruction, closeMarketInstruction, redeemForInstructions, releaseBookInstruction, settleInstruction, sweepInstruction, voidInstruction } from "./instructions";
 export { readBookOrderCount, readResultRentPayer, readVenueConfig, type VenueConfig } from "./reads";
 export { isDrained, isProgramSeat, readLedger, SEAT_FLAG, type LedgerSeat, type LedgerState } from "./ledger";
+export { planVaultCranks, vaultCrankInstruction, type VaultCrank } from "./vault-crank";
