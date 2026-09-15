@@ -4,11 +4,22 @@ import { describe, expect, it, vi } from "vitest";
 import type { SponsorRpc, SponsorSimulation } from "./chain";
 import { SponsorRpcError } from "./chain";
 import { cosign, type SponsorLimits } from "./cosign";
-import { createLocalLedger, gateVerdict, type CosignRow } from "./gates";
+import { createAttemptLimiter, createLocalLedger, gateVerdict, type CosignRow } from "./gates";
 import { createSponsorService, NO_SPONSOR_KEY } from "./service";
 import { sponsorFixture } from "./tx.fixture";
 
-const LIMITS: SponsorLimits = { maxComputeUnits: 400_000, maxMicroLamports: 0n, maxFeeLamports: 10_000n, signerPerHour: 30, devicePerHour: 60, deviceDailyLamports: 5_000_000n, dailyLamports: 500_000_000n, minBalanceLamports: 200_000_000n };
+const LIMITS: SponsorLimits = {
+  maxComputeUnits: 400_000,
+  maxMicroLamports: 0n,
+  maxFeeLamports: 10_000n,
+  signerPerHour: 30,
+  devicePerHour: 60,
+  deviceDailyLamports: 5_000_000n,
+  dailyLamports: 500_000_000n,
+  minBalanceLamports: 200_000_000n,
+  attemptsPerDevicePerMinute: 20,
+  attemptsPerIpPerMinute: 60,
+};
 const NOW_MS = Date.UTC(2026, 8, 15, 12, 0, 0);
 const BALANCE = 500_000_000n;
 
@@ -27,9 +38,11 @@ async function setup() {
   const wire = await f.wire(f.message([f.cu(60_000), f.vaultIx()]));
   const transaction = getBase64EncodedWireTransaction(getTransactionDecoder().decode(wire));
   const ledger = createLocalLedger();
-  const run = (rpc: SponsorRpc, body: unknown = { transaction, lastValidBlockHeight: "1150" }, device = "device-1") =>
-    cosign({ keyPair: f.sponsor.keyPair, sponsor: f.sponsor.address, vaultProgram: f.vault, limits: LIMITS, rpc, ledger, nowMs: () => NOW_MS }, { body, device });
-  return { ...f, ledger, run };
+  const attempts = createAttemptLimiter();
+  let nowMs = NOW_MS;
+  const run = (rpc: SponsorRpc, body: unknown = { transaction, lastValidBlockHeight: "1150" }, device = "device-1", ip = "203.0.113.7") =>
+    cosign({ keyPair: f.sponsor.keyPair, sponsor: f.sponsor.address, vaultProgram: f.vault, limits: LIMITS, rpc, ledger, attempts, nowMs: () => nowMs }, { body, device, ip });
+  return { ...f, ledger, run, advance: (ms: number) => void (nowMs += ms) };
 }
 
 describe("sponsor co-sign (tap-trading.md §3 checks 6–9, then the fee-payer signature)", () => {
@@ -78,6 +91,33 @@ describe("sponsor co-sign (tap-trading.md §3 checks 6–9, then the fee-payer s
     expect(await t.run(fakeRpc(), { transaction: "not base64!", lastValidBlockHeight: 1 })).toMatchObject({ ok: false, status: 400 });
     expect(await t.run(fakeRpc(), { transaction: "AAAA", lastValidBlockHeight: -1 })).toMatchObject({ ok: false, status: 400 });
     expect(t.ledger.rows()).toHaveLength(0);
+  });
+});
+
+describe("sponsor attempt limits (before any RPC)", () => {
+  it("refuses a device's 21st attempt in a minute without an RPC call, and lets it back after the minute", async () => {
+    const t = await setup();
+    const rpc = fakeRpc();
+    const garbage = { transaction: "AAAA", lastValidBlockHeight: 1 };
+    for (let i = 0; i < 20; i += 1) expect(await t.run(rpc, garbage)).toMatchObject({ ok: false, status: 400 });
+    const flooded = fakeRpc();
+    expect(await t.run(flooded)).toMatchObject({ ok: false, status: 429, error: expect.stringContaining("device attempt") });
+    expect(flooded.getBlockHeight).not.toHaveBeenCalled();
+    expect(await t.run(fakeRpc(), undefined, "device-2")).toMatchObject({ ok: true });
+    t.advance(60_000);
+    expect(await t.run(fakeRpc())).toMatchObject({ ok: true });
+  });
+
+  it("refuses an address's 61st attempt in a minute across rotating device ids; no forwarded address is one shared bucket", async () => {
+    const t = await setup();
+    const garbage = { transaction: "AAAA", lastValidBlockHeight: 1 };
+    for (let i = 0; i < 60; i += 1) await t.run(fakeRpc(), garbage, `rotating-${i}`);
+    const flooded = fakeRpc();
+    expect(await t.run(flooded, undefined, "rotating-new")).toMatchObject({ ok: false, status: 429, error: expect.stringContaining("network attempt") });
+    expect(flooded.getBlockHeight).not.toHaveBeenCalled();
+    expect(await t.run(fakeRpc(), undefined, "rotating-new", "198.51.100.9")).toMatchObject({ ok: true });
+    for (let i = 0; i < 60; i += 1) await t.run(fakeRpc(), garbage, `anon-${i}`, "");
+    expect(await t.run(fakeRpc(), undefined, "anon-new", "")).toMatchObject({ ok: false, status: 429 });
   });
 });
 
@@ -135,6 +175,6 @@ describe("sponsor service (the route's status and co-sign)", () => {
 
   it("refuses to co-sign with 503 before reading the body while nothing is deployed", async () => {
     const env = { SPONSOR_PRIVATE_KEY: cliKeypair() };
-    expect(await createSponsorService(env, { rpc: fakeRpc() }).cosign(null, { transaction: "AAAA", lastValidBlockHeight: 1 }, "d")).toMatchObject({ ok: false, status: 503 });
+    expect(await createSponsorService(env, { rpc: fakeRpc() }).cosign(null, { transaction: "AAAA", lastValidBlockHeight: 1 }, "d", "")).toMatchObject({ ok: false, status: 503 });
   });
 });

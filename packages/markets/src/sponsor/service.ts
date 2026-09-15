@@ -15,7 +15,7 @@ import { DEVNET_DEFAULTS } from "../env";
 import { keypairAddress, parseSecretKey } from "../sessions/keypair";
 import { createSponsorRpc, type SponsorRpc } from "./chain";
 import { cosign, type CosignAccepted, type SponsorKeyPair, type SponsorLimits } from "./cosign";
-import { BREAKER_REASON, breakerOpen, createLocalLedger, type SponsorLedger } from "./gates";
+import { BREAKER_REASON, breakerOpen, createAttemptLimiter, createLocalLedger, type SponsorLedger } from "./gates";
 import { refuse, type Refusal } from "./policy";
 import { SPONSOR_ALLOWLIST, type SponsorStatus } from "./status";
 
@@ -37,6 +37,8 @@ export function sponsorLimitsFrom(env: Env): SponsorLimits {
     maxFeeLamports: lamports(env, "SPONSOR_MAX_FEE_LAMPORTS", 10_000n),
     maxComputeUnits: Math.min(count(env, "SPONSOR_MAX_COMPUTE_UNITS", COMPUTE_UNIT_LIMIT_MAX), COMPUTE_UNIT_LIMIT_MAX),
     maxMicroLamports: lamports(env, "SPONSOR_MAX_MICRO_LAMPORTS", 0n),
+    attemptsPerDevicePerMinute: count(env, "SPONSOR_ATTEMPTS_PER_DEVICE_PER_MINUTE", 20),
+    attemptsPerIpPerMinute: count(env, "SPONSOR_ATTEMPTS_PER_IP_PER_MINUTE", 60),
   };
 }
 
@@ -64,7 +66,8 @@ export function sponsorRoleSecret(env: Env): Uint8Array | null {
 /** The route's two calls; `vaultProgram` is the resolved deployment's program id, null while agari-vault is not deployed. */
 export interface SponsorService {
   status(vaultProgram: CoreAddress | null): Promise<SponsorStatus>;
-  cosign(vaultProgram: CoreAddress | null, body: unknown, device: string): Promise<CosignAccepted | Refusal>;
+  /** `ip` is the route's first `x-forwarded-for` hop, "" when absent. */
+  cosign(vaultProgram: CoreAddress | null, body: unknown, device: string, ip: string): Promise<CosignAccepted | Refusal>;
 }
 
 interface Loaded {
@@ -78,6 +81,7 @@ export function createSponsorService(env: Env, deps: { rpc?: SponsorRpc; ledger?
   const rpc = deps.rpc ?? createSponsorRpc(env.SPONSOR_RPC_URL || DEVNET_DEFAULTS.rpcHttpUrls[0]);
   // The `sponsor_cosigns` store replaces these in-process counters when it exists.
   const ledger = deps.ledger ?? createLocalLedger();
+  const attempts = createAttemptLimiter();
   let loaded: Promise<Loaded | null> | null = null;
   const load = () =>
     (loaded ??= (async () => {
@@ -104,11 +108,11 @@ export function createSponsorService(env: Env, deps: { rpc?: SponsorRpc; ledger?
       if (breakerOpen(balance, limits)) return { ...base, sponsor, balanceLamports: balance, configured: false, reason: BREAKER_REASON };
       return { ...base, sponsor, balanceLamports: balance, configured: true, ...(ledger.kind === "local" ? { reason: "local counters" } : {}) };
     },
-    async cosign(vaultProgram, body, device) {
+    async cosign(vaultProgram, body, device, ip) {
       const key = await load();
       if (!key) return refuse(503, NO_SPONSOR_KEY);
       if (!vaultProgram) return refuse(503, VAULT_NOT_DEPLOYED);
-      return cosign({ ...key, vaultProgram: vaultProgram as string as Address, limits, rpc, ledger, nowMs: deps.nowMs ?? Date.now }, { body, device });
+      return cosign({ ...key, vaultProgram: vaultProgram as string as Address, limits, rpc, ledger, attempts, nowMs: deps.nowMs ?? Date.now }, { body, device, ip });
     },
   };
 }

@@ -5,13 +5,13 @@
  */
 import { createKeyPairFromBytes, getBase64EncodedWireTransaction, getBase64Encoder, getSignatureFromTransaction, partiallySignTransaction, type Address } from "@solana/kit";
 import { checkChain, SponsorRpcError, type SponsorRpc } from "./chain";
-import { NO_DEVICE, type GateLimits, type SponsorLedger } from "./gates";
+import type { AttemptLimiter, AttemptLimits, GateLimits, SponsorLedger } from "./gates";
 import { checkStatic, refuse, type Refusal, type StaticLimits } from "./policy";
 
 /** WebCrypto's `CryptoKeyPair`, named through Kit so consumers without the DOM lib (services/ops) still typecheck. */
 export type SponsorKeyPair = Awaited<ReturnType<typeof createKeyPairFromBytes>>;
 
-export interface SponsorLimits extends StaticLimits, GateLimits {
+export interface SponsorLimits extends StaticLimits, GateLimits, AttemptLimits {
   maxFeeLamports: bigint;
 }
 
@@ -24,6 +24,7 @@ export interface CosignDeps {
   limits: SponsorLimits;
   rpc: SponsorRpc;
   ledger: SponsorLedger;
+  attempts: AttemptLimiter;
   nowMs: () => number;
 }
 
@@ -32,6 +33,8 @@ export interface CosignRequest {
   body: unknown;
   /** `x-agari-device`; empty refuses. */
   device: string;
+  /** The first `x-forwarded-for` hop, "" when absent (proxy trust is S16's). */
+  ip: string;
 }
 
 export interface CosignAccepted {
@@ -58,6 +61,10 @@ function blockHeightOf(value: unknown): bigint | null {
 
 export async function cosign(deps: CosignDeps, request: CosignRequest): Promise<CosignAccepted | Refusal> {
   const { limits, sponsor } = deps;
+  // Attempts first: nothing below (decoding, signature checks, five RPC reads) runs for a device or address over its minute.
+  const attempt = deps.attempts.admit(request.device, request.ip, deps.nowMs(), limits);
+  if (!attempt.ok) return attempt;
+
   const body = request.body as { transaction?: unknown; lastValidBlockHeight?: unknown } | null;
   const wire = wireOf(body?.transaction);
   const lastValidBlockHeight = blockHeightOf(body?.lastValidBlockHeight);
@@ -65,9 +72,6 @@ export async function cosign(deps: CosignDeps, request: CosignRequest): Promise<
 
   const pass = await checkStatic(wire, sponsor, deps.vaultProgram, limits);
   if (!pass.ok) return pass;
-
-  // Gates are check 9, but a request with no device can never pass one, so it spends no RPC.
-  if (!request.device) return NO_DEVICE;
 
   let chain: Awaited<ReturnType<typeof checkChain>>;
   try {

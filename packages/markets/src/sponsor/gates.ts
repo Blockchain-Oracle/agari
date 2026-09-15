@@ -80,3 +80,46 @@ export function createLocalLedger(): SponsorLedger & { rows(): readonly CosignRo
     },
   };
 }
+
+/**
+ * Attempts, before any RPC (the lead's S7 approval): every POST that names a device counts against that device and its
+ * network address inside a sliding minute, whatever it turns out to be, so a well-formed request can't be replayed into
+ * five RPC calls in a loop. A refused attempt isn't counted, so a paused client is back within the minute.
+ */
+export interface AttemptLimits {
+  attemptsPerDevicePerMinute: number;
+  attemptsPerIpPerMinute: number;
+}
+
+export interface AttemptLimiter {
+  /** Counts the attempt and answers in one synchronous step. `ip` is the route's first `x-forwarded-for` hop, "" when absent. */
+  admit(device: string, ip: string, nowMs: number, limits: AttemptLimits): { ok: true } | Refusal;
+}
+
+const MINUTE_MS = 60_000;
+/** Above this many tracked keys, stale ones are swept so rotating device ids can't grow the map without bound. */
+const SWEEP_AT_KEYS = 10_000;
+/** Requests with no forwarded address share one bucket rather than skipping the limit. */
+const NO_IP = "(no forwarded address)";
+
+export function createAttemptLimiter(): AttemptLimiter {
+  const seen = new Map<string, number[]>();
+  const recent = (key: string, nowMs: number) => (seen.get(key) ?? []).filter((at) => nowMs - at < MINUTE_MS);
+  return {
+    admit(device, ip, nowMs, limits) {
+      if (!device) return NO_DEVICE;
+      if (seen.size > SWEEP_AT_KEYS) {
+        for (const [key, times] of seen) if (times.every((at) => nowMs - at >= MINUTE_MS)) seen.delete(key);
+      }
+      const deviceKey = `device:${device}`;
+      const ipKey = `ip:${ip || NO_IP}`;
+      const byDevice = recent(deviceKey, nowMs);
+      const byIp = recent(ipKey, nowMs);
+      if (byDevice.length >= limits.attemptsPerDevicePerMinute) return { ok: false, status: 429, error: `over the sponsor's ${limits.attemptsPerDevicePerMinute}-per-minute device attempt limit` };
+      if (byIp.length >= limits.attemptsPerIpPerMinute) return { ok: false, status: 429, error: `over the sponsor's ${limits.attemptsPerIpPerMinute}-per-minute network attempt limit` };
+      seen.set(deviceKey, [...byDevice, nowMs]);
+      seen.set(ipKey, [...byIp, nowMs]);
+      return { ok: true };
+    },
+  };
+}
