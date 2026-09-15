@@ -2,7 +2,7 @@
 
 import { formatSessionSpan, sessionCountdown } from "@agari/core/copy";
 import { formatEtClock, type TickerSymbol } from "@agari/core/market";
-import type { LaneBasis } from "@agari/core/types";
+import type { LaneBasis, MarketId } from "@agari/core/types";
 import { HERO_HEAD } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { cn } from "@/lib/utils";
@@ -24,15 +24,18 @@ export interface NextWindowCardViewProps {
   session: MarketSession;
   nowSec: number;
   history: AssetHistory | null;
+  /** Selects a listed Window for the schedule seam (D-088); absent on a fixture, which then shows no seam. */
+  onSelect?: (marketId: MarketId) => void;
 }
 
 /**
  * The Window that lists next, in the slot its live card will take (D-086): Masayume's between-rounds card
- * (`.market-card.market-card-pending`, as `PausedCard` and `GapListedCard` draw it) carrying the last price, the day's
- * move and the last session's sparkline against the previous close, then when the first Window opens. Not a button
- * until 18f's schedule seam fills.
+ * (`.market-card.market-card-pending`, as `PausedCard` and `ListedCard` draw it) carrying the last price, the day's
+ * move and the last session's sparkline against the previous close, then when the first Window opens. The card
+ * itself is not a button; the schedule seam at its foot is the Room strip's slot (D-088), a call on the asset's
+ * listed Window in this lane, or the line that says when one lists.
  */
-export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec, history }: NextWindowCardViewProps) {
+export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec, history, onSelect }: NextWindowCardViewProps) {
   const cadence = laneCadenceLabel(basis, intervalSec);
   const countdown = sessionCountdown(session.status, nowSec);
   const opensSec = firstWindowStartSec(session, intervalSec);
@@ -73,8 +76,8 @@ export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec,
           {opensSec !== null && <strong>{SESSION_COPY.next.first(cadence, etWhen(opensSec))}.</strong>}
           {history?.lastClose ? ` ${SESSION_COPY.next.lastClose(usdLine(history.lastClose.priceRaw), formatEtClock(history.lastClose.sec))}.` : null}
         </p>
-        <ScheduleCallButton asset={asset} session={session} />
       </div>
+      {onSelect && <ScheduleCallButton asset={asset} session={session} nowSec={nowSec} onSelect={onSelect} variant="strip" intervalSec={intervalSec} opensSec={opensSec} />}
     </div>
   );
 }

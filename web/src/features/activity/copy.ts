@@ -35,6 +35,7 @@ export const ACTIVITY = {
 
   tag: {
     fill: "Fill",
+    "resting-filled": "Call filled",
     "settled-win": "Won",
     "settled-loss": "Lost",
     voided: "Void",
@@ -47,6 +48,7 @@ export const ACTIVITY = {
   /** Row headlines. `window` is "TSLA 5m"; `money` is already formatted with its symbol. */
   row: {
     fill: (window: string, side: string, money: string | null) => `${window} · ${side} filled${money ? ` · ${money}` : ""}`,
+    restingFilled: (window: string, side: string, money: string | null) => `${window} · resting ${side} call filled at your price${money ? ` · ${money}` : ""}`,
     win: (window: string, money: string | null) => `${window} · Won${money ? ` ${money}` : ""}`,
     loss: (window: string, money: string | null) => `${window} · Lost${money ? ` ${money}` : ""}`,
     voided: (window: string, money: string | null) => `${window} · Voided${money ? ` · ${money} back` : ""}`,
@@ -63,6 +65,7 @@ export const ACTIVITY = {
 /** The in-tab lifecycle notifications (toast + system notification), one per event. */
 export const LIFECYCLE = {
   fill: (window: string, side: string) => ({ title: `Filled on ${window}`, body: `Your ${side} call was filled.` }),
+  restingFilled: (window: string, side: string) => ({ title: `Your resting call filled on ${window}`, body: `Your ${side} call rested at your price and the book came to it.` }),
   win: (window: string, money: string | null) => ({ title: `${window} settled: you won`, body: money ? `Net ${money}.` : "The Window settled your way." }),
   winClaimable: (window: string, money: string | null) => ({
     title: `${window} settled: you won`,

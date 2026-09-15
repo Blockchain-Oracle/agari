@@ -37,6 +37,7 @@ const sideWord = (item: ActivityItem) => (item.side ? ACTIVITY.side[item.side] :
 
 const TONE: Record<ActivityItem["kind"], Tone> = {
   fill: "neutral",
+  "resting-filled": "neutral",
   "settled-win": "positive",
   "settled-loss": "negative",
   voided: "neutral",
@@ -56,6 +57,8 @@ export function describeItem(item: ActivityItem, units: MoneyUnits, take: FeedTa
   switch (item.kind) {
     case "fill":
       return view(row.fill(window, sideWord(item), moneyText(item.amountBase, units)), tx ?? market);
+    case "resting-filled":
+      return view(row.restingFilled(window, sideWord(item), moneyText(item.amountBase, units)), tx ?? market);
     case "settled-win":
       return view(row.win(window, moneyText(item.amountBase, units, true)), market);
     case "settled-loss":
@@ -82,6 +85,8 @@ export function notificationOf(item: ActivityItem, units: MoneyUnits, claimBase:
   switch (item.kind) {
     case "fill":
       return LIFECYCLE.fill(window, sideWord(item));
+    case "resting-filled":
+      return LIFECYCLE.restingFilled(window, sideWord(item));
     case "settled-win":
       return claimBase !== null ? LIFECYCLE.winClaimable(window, moneyText(claimBase, units)) : LIFECYCLE.win(window, moneyText(item.amountBase, units, true));
     case "settled-loss":

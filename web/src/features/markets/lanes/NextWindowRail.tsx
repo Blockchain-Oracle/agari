@@ -1,6 +1,7 @@
 "use client";
 
 import type { TickerSymbol } from "@agari/core/market";
+import type { MarketId } from "@agari/core/types";
 import { Pager } from "@/components/chrome";
 import { EmptyState } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
@@ -21,10 +22,12 @@ interface NextWindowRailProps {
   nowSec: number;
   ticker: TickerSymbol | null;
   onPick: (ticker: TickerSymbol | null) => void;
+  /** Selects a listed Window from a card's schedule seam (D-088). */
+  onSelect: (marketId: MarketId) => void;
 }
 
 /** A Regular lane while the market is closed (D-086): one next-Window card per configured ticker, picker and pager as the live rail. */
-export function NextWindowRail({ laneKey, session, nowSec, ticker, onPick }: NextWindowRailProps) {
+export function NextWindowRail({ laneKey, session, nowSec, ticker, onPick, onSelect }: NextWindowRailProps) {
   const { basis, intervalSec } = laneTabParts(laneKey);
   const tickers = configuredTickers(session, laneKey);
   const shown = ticker === null ? tickers : tickers.filter((symbol) => symbol === ticker);
@@ -37,7 +40,7 @@ export function NextWindowRail({ laneKey, session, nowSec, ticker, onPick }: Nex
       ) : (
         <div className="markets-grid markets-grid-live">
           {pager.slice.map((symbol) => (
-            <NextWindowCard key={symbol} asset={symbol} basis={basis} intervalSec={intervalSec} session={session} nowSec={nowSec} />
+            <NextWindowCard key={symbol} asset={symbol} basis={basis} intervalSec={intervalSec} session={session} nowSec={nowSec} onSelect={onSelect} />
           ))}
         </div>
       )}

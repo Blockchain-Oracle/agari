@@ -8,6 +8,8 @@ import type { FeedTake } from "@/features/takes/protocol";
  * What each kind's fields mean, since the shape is shared:
  * - `fill`: one side of one fill. `side` is the exposure it adds (a buy of Up or a sell of Down is Up, as the
  *   sentiment cell counts it); `lots` the fill's lots; `amountBase` that leg's cost or proceeds; `signature` the tx.
+ * - `resting-filled`: the same fill seen from the maker's seat — a call that rested at its own price and was taken
+ *   (a scheduled call filling after the bell, D-088). Same fields as `fill`.
  * - `settled-win` / `settled-loss`: the seat's verdict, by core's settlement rule; `amountBase` the signed PnL.
  * - `voided`: the refund the held legs are owed or were paid.
  * - `claimable`: a payout still sitting in the seat; `amountBase` what it pays.
@@ -15,7 +17,7 @@ import type { FeedTake } from "@/features/takes/protocol";
  * - `take`: a signed take; `takeId` names it and the envelope's `takes` carries the words.
  * - `copied`: reserved for S9/S14 (nothing writes it yet).
  */
-export type ActivityKind = "fill" | "settled-win" | "settled-loss" | "voided" | "claimable" | "paid-automatically" | "take" | "copied";
+export type ActivityKind = "fill" | "resting-filled" | "settled-win" | "settled-loss" | "voided" | "claimable" | "paid-automatically" | "take" | "copied";
 
 export interface ActivityItem {
   id: string;

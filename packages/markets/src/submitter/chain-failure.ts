@@ -7,7 +7,10 @@ import {
   AGARI_EVENTS_ERROR__MARKET_NOT_TERMINAL,
   AGARI_EVENTS_ERROR__MARKET_NOT_TRADING,
   AGARI_EVENTS_ERROR__ORDER_ALREADY_EXPIRED,
+  AGARI_EVENTS_ERROR__POST_ONLY_WOULD_CROSS,
+  AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED,
   AGARI_EVENTS_ERROR__SEAT_MISMATCH,
+  AGARI_EVENTS_ERROR__TOO_MANY_OPEN_ORDERS,
 } from "@agari/clients/agari-events";
 import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
 import {
@@ -31,6 +34,10 @@ export const ENGINE_CODE = {
   expiryAfterLock: AGARI_EVENTS_ERROR__EXPIRY_AFTER_LOCK,
   iocNoFill: AGARI_EVENTS_ERROR__IMMEDIATE_OR_CANCEL_NO_FILL,
   seatMismatch: AGARI_EVENTS_ERROR__SEAT_MISMATCH,
+  // D-088 pre-open calls: a post-only that would cross (6109), a seat at its 16 (6114), a taker on a Listed Window (6121).
+  postOnlyWouldCross: AGARI_EVENTS_ERROR__POST_ONLY_WOULD_CROSS,
+  tooManyOpenOrders: AGARI_EVENTS_ERROR__TOO_MANY_OPEN_ORDERS,
+  preOpenTakerRefused: AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED,
 } as const;
 
 const ENGINE_RANGE = { min: 6000, max: 6399 };
@@ -49,6 +56,9 @@ const KIND_BY_CODE = new Map<number, DiagnosisKind>([
   [ENGINE_CODE.invalidPrice, "invalid-price"],
   [ENGINE_CODE.iocNoFill, "no-liquidity"],
   [ENGINE_CODE.marketNotTerminal, "not-settled"],
+  [ENGINE_CODE.postOnlyWouldCross, "post-only-would-cross"],
+  [ENGINE_CODE.tooManyOpenOrders, "too-many-resting"],
+  [ENGINE_CODE.preOpenTakerRefused, "pre-open-taker"],
 ]);
 
 /** The `Custom(code)` of an `InstructionError`, or null. */

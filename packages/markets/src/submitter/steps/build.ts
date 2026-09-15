@@ -30,6 +30,8 @@ export interface OrderBuildInput {
   expireTs: number;
   /** The wallet's seat index on this Window's Ledger, or null when it holds none yet. */
   seatIndex: number | null;
+  /** The `order_type` code: IOC (default) for a taker; the rest lane passes post-only, a call that rests at the quote's limit (D-088). */
+  orderType?: number;
 }
 
 const kit = (value: string) => value as Address;
@@ -40,8 +42,9 @@ function exactly(raw: bigint, unit: bigint, what: string): bigint {
 }
 
 /**
- * `user_place_order` for a taker's buy: Up = BUY_YES, Down = BUY_NO, immediate-or-cancel at the confirmed quote's
- * YES-terms limit (canon #7, D-033). Users never rest, so they never self-match; credit funds first (`use_credit`).
+ * `user_place_order` for a buy: Up = BUY_YES, Down = BUY_NO at the confirmed quote's YES-terms limit (canon #7, D-033).
+ * A taker is immediate-or-cancel; a pre-open call is post-only and rests (D-088). A taker never rests, so it never
+ * self-matches; a resting call meeting its own taker cancels the taker (`SelfMatch::CancelTaker`). Credit funds first.
  */
 export async function orderInstruction(input: OrderBuildInput): Promise<Instruction> {
   const { signer, market, series, quote } = input;
@@ -67,7 +70,7 @@ export async function orderInstruction(input: OrderBuildInput): Promise<Instruct
     priceTicks: Number(exactly(quote.limitPriceRaw, series.tickBase, "limit price")),
     lots: exactly(quote.contractsRaw, series.lotBase, "size"),
     expireTs: input.expireTs,
-    orderType: ORDER_TYPE.ioc,
+    orderType: input.orderType ?? ORDER_TYPE.ioc,
     selfMatch: SELF_MATCH_CANCEL_TAKER,
     maxFills: Math.min(MAX_FILLS, series.fillsCap),
     maxEvictions: Math.min(MAX_EVICTIONS, series.evictionsCap),

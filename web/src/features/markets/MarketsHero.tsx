@@ -15,7 +15,8 @@ import type { MarketsSelection } from "./useMarketsSelection";
 export interface MarketsHeroProps {
   selection: MarketsSelection;
   lanes: LanesState;
-  onSelect: (marketId: MarketId, side: Side) => void;
+  /** Selects a Window, with a side from the hero's UP/DOWN; without one from the closed hero's schedule seam (D-088). */
+  onSelect: (marketId: MarketId, side?: Side) => void;
   /** Opens the Room for the Window in the hero. Held by the screen, not here — see MarketsScreen. */
   onOpenRoom: () => void;
   /** The ticket rail; it renders itself into the grid's second column, or as a drawer. */
@@ -71,13 +72,13 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
               onOpenRoom={onOpenRoom}
             />
           ) : lanes.laneSet ? (
-            <HeroAssetChart asset={lanes.ticker ?? DEFAULT_ASSET} tickers={LAUNCH_TICKERS} onPickAsset={lanes.pinTicker} />
+            <HeroAssetChart asset={lanes.ticker ?? DEFAULT_ASSET} tickers={LAUNCH_TICKERS} onPickAsset={lanes.pinTicker} onSelect={onSelect} />
           ) : (
             <div className="hero-chart mh-hero-empty">
               <HeroPlaceholder lanes={lanes} />
             </div>
           )}
-          {selection.market ? renderTicket(selection) : lanes.laneSet ? <TicketPlaceholder asset={lanes.ticker ?? DEFAULT_ASSET} /> : null}
+          {selection.market ? renderTicket(selection) : lanes.laneSet ? <TicketPlaceholder asset={lanes.ticker ?? DEFAULT_ASSET} onSelect={onSelect} /> : null}
         </div>
       </div>
     </section>

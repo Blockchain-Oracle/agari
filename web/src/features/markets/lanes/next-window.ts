@@ -1,4 +1,5 @@
 import { parseLaneKey, regularWindows, type TickerSymbol, type TradingSession } from "@agari/core/market";
+import type { EventMarket, LaneSet } from "@agari/core/types";
 import type { MarketSession } from "../session";
 import { compareLaneTabKeys, laneTabKey, laneTabParts, type LaneTabKey } from "./lane-view";
 
@@ -48,4 +49,19 @@ export function firstWindowStartSec(session: MarketSession, cadenceSec: number):
   } catch {
     return null;
   }
+}
+
+/**
+ * The asset's next listed Regular Window (D-088): on the Book before its open, so a call can rest on it. The site's own
+ * cadence first (a 5m card offers the 5m Window), else the soonest of any Regular lane (a lane with no free Book has
+ * none, and the 60m Window that opens at 10:00 is still a call to schedule). Null when nothing is listed yet.
+ */
+export function nextListedWindow(laneSet: LaneSet | null, asset: TickerSymbol, nowSec: number, intervalSec?: number): EventMarket | null {
+  if (!laneSet) return null;
+  const listed = laneSet.lanes
+    .filter((lane) => lane.basis === "regular")
+    .flatMap((lane) => lane.markets)
+    .filter((m) => m.asset === asset && m.tradingStartSec > nowSec && !m.voided)
+    .sort((a, b) => a.tradingStartSec - b.tradingStartSec);
+  return listed.find((m) => m.intervalSec === intervalSec) ?? listed[0] ?? null;
 }

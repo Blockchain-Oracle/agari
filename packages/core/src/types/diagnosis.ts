@@ -10,6 +10,10 @@ export const DIAGNOSIS_KINDS = [
   "market-not-trading",
   "order-expired",
   "post-only-would-cross",
+  /** A taker on a listed Window (6121, D-088): nothing fills before the open; only a post-only call may rest. */
+  "pre-open-taker",
+  /** The seat already rests its 16 orders (6114). */
+  "too-many-resting",
   "no-liquidity",
   /** The resting book is thinner than this order, or its spread too wide to price. Nothing to do with the reserve's capital. */
   "thin-book",

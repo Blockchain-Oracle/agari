@@ -2,6 +2,7 @@ import { isVaultIntent, type PhaseListener, type TxIntent, type TxOutcome } from
 import { diagnosis } from "@agari/core/types";
 import { notDeployed } from "../stub/not-deployed";
 import { submitVaultTx } from "../vault/write";
+import { submitCancel } from "./cancel-lane";
 import { submitRedeem } from "./redeem-lane";
 import type { WriteContext } from "./settle-write";
 
@@ -12,6 +13,7 @@ import type { WriteContext } from "./settle-write";
  */
 export async function submitTx(ctx: WriteContext, intent: TxIntent, onPhase?: PhaseListener): Promise<TxOutcome> {
   if (intent.kind === "redeem") return submitRedeem(ctx, intent, onPhase);
+  if (intent.kind === "cancel-orders") return submitCancel(ctx, intent, onPhase);
   if (isVaultIntent(intent)) return submitVaultTx(ctx, intent, onPhase);
   if (intent.kind === "faucet") return { status: "refused", diagnosis: diagnosis("faucet-refused", "test tUSDC comes from /api/faucet") };
   return { status: "refused", diagnosis: notDeployed() };

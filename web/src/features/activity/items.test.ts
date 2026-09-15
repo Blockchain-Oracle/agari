@@ -1,6 +1,29 @@
-import type { SocialSettlementRow } from "@agari/db";
+import type { SocialFillRow, SocialSettlementRow } from "@agari/db";
 import { expect, it } from "vitest";
-import { settlementFacts, settlementItems } from "./items";
+import { fillItem, settlementFacts, settlementItems } from "./items";
+
+const fill = (over: Partial<SocialFillRow>): SocialFillRow => ({
+  signature: "3VFzTVV7FJkaksFDrQtsuJFfaT437SKBx6Gwd93fPLnken3Fuv7tDjpYNq3rA5nQtTKppincNuwWWoDhcJR1SURg",
+  outer_ix: 0,
+  inner_ix: 0,
+  fill_ix: 0,
+  market: "4SCCa1z6oYARC8BNPHsuCaaTdycuN6wuYGADgeBBMgki",
+  wallet: "DcCD3pcMnnnfigaS5BzyKCkcyLxDjhcDutQKcYYuzZvP",
+  kind: 0,
+  seat: "taker",
+  symbol: "TSLA",
+  cadence_sec: 300,
+  lots: "1000",
+  amount_base: "550000",
+  ts_sec: "1789397131",
+  ...over,
+});
+
+it("reads a fill from the taker's seat as a call and from the maker's seat as a resting call that filled (D-088)", () => {
+  expect(fillItem(fill({}))).toMatchObject({ kind: "fill", side: "up", lots: "1000", amountBase: "550000" });
+  expect(fillItem(fill({ seat: "maker", kind: 2 }))).toMatchObject({ kind: "resting-filled", side: "down" });
+  expect(fillItem(fill({ seat: "maker" })).id).toBe(fillItem(fill({})).id);
+});
 
 /** The two drive wallets' seats on devnet TSLA 5m Window 4SCCa1z6… (S2 drive, 2026-09-14), as the index holds them. */
 const seat = (over: Partial<SocialSettlementRow>): SocialSettlementRow => ({
