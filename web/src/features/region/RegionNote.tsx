@@ -15,11 +15,12 @@ export const REGION_NOTE = {
   href: "/how-it-works",
 } as const;
 
+// `underline!`: Masayume's base `a { text-decoration: none }` is unlayered, so it outranks a plain layered utility.
 export function RegionNote({ className }: { className?: string }) {
   return (
     <p className={cn("type-caption text-ink-secondary", className)}>
       {REGION_NOTE.line}{" "}
-      <Link href={REGION_NOTE.href} className="text-ink underline underline-offset-2" data-cursor="hover">
+      <Link href={REGION_NOTE.href} className="text-ink underline! underline-offset-2" data-cursor="hover">
         {REGION_NOTE.link}
       </Link>
     </p>
