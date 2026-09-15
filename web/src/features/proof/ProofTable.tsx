@@ -1,13 +1,17 @@
 import type { PrintProof } from "@agari/markets";
 import { oraclePriceText } from "@/features/markets/hero";
 import { PROOF } from "./copy";
-import { crossCheckBpsText, crossCheckPair } from "./format";
+import { crossCheckBpsText, crossCheckPair, replayDiff } from "./format";
 
 type Tone = "good" | "warn" | "bad" | "off";
 
 function rowOf(print: PrintProof): { tone: Tone; detail: string } {
   if (print.source === "pyth") {
-    const state = print.replay?.state ?? "none";
+    const replay = print.replay;
+    const state = replay?.state ?? "none";
+    // A stored decode that does not equal the print is never shown as proven (the replay refuses one; old rows may not).
+    const diff = replay?.price != null && replay.expo != null ? replayDiff(replay.price, replay.expo, print.priceE8) : 0n;
+    if ((state === "verified" || state === "closed") && diff !== 0n) return { tone: "bad", detail: PROOF.differs(diff.toString()) };
     return { tone: PROOF.tones[state], detail: PROOF.state[state] };
   }
   if (print.source === "redstone") {
