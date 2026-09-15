@@ -8,7 +8,7 @@ import { closePythUpdates, postPythUpdates, PYTH_RECEIVER_PROGRAM_ID, type PythP
 import { keypairAddress } from "../sessions/keypair";
 import { readPostedAccount, type PostedAccount } from "./chain";
 import { printDiff } from "./decode";
-import { parseArchivedUpdate, preflightRefusal, type HermesFeed, type PreflightRefusal } from "./hermes";
+import { parseArchivedUpdate, preflightRefusal, type ArchivedUpdate, type HermesFeed, type PreflightRefusal } from "./hermes";
 import type { ProofStore, StoredPrint, VerifiedProofRow } from "./store";
 
 export const PYTH_SOURCE = 1;
@@ -77,8 +77,21 @@ async function resolvePrint(store: ProofStore, market: string, which: number): P
   return feed ? { print, feed } : { kind: "no-feed", symbol: print.symbol };
 }
 
-/** Re-verifies one recorded Pyth print on chain. Idempotent per boundary: a live claim or a verified proof returns as is. */
-export async function replayPythProof(deps: ReplayDeps, input: { market: string; which: number }): Promise<ReplayOutcome> {
+/** A claimed replay: the print, its archived update and the feeds one post will create. */
+export interface PreparedReplay {
+  print: StoredPrint;
+  feed: string;
+  boundarySec: number;
+  archived: ArchivedUpdate;
+  feeds: Array<{ feed: string; symbol: string }>;
+  payer: string;
+}
+
+/**
+ * Everything short of sending (§2.6 steps 1–2): the print, its archived bytes, the integer preflight, then the claim.
+ * Nothing is sent unless it returns `claimed`; a route awaits this and posts after answering.
+ */
+export async function prepareReplay(deps: ReplayDeps, input: { market: string; which: number }): Promise<{ kind: "claimed"; prepared: PreparedReplay } | Exclude<ReplayOutcome, { kind: "verified" | "failed" }>> {
   const now = deps.nowMs ?? Date.now;
   const resolved = await resolvePrint(deps.store, input.market, input.which);
   if ("kind" in resolved) return { kind: "refused", refusal: resolved };
@@ -94,7 +107,13 @@ export async function replayPythProof(deps: ReplayDeps, input: { market: string;
   const feeds = archived.feeds.map((f) => ({ feed: f.feedIdHex, symbol: symbolOfPythFeed(f.feedIdHex) ?? f.feedIdHex.slice(0, 8) }));
   const claim = await deps.store.claim({ boundarySec, feeds, payer, nowMs: now(), staleMs: POSTING_STALE_MS });
   if (!claim.claimed) return { kind: claim.state === "verified" ? "already-verified" : "in-progress", boundarySec };
+  return { kind: "claimed", prepared: { print, feed, boundarySec, archived, feeds, payer } };
+}
 
+/** Steps 3–6 for a claimed replay: post, read back, verify in integers, store; a failure is stored and its accounts closed. */
+export async function postPreparedReplay(deps: ReplayDeps, prepared: PreparedReplay): Promise<Extract<ReplayOutcome, { kind: "verified" | "failed" }>> {
+  const now = deps.nowMs ?? Date.now;
+  const { print, feed, boundarySec, archived, feeds, payer } = prepared;
   let posted: PythPostResult | null = null;
   try {
     posted = await postPythUpdates({ rpcUrl: deps.rpcUrl, payerSecret: deps.payerSecret, updatesBase64: [archived.updatesBase64[0]!] });
@@ -135,4 +154,10 @@ export async function replayPythProof(deps: ReplayDeps, input: { market: string;
     await deps.store.failed(feeds.map((f) => f.feed), boundarySec, message);
     return { kind: "failed", boundarySec, error: message };
   }
+}
+
+/** Re-verifies one recorded Pyth print on chain. Idempotent per boundary: a live claim or a verified proof returns as is. */
+export async function replayPythProof(deps: ReplayDeps, input: { market: string; which: number }): Promise<ReplayOutcome> {
+  const step = await prepareReplay(deps, input);
+  return step.kind === "claimed" ? postPreparedReplay(deps, step.prepared) : step;
 }

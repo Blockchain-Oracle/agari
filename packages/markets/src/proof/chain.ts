@@ -34,6 +34,27 @@ export async function balanceLamports(rpcUrl: string, owner: string): Promise<bi
   return value;
 }
 
+/** The chain head and each account's `posted_slot` (null for an account that is gone or not a price update). */
+export async function postedSlots(rpcUrl: string, accounts: readonly string[]): Promise<{ headSlot: bigint; posted: Map<string, bigint | null> }> {
+  const rpc = rpcFor(rpcUrl);
+  const headSlot = await rpc.getSlot({ commitment: "confirmed" }).send(bounded());
+  const posted = new Map<string, bigint | null>();
+  for (let i = 0; i < accounts.length; i += 100) {
+    const chunk = accounts.slice(i, i + 100);
+    const { value } = await rpc.getMultipleAccounts(chunk.map((a) => address(a)), { encoding: "base64", commitment: "confirmed" }).send(bounded());
+    value.forEach((info, j) => {
+      let slot: bigint | null = null;
+      try {
+        if (info) slot = decodePriceUpdateV2(Uint8Array.from(Buffer.from(info.data[0], "base64"))).postedSlot;
+      } catch {
+        slot = null;
+      }
+      posted.set(chunk[j]!, slot);
+    });
+  }
+  return { headSlot, posted };
+}
+
 /** Every `PriceUpdateV2` the payer may close (its write authority), whether or not a stored proof names it. */
 export async function payerPriceUpdates(rpcUrl: string, payer: string): Promise<string[]> {
   const rows = await rpcFor(rpcUrl)

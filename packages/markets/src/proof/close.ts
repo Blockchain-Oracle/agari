@@ -1,15 +1,18 @@
 /**
  * Proof accounts stay open 24 h so anyone can read them on an explorer, then give their rent back (Q-S5-7). The
  * stored decode and the post signatures stay on the page after the close. Leftovers no verified row names (a run that
- * died between post and store) are closed too, unless a run is posting right now.
+ * died between post and store) are closed too, but only once their own `posted_slot` is past the same keep period and no
+ * run is posting: a store that does not know an account (another database, a fork) can never close a fresh proof.
  */
 import { closePythUpdates } from "../prices/legacy";
 import { keypairAddress } from "../sessions/keypair";
-import { payerPriceUpdates } from "./chain";
+import { payerPriceUpdates, postedSlots } from "./chain";
 import { POSTING_STALE_MS, redactError } from "./replay";
 import type { ProofStore } from "./store";
 
 export const PROOF_KEEP_SEC = 86_400;
+/** Slots target 400 ms and do not run faster than 300 ms, so `slots × 300 ms` never overstates an account's age. */
+const SLOT_MS_FLOOR = 300n;
 
 export interface CloseReport {
   closed: Array<{ boundarySec: number; feeds: string[]; addresses: string[]; signatures: string[] }>;
@@ -44,7 +47,13 @@ export async function closeProofAccounts(deps: { store: ProofStore; rpcUrl: stri
     return report;
   }
   const named = new Set(open.map((p) => p.priceUpdate));
-  const orphans = (await payerPriceUpdates(deps.rpcUrl, keypairAddress(deps.payerSecret))).filter((a) => !named.has(a));
+  const unnamed = (await payerPriceUpdates(deps.rpcUrl, keypairAddress(deps.payerSecret))).filter((a) => !named.has(a));
+  const { headSlot, posted } = unnamed.length > 0 ? await postedSlots(deps.rpcUrl, unnamed) : { headSlot: 0n, posted: new Map<string, bigint | null>() };
+  const keepSlots = (BigInt(olderThanSec) * 1000n) / SLOT_MS_FLOOR;
+  const orphans = unnamed.filter((a) => {
+    const slot = posted.get(a);
+    return slot !== null && slot !== undefined && headSlot - slot >= keepSlots;
+  });
   if (orphans.length > 0) {
     try {
       report.orphans = { addresses: orphans, signatures: await closePythUpdates({ rpcUrl: deps.rpcUrl, payerSecret: deps.payerSecret, addresses: orphans }) };

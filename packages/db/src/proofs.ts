@@ -135,7 +135,7 @@ export async function proofRows(sql: Sql, market: string, pythFeeds: Readonly<Re
     FROM idx_prints p
     JOIN idx_markets m ON m.market = p.market
     LEFT JOIN print_archive a ON a.boundary_sec = p.source_ts_sec AND (
-      (p.source = 1 AND a.source = 'pyth' AND a.feed = (${JSON.stringify(pythFeeds)}::jsonb ->> m.symbol)) OR
+      (p.source = 1 AND a.source = 'pyth' AND a.feed = (${sql.json({ ...pythFeeds })}::jsonb ->> m.symbol)) OR
       (p.source = 2 AND a.source = 'redstone' AND a.feed = m.symbol))
     LEFT JOIN print_proofs pr ON p.source = 1 AND pr.feed = a.feed AND pr.boundary_sec = p.source_ts_sec
     WHERE p.market = ${market}
