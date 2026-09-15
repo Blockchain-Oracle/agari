@@ -48,8 +48,12 @@ export function ReelsScreen() {
   const waiting = lanes.reading === null || nowMs === 0;
   const feed = useTakes(!waiting);
   const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? []), [rounds, feed]);
+  // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
+  // viewer reads when the market opens, then swipes into what people called.
+  const closedLabel = session && !session.open ? session.label : null;
+  const leading = closedLabel !== null && reel.length > 0 ? 1 : 0;
   const { register, isNear, activeIndex } = useActiveReel(scrollRef, reel.length);
-  useReelPosition(scrollRef, reel, activeIndex);
+  useReelPosition(scrollRef, reel, activeIndex, leading);
   const minuteMs = Math.floor(nowMs / MINUTE_MS) * MINUTE_MS;
 
   // The Take pill only makes sense once there is a live card to attach to — the
@@ -70,19 +74,22 @@ export function ReelsScreen() {
         ) : venue.venueId === null ? (
           <ReelHolding>{REELS.noVenue}</ReelHolding>
         ) : !hasReel ? (
-          <ReelHolding>{session && !session.open ? REELS.closed(session.label) : REELS.betweenRounds}</ReelHolding>
+          <ReelHolding>{closedLabel !== null ? REELS.closed(closedLabel) : REELS.betweenRounds}</ReelHolding>
         ) : (
-          reel.map((item, index) =>
-            item.kind === "market" ? (
-              <section key={item.market.marketId} ref={register(index)} className="feed-card reel-slot">
-                <ReelCard market={item.market} near={isNear(index)} closing={isClosing(reelPhase(item.market, nowMs))} />
-              </section>
-            ) : (
-              <section key={`take-${item.take.id}`} ref={register(index)} className="feed-card reel-slot">
-                <TakeReelCard take={item.take} nowMs={minuteMs} />
-              </section>
-            ),
-          )
+          <>
+            {closedLabel !== null && <ReelHolding>{REELS.closed(closedLabel)}</ReelHolding>}
+            {reel.map((item, index) =>
+              item.kind === "market" ? (
+                <section key={item.market.marketId} ref={register(index)} className="feed-card reel-slot">
+                  <ReelCard market={item.market} near={isNear(index)} closing={isClosing(reelPhase(item.market, nowMs))} />
+                </section>
+              ) : (
+                <section key={`take-${item.take.id}`} ref={register(index)} className="feed-card reel-slot">
+                  <TakeReelCard take={item.take} nowMs={minuteMs} />
+                </section>
+              ),
+            )}
+          </>
         )}
       </div>
 
@@ -99,7 +106,7 @@ export function ReelsScreen() {
               swipe sees one market and assumes that is the whole app. */}
           <div aria-hidden className="reel-hint" data-scrolled={scrolled}>
             <ChevronUpIcon size={20} strokeWidth={3} className="reel-hint-arrow" />
-            <span className="reel-hint-pill">{REELS.swipeHint}</span>
+            <span className="reel-hint-pill">{closedLabel !== null ? REELS.swipeTakes : REELS.swipeHint}</span>
           </div>
         </>
       )}

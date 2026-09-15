@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     console.warn(`[room] join ${room.roomId} ${address}: unreadable at ${cause.step}`);
     return refuse(ROOM_ERRORS.gateUnreadable, 503);
   }
-  if (!step) return refuse(ROOM_ERRORS.noPosition, 403);
+  if (!step) return refuse(room.kind === "ticker" ? ROOM_ERRORS.noTickerPosition : ROOM_ERRORS.noPosition, 403);
 
   // Which step admitted is the one fact worth keeping about a join: it says whether the registry, the index or
   // the chain is doing the work. Public data (index positions), so the wallet may be named.

@@ -1,5 +1,6 @@
 "use client";
 
+import type { TickerSymbol } from "@agari/core/market";
 import type { MarketId, Side } from "@agari/core/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
@@ -11,8 +12,11 @@ import { TAKES_FEED_LIMIT, takeMessage, type FeedTake, type TakesFeed } from "./
 const POLL_MS = 20_000;
 const KEY = ["masayume", "takes"] as const;
 
-async function fetchTakes(): Promise<TakesFeed> {
-  const response = await fetch(`/api/takes?limit=${TAKES_FEED_LIMIT}`);
+/** Masayume's key, with the ticker appended when the feed is one ticker's (social-assistant.md §4). */
+export const takesKey = (symbol?: TickerSymbol) => (symbol ? ([...KEY, symbol] as const) : KEY);
+
+async function fetchTakes(symbol?: TickerSymbol): Promise<TakesFeed> {
+  const response = await fetch(`/api/takes?limit=${TAKES_FEED_LIMIT}${symbol ? `&symbol=${symbol}` : ""}`);
   if (!response.ok) throw new Error(`takes ${response.status}`);
   return (await response.json()) as TakesFeed;
 }
@@ -20,12 +24,13 @@ async function fetchTakes(): Promise<TakesFeed> {
 /**
  * The community half of the reel. `null` until the first answer lands; a failed
  * refresh keeps the last feed on screen rather than dropping every take at once —
- * the reference's `.catch(() => {})` on reload, made explicit.
+ * the reference's `.catch(() => {})` on reload, made explicit. With a `symbol`, only
+ * the takes filed under that ticker's cashtag.
  */
-export function useTakes(enabled: boolean): TakesFeed | null {
+export function useTakes(enabled: boolean, symbol?: TickerSymbol): TakesFeed | null {
   const query = useQuery({
-    queryKey: KEY,
-    queryFn: fetchTakes,
+    queryKey: takesKey(symbol),
+    queryFn: () => fetchTakes(symbol),
     enabled,
     refetchInterval: POLL_MS,
     refetchIntervalInBackground: false,
@@ -72,6 +77,7 @@ export function usePostTake(): PostTake {
           return null;
         }
         queryClient.setQueryData<TakesFeed>(KEY, (prior) => ({ configured: true, takes: [body.take!, ...(prior?.takes ?? [])] }));
+        // The prefix refreshes every ticker's feed too, since the new take may be filed under any of them.
         void queryClient.invalidateQueries({ queryKey: KEY });
         return body.take;
       } catch (cause) {

@@ -64,6 +64,7 @@ export const ROOM_ERRORS = {
   staleSignature: "That signature has expired. Try joining again.",
   badSignature: "That signature doesn't match the wallet.",
   noPosition: "No position on this Window for that wallet. The Room is bettors only.",
+  noTickerPosition: "That wallet hasn't traded a Window of this stock. The Room is bettors only.",
   gateUnreadable: "Couldn't read your position from the chain just now, so the Room stayed shut. Try again in a moment.",
   notJoined: "Your Room session has expired. Join again to keep reading.",
   postFailed: "That didn't post. Try again.",

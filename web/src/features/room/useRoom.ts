@@ -60,17 +60,21 @@ export function useRoom(marketId: RoomId | null, open: boolean): Room {
   // The registry's and the index's "ever bet" — the server's first two gate steps, so a bettor who sold out or
   // whose Window settled still reads as joinable. A boost, a private bet or a Trading Balance bet can only ever
   // get this answer, since none of them leave tokens in the wallet.
-  const [seat, setSeat] = useState<boolean | null>(null);
+  // Kept with the wallet and Room it answers for, so switching to the ticker's Room never borrows the Window's yes.
+  const [seatAnswer, setSeatAnswer] = useState<{ key: string; hasBet: boolean | null } | null>(null);
+  const seatKey = `${address}:${marketId}`;
+  const seat = seatAnswer?.key === seatKey ? seatAnswer.hasBet : null;
   useEffect(() => {
     if (!open || !address || !marketId) return;
     let alive = true;
+    const key = `${address}:${marketId}`;
     void fetch(`/api/room/bet?marketId=${encodeURIComponent(marketId)}&address=${encodeURIComponent(address)}`)
       .then((response) => response.json() as Promise<{ hasBet?: boolean | null }>)
       .then((body) => {
-        if (alive) setSeat(body.hasBet ?? null);
+        if (alive) setSeatAnswer({ key, hasBet: body.hasBet ?? null });
       })
       .catch(() => {
-        if (alive) setSeat(null);
+        if (alive) setSeatAnswer({ key, hasBet: null });
       });
     return () => {
       alive = false;

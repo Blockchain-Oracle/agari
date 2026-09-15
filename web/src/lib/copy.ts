@@ -236,6 +236,8 @@ export const REELS = {
   closed: (label: string) => `the stock market is closed · ${label}.`,
   noVenue: "no live venue to read right now.",
   swipeHint: "Swipe up for the next market",
+  /** Off-hours the reel below the closed card is takes alone. */
+  swipeTakes: "Swipe up for the latest takes",
   /** The right-rail pill (reference L321–330): icon + label, opens the composer. */
   take: "Take",
   postTake: "Post a take",

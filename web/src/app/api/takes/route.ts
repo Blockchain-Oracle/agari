@@ -1,7 +1,7 @@
 import { isTickerSymbol } from "@agari/core/market";
 import { isAddress } from "@agari/core/types";
 import { insertTake, isDbConfigured, listTakes, type TakeRecord, type TakesQuery } from "@agari/db";
-import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@agari/markets";
+import { ensureMarkets, marketsProvider } from "@agari/markets";
 import { secToMs } from "@agari/core/units";
 import { NextResponse } from "next/server";
 import { GateUnreadableError, holdsPosition } from "@/features/room/gate.server";
@@ -10,6 +10,7 @@ import { parseCashtags } from "@/features/takes/cashtags";
 import { TAKE_ERRORS } from "@/features/takes/copy";
 import { TAKE_SIGNATURE_TTL_MS, TAKES_AUTHORS_MAX, TAKES_FEED_LIMIT, TAKES_PAGE_MAX, takePostRequestSchema, type FeedTake, type TakesFeed } from "@/features/takes/protocol";
 import { verifyTakeSignature } from "@/features/takes/verify.server";
+import { webEnv } from "@/lib/env";
 
 /**
  * The take board — the reference's `take_board::post_take` and its `TakePosted`
@@ -93,7 +94,8 @@ export async function POST(req: Request) {
 
   // The Window's facts come from the venue, never from the request body — a client
   // that could name its own line could post a call about a number that never printed.
-  ensureMarkets(parseMarketsEnv());
+  // The web's own env (indexer, RPC, venue): a bare `parseMarketsEnv()` has no indexer, and the Window read is an index read.
+  ensureMarkets(webEnv.markets);
   const reading = await marketsProvider.getMarket(marketId);
   if (!reading.ok) return refuse(TAKE_ERRORS.gateUnreadable, 503);
   const market = reading.value;
