@@ -6,7 +6,9 @@
   "sideEffects": false,
   "exports": {
     "./agari-events": "./agari-events/src/generated/index.ts",
-    "./agari-events/idl.json": "./agari-events/idl.json"
+    "./agari-events/idl.json": "./agari-events/idl.json",
+    "./agari-vault": "./agari-vault/src/generated/index.ts",
+    "./agari-vault/idl.json": "./agari-vault/idl.json"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
