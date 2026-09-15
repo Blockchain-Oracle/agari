@@ -27,7 +27,10 @@
       "sbpfArch": "v0",
       "soBytes": 519296,
       "soSha256": "b6eab3a1776b283440d701a87fdb095106cb6c454cb6779249087f030cde61af",
-      "sourceCommit": "9adaf66"
+      "sourceCommit": "9adaf66",
+      "seat": "H767WASSs2TXBBYwcVunaN2kfFbQ8CWTLWdZB9nP8k8",
+      "config": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb",
+      "initSignature": "2WRP4Lg3tS2JfCoL2DxVRS2gjDkBxbza3okaDu4143PgtRZuP7XCFoHbeSXNmWQV3YFqJEFUUAbcihi2tcNB554f"
     }
   },
   "venue": {
