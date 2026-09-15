@@ -44,7 +44,7 @@
     - Anchor 1.2 `Option<AccountLoader>` and `declare_program!`.
   - **Invariant:** `session-key-non-extractable` (`optional: true` until the files exist).
   - **User:** devnet SOL for the deployer (≈ 5.5 SOL; Handoff).
-- [ ] 7a.1 IDL freeze: every vault accounts struct, arg, zero-copy layout (offset and size asserts), event and error builds with `NO_DNA=1 anchor build --arch v0`. Stage owner: `pnpm codegen` → `@agari/clients/agari-vault` (D-025); `idl-no-destination` and `program-id-drift` green.
+- [x] 7a.1 IDL freeze: every vault accounts struct, arg, zero-copy layout (offset and size asserts), event and error builds with `NO_DNA=1 anchor build --arch v0`. Stage owner: `pnpm codegen` → `@agari/clients/agari-vault` (D-025); `idl-no-destination` and `program-id-drift` green.
 - [ ] 7a program:
   - handlers per vault.md §3;
   - LiteSVM `vault_caps` (10 vectors), `vault_funding`, `vault_trading` (AD-5, WindowPredatesVault, seat invariant, Ledger closes after cranks);
@@ -59,7 +59,7 @@
   - session-key session `{ keyPair }`;
   - vault event decoder, index tables and tally route, settler crank helper;
   - Surfpool fork proofs (tap-trading.md §6), policy vitests.
-- [ ] 7c web:
+- [x] 7c web:
   - session key v2 store and one-transaction enable;
   - `/api/sponsor` GET/POST on the policy, with P-11 gating;
   - fee rows from the real key balance;
@@ -67,6 +67,7 @@
   - Solana copy (`VAULT.notDeployed.how`, how-it-works cash-out answer);
   - dev fixtures;
   - checked against masayume.app.
+  - Merged f11ff6d (18 sponsor/key-signer vitests, build green). The sponsor policy lives in `web/src/features/session/sponsor/` until 7b lifts it; the invariant is no longer optional. Top-up writes: `vault-grant.keyTopUpLamports?` and `vault-key-top-up` (7b adapts both).
 - [ ] Deploy (stage owner):
   - `solana program deploy` `--arch v0` binary;
   - IDL metadata (D-026);
