@@ -14,6 +14,7 @@ import type { VenueDeps } from "../../runtime/deps";
 import { errorText } from "../../runtime/env";
 import { spanOf, type PlanClock, type SeriesPlan } from "./plan";
 import { planByBasis } from "./plan-basis";
+import { gapSpanOf } from "./plan-gap";
 import { describeVersion, versionWindow } from "./versions";
 
 export interface RollerSettings {
@@ -43,6 +44,8 @@ const LEDGER_MAX_SEATS = 1_024;
 const SWEEPS_PER_BOOK = 8;
 
 export const seriesKey = seriesLaneKey;
+/** A Gap spans days, so its log span carries dates (`09-18 20:00Z–09-21 13:30Z`). */
+const spanFor = (s: SeriesView, w: { tradingStartSec: number; expirySec: number }) => (seriesBasis(s) === "gap" ? gapSpanOf(w) : spanOf(w));
 
 async function refreshSeries(state: RollerState): Promise<void> {
   if (Date.now() - state.seriesListedMs >= SERIES_LIST_MS) {
@@ -169,8 +172,8 @@ async function open(state: RollerState, s: SeriesView, clock: PlanClock, notes: 
     });
     state.counters.opened++;
     const version = describeVersion(plan.policyVersion, versionWindow(fresh.data.policyVersions[plan.policyVersion]!));
-    notes.push(`opened ${key} #${plan.index} ${spanOf(w)} ${version} ${opened.signature}`);
-    return `open #${plan.index} ${spanOf(w)} ${version}`;
+    notes.push(`opened ${key} #${plan.index} ${spanFor(fresh, w)} ${version} ${opened.signature}`);
+    return `open #${plan.index} ${spanFor(fresh, w)} ${version}`;
   } catch (error) {
     if (isCode(error, ENGINE_ERROR.badWindowIndex, ENGINE_ERROR.windowOverlap)) return "already opened: re-reading";
     state.counters.failed++;
@@ -184,7 +187,7 @@ function currentState(s: SeriesView, bound: Bound[], nowSec: number): string | n
   const m = live.at(-1)?.market.data;
   if (!m) return null;
   const version = describeVersion(m.policyVersion, versionWindow(s.data.policyVersions[m.policyVersion]!));
-  return `open #${m.index} ${spanOf({ tradingStartSec: Number(m.tradingStart), expirySec: Number(m.expiry) })} ${version}`;
+  return `open #${m.index} ${spanFor(s, { tradingStartSec: Number(m.tradingStart), expirySec: Number(m.expiry) })} ${version}`;
 }
 
 export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<PassResult> {

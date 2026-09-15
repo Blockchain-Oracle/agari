@@ -38,6 +38,11 @@ path = "events_redeem.rs"
 name = "events_closure"
 path = "events_closure.rs"
 
+# S6 lane 6a: the real 09-11 → 09-14 Monday Gap replay and the lock race (session-lanes.md §1.6).
+[[test]]
+name = "events_gap"
+path = "events_gap.rs"
+
 # S6 lane 6c: a halted Pyth feed gives no print and the Window voids (session-lanes.md §3).
 [[test]]
 name = "events_halt_void"
