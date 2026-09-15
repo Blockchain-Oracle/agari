@@ -54,6 +54,7 @@ fn run(v: &Value) {
         max_daily_spend: raw(&c["maxDailySpend"]),
         max_open_positions: u32::try_from(raw(&c["maxOpenPositions"])).unwrap(),
         max_price_ticks: u16::try_from(raw(&c["maxPriceRaw"]) / RAW_PER_UNIT).unwrap(),
+        ..CapsArgs::default()
     };
     let expired = v["expired"].as_bool().unwrap();
     let now = vw.h().now();

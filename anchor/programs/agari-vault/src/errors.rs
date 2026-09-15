@@ -50,6 +50,8 @@ pub enum VaultError {
     ActiveGrantMismatch = 1113,
     #[msg("grant id is not the next grant id")]
     StaleGrantId = 1114,
+    #[msg("grant is scoped to another Window")]
+    GrantMarketMismatch = 1115,
 
     // 7200 trading and settlement
     #[msg("market, series, book or ledger is not a bound agari-events Window")]
