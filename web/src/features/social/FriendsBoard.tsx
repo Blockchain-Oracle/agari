@@ -72,7 +72,8 @@ function Cell({ friend, side, decimals }: { friend: Friend | undefined; side: "e
 export function FriendsBoard() {
   const { address } = useWalletSession();
   const follows = useFollows(address);
-  const board = useLeaderboard();
+  // The venue day, as S5's own Friends tab reads it (`LeaderboardBoard.tsx` VENUE_DAY).
+  const board = useLeaderboard({ period: "24h", ticker: null });
   const data = board?.ok ? board.value : null;
   const words = SOCIAL.friends;
 
