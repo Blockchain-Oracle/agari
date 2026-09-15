@@ -67,7 +67,15 @@ Every individual transaction — including the ones above that summarize several
 | `agari-vault` | [`84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9`](https://explorer.solana.com/address/84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9?cluster=devnet) | Trading Balance and bounded grants. Deployed and initialised on 2026-09-15 (519,296 B, dump sha256 `b6eab3a1…0cde61af` equals the local build). |
 
 - **IDL: on-chain** through Program Metadata: `agari-events` [`97VcCVSs…`](https://explorer.solana.com/address/97VcCVSsLZ22ES2XtkSYWsgyoz7jwTQtLDgdSHML5JRH?cluster=devnet), `agari-vault` [`54LqFBmc…`](https://explorer.solana.com/address/54LqFBmc51qe2KsuHGUTwgAbA1qgdqzfgZhr5FXKBhDS?cluster=devnet). Both fetch back equal to `anchor/target/idl/*.json` of the deployed build.
-- **Verifiable build: pending (`D-096`)** — `anchor build --verifiable` for both programs, with the deployed binaries' sha256, the exact build command and explorer links recorded here once it reproduces the deployed bytes (or the measured hash and toolchain, honestly, if it doesn't reproduce before the deadline).
+- **Verifiable build: not reproduced yet (`D-096`).** The deployed programs were built on the host, and their dumped on-chain bytes equal these files:
+  - Command: `NO_DNA=1 anchor build --arch v0`, with anchor-cli 1.2.0, solana-cli 3.1.10 and platform-tools v1.52.
+  - `agari-events`: 813,328 B, sha256 `2e4bf8cce4ceffb8387496f37752cb41a18edeb47e3cd911e241579f2efc54fe`.
+  - `agari-vault`: 519,296 B, sha256 `b6eab3a1776b283440d701a87fdb095106cb6c454cb6779249087f030cde61af`.
+- **The same source through the verifiable image gives different bytes, because the toolchain differs:**
+  - Command: `NO_DNA=1 anchor build --verifiable --arch v0`, in `quay.io/ottersec/anchor:v1.2.0@sha256:54e9bbc858586177159b136ba757d52a84832f2fe98e64224a4e104f71cfbb4d`, with solana-cli 4.1.2, cargo-build-sbf 4.1.0 and platform-tools v1.54.
+  - `agari-events`: 812,784 B, sha256 `2afce01c0b65f5c9cd8cb0f55a00d6a1350af5b72934e0db4074b9bff44c4a2c`.
+  - `agari-vault`: 520,256 B, sha256 `ddf4e64890aa15467e0aa4f35ef8b739a73f9ed991f04b34c3aba17f2e677724`.
+  - Redeploying the verifiable build and uploading its verification is planned for S17.
 
 Venue config: [`42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3`](https://explorer.solana.com/address/42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3?cluster=devnet). tUSDC mint: [`5i61C4kHUGjRiRoeSuRXY49bkpyCaHq5FYBjT8q82DpA`](https://explorer.solana.com/address/5i61C4kHUGjRiRoeSuRXY49bkpyCaHq5FYBjT8q82DpA?cluster=devnet). The full Series and order-book map is [`scripts/deploy/addresses.devnet.json`](scripts/deploy/addresses.devnet.json).
 
