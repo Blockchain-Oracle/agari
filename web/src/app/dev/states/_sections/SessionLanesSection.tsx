@@ -20,7 +20,7 @@ import { fixtureGapWindow } from "../../fixture-window";
 import { CLOCK, fixtureSession, HALTS } from "../../session/market-session-fixtures";
 import { VERDICT_FIXTURES } from "../../verdict/fixtures";
 import { SYMBOL } from "../fixtures";
-import { GAP_CARDS, GAP_LISTED, PAUSED_CARDS, PAUSED_UPCOMING, REGULAR_SETTLED, REGULAR_TRADING, REGULAR_UPCOMING, TOKEN_CARD, TOKEN_WINDOW, VOID_FIXTURES, type CardFixture } from "../lane-fixtures";
+import { GAP_CARDS, GAP_LISTED, PAUSED_CARDS, PAUSED_UPCOMING, REGULAR_SETTLED, REGULAR_TRADING, TOKEN_CARD, TOKEN_WINDOW, VOID_FIXTURES, type CardFixture } from "../lane-fixtures";
 import { Fixture, FixtureGrid } from "./Fixture";
 
 const noop = () => undefined;
@@ -29,14 +29,15 @@ const TAB_LANES: Lane[] = [lane("regular", 300, [REGULAR_TRADING]), lane("regula
 const QQQ_GAP_LISTED = fixtureGapWindow({ marketId: GAP_LISTED.marketId, asset: "QQQ", decimals: 6, status: "Listed" });
 const NVDA_GAP = fixtureGapWindow({ marketId: GAP_LISTED.marketId, asset: "NVDA", decimals: 6, openingPriceRaw: 21_128_480_000n });
 
-/** A Window read by the ticket's lane guard at a clock, as the live ticket reads it. */
+/**
+ * A Window read by the ticket's lane guard at a clock, as the live ticket reads it. A listed Window before its open is
+ * no lane blocker since D-088 (the ticket schedules a call instead), so the pre-open and Gap-listed rows are gone.
+ */
 const BLOCKERS = [
-  { label: "session-closed — before the open", market: REGULAR_UPCOMING, nowSec: CLOCK.preTue, session: fixtureSession(CLOCK.preTue) },
   { label: "session-closed — a settled Window after the close", market: REGULAR_SETTLED, nowSec: CLOCK.postTue, session: fixtureSession(CLOCK.postTue) },
   { label: "halted — pyth-wide", market: REGULAR_TRADING, nowSec: CLOCK.regularTue, session: fixtureSession(CLOCK.regularTue, { halts: HALTS, asset: "TSLA" }) },
   { label: "halted — pyth-stale (Q-S6-9)", market: REGULAR_TRADING, nowSec: CLOCK.regularTue, session: fixtureSession(CLOCK.regularTue, { halts: { TSLA: { reason: "pyth-stale", sinceSec: CLOCK.regularTue - 20 } }, asset: "TSLA" }) },
   { label: "lane-paused — QQQ Gap with no signed source", market: QQQ_GAP_LISTED, nowSec: CLOCK.listedWed, session: fixtureSession(CLOCK.listedWed) },
-  { label: "gap-listed — TSLA Gap before Friday's close", market: GAP_LISTED, nowSec: CLOCK.listedWed, session: fixtureSession(CLOCK.listedWed) },
   { label: "corporate-action — NVDA split day", market: PAUSED_UPCOMING, nowSec: CLOCK.regularTue, session: fixtureSession(CLOCK.regularTue) },
   { label: "halted — TSLAx issuer halt on the weekend token lane", market: TOKEN_WINDOW, nowSec: CLOCK.weekendSat, session: fixtureSession(CLOCK.weekendSat, { halts: HALTS, asset: "TSLAx" }) },
 ];

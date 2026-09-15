@@ -25,6 +25,8 @@ export const keys = {
   holdings: (wallet: string | null, marketId: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet, "holdings", marketId] as const,
   /** The wallet's resting calls (D-088), under its positions so `invalidateAfterWrite` refreshes them too. */
   restingOrders: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet, "resting"] as const,
+  /** A Series' grid facts (lot, tick, cash unit, min lots, seat bond): fixed at registration, so one read holds (D-088). */
+  series: (address: string | null) => [QUERY_KEY_SCOPE, APP, "series", address] as const,
   claimables: (wallet: string | null, venueId: Address | null) => [QUERY_KEY_SCOPE, APP, "claimables", wallet, venueId] as const,
   /** The fill projection: settled rounds, equity, stats — one key, so a claim or an order refreshes all of it. */
   history: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "history", wallet] as const,

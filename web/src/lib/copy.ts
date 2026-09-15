@@ -305,3 +305,4 @@ export const BALANCE = {
 export { CLAIM, VERDICT_UI } from "./copy-verdict";
 export { LANE_STATE } from "./copy-lanes";
 export { TICKET, TICKET_PENDING } from "./copy-ticket";
+export { PREOPEN } from "./copy-preopen";
