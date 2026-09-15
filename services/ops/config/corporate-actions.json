@@ -1,7 +1,10 @@
 {
   "_doc": [
-    "Split-day skip list for window-roller (plan §4, venue-ops.md §5.2). A skip pauses every Regular Window of that ticker on that ET date ('paused: corporate action').",
-    "Shape: { \"symbol\": \"TSLA\", \"date\": \"YYYY-MM-DD\" (ET), \"why\": \"3-for-1 split\" }. S6 owns the source of these entries."
+    "Corporate actions (session-lanes.md §3.4, D-057), read by services/ops/src/runtime/session-events.ts and re-read when this file changes (no restart). A malformed entry is dropped and listed in the heartbeat.",
+    "skips[]: { \"symbol\": \"TSLA\", \"date\": \"YYYY-MM-DD\" (ET), \"why\": \"3-for-1 split\", \"lanes\": [\"regular\", \"gap\", \"token\"] (optional; omitted = every lane) }. Core skipApplies: a Regular Window matches on its start's ET date, a Gap on its Friday or its Monday (start or expiry ET date), a token Window on either boundary's ET date. A match pauses that lane: 'paused: corporate action (<why>)'.",
+    "multipliers[]: { \"xstock\": \"TSLAx\", \"effectiveSec\": <unix seconds>, \"from\": \"1\", \"to\": \"3\", \"why\": \"TSLAx 3-for-1 multiplier\" }. Decimals stay strings exactly as the issuer publishes them. Core multiplierApplies: the token lane skips a Window whose (tradingStart, expiry] contains effectiveSec.",
+    "Entries are proposed by `pnpm exec tsx scripts/drive/corporate-check.ts` (xStocks multiplier API, Finnhub splits) and committed by a person; nothing writes this file automatically."
   ],
-  "skips": []
+  "skips": [],
+  "multipliers": []
 }
