@@ -1,0 +1,31 @@
+---
+title: "Wallet and devnet funds"
+description: "Connect a Wallet Standard wallet, get devnet SOL and tUSDC, and recover from a stuck connection."
+---
+
+Agari connects through the **Wallet Standard**, the shared interface Phantom, Solflare and Backpack all implement — there is no embedded/social-login wallet and no separate connector package per wallet. Connecting one of these on the header's **Connect** button is the same flow every time: approve the connection, then approve individual transactions as you place orders.
+
+## Which wallets work
+
+Phantom is the wallet used in the app's own first end-to-end devnet test, and is the one most contributors run day to day. Solflare and Backpack implement the same standard and are expected to work the same way; if one behaves differently, that's worth reporting rather than assuming.
+
+## Wrong network
+
+Agari trades on **Solana devnet**, not mainnet. If your wallet is set to mainnet or another cluster, switch it to devnet before connecting — the app reads whatever cluster your wallet is currently on and will show balances or a connection state that doesn't match what you expect otherwise.
+
+## Devnet SOL and tUSDC
+
+Two different things pay for two different jobs:
+
+- **Devnet SOL** pays Solana network fees. It has no value; it exists only so your wallet can sign and send transactions on devnet.
+- **tUSDC** is Agari's devnet test collateral — a 6-decimal SPL token minted by a faucet authority with no freeze authority, used to size every call, ticket and pre-open order.
+
+Use **Get test funds** in the header or Portfolio to request both in one flow. If a claim doesn't land, check <AppLink href="/status">Status</AppLink> for the faucet role's health before retrying — devnet faucets are rate-limited per wallet.
+
+## Disconnecting and switching accounts
+
+Disconnect from the same account menu you connected from. Switching accounts in your wallet extension while connected should be picked up automatically; if the app still shows the old address, reconnect explicitly.
+
+## If a signature prompt never resolves
+
+A hung prompt is usually the wallet extension, not the app. Close the prompt, refresh, and try again before assuming an order was placed — a wallet signature alone does not mean an order filled; check <AppLink href="/portfolio">Portfolio</AppLink> or the transaction's explorer link for the actual result.

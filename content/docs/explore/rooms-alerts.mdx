@@ -1,0 +1,14 @@
+---
+title: "Rooms and price alerts"
+description: "Who can speak in a Window's Room, and how a price alert actually watches."
+---
+
+## The Room
+
+Each Window (and each ticker) has a Room, but only wallets with a real position in it can speak. The app checks, in order: does this wallet hold a position on this Window right now (read from the index), and separately, has it "ever bet" here (a registry/seat check) — either one unlocks joining with a single wallet signature. A wallet with no position sees the Room as locked, not hidden: it can see that a Room exists, just not post into it.
+
+## Price alerts
+
+An alert watches a ticker's live price while your browser tab is open — it's a client-side watcher, not a server-side push. It fires only on a fresh tick (published within the last minute) inside today's regular session, so a stale or after-hours print never triggers a rule. When it fires, you get an in-app toast, and — if you've granted the browser's notification permission — a system notification too.
+
+Because the watch runs in your browser, an alert doesn't fire while the tab is closed. If you need to know a stale reading exists at all, <AppLink href="/status">Status</AppLink> and the market's own "last close · as of …" label are the honest always-on signal; alerts are a convenience on top of an open tab, not a background service.

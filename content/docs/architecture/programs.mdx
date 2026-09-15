@@ -1,0 +1,36 @@
+---
+title: "The programs"
+description: "agari-events and agari-vault: what each one owns and enforces."
+---
+
+Agari runs two Anchor programs on Solana devnet.
+
+| Program | Program id | Status |
+| --- | --- | --- |
+| `agari-events` | `cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH` | Deployed (SBPF v0, sha256 `310e14d7…c44309`); IDL published |
+| `agari-vault` | `84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9` | Program id reserved; deploy is a pending devnet upgrade sequence as of this snapshot |
+
+A verifiable build (matching the deployed bytes to this source) and an on-chain IDL for both programs are planned after that upgrade sequence; until then, take "deployed" as devnet fact and treat any build-hash claim as pending.
+
+## `agari-events` — the order book
+
+Every order carries one of four kinds: `BUY_YES`, `SELL_YES`, `BUY_NO`, `SELL_NO`. Price is always in YES ticks. A fill executes at the resting (maker) order's price, and lands one of four ways:
+
+| Cross | What happens |
+| --- | --- |
+| `BUY_YES` × `SELL_YES` | A direct Yes trade — Yes ownership moves from seller to buyer. |
+| `SELL_NO` × `BUY_NO` | A direct No trade. |
+| `BUY_YES` × `BUY_NO` | A complete Yes/No pair is minted; both buyers pay in. |
+| `SELL_NO` × `SELL_YES` | A complete pair is burned; both sellers are paid out. |
+
+All four pay out exactly the same way at settlement — the fill path only changes who ends up on the other side of a trade, never the payout rule.
+
+**Order types:** Normal rests if it doesn't fully fill. IOC and FOK never rest — IOC takes what it can and cancels the rest, FOK reverts unless it fills completely. PostOnly never takes; it only rests, which is what makes a [pre-open call](/trading/pre-open-calls) possible before a Window is even open for trading.
+
+**A Window's lifecycle:** Listed → Trading → Locked → Resolved or Voided. Listed allows only PostOnly orders (a pre-open call can rest, but no one can take it yet). Locked allows cancels only. Resolved means a signed price settled it; Voided means it returned 0.5/0.5 as credit instead — see [halts and voids](/trading/halts-and-voids).
+
+**Settlement rule:** the closing print at or above the opening print pays Up; otherwise Down. Ties go to Up. A stock's price ticks to the cent, so an exact tie is more common than on a continuous asset — this is a deliberate, disclosed rule, not an edge case someone forgot.
+
+## `agari-vault` — Trading Balance and grants
+
+`agari-vault` holds a Trading Balance and issues bounded grants: a session key can be scoped to a spending cap per trade, a daily cap, and an open-position cap, so tap-trading (several orders with zero wallet popups after one setup signature) never exceeds what the user actually authorized. See [balances](/trading/balances) for what this looks like day to day, and [what's available](/help/availability) for whether it's live in your snapshot of the app.

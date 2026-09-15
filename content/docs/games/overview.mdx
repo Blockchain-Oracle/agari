@@ -1,0 +1,16 @@
+---
+title: "Games — after the hackathon"
+description: "Practice, Duel, Lucky Draw, Line Rider, Candle Hop and Moonshot are ported code, not a live Solana program."
+---
+
+Masayume shipped seven game modes on top of its own market contracts. Agari's port carries the same code across (`packages/core/src/games`, `packages/markets/src/games`, `web/src/features/games`) — the swipe mechanics, matchmaking, commit-reveal scoring and arcade rendering all exist in this tree — but the on-chain piece each mode needs (`agari-arena` and the reserves that back Duel pots, Lucky Draw payouts and Moonshot rounds) is part of Stage 12, which is deferred past the 2026-09-18 hackathon deadline alongside Earn, agents, specialist tickets and X trading (`D-084` in the main Agari tree's `docs/plan/decisions.md`). Building a real Solana devnet trading venue — the order book, price verification and settlement this week's deadline is judged on — took priority over the games layer.
+
+## What that means today
+
+- The app's `/games` routes render honestly: they say a mode is not live rather than pretending to accept a stake.
+- Nothing here is broken or half-wired; the game code simply has no deployed program to place a real order against yet.
+- Practice-style, no-stake play (swiping a live Window card) is the mode closest to needing no new on-chain work, so it is the most likely to return first after the deadline.
+
+## Where to go instead
+
+The market itself — the part these games all wrap — is live: read [Your first call](/trading/first-trade) and [Sessions and lanes](/trading/sessions-and-lanes) for what you can actually do on Agari today.

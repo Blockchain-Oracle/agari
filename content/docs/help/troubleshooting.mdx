@@ -1,0 +1,28 @@
+---
+title: "Troubleshooting"
+description: "Common problems and what they actually mean."
+---
+
+## The app shows a wrong-network state
+
+Your wallet is set to a cluster other than **Solana devnet**. Switch it to devnet in the wallet extension, not in the app.
+
+## The faucet claim didn't land
+
+Devnet faucets are rate-limited per wallet (about once per rolling 24 hours for SOL) and share a small daily allocation. If the app's own faucet is exhausted, use `faucet.solana.com` for devnet SOL directly, then retry the tUSDC mint. Check <AppLink href="/status">Status</AppLink> for the faucet role's health before assuming it's broken.
+
+## A transaction's outcome is unclear
+
+A wallet popup confirming a signature is not the same as a confirmed fill. Check the transaction on a devnet explorer, or wait for the app's own result in Portfolio, before retrying — retrying an order that actually landed can produce a second, unwanted fill.
+
+## A Window shows "paused: no signed source"
+
+This is expected, not a bug. A Series only lists a Window when a registered price policy version covers both its opening and closing boundary. If none does (for example, after the Pyth trial ends and before a replacement source is added for QQQ/VOO), the lane pauses honestly rather than trading on an unverified price.
+
+## A Window voided instead of settling
+
+Either a required print never arrived within its admission window (`MissingPrint`), or, for TSLA, its two price sources disagreed beyond the allowed threshold (`CrossCheckDivergence`). Either way your stake returns as credit — see [halts and voids](/trading/halts-and-voids). This is not a lost trade.
+
+## A feature seems to be missing entirely
+
+Check [what's available](/help/availability) — several features (Earn, Range, Boost, Parlay, Private, agents, trade-from-X, the games programs) are deferred past the hackathon deadline and render an honest "not live" state rather than a broken one.

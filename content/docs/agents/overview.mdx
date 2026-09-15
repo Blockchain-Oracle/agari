@@ -1,0 +1,16 @@
+---
+title: "Agents and strategies — after the hackathon"
+description: "Publishing, copying and the Sensei-adjacent strategy runner are deferred past the 2026-09-18 deadline."
+---
+
+Masayume let a trader publish a strategy (rule-based Momentum, or a model-backed AI Agent) and let others copy it under a bounded, revocable spending grant. Agari's plan carries the same shape forward — `agari-strategy` for the registry, `agari-vault`'s `Grant` for the bounded permission a copier signs — but Stage 9 (agents) is deferred past the 2026-09-18 hackathon deadline, alongside Earn, specialist tickets, X trading and the games programs (`D-084` in the main Agari tree's `docs/plan/decisions.md`). The `agari-strategy` program has not been written or deployed for Agari.
+
+## What that means today
+
+- The app's `/agents` and `/strategies` routes render honestly: no listed strategies, no copy flow, no runner.
+- `agari-vault`'s `Grant` account already has the shape a future copy-trading grant would use (money caps, expiry, an actor pubkey, a per-market scope added ahead of the vault's first deploy per `D-091`) — the permission model exists in the program even though the strategy layer built on top of it does not yet.
+- **Not investment advice.** When agents do ship, a copied strategy will still be the copier's own decision under a permission they granted and can revoke; nothing here will place a trade a wallet did not authorize.
+
+## Where to go instead
+
+[Ask Sensei for a read](/explore/sensei) — Agari's assistant is live today, gives a stock- and position-aware read, and hands a trade card to the ticket rather than acting on its own.

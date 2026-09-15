@@ -1,0 +1,16 @@
+---
+title: "For builders — after the hackathon"
+description: "A full local-setup, services, contracts, API and self-host reference is deferred; a repository does not exist yet either."
+---
+
+Masayume's builders section carried eight pages: local setup, running services, the DreamDEX SDK integration guide, the API reference, self-hosting an agent runner, configuration and the docs-site maintenance guide itself. Agari's equivalents exist in the main tree today — `CLAUDE.md`'s gates, the root `README.md`'s "Run locally" and "Architecture" sections, `.env.example` files with variable names (never values) — but there is no separate builder-facing reference site yet, and no public repository to point a builder at (`Q-007` in the main Agari tree's `docs/plan/decisions.md`).
+
+## What exists today
+
+- The root `README.md` in the main Agari tree covers running the app locally, the fast gate (`pnpm typecheck && pnpm invariants`), the web build, and the program build (`NO_DNA=1 anchor build --arch v0`).
+- [How it fits together](/architecture/overview) covers the same four-layer boundary a builder would need before touching the code: the web app, `packages/core`, `packages/markets` (the only package that imports `@solana/*` and sends transactions), and `services/ops`.
+- [Programs](/architecture/programs), [Ops and indexer](/architecture/ops-and-indexer) and [Price sources](/architecture/price-sources) describe the on-chain and off-chain pieces a builder would integrate against.
+
+## Not yet
+
+A dedicated API reference, a self-host guide for running your own price-relay or strategy runner, and a maintained integration guide for `agari-events`/`agari-vault` clients are not written yet. When a public repository exists, this page is where that reference will grow.

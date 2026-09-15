@@ -1,0 +1,27 @@
+---
+title: "How Agari fits together"
+description: "The programs, the app and the off-chain actors behind each action."
+---
+
+Agari brings a stock Up/Down prediction market to Solana devnet as a source-led port of Masayume. A call, a claim and a settled Window all depend on the same on-chain venue; everything else — the web app, the price feed, the roller — is a thin layer around it.
+
+## The four parts
+
+| Part | What it does |
+| --- | --- |
+| The web app | Shows Windows and prices, explains the ticket, connects your wallet and displays receipts. It holds no funds and no signing key of its own. |
+| `agari-events` | The order-book Anchor program: matching, the book, settlement. Every trade, fill and payout is a transaction against this program. See [Programs](/architecture/programs). |
+| `agari-vault` | Trading Balance and bounded grants for tap-trading. Deploy is pending a devnet upgrade sequence as of this snapshot — see [Programs](/architecture/programs) for its exact status. |
+| `services/ops` | The always-on off-chain actors: a window-roller, a price-relay, a settler/halt-watch, a market-maker and an indexer, run as one process with a single writer per role key. See [Ops and the indexer](/architecture/ops-and-indexer). |
+
+## Reading is separate from signing
+
+Reading a price, a book or a Window's status needs no account and no signing key — the indexer and the price feed are public reads. Placing an order needs your wallet, or a session key your wallet granted with spending caps (tap-trading, once `agari-vault` is live). The two paths never share a key: an ops role key can post a price print or roll a Window, but it never spends a user's tUSDC.
+
+## One Window, one lock
+
+A fill write-locks only that Window's own accounts — its market, its order book, its ledger of seats and its token vault. A trade on one ticker's 5-minute Window never blocks a trade on another ticker, another cadence, or even a different Window of the same Series. Two accounts stay shared and read-only during trading: the venue's global config and a Series' registration record, so many Windows can roll and trade in parallel without contending on them.
+
+## Devnet, not mainnet
+
+Every program here is deployed to **Solana devnet**. Trading collateral is **tUSDC**, a faucet-minted test token with no market value. [Price sources](/architecture/price-sources) covers how a Window's opening and closing prices are verified on-chain; [what's available](/help/availability) covers what still needs a service, a key or a deploy that hasn't happened yet.

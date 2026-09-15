@@ -1,0 +1,22 @@
+---
+title: "Ops and the indexer"
+description: "The off-chain actors that operate the venue's clock and price feed."
+---
+
+Nothing in `services/ops` holds a user's funds. Its actors operate the venue's clock and its price feed, as separate roles each with their own key, run from one process (a single writer per role, so two processes never race to sign with the same key).
+
+| Actor | What it does |
+| --- | --- |
+| Window-roller | Lists and rolls Windows on the calendar cadence (5m/15m/60m during NYSE hours, the Monday Gap, the 24/7 token lane). It pre-lists the first Window of the next session at the prior close, so a [pre-open call](/trading/pre-open-calls) has somewhere to rest overnight. |
+| Price-relay | Fetches and posts the signed price prints an on-chain instruction verifies — it never posts an unverified number; the program re-checks the signature, the timestamp and the source on-chain. |
+| Settler / halt-watch | Cranks settlement and voids once a Window's conditions are met, and watches for a halt signal. Settlement and voiding are permissionless instructions in `agari-events` — anyone can call them once the on-chain conditions hold; the settler just does it promptly. |
+| Market-maker | Seeds both sides of a Window's order book with a small, capped quote, so a Window isn't empty the instant it opens. |
+| Indexer | Reads the chain and serves it back to the web app: prices, books, a wallet's positions, the proof feed. Read-only, no signing key. |
+
+## Always on, even when the market is closed
+
+When NYSE is closed, `/markets` still shows the last price, the last session's chart, the session state with a countdown to the next open, and what lists next per lane — never a blank screen or a stale "loading" label. This is deliberate (S18): a last known reading, correctly labeled with its age, is more honest than hiding the page.
+
+## What this buys you, and what it doesn't
+
+An ops role key can post a price, roll a Window, or crank a settlement — none of that touches a user's tUSDC or SOL. The only path that moves a user's funds is that user's own wallet signature, or a session key their wallet explicitly granted with spending caps (`agari-vault`, once deployed). If an ops process is down, trading itself doesn't silently misbehave: a stalled roller means no new Windows list; a stalled price-relay means a Window waits and eventually voids honestly rather than settling on a guess. [Status](/help/status) is where you'd see that.

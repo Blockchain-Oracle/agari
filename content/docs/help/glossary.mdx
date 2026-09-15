@@ -1,0 +1,21 @@
+---
+title: "Glossary"
+description: "A plain explanation of the words Agari uses."
+---
+
+| Term | Meaning |
+| --- | --- |
+| **Window** | One tradeable period on one ticker: an opening print, a closing print, one cadence (5m/15m/60m, the Monday Gap, or 24/7 token). |
+| **Series** | A ticker + cadence pair (for example TSLA-5m). Owns the price policy and the order books its Windows use. |
+| **Book** | The order book for one Window — bids and asks, matched price-time. Recycled between Windows on the same Series. |
+| **Ledger** | The seat registry for one Window: who's in, their escrowed cash and outcome balances. |
+| **Seat** | One trader's slot in a Window's Ledger. A small refundable bond holds a seat open; it returns when you leave. |
+| **Print** | A signed price value for one boundary (open or close) of a Window, verified on-chain. See [price sources](/architecture/price-sources). |
+| **Policy version** | A Series' price-source rule for a date range (which source, thresholds, admission window). Registered in advance; never edited once written. |
+| **PostOnly / IOC / FOK / Normal** | Order types. PostOnly only rests, never takes. IOC takes what it can, cancels the rest. FOK reverts unless it fills completely. Normal rests if it doesn't fully fill. |
+| **Mint-pair / burn-pair** | A fill where a complete Yes/No pair is created or destroyed, because both sides of the trade are buyers (mint) or both are sellers (burn). |
+| **Void** | A Window that pays 0.5/0.5 instead of settling, because a required print never arrived (`MissingPrint`) or two price sources disagreed too much (`CrossCheckDivergence`, TSLA only). Stake returns as credit. |
+| **tUSDC** | Agari's devnet test collateral, a 6-decimal SPL token with no market value. |
+| **Trading Balance** | A balance held in `agari-vault`, used for tap-trading instead of a wallet-signed order each time. |
+| **Session key / grant** | A separate signing key your wallet authorizes with spending caps (per trade, per day, open positions) — never your wallet's own private key, and it never leaves your browser. |
+| **Halt** | A wide or issuer-level trading halt signal. Shown as "Trading halted." A merely stale price print is shown as "Signed price stale" instead — a different, more common state. |

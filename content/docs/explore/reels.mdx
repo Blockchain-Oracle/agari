@@ -1,0 +1,16 @@
+---
+title: "Reels and takes"
+description: "Short, wallet-signed calls on a ticker, woven into a feed."
+---
+
+A **take** is a short, public call on a ticker — a sentence or two, signed with your wallet (an ed25519 message signature, not a transaction) and verified on the server before it's shown. Reels is the feed those takes flow into, alongside relevant news.
+
+## Why a signature, not just a post
+
+The signature ties a take to the wallet that made it, the same way a trade is tied to the wallet that placed it. It costs no gas — it's a message signature, not an on-chain transaction — but it means a take can't be spoofed as coming from an address that never signed it.
+
+## Cashtags
+
+A take carries the same asset-mark chip and `$TICKER` cashtag grammar as the news feed, so a call about TSLA shows TSLA's mark right on the card, and choosing the cashtag opens that ticker's hub.
+
+Not investment advice: a take is one person's public call, not a recommendation, and Agari doesn't rank or promote any take as more credible than another.
