@@ -1,8 +1,8 @@
 import { estPayoutBase } from "@agari/core/claims";
 import { formatCadence } from "@agari/core/copy";
 import type { Side, Signature } from "@agari/core/types";
-import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
-import { ORACLE_SCALE } from "@/features/markets/hero/units";
+import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
+import { usdLine } from "@/features/markets/hero/units";
 import { CARD_MARGIN, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawSpark, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
 import { drawStub, encodeQr } from "./stub";
@@ -50,7 +50,6 @@ const FEE_NOTE_Y = 656;
 const SETTLES_Y = 728;
 
 const fmt = (value: bigint, decimals: number) => formatBaseUnits(value, decimals);
-const usd0 = (raw: bigint) => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 
 /** What a win returns — one unit per contract less the settlement fee when it is known, less the reserve's claim on a boost. */
 export function callWinBase(card: CallCard): bigint {
@@ -66,7 +65,7 @@ export function callMultiple(card: CallCard): number {
 /** "BTC OVER $64,316" / "BTC UNDER $64,316" / "BTC VS THE OPENING PRINT". */
 export function callBandLabel(card: CallCard): string {
   if (card.lineRaw === null) return SHARE.call.noLine(card.asset);
-  return card.side === "up" ? SHARE.call.over(card.asset, usd0(card.lineRaw)) : SHARE.call.under(card.asset, usd0(card.lineRaw));
+  return card.side === "up" ? SHARE.call.over(card.asset, usdLine(card.lineRaw)) : SHARE.call.under(card.asset, usdLine(card.lineRaw));
 }
 
 export function callDirLabel(card: CallCard): string {

@@ -1,6 +1,6 @@
 # UI fidelity audit — 2026-09-14 (S4 lane 4e)
 
-Agari `slice/S4e-fidelity` (base `a335841`) against Masayume, the only design authority: the live app at <https://masayume.app> (deployed from `68f7a09`, the same commit as `reference/masayume`) and its source. Owner of this file: lane 4e. Lanes 4c and 4d read it from `../agari-wt/s4e`.
+Agari `slice/S4e-fidelity` (base `a335841`, fast-forwarded to `stage/S4-first-call` @ `7fb6f24` with the S4 lanes and live devnet reads) against Masayume, the only design authority: the live app at <https://masayume.app> (deployed from `68f7a09`, the same commit as `reference/masayume`) and its source. Owner of this file: lane 4e. Lanes 4c and 4d read it from `../agari-wt/s4e`.
 
 ## 1. Method
 
@@ -27,19 +27,19 @@ What is identical, verified:
 - At 390 px, the header, bottom pill nav, "Everything" drawer, games hub, tutorial and theme toggle render pixel-equivalent apart from data and brand words.
 - After brand normalisation, 275 files differ in total. Outside `features/markets`, `features/games`, `app/api` and `app/dev`, the differences are almost all chain-seam type changes and copy.
 
-### Summary (36 findings; rows marked plain "Match" are not counted)
+### Summary (38 findings; rows marked plain "Match" are not counted)
 
 | Severity | Found | Fixed here | Open: owner |
 |---|---|---|---|
 | S1 | 5 | 2 (C-01 connect modal, C-22 invisible Connect) | C-07 ticker: 4a · `/markets`: 4a → 4d · `/reels`: 4d |
-| S2 | 11 | 3 + C-02's modal (C-15, C-19, `/download`) | C-02 button: 4d · P-04, P-05: 4a/SO · duel: S12 · range/moonshot: S10b · parlay: S10a · earn: S8 · surface: S5/4a |
+| S2 | 12 | 4 + C-02's modal (C-15, C-19, C-26, `/download`) | C-02 button: 4d · P-04, P-05: 4a/SO · duel: S12 · range/moonshot: S10b · parlay: S10a · earn: S8 · surface: S5/4a |
 | S3 | 9 | 4 (C-08, C-09, C-23, `/native-auth`) | season: S12 · status: S5/S16 · how-it-works, demo, pitch: S15 |
-| S4 | 11 | — | notes and data-gated checks: 4a, 4d, S5, S9, S11, S12, S15, SO |
+| S4 | 12 | — | notes and data-gated checks: 4a, 4d, S5, S9, S11, S12, S15, SO (incl. P-11 `/api/sponsor`) |
 
 - **By primary owner:**
-  - **4e:** 10 findings, all fixed.
+  - **4e:** 11 findings, all fixed.
   - **4d:** 3, plus C-02's button follow-up; `/markets` also waits on 4a.
-  - **4a / stage owner:** 6.
+  - **4a / stage owner:** 7.
   - **4c:** 0.
   - **Later stages:** 15 (S5 3, S8 1, S9 1, S10a 1, S10b 1, S11 1, S12 3, S15 4).
   - **No owner:** 2 intentional or non-drifts (C-17, C-20).
@@ -84,13 +84,22 @@ What is identical, verified:
 | C-19 | Install / PWA | `features/install/*`, `public/manifest.webmanifest` | same | `/download` title reads "Get Masayume · Agari"; install copy promises "Sign in with email" | S2 | 4e | Fixed `3787560` |
 | C-20 | Next dev indicator | — | `next dev` "N" badge | Dev server only; absent from `next build` | S4 | — | Not a drift |
 | C-21 | Root layout, providers order | `app/layout.tsx`, `AppProviders.tsx` | same | `WalletShellProvider` replaces Wagmi + RainbowKit; the rest is in order | — | — | Match (Adapted) |
-| C-22 | Header "Connect" after hydration | RainbowKit `mounted` render prop keeps server and client equal | `WalletShellProvider` + `HeaderAccount` | The Kit plugin hands hydration its live store, which has usually settled on `disconnected`. React then hydrated the inert server button with live props and kept `invisible`, `aria-hidden` and `tabindex=-1`: **no Connect button in the header** (dev log: "attributes … didn't match … won't be patched up"). It happened on some loads, not others | S1 | 4e | Fixed `a337a64` (status gated on hydration) |
+| C-22 | "Connect" invisible (header, ticket gate, portfolio) | RainbowKit shows Connect once mounted; wagmi's `isReconnecting` is true only for a stored connection | `WalletShellProvider`, `HeaderAccount`, `markets/wallet/ConnectButton` | Two layers, reported by 4a and 4d. (1) The Kit plugin hands hydration its live store, so the inert server button hydrated with live props and kept `invisible` / `aria-hidden` / `tabindex=-1`; the dev log said "attributes … didn't match … won't be patched up". (2) The shell mapped the plugin's `pending` to "restoring" before hydration and whenever discovery hadn't settled, so the controls were inert by design | S1 | 4e | Fixed: hydration gate in `a337a64`; in `f20b374`, SSR and hydration always render "Connect", and "restoring" only means a remembered `agari.wallet` reconnecting (≤ 3 s). ConnectButton shows Masayume's disabled "Connecting…" rather than hiding |
 | C-23 | Header control while connecting | Stays "Connect" (RainbowKit shows progress in the modal) | Read "Connecting…" and disabled itself | Label and state drift | S3 | 4e | Fixed `a337a64` |
+| C-25 | ThemeToggle in the mismatch report | `ThemeToggle.tsx` (`mounted` placeholder) | byte-identical | Named only because React's mismatch diff prints the header's siblings as context; the mismatched node was HeaderAccount's button. No warning after C-22 | — | — | Match |
+| C-26 | Stock prices rounded to whole dollars outside markets | `usd0` / `oracleToWholeUsd` (BTC/ETH scale) | sensei snapshot, drawer and trade cards; share call and trade cards; takes composer and reel card; duel face; practice live pill; parlay line | A $251.37 stock read "$251"; the Sensei prompt saw a price on its line | S2 | 4e | Fixed `7949b0b` with 4d's `usdLine` rule (whole from $1,000, cents below). Range bands (`range/format.ts`, cents-scale prints) left to S10b |
 | C-24 | Brand mark | `MasayumeMark.tsx` (正夢 crescent) | `AgariMark.tsx` is the same glyph, renamed | A logo is allowed to differ; Agari (上がり) has no mark of its own yet | S4 | S15 | Open |
 
 ## 5. Connect and account modals (C-01, C-02)
 
 Rebuilt in `web/src/providers/wallet/` (`a337a64`) over our own base-ui `Dialog`, keeping the D-023 seam (`useWalletSession().connect()` opens it; the Kit wallet plugin discovers, connects and remembers). Measurements below are from masayume.app (dark) and RainbowKit 2.2.11.
+
+**Connect states (`f20b374`), verified in fresh isolated contexts on the merged stage code:**
+
+- The SSR HTML carries a visible `Connect` in the header and in the portfolio ConnectButton, and there are no hydration warnings.
+- A remembered wallet that is missing shows the ticket "Connecting…" (disabled) for up to 3 s, then "Connect". The header stays "Connect" throughout.
+- A remembered wallet that is present reconnects silently to the address pill.
+- A new connection closes the modal and shows the pill.
 
 **Verified on Agari, dev and `next start`.** At 1440, every node of the list, "What is a Wallet?", "Get a Wallet", "Opening…" and RETRY views sits at the same x/y/w/h as masayume.app's, to the pixel. Checked with a spec-conformant Wallet Standard test wallet (WebCrypto Ed25519) injected in the page:
 
@@ -182,6 +191,7 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 | P-08 | Wallet stack in the bundle | wagmi + viem + RainbowKit on every page | Kit wallet plugin only | Smaller | — |
 | P-09 | `next.config.ts` | `@coinbase/cdp-sdk` stub alias (RainbowKit baggage) | still present, now dead | Noise (plan §5 "Removed noise") | SO |
 | P-10 | Bundle size | 58 JS files, 3,492 KB decoded / 934 KB brotli on `/markets` | 34 files, 1,952 KB decoded / 608 KB gzip | ≈ 44 % less JS (see §8) | — |
+| P-11 | `/api/sponsor` on every page load | `SessionKeyProvider` → `useSponsorStatus()` (one GET, no poll), mounted in `AppProviders` | same: `features/session/SessionKeyProvider.tsx:40`, mounted by `providers/AppProviders.tsx` for every route. The route answers a constant `configured:false` until S7 | Wasted request (parity with Masayume, whose route did have a relayer to report) | SO (S7): fetch only when a session key is being enabled, or behind a sponsor-enabled flag |
 
 ## 8. Build and bundle
 
@@ -211,6 +221,7 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
   - The `?note=moved` line renders only inside populated lanes.
 - **4a / stage owner:** P-04 live price transport, P-05 book coordinator and endpoint health, the SOL balance read for the account modal, and the ticker/lanes reads (C-07).
 - **Stage owner:**
+  - P-11: the `/api/sponsor` GET on every route, from `SessionKeyProvider` in the shared providers.
   - P-09: the dead `@coinbase/cdp-sdk` alias in `web/next.config.ts`.
   - `THIRD_PARTY_NOTICES.md` still describes Masayume. A "Wallet modals" section (RainbowKit MIT, Solana Wallet Adapter icons Apache-2.0) was added in `a337a64`.
   - D-023's wording ("WalletPicker (a sheet above the fixed chrome, z 1000)") is superseded: it is now a centred modal / phone bottom sheet at z 1000, with `useWalletSession().openAccount()` added to the seam.
@@ -223,6 +234,8 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 |---|---|
 | `6d90995` | this audit, first version |
 | `a337a64` | C-01 connect modal, C-02 account modal + `openAccount`, C-22 header hydration, C-23 header label; wallet artwork in `web/public/wallet/`; notices |
+| `f20b374` | C-22 second layer: Connect on the first paint; restoring only for a remembered wallet; ConnectButton's "Connecting…" rung; modal lists install links without waiting for discovery |
+| `7949b0b` | C-26 stock price rule in Sensei, share cards, takes, duel, practice, parlay |
 | `3787560` | C-08, C-09, C-15, C-19 copy; brand-only strings in alerts, takes, private, edge, earn, surface, strategies, native-auth, news UA |
 | stage `dd74b14` | C-02 button: the connected ticket/portfolio button opens the account modal |
 | stage (S4 merge review) | P-04 and P-05 were measured on a base without lane 4a. On `stage/S4-first-call` `useAssetPrice` subscribes to the ops spot stream (`runtime/spot-stream.ts`, SSE push, poll only as fallback) and `subscribeBook` is a ref-counted `accountNotifications` coordinator (`runtime/coordinator.ts`): both resolved. Masayume's endpoint `health.ts` (multi-RPC failover) has no Agari equivalent yet: deferred to S16 (one public devnet endpoint in S4, D-035). P-09: the dead `@coinbase/cdp-sdk` resolve alias and its stub removed from `web/next.config.ts`; build green |

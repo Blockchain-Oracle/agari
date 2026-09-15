@@ -8,8 +8,9 @@ import { createContext, useContext } from "react";
  * The wallet shell's state as every consumer (header, tickets, `useWalletSession`) reads it, with no wallet SDK import,
  * so only `web/src/providers` touches `@solana/*`.
  *
- * - `restoring`: before hydration, or while the last wallet silently reconnects; controls stay inert rather than flash "Connect".
- * - `ready`: discovery has settled; `address` and `wallet` are authoritative.
+ * - `restoring`: a remembered wallet is silently reconnecting after hydration, for at most the plugin's 3 s window.
+ * - `ready`: everything else, including the server render, hydration and a browser with no remembered wallet; `address`
+ *   and `wallet` are authoritative.
  */
 export type WalletShellStatus = "restoring" | "ready";
 

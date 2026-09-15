@@ -8,7 +8,7 @@ import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 export interface WalletSession {
   address: Address | null;
   isConnected: boolean;
-  /** Before hydration, or while the last wallet silently reconnects: controls stay inert rather than flash "Connect". */
+  /** A remembered wallet is silently reconnecting (at most 3 s after hydration). False on the server, during hydration and for a browser with nothing remembered. */
   isConnecting: boolean;
   /**
    * Always equal to `isConnected` on Solana. The cluster is the app's, not the wallet's: nothing in a Solana wallet can

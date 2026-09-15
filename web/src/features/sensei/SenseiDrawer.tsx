@@ -1,12 +1,12 @@
 "use client";
 
 import type { EventMarket } from "@agari/core/types";
-import { formatClock, formatOracleRaw } from "@agari/core/units";
+import { formatClock } from "@agari/core/units";
 import { useEffect, useRef, useState } from "react";
 import AgariMark from "@/components/shell/AgariMark";
 import { cn } from "@/lib/utils";
 import { CardSpark } from "../markets/lanes/CardSpark";
-import { ORACLE_SCALE } from "../markets/hero/units";
+import { usdLine } from "../markets/hero/units";
 import { chipsFor, SENSEI_STARTERS, SENSEI_UI } from "./copy";
 import { SenseiTradeCards } from "./SenseiTradeCards";
 import { Typewriter } from "./Typewriter";
@@ -24,7 +24,6 @@ interface SenseiDrawerProps {
   urgent: boolean;
 }
 
-const usd0 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 
 /** The pinned strip that anchors every reply below it: price, drift, time left, tape. */
 function SenseiMeter({ reading, secsLeft, urgent }: { reading: SenseiReading; secsLeft: number; urgent: boolean }) {
@@ -32,14 +31,14 @@ function SenseiMeter({ reading, secsLeft, urgent }: { reading: SenseiReading; se
   return (
     <div className={cn("sensei-meter", `sd-dir-${drift?.direction ?? "flat"}`, urgent && "urgent")}>
       <div className="sm-read">
-        <span className="sm-spot">{latestRaw === null ? SENSEI_UI.reading : usd0(latestRaw)}</span>
+        <span className="sm-spot">{latestRaw === null ? SENSEI_UI.reading : usdLine(latestRaw)}</span>
         {drift && (
           <>
             <span className="sm-tri" aria-hidden />
             <span className="sm-drift">
               {drift.direction === "flat"
                 ? SENSEI_UI.flat
-                : `${drift.moveRaw > 0n ? "+" : "−"}${usd0(drift.moveRaw < 0n ? -drift.moveRaw : drift.moveRaw)}`}
+                : `${drift.moveRaw > 0n ? "+" : "−"}${usdLine(drift.moveRaw < 0n ? -drift.moveRaw : drift.moveRaw, latestRaw ?? undefined)}`}
             </span>
             {/* The span actually held, never the span asked for — see computeDrift. */}
             <span className="sm-window">{SENSEI_UI.minute(drift.spanMin)}</span>

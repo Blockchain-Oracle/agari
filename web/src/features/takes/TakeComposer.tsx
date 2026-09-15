@@ -3,11 +3,10 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { formatCadence } from "@agari/core/copy";
 import type { LaneSet, Side } from "@agari/core/types";
-import { formatOracleRaw } from "@agari/core/units";
 import { useOpeningPrice } from "@agari/markets/react";
 import { UnplugIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
-import { ORACLE_SCALE } from "@/features/markets/hero/units";
+import { usdLine } from "@/features/markets/hero/units";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { ConnectButton } from "@/features/markets/wallet";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -25,7 +24,6 @@ interface TakeComposerProps {
   onClose: () => void;
 }
 
-const usd0 = (raw: bigint) => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
 const C = TAKES.composer;
 
 /**
@@ -55,7 +53,7 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
   const lineRaw = opening?.ok ? opening.value : (market?.openingPriceRaw ?? null);
   const spotRaw = useOracleSpot(market?.asset ?? null);
 
-  const band = market === null ? null : lineRaw === null ? TAKES.noLine(market.asset) : side === "up" ? TAKES.over(market.asset, usd0(lineRaw)) : TAKES.under(market.asset, usd0(lineRaw));
+  const band = market === null ? null : lineRaw === null ? TAKES.noLine(market.asset) : side === "up" ? TAKES.over(market.asset, usdLine(lineRaw)) : TAKES.under(market.asset, usdLine(lineRaw));
   const canPost = configured === true && !!address && market !== null && !busy;
 
   const submit = async () => {
@@ -112,12 +110,13 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
                 <div className="take-line">
                   <div className="take-line-row">
                     <span className="take-line-label">{C.line}</span>
-                    <span className="take-line-spot">{spotRaw === null ? "" : C.spot(usd0(spotRaw))}</span>
+                    <span className="take-line-spot">{spotRaw === null ? "" : C.spot(usdLine(spotRaw))}</span>
                   </div>
                   <div className="take-line-value">
                     <span className="take-line-sign">$</span>
                     <span className="take-line-figure" data-pending={lineRaw === null}>
-                      {lineRaw === null ? C.linePending : formatOracleRaw(lineRaw, ORACLE_SCALE, 0)}
+                      {/* The sign is its own span, so the figure is the line without its "$". */}
+                      {lineRaw === null ? C.linePending : usdLine(lineRaw).slice(1)}
                     </span>
                   </div>
                   <p className="take-line-note">{C.lineNote}</p>

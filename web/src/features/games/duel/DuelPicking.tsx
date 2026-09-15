@@ -14,13 +14,13 @@ import {
 import { isOk } from "@agari/core/schemas";
 import { isTickerSymbol } from "@agari/core/market";
 import type { Address, Hash32 } from "@agari/core/types";
-import { formatBaseUnits, formatOracleRaw } from "@agari/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import { quoteArenaPick } from "@agari/markets/games";
 import { useArenaState, useAssetPrice, useOpeningPrice } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNowMs } from "@/components/data";
 import { useVenue } from "@/features/markets";
-import { ORACLE_SCALE } from "@/features/markets/hero/units";
+import { usdLine } from "@/features/markets/hero/units";
 import { webEnv } from "@/lib/env";
 import { clockUrgency, StageFace } from "../stage/StageFace";
 import { SwipeDeck, type DeckPlace } from "../stage/SwipeDeck";
@@ -294,10 +294,6 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   );
 }
 
-
-/** Whole dollars, grouped — the reference's `usd0`. */
-const usd0 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`;
-
 /**
  * The duel's face on the five bands: the Window's line as the question — the oracle's opening print,
  * which is what the Window settles against — the live price as `now`, and the tier's per-card stake.
@@ -314,9 +310,9 @@ function DuelFace({ card, place, nowMs, stake }: { card: DeckCard; place: DeckPl
       place={place}
       nowMs={nowMs}
       eyebrow={DUEL.picking.eyebrow(card.asset)}
-      question={lineRaw === null ? <span className="st-question-pending">{DUEL.picking.questionNoLine}</span> : DUEL.picking.question(usd0(lineRaw))}
+      question={lineRaw === null ? <span className="st-question-pending">{DUEL.picking.questionNoLine}</span> : DUEL.picking.question(usdLine(lineRaw))}
       pills={[
-        { label: DUEL.picking.now, value: spot ? usd0(spot.priceRaw) : "—", tone: "live" },
+        { label: DUEL.picking.now, value: spot ? usdLine(spot.priceRaw) : "—", tone: "live" },
         { label: DUEL.picking.stake, value: stake, tone: "up" },
       ]}
     />

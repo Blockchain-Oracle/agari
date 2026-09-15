@@ -3,27 +3,49 @@
 import { isAddress, type Address } from "@agari/core/types";
 import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
 import { useConnectedWallet, useDisconnect, useWalletStatus } from "@solana/kit-plugin-wallet/react";
-import { useCallback, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AccountModal } from "./AccountModal";
-import { walletClient } from "./kit-wallet";
+import { WALLET_STORAGE_KEY, walletClient } from "./kit-wallet";
 import { WalletPicker } from "./WalletPicker";
 import { WalletShellContext, type WalletShell } from "./wallet-shell-context";
 
+/** The plugin's own window for a remembered wallet to re-register before it gives up (its `statusTimeout`). */
+const RESTORE_CAP_MS = 3_000;
+
 const subscribeNothing = () => () => undefined;
 
+function hasRememberedWallet(): boolean {
+  try {
+    return window.localStorage.getItem(WALLET_STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Owns the wallet connection (D-023). State comes from the Kit wallet plugin's `useSyncExternalStore` hooks. Their
- * server snapshot is `pending`, but on the client they hand hydration the live store, which has usually settled on
- * `disconnected` a microtask after it was created. That hydrated the header's inert "Connect" with its live props
- * and React kept the server's `invisible` class. So nothing counts as settled until hydration is over, which is the
- * role RainbowKit's `mounted` flag played in Masayume.
+ * Owns the wallet connection (D-023) from the Kit wallet plugin's `useSyncExternalStore` hooks.
+ *
+ * - **Server render and hydration:** the state is always "ready, disconnected", so "Connect" is in the first paint on
+ *   both sides. The plugin's hooks hand hydration the live client store, and reading them there hydrated the header
+ *   with mismatched attributes.
+ * - **After hydration:** "restoring" means a remembered wallet (`agari.wallet`) is silently reconnecting, and never
+ *   for longer than the plugin's own 3 s window. A browser with nothing remembered is ready at once, whatever the
+ *   plugin's `pending` is doing, as wagmi's `isReconnecting` only ever was for a stored connection in Masayume.
  */
 export function WalletShellProvider({ children }: { children: ReactNode }) {
   const hydrated = useSyncExternalStore(subscribeNothing, () => true, () => false);
+  const remembered = useSyncExternalStore(subscribeNothing, hasRememberedWallet, () => false);
   const liveStatus = useWalletStatus(walletClient);
   const liveConnected = useConnectedWallet(walletClient);
-  const status = hydrated ? liveStatus : "pending";
   const connected = hydrated ? liveConnected : null;
+  const warmingUp = hydrated && remembered && (liveStatus === "pending" || liveStatus === "reconnecting");
+  const [restoreExpired, setRestoreExpired] = useState(false);
+  useEffect(() => {
+    if (!warmingUp) return;
+    const timer = setTimeout(() => setRestoreExpired(true), RESTORE_CAP_MS);
+    return () => clearTimeout(timer);
+  }, [warmingUp]);
+  const restoring = warmingUp && !restoreExpired;
   const { dispatchAsync: disconnectWallet } = useDisconnect(walletClient);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -49,15 +71,15 @@ export function WalletShellProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<WalletShell>(
     () => ({
-      status: status === "pending" || status === "reconnecting" ? "restoring" : "ready",
-      connecting: status === "connecting",
+      status: restoring ? "restoring" : "ready",
+      connecting: hydrated && liveStatus === "connecting",
       address,
       wallet,
       openPicker,
       openAccount,
       disconnect,
     }),
-    [status, address, wallet, openPicker, openAccount, disconnect],
+    [restoring, hydrated, liveStatus, address, wallet, openPicker, openAccount, disconnect],
   );
 
   return (

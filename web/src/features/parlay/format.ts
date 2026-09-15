@@ -1,6 +1,6 @@
 import { isMarketId, type Diagnosis, type MarketId } from "@agari/core/types";
 import { formatOracleRaw } from "@agari/core/units";
-import { ORACLE_SCALE } from "../markets/hero/units";
+import { ORACLE_SCALE, usdLine } from "../markets/hero/units";
 
 const pad2 = (n: number): string => String(n).padStart(2, "0");
 
@@ -28,16 +28,16 @@ export function formatBpsPct(bps: number): string {
   return `${Math.round(bps / 100)}%`;
 }
 
-/** Whole dollars, grouped — the hero's own scale for a Window's line. */
+/** The hero's own scale for a Window's line: whole dollars from $1,000 up, cents below. */
 export function formatLine(openingPriceRaw: bigint): string {
-  return `$${formatOracleRaw(openingPriceRaw, ORACLE_SCALE, 0)}`;
+  return usdLine(openingPriceRaw);
 }
 
-/** The slip's `fmtUsd`: `$97.2k` above a thousand, whole dollars below. */
+/** The slip's `fmtUsd`: `$97.2k` above a thousand, the line in cents below (a stock's Window moves in cents). */
 export function formatLineShort(openingPriceRaw: bigint): string {
   const whole = formatOracleRaw(openingPriceRaw, ORACLE_SCALE, 0).replace(/,/g, "");
   const dollars = Number(whole);
-  if (dollars < 1000) return `$${whole}`;
+  if (dollars < 1000) return usdLine(openingPriceRaw);
   const tenthsOfK = Math.round(dollars / 100);
   return tenthsOfK % 10 === 0 ? `$${tenthsOfK / 10}k` : `$${Math.floor(tenthsOfK / 10)}.${tenthsOfK % 10}k`;
 }

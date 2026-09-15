@@ -2,13 +2,12 @@
 
 import { formatCadence } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
-import { formatOracleRaw } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { useState } from "react";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD, MARKETS } from "@/lib/copy";
-import { ORACLE_SCALE } from "../markets/hero/units";
+import { usdLine } from "../markets/hero/units";
 import { SENSEI_UI } from "./copy";
 import type { SenseiMarket } from "./protocol";
 
@@ -19,7 +18,8 @@ interface SenseiTradeCardsProps {
   onAct: () => void;
 }
 
-const usd0 = (raw: bigint | null): string => (raw === null ? HERO_HEAD.noPrice : `$${formatOracleRaw(raw, ORACLE_SCALE, 0)}`);
+/** Whole dollars from $1,000 up, cents below (the markets headline rule). */
+const usd = (raw: bigint | null): string => (raw === null ? HERO_HEAD.noPrice : usdLine(raw));
 const cents = (value: number | null): string => (value === null ? MARKETS.noBook : `${value}¢`);
 
 /**
@@ -66,7 +66,7 @@ export function SenseiTradeCards({ markets, snapshotMarkets, nowMs, onAct }: Sen
                   {market.asset} <b>{formatCadence(market.intervalSec)}</b>
                 </span>
                 <span className="st-meta">
-                  {usd0(market.openingPriceRaw)} ·{" "}
+                  {usd(market.openingPriceRaw)} ·{" "}
                   <Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />
                 </span>
               </div>
