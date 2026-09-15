@@ -5,7 +5,12 @@
  * `design-literals` bans px and hex in TSX, so the values live here with the source utility
  * named above each rule; the gray ramp is addressed through its variables, which follow the
  * light theme where the text-gray-* utilities do not (see the ledger's Tailwind-4 finding).
- * Hairlines carry part-14's own light replacements. */
+ * Hairlines carry part-14's own light replacements.
+ *
+ * D-082 (S18 lane 18d, the user's pick "V1 Ledger" on 2026-09-15): the lead and every wire row wear a 2 px edge in
+ * their tone's ink, the stocks a story names sit in a mark slot and as `$TICKER` cashtags, and the row is one grammar
+ * — `index · mark slot · body · tone · arrow` — shared with the activity feed and the ticker hub (`news-wire.css`).
+ * Everything above the rule is the reference's, value for value. */
 
 .news-page {
   --news-hairline: rgba(255, 255, 255, 0.12);
@@ -116,28 +121,35 @@
   color: var(--gray-600);
 }
 
-/* inline-flex px-2 py-0.5 rounded-full border font-mono text-[9px] uppercase tracking-[0.14em]
-   positive: text-profit border-profit/25 · negative: text-loss border-loss/25
-   neutral: text-gray-500 border-white/10 */
-.news-tag {
+/* The tone: a dot in the sentiment's ink and its word (D-082 replaces the reference's bordered pill;
+   the mono face, size and tracking are the pill's own: font-mono text-[9px] uppercase tracking-[0.14em]
+   positive: text-profit · negative: text-loss · neutral: text-gray-500). The activity feed names an
+   event kind in the same slot. */
+.news-tone {
   display: inline-flex;
-  padding: 2px 8px;
-  border: 1px solid var(--news-hairline);
-  border-radius: 9999px;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--gray-500);
 }
 
-.news-tag[data-tone="positive"] {
-  border-color: color-mix(in srgb, var(--profit) 25%, transparent);
+.news-tone-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.news-tone[data-tone="positive"] {
   color: var(--profit);
 }
 
-.news-tag[data-tone="negative"] {
-  border-color: color-mix(in srgb, var(--loss) 25%, transparent);
+.news-tone[data-tone="negative"] {
   color: var(--loss);
 }
 
@@ -162,8 +174,22 @@
   color: var(--vermilion);
 }
 
-/* group block */
+/* group block — plus the D-082 edge: 2 px in the tone's ink, hairline when neutral */
 .news-lead {
+  display: block;
+  padding-left: 16px;
+  border-left: 2px solid var(--news-hairline);
+}
+
+.news-lead[data-tone="positive"] {
+  border-left-color: var(--profit);
+}
+
+.news-lead[data-tone="negative"] {
+  border-left-color: var(--loss);
+}
+
+.news-lead-link {
   display: block;
 }
 
@@ -194,7 +220,7 @@
   }
 }
 
-.news-lead:hover .news-lead-title {
+.news-lead-link:hover .news-lead-title {
   color: var(--gray-200);
 }
 
@@ -215,9 +241,22 @@
   }
 }
 
-.news-lead:hover .news-lead-arrow {
+.news-lead-link:hover .news-lead-arrow {
   color: var(--vermilion);
   transform: translateX(4px);
+}
+
+/* D-082: the stocks the lead names — 20 px marks, then their cashtags */
+.news-lead-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.news-lead-marks .news-mark {
+  width: 20px;
+  height: 20px;
 }
 
 /* flex items-center mt-14 mb-2 */
@@ -241,68 +280,7 @@
   background: var(--news-hairline);
 }
 
-/* group flex items-baseline gap-5 py-5 border-b border-white/[0.06]
-   hover:bg-white/[0.02] hover:translate-x-0.5 transition-all */
-.news-row {
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--news-rule);
-  transition: background-color 200ms var(--ease), transform 200ms var(--ease);
-}
-
-.news-row:hover {
-  background: var(--news-hover);
-  transform: translateX(2px);
-}
-
-/* flex-1 min-w-0 */
-.news-row-body {
-  flex: 1 1 0%;
-  min-width: 0;
-}
-
-/* block text-base sm:text-lg font-semibold text-gray-200 leading-snug group-hover:text-white */
-.news-row-title {
-  display: block;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.375;
-  color: var(--gray-200);
-  transition: color 200ms var(--ease);
-}
-
-@media (min-width: 640px) {
-  .news-row-title {
-    font-size: 18px;
-  }
-}
-
-.news-row:hover .news-row-title {
-  color: var(--white);
-}
-
-/* flex items-center gap-3 mt-1.5 */
-.news-row-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 6px;
-}
-
-/* font-mono text-xs text-gray-700 group-hover:text-vermilion flex-shrink-0 */
-.news-row-arrow {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--gray-700);
-  transition: color 200ms var(--ease);
-}
-
-.news-row:hover .news-row-arrow {
-  color: var(--vermilion);
-}
+/* The wire rows: `news-wire.css` (the shared row grammar, D-082). */
 
 /* --- skeleton (reference L69–84): space-y-12, then space-y-4 / space-y-7 --- */
 .news-skeleton {

@@ -1,14 +1,13 @@
-/* Activity rows and feed chrome (S13d). The rows are /news's wire rows (styles/news.css) and the tabs are the
- * leaderboard's asset tabs (yosuku part-08); only what those two do not already carry lives here, with the same
- * hairline ladder news.css uses in each theme, so a feed renders the same inside or outside a .news-page. */
+/* Activity rows and feed chrome (S13d). The rows are /news's wire rows (styles/news-wire.css, the D-082 grammar:
+ * the wallet's avatar in the mark slot, the kind as the tone's word) and the tabs are the leaderboard's asset tabs
+ * (yosuku part-08); only what those two do not already carry lives here, with the same hairline ladder news.css
+ * uses in each theme, so a feed renders the same inside or outside a .news-page. */
 
 .act-list {
   --news-hairline: rgba(255, 255, 255, 0.12);
   --news-rule: rgba(255, 255, 255, 0.06);
   --news-hover: rgba(255, 255, 255, 0.02);
   margin: 24px 0 0;
-  padding: 0;
-  list-style: none;
 }
 
 [data-theme="light"] .act-list {
@@ -17,19 +16,8 @@
   --news-hover: rgba(20, 18, 16, 0.03);
 }
 
-.act-title {
-  display: block;
-}
-
-.act-row .news-row-title {
-  overflow-wrap: anywhere;
-}
-
-/* The wallet on a following or ticker row: the take card's hue avatar, at the wire's mono size. */
+/* The wallet on a following or ticker row, in the meta line; its hue avatar sits in the row's mark slot. */
 .act-who {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   color: var(--gray-500);
   transition: color 200ms var(--ease);
 }
@@ -38,11 +26,8 @@
   color: var(--vermilion);
 }
 
+/* The take card's hue avatar at the mark's size (news-wire.css sizes `.news-mark`). */
 .act-avatar {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-  border-radius: 9999px;
   background: radial-gradient(120% 120% at 30% 20%, hsl(var(--act-hue) 55% 55%), hsl(calc(var(--act-hue) + 40) 45% 28%));
 }
 
