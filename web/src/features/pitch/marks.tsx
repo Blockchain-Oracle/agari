@@ -1,9 +1,9 @@
 /**
  * Monochrome marks for the folio — ported from `reference/yosuku/app/pitch/page.tsx`
  * L62–75. Colour comes from CSS (`currentColor` / the folio's ink token), never a hex
- * in TSX. The X, Google and card glyphs are the reference's own paths and appear only
- * where a slide truthfully needs them; the Sui mark is replaced by a Somnia mark drawn
- * here — a plain wordmark initial, since no third-party logo was reproduced.
+ * in TSX. The X and card glyphs are the reference's own paths and appear only where a
+ * slide truthfully needs them; the chain mark is drawn here rather than reproduced, so
+ * no third-party logo is copied into this repo.
  */
 
 export const LogoX = ({ s = 12 }: { s?: number }) => (
@@ -22,12 +22,13 @@ export const LogoCard = ({ s = 22 }: { s?: number }) => (
 );
 
 /**
- * A Somnia mark of our own drawing: the chain's initial set in a ring, in ink. Not the
- * network's logo — a stand-in that names it without borrowing what was never seen.
+ * A Solana mark of our own drawing: three slanted bars in a ring, the shape the chain is
+ * known by, drawn here in ink rather than copied. Not the network's logo — a stand-in that
+ * names it without reproducing a trademark.
  */
-export const SomniaMark = ({ s = 19 }: { s?: number }) => (
+export const SolanaMark = ({ s = 19 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 40 40" className="pitch-mark-stroke" aria-hidden>
     <circle cx="20" cy="20" r="17" strokeWidth="2.6" fill="none" />
-    <path d="M25.5 14.2c-1.2-1.6-3-2.4-5.4-2.4-3.4 0-5.6 1.7-5.6 4.1 0 2.3 1.6 3.3 5.2 4.1 3.7.8 5.8 2 5.8 4.7 0 2.7-2.4 4.5-6 4.5-2.8 0-4.9-1-6.2-2.9" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+    <path d="M13 14.6h13.2l-3 3.2H10zM13 18.4h13.2l-3 3.2H10zM13 22.2h13.2l-3 3.2H10z" strokeWidth="0" className="pitch-mark-fill" />
   </svg>
 );

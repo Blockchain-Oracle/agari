@@ -7,10 +7,13 @@ export interface FaucetBlockerInput {
   hasSigner: boolean;
   phase: WritePhase;
   gasShort: boolean;
+  /** The geofence's verdict for this browser (D-095); absent = open. */
+  region?: boolean;
 }
 
 /** Ordered so the first fixable reason is the one the CTA names. */
-export function deriveFaucetBlocker({ session, hasSigner, phase, gasShort }: FaucetBlockerInput): BlockerKind | null {
+export function deriveFaucetBlocker({ session, hasSigner, phase, gasShort, region }: FaucetBlockerInput): BlockerKind | null {
+  if (region) return "region";
   if (!session.isConnected) return session.isConnecting ? "connecting" : "disconnected";
   if (!session.isRightChain) return "wrong-chain";
   // The signer binds one effect after the session settles; treat the gap as still connecting.

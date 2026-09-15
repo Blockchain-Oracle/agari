@@ -1,5 +1,6 @@
 import { isDbConfigured, xLinkByAuthor, xLinkUpsert } from "@agari/db";
 import { NextResponse, type NextRequest } from "next/server";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { X_ERRORS } from "@/features/x/copy";
 import { readXGate, signatureFresh, toBinding, verifyLinkSignature } from "@/features/x/gate.server";
 import { xBindRequestSchema } from "@/features/x/protocol";
@@ -17,6 +18,8 @@ function refuse(reason: string, status: number, extra: Record<string, unknown> =
  * signature from that wallet (unlink) can move it.
  */
 export async function POST(req: NextRequest) {
+  // The geofence comes before any key, balance or co-signature (D-095).
+  if (regionRestricted(req)) return regionRestrictedResponse();
   const gate = await readXGate(req.nextUrl.origin);
   if (!gate.configured) return NextResponse.json({ ok: false, configured: false, missing: gate.missing });
   if (!isDbConfigured()) return refuse(X_ERRORS.storeUnavailable, 503);

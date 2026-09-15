@@ -47,6 +47,8 @@ export const BLOCKER_KINDS = [
   "no-price",
   "too-many-resting",
   "pre-open-taker",
+  // S15 geofence (D-095): the venue reads everywhere and funds only where it may.
+  "region",
 ] as const;
 
 export type BlockerKind = (typeof BLOCKER_KINDS)[number];
@@ -162,5 +164,7 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
       return "16 calls already rest on this Window — cancel one first";
     case "pre-open-taker":
       return "Nothing fills before the open — schedule a resting call instead";
+    case "region":
+      return "Not available in your region";
   }
 }

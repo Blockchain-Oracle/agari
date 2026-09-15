@@ -1,6 +1,6 @@
 # X receipt delivery
 
-Each new mention is claimed once in Postgres before execution. A completed receipt can produce one short reply with a branded 1200 × 600 PNG and a clickable transaction link. The image uses the same validated receipt facts as the text. Rendering uses the bundled licensed fonts and exact Masayume mark; it needs no image-generation service.
+Each new mention is claimed once in Postgres before execution. A completed receipt can produce one short reply with a branded 1200 × 600 PNG and a clickable transaction link. The image uses the same validated receipt facts as the text. Rendering uses the bundled licensed fonts and exact Agari mark; it needs no image-generation service.
 
 ## Receipt facts
 

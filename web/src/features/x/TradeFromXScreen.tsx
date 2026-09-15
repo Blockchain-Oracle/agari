@@ -7,6 +7,8 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
 import { useVenue } from "@/features/markets/useVenue";
+import { RegionNote } from "@/features/region/RegionNote";
+import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
 import { MARKETS_PATH } from "@/lib/routes";
 import { docsUrl } from "@/lib/docs-url";
@@ -41,6 +43,8 @@ export function TradeFromXScreen() {
   const grant = useXGrant();
   const receipts = useXReceipts(address ?? null);
   const [amount, setAmount] = useState("5");
+  // The geofence (D-095): a held browser reads the custody rail and its receipts; it funds and links nothing.
+  const regionHeld = useRegionRestricted();
 
   const permission = grant.permission(link.status?.executor ?? null);
   const funded = permission === "ready";
@@ -102,6 +106,7 @@ export function TradeFromXScreen() {
             {address ? <IdentityChip addr={address} /> : <ConnectButton />}
           </Step>
           <Step n="2" title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 2 ? "active" : "idle"} spine={{ from: 2, cur: step }}>
+            {regionHeld && <RegionNote className="xt-step-lede" />}
             {!address && <p className="xt-step-lede">Connect your wallet to check your X balance and permission.</p>}
             {address && (grant.grant || grant.pendingUpdate || !["ready", "unfunded"].includes(permission)) && <div className="xw">
               {grant.balanceBase !== null && <p className="xt-step-lede">X balance · <strong>{formatBaseUnits(grant.balanceBase, grant.decimals)} {symbol}</strong></p>}
@@ -114,7 +119,7 @@ export function TradeFromXScreen() {
               <CapabilityReceipt
                 amount={amount}
                 setAmount={setAmount}
-                disabled={!address || !grant.readable || Boolean(grant.busy) || link.walletMismatch}
+                disabled={regionHeld || !address || !grant.readable || Boolean(grant.busy) || link.walletMismatch}
                 depositing={grant.busy === "fund"}
                 firstTime={grant.grant === null}
                 decimals={grant.decimals}
@@ -124,7 +129,7 @@ export function TradeFromXScreen() {
             ) : null}
           </Step>
           <Step n="3" title={TRADE_FROM_X.steps.link} state={linked ? "done" : step === 3 ? "active" : "idle"} spine={{ from: 3, cur: step }} isLast>
-            <LinkStep link={link} returnTo={RETURN_TO} enabled={Boolean(address) && funded} />
+            <LinkStep link={link} returnTo={RETURN_TO} enabled={!regionHeld && Boolean(address) && funded} />
           </Step>
         </ol>
 

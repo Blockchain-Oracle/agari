@@ -2,6 +2,7 @@ import type { Address } from "@agari/core/types";
 import { createDbCosignLedger } from "@agari/db";
 import { createSponsorService, gateVerdict, SPONSOR_ALLOWLIST, type SponsorService } from "@agari/markets/sponsor";
 import { NextResponse } from "next/server";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { vaultProgramFromProcess } from "@/features/session/sponsor.server";
 import type { SponsorWire } from "@/features/session/useSponsorStatus";
 
@@ -61,6 +62,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  // The geofence comes before any key, balance or co-signature (D-095).
+  if (regionRestricted(request)) return regionRestrictedResponse();
   const refuse = (status: number, error: string) => NextResponse.json({ error }, { status, headers: noStore });
   if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) return refuse(413, "request is too large");
   const text = await request.text().catch(() => "");

@@ -6,6 +6,7 @@ import { getCollateral, marketsProvider } from "@agari/markets";
 import { openPrivateBet } from "@agari/markets/private";
 import { NextResponse } from "next/server";
 import { getDesk } from "@/features/private/desk.server";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { gate } from "@/features/session/sponsor.server";
 
@@ -25,6 +26,8 @@ const OPENS_PER_OWNER_PER_HOUR = 20;
 const OPENS_PER_IP_PER_HOUR = 60;
 
 export async function POST(req: Request) {
+  // The geofence comes before any key, balance or co-signature (D-095).
+  if (regionRestricted(req)) return regionRestrictedResponse();
   const parsed = privateOpenRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return refuse(400, "malformed private open request");
   const body = parsed.data;

@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { X_REFUSAL_TITLES, type XReceiptStatus } from "@agari/core/x";
 import { isSignature } from "@agari/core/types";
+import { NETWORK_LABEL, SITE_HOST } from "./reply-format";
 
 /** Structural subset of ReplyPresentation. All facts come from the receipt formatter. */
 export interface ReplyCardInput {
@@ -90,7 +91,7 @@ function text(value: string, x: number, baseline: number, size: number, fill: st
   return `<g role="img" aria-label="${escapeXml(value)}"><path d="${font.getPath(value, x, baseline, size, { kerning: true }).toPathData(2)}" fill="${fill}"/></g>`;
 }
 
-/** Exact Masayume mark geometry, shared with the app and docs brand. */
+/** The Agari mark, path for path with `web/src/components/shell/AgariMark.tsx` (266×322), shared with the app and docs brand. */
 function mark(x: number, y: number, height: number, ink: string): string {
   return `<g transform="translate(${x} ${y}) scale(${height / 322})" aria-hidden="true"><path d="M56 120 A 88 88 0 1 0 210 120" stroke="${ink}" fill="none" stroke-width="34" stroke-linecap="round"/><circle cx="133" cy="62" r="30" fill="${ORANGE}"/></g>`;
 }
@@ -123,21 +124,21 @@ export function renderReplyCardSvg(input: ReplyCardInput, options: ReplyCardOpti
   const title = status === "refused" && Object.values(X_REFUSAL_TITLES).some(title => title === input.title) ? input.title! : state.title;
   const footer = status === "unknown" && input.footer === "Check this transaction before trying again."
     ? input.footer : state.footer;
-  const context = plain(input.context, 180) || "Somnia Shannon testnet";
+  const context = plain(input.context, 180) || NETWORK_LABEL;
   const detail = plain(input.detail, 420) || "Open the receipt for details.";
   const sender = typeof input.sender === "string" && /^(@[A-Za-z0-9_]{1,15}|X user \d{1,30})$/.test(input.sender) ? input.sender : null;
   const hash = isSignature(input.txHash) ? input.txHash : null;
   const contextLines = lines(context, inter, 27, 690, 2);
   const detailLines = lines(detail, inter, 22, 690, 2);
   const titleSize = Math.min(72, 690 / width(sora, title, 1));
-  const banner = options.demo ? "DEMO · NOT A REAL TRADE" : "SOMNIA SHANNON TESTNET";
+  const banner = options.demo ? "DEMO · NOT A REAL TRADE" : NETWORK_LABEL.toUpperCase();
   const description = `${banner}. ${sender ? `For ${sender}. ` : ""}${title}. ${contextLines.join(" ")}. ${detailLines.join(" ")}. ${footer}${hash ? ` Transaction ${hash}.` : ""}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-labelledby="reply-title reply-description" data-status="${status}">
-<title id="reply-title">${escapeXml(title)} — Masayume</title>
+<title id="reply-title">${escapeXml(title)} — Agari</title>
 <desc id="reply-description">${escapeXml(description)}</desc>
 <rect width="1200" height="600" fill="#050505"/>
 ${mark(963, 32, 42, INK)}
-${text("Masayume", 1008, 61, 20, INK, sora)}
+${text("Agari", 1008, 61, 20, INK, sora)}
 ${sender ? text(`FOR ${sender}`, 64, 104, 19, INK) : ""}
 ${text("YOUR CALL HAS A RECEIPT", 64, 146, 16, ORANGE)}
 ${text(title, 60, 235, titleSize, INK, sora)}
@@ -147,7 +148,7 @@ ${text(footer, 64, 444, 20, MUTED)}
 ${hash ? text(`TX ${hash}`, 64, 491, Math.min(15, 690 / width(inter, `TX ${hash}`, 1)), MUTED) : ""}
 ${receiptArt(status)}
 <path d="M64 523H1136" stroke="#39332D"/>
-${text("masayume.app · Receipt details in the reply", 64, 563, 15, MUTED)}
+${text(`${SITE_HOST} · Receipt details in the reply`, 64, 563, 15, MUTED)}
 ${text(banner, 1136 - width(inter, banner, 15), 563, 15, ORANGE)}
 </svg>`;
 }

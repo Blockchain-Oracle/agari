@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { readXConfig } from "@/features/x/config.server";
 import { authenticateUrl, requestToken } from "@/features/x/oauth.server";
 import { X_OAUTH_COOKIES, X_OAUTH_TTL_SEC } from "@/features/x/session.server";
@@ -12,6 +13,8 @@ export const dynamic = "force-dynamic";
  * origin that receives the callback, or X appears to succeed and the page asks again.
  */
 export async function GET(req: NextRequest) {
+  // The geofence comes before any key, balance or co-signature (D-095).
+  if (regionRestricted(req)) return regionRestrictedResponse();
   const origin = req.nextUrl.origin;
   const reading = readXConfig(origin);
   if (!reading.configured) return NextResponse.json({ configured: false, missing: reading.missing });

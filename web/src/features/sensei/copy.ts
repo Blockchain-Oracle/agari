@@ -12,7 +12,7 @@ import type { SenseiMessage } from "./protocol";
 export const SENSEI_INTRO: SenseiMessage = {
   role: "assistant",
   content:
-    "I'm Sensei. I read the live market with you and give you a straight call. UP, DOWN, or sit it out. Then act on it right here: pick a Window below and it opens in your ticket. Testnet, test funds only. I read and recommend, you place the trade.",
+    "I'm Sensei. I read the live market with you and give you a straight call. UP, DOWN, or sit it out. Then act on it right here: pick a Window below and it opens in your ticket. Devnet, test funds only. I read and recommend, you place the trade.",
 };
 
 export const SENSEI_STARTERS = ["Read the current market", "Up or down on the next close?", "Is this a coin-flip?"] as const;

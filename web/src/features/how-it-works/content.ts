@@ -15,11 +15,14 @@ import {
  * The page's content, as data — the reference keeps `steps`, `mechanics` and `faqs` as
  * arrays inside the component; they live here so each fact can carry its source.
  *
- * Sources (asserted, not assumed): `context/01-dreamdex-event-contracts.md` (the protocol),
+ * Sources (asserted, not assumed): `anchor/programs/agari-events/src/instructions/resolve_rules.rs`
+ * (the settle and void decisions, PD-3's tie rule), `docs/plan/specs/prints.md` §2-§6 and
+ * `services/ops/config/price-sources.json` (which signed source, and its thresholds),
  * `packages/core/src/claims/payout.ts` (payout rule), `packages/core/src/lifecycle/headroom.ts`
  * and `constants/timing.ts` (no-entry buffer), `packages/core/src/copy/question.ts` (what UP
  * means), `packages/markets/src/submitter/steps/send.ts` (IOC takers), `packages/markets/src/
  * provider/fees.ts` (the fee is read from chain), `packages/core/src/constants/faucet.ts`.
+ * The lane, session, halt and void facts live next door in `sessions.ts`.
  */
 
 export type Tone = "mint" | "blue";
@@ -53,7 +56,7 @@ export const STEPS: readonly Step[] = [
     number: 3,
     title: "Trade UP or DOWN",
     description:
-      "Go UP if the Window closes at or above its opening print, DOWN if below. Stake in tUSDC and see the exact quote for your size before you sign.",
+      "Go UP if the Window closes at or above its opening print, DOWN if below — a close exactly on the line pays UP. Stake in tUSDC and see the exact quote for your size before you sign.",
     icon: ZapIcon,
     tone: "mint",
   },
@@ -61,7 +64,7 @@ export const STEPS: readonly Step[] = [
     number: 4,
     title: "Collect Payout",
     description:
-      "When the Window closes the oracle prints the close. Winning contracts redeem for 1 tUSDC each less the settlement fee; losing contracts pay 0; a void pays 0.5 to both sides. Collect it on the Window's result, or everything at once from Portfolio.",
+      "When the Window closes, a signed price for that second is recorded on it. Winning contracts redeem for 1 tUSDC each less the settlement fee; losing contracts pay 0; a void pays 0.5 to both sides. Collect it on the Window's result, or everything at once from Portfolio.",
     icon: TrophyIcon,
     tone: "blue",
   },
@@ -83,13 +86,13 @@ export const MECHANICS: readonly Mechanic[] = [
   {
     title: "Live Price",
     description:
-      "The chart plots the same oracle feed the Window settles on, so the distance to the line is the distance that matters. A stale tick is shown frozen, never as live.",
+      "The chart plots the same feed the Window settles on, so the distance to the line is the distance that matters. A tick that has stopped is shown frozen with its age, never as live.",
     icon: TrendingUpIcon,
   },
   {
     title: "Fast Rounds",
     description:
-      "Windows run back to back on fixed cadences. Entries close inside a no-entry buffer before expiry — 40% of the round, never under 30 s or over 5 min — so a call cannot be made after the answer is in.",
+      "Windows run back to back on fixed cadences while their lane is awake. Entries close inside a no-entry buffer before expiry — 40% of the round, never under 30 s or over 5 min — so a call cannot be made after the answer is in.",
     icon: ClockIcon,
   },
   {
@@ -137,10 +140,10 @@ export interface SettlementStep {
 }
 
 export const SETTLEMENT_STEPS: readonly SettlementStep[] = [
-  { step: "1", label: "Window Closes", desc: "The round reaches its scheduled expiry." },
-  { step: "2", label: "Oracle Prints", desc: "A signed price from RedStone or Pyth is recorded on the Window at the close; the print and its signatures are linked from every receipt." },
-  { step: "3", label: "Settlement", desc: "The agari-events program compares the close with the opening print and resolves the Window. If no reliable print lands inside the settlement window, anyone can void it." },
-  { step: "4", label: "Payout", desc: "Winning contracts redeem for 1 tUSDC less the settlement fee. Redemption is a contract call you make — on the Window's result, or everything at once from Portfolio." },
+  { step: "1", label: "Window Closes", desc: "The round reaches its scheduled expiry — the second its settlement price is asked about." },
+  { step: "2", label: "The Print Is Recorded", desc: "A signed price for that exact second is posted to the Window and verified on-chain: Pyth's own signature, or a RedStone package that at least 3 of 5 configured signers put their names to. Anyone may post it, and nobody can post a price the program has not checked." },
+  { step: "3", label: "Settlement", desc: "The agari-events program compares the closing print with the opening one. Close at or above the open pays UP, and a close exactly on the line pays UP; anything below pays DOWN. Where the policy names a second source, both boundaries are cross-checked first and a gap wider than 25 bps voids the Window instead." },
+  { step: "4", label: "Payout", desc: "Winning contracts redeem for 1 tUSDC less the settlement fee. Redemption is a program call you make — on the Window's result, or everything at once from Portfolio — and an unclaimed seat is cranked so nothing strands." },
 ];
 
 export interface ArchitectureCard {
@@ -157,7 +160,7 @@ export const ARCHITECTURE: readonly ArchitectureCard[] = [
   },
   {
     title: "Instant Finality",
-    body: "Solana confirms in about a second, so a fill is final almost as soon as you sign, and settlement lands the moment the print is recorded.",
+    body: "Solana confirms in about a second, so a fill is final almost as soon as you sign, and settlement lands as soon as the closing print is on the Window.",
     icon: LockIcon,
   },
   {
@@ -178,8 +181,16 @@ export const FAQS: readonly Faq[] = [
     answer: "tUSDC, the test collateral the venue mints on Solana devnet. Choose Get test funds from the header or Portfolio: eligible wallets receive a little SOL for fees first, then the tUSDC mint. External SOL faucets are available if needed.",
   },
   {
+    question: "When can I trade?",
+    answer: "Regular Windows run while US markets are open, 09:30 to 16:00 ET on a trading day. The Gap Window covers the weekend, from Friday's close to Monday's open. The token lane, on tokenised stock, never closes. The session chip says which of those the hour is, and counts down to the next boundary.",
+  },
+  {
+    question: "Can I make a call while the market is closed?",
+    answer: "Yes. The venue lists the next session's first Windows at the close, and a call on one rests post-only at your price. Nothing fills before the open boundary; if the book comes to you in the first minute after the bell, it fills at your price, and if it doesn't the stake returns as venue credit. You can also choose to let it rest until the Window locks.",
+  },
+  {
     question: "How is the outcome decided?",
-    answer: "When the Window closes, a signed price print is recorded on it. Close at or above the opening print and UP wins; below it and DOWN wins. The program does the comparison; the print and its signatures are linked from the receipt.",
+    answer: "When the Window closes, a signed price for that second is recorded on it. Close at or above the opening print and UP wins — a tie pays UP too; below it and DOWN wins. The program does the comparison, and the receipt links both prints with the source and signer count that backed them.",
   },
   {
     question: "How much do I win?",
@@ -191,7 +202,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "Is this real money?",
-    answer: "No. Agari runs on Solana devnet with tUSDC from a faucet. Nothing here is worth anything off devnet.",
+    answer: "No. Agari runs on Solana devnet with tUSDC from the venue's own faucet. Nothing here is worth anything off devnet, and there is no way to move it off.",
   },
   {
     question: "How does Agari ensure fair pricing?",

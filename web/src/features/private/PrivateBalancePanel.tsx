@@ -8,7 +8,9 @@ import { Money } from "@/components/data";
 import { ErrorState, LoadingState } from "@/components/states";
 import { blockerLabel } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
+import { RegionNote } from "../region/RegionNote";
 import { useVenue } from "../markets/useVenue";
 import { deriveVaultBlocker } from "../vault/vault-blocker";
 import "../vault/vault.css";
@@ -37,6 +39,8 @@ function Cell({ label, children }: { label: string; children: React.ReactNode })
  */
 export function PrivateBalancePanel({ inline, className }: { inline?: boolean; className?: string }) {
   const session = useWalletSession();
+  // The geofence (D-095): the deposit is held; withdraw and revoke stay reachable so no test funds are stranded.
+  const regionHeld = useRegionRestricted();
   const { address } = session;
   const { boot } = useVenue();
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
@@ -69,7 +73,7 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
   const blocker = deriveVaultBlocker({ session, hasSigner: writes.hasSigner, busy: writes.state.busy !== null, gasShort: writes.state.gasShort });
   const blocked = blocker !== null;
   const busy = writes.state.busy;
-  const depositDisabled = blocked || amountBase <= 0n || walletSpendable === null || walletSpendable < amountBase || budget === null;
+  const depositDisabled = regionHeld || blocked || amountBase <= 0n || walletSpendable === null || walletSpendable < amountBase || budget === null;
   const withdrawDisabled = blocked || !budget || budget.balanceBase <= 0n;
   const revokeDisabled = blocked || !budget || budget.allowanceBase <= 0n;
 
@@ -101,7 +105,13 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
               </button>
             </div>
           </div>
-          {blocker ? <span className="type-caption text-ink-secondary">{blockerLabel(blocker)}</span> : <span className="type-caption text-ink-secondary">{PRIVATE.panel.allowanceNote}</span>}
+          {regionHeld ? (
+            <RegionNote />
+          ) : blocker ? (
+            <span className="type-caption text-ink-secondary">{blockerLabel(blocker)}</span>
+          ) : (
+            <span className="type-caption text-ink-secondary">{PRIVATE.panel.allowanceNote}</span>
+          )}
         </div>
       </div>
 
