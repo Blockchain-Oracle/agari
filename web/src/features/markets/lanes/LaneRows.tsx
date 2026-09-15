@@ -1,7 +1,7 @@
 "use client";
 
 import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import type { EventMarket, LaneBasis, MarketId, Side } from "@agari/core/types";
 import { MarketCard } from "./MarketCard";
 import { PausedCard } from "./PausedCard";
 
@@ -9,6 +9,7 @@ interface LaneRowsProps {
   markets: readonly EventMarket[];
   /** Tickers the roller has paused in this cadence, drawn after the live cards with the roller's own state. */
   paused: readonly (readonly [TickerSymbol, string])[];
+  basis: LaneBasis;
   intervalSec: number;
   nowMs: number;
   selectedMarketId: MarketId | null;
@@ -21,7 +22,7 @@ interface LaneRowsProps {
  *
  * Soonest-to-expire first; keyed by marketId, never by the recycled pool.
  */
-export function LaneRows({ markets, paused, intervalSec, nowMs, selectedMarketId, onSelect, onOpenRoom }: LaneRowsProps) {
+export function LaneRows({ markets, paused, basis, intervalSec, nowMs, selectedMarketId, onSelect, onOpenRoom }: LaneRowsProps) {
   return (
     <div className="markets-grid markets-grid-live">
       {markets.map((market) => (
@@ -35,7 +36,7 @@ export function LaneRows({ markets, paused, intervalSec, nowMs, selectedMarketId
         />
       ))}
       {paused.map(([asset, state]) => (
-        <PausedCard key={asset} asset={asset} intervalSec={intervalSec} state={state} />
+        <PausedCard key={asset} asset={asset} basis={basis} intervalSec={intervalSec} state={state} />
       ))}
     </div>
   );

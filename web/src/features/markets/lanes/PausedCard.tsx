@@ -1,11 +1,14 @@
 import type { TickerSymbol } from "@agari/core/market";
-import { formatCadence, MARKETS } from "@/lib/copy";
+import type { LaneBasis } from "@agari/core/types";
+import { MARKETS } from "@/lib/copy";
 import { AssetDisc } from "../hero/asset-mark";
+import { laneAssetLabel, laneCadenceLabel, pausedCopy } from "./lane-view";
 
 interface PausedCardProps {
   asset: TickerSymbol;
+  basis: LaneBasis;
   intervalSec: number;
-  /** The roller's own state for the lane, e.g. `paused: no signed source`, `paused: corporate action (split)`. */
+  /** The roller's own state for the lane: `paused: no signed source`, `paused: corporate action (split)`, `paused: halted (pyth-wide)`. */
   state: string;
 }
 
@@ -14,15 +17,16 @@ interface PausedCardProps {
  * (`RailPlaceholder`, reference/yosuku/app/markets/page.tsx L74–95), markup for markup. Not a button:
  * there is nothing to open.
  */
-export function PausedCard({ asset, intervalSec, state }: PausedCardProps) {
-  const cadence = formatCadence(intervalSec);
-  const headline = state.startsWith("paused: corporate action") ? MARKETS.paused.corporateAction : MARKETS.paused.noSource;
+export function PausedCard({ asset, basis, intervalSec, state }: PausedCardProps) {
+  const cadence = laneCadenceLabel(basis, intervalSec);
+  const label = laneAssetLabel(asset, basis);
+  const { headline, why } = pausedCopy(state, label, basis, intervalSec);
   return (
-    <div className="market-card market-card-pending">
+    <div className="market-card market-card-pending" data-lane={basis}>
       <div className="mc-head">
         <span className="mc-asset">
           <AssetDisc asset={asset} className="glyph" />
-          <span className="mc-ticker">{asset}</span>
+          <span className="mc-ticker">{label}</span>
           <span className="mc-cadence">{cadence}</span>
         </span>
         <span className="mc-countdown">
@@ -33,7 +37,7 @@ export function PausedCard({ asset, intervalSec, state }: PausedCardProps) {
       <div className="mc-pending">
         <span className="mc-pending-dot" aria-hidden />
         <p className="mc-pending-copy">
-          <strong>{headline}.</strong> {MARKETS.paused.why(asset, cadence)}
+          <strong>{headline}.</strong> {why}
         </p>
       </div>
     </div>

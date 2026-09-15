@@ -124,6 +124,12 @@ export const MARKETS = {
     aria: (state: string, label: string) => `Stock market ${state}: ${label}`,
     open: "Open",
     closed: "Closed",
+    halted: "halted",
+  },
+  /** Q-S6-9: "Trading halted" only for a wide Pyth confidence or the issuer's flag; the stale reasons say so instead. */
+  halt: {
+    trading: "Trading halted",
+    stale: "Signed price stale",
   },
   /** A ticker whose `/session` lane reads `paused:` lists nothing while the rest of its cadence runs. */
   paused: {
@@ -300,4 +306,5 @@ export const BALANCE = {
 } as const;
 
 export { CLAIM, VERDICT_UI } from "./copy-verdict";
+export { LANE_STATE } from "./copy-lanes";
 export { TICKET, TICKET_PENDING } from "./copy-ticket";
