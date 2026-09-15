@@ -1,9 +1,13 @@
 "use client";
 
+import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
 import type { MarketId } from "@agari/core/types";
-import React from "react";
+import { useMarket } from "@agari/markets/react";
+import React, { useState, type ReactNode } from "react";
 import { CommentRoom } from "./CommentRoom";
 import { ROOM } from "./copy";
+import { tickerRoomId, type RoomId } from "./room-id";
+import { RoomSwitch, type RoomScope } from "./RoomSwitch";
 import { useRoom } from "./useRoom";
 
 interface MarketRoomProps {
@@ -13,6 +17,17 @@ interface MarketRoomProps {
   onClose: () => void;
   /** Jump the reader to placing a bet, which is what unlocks the Room. */
   onBet?: () => void;
+  /** The Window's ticker, when the caller already has it; otherwise it is read from the index. */
+  asset?: string;
+}
+
+export interface RoomSheetProps {
+  roomId: RoomId;
+  callLabel: string;
+  onClose: () => void;
+  onBet?: () => void;
+  ticker?: TickerSymbol | null;
+  switcher?: ReactNode;
 }
 
 interface BoundaryProps {
@@ -43,8 +58,8 @@ class RoomErrorBoundary extends React.Component<BoundaryProps, { error: Error | 
   }
 }
 
-function RoomInner({ marketId, callLabel, onClose, onBet }: MarketRoomProps) {
-  const room = useRoom(marketId, true);
+function RoomInner({ roomId, callLabel, onClose, onBet, ticker, switcher }: RoomSheetProps) {
+  const room = useRoom(roomId, true);
   return (
     <CommentRoom
       callLabel={callLabel}
@@ -56,6 +71,8 @@ function RoomInner({ marketId, callLabel, onClose, onBet }: MarketRoomProps) {
       onJoin={() => void room.join()}
       onPost={(body) => void room.post(body)}
       onBet={onBet}
+      ticker={ticker}
+      switcher={switcher}
     />
   );
 }
@@ -76,12 +93,35 @@ function RoomFallback({ callLabel, onClose, error }: { callLabel: string; onClos
   );
 }
 
-/** Self-contained mount of the Room for one market. */
-export function MarketRoom(props: MarketRoomProps) {
+/** Self-contained mount of one Room — a Window's or a ticker's. */
+export function RoomSheet(props: RoomSheetProps) {
   return (
     <RoomErrorBoundary fallback={(error) => <RoomFallback callLabel={props.callLabel} onClose={props.onClose} error={error} />}>
       <RoomInner {...props} />
     </RoomErrorBoundary>
+  );
+}
+
+/**
+ * A Window's Room, with its ticker's standing Room one tap away in the head ("This Window · $TSLA").
+ * The ticker comes from the caller or from the Window's index row, so no chain read is added.
+ */
+export function MarketRoom({ marketId, callLabel, onClose, onBet, asset }: MarketRoomProps) {
+  const market = useMarket(asset === undefined ? marketId : null);
+  const symbol = asset ?? (market?.ok ? market.value?.asset : undefined);
+  const ticker = isTickerSymbol(symbol) ? symbol : null;
+  const [scope, setScope] = useState<RoomScope>("window");
+  const inTicker = scope === "ticker" && ticker !== null;
+
+  return (
+    <RoomSheet
+      roomId={inTicker ? tickerRoomId(ticker) : marketId}
+      callLabel={inTicker ? ROOM.ticker.title(ticker) : callLabel}
+      onClose={onClose}
+      onBet={onBet}
+      ticker={inTicker ? ticker : null}
+      switcher={ticker ? <RoomSwitch symbol={ticker} scope={scope} onScope={setScope} /> : null}
+    />
   );
 }
 

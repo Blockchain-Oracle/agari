@@ -1,12 +1,12 @@
 "use client";
 
 import { isOk } from "@agari/core/schemas";
-import type { MarketId } from "@agari/core/types";
 import { usePositions } from "@agari/markets/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { ROOM_ERRORS } from "./copy";
 import { type RoomComment, type RoomGate, roomJoinMessage } from "./protocol";
+import { parseRoomId, type RoomId } from "./room-id";
 import { clearRoomToken, readRoomToken, writeRoomToken } from "./room-session";
 
 /** The reference polls its thread every 9 s (`useCommentRoom.ts` L37). */
@@ -45,8 +45,11 @@ export interface Room {
  * One signature per hour, not per opening: the join token is remembered per wallet and
  * market (`room-session.ts`), so closing the sheet and opening it again lands on
  * `joined` with the thread, and the wallet is only asked again once the token has aged out.
+ *
+ * `marketId` is any room id (`room-id.ts`): a Window's Market id, or a ticker's `$TSLA`.
  */
-export function useRoom(marketId: MarketId | null, open: boolean): Room {
+export function useRoom(marketId: RoomId | null, open: boolean): Room {
+  const room = useMemo(() => (marketId ? parseRoomId(marketId) : null), [marketId]);
   const { address } = useWalletSession();
   const wallet = useOwnerWallet();
   // The same read the server will make, made here so the sheet can say "you need a
@@ -54,8 +57,9 @@ export function useRoom(marketId: MarketId | null, open: boolean): Room {
   // an affordance, never the gate: the authority is the server's own check.
   const positions = usePositions(open ? address : null);
   const [configured, setConfigured] = useState<boolean | null>(null);
-  // The registry's answer — the same one the server gives at join, and the one a boost, a private bet or a
-  // Trading Balance bet can only ever get, since none of them leave tokens in the wallet.
+  // The registry's and the index's "ever bet" — the server's first two gate steps, so a bettor who sold out or
+  // whose Window settled still reads as joinable. A boost, a private bet or a Trading Balance bet can only ever
+  // get this answer, since none of them leave tokens in the wallet.
   const [seat, setSeat] = useState<boolean | null>(null);
   useEffect(() => {
     if (!open || !address || !marketId) return;
@@ -122,9 +126,12 @@ export function useRoom(marketId: MarketId | null, open: boolean): Room {
     }
     // A position reading that has not landed is not an absence of position; hold
     // `joinable` until it says otherwise rather than flashing "you need a bet".
-    const holds = positions && isOk(positions) ? positions.value.some((position) => position.marketId === marketId) : true;
+    const holds =
+      positions && isOk(positions)
+        ? positions.value.some((position) => (room?.kind === "ticker" ? position.asset === room.symbol : position.marketId === marketId))
+        : true;
     setGate(seat === true || holds ? "joinable" : "locked");
-  }, [configured, address, positions, marketId, joined, gate, seat]);
+  }, [configured, address, positions, marketId, room, joined, gate, seat]);
 
   const load = useCallback(
     async (current: string) => {

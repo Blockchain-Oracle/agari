@@ -65,4 +65,5 @@ export const TAKE_ERRORS = {
   windowClosed: "That Window has already closed — a take is a call on a live one.",
   gateUnreadable: "Couldn't read your position from the chain just now, so the take wasn't posted. Try again in a moment.",
   postFailed: "That didn't post. Try again.",
+  rateLimited: "That's a lot of takes at once. Give it a minute and try again.",
 } as const;

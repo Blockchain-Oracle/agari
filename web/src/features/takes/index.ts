@@ -1,3 +1,4 @@
+export { captionParts, parseCashtags, profileHref, TAKE_TAGS_MAX, tickerHref, type CaptionPart } from "./cashtags";
 export { TAKES, TAKE_ERRORS } from "./copy";
 export { TAKE_MAX_CAPTION, TAKES_FEED_LIMIT, normalizeCaption, takeMessage, type FeedTake, type TakesFeed } from "./protocol";
 export { TakeComposer } from "./TakeComposer";
