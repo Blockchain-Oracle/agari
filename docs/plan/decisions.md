@@ -628,6 +628,21 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** stock news, a stock/session-aware Sensei, Rooms that stay open to anyone who bet, cashtag takes, profiles, follows, ticker hubs, an activity feed and in-tab notifications.
 - **Approval:** stage owner on the spec defaults (user decisions Q-S13-1/5/6 flagged to the user).
 
+### D-072 — Sensei refinements found in lane 13a
+- **Date / owner:** 2026-09-15 · S13 owner (lane 13a report)
+- **Evidence:**
+  - Sensei's prompt style rule bans dashes in replies, and a dash in the prompt invites one.
+  - 13c's Finnhub client makes one call per ticker from a web budget of 10 calls/min; ETFs never report earnings.
+  - Latency on a production build, n = 20: p50 3,460 ms, p95 4,630 ms; in-session (synthetic snapshot) p50 3,655 ms, p95 4,996 ms.
+- **Rule:**
+  - **Session wording:** the prompt's session rule reads "09:30 to 16:00 ET" (no dash).
+  - **Earnings:** the line asks for the seven registry stocks only (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL), cached 6 h, waiting at most 1.5 s. A null or late read renders "The earnings calendar could not be read this turn. Do not guess report dates."; "no earnings report within 14 days" appears only when a non-null list has nothing in range.
+  - **Response mode:** Sensei stays non-streaming (`generateText`, Q-S13-2); the p50 ≤ 4 s gate is met.
+  - **Off-hours:** a refusal still offers a Window read at the open.
+  - **Rate-limit key:** the IP comes from `x-forwarded-for` (as `previewGate`); the host must overwrite that header in production (S16), and the 600/h house cap bounds cost meanwhile.
+- **User-visible:** Sensei says when earnings are unknown instead of guessing; off-hours it points to the open.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
