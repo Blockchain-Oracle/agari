@@ -39,11 +39,11 @@ const ActivityRow = memo(function ActivityRow({ index, item, take, units, showWh
         {view.href === null ? (
           title
         ) : view.external ? (
-          <a href={view.href} target="_blank" rel="noopener noreferrer" data-cursor="hover">
+          <a href={view.href} target="_blank" rel="noopener noreferrer" className="act-title" data-cursor="hover">
             {title}
           </a>
         ) : (
-          <Link href={view.href} data-cursor="hover">
+          <Link href={view.href} className="act-title" data-cursor="hover">
             {title}
           </Link>
         )}

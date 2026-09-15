@@ -4,6 +4,7 @@ import type { Address } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import Link from "next/link";
 import { useMemo } from "react";
+import { LEADERBOARD } from "@/features/leaderboard/copy";
 import { glyphFromAddress } from "@/features/leaderboard/glyph";
 import type { BoardRanking } from "@/features/leaderboard/protocol";
 import { useLeaderboard } from "@/features/leaderboard/useLeaderboard";
@@ -87,6 +88,14 @@ export function FriendsBoard() {
   }, [friends]);
 
   if (!address) return <p className="soc-board-state">{words.connect}</p>;
+  // The board's own failure words: a board that can't be computed is not a quiet circle of friends.
+  if (!data && board !== null && !board.ok) {
+    return (
+      <p className="soc-board-state" role="alert">
+        {LEADERBOARD.failed}
+      </p>
+    );
+  }
   if (!data || !follows.data) {
     return (
       <p className="soc-board-state" role="status" aria-busy="true">
