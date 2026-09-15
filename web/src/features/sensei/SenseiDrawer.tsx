@@ -1,5 +1,6 @@
 "use client";
 
+import { ADVICE_COPY } from "@agari/core/copy";
 import type { EventMarket } from "@agari/core/types";
 import { formatClock } from "@agari/core/units";
 import { useEffect, useRef, useState } from "react";
@@ -183,6 +184,7 @@ export function SenseiDrawer({ open, onClose, chat, reading, markets, nowMs, sec
             {SENSEI_UI.send}
           </button>
         </form>
+        <p className="px-4 pb-3 type-caption text-ink-muted">{ADVICE_COPY.notAdvice}</p>
       </aside>
     </>
   );

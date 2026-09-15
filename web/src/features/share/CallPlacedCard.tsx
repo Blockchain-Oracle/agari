@@ -1,5 +1,6 @@
 "use client";
 
+import { ADVICE_COPY } from "@agari/core/copy";
 import { formatBaseUnits, formatClock, formatUtc, remainingSec, secToMs } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
@@ -104,6 +105,7 @@ export function CallPlacedCard({ card, nowMs, actions }: CallPlacedCardProps) {
       </div>
 
       <ShareCallButton card={card} variant="primary" />
+      <p className="mt-2 type-caption text-ink-muted">{ADVICE_COPY.notAdvice}</p>
       {actions}
     </div>
   );
