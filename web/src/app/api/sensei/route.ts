@@ -1,5 +1,6 @@
 import { APICallError, generateText, InvalidPromptError } from "ai";
 import { NextResponse } from "next/server";
+import { earningsTurn } from "@/features/sensei/earnings.server";
 import { missingCredentialHint, resolveModel } from "@/features/sensei/model.server";
 import { asksForAdvice, SENSEI_ERRORS, SENSEI_SYSTEM, senseiTurnContext } from "@/features/sensei/prompt";
 import { type SenseiRequest, senseiRequestSchema } from "@/features/sensei/protocol";
@@ -80,6 +81,7 @@ export async function POST(req: Request) {
   if (body.messages.length === 0) return bad(SENSEI_ERRORS.saySomething, 400);
   if (!senseiGate(clientIp(req), Date.now())) return bad(SENSEI_ERRORS.rateLimited, 429);
 
+  const earnings = await earningsTurn(body);
   try {
     const { text } = await generateText({
       model: resolved.model,
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
       messages: [
         // The volatile per-turn figures sit in their own user turn, after the stable
         // system prompt, so a provider that caches a prefix can still do so.
-        { role: "user", content: senseiTurnContext(body, { adviceAsked: asksForAdvice(body.messages) }) },
+        { role: "user", content: senseiTurnContext(body, { adviceAsked: asksForAdvice(body.messages), earnings }) },
         ...body.messages.map((message) => ({ role: message.role, content: message.content })),
       ],
     });

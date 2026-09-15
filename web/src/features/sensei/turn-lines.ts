@@ -1,5 +1,6 @@
-import { ET_WEEKDAY_SHORT, isTickerSymbol, TICKER_SYMBOLS, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
-import type { SenseiPosition, SenseiRecord, SenseiRequest, SenseiSession } from "./protocol";
+import { ET_WEEKDAY_SHORT, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
+import type { EarningsEvent } from "@/lib/finnhub.server";
+import type { SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { centsText } from "./units";
 
 /**
@@ -15,16 +16,9 @@ export const EARNINGS_DAYS = 14;
 const EARNINGS_MAX = 10;
 const DATE_ET = /^\d{4}-\d{2}-\d{2}$/;
 
-/** One report as the Finnhub client (§3.1) returns it; structural, so this module stays free of server imports. */
-export interface EarningsRead {
-  symbol: string;
-  dateEt: string;
-  hour: "bmo" | "amc" | "dmh" | null;
-}
-
 export interface EarningsTurn {
-  /** Null when the calendar could not be read (no key, upstream down, or not back in time). */
-  events: readonly EarningsRead[] | null;
+  /** Null when the calendar could not be read (no key, upstream down, or not back in time). A type-only import of the client. */
+  events: readonly EarningsEvent[] | null;
   symbols: readonly TickerSymbol[];
 }
 
@@ -62,12 +56,6 @@ export function positionLines(positions: readonly SenseiPosition[]): string[] {
       (p) => `- ${p.asset} ${p.cadence} ${SIDE[p.side]}, staked ${centsText(p.stakeCents)}, worth ${centsText(p.markCents)} at last trade, closes in ${p.minsToClose} min`,
     ),
   ];
-}
-
-/** The tickers the reader is looking at or holding; the whole registry when there are none. */
-export function earningsSymbols({ snapshot, positions }: Pick<SenseiRequest, "snapshot" | "positions">): TickerSymbol[] {
-  const named = [...(snapshot?.markets ?? []).map((m) => m.asset), ...(positions ?? []).map((p) => p.asset)].filter(isTickerSymbol);
-  return named.length > 0 ? [...new Set(named)] : [...TICKER_SYMBOLS];
 }
 
 function reportDay(dateEt: string): string {
