@@ -66,3 +66,4 @@ export {
   type VenueBoard,
   type VenueTraction,
 } from "./tape";
+export * from "./proof";

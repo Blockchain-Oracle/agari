@@ -44,7 +44,7 @@ function Intro() {
  * Trader Edge — ported from `reference/yosuku/app/portfolio/edge/page.tsx`.
  *
  * The reference reads the account's durable per-expiry ledger; this reads the fill projection,
- * which is the same idea on DreamDEX: fills plus the settlement rule, so redeeming a position
+ * which is the same idea on Agari: fills plus the settlement rule, so redeeming a position
  * never erases it. Every state the reference draws is here: connect, reading, failed with a
  * retry, nothing settled yet, and the report.
  */
