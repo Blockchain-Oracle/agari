@@ -413,6 +413,96 @@
           "J2uYxRv5kcofjNau9yVhKapVjtQx9wMPzqZain9ARZr6",
           "HibLPUV5xrj3AmRtBab1DKzQSWrWvfyvK2jSszLZX2qZ"
         ]
+      },
+      "NVDAx-5m": {
+        "address": "2AnH5ATRmBUmtbhfkcD746Ex4k9eJKJKwiGkrYjFW7yM",
+        "ticker": 2,
+        "cadenceSec": 300,
+        "basis": 2,
+        "books": [
+          "G6aqp6cM6aJob1uRokYNkEF4fRaYXJHJZwhNeVNhD4F7",
+          "FCzGFwbnBUYF1J4pHkE71Re3N6GVHzqEKVfxH4g7BSQg"
+        ]
+      },
+      "NVDAx-15m": {
+        "address": "6wVQdSXK7jKtuL1RFSgtj8ukzcZEK4nt3t3jGzkrm25Q",
+        "ticker": 2,
+        "cadenceSec": 900,
+        "basis": 2,
+        "books": [
+          "9HuFEg6mdRYtRY3WL87b42awDHM1ZXMkYdk7CUnErBkX",
+          "AD59uTd37Up7zGQNHU4W8TGq4GupEfxWFgyJGdSsmun2"
+        ]
+      },
+      "NVDAx-60m": {
+        "address": "9rsSKZ2UtT7QmiafikfaE42nHrNWwU3oy2YgizLtcYeB",
+        "ticker": 2,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "3GXtfsRypQ6GGp6AXoAe4pqKUdWg92K1Zp8SNnXRY9py",
+          "3i54JLq8s3RHGkUz976pEMhMPRN3ysio6wihRMV7T7Kq"
+        ]
+      },
+      "SPYx-5m": {
+        "address": "ADxLnigmsEdTahJggHLeXeHXW5d9zLftB4g5iQ4gjs6h",
+        "ticker": 10,
+        "cadenceSec": 300,
+        "basis": 2,
+        "books": [
+          "AWbo1cLjPnHk3QHFibEENwQBCsd7aCrhwsYGxA8dSLQh",
+          "D6zXF78bcXpjHE39WAAZt5iHgiKVM1JpSNVG7JojeHAY"
+        ]
+      },
+      "SPYx-15m": {
+        "address": "8vcofi7NyjMh68rVcsGDefv1YfnLhT7J3HjLw61SydBJ",
+        "ticker": 10,
+        "cadenceSec": 900,
+        "basis": 2,
+        "books": [
+          "28VByFw81h9sP8yeYiGzFKrd55maXjfKYYEvD4EfFKKX",
+          "6F6YjFKaSTYHsxvtFqKCfTzp8fCXkkLFNvFL5NsYV5rr"
+        ]
+      },
+      "SPYx-60m": {
+        "address": "8FwBQTcFBom5dsvYvP4u5Dpv1k6JqCMFrN5w93F68WMe",
+        "ticker": 10,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "GTvgpQMRPY4GKokbVYch8t5mZuBQn3WdvH7iXKpvhrby",
+          "BxsmtS8uev3tGyARcj6bh1iXgbnNVEDa2FHpP7eyPbua"
+        ]
+      },
+      "QQQx-5m": {
+        "address": "4CF4iCBzWEchipSkuWuxvu7cmwYi5ig7oahNzzvhJSV1",
+        "ticker": 8,
+        "cadenceSec": 300,
+        "basis": 2,
+        "books": [
+          "5M3M3nCv1rUR2oEnwKZkRB5MYuxfvLAe8oTX8VPaqmq5",
+          "C37QMvnaRexFHdTQpQSM1oz3avEtV4LZ8WvCcSge2kis"
+        ]
+      },
+      "QQQx-15m": {
+        "address": "43BH6LvpZkHZj7c776rrnpPLYR9c5tauR7ArAX6MJJcf",
+        "ticker": 8,
+        "cadenceSec": 900,
+        "basis": 2,
+        "books": [
+          "GCCppKq2AxHwUM76aqyTnUNf3pChdzAs2fDihymi1wob",
+          "64dHPZ3PQ7oxpM2U2tdNwkRh3ircyJijvWVHwvr5LgLH"
+        ]
+      },
+      "QQQx-60m": {
+        "address": "87P83HF5PBbpwDNVSCUrHiX9NYiJKmhTLi1WFQvcH19q",
+        "ticker": 8,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "8bMXqZMqZaEpdYE81CKEE9kGHCkFXAg15JuSfnsw8VHy",
+          "4JAWDs44a8NHvic1NqHPGSAVwgNYasLknSsQ9ZWUKxnc"
+        ]
       }
     }
   }
