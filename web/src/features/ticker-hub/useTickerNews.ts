@@ -23,9 +23,9 @@ async function readNews(symbol: TickerSymbol): Promise<Reading<Article[]>> {
   return ok(parsed.data.articles, Date.now());
 }
 
-/** One ticker's headlines (`["masayume","news", symbol]`), polled while the tab is visible; a failed refresh keeps the last ones. */
+/** One ticker's headlines (`["agari","news", symbol]`), polled while the tab is visible; a failed refresh keeps the last ones. */
 export function useTickerNews(symbol: TickerSymbol): Reading<Article[]> | null {
-  return useReadingQuery(["masayume", "news", symbol], () => readNews(symbol), { pollMs: NEWS_POLL_MS, needs: [] });
+  return useReadingQuery(["agari", "news", symbol], () => readNews(symbol), { pollMs: NEWS_POLL_MS, needs: [] });
 }
 
 /** `GET /api/earnings?symbol` (lane 13c): `lib/finnhub.server.ts`'s `EarningsEvent` list and the day the answer covers through. */

@@ -74,9 +74,9 @@ export function SessionModalShell({ open, onClose, title, description, children,
   }, [open, onClose]);
   if (!open || typeof document === "undefined") return null;
   return createPortal(
-    <div className={`modal-root ${styles.overlay}`} onClick={onClose}>
-      <div className="modal-scrim" />
-      <div ref={panelRef} className="modal" role="dialog" aria-modal="true" aria-labelledby={labelId} aria-describedby={`${labelId}-description`} tabIndex={-1} onClick={(event) => event.stopPropagation()}>
+    <div className={`modal-root ${styles.overlay}`}>
+      <button type="button" className="modal-scrim" aria-label={SESSION.modal.close} tabIndex={-1} onClick={onClose} />
+      <div ref={panelRef} className="modal" role="dialog" aria-modal="true" aria-labelledby={labelId} aria-describedby={`${labelId}-description`} tabIndex={-1}>
         <button type="button" onClick={onClose} aria-label={SESSION.modal.close} className="modal-close" data-cursor="hover">
           <X className="h-4 w-4" />
         </button>

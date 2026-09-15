@@ -35,7 +35,7 @@ export const PARLAY = {
     title: "Parlay",
     body: "A multi-leg ticket whose legs become immutable when opened, with the maximum payout funded before the ticket is accepted and void rules shown before you confirm.",
     why: PARLAY_NOT_DEPLOYED,
-    dependency: "the ParlayReserve contract — deploy with contracts/script/DeployParlayReserve.s.sol, then pnpm contracts:export",
+    dependency: "the parlay reserve program (planned after the hackathon deadline)",
   },
   connect: {
     title: "Connect your wallet to build a parlay",

@@ -73,7 +73,7 @@ export function TicketDock({ selection }: { selection: TicketSelection }) {
   const close = () => setOpen(false);
   return (
     <>
-      {open && <div className="tk-drawer-backdrop" onClick={close} aria-hidden="true" />}
+      {open && <button type="button" className="tk-drawer-backdrop" aria-label={TICKET.close} tabIndex={-1} onClick={close} />}
       <div className={`tk-drawer${open ? " tk-drawer--open" : ""}`} role="dialog" aria-label={TICKET.title} aria-hidden={!open}>
         {open && <TicketBody selection={selection} drawer={{ onClose: close }} />}
       </div>

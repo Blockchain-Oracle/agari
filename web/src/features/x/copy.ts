@@ -10,7 +10,7 @@ export const X_HANDLE = SHARE.handle;
 
 export const X_LINK_STATUS = {
   checking: "Checking your X connection…",
-  unavailable: "X sign-in is temporarily unavailable. Please try again shortly.",
+  unavailable: "X sign-in is not available on this deployment yet.",
 } as const;
 
 export const X_ERRORS = {
@@ -158,7 +158,7 @@ export const CLAIM = {
   openPortfolio: "Open Portfolio",
   setUp: "Trade from X",
   card: {
-    brand: "masayume",
+    brand: "agari",
     claimed: "CLAIMED",
     settled: "TRADING BALANCE",
     waiting: "WAITING",

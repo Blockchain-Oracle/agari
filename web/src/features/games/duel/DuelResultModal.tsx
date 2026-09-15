@@ -62,8 +62,9 @@ export function DuelResultModal({ open, onClose, card }: { open: boolean; onClos
   };
 
   return createPortal(
-    <div className="du-modal-root" role="dialog" aria-modal="true" aria-labelledby="du-modal-title" onClick={onClose}>
-      <div className={`du-modal${tone}`} onClick={(event) => event.stopPropagation()}>
+    <div className="du-modal-root" role="dialog" aria-modal="true" aria-labelledby="du-modal-title">
+      <button type="button" className="du-modal-scrim" aria-label={words.close} tabIndex={-1} onClick={onClose} />
+      <div className={`du-modal${tone}`}>
         <button type="button" className="du-modal-close" onClick={onClose} aria-label={words.close}>
           ✕
         </button>

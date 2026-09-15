@@ -6,7 +6,7 @@ import { BOARD_REFRESH_MS, readLeaderboard, type BoardQuery } from "./leaderboar
 import type { BoardData } from "./protocol";
 
 const POLL_MS = 120_000;
-export const LEADERBOARD_KEY = ["masayume", "leaderboard"] as const;
+export const LEADERBOARD_KEY = ["agari", "leaderboard"] as const;
 
 /**
  * Keep the last snapshot during refresh failures; an empty board retries without a page reload. A tab switch keeps

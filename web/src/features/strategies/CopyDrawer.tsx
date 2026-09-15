@@ -86,9 +86,9 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
     if (!valid || currentFee.fee === null) return;
     void perform(() => writes.join({ strategyId: BigInt(card.strategyId), runner: card.runner as Address, depositBase: topUp, budgetBase: targetBase, caps, feeBase: currentFee.fee! }));
   };
-  return <div className="strat-drawer-root" onClick={onClose}>
-    <div className="strat-drawer-scrim" />
-    <div ref={panel} tabIndex={-1} className="strat-drawer" role="dialog" aria-modal="true" aria-labelledby="copy-strategy-title" onClick={(e) => e.stopPropagation()}>
+  return <div className="strat-drawer-root">
+    <button type="button" className="strat-drawer-scrim" aria-label="Close strategy" tabIndex={-1} onClick={onClose} />
+    <div ref={panel} tabIndex={-1} className="strat-drawer" role="dialog" aria-modal="true" aria-labelledby="copy-strategy-title">
       <button type="button" onClick={onClose} aria-label="Close strategy" className="strat-drawer-close"><XIcon aria-hidden="true" /></button>
       <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on Solana ↗</a></div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>

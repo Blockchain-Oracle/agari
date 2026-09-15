@@ -7,7 +7,7 @@ export const STRATEGIES = {
     eyebrow: "Desk",
     title: "Strategies",
     body: "Discover, inspect, and subscribe to strategies, with the verified trade history behind each one. A strategy executes only inside limits you set and can revoke.",
-    dependency: "the StrategyRegistry contract — deploy with contracts/script/DeployStrategyRegistry.s.sol, then pnpm contracts:export",
+    dependency: "the strategy registry program (planned after the hackathon deadline)",
   },
   desk: {
     autopilot: "⊙ Autopilot",
@@ -81,7 +81,7 @@ export const STRATEGIES = {
     sub: "Link your account, then discover strategies in your feed.",
     linked: (handle: string | null) => handle ? `@${handle} linked` : "X account linked",
     walletMismatch: "Your X account is linked to a different wallet.",
-    unavailable: "Couldn’t check your X connection. Please try again.",
+    unavailable: "X isn’t connected on this deployment yet.",
     connect: "Connect X",
     manage: "Manage X",
     retry: "Retry",
@@ -263,5 +263,5 @@ export const AGENTS = {
       ["", "Win-rate is deliberately excluded.", " Verified realized results come from settled positions and populate as the desk matures."],
     ] as const,
   },
-  notDeployed: { dependency: "the StrategyRegistry contract (the fill projection it ranks with is live)" },
+  notDeployed: { dependency: "the strategy registry program (planned after the hackathon deadline; the fill projection it ranks with is live)" },
 } as const;

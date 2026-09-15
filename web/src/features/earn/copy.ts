@@ -78,7 +78,7 @@ export const EARN = {
     title: "Earn",
     body: "Commit capital to market making, then inspect the real inventory, exposure, and exit accounting behind your share — not an advertised yield.",
     why: MAKER_NOT_DEPLOYED,
-    dependency: "the MarketMakerVault contract — deploy with contracts/script/DeployMarketMakerVault.s.sol, then pnpm contracts:export",
+    dependency: "the maker vault program (planned after the hackathon deadline)",
   },
   devTitle: "Earn",
 } as const;

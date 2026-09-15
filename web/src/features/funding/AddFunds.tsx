@@ -44,9 +44,9 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
   const diagnosis = faucet.state.diagnosis;
 
   return (
-    <div className="fund-modal-root" onClick={onClose}>
-      <div className="fund-modal-scrim" />
-      <div className="fund-modal" role="dialog" aria-modal="true" aria-labelledby="add-funds-title" onClick={(event) => event.stopPropagation()}>
+    <div className="fund-modal-root">
+      <button type="button" className="fund-modal-scrim" aria-label={FUNDING.modal.close} tabIndex={-1} onClick={onClose} />
+      <div className="fund-modal" role="dialog" aria-modal="true" aria-labelledby="add-funds-title">
         <button type="button" onClick={onClose} aria-label={FUNDING.modal.close} className="fund-modal-close" data-cursor="hover">
           <X className="h-4 w-4" />
         </button>

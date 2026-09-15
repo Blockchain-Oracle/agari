@@ -212,6 +212,8 @@
   display: flex; align-items: center; justify-content: center; padding: 16px;
   background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
 }
+/* The click-to-close layer under the sheet (S18e); the sheet sits above it as a later positioned sibling. */
+.du-modal-scrim { position: absolute; inset: 0; background: transparent; }
 .du-modal {
   position: relative; width: 100%; max-width: 384px;
   border-radius: 24px; padding: 36px 24px 24px;

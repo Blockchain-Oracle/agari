@@ -192,6 +192,27 @@
   border-top-color: rgba(20, 18, 16, 0.12);
 }
 
+/* The way out of a pending surface (D-083): the meta's mono voice, in the accent, with a visible focus ring. */
+.capability-pending .cp-action {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vermilion);
+}
+
+.capability-pending .cp-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.capability-pending .cp-action:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 3px;
+}
+
 /* With the install strip dismissed the reference drops the header to the top (`[data-strip="off"] .header
    { top: 0 }`, part-02) on the assumption that the ticker went with it — but the ticker stays, so the
    header covers it and the page's first line hides under the header. Verified on yosuku.xyz itself

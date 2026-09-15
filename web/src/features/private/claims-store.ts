@@ -68,7 +68,7 @@ export function exportPrivateClaims(owner?: string | null): string {
  */
 export function importPrivateClaims(raw: string): { added: number; skipped: number } {
   const parsed = JSON.parse(raw) as { kind?: string; claims?: unknown[] };
-  if (parsed?.kind !== PRIVATE_BACKUP_KIND) throw new Error("not a Masayume claims file");
+  if (parsed?.kind !== PRIVATE_BACKUP_KIND) throw new Error("not an Agari claims file");
   const incoming = Array.isArray(parsed.claims) ? parsed.claims : [];
   const existing = loadPrivateTickets();
   const seen = new Set(existing.map((t) => t.claim.slotId.toLowerCase()));

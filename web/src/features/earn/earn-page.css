@@ -70,7 +70,7 @@
 .ea-wallet { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1; }
 /* flex items-center gap-2 rounded-xl px-4 py-3.5 mb-3 */
 .ea-field { display: flex; align-items: center; gap: 8px; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
-/* bg-transparent flex-1 outline-none font-mono text-2xl min-w-0 — outline-none is a layered utility in the reference, so its focus ring survives; here the ring is kept the same way */
+/* bg-transparent flex-1 outline-none font-mono text-2xl min-w-0 — outline-none is a layered utility in the reference, so its focus ring survives; here the ring is kept the same way — here `focus:not(:focus-visible)` drops it, i.e. focus-visible:outline (the UA ring) stays */
 .ea-input { background: transparent; flex: 1; font-family: var(--font-mono); font-size: 24px; line-height: 32px; min-width: 0; color: inherit; }
 .ea-input:focus:not(:focus-visible) { outline: none; }
 /* font-mono text-[10px] uppercase tracking-wider text-vermilion hover:text-white */

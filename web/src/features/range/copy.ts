@@ -24,7 +24,7 @@ export const RANGE = {
     title: "Range",
     body: "Predict that settlement lands inside or outside a real band. This is never mapped onto an ordinary up/down position — it needs its own funded outcome.",
     why: RANGE_NOT_DEPLOYED,
-    dependency: "the RangeReserve contract — deploy with contracts/script/DeployRangeReserve.s.sol, then pnpm contracts:export",
+    dependency: "the range reserve program (planned after the hackathon deadline)",
   },
   connect: { title: "Connect your wallet to call a band", sub: "Any Solana wallet, or sign in with email. Test funds are free" },
   band: {
