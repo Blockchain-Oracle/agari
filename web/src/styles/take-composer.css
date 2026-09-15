@@ -300,7 +300,7 @@
   color: rgb(var(--room-ink-rgb) / 0.35);
 }
 
-/* mt-0.5 font-mono text-[12px] text-vermilion */
+/* mt-0.5 font-mono text-[12px] text-vermilion — the line carries the card's chip now (D-082, take.css) */
 .take-preview-call {
   margin-top: 2px;
   font-family: var(--font-mono);

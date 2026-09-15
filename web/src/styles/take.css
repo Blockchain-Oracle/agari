@@ -107,6 +107,15 @@
   letter-spacing: 0.16em;
 }
 
+/* D-082: the asset's mark leads the chip (18c's disc at 16 px; `.asset-mark` fills it) */
+.take-chip-mark {
+  display: block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+}
+
 /* text-vermilion */
 .take-chip-dir {
   color: var(--vermilion);
@@ -120,6 +129,26 @@
 /* text-white/65 */
 .take-chip-band {
   color: rgb(var(--reel-ink-rgb) / 0.65);
+}
+
+/* The band's `$TSLA` (D-082): the ink a shade up from the band, the chip's own tracking; as a link it keeps
+   `.take-cashtag`'s underline on hover and the vermilion for the line, not the word — the direction already has it. */
+.take-chip-tag {
+  color: rgb(var(--reel-ink-rgb) / 0.85);
+  letter-spacing: inherit;
+}
+
+/* The composer's preview line mirrors the chip (D-082, take-composer.css `.take-preview-call`): the chip, then
+   the Window; on the sheet the chip's ink is the Room's. */
+.take-preview-call {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.take-preview-chip {
+  --reel-ink-rgb: var(--room-ink-rgb);
 }
 
 /* relative z-10 flex min-h-0 flex-1 items-center px-6 — the voice fills the middle */
