@@ -57,3 +57,4 @@ web/CLAUDE.md
 # deploy scripts: localnet (Surfpool) addresses are per-machine
 scripts/deploy/addresses.localnet.json
 scripts/drive/last-run.*.json
+/data/18d-directions/
