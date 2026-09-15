@@ -1,6 +1,6 @@
 import type { EdgeWindow } from "@agari/core/projection";
 
-/** `/portfolio/edge` — ported from the reference's Trader Edge page; facts adapted to DreamDEX. */
+/** `/portfolio/edge` — ported from the reference's Trader Edge page; facts adapted to Agari's Windows on Solana. */
 export const EDGE = {
   title: "Trader Edge",
   back: "Portfolio",
@@ -59,13 +59,13 @@ export const EDGE = {
     },
     windows: {
       title: "When you perform best",
-      copy: "Results are grouped by your browser's local time. Only fully settled rounds count.",
-      unreadable: "Close times could not be read for this history. Your P&L totals above are still complete.",
+      copy: "Results are grouped by the ET session hour each Window closed in. Only fully settled rounds count.",
+      unreadable: "None of these Windows closed inside the 09:30–16:00 ET session. Your P&L totals above are still complete.",
       labels: {
-        "late-night": { label: "Late night", range: "00:00-05:59" },
-        morning: { label: "Morning", range: "06:00-11:59" },
-        afternoon: { label: "Afternoon", range: "12:00-17:59" },
-        evening: { label: "Evening", range: "18:00-23:59" },
+        open: { label: "Opening hour", range: "09:30–10:30 ET" },
+        morning: { label: "Late morning", range: "10:30–12:00 ET" },
+        midday: { label: "Midday", range: "12:00–15:00 ET" },
+        close: { label: "Power hour", range: "15:00–16:00 ET" },
       } satisfies Record<EdgeWindow["key"], { label: string; range: string }>,
       none: "No rounds",
       rounds: (n: number) => `${n} ${n === 1 ? "ROUND" : "ROUNDS"}`,
@@ -82,7 +82,7 @@ export const EDGE = {
       noLosses: "No losses yet",
       provenanceLabel: "How this is verified",
       provenance:
-        "The report is calculated in your browser from your fills and complete-set actions on DreamDEX's indexer, settled by the chain's own rule and checked against your live balances. Redeeming a position does not erase it from this ledger.",
+        "The report is calculated in your browser from your fills and complete-set actions on Agari's indexer, settled by the chain's own rule and checked against your redemptions. Redeeming a position does not erase it from this ledger.",
     },
     footer: "This report measures settled Windows because a Window is what settles. Every figure is a fill, or the settlement rule applied to one — never an estimate.",
   },
