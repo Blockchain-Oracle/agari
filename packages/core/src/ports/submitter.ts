@@ -88,7 +88,8 @@ export type VaultIntent =
   | { kind: "vault-withdraw"; amountBase: bigint }
   | { kind: "vault-move-private"; amountBase: bigint }
   | { kind: "vault-withdraw-private"; amountBase: bigint }
-  | { kind: "vault-grant"; terms: GrantTerms }
+  /** Re-key or re-terms; `keyTopUpLamports` rides along when no sponsor pays the new key's fees (tap-trading.md §4 `vault-grant`). */
+  | { kind: "vault-grant"; terms: GrantTerms; keyTopUpLamports?: bigint }
   /** Deposit and grant in one transaction, so no grant ever exists without its budget (Story 6.1). */
   | {
       kind: "vault-deposit-and-grant";
@@ -99,6 +100,8 @@ export type VaultIntent =
     }
   | { kind: "vault-fund-grant"; grantId: bigint; amountBase: bigint }
   | { kind: "vault-revoke"; grantId: bigint }
+  /** Owner → session key SOL transfer for an armed, unsponsored key (the manager's top-up button). */
+  | { kind: "vault-key-top-up"; key: Address; lamports: bigint }
   /** Permissionless: anyone may crank a settled Window into its owner's balance. */
   | { kind: "vault-crank-settle"; owner: Address; marketId: MarketId }
   | { kind: "vault-sweep"; pool: Address };
