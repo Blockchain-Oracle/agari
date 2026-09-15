@@ -1,3 +1,5 @@
+import { ADVICE_COPY } from "@agari/core/copy";
+
 /**
  * The share cards' drawing kit — the helpers `lib/shareCard.ts` and
  * `lib/openBetShareCard.ts` each carry a copy of in the reference, kept once.
@@ -30,6 +32,8 @@ const RULE_TOP = 160;
 const RULE_BOTTOM = 776;
 const FOOTER_RULE_Y = 800;
 const FOOTER_Y = 846;
+/** The advice line under the footer, clear of the corner ticks (TICK_INSET ± 9) and inside the 900 edge. */
+const ADVICE_Y = 882;
 
 /** Every colour the cards draw comes from share-card.css; these are the no-stylesheet fallbacks, as rgb() so no hex lives in code. */
 const FALLBACK_VERMILION = "rgb(224 77 38)";
@@ -276,6 +280,12 @@ export function drawFooter(ctx: CanvasRenderingContext2D, fonts: CardFonts, proo
   ctx.font = font(400, 14, fonts.mono);
   ctx.fillStyle = "rgba(255,255,255,0.28)";
   drawTracked(ctx, verifyLine, CARD_MARGIN + proofW + gap, FOOTER_Y - 2, 4, "left");
+
+  // Every card that leaves the app carries the advice line (S15), in the footer's quietest ink.
+  ctx.font = font(400, 12, fonts.mono);
+  ctx.fillStyle = "rgba(255,255,255,0.22)";
+  ctx.textAlign = "left";
+  ctx.fillText(ADVICE_COPY.notAdvice, CARD_MARGIN, ADVICE_Y);
 }
 
 /** Grain over everything, then downscale to 1600×900 and encode. */

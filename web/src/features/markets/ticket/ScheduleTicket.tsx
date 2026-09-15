@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { Switch } from "@/components/ui/switch";
+import { RegionNote } from "@/features/region/RegionNote";
 import { PREOPEN, TICKET } from "@/lib/copy";
 import { etWhen } from "../lanes/lane-view";
 import { SIDE_WORD } from "../side-styles";
@@ -107,6 +108,7 @@ export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
               PREOPEN.ticket.ctaPlain
             )}
           </BlockedButton>
+          {s.blocker === "region" && <RegionNote />}
           <p className="tk-foot">
             {PREOPEN.ticket.footnote(s.bondText)}
             {s.session.isConnected && s.depositBase > 0n ? ` ${TICKET.seatDeposit(`${formatBaseUnits(s.depositBase, decimals)} ${symbol}`)}` : null}

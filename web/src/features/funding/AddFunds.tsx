@@ -8,7 +8,9 @@ import { useEffect, useState } from "react";
 import { TUsdcMark } from "@/components/icons/AssetMarks";
 import { useFaucet } from "@/features/markets/faucet";
 import { ConnectButton } from "@/features/markets/wallet";
-import { diagnosisCopy } from "@/lib/copy";
+import { RegionNote } from "@/features/region/RegionNote";
+import { blockerLabel, diagnosisCopy } from "@/lib/copy";
+import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
 import { FUNDING } from "./copy";
 import "./funding.css";
@@ -22,6 +24,8 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
   const faucet = useFaucet();
   const [copied, setCopied] = useState(false);
   const symbol = collateralOrNull()?.symbol ?? "tUSDC";
+  // The geofence (D-095): the dialog still explains the test funds; only the mint is held.
+  const regionHeld = useRegionRestricted();
   const amountText = String(FAUCET_UNITS);
 
   useEffect(() => {
@@ -91,10 +95,11 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
             ) : (
               <div className="fund-rows">
                 <p className="fund-foot-line">{FUNDING.modal.sequence(FAUCET_UNITS.toLocaleString("en-US"), symbol)}</p>
-                <button type="button" onClick={() => void faucet.mint()} disabled={minting || !faucet.hasSigner} className="fund-cta-white" data-cursor="hover">
+                <button type="button" onClick={() => void faucet.mint()} disabled={regionHeld || minting || !faucet.hasSigner} className="fund-cta-white" data-cursor="hover">
                   <TUsdcMark className="fund-cta-mark" />
-                  {minting ? faucet.label : FUNDING.modal.request(amountText, symbol)}
+                  {regionHeld ? blockerLabel("region") : minting ? faucet.label : FUNDING.modal.request(amountText, symbol)}
                 </button>
+                {regionHeld && <RegionNote />}
               </div>
             )}
 

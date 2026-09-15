@@ -5,3 +5,4 @@ export * from "./question";
 export * from "./strings";
 export * from "./verdict";
 export * from "./session-words";
+export * from "./advice";
