@@ -38,6 +38,9 @@ export function outcomeToReceipt(outcome: OrderOutcome): OutcomeReceipt {
       const code = refusalCode(outcome.diagnosis);
       return { status: "refused", refusalCode: code, reason: REFUSAL_DETAILS[code], txHash: outcome.diagnosis.txHash ?? null };
     }
+    case "resting":
+      // A relayed instruction never asks to rest (D-088 is the ticket's pre-open call); the order is live, not filled.
+      return { status: "submitted", reason: "The call rests on the Book until it fills.", txHash: outcome.rested.txHash };
     case "reverted":
       return { status: "reverted", reason: "The trade reverted on-chain.", txHash: outcome.txHash };
     case "unknown":

@@ -155,7 +155,8 @@ function DealCard({ deal, market, symbol, onReport, onSkip, skipping }: LuckyDea
     else if (outcome.status === "nothingFilled") onReport("nothingFilled", outcome.txHash, null);
     else if (outcome.status === "reverted") onReport("reverted", outcome.txHash, null);
     else if (outcome.status === "refused") onReport("refused", null, null);
-    else onReport("unknown", outcome.txHash ?? null, null);
+    // A deal never asks to rest (D-088 is the ticket's pre-open call); a resting answer is reported by its signature.
+    else onReport("unknown", outcome.status === "resting" ? outcome.rested.txHash : (outcome.txHash ?? null), null);
   }, [bet.state.outcome, onReport]);
 
   const remainingSec = win.expirySec - Math.floor((nowMs || Date.now()) / 1_000);

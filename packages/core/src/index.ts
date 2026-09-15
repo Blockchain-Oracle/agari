@@ -4,6 +4,7 @@ export * from "./constants";
 export * from "./leverage";
 export * from "./lifecycle";
 export * from "./market";
+export * from "./orders";
 export * from "./parlay";
 export * from "./ports";
 export * from "./private";
