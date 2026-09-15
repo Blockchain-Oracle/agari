@@ -1055,7 +1055,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 | Q-004 | "Bet against" depth: A-1b inverse position; Phoenix perps (mainnet-only)? | Open. Default: A-1a/A-1c built; A-1b after approval; Phoenix not built on devnet | A-1b (S10c) |
 | Q-005 | Yield: Kamino/Jupiter Lend are mainnet-only | Open. Default: honest "mainnet only" state + Earn reserves as yield | A-2a (S14) |
 | Q-006 | Solana Mobile / Seeker beyond the PWA? | Open. Default: PWA only | — |
-| Q-007 | Public repo licensing for Yosuku-derived CSS | Open. Default: keep repo private | Public visibility |
+| Q-007 | Public repo licensing for Yosuku-derived CSS | ✅ Answered (user, 2026-09-15): Agari's code is **MIT** (`LICENSE`); the repositories stay **private for now**. Third-party material keeps its own terms (`THIRD_PARTY_NOTICES.md`); going public is a later user call | Public visibility |
 | Q-008 | Agari X account + X API keys; geofence method; corporate-action source | Partly answered: X keys not a blocker (user, 2026-09-13); geofence S15; corporate actions S6 | S11 live test |
 | Q-S6-1 | List the six RedStone single-name Gaps for 09-18 on the 09-14 archive? | Open. Default (stage owner, pending the user): yes, per name, if every archived open 09-14…09-17 had ≥ 3 signers at 09:30:00 ET; 3-signer risk disclosed (D-052) | 6a listing set |
 | Q-S6-2 | TSLA Gap: keep the RedStone check? | Open. Default: keep (D-052) | — |
@@ -1066,4 +1066,4 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 | Q-S6-7 | A void claim shows Masayume's "You won" trophy? | Open. Default (pending the user): void stamp, "Returned" and the reason line (D-057) | 6d claim card |
 | Q-S6-8 | Hedge placement and size | Default: under the `/markets` hero, 10% of exposure, devnet tUSDC only (D-058) | — |
 | Q-S6-9 | Halt wording without a licensed halt feed | Default: "Trading halted" only for `pyth-wide` / `issuer-halt`, else "Signed price stale" (D-057) | — |
-| Q-S15-1 | Deploy `agari-docs` as its own Vercel project alongside the web app? | Open. Default: yes at S16, needs the user's go (D-094) | Docs URL in README |
+| Q-S15-1 | Deploy `agari-docs` as its own Vercel project alongside the web app? | ✅ Answered (user, 2026-09-15): yes, its own project on the app's docs subdomain, as Masayume ran `docs.masayume.app`; the exact domain comes from the user at S16 (D-094) | Docs URL in README |

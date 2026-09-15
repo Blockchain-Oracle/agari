@@ -17,7 +17,7 @@ The venue is Agari's own Anchor order book (`agari-events`, a from-scratch rebui
 | Install the PWA | [`/download`](web/src/app/download) |
 | Check service health | [`/status`](web/src/app/status) |
 | Read the on-chain proof feed | [`/proof`](web/src/app/proof) |
-| Step-by-step documentation | `agari-docs` — deployed URL pending the user's go at S16 (`Q-S15-1`) |
+| Step-by-step documentation | `agari-docs`, deployed at S16 on the app's docs subdomain (`Q-S15-1`); the exact domain is pending |
 
 The app is not deployed publicly yet; every route above exists in this repository and runs at `pnpm dev` on `localhost:3000`. The public devnet deploy is an S16 decision.
 
@@ -142,3 +142,7 @@ A local server browses `/markets` and every story page with no environment file.
 ## Lineage
 
 Agari is a source-led port of [Masayume](https://github.com/Blockchain-Oracle/masayume) (`reference/masayume` @ `68f7a09`), the only design authority for this build: Somnia → Solana, BTC/ETH → US stocks and ETFs, brand → Agari, plus the additive features `docs/plan/00-plan.md` records. Source and asset attribution is in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+## License
+
+Agari's own code is released under the [MIT License](LICENSE). The repository is private for now. Third-party material keeps its own terms; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
