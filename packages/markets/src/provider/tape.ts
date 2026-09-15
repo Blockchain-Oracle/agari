@@ -8,7 +8,7 @@ import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 import type { Address, EventMarket, MarketId } from "@agari/core/types";
 import { loadCollateral } from "../collateral";
 import { sec, type MarketRow } from "./index-api";
-import { withReading } from "./reading";
+import { forgetReading, withReading } from "./reading";
 import { outcomeOf } from "./rows";
 import { scanTape, walletTapes } from "./tape-scan";
 import { deriveTraction } from "./tape-traction";
@@ -110,7 +110,10 @@ function sliceOf(byWallet: ReadonlyMap<Address, readonly SettledRound[]>, scope:
  * payout was collected. Settlement carries no fee on this venue (`settle.ts`).
  */
 export async function readVenueBoard(scope: BoardScope): Promise<Reading<VenueBoard>> {
-  return withReading(`board:${scope.venueId}:${scope.windowEndMs}`, async (inner) => {
+  // One key per scan, so a failed scan is an error (the route keeps its last cached board) and never a stale board
+  // restamped as new; forgotten once answered, so a long-lived server doesn't hold every board it ever computed.
+  const key = `board:${scope.venueId}:${scope.windowStartMs}:${scope.windowEndMs}`;
+  const reading = await withReading(key, async (inner) => {
     const [collateralReading, scan] = await Promise.all([loadCollateral(), scanTape(scope)]);
     const collateral = inner(collateralReading);
     const operators = new Set(scope.operators ?? []);
@@ -151,6 +154,8 @@ export async function readVenueBoard(scope: BoardScope): Promise<Reading<VenueBo
       byTicker,
     };
   });
+  forgetReading(key);
+  return reading;
 }
 
 /** Bounded fan-out, so a wallet with hundreds of Windows doesn't open hundreds of requests at once. */
