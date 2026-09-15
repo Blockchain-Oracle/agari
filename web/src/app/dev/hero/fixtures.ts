@@ -4,9 +4,12 @@
  * next-Window card and the chip are provable while NYSE is open. Prints are × 10⁻⁸ (the print scale); no floats.
  */
 import type { TickerSymbol } from "@agari/core/market";
+import type { EventMarket } from "@agari/core/types";
 import { archiveWindow, type AssetHistory } from "@/features/markets/asset-history";
 import type { ChartPoint } from "@/features/markets/hero";
 import type { MarketSession } from "@/features/markets/session";
+import { fixtureMarketId } from "../fixture-ids";
+import { fixtureWindow } from "../fixture-window";
 import { CLOCK, fixtureSession } from "../session/market-session-fixtures";
 
 const ASSET: TickerSymbol = "TSLA";
@@ -62,12 +65,17 @@ export interface HeroFixture {
   session: MarketSession;
   nowSec: number;
   history: AssetHistory;
+  /** A listed Window the page has selected (D-088): the head names it; the rail would be its schedule ticket. */
+  window?: EventMarket;
 }
 
-const at = (label: string, nowSec: number, options?: HistoryOptions): HeroFixture => {
+const at = (label: string, nowSec: number, options?: HistoryOptions, window?: EventMarket): HeroFixture => {
   const session = fixtureSession(nowSec);
-  return { label, asset: ASSET, session, nowSec, history: history(session, nowSec, options) };
+  return { label, asset: ASSET, session, nowSec, history: history(session, nowSec, options), ...(window ? { window } : {}) };
 };
+
+/** Tuesday's first 5m Window, listed overnight by the roller (D-090): opens 09:30 ET, 90 minutes after `CLOCK.preTue`. */
+const LISTED_5M = fixtureWindow({ marketId: fixtureMarketId(0x18_f001), intervalSec: FIVE_MIN, expirySec: CLOCK.preTue + 5_400 + FIVE_MIN, decimals: 6, status: "Listed" });
 
 /** The four closed states the stage names: pre-market, after hours, the weekend, a holiday. */
 export const HERO_FIXTURES: readonly HeroFixture[] = [
@@ -75,6 +83,7 @@ export const HERO_FIXTURES: readonly HeroFixture[] = [
   at("after hours — Tue 17:00 ET, a moved after-hours tick", CLOCK.postTue, { tick: { sec: CLOCK.postTue - 300, raw: POST_TICK } }),
   at("weekend — Sat 11:01 ET, the last close stands", CLOCK.weekendSat),
   at("holiday — Thanksgiving 11:00 ET, the archive starts with this session (open as the line)", CLOCK.holidayThu, { firstSession: true }),
+  at("listed Window selected — Tue 08:00 ET, the 5m Window that opens at 09:30 (D-088); the rail is its schedule ticket", CLOCK.preTue, { tick: { sec: CLOCK.preTue - 120, raw: PRE_TICK } }, LISTED_5M),
 ];
 
 /** The lanes the next-Window cards are drawn for: 5m and 60m, so the 10:00 first Window of the hour lane is visible. */
