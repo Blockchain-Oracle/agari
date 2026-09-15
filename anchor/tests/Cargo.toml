@@ -38,6 +38,11 @@ path = "events_redeem.rs"
 name = "events_closure"
 path = "events_closure.rs"
 
+# S6 lane 6c: a halted Pyth feed gives no print and the Window voids (session-lanes.md §3).
+[[test]]
+name = "events_halt_void"
+path = "events_halt_void.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
