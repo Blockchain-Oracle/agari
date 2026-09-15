@@ -7,6 +7,7 @@ import { SectionHeader } from "@/components/chrome";
 import { ActivityList } from "@/features/activity/ActivityList";
 import { ACTIVITY } from "@/features/activity/copy";
 import { useMoneyUnits, useTickerFeed } from "@/features/activity/useActivity";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { basisRaw, feedRawToOracleRaw, usdLine } from "@/features/markets/hero/units";
 import { MarketSessionChip } from "@/features/markets/session";
 import { NEWS } from "@/features/news/copy";
@@ -73,8 +74,11 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
           <span className="news-live-label">{TICKER_HUB.eyebrow(ticker.kind)}</span>
           <MarketSessionChip />
         </div>
-        <h1 className="news-title">
-          {ticker.name} <span className="vermilion">${symbol}</span>
+        <h1 className="news-title tkh-title">
+          <AssetDisc asset={symbol} className="tkh-mark" />
+          <span>
+            {ticker.name} <span className="vermilion">${symbol}</span>
+          </span>
         </h1>
         <div className="page-title-jp" lang="ja">
           {TICKER_HUB.headingJp}

@@ -11,7 +11,7 @@ import type { BrandSlug } from "@agari/core/market";
  *   amazon — simple-icons 14.15.0, the last release to carry it (CC0 1.0 at publication; removed in 15.0.0
  *     by the maintainers pending permission, not on a brand request).
  *   microsoft — the four-square mark drawn here as four rectangles; simple-icons dropped Microsoft on
- *     its trademark terms (v12), so no third-party artwork is vendored.
+ *     its trademark terms (13.0.0), so no third-party artwork is vendored.
  * The marks identify the traded assets and imply no endorsement. QQQ, VOO and SPY have no glyph
  * (no clean issuer SVG): their disc types the registry monogram on the fund house's colour.
  */

@@ -8,6 +8,7 @@ import { useLanes } from "@agari/markets/react";
 import { useMemo } from "react";
 import { TICKER_SLOTS, useTickerPrices } from "@/components/chrome/useTickerPrices";
 import { useNowMs } from "@/components/data/useNowMs";
+import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
 import { useVenue } from "@/features/markets/useVenue";
 import type { SentimentReading } from "@/features/news/protocol";
@@ -17,6 +18,8 @@ import { useSentiment } from "@/features/news/useSentiment";
 // the next open) and the crowd's lean. Every figure here is a real Agari reading — when there is nothing to show it
 // says so rather than scrolling invented numbers.
 interface MarqueeItem {
+  /** A price cell: the asset whose mark leads the label (D-085). */
+  asset?: string;
   label: string;
   value: string;
   direction?: "up" | "down" | "";
@@ -72,6 +75,7 @@ export default function Marquee() {
   }, [lanes]);
 
   const items: MarqueeItem[] = prices.map((p) => ({
+    asset: p.asset,
     label: p.asset,
     value: p.priceText,
     direction: p.direction === "flat" ? "" : p.direction,
@@ -96,6 +100,7 @@ export default function Marquee() {
   const renderCells = (keyPrefix: string) =>
     items.map((item, i) => (
       <span key={`${keyPrefix}-${i}`} className="marquee-cell">
+        {item.asset && <AssetDisc asset={item.asset} className="marquee-mark" />}
         <span className="lbl">{item.label}</span>
         <span className="val">{item.value}</span>
         {item.direction && <span className={item.direction}>{item.tag ?? (item.direction === "up" ? "↑" : "↓")}</span>}
