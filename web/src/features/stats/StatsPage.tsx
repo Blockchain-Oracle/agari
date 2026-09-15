@@ -1,22 +1,27 @@
 "use client";
 
+import type { Reading } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { ago, fmtCount, STATS } from "./copy";
 import { GrowthCurve } from "./GrowthCurve";
 import { ActivityList, SectionHead, Stat } from "./StatsSections";
+import type { TractionData } from "./protocol";
 import { useTraction } from "./useTraction";
 
 /**
  * `/stats` — ported from `reference/yosuku/app/stats/page.tsx`: the hero that answers "can they
  * get users?" in five seconds, then Growth, Adoption and Live activity. The reference proved its
- * numbers through the gas it sponsored; Masayume sponsors nothing, so the proof is the venue's
+ * numbers through the gas it sponsored; Agari sponsors nothing, so the proof is the venue's
  * own fill tape, over the last 24 hours the indexer serves in one scan. Nothing here is floored
  * against a stored high-water mark: a rolling day legitimately goes down.
  */
 export function StatsPage() {
-  const reading = useTraction();
-  const nowMs = useChainNowMs();
+  return <StatsView reading={useTraction()} nowMs={useChainNowMs()} />;
+}
+
+/** Every state of the page from one reading, so `/dev/stats` renders it without the route. */
+export function StatsView({ reading, nowMs }: { reading: Reading<TractionData> | null; nowMs: number }) {
   const t = reading?.ok ? reading.value : null;
   const failed = reading !== null && !reading.ok;
 

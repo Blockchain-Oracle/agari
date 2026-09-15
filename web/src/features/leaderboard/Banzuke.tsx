@@ -1,5 +1,5 @@
 import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { LEADERBOARD } from "./copy";
+import { LEADERBOARD, type BoardSpan } from "./copy";
 import { glyphFromAddress } from "./glyph";
 import type { BoardRanking } from "./protocol";
 
@@ -60,13 +60,13 @@ function Pnl({ value, decimals }: { value: bigint; decimals: number }) {
   );
 }
 
-export function Banzuke({ rows, decimals }: { rows: readonly Row[]; decimals: number }) {
+export function Banzuke({ rows, decimals, span }: { rows: readonly Row[]; decimals: number; span: BoardSpan }) {
   const words = LEADERBOARD.field;
   return (
     <div className="banzuke-wrap">
       <div className="banzuke-strip">
         <span>{words.strip.ranks}</span>
-        <span className="center">{words.strip.center}</span>
+        <span className="center">{words.strip.center(span)}</span>
         <span>{words.strip.right}</span>
       </div>
       <div className="banzuke-cols-head">

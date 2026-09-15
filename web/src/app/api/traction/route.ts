@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const { traction, meta } = await readBoard();
+    const { traction, meta } = (await readBoard("24h")).payload;
     return NextResponse.json({ traction, meta: { period: meta.period, windowStartMs: meta.windowStartMs, windowEndMs: meta.windowEndMs, computedAtMs: meta.computedAtMs, complete: meta.complete, decimals: meta.decimals, symbol: meta.symbol } });
   } catch (error) {
     console.error("traction:", error);
