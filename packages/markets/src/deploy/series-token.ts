@@ -70,6 +70,7 @@ export async function pinSwitchboardQueue(ctx: StepContext, queue: Address, minO
     ctx.log({ step: "switchboard pin", signature: null, note: `queue ${queue}, min ${minOracles} already set` });
     return null;
   }
-  const ix = await getAdminSetAuthoritiesInstructionAsync({ admin: ctx.client.payer, treasury: pin.treasury, ...authoritiesWithSwitchboard(pin.config, queue, minOracles) });
+  // The handler checks the queue account itself (owner and discriminator), so it rides along with the pin.
+  const ix = await getAdminSetAuthoritiesInstructionAsync({ admin: ctx.client.payer, treasury: pin.treasury, queue, ...authoritiesWithSwitchboard(pin.config, queue, minOracles) });
   return send(ctx, "switchboard pin", [ix], `queue ${pin.queue ?? "unset"} → ${queue}, min ${pin.minOracles} → ${minOracles}`);
 }

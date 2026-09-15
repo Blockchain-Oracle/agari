@@ -9,6 +9,7 @@
  */
 import {
   AGARI_EVENTS_ERROR__DUPLICATE_ORACLE,
+  AGARI_EVENTS_ERROR__UNKNOWN_ATTESTOR,
   AGARI_EVENTS_ERROR__PRINT_NOT_ADJACENT,
   AGARI_EVENTS_ERROR__PRINTS_MISSING,
   AGARI_EVENTS_ERROR__QUOTE_SLOT_STALE,
@@ -39,6 +40,8 @@ export const SWITCHBOARD_ERROR = {
   duplicateOracle: AGARI_EVENTS_ERROR__DUPLICATE_ORACLE,
   tooFewOracles: AGARI_EVENTS_ERROR__TOO_FEW_ORACLES,
   quoteSlotStale: AGARI_EVENTS_ERROR__QUOTE_SLOT_STALE,
+  /// Before `T + 40` only a configured attestor may record (D-088): the relay signs with `price-attestor`.
+  notAttestor: AGARI_EVENTS_ERROR__UNKNOWN_ATTESTOR,
   printNotAdjacent: AGARI_EVENTS_ERROR__PRINT_NOT_ADJACENT,
   printsMissing: AGARI_EVENTS_ERROR__PRINTS_MISSING,
 } as const;
@@ -92,15 +95,20 @@ async function sendSlot(client: OpsClient, slot: PrintSlot, what: string, build:
   }
 }
 
-/** `[quote, public_record_print_switchboard]` for one slot whose feed the quote carries. */
-export function recordSwitchboardSlot(client: OpsClient, slot: PrintSlot, quote: SwitchboardQuote, queue: string): Promise<SlotOutcome> {
-  if (slot.source !== "switchboard") return Promise.resolve({ slot, status: "failed", error: "not a Switchboard slot" });
-  if (!quoteHasFeed(quote, slot.feedIdHex)) return Promise.resolve({ slot, status: "failed", error: `quote has no feed ${slot.feedIdHex.slice(0, 8)}…` });
+/**
+ * `[quote, public_record_print_switchboard]` for one slot whose feed the quote carries. `client.payer` signs as the
+ * recorder, so before `T + 40` it must be a configured attestor (`price-attestor`); an Open past index 0 also names the
+ * previous Window, whose recorded Close would make the slot a copy instead (prints.md §4.4–4.5).
+ */
+export async function recordSwitchboardSlot(client: OpsClient, slot: PrintSlot, quote: SwitchboardQuote, queue: string): Promise<SlotOutcome> {
+  if (slot.source !== "switchboard") return { slot, status: "failed", error: "not a Switchboard slot" };
+  if (!quoteHasFeed(quote, slot.feedIdHex)) return { slot, status: "failed", error: `quote has no feed ${slot.feedIdHex.slice(0, 8)}…` };
+  const prevMarket = slot.slot === "open" && slot.marketIndex > 0n ? (await windowAddresses(address(slot.series), slot.marketIndex - 1n)).market : undefined;
   return sendSlot(client, slot, "print", async () => [
     quoteInstruction(quote),
     await getPublicRecordPrintSwitchboardInstructionAsync({
-      series: address(slot.series), market: address(slot.market), queue: address(queue), eventAuthority: await eventAuthority(),
-      program: AGARI_EVENTS_PROGRAM_ADDRESS, which: slot.which,
+      recorder: client.payer, series: address(slot.series), market: address(slot.market), queue: address(queue), prevMarket,
+      eventAuthority: await eventAuthority(), program: AGARI_EVENTS_PROGRAM_ADDRESS, which: slot.which,
     }),
   ]);
 }

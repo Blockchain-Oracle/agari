@@ -69,8 +69,8 @@ export function createXStockSpotFeed(input: { log: (why: string) => void; apiKey
         }
         beat.lastOkMs = beat.lastPassMs = Date.now();
         beat.failures = 0;
-        beat.lastWhy = `${prices.size}/${MINTS.length} mints priced`;
-        beat.detail = Object.fromEntries([...history].map(([x, list]) => [x, list.at(-1)!.priceE8.toString()]));
+        beat.lastWhy = `${prices.size}/${MINTS.length} mints priced${input.apiKey ? "" : " (keyless lite-api, 0.5 RPS)"}`;
+        beat.detail = { key: input.apiKey ? "JUPITER_API_KEY" : "keyless", ...Object.fromEntries([...history].map(([x, list]) => [x, list.at(-1)!.priceE8.toString()])) };
         loggedFailure = false;
       } catch (error) {
         beat.failures += 1;

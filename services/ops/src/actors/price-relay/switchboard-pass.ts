@@ -8,6 +8,10 @@
  * refused with `QuoteSlotStale` gets one fresh quote while at least 5 s of admission remain. Admission is on the chain
  * clock (`T + 10 ≤ now ≤ T + 60`). Every quote attempt is reported to halt-watch (`recordQuoteResult`): a fetched quote
  * resets its xStocks' streaks, a failed fetch or a `QuoteSlotStale` refusal adds one, and three in a row halt the lane.
+ *
+ * Prints are signed by `price-attestor`, not the relay key: until `T + 40` only a configured attestor may record, so a
+ * trader can't pick which quote settles the Window (D-088). Without that key the lane still copies opens (which are
+ * permissionless) and falls back to the public window from `T + 40`.
  */
 import { readFileSync } from "node:fs";
 import {
@@ -16,12 +20,16 @@ import {
 } from "@agari/markets/ops/prints";
 import type { SwitchboardQuote } from "@agari/markets/prices/legacy";
 import type { XStockSymbol } from "@agari/core/market";
-import { errorText } from "../../runtime/env";
+import { createOpsClient, type OpsClient } from "@agari/markets/ops";
+import { errorText, readOpsEnv } from "../../runtime/env";
+import { roleSecret } from "../../runtime/keys";
 import { recordQuoteResult } from "../halt-watch/quote-failures";
 import type { LanePassResult } from "./lane-pass";
 import type { RelayContext } from "./relay-pass";
 
 const CONCURRENCY = 4;
+/** Before this many seconds past T only an attestor records (`SWITCHBOARD_PUBLIC_AFTER_SEC` on chain). */
+const PUBLIC_AFTER_SEC = 40;
 const VENUE_TTL_MS = 5 * 60_000;
 const RETRY_MIN_LEFT_SEC = 5;
 const MAX_ATTEMPTS = 3;
@@ -39,13 +47,36 @@ export function tokenFeedsByHash(text = readFileSync(CONFIG_URL, "utf8")): Map<s
   );
 }
 
-type LaneState = { venue: SwitchboardVenue | null; venueAtMs: number; feeds: Map<string, TokenFeed>; retried: Set<number> };
+type LaneState = {
+  venue: SwitchboardVenue | null;
+  venueAtMs: number;
+  feeds: Map<string, TokenFeed>;
+  retried: Set<number>;
+  /** The `price-attestor` client, built once; null when the key is missing (the lane then waits for the public window). */
+  attestor: OpsClient | null;
+  attestorNoted: boolean;
+};
 const states = new WeakMap<RelayContext, LaneState>();
 
 function stateOf(ctx: RelayContext): LaneState {
   let s = states.get(ctx);
-  if (!s) states.set(ctx, (s = { venue: null, venueAtMs: 0, feeds: tokenFeedsByHash(), retried: new Set() }));
+  if (!s) states.set(ctx, (s = { venue: null, venueAtMs: 0, feeds: tokenFeedsByHash(), retried: new Set(), attestor: null, attestorNoted: false }));
   return s;
+}
+
+/** The attestor's own client (its key pays the print's fees), or null when `price-attestor` isn't available here. */
+async function attestorClient(ctx: RelayContext, state: LaneState): Promise<OpsClient | null> {
+  if (state.attestor) return state.attestor;
+  const secret = roleSecret("price-attestor");
+  if (!secret) {
+    if (!state.attestorNoted) ctx.log("PRICE_ATTESTOR_PRIVATE_KEY / price-attestor.json missing: Switchboard prints wait for the public window at T + 40");
+    state.attestorNoted = true;
+    return null;
+  }
+  const env = readOpsEnv();
+  state.attestor = await createOpsClient({ rpcUrl: env.rpcUrl, rpcSubscriptionsUrl: env.rpcSubscriptionsUrl, payerSecret: secret, rpcLane: "priority" });
+  ctx.log(`Switchboard prints signed by the attestor ${state.attestor.payer.address}`);
+  return state.attestor;
 }
 
 /** The relay's slot key (`relay-pass.ts`), repeated here so the lane imports only its types. */
@@ -70,7 +101,7 @@ function account(ctx: RelayContext, outcomes: SlotOutcome[]): string[] {
   });
 }
 
-async function boundary(ctx: RelayContext, state: LaneState, queue: string, tSec: number, slots: PrintSlot[], chainNow: number): Promise<string> {
+async function boundary(ctx: RelayContext, state: LaneState, printer: OpsClient, queue: string, tSec: number, slots: PrintSlot[], chainNow: number): Promise<string> {
   const minOracles = state.venue!.minOracles;
   const closes = slots.filter((s) => s.slot === "close");
   const opens = slots.filter((s) => s.slot === "open");
@@ -95,13 +126,13 @@ async function boundary(ctx: RelayContext, state: LaneState, queue: string, tSec
   const print = async (list: PrintSlot[]): Promise<SlotOutcome[]> => {
     if (list.length === 0) return [];
     if (!quote || list.some((s) => !quoteHasFeed(quote!, s.feedIdHex))) quote = await quoteFor(slots);
-    let outcomes = await inBatches(list, CONCURRENCY, (s) => recordSwitchboardSlot(ctx.client, s, quote!, queue));
+    let outcomes = await inBatches(list, CONCURRENCY, (s) => recordSwitchboardSlot(printer, s, quote!, queue));
     const stale = outcomes.filter((o) => o.code === SWITCHBOARD_ERROR.quoteSlotStale).map((o) => o.slot);
     if (stale.length) recordQuoteResult(xstocksOf(stale), false);
     if (stale.length && !state.retried.has(tSec) && Math.min(...stale.map((s) => s.deadlineSec)) - chainNow >= RETRY_MIN_LEFT_SEC) {
       state.retried.add(tSec);
       quote = await quoteFor(slots);
-      const again = await inBatches(stale, CONCURRENCY, (s) => recordSwitchboardSlot(ctx.client, s, quote!, queue));
+      const again = await inBatches(stale, CONCURRENCY, (s) => recordSwitchboardSlot(printer, s, quote!, queue));
       outcomes = [...outcomes.filter((o) => o.code !== SWITCHBOARD_ERROR.quoteSlotStale), ...again];
       lines.push(`retried ${stale.length} stale`);
     }
@@ -109,6 +140,7 @@ async function boundary(ctx: RelayContext, state: LaneState, queue: string, tSec
   };
   try {
     const closed = await print(closes);
+    // `public_copy_open_from_prev` is permissionless, so the relay's own key pays for it.
     const copied = await inBatches(opens, CONCURRENCY, (s) => copyOpenSlot(ctx.client, s));
     const noPrev = (o: SlotOutcome) => o.code === SWITCHBOARD_ERROR.printNotAdjacent || o.code === SWITCHBOARD_ERROR.printsMissing;
     const direct = await print(copied.filter(noPrev).map((o) => o.slot));
@@ -137,16 +169,19 @@ export async function switchboardPass(ctx: RelayContext, slots: readonly PrintSl
   if (!queue) return { line: `switchboard: ${slots.length} slot(s), no queue pinned in GlobalConfig (admin_set_authorities)`, nextSec: null };
 
   const lagSec = Math.floor(Date.now() / 1000) - chainNow;
+  // Without the attestor key the lane may only record from the public window; opens still copy (permissionless).
+  const printer = (await attestorClient(ctx, state)) ?? ctx.client;
+  const printableFrom = (s: PrintSlot) => (state.attestor ? s.earliestSec : s.boundarySec + PUBLIC_AFTER_SEC);
   const usable = slots.filter((s) => (ctx.failures.get(slotKey(s))?.attempts ?? 0) < MAX_ATTEMPTS);
-  const due = usable.filter((s) => chainNow >= s.earliestSec);
-  const pending = usable.filter((s) => chainNow < s.earliestSec);
+  const due = usable.filter((s) => chainNow >= printableFrom(s));
+  const pending = usable.filter((s) => chainNow < printableFrom(s));
   const byT = new Map<number, PrintSlot[]>();
   for (const s of due) byT.set(s.boundarySec, [...(byT.get(s.boundarySec) ?? []), s]);
   const lines: string[] = [];
-  for (const [tSec, list] of [...byT].sort((a, b) => a[0] - b[0])) lines.push(await boundary(ctx, state, queue, tSec, list, chainNow));
+  for (const [tSec, list] of [...byT].sort((a, b) => a[0] - b[0])) lines.push(await boundary(ctx, state, printer, queue, tSec, list, chainNow));
   for (const t of state.retried) if (t < chainNow - 3_600) state.retried.delete(t);
   const gaveUp = slots.length - usable.length;
   if (gaveUp) lines.push(`switchboard: ${gaveUp} slot(s) past ${MAX_ATTEMPTS} attempts (reported missed at their deadline)`);
-  const nextSec = pending.length ? Math.min(...pending.map((s) => s.earliestSec)) + lagSec : null;
+  const nextSec = pending.length ? Math.min(...pending.map(printableFrom)) + lagSec : null;
   return { line: lines.length ? lines.join(" | ") : null, nextSec };
 }
