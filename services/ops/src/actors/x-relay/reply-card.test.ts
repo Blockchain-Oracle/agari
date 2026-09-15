@@ -47,7 +47,10 @@ describe("receipt reply artwork", () => {
     const svg = renderReplyCardSvg({ status: "submitted" });
     expect(svg).toContain("Instruction received");
     expect(svg).toContain("Open the receipt for details.");
-    expect(svg).toContain("Somnia Shannon testnet");
+    expect(svg).toContain("Solana devnet");
+    expect(svg).toContain("SOLANA DEVNET");
+    expect(svg).toContain("— Agari</title>");
+    expect(svg).not.toMatch(/masayume|somnia|shannon|testnet/i);
     expect(svg).not.toMatch(/\bBTC\b|\btUSDC\b|0x[\da-f]+|paid out|profit|win/i);
   });
 
@@ -87,7 +90,7 @@ describe("receipt reply artwork", () => {
   });
 
   it("exports a repeatable 1200×600 PNG under the image upload limit", async () => {
-    const model = { status: "filled" as const, context: "BTC · UP · Testnet", detail: "Requested stake: 5 tUSDC. Booked amount is unavailable." };
+    const model = { status: "filled" as const, context: "BTC · UP · Devnet", detail: "Requested stake: 5 tUSDC. Booked amount is unavailable." };
     const first = await renderReplyCardPng(model, { demo: true });
     const second = await renderReplyCardPng(model, { demo: true });
     expect(first.equals(second)).toBe(true);

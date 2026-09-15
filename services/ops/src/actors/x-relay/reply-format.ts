@@ -4,7 +4,15 @@ import { formatBaseUnits } from "@agari/core/units";
 import { X_RECEIPT_STATUSES, xRefusalCopy, xReceiptRecovery, type XReceipt, type XReceiptStatus } from "@agari/core/x";
 
 export const REPLY_LIMIT = 280;
-export const TRADE_FROM_X_URL = "https://masayume.app/trade-from-x";
+/**
+ * The public site a reply links to: the web's own `NEXT_PUBLIC_SITE_URL`, with the default the share cards already
+ * print (`web/src/features/share/copy.ts`), so a reply and a share card never name two different homes.
+ */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://agari.app").replace(/\/+$/, "");
+export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
+export const TRADE_FROM_X_URL = `${SITE_URL}/trade-from-x`;
+/** The network every receipt names; the card's banner is its uppercase. */
+export const NETWORK_LABEL = "Solana devnet";
 
 export { X_REFUSAL_DETAILS as REFUSAL_DETAILS } from "@agari/core/x";
 
@@ -36,7 +44,7 @@ function marketContext(receipt: XReceipt): string {
   const ends = typeof expiry === "number" && Number.isSafeInteger(expiry) && expiry >= 0 && expiry <= 253402300799
     ? `${new Date(expiry * 1000).toISOString().slice(0, expiry % 60 === 0 ? 16 : 19).replace("T", " ")} UTC`
     : null;
-  return ["Somnia testnet", asset, side, cadence ? `${cadence} Window` : null, ends ? `ends ${ends}` : null].filter(Boolean).join(" / ");
+  return [NETWORK_LABEL, asset, side, cadence ? `${cadence} Window` : null, ends ? `ends ${ends}` : null].filter(Boolean).join(" / ");
 }
 
 /** Only validated receipt facts and fixed copy reach public text or the deterministic card renderer. */
@@ -70,7 +78,7 @@ export function createReplyPresentation(receipt: XReceipt, decimals: number, sym
     case "refused": {
       const code = receipt.refusalCode ?? "unconfirmed";
       const recovery = xReceiptRecovery(code);
-      return { ...base, ...xRefusalCopy(receipt), url: !hash && recovery ? `https://masayume.app${recovery.href}` : url };
+      return { ...base, ...xRefusalCopy(receipt), url: !hash && recovery ? `${SITE_URL}${recovery.href}` : url };
     }
   }
 }
@@ -82,7 +90,7 @@ export function replyText(receipt: XReceipt, decimals: number, symbol = "tUSDC")
   const lines = [presentation.title, presentation.context, sender, presentation.detail, presentation.footer, presentation.url];
   let text = lines.filter(Boolean).join("\n");
   if (text.length > REPLY_LIMIT) {
-    lines[1] = "Somnia testnet";
+    lines[1] = NETWORK_LABEL;
     text = lines.filter(Boolean).join("\n");
   }
   // Keep the exact amount and complete URL. Optional context is the first thing removed.
