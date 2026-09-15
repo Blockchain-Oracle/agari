@@ -48,7 +48,7 @@
   - Acceptance: with the override, `/markets` at 390/1440 shows the restricted ticket and `curl -X POST :3154/api/faucet` → 451; without it nothing changes; `pnpm typecheck && pnpm build`; `21st review` zero errors on touched paths.
 - [ ] **Program credibility** (stage owner, after the 20:21Z devnet sequence; D-096): `anchor build --verifiable` for `agari-events` and `agari-vault` (Docker 29 is present; `solana-verify` is not installed); on-chain IDL for both; the sha256 of the deployed binaries and the build command in the README; explorer links.
 - [ ] **Demo** (stage owner, Wed 09-16 after the 13:30Z bell; D-097): `direct-demo-video` runbook, captured during NYSE hours on `:3000`; `web/public/video/agari-demo.mp4`; `docs/submission/demo-media-provenance.json` filled.
-- [ ] **Browser pass** (stage owner at merge): `/`, `/how-it-works`, `/demo`, `/pitch`, `/download`, `/native-auth` at 320/390/768/1440 both themes; audit rows in `docs/plan/audits/`.
+- [x] **Browser pass** (stage owner at merge; `docs/plan/audits/s15-browser-pass-2026-09-15.md`: lane passes 320–1440 both themes plus the merged build on :3000, 24 captures, 0 flagged): `/`, `/how-it-works`, `/demo`, `/pitch`, `/download`, `/native-auth` at 320/390/768/1440 both themes; audit rows in `docs/plan/audits/`.
 - [ ] **Gate:** `pnpm typecheck && pnpm invariants && pnpm build`; `21st review` zero errors on touched paths; README links resolve; zero "masayume" identity hits outside notices, the pitch lineage slide and code comments; the demo exists or its honest state is recorded; `parity.md` L-11…L-14, L-18…L-20, L-23, Y-06, Y-14 updated with evidence.
 
 ## Findings
