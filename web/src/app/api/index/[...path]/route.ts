@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pat
   if (!resolved) return NextResponse.json({ error: `no index path /${path.join("/")}` }, { status: 404 });
 
   try {
-    const rows = await resolved.run(reader);
+    const rows = await resolved.run(reader, db);
     return NextResponse.json({ rows }, { headers: { "cache-control": resolved.scope === "wallet" ? PRIVATE_CACHE : PUBLIC_CACHE } });
   } catch {
     // The connection or the query failed: an outage, which the provider reads as `indexer-down` and retries.

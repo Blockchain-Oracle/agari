@@ -26,7 +26,8 @@
     "./deploy": "./src/deploy/index.ts",
     "./prices/legacy": "./src/prices/legacy/index.ts",
     "./ops": "./src/ops/index.ts",
-    "./ops/*": "./src/ops/*/index.ts"
+    "./ops/*": "./src/ops/*/index.ts",
+    "./proof": "./src/proof/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

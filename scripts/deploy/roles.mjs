@@ -20,6 +20,7 @@ export const ROLES = {
   maker: "market-maker actor",
   sponsor: "web api/sponsor fee payer",
   "faucet-mint-authority": "tUSDC mint authority (signs mintToChecked only)",
+  "proof-replay": "S5 proof replay: posts archived Pyth blobs to the devnet receiver (never price-relay, whose sweep closes its accounts)",
   "sol-faucet": "web api/faucet: devnet SOL top-ups, fee payer for faucet claims and ATA rent (S4, D-034)",
   "tusdc-mint": "tUSDC mint address (signs once, when init-events creates the mint)",
   runner: "strategy-runner",

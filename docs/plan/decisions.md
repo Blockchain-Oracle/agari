@@ -599,6 +599,39 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** "Connect" opens the same modal Masayume users know; the app looks like Masayume except for stock logos.
 - **Approval:** user, 2026-09-14.
 
+### D-041 — The S5 contract, lanes, foundation and default answers
+- **Date / owner:** 2026-09-15 · S5 owner (spec architect pass, reviewed)
+- **Evidence:** `docs/plan/specs/proof-analytics.md`:
+  - Portfolio history already reads real data after S4a.
+  - The index holds only 4 fills (S2 drive), so boards and recount need real fills.
+  - The relay's hourly sweep closes every `PriceUpdateV2` its key wrote (`ops/prints/leftovers.ts:12-24`), so a proof replay can't use `price-relay`.
+  - Measured devnet rent for a replay: 3 × 1,330,960 lamports `PriceUpdateV2` + ≈ 6.7M encoded VAA (refundable), ≤ 50,000 lamports fees per boundary.
+- **Rule:**
+  - **Lanes:**
+    - 5a record + Trader Edge (ET session buckets);
+    - 5b boards, stats, traction, recount, traders drive;
+    - 5c status probes (a new `expected` flag → "closed (expected)" off-hours);
+    - 5d surface, share and the Pyth proof replay (`/proof/<market>`).
+  - **Merge order:** 5c → 5a → 5b → 5d.
+  - **Foundation (stage owner):**
+    - ops `/session` adds `calendar.recent` (last five opened sessions) and `sources.pythTrialLastCloseSec` (S3 `26a7f00`, live in the soak);
+    - `print_proofs` DDL (`schema-proofs.ts`);
+    - lane index paths resolved in `queries-{tape,status,proof}.ts` before the base table, with `IndexQuery.run(reader, db)`;
+    - `PROOF_PATH`;
+    - `@agari/markets/proof`;
+    - `@agari/db` for scripts;
+    - root `drive:{recount,proof-replay,traders}`;
+    - role `proof-replay` `4WJ7SXG9…` funded 0.1 SOL.
+  - **Defaults:**
+    - Q-S5-1: replay both by script and by a one-click server route, with idempotency and quotas; the route ships only if `pnpm build` stays green.
+    - Q-S5-2: seed maker and settler are excluded from the leaderboard and `/stats`.
+    - Q-S5-3: a 3-keypair traders drive on the next session (≈ 0.01 SOL).
+    - Q-S5-5: Restore waits for S10d (L-46 Partial).
+    - Q-S5-6: edge buckets Opening hour / Late morning / Midday / Power hour.
+    - Q-S5-7: replay accounts are kept 24 h, then closed.
+- **User-visible:** a replayable on-chain proof behind every Pyth-settled Window; session-aware `/status`; per-ticker and this-session boards; Trader Edge by ET session hour.
+- **Approval:** stage owner on the spec defaults.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
