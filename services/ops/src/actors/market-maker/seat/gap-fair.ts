@@ -50,16 +50,10 @@ export function gapFairTicks(i: GapFairInput): number | null {
   return fairYesTicks({ spotE8: i.referenceE8, openE8: i.openE8, secondsLeft: gapVarianceSecLeft(i), sigmaBps: i.sigmaBps, minTick: i.minTick });
 }
 
-/**
- * 6b's `xstock-spot.ts` publishes Jupiter's price under the xStock symbol; `SpotFeed.latest` is typed for tickers until
- * the stage owner widens it. Method parameters are bivariant, so the feed reads through this shape without a cast.
- */
-type XStockSpot = { latest(symbol: string, maxAgeSec?: number): { priceE8: bigint } | null };
-
+/** The xStock's spot (6b's `xstock-spot.ts` publishes Jupiter's price under the xStock symbol); null when halted or stale. */
 function referenceOf(input: LaneQuoteInput, xstock: XStockSymbol | null): bigint | null {
   if (!xstock || input.halts[xstock]) return null;
-  const feed: XStockSpot | null = input.spot;
-  return feed?.latest(xstock, input.env.spotMaxAgeSec)?.priceE8 ?? null;
+  return input.spot?.latest(xstock, input.env.spotMaxAgeSec)?.priceE8 ?? null;
 }
 
 export function gapQuote(input: LaneQuoteInput): LaneQuote {
