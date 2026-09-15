@@ -3,11 +3,14 @@
 import { isOk, type Reading } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { formatClock, remainingSec } from "@agari/core/units";
+import { etDateOf } from "@agari/core/market";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { diagnosisCopy } from "@/lib/copy";
 import { Banzuke, banzukeRows } from "./Banzuke";
-import { LEADERBOARD } from "./copy";
+import { BoardFilters } from "./BoardFilters";
+import { LEADERBOARD, type BoardSpan } from "./copy";
+import type { BoardQuery } from "./leaderboard-client";
 import { Podium, podiumOrder } from "./Podium";
 import type { BoardData } from "./protocol";
 import { YouBar } from "./YouBar";
@@ -19,10 +22,38 @@ export interface LeaderboardBoardProps {
   nextExpirySec: number | null;
   /** Chain-corrected clock; 0 before the first client tick. */
   nowMs: number;
+  /** The period and ticker tabs; a canned board without them is the venue's 24 h board. */
+  board?: BoardQuery;
+  onBoard?: (board: BoardQuery) => void;
   retry?: () => void;
 }
 
-function Hero({ data, nextExpirySec, nowMs }: { data: BoardData | null; nextExpirySec: number | null; nowMs: number }) {
+const SETTLE_TAIL_MS = 900_000;
+const VENUE_DAY: BoardQuery = { period: "24h", ticker: null };
+const ignore = () => undefined;
+
+/** The span the shown board covers; before the first answer, the selected period with no session yet. */
+function spanOf(data: BoardData | null, board: BoardQuery, nowMs: number): BoardSpan {
+  const session = data?.meta.session ?? null;
+  if (!data || data.meta.period !== board.period || session === null) return { period: board.period, sessionDate: null, today: false, live: false };
+  return {
+    period: data.meta.period,
+    sessionDate: session.date,
+    today: nowMs > 0 && etDateOf(Math.floor(nowMs / 1000)) === session.date,
+    live: data.meta.windowEndMs < session.closeSec * 1000 + SETTLE_TAIL_MS,
+  };
+}
+
+interface HeroProps {
+  data: BoardData | null;
+  nextExpirySec: number | null;
+  nowMs: number;
+  board: BoardQuery;
+  onBoard: (board: BoardQuery) => void;
+  span: BoardSpan;
+}
+
+function Hero({ data, nextExpirySec, nowMs, board, onBoard, span }: HeroProps) {
   const words = LEADERBOARD.hero;
   const meta = data?.meta ?? null;
   const dash = LEADERBOARD.dash;
@@ -46,7 +77,7 @@ function Hero({ data, nextExpirySec, nowMs }: { data: BoardData | null; nextExpi
           </div>
           <div className="lb-meta-col">
             <div>
-              <div>{words.traders}</div>
+              <div>{words.traders(board.period)}</div>
               <div className="big">{meta && meta.rankedTraders > 0 ? meta.rankedTraders.toLocaleString() : dash}</div>
             </div>
             <div>
@@ -66,32 +97,27 @@ function Hero({ data, nextExpirySec, nowMs }: { data: BoardData | null; nextExpi
               <div className="big">{seal}</div>
             </div>
             <div className="stamp">
-              {words.stamp}
-              <div className="stamp-sub">{words.stampSub}</div>
+              {words.stamp(board.period)}
+              <div className="stamp-sub">{words.stampSub(span)}</div>
             </div>
           </div>
         </div>
-        <div className="lb-filter-bar">
-          <div className="asset-tabs">
-            <span className="asset-tab active">{words.assets}</span>
-            <span className="asset-tab">{words.period}</span>
-          </div>
-          <div className="lb-filter-meta">{meta ? (meta.complete ? words.closedCalls(meta.closedCalls) : words.partial(meta.closedCalls)) : words.counting}</div>
-        </div>
+        <BoardFilters board={board} onBoard={onBoard} meta={meta ? words.closedCalls(meta.closedCalls, span, meta.complete, meta.ticker ?? null) : words.counting} />
       </div>
     </section>
   );
 }
 
 /** The board's every state, ported from the reference page: reading, failed, empty, podium, the field, and you. */
-export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, retry }: LeaderboardBoardProps) {
+export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board = VENUE_DAY, onBoard = ignore, retry }: LeaderboardBoardProps) {
   const data = reading && isOk(reading) ? reading.value : null;
+  const span = spanOf(data, board, nowMs);
   const podium = useMemo(() => (data ? podiumOrder(data.rankings) : []), [data]);
   const field = useMemo(() => (data ? banzukeRows(data.rankings) : []), [data]);
 
   return (
     <div className="lb-page">
-      <Hero data={data} nextExpirySec={nextExpirySec} nowMs={nowMs} />
+      <Hero data={data} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={onBoard} span={span} />
       <div>
         <div className="container">
           {reading?.ok && (
@@ -130,17 +156,17 @@ export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, retry
           )}
           {data && podium.length > 0 && (
             <section>
-              <SectionHeader index={LEADERBOARD.podium.number} title={LEADERBOARD.podium.title} desc={LEADERBOARD.podium.desc} className="lb-section-head" />
+              <SectionHeader index={LEADERBOARD.podium.number} title={LEADERBOARD.podium.title} desc={LEADERBOARD.podium.desc(span)} className="lb-section-head" />
               <Podium spots={podium} decimals={data.meta.decimals} symbol={data.meta.symbol} />
             </section>
           )}
           {data && field.length > 0 && (
             <section>
-              <SectionHeader index={LEADERBOARD.field.number} title={LEADERBOARD.field.title} desc={LEADERBOARD.field.desc} eyebrow={LEADERBOARD.field.meta} className="lb-section-head" />
-              <Banzuke rows={field} decimals={data.meta.decimals} />
+              <SectionHeader index={LEADERBOARD.field.number} title={LEADERBOARD.field.title} desc={LEADERBOARD.field.desc} eyebrow={LEADERBOARD.field.meta(span)} className="lb-section-head" />
+              <Banzuke rows={field} decimals={data.meta.decimals} span={span} />
             </section>
           )}
-          {address && data && <YouBar address={address} data={data} />}
+          {address && data && <YouBar address={address} data={data} span={span} />}
         </div>
       </div>
     </div>

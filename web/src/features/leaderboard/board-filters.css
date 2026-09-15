@@ -1,0 +1,22 @@
+/* The board's filter bar: Masayume's `.asset-tab` look for the period tabs, then `/markets`' ticker picker.
+ * part-08 lays the bar out as one row (tabs left, meta right, wrapping); two tab groups need only their spacing and a
+ * picker that may scroll sideways inside the bar instead of pushing it wider than a phone. */
+.lb-filter-bar .lb-periods {
+  flex: none;
+}
+
+.lb-filter-bar .tkp {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .lb-filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .lb-filter-bar .tkp {
+    max-width: 100%;
+  }
+}
