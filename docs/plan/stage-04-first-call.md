@@ -58,6 +58,13 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 
 ## Findings
 
+- **Lane 4e final (merged `80c4b0d`):**
+  - `f20b374`: Connect renders on the first paint; "restoring" only for a remembered wallet.
+  - `7949b0b`: stock prices whole dollars from $1,000 up, cents below, in share cards, Sensei and takes.
+  - Audit update C-26/P-11 (committed by the stage owner after 4e stopped on a network error).
+  - Full gate after the merge: typecheck, invariants, 198 vitests, build.
+- **Devnet faucet evidence (09-15 05:15Z)** through the running app on :3010: SOL top-up `5WpKEWoP…` (20,000,000 lamports) and tUSDC mint `23Ge127U…` (10,000 tUSDC, fee payer `sol-faucet`), one challenge signature, no wallet transaction (acceptance.md). The very first `GET /api/faucet` after the dev server started answered `configured: false`, then `ready: true` for both assets on the next call. Watch for this on a cold start (likely a lazy module/key load).
+- **Indexer URL:** `NEXT_PUBLIC_AGARI_INDEXER_URL=/api/index` (same-origin path, `fefedf6`) after the user hit a cross-origin `indexer-down` running the app on another port.
 - **Lane 4e (audit, merged through `80342e6`):**
   - **Audit:** 36 findings in `docs/plan/audits/ui-fidelity-2026-09-14.md`.
     - **By severity:** S1 5, S2 11, S3 9, S4 11.
