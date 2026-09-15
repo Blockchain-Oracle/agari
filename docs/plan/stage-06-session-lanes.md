@@ -37,7 +37,7 @@
   - Check values against Jupiter `usdPrice` (the ScaledUiAmount basis).
   - On a Surfpool fork: transaction bytes and CU (ALT needed or not), and the v0 `.so` size with the crate in.
   - Set `switchboard_min_oracles` and the token caps (Q-S6-4).
-- [ ] **Foundation (stage owner, D-051, D-054):**
+- [x] **Foundation (stage owner, D-051, D-054; D-051…D-059 recorded):**
   - Freeze the spec.
   - Core types: blocker kinds, `HaltReason`, `EarningsEvent`, Ondo mints in `tickers.ts`.
   - Basis dispatch with `paused: lane not built` stubs in the roller, relay tracker and pass, settler and maker; lane keys `<SYM>-gap` and `<xStock>-<min>m`.
@@ -113,13 +113,31 @@ Restated for the deadline (D-059). The plan's "RedStone Gap Window recorded on a
 
 ## Findings
 
+- **Foundation (2026-09-15; code `c9476c3`):**
+  - Merged `stage/S3-venue-ops` @ `26a7f00` first (`session.ts` add/add conflict → S3's superset: `calendar.recent`, `sources.pythTrialLastCloseSec`).
+  - Spike (b) numbers in spec §1.1 re-read from the archive and confirmed (D-052): at 09:30:00 ET MSFT/META/AMZN/GOOGL had 3 signers, all seven had 5 by 09:30:10. The 09-15 open row doesn't exist yet (archiver writes `2026-09-15.jsonl` at the session).
+  - Ondo TSLAon/NVDAon/SPYon/QQQon checked on mainnet (Token-2022, 9 dp, metadata symbols match, `scaledUiAmountConfig` present; D-058).
+  - `pnpm drive:roller-plan --at 2026-09-17T20:00:00Z` now prints 27 Regular, 9 Gap and 12 token rows: Gap "paused: lane not built", token "TSLA token versions: lane not built (6b …)". `policyVersions(…, "gap")` matches spec §1.2 (TSLA v1 Pyth open 4,294,967,295 / close 900, check 120/120; v2 RedStone; QQQ/VOO/NVDA v1).
+  - Ops booted with `OPS_ACTORS=http,halts,earnings`: `/session` carries `halts {}`, `earnings null`, `skips []`; both new actors report "paused: lane not built (6c)".
+  - `@switchboard-xyz/on-demand` 3.10.6 + `common` 5.8.5 add no override; both import in Node ESM (a harmless "bigint: Failed to load bindings" line, since `bigint-buffer` builds are off). The crossbar client is `CrossbarClient` from `@switchboard-xyz/common`.
+  - Roller, tickers, maker and settler vitests 37/37. Gate: `pnpm typecheck && pnpm invariants` and `pnpm build` green.
+
 ## Handoff
 
-- **Lanes** (spec §6):
-  - **6a Gap:** Surfpool 9061/9062.
-  - **6b Token:** Surfpool 9063/9064.
-  - **6c Halts · voids:** Surfpool 9065/9066.
-  - **6d States · hedge:** web 3064.
+- **Lanes** (spec §6, D-051), each cut from the foundation commit; merge order foundation → 6c → 6a → 6b → 6d:
+  - **6a Gap:** `slice/S6a-gap` · `../agari-wt/s6a` · Surfpool 9061/9062.
+  - **6b Token:** `slice/S6b-token` · `../agari-wt/s6b` · Surfpool 9063/9064.
+  - **6c Halts · voids:** `slice/S6c-halts-voids` · `../agari-wt/s6c` · Surfpool 9065/9066.
+  - **6d States · hedge:** `slice/S6d-states-hedge` · `../agari-wt/s6d` · web 3064.
+- **Stubs each lane replaces (keep the exported signature; the dispatcher already calls it):**
+  - **6a:** `window-roller/plan-gap.ts` `planGapSeries(series, clock): SeriesPlan` (`clock.gapLeadSec`, `clock.skips` with `lanes`); `price-relay/gap-slots.ts` `gapArchivePass(ctx, due, chainNow)` → `{ line, nextSec, taken }` (taken slot keys skip the Regular passes); `market-maker/seat/gap-fair.ts` `gapQuote(input): LaneQuote` (`phase`, `fairTicks`, `maxCashPerWindow` = `env.gapMaxCash`, `why`); `packages/markets/src/deploy/series-gap.ts` and `packages/db/src/print-archive-read.ts` (already re-exported with `export *`).
+  - **6b:** `window-roller/plan-token.ts` `planTokenSeries`; `price-relay/switchboard-pass.ts` `switchboardPass(ctx, slots, chainNow)` (every unexpired Switchboard slot, due or not) and `price-relay/jupiter-attest.ts` `jupiterAttestPass` (attested slots of token Series) → `LanePassResult`; `seat/token-fair.ts` `tokenQuote` (`env.tokenMaxCashPerWindow`); `deploy/policies-token.ts` `tokenPolicyVersions(symbol, sources)` + `tokenPolicyFor(source, ticker, sources, check)`; `deploy/series-token.ts`, `ops/prints/switchboard.ts`, `prices/jupiter.ts` (re-exported by `ops/prints`), `prices/legacy/switchboard-quote.ts` (re-exported by `prices/legacy`). `tokenLane.<xStock>.feedHash` is `null` until spike (a).
+  - **6c:** `actors/halt-watch/index.ts` `startHaltWatch(deps)` writes only `deps.halts.set/clear(asset, reason, nowSec)`; `calendar/earnings.ts` `startEarnings(deps)` writes only `deps.events.setEarnings(events)`. Core `market/{halts,void-reason,events-calendar,corporate}.ts` are new files: 6c adds their lines to `packages/core/src/market/index.ts`. The types they implement are frozen in `packages/core/src/types/session-lanes.ts` (`HaltBoard`, `EarningsEvent`, `CorporateSkip`, `MultiplierChange`, `VoidDetail`). `corporate-actions.json` is read by `runtime/session-events.ts` (re-read on change; malformed entries are dropped and listed by `events.problems()`), so the new `lanes`/`multipliers` shape needs no ops edit.
+  - **6d:** `packages/markets/src/holdings/index.ts` behind the new `@agari/markets/holdings` export (server-only). The five blocker kinds exist with the spec §5 strings (`BlockerContext.opensText`); 6d owns refining them. Lane keys for `laneState`: core `laneKey(symbol, basis, cadenceSec)`. `/session` now adds `halts` (asset → `{ reason, sinceSec }`), `earnings` (`EarningsEvent[] | null`) and `skips`.
+- **Dispatch already done (no lane edits):** roller `plan-basis.ts`; relay tracker and pass; settler (all known bases, no stub, since rules are unchanged); maker listing and `WindowCtx.lane`; lane keys through `seriesLaneKey` (settler/relay log labels now read `TSLA-60m`, not `TSLA-1h`); `PrintSlot.basis`; `policyVersions(symbol, sources, basis)`.
+- **Env knobs added (defaults):** `ROLLER_GAP_LEAD_SEC` 172800; `MM_GAP_MAX_CASH` 25; `MM_TOKEN_MAX_CASH_PER_WINDOW` 10; `OPS_ACTORS` default adds `halts,earnings`.
+- **Not typechecked by `pnpm typecheck`:** `scripts/**` (no tsconfig). `scripts/drive/roller-plan.ts` was checked ad hoc; lanes adding scripts check theirs the same way or run them.
+- **Multiplier precision (6d):** Ondo multipliers carry up to 16 decimals (NVDAon `1.0017152487959897`); flooring to `multiplierE12` loses < 10⁻¹² relative. Disclose, never use floats.
   - Lanes report back; only the stage owner edits manifests, the lockfile, `packages/core/src/{ports,types}/**`, `tickers.ts`, `packages/markets/src/{env,index}.ts`, `deploy/{policies,venue-spec}.ts`, `services/ops/src/{main.ts,runtime/**,http/**,calendar/session-service.ts}`, the basis-dispatch lines, `scripts/invariants/**`, `docs/plan/**`, `Anchor.toml`, `addresses.devnet.json`, and every devnet deploy, registration and funding.
 - **Cross-stage files S6 never edits:**
   - S5d: `VerdictCard`, `print-source`, `MarketProofRows`, `features/share/**`.

@@ -599,6 +599,131 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** "Connect" opens the same modal Masayume users know; the app looks like Masayume except for stock logos.
 - **Approval:** user, 2026-09-14.
 
+### D-051 — The S6 contract, lanes, foundation and cross-stage boundaries
+- **Date / owner:** 2026-09-15 · S6 owner (foundation, from the spec architect pass)
+- **Evidence:**
+  - `docs/plan/specs/session-lanes.md` (frozen by this entry) and `stage-06-session-lanes.md`, cut from `stage/S4-first-call` @ `c5ddb60` plus `stage/S3-venue-ops` @ `26a7f00` (merged: `/session` `calendar.recent` and `sources`).
+  - Before S6, every venue actor filtered `basis === 0` (roller `execute.ts:47`, relay `tracker.ts:36`, settler `index.ts:41`, maker `seat/index.ts:33`), the relay skipped Switchboard slots (`relay-pass.ts:142`) and `policyFor` threw for switchboard/attested (`policies.ts:87`).
+  - `@switchboard-xyz/on-demand` 3.10.6 and `@switchboard-xyz/common` 5.8.5 (Context7 `/websites/switchboard_xyz`: `queue.fetchQuoteIx(crossbar, feedHashes, { numSignatures, payer })`) resolve on the existing `@solana/web3.js` 1.98.4 with no new override. Both import in Node ESM; the crossbar client is `CrossbarClient` from common, not `sb.Crossbar`.
+- **Rule:**
+  - **Contract:** the S6 contract is the spec. Changes need a D-entry.
+  - **Lanes** (spec §6; disjoint ownership):
+    - 6a Gap: `slice/S6a-gap`, `../agari-wt/s6a`, Surfpool 9061/9062;
+    - 6b token: `slice/S6b-token`, `../agari-wt/s6b`, Surfpool 9063/9064;
+    - 6c halts, voids, earnings, corporate actions: `slice/S6c-halts-voids`, `../agari-wt/s6c`, Surfpool 9065/9066;
+    - 6d states, copy, fixtures, hedge: `slice/S6d-states-hedge`, `../agari-wt/s6d`, web 3064.
+  - **Merge order:** foundation → 6c → 6a → 6b → 6d.
+  - **Foundation (frozen interfaces):**
+    - Core types (`types/session-lanes.ts`): `HaltReason`, `HaltBoard`, `EarningsEvent`, `EarningsFlag`, `CorporateSkip` (+ `lanes?`), `MultiplierChange`, `VoidDetail`; `LANE_BASES`/`laneBasisOf`; blocker kinds `session-closed | halted | lane-paused | gap-listed | corporate-action` with the spec §5 strings; Ondo mints, `SHARE_TOKENS` and `laneKey` in `tickers.ts`.
+    - Lane keys: `TSLA-5m` (unchanged), `TSLA-gap`, `TSLAx-5m`, one helper (`laneKey`, ops `seriesLaneKey`) for the roller, relay, settler, maker and `/session.lanes`.
+    - Basis dispatch: roller `plan-basis.ts` → `plan-gap.ts` (6a) / `plan-token.ts` (6b); relay `gap-slots.ts` (6a, takes slots first), `switchboard-pass.ts` and `jupiter-attest.ts` (6b) returning `LanePassResult`; maker `lane-quote.ts` → `gap-fair.ts` (6a) / `token-fair.ts` (6b) overriding phase, fair and cap in `tendWindow`. Every stub reports `paused: lane not built` and sends nothing.
+    - The settler takes every registry Series of a known basis with no stub: settle and void rules are unchanged for Gap and token Windows (spec §1.5, §2.4).
+    - `policyVersions(symbol, sources, basis)`: Gap = the ticker's versions with `primary.open_admission_sec = ADMIT_UNTIL_LOCK`; token versions and switchboard/attested policies delegate to `policies-token.ts` (6b), which refuses until built.
+    - Ops: `VenueDeps.halts` (in-memory board, `halt-watch` its only writer) and `VenueDeps.events` (corporate-actions.json re-read on change, earnings set by `calendar/earnings.ts`); actors `halts` and `earnings` in the default `OPS_ACTORS`; `/session` adds `halts`, `earnings` (null = unknown) and `skips`. The roller reads skips from `deps.events`; a Regular skip honours `lanes`.
+    - Knobs: `ROLLER_GAP_LEAD_SEC` 172,800; `MM_GAP_MAX_CASH` 25 and `MM_TOKEN_MAX_CASH_PER_WINDOW` 10 tUSDC. A halted ticker's Regular quotes pull.
+    - Barrels pre-wired with `export *` stubs so lanes never edit them: markets `deploy/series-{gap,token}.ts`, `ops/prints/switchboard.ts`, `prices/jupiter.ts`, `prices/legacy/switchboard-quote.ts`, `@agari/markets/holdings`; db `print-archive-read.ts`.
+  - **Cross-stage boundaries (never edited by S6):** S5d `VerdictCard`, `print-source`, `MarketProofRows`, `features/share/**`; S5a `features/markets/{portfolio,balance,history}/**`; S13c `Marquee.tsx`, `/api/earnings`, `finnhub.server.ts`; S13b `features/markets/reels/**`. S6 adds no web Finnhub client and no earnings route (D-071): the ops fetch serves the flags (Q-S13-9), and the one `EarningsEvent` shape is reconciled at the second merge. Stage owners reconcile `copy.ts` hunks and `/session` fields at merge.
+- **User-visible:** none yet (every new lane reports "paused: lane not built").
+- **Approval:** stage owner on the spec (defaults below recorded as pending the user where marked).
+
+### D-052 — Spike (b): the Gap's Monday print feed and the 09-18 listing set
+- **Date / owner:** 2026-09-15 · S6 owner (spec §1.1; archive re-read by the foundation)
+- **Evidence:** `/Users/abu/dev/hackathon/stocklana/data/archive/redstone/2026-09-14.jsonl` (main checkout, gitignored; the S0 archiver's 10 s grid 09:29–09:31 ET at the real Monday open), next to Pyth's exact-T blobs in `data/archive/pyth/2026-09-{11,14}.jsonl`. Medians of the archived signer values:
+  - 09:29:50 ET: every regular feed still holds Friday's value (TSLA 365.4859, NVDA 218.2457; 5 signers each).
+  - **09:30:00 ET:** TSLA 359.6240 and NVDA 211.2848 (5 signers), AAPL 334.7497 (5), **MSFT 497.0529, META 658.8857, AMZN 253.2305, GOOGL 342.8923 with 3 signers**. At T the regular feed agrees with `---EXTENDED` (TSLA 0.04 bps, NVDA 0.9 bps).
+  - 09:30:10 ET: all seven have 5 signers.
+  - Pyth TSLA at the same T: 359.81147 (`35981147e-5`, conf 4.4 bps). RedStone vs Pyth 5.2 bps at the open, 0.2 bps at the Friday 09-11 close; both inside the 25 bps check band.
+- **Rule:**
+  - The Gap's Monday print uses the **regular** RedStone data feed id (`TSLA`, not `---EXTENDED`) at T + 0. Its label is "oracle price at 09:30:00 ET", the first regular-session print, not the opening cross.
+  - A 3-package print is admissible only after `T + strict_sec` (300 s) and before T + 900 (prints.md §4.2), so a 3-signer open still records, later.
+  - 6a re-reads the 09-15, 09-16 and 09-17 open rows before listing; a RedStone name lists for 09-18 only if every archived open had ≥ 3 signers at 09:30:00 ET.
+  - **Q-S6-1 (default taken by the stage owner, pending the user):** list the six RedStone single-name Gaps for 09-18 on this evidence. **Disclosed risk:** MSFT/META/AMZN/GOOGL sat exactly at the 3-signer threshold on 09-14; a Monday with fewer than 3 voids that Window 0.5/0.5 with "missing print".
+  - **Q-S6-2 (default, pending the user):** keep the TSLA RedStone check on the Gap (the same D-003 policy); a divergence voids honestly.
+- **User-visible:** the Gap verdict says "oracle price at 09:30:00 ET" and names its source.
+- **Approval:** stage owner on the spec defaults; the user may change Q-S6-1/Q-S6-2.
+
+### D-053 — Spike (a) first: the token lane's oracle count decides its minimum and caps
+- **Date / owner:** 2026-09-15 · S6 owner (spec §2.1)
+- **Evidence:** C:13 saw Surge answer with at most 2 signatures on a Sunday and HTTP 500 above the maximum; the queue `EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7` has 9 oracles. `RawPrint.price` is `i64` and $360 × 10¹⁸ overflows it (spec §2.2).
+- **Rule:**
+  - **No program code before the spike.** 6b builds the four `switchboardSurgeTask { source: WEIGHTED, symbol }` feeds (TSLAX/NVDAX/SPYX/QQQX), pins each hash in `price-sources.json` `tokenLane.<xStock>.feedHash` (null until then; the lane stays unregistered while any is null), and fetches one quote over all four for n = 1…5 signatures on devnet.
+  - It decodes the quote (distinct oracle indices, slot, values), checks each value against Jupiter `usdPrice` (< 1.5%; basis "TSLAx/USD per token, UI amount"), and measures transaction bytes, CU (ALT if > 1,232 B) and the v0 `.so` size with the crate on a Surfpool fork.
+  - **Outcome:** `switchboard_min_oracles = min(3, observed max)`.
+  - **Q-S6-4 (default, pending the user):** a 2-oracle lane is accepted only with token caps halved and "signed by 2 oracles" disclosed on receipts and the ticket; below 2, or failing quotes, the lane is paused honestly ("Paused: no signed price source").
+  - This entry is amended with the observed maximum, the hashes and the measured sizes when the spike lands.
+- **User-visible:** a token receipt names how many oracles signed it.
+- **Approval:** stage owner on the spec default; Q-S6-4 is the user's to change.
+
+### D-054 — Gap versions, lead, check-bound rule and the honest pre-deadline path
+- **Date / owner:** 2026-09-15 · S6 owner (spec §1.2–1.6)
+- **Evidence:** `window_rules.rs:60-62` freezes `open_deadline = lock_at` for `ADMIT_UNTIL_LOCK`, which `policy_rules.rs:61-63` accepts only on a Gap Series. The 09-18 Gap is `[1789761600 Fri 20:00Z, lock 1789948800 Mon 00:00Z, expiry 1789997400 Mon 13:30Z]`. Surfpool time travel moves only forward (D-027). The foundation's `policyVersions(…, "gap")` gives TSLA v1 Pyth open 4,294,967,295 / close 900 with the RedStone check 120/120, TSLA v2 RedStone, QQQ/VOO/NVDA v1.
+- **Rule:**
+  - **Versions:** no new versions in `price-sources.json`; a Gap Series registers its ticker's versions with the Gap open admission (the `gap` doc block).
+  - **Coverage:** the 09-18 Gap is v1 on all nine; the 09-25 Gap is TSLA v2 only, QQQ/VOO "paused: no signed source".
+  - **Roller (6a):** earliest `gapWindows` candidate with `W.tradingStart ≥ lastExpiry`, `W.lockAt − now ≥ 60`, `W.tradingStart − now ≤ ROLLER_GAP_LEAD_SEC` (172,800: the 09-18 Gap lists from Wed 16:00 ET), a covering version, and `now + 45 ≤ open_deadline`. **Check-bound exception:** a Gap past its check bound still lists and settles `single_source`, because the next candidate is a week away. Corporate skip on the Friday **or** the Monday ET date. One 256-node Book per Gap Series.
+  - **Relay:** Gap slots ride the Regular `(source, T)` units; a RedStone open past the gateway's ≈ 24 h history posts from `print_archive` (6a `gap-slots.ts`). The settler is unchanged (void at `lock_at + 1` without an open print).
+  - **Honest pre-deadline proof:** a LiteSVM replay of the real 09-11 → 09-14 weekend (archived Pyth blobs; TSLA 365.47600 → 359.81147, QQQ and VOO all settle Down) with the PD-6 lock race in both orders; a Surfpool forward time-travel drive on drive-only Series 901 (attested, labelled drive data); Gap Series registered on devnet and the 09-18 Windows listed.
+  - **Q-S6-3 (default taken, pending the user):** run the overnight devnet Gap drive Thu 09-17 20:00Z → Fri 09-18 13:30Z on drive-only Series 902 (basis 1, the TSLA Pyth version, ≈ 0.24 SOL) with real prints: the only real-print devnet Gap settlement possible before submission, 6.5 h to spare.
+- **User-visible:** `/markets` shows the Gap lane as Listed from Wednesday ("Monday Gap · calls open Fri 16:00 ET · locks Sun 20:00 ET · settles on the Mon 09:30:00 ET print").
+- **Approval:** stage owner on the spec defaults.
+
+### D-055 — The Switchboard print instruction and the in-place program upgrade
+- **Date / owner:** 2026-09-15 · S6 owner (spec §2.2–2.3)
+- **Evidence:** D-024 (devnet has no SBPFv3: every build is `--arch v0`; today's binary is 764,200 B). D-026 (`admin_set_authorities` replaces every field; the queue is the zero key with `min_oracles 0` until S6). solana-cli 3.1.10 auto-extends program data. Devnet rent 5,080 lamports/B (acceptance.md).
+- **Rule:**
+  - **Program (6b):** `agari-common` feature `switchboard` with `print/switchboard.rs` (`check_quote_ix`, `quote_print` pre-normalized to expo −8); `PrintError` gains five variants mapped onto the existing codes 6214–6218 (no new codes); `agari-events` `public_record_print_switchboard(ctx, which)` in the order admit → stack height → queue → `check_quote_ix` at `cur − 1` → `QuoteVerifier` → `quote_print` → record → emit. Layouts unchanged, so the upgrade is in place; the IDL gains one instruction.
+  - **Upgrade (stage owner only):** `NO_DNA=1 anchor build --arch v0` (size and sha256 recorded); the new `.so` at `cDcHZ…` on a Surfpool devnet fork runs 6b's proofs and `pnpm drive:events` as the regression; devnet `solana program deploy --program-id <agari_events keypair> --upgrade-authority deployer --buffer <fresh buffer keypair>` (resume with the same buffer); dump and compare sha256; `pnpm codegen`; IDL republished via program-metadata (D-026); then `admin_set_authorities` with the **full** current set plus the queue and D-053's `switchboard_min_oracles`. Every step is an acceptance row.
+  - **SOL:** buffer ≈ `.so` bytes × 5,080 lamports (≈ 3.9–4.9 SOL, refunded), extension ≈ 0.5–1.0 SOL kept; peak ≈ 5.5 SOL on the deployer.
+  - **Q-S6-6 (default, needs the user):** ask for ≈ 15 devnet SOL to the funding inbox `5zjywmmJ…` before Wed 09-16 (Gap 2.12 + token 5.55 + float ≈ 3.5 + upgrade peak ≈ 5.5, ≈ 1 kept). Balances are re-read before any deploy.
+- **User-visible:** none until the token lane lists.
+- **Approval:** stage owner on the spec; the SOL is the user's.
+
+### D-056 — Token Series, Books, caps and the Jupiter fallback rule
+- **Date / owner:** 2026-09-15 · S6 owner (spec §2.4–2.5)
+- **Evidence:** 1,632 token Windows/day with Markets retained 6 h (`venue-spec.ts:13`); keyless Jupiter Price v3 allows 0.5 RPS (C:13 §5); appending a version moves every future Window of a Series and a Series holds at most 8 (`constants.rs:29`).
+- **Rule:**
+  - **Series:** TSLA/TSLAx 1, NVDA/NVDAx 2, SPY/SPYx 10, QQQ/QQQx 8 × 300/900/3,600, basis 2, two 256-node Books each: 5.554 SOL kept, ≈ 3 SOL steady float, ≈ 0.04–0.07 SOL/day fees.
+  - **v1:** Switchboard primary, `feed_id` = the D-053 hash, min delay 10, admission 60/60, max slot age 20, no check, valid from the upgrade day, open-ended.
+  - **Roller:** `tokenWindows` back-to-back, lead 120 s, no calendar; skipped only for multiplier changes and issuer halts. **Relay:** one quote per T at T + 10 for every due close slot, one retry on a stale slot with ≥ 5 s left; opens by `public_copy_open_from_prev`. A missed slot voids at T + 61.
+  - **Maker:** 24/7, `MM_TOKEN_MAX_CASH_PER_WINDOW` 10 tUSDC (halved under Q-S6-4). **Chart spot:** Jupiter `usdPrice` for the four verified mints every 5 s, labelled "chart follows Jupiter"; it never settles anything.
+  - **Jupiter attested fallback:** built and proven on Surfpool only ("Attested demo", median of T − 40/T − 20/T, ×10⁸ exact).
+  - **Q-S6-5 (default):** no Jupiter demo version is appended on devnet unless D-053 pauses Switchboard **and** the user opts in.
+- **User-visible:** "Settles on the Switchboard TSLAx token price observed ≤ 60 s after each boundary · chart follows Jupiter".
+- **Approval:** stage owner on the spec defaults.
+
+### D-057 — Halts, void reasons, earnings flags and the corporate-actions shape
+- **Date / owner:** 2026-09-15 · S6 owner (spec §3)
+- **Evidence:** no licensed halt feed exists (C:02 §B); `MarketResult` stores `VoidReason { None, MissingPrint, CrossCheckDivergence }` and the empty prints show the slot; Masayume's `ClaimWinnings.tsx:50-57` branches only on a loss, so a void shows the "You won" trophy.
+- **Rule:**
+  - **Halts (6c `halt-watch`):** in regular hours a Pyth tick with `conf × 10⁴ > price × 50` → `pyth-wide`, `publish_time` older than 15 s → `pyth-stale`; RedStone latest package older than 60 s → `redstone-stale`; xStocks `isMarketTradingHalted` (60 s poll) → `issuer-halt`; three failed token quotes → `quote-unavailable`. Effects: the roller opens nothing for that asset, the maker pulls, the ticket shows `halted`; nothing changes on chain.
+  - **Q-S6-9 (default):** only `pyth-wide` and `issuer-halt` say "Trading halted"; the others say "Signed price stale".
+  - **Void reasons:** Masayume's line first, verbatim ("Void — no reliable print, both sides pay 0.5"), then one reason line from core `voidDetail` (`missing-print` names the source, the boundary and the deadline; `cross-check-divergence` names the 0.25% band). A halt is never asserted as a verdict's cause. S5d renders the verdict and share card; 6d the claim card and row.
+  - **Q-S6-7 (default, pending the user):** a void claim card shows the void stamp and "Returned" with the reason line, **not** Masayume's "You won" trophy (plan §7.4 #8, honest data); recorded as an Adapted row.
+  - **Earnings (6c):** ops fetches Finnhub `/calendar/earnings` 14 days ahead once per 6 h (`FINNHUB_API_KEY` server-only, redacted); `earningsFlag` gives `earnings-session` / `earnings-gap`; a ticket warning line and `/session.earnings`; tighter caps are an S10 flag only.
+  - **Corporate actions:** `corporate-actions.json` `skips[]` gains `lanes?`, a new `multipliers[]` holds `{ xstock, effectiveSec, from, to, why }` with decimal strings; core `skipApplies` matches Regular on the start date, Gap on the Friday or Monday, token on an `effectiveSec` inside the span. `scripts/drive/corporate-check.ts` proposes entries and never writes.
+- **User-visible:** paused and halted lanes say why; a void names its reason; earnings days carry a warning.
+- **Approval:** stage owner on the spec defaults; Q-S6-7 is the user's to change.
+
+### D-058 — The holdings-aware hedge
+- **Date / owner:** 2026-09-15 · S6 owner (spec §4; mints verified by the foundation)
+- **Evidence:** public mainnet RPC `getMultipleAccounts` (2026-09-15): TSLAon `KeGv7bsf…ondo`, NVDAon `gEGtLTPN…ondo`, SPYon `k18WJUUL…ondo`, QQQon `HrYNm6jT…ondo` are Token-2022 mints with 9 decimals, matching metadata symbols and a `scaledUiAmountConfig` (e.g. NVDAon multiplier `1.0017152487959897`). The xStock mints were already pinned (D-011). Impostor tickers exist (C:13 §5).
+- **Rule:**
+  - **Reader (6d, `@agari/markets/holdings`, server-only):** Helius **mainnet** `getTokenAccountsByOwner` (Token-2022, jsonParsed), verified mints only (`SHARE_TOKENS`, keyed by mint), the effective multiplier (`newMultiplier` once `now ≥ newMultiplierEffectiveTimestamp`), integers only: `multiplierE12` (floored from the decimal string, which can carry 16 decimals), `sharesE8`, `exposureUsdE6` on ops `/prices/latest`.
+  - **Route:** `GET /api/holdings?owner=` validates the owner, caches 60 s per owner, 30 requests/min per IP, stores nothing; the Helius URL is never logged.
+  - **Card:** Masayume `SeasonBanner` anatomy under the `/markets` hero, only for a wallet with a verified holding; foot "Placed on Solana devnet with test tUSDC. It does not move, sell or protect your mainnet TSLAx. Not investment advice."
+  - **Q-S6-8 (default):** stake preset `min(exposure × 1,000 / 10⁴, ticket max, tUSDC balance)`; the write is the unchanged S4 order lane.
+- **User-visible:** a wallet holding TSLAx sees "12.5 TSLAx ≈ $4,497 of TSLA exposure this weekend" and one tap to a devnet Down or Gap hedge.
+- **Approval:** stage owner on the spec defaults.
+
+### D-059 — The S6 gate restated for the Friday deadline
+- **Date / owner:** 2026-09-15 · S6 owner (spec clock facts, §1.6)
+- **Evidence:** submissions close **Fri 2026-09-18 20:00Z** (09-18 is a Friday; the brief said Thursday). In EDT that is **16:00 ET**, exactly the opening boundary T (`1789761600`) of the 09-18 Gap Window, which then locks Mon 09-21 00:00Z and settles on the 09-21 13:30Z prints. The Pyth trial covers TSLA/QQQ/VOO boundaries through `2026-09-25T20:00Z`.
+- **Rule:**
+  - **No Gap Window can trade or settle before submission.** The plan's "RedStone Gap Window recorded on a real weekend" and "real-weekend token settlement" become **post-deadline evidence rows** in `acceptance.md`, never submission claims: the 09-19/20 token weekend, the 09-18 Gap open prints and 09-21 settlements, and the 09-25 lane switch (TSLA Gap on v2, QQQ/VOO paused).
+  - **Pre-deadline gate:** full gate (`pnpm typecheck && pnpm invariants`, `pnpm build`, `NO_DNA=1 anchor build --arch v0`, clean codegen diff); the Gap LiteSVM real-weekend replay and lock race, the Surfpool Gap drive, Gap Series registered and the 09-18 Windows listed, the overnight devnet drive if Q-S6-3 stands; halt/void LiteSVM voids naming their reason; the Switchboard refusals (LiteSVM, then Surfpool on the upgraded `.so`); the program upgraded on devnet and ≥ 1 settled token Window per xStock on a weekday; every spec §5 state fixture-proven and browser-checked; the hedge reading a real mainnet holder and placing one devnet hedge.
+- **User-visible:** the submission claims only what devnet shows before Fri 20:00Z.
+- **Approval:** stage owner (a factual correction of the calendar, not a scope change).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
@@ -611,3 +736,12 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 | Q-006 | Solana Mobile / Seeker beyond the PWA? | Open. Default: PWA only | — |
 | Q-007 | Public repo licensing for Yosuku-derived CSS | Open. Default: keep repo private | Public visibility |
 | Q-008 | Agari X account + X API keys; geofence method; corporate-action source | Partly answered: X keys not a blocker (user, 2026-09-13); geofence S15; corporate actions S6 | S11 live test |
+| Q-S6-1 | List the six RedStone single-name Gaps for 09-18 on the 09-14 archive? | Open. Default (stage owner, pending the user): yes, per name, if every archived open 09-14…09-17 had ≥ 3 signers at 09:30:00 ET; 3-signer risk disclosed (D-052) | 6a listing set |
+| Q-S6-2 | TSLA Gap: keep the RedStone check? | Open. Default: keep (D-052) | — |
+| Q-S6-3 | Overnight devnet Gap drive Thu 20:00Z → Fri 13:30Z (Series 902, ≈ 0.24 SOL)? | Open. Default (pending the user): yes (D-054) | Gap pre-deadline gate row |
+| Q-S6-4 | Surge signs with only 2 oracles? | Open. Default (pending the user): min 2 with halved caps and "signed by 2 oracles" disclosed, else pause (D-053) | 6b token lane |
+| Q-S6-5 | Jupiter attested demo version on devnet? | Default: no, unless Switchboard is paused and the user opts in (D-056) | — |
+| Q-S6-6 | ≈ 15 devnet SOL for S6 | Open. Needs the user: send to inbox `5zjywmmJ…` before Wed 09-16 (D-055) | Gap/token registration, program upgrade |
+| Q-S6-7 | A void claim shows Masayume's "You won" trophy? | Open. Default (pending the user): void stamp, "Returned" and the reason line (D-057) | 6d claim card |
+| Q-S6-8 | Hedge placement and size | Default: under the `/markets` hero, 10% of exposure, devnet tUSDC only (D-058) | — |
+| Q-S6-9 | Halt wording without a licensed halt feed | Default: "Trading halted" only for `pyth-wide` / `issuer-halt`, else "Signed price stale" (D-057) | — |
