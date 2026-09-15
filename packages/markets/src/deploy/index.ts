@@ -71,3 +71,4 @@ export async function initEvents(input: InitEventsInput): Promise<VenueRecord> {
   }
   return input.record;
 }
+export { planAuthorities, setAuthorities, type AuthoritiesChange, type AuthoritiesPlan } from "./authorities";

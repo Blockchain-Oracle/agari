@@ -29,6 +29,7 @@
     "drive:roller-plan": "tsx --env-file-if-exists=.env.local scripts/drive/roller-plan.ts",
     "drive:verify-index": "tsx --env-file-if-exists=.env.local scripts/drive/verify-index.ts",
     "ops:start": "pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/main.ts",
+    "deploy:set-authorities": "tsx --env-file-if-exists=.env.local scripts/deploy/set-authorities.ts",
     "deploy:init-gap-series": "tsx --env-file-if-exists=.env.local scripts/deploy/init-gap-series.ts",
     "drive:gap-cycle": "tsx --env-file-if-exists=.env.local scripts/drive/gap-cycle.ts",
     "drive:recount": "tsx --env-file-if-exists=.env.local scripts/drive/recount.ts",
