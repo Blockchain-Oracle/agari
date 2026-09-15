@@ -10,7 +10,7 @@ async function responseFor(path: string, docsOrigin?: string) {
   vi.stubEnv("NEXT_PUBLIC_DOCS_URL", docsOrigin);
   vi.resetModules();
   const { default: nextConfig } = await import("../../next.config");
-  return unstable_getResponseFromNextConfig({ url: `https://masayume.app${path}`, nextConfig });
+  return unstable_getResponseFromNextConfig({ url: `https://agari.app${path}`, nextConfig });
 }
 
 describe("retired documentation bookmarks", () => {
@@ -20,12 +20,18 @@ describe("retired documentation bookmarks", () => {
     expect(getRedirectUrl(response)).toBe("https://docs.example.com/");
   });
 
-  it("sends production bookmarks to the public docs domain by default", async () => {
+  it("sends bookmarks to the in-app how-it-works page while no docs host is configured", async () => {
     vi.stubEnv("NEXT_PUBLIC_DOCS_URL", undefined);
     vi.resetModules();
     const { default: nextConfig } = await import("../../next.config");
     const routes = await nextConfig.redirects?.();
-    expect(routes?.find((route) => route.source === "/docs")?.destination).toBe("https://docs.masayume.app");
+    expect(routes?.find((route) => route.source === "/docs")?.destination).toBe("/how-it-works");
+  });
+
+  it("lands a nested guide bookmark on how-it-works rather than a missing page", async () => {
+    const response = await responseFor("/docs/start/wallet");
+    expect(response.status).toBe(307);
+    expect(getRedirectUrl(response)).toMatch(/\/how-it-works$/);
   });
 
   it("preserves nested guides and their query on a configured docs origin", async () => {
