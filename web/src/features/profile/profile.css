@@ -1,0 +1,125 @@
+/* /u/[address] (S13d). The page is /news's frame (styles/news.css); the figures are the leaderboard hero's meta column
+ * (yosuku part-08 .lb-meta-col) laid in a row; the edge excerpt borrows Trader Edge's own variable ladder (edge.css)
+ * without its page background. */
+
+.prf-ident {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* The take card's hue avatar (take.css .take-avatar) at the headline's size. */
+.prf-avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px var(--news-hairline);
+  background: radial-gradient(120% 120% at 30% 20%, hsl(var(--prf-hue) 55% 55%), hsl(calc(var(--prf-hue) + 40) 45% 28%));
+}
+
+.prf-title {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+.prf-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--news-hairline);
+}
+
+.prf-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+}
+
+.prf-stat dd {
+  margin: 8px 0 0;
+}
+
+.prf-stat .big {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--white);
+}
+
+.prf-stat .big a:hover {
+  color: var(--vermilion);
+}
+
+.prf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+}
+
+.prf-section .lb-section-head .type-title {
+  text-transform: none;
+}
+
+.prf-quiet {
+  margin-top: 0;
+}
+
+.prf-edge-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--vermilion);
+  white-space: nowrap;
+}
+
+.prf-edge {
+  --edge-text: #f3f0ea;
+  --edge-muted: #a29c92;
+  --edge-faint: #6f6b64;
+  --edge-rule: rgba(255, 255, 255, 0.09);
+  --edge-paper: rgba(255, 255, 255, 0.025);
+  color: var(--edge-text);
+}
+
+[data-theme="light"] .prf-edge {
+  --edge-text: #1a1612;
+  --edge-muted: #6b6359;
+  --edge-faint: #91887a;
+  --edge-rule: rgba(38, 30, 24, 0.12);
+  --edge-paper: rgba(255, 255, 255, 0.34);
+}
+
+.prf-edge .edge-metrics {
+  margin-top: 0;
+}
+
+/* The report's figures sit in a 1,240px column; in the profile's 64rem one a step smaller keeps "+0.92 tUSDC" on a line. */
+.prf-edge .edge-metric-value {
+  font-size: clamp(20px, 2.2vw, 28px);
+}
+
+@media (max-width: 640px) {
+  .prf-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .prf-stats {
+    gap: 24px;
+  }
+}
