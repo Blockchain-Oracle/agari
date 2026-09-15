@@ -11,7 +11,8 @@ import {
   type Market,
   type Series,
 } from "@agari/clients/agari-events";
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { laneKey, TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { laneBasisOf, type LaneBasis } from "@agari/core/types";
 import { getBase58Decoder, getBase64Encoder, type Address, type Base58EncodedBytes, type ReadonlyUint8Array } from "@solana/kit";
 import type { OpsClient } from "./client";
 
@@ -34,6 +35,18 @@ export function marketStatus(m: Market, nowSec: number): MarketStatus {
 }
 
 export const isTerminal = (m: Market) => m.state !== MARKET_STATE.open;
+
+/** The Series' lane, or null for a basis this build doesn't know (actors skip it). */
+export const seriesBasis = (s: SeriesView): LaneBasis | null => laneBasisOf(s.data.basis);
+
+/**
+ * The ops lane key every actor logs and `/session.lanes` reports (`TSLA-5m`, `TSLA-gap`, `TSLAx-5m`, core `laneKey`);
+ * `#<ticker>-<basis>-<cadence>` for a Series outside the registry or of an unknown basis.
+ */
+export function seriesLaneKey(s: SeriesView): string {
+  const basis = seriesBasis(s);
+  return s.symbol && basis ? laneKey(s.symbol, basis, s.data.cadenceSec) : `#${s.data.ticker}-${s.data.basis}-${s.data.cadenceSec}`;
+}
 
 const SYMBOL_BY_SERIES_ID = new Map<number, TickerSymbol>(TICKER_SYMBOLS.map((s) => [TICKERS[s].seriesId, s]));
 const base58 = (bytes: ReadonlyUint8Array) => getBase58Decoder().decode(bytes) as Base58EncodedBytes;

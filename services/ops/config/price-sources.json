@@ -10,7 +10,15 @@
     "switchboard": { "minDelaySec": 10, "admissionSec": 60, "maxSlotAge": 20, "minOracles": 3 },
     "attested": { "minDelaySec": 60, "admissionSec": 900, "barLenSec": 60 },
     "crossCheck": { "maxDivergenceBps": 25, "checkAdmissionSec": 120 },
-    "gapOpenAdmission": "until the Gap Window's lock_at (see S2 handoff: admission differs per boundary)"
+    "gapOpenAdmission": "until the Gap Window's lock_at: primary.open_admission_sec = ADMIT_UNTIL_LOCK (u32::MAX), see gap._doc"
+  },
+  "gap": {
+    "_doc": [
+      "S6 Monday Gap lane (session-lanes.md §1.2, D-054). No separate versions: a Gap Series (basis 1, cadence seed 604800) takes its ticker's versions below with primary.open_admission_sec = ADMIT_UNTIL_LOCK, so Friday's 16:00:00 ET print is admissible until Sunday 20:00 ET; a check keeps check_admission_sec on both boundaries. Built by policyVersions(symbol, sources, \"gap\") in @agari/markets/deploy.",
+      "Both prints come from the one version covering the whole Window (Friday close T → Monday open T). The 09-18 Gap is on v1 for every ticker; the 09-25 Gap is TSLA v2 (RedStone) only, QQQ/VOO have no covering version (paused: no signed source).",
+      "The Monday print uses the regular RedStone data feed id (TSLA, not TSLA---EXTENDED) at T + 0: the first regular-session print at 09:30:00 ET, not the opening cross (D-052, archived 09-14 open).",
+      "Listing set for 09-18 (Q-S6-1, stage-owner default pending the user): all nine tickers; a RedStone name lists only if every archived open 09-14..09-17 had >= 3 signers at 09:30:00 ET (MSFT/META/AMZN/GOOGL had exactly 3 on 09-14)."
+    ]
   },
   "redstone": {
     "gateway": "https://oracle-gateway-2.a.redstone.finance",
@@ -64,12 +72,12 @@
     "GOOGL": { "redstoneFeedId": "GOOGL", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] }
   },
   "tokenLane": {
-    "_doc": "S6. Switchboard Surge quotes (batched); verified xStock mints only. Feed hashes are pinned when S6 builds the jobs.",
+    "_doc": "S6. Switchboard Surge quotes (batched); verified xStock mints only. feedHash = sha256 of the length-delimited OracleJob protobuf of [switchboardSurgeTask { source: WEIGHTED, symbol }], pinned by spike (a) (D-053); null until then, and the token lane stays unregistered while any is null. Basis: TSLAx/USD per token (UI amount).",
     "tickers": {
-      "TSLAx": { "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "surgeSymbol": "TSLAX/USD" },
-      "NVDAx": { "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD" },
-      "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD" },
-      "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD" }
+      "TSLAx": { "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "surgeSymbol": "TSLAX/USD", "feedHash": null },
+      "NVDAx": { "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD", "feedHash": null },
+      "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD", "feedHash": null },
+      "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD", "feedHash": null }
     }
   }
 }

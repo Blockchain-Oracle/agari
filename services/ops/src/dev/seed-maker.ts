@@ -4,7 +4,7 @@
 import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
 import { decimalToE8, parseGatewayJson, redstoneMedianE8 } from "@agari/markets/deploy";
 import { createSessionService } from "../calendar/session-service";
-import { readOpsEnv } from "../runtime";
+import { createHaltBoard, createSessionEvents, readOpsEnv } from "../runtime";
 import type { SpotFeed, SpotQuote } from "../prices/spot";
 import { startSeedMaker } from "../actors/market-maker/seat";
 
@@ -50,4 +50,4 @@ const env = readOpsEnv();
 const log = (why: string) => console.log(JSON.stringify({ tsMs: Date.now(), actor: "seed-maker", why }));
 const sessions = createSessionService();
 log(await sessions.refresh());
-await startSeedMaker({ env, log, sessions, spot: devRedstoneSpot(log) });
+await startSeedMaker({ env, log, sessions, spot: devRedstoneSpot(log), halts: createHaltBoard(), events: createSessionEvents() });

@@ -3,6 +3,8 @@ import { createServer } from "node:http";
 import type { SessionService } from "../calendar/session-service";
 import type { SpotFeed } from "../prices/spot";
 import type { OpsEnv } from "../runtime/env";
+import type { HaltBoardStore } from "../runtime/halt-board";
+import type { SessionEvents } from "../runtime/session-events";
 import { healthBody, jsonText } from "./health";
 import { sessionBody } from "./session";
 import { latestBody, streamSpot } from "./spot-sse";
@@ -14,7 +16,15 @@ export interface OpsHttp {
   close(): Promise<void>;
 }
 
-export function startOpsHttp(input: { port: number; spot: SpotFeed | null; sessions?: SessionService; env?: OpsEnv; log?: (why: string) => void }): Promise<OpsHttp> {
+export function startOpsHttp(input: {
+  port: number;
+  spot: SpotFeed | null;
+  sessions?: SessionService;
+  halts?: HaltBoardStore;
+  events?: SessionEvents;
+  env?: OpsEnv;
+  log?: (why: string) => void;
+}): Promise<OpsHttp> {
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://ops").pathname;
     const json = (status: number, body: unknown) => {
@@ -27,7 +37,7 @@ export function startOpsHttp(input: { port: number; spot: SpotFeed | null; sessi
       const body = healthBody(input.env);
       return json(body.ok ? 200 : 503, body);
     }
-    if (path === "/session") return json(200, sessionBody(input.sessions ?? null));
+    if (path === "/session") return json(200, sessionBody({ sessions: input.sessions ?? null, halts: input.halts ?? null, events: input.events ?? null }));
     if (path === "/prices/latest") return input.spot ? json(200, latestBody(input.spot)) : json(503, { error: "no spot feed in this process" });
     if (path === "/prices/stream") return input.spot ? streamSpot(req, res, input.spot, CORS) : json(503, { error: "no spot feed in this process" });
     return json(404, { error: "not found" });

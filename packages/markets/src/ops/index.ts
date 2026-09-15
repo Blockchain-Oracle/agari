@@ -5,6 +5,6 @@
  */
 export { createOpsClient, type OpsClient, type OpsClientConfig } from "./client";
 export { ENGINE_ERROR, engineErrorCode, OpsSendError, sendOps } from "./send";
-export { fetchMarkets, fetchSeries, isTerminal, listMarketsOfSeries, listSeries, MARKET_FLAG, MARKET_STATE, marketStatus, type MarketStatus, type MarketView, type SeriesView } from "./venue";
+export { fetchMarkets, fetchSeries, isTerminal, listMarketsOfSeries, listSeries, MARKET_FLAG, MARKET_STATE, marketStatus, seriesBasis, seriesLaneKey, type MarketStatus, type MarketView, type SeriesView } from "./venue";
 export { chainNowSec, coveringVersion, eventAuthority, readSeats, windowAddresses, type Seat, type WindowAddresses } from "../deploy/cycle/accounts";
 export { keypairSigner } from "../deploy/client";

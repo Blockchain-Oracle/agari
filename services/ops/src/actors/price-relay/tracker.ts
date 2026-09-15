@@ -1,8 +1,8 @@
 /**
- * The Markets a relay still has work on (venue-ops.md §4): Regular Series of registry tickers, and per Series the
+ * The Markets a relay still has work on (venue-ops.md §4): registry-ticker Series of every known basis (S6), and per Series the
  * index range `[lowIndex, nextIndex)`. Print deadlines are at most T + 900 s, so a fresh start looks back 8 Windows.
  */
-import { chainNowSec, fetchMarkets, fetchSeries, listSeries, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
+import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
 import { relayFinished } from "@agari/markets/ops/prints";
 
 const SERIES_REFRESH_MS = 5 * 60_000;
@@ -33,7 +33,7 @@ export class VenueTracker {
   /** `live`: Markets with an admissible or future empty slot. `finished`: still-open Markets whose empty slots are all past their deadlines (for the missed report). */
   async read(nowSec: number): Promise<{ live: TrackedMarket[]; finished: TrackedMarket[] }> {
     if (Date.now() - this.seriesAtMs > SERIES_REFRESH_MS || this.series.length === 0) {
-      this.series = (await listSeries(this.client)).filter((s) => s.symbol !== null && s.data.basis === 0);
+      this.series = (await listSeries(this.client)).filter((s) => s.symbol !== null && seriesBasis(s) !== null);
       this.seriesAtMs = Date.now();
     }
     const fresh = (await fetchSeries(this.client, this.series.map((s) => s.address))).filter((s): s is SeriesView => s !== null);

@@ -7,6 +7,7 @@ import { createSessionService } from "../calendar/session-service";
 import { startWindowRoller } from "../actors/window-roller";
 import { readOpsEnv, redact } from "../runtime/env";
 import { heartbeats } from "../runtime/heartbeat";
+import { createHaltBoard, createSessionEvents } from "../runtime";
 
 const env = readOpsEnv();
 const log = (why: string) => console.log(JSON.stringify({ tsMs: Date.now(), actor: "window-roller", why: redact(why) }));
@@ -26,6 +27,6 @@ if (env.cluster === "localnet") {
   setInterval(() => void syncSurfpoolClock().catch((e) => log(`clock sync failed: ${String(e)}`)), 3_000);
   await syncSurfpoolClock();
 }
-await startWindowRoller({ env, log, sessions: createSessionService(), spot: null });
+await startWindowRoller({ env, log, sessions: createSessionService(), spot: null, halts: createHaltBoard(), events: createSessionEvents() });
 // What `/health` will serve: the lane states and counters, once a minute.
 setInterval(() => console.log(JSON.stringify({ tsMs: Date.now(), heartbeat: heartbeats().find((b) => b.actor === "window-roller") })), 60_000);

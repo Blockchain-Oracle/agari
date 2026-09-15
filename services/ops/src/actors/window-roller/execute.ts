@@ -1,25 +1,27 @@
 /**
- * One roller pass (venue-ops.md §5): read the Regular Series and their unreleased Markets on the chain clock, recycle
- * Books of locked or terminal Windows, grow crowded Ledgers, then open each Series' planned Window. Every send is
- * preceded by a fresh read; "already done" engine codes are treated as done.
+ * One roller pass (venue-ops.md §5): read the registry Series of every known basis and their unreleased Markets on the
+ * chain clock, recycle Books of locked or terminal Windows, grow crowded Ledgers, then open each Series' planned Window
+ * (Regular, Gap and token plans by basis, session-lanes.md §6). Every send is preceded by a fresh read; "already done"
+ * engine codes are treated as done.
  */
 import {
   chainNowSec, ENGINE_ERROR, fetchMarkets, fetchSeries, listMarketsOfSeries, listSeries, MARKET_FLAG, marketStatus, OpsSendError, windowAddresses,
-  type MarketView, type OpsClient, type SeriesView,
+  seriesBasis, seriesLaneKey, type MarketView, type OpsClient, type SeriesView,
 } from "@agari/markets/ops";
 import { fetchBookHeaders, fetchLedgerHeaders, growLedger, openWindow, releaseBook, sweepBook, type VenueConfig } from "@agari/markets/ops/roller";
 import type { PassResult } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
 import { errorText } from "../../runtime/env";
-import { planSeries, spanOf, type CorporateSkip, type PlanClock, type SeriesPlan } from "./plan";
+import { spanOf, type PlanClock, type SeriesPlan } from "./plan";
+import { planByBasis } from "./plan-basis";
 import { describeVersion, versionWindow } from "./versions";
 
 export interface RollerSettings {
   leadSec: number;
+  gapLeadSec: number;
   minTradableSec: number;
-  /** Optional `TSLA-5m,…` filter (dev runs); empty = every Regular Series of a registry ticker. */
+  /** Optional `TSLA-5m,TSLA-gap,TSLAx-5m` filter (dev runs); empty = every Series of a registry ticker. */
   only: readonly string[];
-  skips: readonly CorporateSkip[];
 }
 
 export interface RollerState {
@@ -40,11 +42,11 @@ const GROW_SEATS = 96;
 const LEDGER_MAX_SEATS = 1_024;
 const SWEEPS_PER_BOOK = 8;
 
-export const seriesKey = (s: SeriesView) => `${s.symbol}-${s.data.cadenceSec / 60}m`;
+export const seriesKey = seriesLaneKey;
 
 async function refreshSeries(state: RollerState): Promise<void> {
   if (Date.now() - state.seriesListedMs >= SERIES_LIST_MS) {
-    const listed = (await listSeries(state.client)).filter((s) => s.symbol !== null && s.data.basis === 0);
+    const listed = (await listSeries(state.client)).filter((s) => s.symbol !== null && seriesBasis(s) !== null);
     state.series = state.settings.only.length ? listed.filter((s) => state.settings.only.includes(seriesKey(s))) : listed;
     state.seriesListedMs = Date.now();
     for (const s of state.series) {
@@ -143,7 +145,8 @@ async function grow(state: RollerState, bound: Bound[], nowSec: number, notes: s
 function planFor(s: SeriesView, clock: PlanClock): SeriesPlan {
   const versions = s.data.policyVersions.slice(0, s.data.versionCount).map(versionWindow);
   const freeBooks = s.data.freeBooks.slice(0, s.data.freeBookCount);
-  return planSeries({ key: seriesKey(s), symbol: s.symbol!, cadenceSec: s.data.cadenceSec, nextIndex: s.data.nextIndex, lastExpirySec: Number(s.data.lastExpiry), versions, freeBooks }, clock);
+  const series = { key: seriesKey(s), symbol: s.symbol!, cadenceSec: s.data.cadenceSec, nextIndex: s.data.nextIndex, lastExpirySec: Number(s.data.lastExpiry), versions, freeBooks };
+  return planByBasis(seriesBasis(s)!, series, clock);
 }
 
 /** Re-reads the Series, re-plans, and opens. Returns the lane state to report. */
@@ -196,7 +199,10 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
   }
   await grow(state, bound, nowSec, notes);
 
-  const clock: PlanClock = { calendar: deps.sessions.calendar(), nowSec, leadSec: state.settings.leadSec, minTradableSec: state.settings.minTradableSec, skips: state.settings.skips };
+  const clock: PlanClock = {
+    calendar: deps.sessions.calendar(), nowSec, leadSec: state.settings.leadSec, gapLeadSec: state.settings.gapLeadSec,
+    minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(),
+  };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;
   for (const s of state.series) {

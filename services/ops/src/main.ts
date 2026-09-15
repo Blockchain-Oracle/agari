@@ -2,13 +2,15 @@
  * The single long-running ops service (AD-8). Each actor is a single writer over its own key and
  * registers here; every cycle logs a structured why-string, and idle is a heartbeat, never silence.
  *
- * S3 venue actors (venue-ops.md §2.5) share one session calendar and price-relay's spot feed. `OPS_ACTORS` names
+ * S3 venue actors (venue-ops.md §2.5) share one session calendar and price-relay's spot feed; S6 adds the halt board
+ * and the session events (session-lanes.md §3). `OPS_ACTORS` names
  * what runs: the default is the venue set; `all` adds the Masayume-era actors, which idle until their stages deploy
  * the programs they drive. DRY_RUN stays on unless `DRY_RUN=0` (nothing signs by default).
  */
 import { startDuelProjector } from "./actors/duel-projector";
 import { startDuelSettler } from "./actors/duel-settler";
 import { startGameRoom } from "./actors/game-room";
+import { startHaltWatch } from "./actors/halt-watch";
 import { startIndexer } from "./actors/indexer";
 import { startLeverageKeeper } from "./actors/leverage-keeper";
 import { startMarketMaker } from "./actors/market-maker";
@@ -18,14 +20,15 @@ import { startSettler } from "./actors/settler";
 import { startStrategyRunner } from "./actors/strategy-runner";
 import { startWindowRoller } from "./actors/window-roller";
 import { startXRelay } from "./actors/x-relay";
+import { startEarnings } from "./calendar/earnings";
 import { createSessionService } from "./calendar/session-service";
 import { startOpsHttp } from "./http/server";
-import { errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
+import { createHaltBoard, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
 
 const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
-const VENUE_ACTORS = ["relay", "roller", "settler", "maker", "indexer", "http"] as const;
+const VENUE_ACTORS = ["relay", "roller", "settler", "maker", "indexer", "http", "halts", "earnings"] as const;
 const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-settler"] as const;
 
 function whyString(actor: string, why: string): string {
@@ -54,12 +57,17 @@ const actors = selectedActors(process.env.OPS_ACTORS);
 console.log(whyString("ops", `boot: ${env.cluster}, ${env.dryRun ? "DRY RUN" : "live"}, actors ${[...actors].join(",")}`));
 
 const sessions = createSessionService();
-const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot });
+// S6 (session-lanes.md §3): halt-watch is the halt board's only writer; the events reader serves corporate actions and earnings.
+const halts = createHaltBoard();
+const events = createSessionEvents();
+const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot, halts, events });
 
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.
 const relay = actors.has("relay") ? await boot("price-relay", () => startPriceRelay(deps("price-relay"))) : null;
 const spot = relay?.spot ?? null;
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot, sessions, env, log: log("http") }));
+if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot, sessions, halts, events, env, log: log("http") }));
+if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
+if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
 if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));
 if (actors.has("settler")) void boot("settler", () => startSettler(deps("settler")));
 if (actors.has("indexer")) void boot("indexer", () => startIndexer(deps("indexer")));

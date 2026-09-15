@@ -13,7 +13,10 @@ import { s2Authorities, s2Series, type AuthorityKeys } from "./venue-spec";
 
 export { createDeployClient, keypairSigner, type DeployClient, type DeployClientConfig } from "./client";
 export { describeSendError, DriftError, type SendContext, type SeriesRecord, type StepLog, type VenueRecord } from "./send";
-export { policyVersions, type PriceSources } from "./policies";
+export { ADMIT_UNTIL_LOCK, policyVersions, type PriceSources } from "./policies";
+// S6 lanes (session-lanes.md §6): 6a the Gap Series, 6b the token Series.
+export * from "./series-gap";
+export * from "./series-token";
 export { seriesAddress } from "./ensure-series";
 export { BOOK_CAPACITY, BOOKS_PER_SERIES, DRIVE_ATTESTED_FEED, driveTestSeries, LAUNCH_GRID, s2Series, type SeriesSpec } from "./venue-spec";
 export { ensureBooks, ensureSeries } from "./ensure-series";

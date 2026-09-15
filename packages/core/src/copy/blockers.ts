@@ -36,6 +36,12 @@ export const BLOCKER_KINDS = [
   "private-over-cap",
   "private-unreadable",
   "private-refused",
+  // S6 session lanes (session-lanes.md §5): the Window can't take a call for a session, source or corporate reason.
+  "session-closed",
+  "halted",
+  "lane-paused",
+  "gap-listed",
+  "corporate-action",
 ] as const;
 
 export type BlockerKind = (typeof BLOCKER_KINDS)[number];
@@ -51,6 +57,8 @@ export interface BlockerContext {
   quoteAgeSec?: number;
   privateMinText?: string;
   privateCapText?: string;
+  /** "Mon 09:30 ET" (session-closed) or "Fri 16:00 ET" (gap-listed). */
+  opensText?: string;
 }
 
 const DEFAULT_CHAIN = "Solana devnet";
@@ -127,5 +135,15 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
       return "Could not read your private balance just now — try again in a moment";
     case "private-refused":
       return "The desk refused this bet — see why above";
+    case "session-closed":
+      return ctx.opensText ? `Market closed — opens ${ctx.opensText}` : "Market closed";
+    case "halted":
+      return "Trading halted — no new calls";
+    case "lane-paused":
+      return "Paused: no signed price source";
+    case "gap-listed":
+      return ctx.opensText ? `Calls open ${ctx.opensText}` : "Calls open at the Friday close";
+    case "corporate-action":
+      return "Paused: corporate action";
   }
 }

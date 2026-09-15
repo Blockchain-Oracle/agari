@@ -1,11 +1,14 @@
 /**
  * `GET /session` (first-call.md §6): the agreed NYSE calendar's state now, the next sessions, and the roller's lane
  * states, so web can say "Opens Mon 09:30 ET" or "Paused: no signed price source" without its own calendar keys.
+ * S5 adds `calendar.recent` and `sources`; S6 adds `halts`, `earnings` and `skips` (session-lanes.md §3, §6).
  */
 import { readFileSync } from "node:fs";
-import { sessionLabel } from "@agari/core/market";
+import { addDays, etDateOf, sessionLabel } from "@agari/core/market";
 import type { SessionService } from "../calendar/session-service";
+import type { HaltBoardStore } from "../runtime/halt-board";
 import { heartbeats } from "../runtime/heartbeat";
+import type { SessionEvents } from "../runtime/session-events";
 
 const UPCOMING = 5;
 const RECENT = 5;
@@ -22,7 +25,13 @@ function pythTrialLastCloseSec(): number | null {
 }
 const PYTH_TRIAL_LAST_CLOSE_SEC = pythTrialLastCloseSec();
 
-export function sessionBody(sessions: SessionService | null, nowSec = Math.floor(Date.now() / 1000)) {
+export interface SessionInputs {
+  sessions: SessionService | null;
+  halts: HaltBoardStore | null;
+  events: SessionEvents | null;
+}
+
+export function sessionBody({ sessions, halts, events }: SessionInputs, nowSec = Math.floor(Date.now() / 1000)) {
   const calendar = sessions?.calendar() ?? null;
   const status = sessions?.status(nowSec) ?? null;
   const roller = heartbeats().find((b) => b.actor === "window-roller");
@@ -41,5 +50,11 @@ export function sessionBody(sessions: SessionService | null, nowSec = Math.floor
       : null,
     lanes: (roller?.detail.lanes as Record<string, string> | undefined) ?? {},
     sources: { pythTrialLastCloseSec: PYTH_TRIAL_LAST_CLOSE_SEC },
+    /** Halted lanes by asset (ticker, or xStock for the token lane); `{}` when nothing is halted. */
+    halts: halts?.board() ?? {},
+    /** Report dates 14 days ahead; null until the first fetch ("unknown", never "none"). */
+    earnings: events?.earnings() ?? null,
+    /** Corporate-action skips from three ET days back on: a Friday skip still pauses that weekend's Gap. */
+    skips: (events?.skips() ?? []).filter((k) => k.date >= addDays(etDateOf(nowSec), -3)),
   };
 }

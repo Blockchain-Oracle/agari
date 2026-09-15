@@ -6,6 +6,7 @@ import {
 import type { TickerSymbol } from "@agari/core/market";
 import type { SeatMakerEnv } from "./env";
 import { fairYesTicks } from "./fair";
+import type { LaneQuote } from "./lane-quote";
 import { makerPhase, needsRequote, quoteExpirySec, quotePair, sizeLots, type Placed } from "./quote";
 
 export interface WindowCtx {
@@ -18,6 +19,8 @@ export interface WindowCtx {
   closesAtSec: number | null;
   spotE8: bigint | null;
   log: (why: string) => void;
+  /** A Gap or token Window's phase, fair and cap (`lane-quote.ts`); absent for a Regular Window. */
+  lane?: LaneQuote | null;
 }
 
 export type WindowResult = { state: "quoting" | "resting" | "pulled" | "stopped" | "idle"; placed: Placed | null; note: string };
@@ -37,11 +40,14 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
   const me = ctx.client.payer.address;
   const lockAtSec = Number(d.lockAt);
   if (marketStatus(d, ctx.nowSec) !== "trading") return { state: "idle", placed: null, note: "not trading" };
-  const phase = makerPhase({ nowSec: ctx.nowSec, lockAtSec, inSession: ctx.inSession, closesAtSec: ctx.closesAtSec, spotFresh: ctx.spotE8 !== null });
+  const lane = ctx.lane ?? null;
+  const phase = lane?.phase ?? makerPhase({ nowSec: ctx.nowSec, lockAtSec, inSession: ctx.inSession, closesAtSec: ctx.closesAtSec, spotFresh: ctx.spotE8 !== null });
   const fair =
-    phase === "quote" && d.open.source !== 0
-      ? fairYesTicks({ spotE8: ctx.spotE8!, openE8: d.open.price, secondsLeft: Number(d.expiry) - ctx.nowSec, sigmaBps: ctx.env.sigmaBps(symbol), minTick: ctx.env.minTick })
-      : null;
+    phase !== "quote" || d.open.source === 0
+      ? null
+      : lane
+        ? lane.fairTicks
+        : fairYesTicks({ spotE8: ctx.spotE8!, openE8: d.open.price, secondsLeft: Number(d.expiry) - ctx.nowSec, sigmaBps: ctx.env.sigmaBps(symbol), minTick: ctx.env.minTick });
   // A pair still inside its life and near the fair needs no reads at all: fills and expiries surface at the next requote.
   if (fair !== null && placed && !needsRequote({ placed, fairTicks: fair, nowSec: ctx.nowSec, requoteTicks: ctx.env.requoteTicks })) {
     return { state: "resting", placed, note: `fair ${fair}, resting` };
@@ -56,7 +62,7 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
     await send(ctx, `cancel_all ${label} (${seat.openOrders} orders): ${why}`, async () => [await cancelAllInstruction(ctx.client, m, ctx.config, seat.index, true)]);
   };
   if (phase !== "quote") {
-    await cancelAll(phase === "stop" ? "60 s before lock" : ctx.spotE8 === null ? "spot stale" : "out of session or near the close");
+    await cancelAll(phase === "stop" ? "60 s before lock" : lane ? `lane: ${lane.why}` : ctx.spotE8 === null ? "spot stale" : "out of session, halted or near the close");
     return { state: phase === "stop" ? "stopped" : "pulled", placed: null, note: phase };
   }
   if (fair === null) {
@@ -70,7 +76,7 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
   await cancelAll(placed ? `requote: fair ${placed.fairTicks} → ${fair}` : "unknown resting orders");
   const top = await readBookTop(ctx.client, d.book);
   const pair = quotePair({ fairTicks: fair, halfSpreadTicks: ctx.env.halfSpreadTicks, minTick: ctx.env.minTick, bestBidTicks: top?.bestBidTicks ?? null, bestAskTicks: top?.bestAskTicks ?? null });
-  const lots = sizeLots({ wantLots: ctx.env.quoteLots, pair, cu: series.data.cashUnit, budget: ctx.env.maxCashPerWindow, minLots: series.data.minLots });
+  const lots = sizeLots({ wantLots: ctx.env.quoteLots, pair, cu: series.data.cashUnit, budget: lane?.maxCashPerWindow ?? ctx.env.maxCashPerWindow, minLots: series.data.minLots });
   if (lots === 0n) return { state: "idle", placed: null, note: `fair ${fair}: no admissible size or side` };
   const expireSec = quoteExpirySec(ctx.nowSec, lockAtSec, ctx.env.quoteTtlSec);
   let seatHint = seat?.index ?? ANY_SEAT;

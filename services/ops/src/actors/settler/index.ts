@@ -3,7 +3,7 @@
  * redeem_for every public seat to its owner's ATA, release the Book, close the Ledger, and close Market + result
  * after retention. One writer (the `settler` key), reconcile before send, never resend blindly.
  */
-import { chainNowSec, fetchMarkets, fetchSeries, listMarketsOfSeries, listSeries, MARKET_FLAG, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
+import { chainNowSec, fetchMarkets, fetchSeries, listMarketsOfSeries, listSeries, MARKET_FLAG, seriesBasis, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
 import { readBookOrderCount, readLedger, readVenueConfig, type LedgerState, type VenueConfig } from "@agari/markets/ops/settle";
 import { runActor, type PassResult, type VenueDeps } from "../../runtime";
 import { decideSettle } from "./decide";
@@ -38,7 +38,8 @@ interface Settler {
   counts: Record<string, number>;
 }
 
-const eligible = (s: SeriesView, all: boolean) => all || (s.symbol !== null && s.data.basis === 0);
+/** Every registry ticker's Series of a known basis: settle and void rules are the same for Regular, Gap and token Windows (session-lanes.md §1.5, §2.4). */
+const eligible = (s: SeriesView, all: boolean) => all || (s.symbol !== null && seriesBasis(s) !== null);
 
 async function nowSec(st: Settler): Promise<number> {
   if (Date.now() - st.clock.atMs > CLOCK_CACHE_MS) st.clock = { sec: await chainNowSec(st.client), atMs: Date.now() };

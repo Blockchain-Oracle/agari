@@ -1,11 +1,11 @@
 /** Chain views → the settler's pure input, and the labels its log lines use. */
 import { isDrained, isProgramSeat, SEAT_FLAG, type LedgerState } from "@agari/markets/ops/settle";
-import { MARKET_FLAG, type MarketView, type SeriesView } from "@agari/markets/ops";
+import { MARKET_FLAG, seriesLaneKey, type MarketView, type SeriesView } from "@agari/markets/ops";
 import type { SettleInput } from "./decide";
 
 const hhmm = (sec: number) => new Date(sec * 1000).toISOString().slice(11, 16);
 
-export const seriesLabel = (s: SeriesView) => `${s.symbol ?? `#${s.data.ticker}`}-${s.data.cadenceSec % 3600 === 0 ? `${s.data.cadenceSec / 3600}h` : `${s.data.cadenceSec / 60}m`}`;
+export const seriesLabel = seriesLaneKey;
 
 export const marketLabel = (s: SeriesView | undefined, m: MarketView) =>
   `${s ? seriesLabel(s) : m.data.series.slice(0, 6)} #${m.data.index} ${hhmm(Number(m.data.tradingStart))}–${hhmm(Number(m.data.expiry))}Z`;

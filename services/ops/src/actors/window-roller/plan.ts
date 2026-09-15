@@ -3,20 +3,16 @@
  * and the chain clock in, one decision out. The executor recycles Books before it asks, and re-reads before it sends.
  */
 import { etDateOf, regularWindows, type BoundaryKind, type ScheduledWindow, type SessionCalendar } from "@agari/core/market";
+import type { CorporateSkip } from "@agari/core/types";
 import { describeVersion, highestCoveringVersion, openPrintsAdmissible, type VersionWindow } from "./versions";
 
 /** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */
 export const BOUNDARY_KIND_U8: Record<BoundaryKind, number> = { Intraday: 0, SessionOpen: 1, SessionClose: 2 };
 
-export interface CorporateSkip {
-  symbol: string;
-  /** ET date. */
-  date: string;
-  why: string;
-}
+export type { CorporateSkip };
 
 export interface PlanSeries {
-  /** `TSLA-5m`. */
+  /** The lane key: `TSLA-5m`, `TSLA-gap`, `TSLAx-5m` (core `laneKey`). */
   key: string;
   symbol: string;
   cadenceSec: number;
@@ -31,8 +27,10 @@ export interface PlanClock {
   calendar: SessionCalendar | null;
   /** The chain clock. */
   nowSec: number;
-  /** Open a Window at most this long before its trading start (< cadence, so two Books suffice). */
+  /** Open a Window at most this long before its trading start (< cadence, so two Books suffice). Regular and token lanes. */
   leadSec: number;
+  /** The Gap lane's listing lead (`ROLLER_GAP_LEAD_SEC`, session-lanes.md §1.4): the 09-18 Gap lists from Wednesday 16:00 ET. */
+  gapLeadSec: number;
   /** Never open a Window with less than this left before `lock_at`. */
   minTradableSec: number;
   skips: readonly CorporateSkip[];
@@ -46,6 +44,7 @@ export type SeriesPlan =
   | { kind: "closed"; wakeSec: number | null; state: string };
 
 export const DEFAULT_LEAD_SEC = 120;
+export const DEFAULT_GAP_LEAD_SEC = 172_800;
 export const DEFAULT_MIN_TRADABLE_SEC = 60;
 /** Time the relay needs after a late open to fetch and record the opening prints before their deadline. */
 export const PRINT_MARGIN_SEC = 45;
@@ -78,7 +77,7 @@ export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
     return { kind: "wait", window: w, wakeSec: w.tradingStartSec - clock.leadSec, state };
   }
   const passSec = w.lockAtSec - clock.minTradableSec + 1;
-  const skip = clock.skips.find((k) => k.symbol === series.symbol && k.date === etDateOf(w.tradingStartSec));
+  const skip = clock.skips.find((k) => k.symbol === series.symbol && (!k.lanes || k.lanes.includes("regular")) && k.date === etDateOf(w.tradingStartSec));
   if (skip) return { kind: "paused", window: w, wakeSec: passSec, state: `paused: corporate action (${skip.why})` };
   const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
   if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: "paused: no signed source" };

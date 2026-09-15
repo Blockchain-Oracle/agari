@@ -1,12 +1,18 @@
 /**
  * One price-relay pass (venue-ops.md §6.1–6.2): gather due slots, then record per boundary. RedStone check slots go
  * first (their window closes at T + 120), then RedStone primaries, then Pyth (post once per T, record, close).
+ * S6 lane dispatch (session-lanes.md §6): Gap archive opens (6a) take their slots first; Switchboard and token
+ * attested slots go to their lane passes (6b). Gap slots otherwise ride the same (source, T) units as Regular ones.
  */
 import { emptySlots, inBatches, recordPythBoundary, recordRedstoneSlot, type PrintSlot, type SlotOutcome } from "@agari/markets/ops/prints";
 import type { OpsClient } from "@agari/markets/ops";
 import type { PassResult } from "../../runtime/actor";
 import { recordAttested, type AttestedContext } from "./attest-sign";
 import type { BoundaryCache } from "./boundary-cache";
+import { gapArchivePass } from "./gap-slots";
+import { jupiterAttestPass } from "./jupiter-attest";
+import type { LanePassResult } from "./lane-pass";
+import { switchboardPass } from "./switchboard-pass";
 import { feedAt } from "./redstone-fetch";
 import type { RelaySources } from "./sources";
 import type { VenueTracker } from "./tracker";
@@ -126,6 +132,12 @@ function nextDelayMs(pending: PrintSlot[], wall: number, busy: boolean): number 
   return Math.min(15, Math.max(1, next)) * 1000;
 }
 
+/** A lane pass that wants to run sooner shortens the delay, never below 1 s. */
+function laneDelayMs(delayMs: number, lanes: readonly LanePassResult[], wall: number): number {
+  const wants = lanes.map((l) => l.nextSec).filter((s): s is number => s !== null);
+  return wants.length ? Math.max(1_000, Math.min(delayMs, (Math.min(...wants) - wall) * 1000)) : delayMs;
+}
+
 export async function relayPass(ctx: RelayContext): Promise<PassResult> {
   const wall = wallSec();
   const chainNow = await ctx.tracker.chainNow();
@@ -135,30 +147,42 @@ export async function relayPass(ctx: RelayContext): Promise<PassResult> {
   }
   const due: PrintSlot[] = [];
   const pending: PrintSlot[] = [];
+  const switchboard: PrintSlot[] = [];
+  const tokenAttested: PrintSlot[] = [];
   for (const { series, market } of tracked) {
     for (const slot of emptySlots(series, market)) {
       const failure = ctx.failures.get(slotKey(slot));
       if (chainNow > slot.deadlineSec) reportMissed(ctx, slot, failure?.reason ?? "no admissible print was recorded before the deadline");
-      else if (slot.source === "switchboard" || (slot.source === "attested" && !ctx.attested)) continue;
+      else if (slot.source === "switchboard") switchboard.push(slot);
+      else if (slot.source === "attested" && slot.basis === "token") tokenAttested.push(slot);
+      else if (slot.source === "attested" && !ctx.attested) continue;
       else if (failure && failure.attempts >= MAX_FAILED_ATTEMPTS) reportMissed(ctx, slot, `gave up after ${failure.attempts} attempts: ${failure.reason}`);
       else if (chainNow < slot.earliestSec) pending.push(slot);
       else due.push(slot);
     }
   }
   const lines: string[] = [];
+  const gap = await gapArchivePass(ctx, due, chainNow);
+  const lanes: LanePassResult[] = [gap, await switchboardPass(ctx, switchboard, chainNow), await jupiterAttestPass(ctx, tokenAttested, chainNow)];
+  for (const lane of lanes) if (lane.line) lines.push(lane.line);
+  const regular = gap.taken.size ? due.filter((s) => !gap.taken.has(slotKey(s))) : due;
   const fetchable = (s: PrintSlot, after: number) => wall >= s.boundarySec + after;
-  const redstone = groupByT(due.filter((s) => s.source === "redstone" && fetchable(s, REDSTONE_FETCH_AFTER_SEC)));
-  const pyth = groupByT(due.filter((s) => s.source === "pyth" && fetchable(s, PYTH_FETCH_AFTER_SEC)));
-  const attested = due.filter((s) => s.source === "attested");
+  const redstone = groupByT(regular.filter((s) => s.source === "redstone" && fetchable(s, REDSTONE_FETCH_AFTER_SEC)));
+  const pyth = groupByT(regular.filter((s) => s.source === "pyth" && fetchable(s, PYTH_FETCH_AFTER_SEC)));
+  const attested = regular.filter((s) => s.source === "attested");
   for (const [tSec, slots] of redstone) lines.push(await redstoneBoundary(ctx, tSec, slots, chainNow));
   for (const [tSec, slots] of pyth) lines.push(await pythBoundary(ctx, tSec, slots));
   if (ctx.attested && attested.length) lines.push(await recordAttested(ctx, ctx.attested, attested, chainNow));
   ctx.cache.prune(wall);
-  const waitingFetch = due.length - [...redstone.values(), ...pyth.values()].flat().length - attested.length;
+  const waitingFetch = regular.length - [...redstone.values(), ...pyth.values()].flat().length - attested.length;
   const summary = `${tracked.length} live Markets · due ${due.length} · pending ${pending.length}${waitingFetch ? ` · ${waitingFetch} before fetch time` : ""}`;
   return {
     why: lines.length ? `${summary} | ${lines.join(" | ")}` : summary,
     detail: { ...ctx.counters, liveMarkets: tracked.length, due: due.length, pending: pending.length, chainNowSec: chainNow, chainLagSec: wall - chainNow },
-    nextDelayMs: nextDelayMs([...pending, ...due], wall, lines.some((l) => l.includes("waiting") || l.includes("no data yet") || l.includes("no update yet") || l.includes("too early"))),
+    nextDelayMs: laneDelayMs(
+      nextDelayMs([...pending, ...regular], wall, lines.some((l) => l.includes("waiting") || l.includes("no data yet") || l.includes("no update yet") || l.includes("too early"))),
+      lanes,
+      wall,
+    ),
   };
 }

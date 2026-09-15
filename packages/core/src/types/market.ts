@@ -21,6 +21,10 @@ export type IndexedStatus = "Listed" | "Trading" | "Locked" | "Settling" | "Reso
  */
 export type LaneBasis = "regular" | "gap" | "token";
 
+/** The `basis: u8` seed → `LaneBasis` (the index is the seed); null for a basis this build doesn't know. */
+export const LANE_BASES: readonly LaneBasis[] = ["regular", "gap", "token"];
+export const laneBasisOf = (basis: number): LaneBasis | null => LANE_BASES[basis] ?? null;
+
 /** The Gap lane's nominal cadence (its `cadence: u32` seed): one Window a week. The Window's own span varies with holidays. */
 export const GAP_CADENCE_SEC = 604_800;
 

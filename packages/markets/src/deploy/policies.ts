@@ -3,6 +3,8 @@
  * Pure: the script reads the file, this maps it, and `versionDiff` compares against a Series read back from chain.
  */
 import type { PolicyVersion, PrintPolicy, PrintPolicyInput } from "@agari/clients/agari-events";
+import type { LaneBasis } from "@agari/core/types";
+import { tokenPolicyFor, tokenPolicyVersions } from "./policies-token";
 
 /** The subset of price-sources.json the engine reads. */
 export type PriceSources = {
@@ -10,6 +12,8 @@ export type PriceSources = {
     pyth: { graceSec: number; maxConfBps: number; admissionSec: number };
     redstone: { strictSec: number; admissionSec: number; threshold: number };
     crossCheck: { maxDivergenceBps: number; checkAdmissionSec: number };
+    switchboard?: { minDelaySec: number; admissionSec: number; maxSlotAge: number; minOracles: number };
+    attested?: { minDelaySec: number; admissionSec: number; barLenSec: number };
   };
   redstone: Record<string, unknown>;
   tickers: Record<string, TickerSources>;
@@ -21,7 +25,7 @@ export type TickerSources = {
   versions: Array<{ version: number; validFrom: string; validUntil: string | null; primary: SourceName; check: SourceName | null }>;
 };
 
-type SourceName = "pyth" | "redstone" | "switchboard" | "attested";
+export type SourceName = "pyth" | "redstone" | "switchboard" | "attested";
 
 /** `PolicyVersionArgs` as the instruction takes it (the builder flattens it next to `index`). */
 export type PolicyVersionArgs = {
@@ -39,7 +43,10 @@ export const I64_MAX = 9_223_372_036_854_775_807n;
 /** A RedStone check waits 60 s for all signers inside its 120 s window (prints.md §2.1, D-013). */
 export const CHECK_REDSTONE_STRICT_SEC = 60;
 
-const ZERO_POLICY: PrintPolicyInput = {
+/** `primary.open_admission_sec` that admits the opening print until `lock_at`; the engine accepts it only on a Gap Series (prints.md §2.1, `constants.rs` `ADMIT_UNTIL_LOCK`). */
+export const ADMIT_UNTIL_LOCK = 0xffff_ffff;
+
+export const ZERO_POLICY: PrintPolicyInput = {
   source: 0, graceSec: 0, feedId: new Uint8Array(32), minDelaySec: 0, barLenSec: 0,
   maxConfBps: 0, maxSlotAge: 0, openAdmissionSec: 0, closeAdmissionSec: 0, strictSec: 0,
 };
@@ -84,11 +91,17 @@ function policyFor(source: SourceName, ticker: TickerSources, sources: PriceSour
     const strictSec = check ? CHECK_REDSTONE_STRICT_SEC : redstone.strictSec;
     return { ...ZERO_POLICY, source: SOURCE.redstone, feedId: asciiFeedId(ticker.redstoneFeedId), strictSec, openAdmissionSec: admission, closeAdmissionSec: admission };
   }
-  throw new Error(`${source} policies are not built before S6`);
+  return tokenPolicyFor(source, ticker, sources, check);
 }
 
-/** Every version of one ticker, in index order. Regular basis only (Gap versions differ in the open admission, S3). */
-export function policyVersions(symbol: string, sources: PriceSources): PolicyVersionArgs[] {
+/**
+ * Every version of one ticker for one lane, in index order (session-lanes.md §1.2). A Gap version is the ticker's
+ * version with `primary.open_admission_sec = ADMIT_UNTIL_LOCK`, so Friday's print can be posted until Sunday 20:00 ET;
+ * its check (if any) keeps `check_admission_sec` on both boundaries. Token versions are lane 6b's (`policies-token.ts`).
+ */
+export function policyVersions(symbol: string, sources: PriceSources, basis: LaneBasis = "regular"): PolicyVersionArgs[] {
+  // Token versions come from the `tokenLane` block, not the ticker's session versions.
+  if (basis === "token") return tokenPolicyVersions(symbol, sources);
   const ticker = sources.tickers[symbol];
   if (!ticker) throw new Error(`price-sources.json has no ticker ${symbol}`);
   return [...ticker.versions]
@@ -96,10 +109,11 @@ export function policyVersions(symbol: string, sources: PriceSources): PolicyVer
     .map((v, i) => {
       if (v.version !== i + 1) throw new Error(`${symbol}: versions must be 1..n without gaps`);
       const { crossCheck } = sources.defaults;
+      const primary = policyFor(v.primary, ticker, sources, false);
       return {
         validFromTs: unixSec(v.validFrom),
         validUntilTs: v.validUntil === null ? I64_MAX : unixSec(v.validUntil),
-        primary: policyFor(v.primary, ticker, sources, false),
+        primary: basis === "gap" ? { ...primary, openAdmissionSec: ADMIT_UNTIL_LOCK } : primary,
         check: v.check === null ? ZERO_POLICY : policyFor(v.check, ticker, sources, true),
         maxDivergenceBps: v.check === null ? 0 : crossCheck.maxDivergenceBps,
         checkAdmissionSec: v.check === null ? 0 : crossCheck.checkAdmissionSec,

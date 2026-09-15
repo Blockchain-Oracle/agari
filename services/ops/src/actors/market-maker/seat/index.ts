@@ -1,15 +1,17 @@
 /**
  * The seed maker, `MAKER_MODE=seat` (venue-ops.md §8): two-sided PostOnly quotes around a spot-vs-open fair value on
  * every trading Window of the launch tickers, from the `maker` key's own seat. Books have quotes; that is the job.
- * Vault mode (S8) is the other actor in `../index.ts`.
+ * Gap and token Windows take their phase, fair and cap from their lane (`lane-quote.ts`, session-lanes.md §6); a halted
+ * ticker pulls (§3.1). Vault mode (S8) is the other actor in `../index.ts`.
  */
-import { chainNowSec, fetchMarkets, fetchSeries, listSeries, windowAddresses, type SeriesView } from "@agari/markets/ops";
+import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type SeriesView } from "@agari/markets/ops";
 import { readVenueConfig, type VenueConfig } from "@agari/markets/ops/maker";
 import type { TickerSymbol } from "@agari/core/market";
 import { runActor, type PassResult, type VenueDeps } from "../../../runtime";
 import { roleClient } from "../../settler/role-client";
 import { seriesLabel, marketLabel } from "../../settler/views";
 import { readSeatMakerEnv } from "./env";
+import { laneQuote } from "./lane-quote";
 import type { Placed } from "./quote";
 import { tendWindow } from "./window";
 
@@ -30,7 +32,8 @@ export async function startSeedMaker(deps: VenueDeps): Promise<{ stop: () => voi
     config ??= await readVenueConfig(client);
     await deps.sessions.refresh();
     if (Date.now() - listedAtMs > SERIES_LIST_MS) {
-      series = (await listSeries(client)).filter((s) => s.symbol !== null && s.data.basis === 0 && env.cadencesSec.includes(s.data.cadenceSec) && (!env.symbols || env.symbols.includes(s.symbol)));
+      const wanted = (s: SeriesView) => seriesBasis(s) !== null && (seriesBasis(s) !== "regular" || env.cadencesSec.includes(s.data.cadenceSec));
+      series = (await listSeries(client)).filter((s) => s.symbol !== null && wanted(s) && (!env.symbols || env.symbols.includes(s.symbol)));
       listedAtMs = Date.now();
     } else {
       series = (await fetchSeries(client, series.map((s) => s.address))).filter((s): s is SeriesView => s !== null);
@@ -38,6 +41,7 @@ export async function startSeedMaker(deps: VenueDeps): Promise<{ stop: () => voi
     const nowSec = await chainNowSec(client);
     const status = deps.sessions.status(nowSec);
     const inSession = status !== null && (status.state === "regular" || status.state === "early-close");
+    const halts = deps.halts.board();
     // The newest two indices: the trading Window and, near a boundary, the one just listed after it.
     const refs = (await Promise.all(series.flatMap((s) => [1n, 2n].filter((k) => s.data.nextIndex >= k).map(async (k) => ({ s, market: (await windowAddresses(s.address, s.data.nextIndex - k)).market })))));
     const views = await fetchMarkets(client, refs.map((r) => r.market));
@@ -49,9 +53,10 @@ export async function startSeedMaker(deps: VenueDeps): Promise<{ stop: () => voi
       const symbol = ref.s.symbol as TickerSymbol;
       const spot = deps.spot?.latest(symbol, env.spotMaxAgeSec) ?? null;
       const label = marketLabel(ref.s, m);
+      const lane = laneQuote(seriesBasis(ref.s)!, { series: ref.s, market: m, symbol, nowSec, status, spot: deps.spot, halts, env });
       try {
         const result = await tendWindow(
-          { client, config, env, dryRun, nowSec, inSession, closesAtSec: status?.closesAtSec ?? null, spotE8: spot?.priceE8 ?? null, log: deps.log },
+          { client, config, env, dryRun, nowSec, inSession: inSession && !halts[symbol], closesAtSec: status?.closesAtSec ?? null, spotE8: spot?.priceE8 ?? null, log: deps.log, lane },
           ref.s, symbol, m, placed.get(m.address) ?? null, label,
         );
         if (result.placed) placed.set(m.address, result.placed);

@@ -3,9 +3,9 @@
  * admission bounds, as plain data the relay schedules on. Pure over decoded accounts.
  */
 import type { Print, PrintPolicy } from "@agari/clients/agari-events";
-import { formatCadence } from "@agari/core/market";
+import type { LaneBasis } from "@agari/core/types";
 import type { MarketView, SeriesView } from "../venue";
-import { MARKET_STATE } from "../venue";
+import { MARKET_STATE, seriesBasis, seriesLaneKey } from "../venue";
 
 export type SlotName = "open" | "close" | "checkOpen" | "checkClose";
 export type PrintSourceName = "pyth" | "redstone" | "switchboard" | "attested";
@@ -17,8 +17,10 @@ const SOURCE_BY_ID: Record<number, PrintSourceName> = { 1: "pyth", 2: "redstone"
 export interface PrintSlot {
   series: string;
   market: string;
-  /** e.g. `TSLA-5m`; the Series address when the ticker isn't in the core registry. */
+  /** The lane key (`TSLA-5m`, `TSLA-gap`, `TSLAx-5m`); the Series address when the ticker isn't in the core registry. */
   seriesKey: string;
+  /** The Series' lane; relay passes dispatch on it (session-lanes.md §1.5, §2.4). Unknown bases count as Regular. */
+  basis: LaneBasis;
   marketIndex: bigint;
   slot: SlotName;
   which: number;
@@ -48,7 +50,7 @@ function asciiFeed(bytes: ArrayLike<number>): string {
 
 export const isPrintEmpty = (p: Print) => p.source === 0 && p.sourceTs === 0n;
 
-export const seriesKeyOf = (s: SeriesView) => (s.symbol ? `${s.symbol}-${formatCadence(s.data.cadenceSec)}` : s.address);
+export const seriesKeyOf = (s: SeriesView) => (s.symbol ? seriesLaneKey(s) : s.address);
 
 function slotOf(s: SeriesView, m: MarketView, slot: SlotName, policy: PrintPolicy, boundarySec: number, deadlineSec: number): PrintSlot | null {
   const source = SOURCE_BY_ID[policy.source];
@@ -57,6 +59,7 @@ function slotOf(s: SeriesView, m: MarketView, slot: SlotName, policy: PrintPolic
     series: s.address,
     market: m.address,
     seriesKey: seriesKeyOf(s),
+    basis: seriesBasis(s) ?? "regular",
     marketIndex: m.data.index,
     slot,
     which: WHICH_OF[slot],

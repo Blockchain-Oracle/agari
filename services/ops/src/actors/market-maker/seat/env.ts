@@ -13,6 +13,10 @@ export interface SeatMakerEnv {
   minTick: number;
   /** Base units (6 dp): both sides' escrow on one Window. */
   maxCashPerWindow: bigint;
+  /** Gap lane cap per Window, base units (`MM_GAP_MAX_CASH`, default 25 tUSDC; session-lanes.md §1.5). */
+  gapMaxCash: bigint;
+  /** Token lane cap per Window, base units (`MM_TOKEN_MAX_CASH_PER_WINDOW`, default 10 tUSDC; §2.4). */
+  tokenMaxCashPerWindow: bigint;
   refreshMs: number;
   spotMaxAgeSec: number;
 }
@@ -37,6 +41,7 @@ function sigmaTable(raw: string | undefined): (symbol: TickerSymbol) => number {
 export function readSeatMakerEnv(env: NodeJS.ProcessEnv = process.env): SeatMakerEnv {
   const symbols = (env.MM_SYMBOLS ?? "").split(",").map((s) => s.trim().toUpperCase()).filter((s): s is TickerSymbol => (TICKER_SYMBOLS as readonly string[]).includes(s));
   const cadences = (env.MM_CADENCES ?? "").split(",").map(Number).filter((n) => [300, 900, 3_600].includes(n));
+  const tusdc = (raw: string | undefined, fallback: number) => BigInt(num(raw, fallback, 1)) * 1_000_000n;
   const cash = Number(env.MM_MAX_CASH_PER_WINDOW);
   return {
     symbols: symbols.length ? symbols : null,
@@ -48,6 +53,8 @@ export function readSeatMakerEnv(env: NodeJS.ProcessEnv = process.env): SeatMake
     requoteTicks: num(env.MM_REQUOTE_TICKS, 10, 1),
     minTick: num(env.MM_MIN_TICK, 20, 1),
     maxCashPerWindow: BigInt(Number.isInteger(cash) && cash > 0 ? cash : 50) * 1_000_000n,
+    gapMaxCash: tusdc(env.MM_GAP_MAX_CASH, 25),
+    tokenMaxCashPerWindow: tusdc(env.MM_TOKEN_MAX_CASH_PER_WINDOW, 10),
     refreshMs: num(env.MM_REFRESH_MS, 10_000, 2_000),
     spotMaxAgeSec: num(env.MM_SPOT_MAX_AGE_SEC, 30, 5),
   };
