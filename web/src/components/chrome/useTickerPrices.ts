@@ -19,8 +19,13 @@ function basisRaw(price: AssetPrice): bigint {
   return PRICE_BASIS === "ema" ? price.emaRaw : price.priceRaw;
 }
 
-function useAssetSlot(asset: string | null): TickerEntry | null {
-  const reading = useAssetPrice(asset !== null && isTickerSymbol(asset) ? asset : null);
+export interface TickerPricesOptions {
+  /** How often the `/prices/latest` fallback polls while the stream is not live; a closed market asks for 60 s (D-086). */
+  pollMs?: number;
+}
+
+function useAssetSlot(asset: string | null, pollMs: number | undefined): TickerEntry | null {
+  const reading = useAssetPrice(asset !== null && isTickerSymbol(asset) ? asset : null, pollMs === undefined ? {} : { pollMs });
   // Direction is "last move", so it must survive renders where the price did not change; a ref carries it. A slot can
   // change ticker (the marquee's registry order gives way to live lanes), and one ticker's price is no move for another.
   const last = useRef<{ asset: string; raw: bigint; direction: TickerDirection } | null>(null);
@@ -38,12 +43,12 @@ function useAssetSlot(asset: string | null): TickerEntry | null {
   };
 }
 
-export function useTickerPrices(assets: readonly string[]): TickerEntry[] {
+export function useTickerPrices(assets: readonly string[], { pollMs }: TickerPricesOptions = {}): TickerEntry[] {
   const slots = [
-    useAssetSlot(assets[0] ?? null),
-    useAssetSlot(assets[1] ?? null),
-    useAssetSlot(assets[2] ?? null),
-    useAssetSlot(assets[3] ?? null),
+    useAssetSlot(assets[0] ?? null, pollMs),
+    useAssetSlot(assets[1] ?? null, pollMs),
+    useAssetSlot(assets[2] ?? null, pollMs),
+    useAssetSlot(assets[3] ?? null, pollMs),
   ];
   return slots.filter((entry): entry is TickerEntry => entry !== null);
 }
