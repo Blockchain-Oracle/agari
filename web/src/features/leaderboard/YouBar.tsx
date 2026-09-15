@@ -1,16 +1,17 @@
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import Link from "next/link";
-import { LEADERBOARD } from "./copy";
+import { LEADERBOARD, type BoardSpan } from "./copy";
 import { glyphFromAddress } from "./glyph";
 import type { BoardData, BoardRanking } from "./protocol";
 
 interface YouBarProps {
   address: string;
   data: BoardData;
+  span: BoardSpan;
 }
 
 /** The sticky vermilion bar: your rank whenever a wallet is connected, with its own Unranked state. */
-export function YouBar({ address, data }: YouBarProps) {
+export function YouBar({ address, data, span }: YouBarProps) {
   const words = LEADERBOARD.you;
   // Exact match: base58 is case-sensitive (D-010).
   const index = data.rankings.findIndex((r) => r.owner === address);
@@ -32,7 +33,7 @@ export function YouBar({ address, data }: YouBarProps) {
         <div className="you-portrait">{glyphFromAddress(address)}</div>
         <div className="you-text">
           <span className="name">{words.name(shortHex(address))}</span>
-          <span className="meta">{you ? words.top(Math.round((you.rank / Math.max(1, ranked)) * 100)) : words.none}</span>
+          <span className="meta">{you ? words.top(Math.round((you.rank / Math.max(1, ranked)) * 100)) : words.none(span)}</span>
         </div>
       </div>
       <div className="you-stats">

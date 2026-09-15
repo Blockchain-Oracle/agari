@@ -1,4 +1,9 @@
 /** The share cards' words — ported from the reference's two card renderers and `BetPlacedCard.tsx`. */
+import type { PrintSource, VoidReason } from "@agari/core/types";
+
+/** The signed source and void reason as the settled card prints them (proof-analytics.md §2.8). */
+const PRINT_SOURCE_WORD: Record<PrintSource, string> = { pyth: "PYTH", redstone: "REDSTONE", switchboard: "SWITCHBOARD", attested: "ATTESTED DEMO" };
+const VOID_WORD: Record<VoidReason, string> = { "missing-print": "VOID · MISSING PRINT", "cross-check-divergence": "VOID · CROSS-CHECK DIVERGENCE" };
 
 /**
  * The brand as the owner gave it (2026-09-02): the public home and the X handle. The handle is the one
@@ -16,7 +21,7 @@ const signOff = `${BRAND.site} via ${BRAND.handle}`;
 
 export const SHARE = {
   ...BRAND,
-  network: "SOMNIA TESTNET",
+  network: "SOLANA DEVNET",
   verifyOn: "VERIFY ON SOLANA EXPLORER",
   scan: "SCAN TO MAKE YOUR CALL",
   shareCall: "Share this call",
@@ -25,7 +30,7 @@ export const SHARE = {
   savedAttach: "Card saved. Attach it to your post on X",
   renderFailed: "Could not render the share card",
   call: {
-    recordType: "THE CALL · SOMNIA TESTNET",
+    recordType: "THE CALL · SOLANA DEVNET",
     up: "▲ CALLING UP",
     down: "▼ CALLING DOWN",
     placed: "Call placed",
@@ -60,8 +65,12 @@ export const SHARE = {
     realized: (symbol: string) => `REALIZED P&L · ${symbol}`,
     paidOut: (symbol: string) => `PAID OUT · ${symbol}`,
     oracleSettled: (print: string, utc: string) => `ORACLE-SETTLED ${print} AT ${utc}`,
+    /** Every settled card names the signed source of its closing print (PD-1, D-003); boundaries fall on whole minutes. */
+    printAt: (source: PrintSource, print: string, etClock: string) => `${PRINT_SOURCE_WORD[source]} PRINT ${print} AT ${etClock}:00 ET`,
+    signers: (n: number) => ` · ${n} SIGNER${n === 1 ? "" : "S"}`,
+    singleSource: " · SINGLE SOURCE",
     settledAt: (utc: string) => `SETTLED · ${utc}`,
-    voided: (utc: string) => `VOIDED · BOTH SIDES PAID 0.5 · ${utc}`,
+    voided: (utc: string, reason: VoidReason | null) => `${reason ? VOID_WORD[reason] : "VOIDED"} · BOTH SIDES PAID 0.5 · ${utc}`,
     closedEarly: (utc: string) => `CLOSED ON THE BOOK BEFORE EXPIRY · ${utc}`,
     kind: { settled: "ORACLE-SETTLED", voided: "VOIDED", closed: "CLOSED EARLY" },
     entry: (short: string) => `ENTRY ${short}`,

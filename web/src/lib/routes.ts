@@ -12,3 +12,7 @@ export type NoteKind = (typeof NOTE_KIND)[keyof typeof NOTE_KIND];
 export function marketsWithNote(kind: NoteKind): string {
   return `${MARKETS_PATH}?${NOTE_PARAM}=${kind}`;
 }
+
+/** The per-Window proof page (proof-analytics.md §2.6, lane 5d). */
+export const PROOF_PATH = "/proof";
+export const proofHref = (marketId: string) => `${PROOF_PATH}/${marketId}`;

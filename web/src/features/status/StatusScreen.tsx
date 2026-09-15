@@ -39,7 +39,7 @@ export function StatusScreen() {
       {reading?.ok && (
         <div className="status-report">
           <StatusBanner payload={reading.value} />
-          <StatusTable pipelines={reading.value.pipelines} />
+          <StatusTable pipelines={reading.value.pipelines} sessionLabel={reading.value.session?.label ?? null} />
           <p className="status-checked">{STATUS.lastChecked(new Date(reading.value.checkedAtMs).toLocaleTimeString())}</p>
         </div>
       )}

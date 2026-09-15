@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeBadges } from "./badges";
 import { roundsToCsv } from "./csv";
-import { computeTraderEdge } from "./edge";
+import { computeTraderEdge, etSessionBucket } from "./edge";
 import { equityCurve, maxDrawdownBase, winStreaks } from "./equity";
 import { rankTraders } from "./leaderboard";
 import { computeTier, reputationOf } from "./reputation";
@@ -33,7 +33,7 @@ describe("equity", () => {
 
 describe("computeTraderEdge", () => {
   it("reports ratios over decided rounds and money in base units", () => {
-    const edge = computeTraderEdge(SERIES, 2, (atMs) => new Date(atMs).getUTCHours());
+    const edge = computeTraderEdge(SERIES, 2, (r) => (r.expirySec < 6 * 3_600 ? "open" : "morning"));
     expect(edge.settledRounds).toBe(6);
     expect(edge.openRounds).toBe(2);
     expect(edge.wins).toBe(3);
@@ -48,8 +48,28 @@ describe("computeTraderEdge", () => {
     expect(edge.averageLossBase).toBe(5n * ONE);
     expect(edge.maxDrawdownBase).toBe(10n * ONE);
     expect(edge.bestWinStreak).toBe(2);
-    expect(edge.windows.find((w) => w.key === "late-night")?.count).toBe(5);
+    expect(edge.windows.find((w) => w.key === "open")?.count).toBe(5);
     expect(edge.readout.kind).toBe("best-window");
+  });
+
+  it("buckets by the ET session hour each Window closed in, across EDT and EST", () => {
+    const at = (utcMs: number) => ({ expirySec: utcMs / 1000 });
+    // 2026-09-14 is EDT (UTC−4): 14:30Z is a 10:30:00 ET close, the last minute of the opening hour.
+    expect(etSessionBucket(at(Date.UTC(2026, 8, 14, 14, 30)))).toBe("open");
+    expect(etSessionBucket(at(Date.UTC(2026, 8, 14, 14, 35)))).toBe("morning");
+    expect(etSessionBucket(at(Date.UTC(2026, 8, 14, 20, 0)))).toBe("close");
+    expect(etSessionBucket(at(Date.UTC(2026, 8, 14, 20, 5)))).toBeNull();
+    // 2026-11-27 is EST (UTC−5) and an early close: 18:00Z is 13:00 ET; the same 14:30Z is 09:30 ET, before any close.
+    expect(etSessionBucket(at(Date.UTC(2026, 10, 27, 18, 0)))).toBe("midday");
+    expect(etSessionBucket(at(Date.UTC(2026, 10, 27, 14, 30)))).toBeNull();
+    expect(etSessionBucket(at(Date.UTC(2026, 10, 27, 14, 35)))).toBe("open");
+    // 2026-12-01 is EST on a full day: 16:00 ET is 21:00Z, and the 20:00Z that closed an EDT session is a 15:00 midday close.
+    expect(etSessionBucket(at(Date.UTC(2026, 11, 1, 21, 0)))).toBe("close");
+    expect(etSessionBucket(at(Date.UTC(2026, 11, 1, 20, 0)))).toBe("midday");
+
+    const rounds = [round(1, 5n * ONE, "win"), round(2, -5n * ONE, "loss")].map((r, i) => ({ ...r, expirySec: [Date.UTC(2026, 8, 14, 20, 0), Date.UTC(2026, 10, 27, 18, 0)][i]! / 1000 }));
+    const windows = computeTraderEdge(rounds, 0).windows;
+    expect(windows.map((w) => [w.key, w.count, w.netBase])).toEqual([["open", 0, 0n], ["morning", 0, 0n], ["midday", 1, -5n * ONE], ["close", 1, 5n * ONE]]);
   });
 
   it("asks for more rounds below the pattern floor and leaves ratios unset with nothing settled", () => {

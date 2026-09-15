@@ -211,6 +211,9 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../packages/core
+      '@agari/db':
+        specifier: workspace:*
+        version: link:../packages/db
       '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets

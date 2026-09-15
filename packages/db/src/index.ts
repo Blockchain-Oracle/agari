@@ -27,3 +27,4 @@ export * from "./faucet";
 export * from "./print-archive";
 export * from "./print-archive-read";
 export * from "./index-store";
+export * from "./proofs";

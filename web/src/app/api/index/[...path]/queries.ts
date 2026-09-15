@@ -1,7 +1,10 @@
 import { TICKER_SYMBOLS } from "@agari/core/market";
 import { addressSchema } from "@agari/core/types";
-import type { IdxRow, IndexReader } from "@agari/db";
+import type { Db, IdxRow, IndexReader } from "@agari/db";
 import { z } from "zod";
+import { resolveProofQuery } from "./queries-proof";
+import { resolveStatusQuery } from "./queries-status";
+import { resolveTapeQuery } from "./queries-tape";
 
 /**
  * The `/api/index/*` path table (first-call.md §5): each entry validates its path segments and query, then runs one
@@ -10,7 +13,10 @@ import { z } from "zod";
 export interface IndexQuery {
   /** `wallet/*` answers are private to the wallet and never cached by a CDN. */
   scope: "public" | "wallet";
-  run(reader: IndexReader): Promise<IdxRow[]>;
+  /** Overrides the public 2 s cache for immutable rows (e.g. a verified proof: `public, s-maxage=60`). Wallet scope ignores it. */
+  cacheControl?: string;
+  /** `db` is for lane readers with their own SQL (`idx/read-{tape,status}.ts`, `proofs.ts`; proof-analytics.md §1). */
+  run(reader: IndexReader, db: Db): Promise<IdxRow[]>;
 }
 
 export class BadRequest extends Error {}
@@ -72,6 +78,9 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
 
 /** Null when the path names nothing; throws `BadRequest` when it does but a parameter is malformed. */
 export function resolveIndexQuery(path: readonly string[], query: Record<string, string>, programId: string): IndexQuery | null {
+  // S5 lane paths (`tape/*` 5b, `status/*` sub-paths 5c, `proofs/*` 5d) resolve in their own files first.
+  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, programId) ?? resolveProofQuery(path, query);
+  if (lane) return lane;
   const [head, second, third, ...rest] = path;
   if (rest.length > 0) return null;
   switch (head) {

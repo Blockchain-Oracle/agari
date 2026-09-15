@@ -1,0 +1,43 @@
+/* `/proof/<market>` — Masayume's `/status` frame (styles/status.css: .status-page, .status-holding, .status-report,
+ * .status-table) over the Window's prints, then its cream receipts (components/receipt). Only the layout between those
+ * parts is new here; every colour and type step comes from the parts themselves. */
+
+/* the status page's section rhythm: the intro sits under the header like SectionHeader's desc, at reading width */
+.proof-intro {
+  max-width: 42rem;
+  margin-top: 12px;
+}
+
+/* one receipt per column: open beside close, then the check pair; a single column on a phone */
+.proof-prints {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px 24px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .proof-prints {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.proof-print {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* a header with the re-verify button and one without sit on the same baseline (the button is h-8) */
+.proof-print > header > div {
+  min-height: 2rem;
+}
+
+.proof-reverify {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}

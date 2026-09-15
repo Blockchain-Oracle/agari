@@ -35,8 +35,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pat
   if (!resolved) return NextResponse.json({ error: `no index path /${path.join("/")}` }, { status: 404 });
 
   try {
-    const rows = await resolved.run(reader);
-    return NextResponse.json({ rows }, { headers: { "cache-control": resolved.scope === "wallet" ? PRIVATE_CACHE : PUBLIC_CACHE } });
+    const rows = await resolved.run(reader, db);
+    const cache = resolved.scope === "wallet" ? PRIVATE_CACHE : (resolved.cacheControl ?? PUBLIC_CACHE);
+    return NextResponse.json({ rows }, { headers: { "cache-control": cache } });
   } catch {
     // The connection or the query failed: an outage, which the provider reads as `indexer-down` and retries.
     return NextResponse.json({ error: "indexer query failed" }, { status: 503, headers: { "cache-control": PRIVATE_CACHE } });

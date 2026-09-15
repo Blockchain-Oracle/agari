@@ -1,5 +1,6 @@
 import { formatCadence } from "@agari/core/copy";
-import type { Side, Signature } from "@agari/core/types";
+import { formatEtClock } from "@agari/core/market";
+import type { PrintSource, Side, Signature, VoidReason } from "@agari/core/types";
 import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
 import { ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
@@ -16,8 +17,8 @@ import { drawStub, encodeQr } from "./stub";
  *
  * HONESTY (hard rules — do not relax):
  *  · The oracle's print is drawn ONLY when the closing print is on record, at the
- *    Window's real expiry second; otherwise the line says "SETTLED" and the claim
- *    time, never a guessed print.
+ *    Window's real expiry second, named by its signed source; otherwise the line says
+ *    "SETTLED" and the claim time, never a guessed print.
  *  · A void says both sides paid 0.5. A close-out says it closed on the book before
  *    expiry and never claims an oracle settlement.
  *  · With no entry cost on record the hero is the payout, labelled PAID OUT, never
@@ -42,6 +43,13 @@ export interface TradeCard {
   settledAtMs: number;
   entryTxHash: Signature | null;
   settlementTxHash: Signature | null;
+  /** The signed source of the closing print; null before it is on record. */
+  printSource: PrintSource | null;
+  /** RedStone signers behind the closing print, when the record carries them. */
+  printSigners?: number | null;
+  /** Settled on the primary source alone (the check prints never arrived in time). */
+  singleSource: boolean;
+  voidReason: VoidReason | null;
 }
 
 /** Baselines down the record panel, and where the heat sits behind the hero. */
@@ -74,11 +82,18 @@ interface TradeLook {
   footerKind: string;
 }
 
+/** "PYTH PRINT $358.98 AT 16:00:00 ET", "REDSTONE PRINT $358.98 AT 16:00:00 ET · 5 SIGNERS · SINGLE SOURCE". */
+function printLine(card: TradeCard, closeRaw: bigint): string {
+  if (card.printSource === null) return SHARE.trade.oracleSettled(usd2(closeRaw), formatUtc(secToMs(card.expirySec), { withDate: true }));
+  const signers = card.printSource === "redstone" && card.printSigners ? SHARE.trade.signers(card.printSigners) : "";
+  return `${SHARE.trade.printAt(card.printSource, usd2(closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
+}
+
 function tradeLook(card: TradeCard): TradeLook {
   const claimed = formatUtc(card.settledAtMs, { withDate: true });
-  if (card.outcome === "void") return { won: false, recordType: SHARE.trade.voidRecord, kindLine: SHARE.trade.voided(claimed), footerKind: SHARE.trade.kind.voided };
+  if (card.outcome === "void") return { won: false, recordType: SHARE.trade.voidRecord, kindLine: SHARE.trade.voided(claimed, card.voidReason), footerKind: SHARE.trade.kind.voided };
   if (card.outcome === "closed") return { won: card.pnlBase > 0n, recordType: SHARE.trade.closeOut, kindLine: SHARE.trade.closedEarly(claimed), footerKind: SHARE.trade.kind.closed };
-  const kindLine = card.closeRaw !== null ? SHARE.trade.oracleSettled(usd2(card.closeRaw), formatUtc(secToMs(card.expirySec), { withDate: true })) : SHARE.trade.settledAt(claimed);
+  const kindLine = card.closeRaw !== null ? printLine(card, card.closeRaw) : SHARE.trade.settledAt(claimed);
   return { won: card.pnlBase > 0n, recordType: SHARE.trade.settlement, kindLine, footerKind: SHARE.trade.kind.settled };
 }
 
@@ -86,7 +101,7 @@ function tradeLook(card: TradeCard): TradeLook {
 export function buildTradeTweetText(card: TradeCard): string {
   const look = tradeLook(card);
   const pnl = card.stakeBase === null ? fmt(card.payoutBase, card.decimals) : formatBaseUnits(card.pnlBase, card.decimals, { signed: true });
-  return SHARE.trade.tweet(pnl, card.symbol, card.asset, tradeBandLabel(card).toLowerCase(), look.kindLine.toLowerCase(), card.stakeBase === null ? "—" : fmt(card.stakeBase, card.decimals), fmt(card.payoutBase, card.decimals));
+  return SHARE.trade.tweet(pnl, card.symbol, card.asset, tradeBandLabel(card).toLowerCase(), look.kindLine.toLowerCase().replace(/\bet\b/, "ET"), card.stakeBase === null ? "—" : fmt(card.stakeBase, card.decimals), fmt(card.payoutBase, card.decimals));
 }
 
 export async function renderTradeShareCard(card: TradeCard): Promise<Blob> {

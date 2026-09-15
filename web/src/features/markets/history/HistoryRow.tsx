@@ -8,6 +8,7 @@ import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { Money } from "@/components/data";
 import { VAULT } from "@/features/vault";
+import { webEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { SIDE_WORD } from "../side-styles";
 import { HISTORY } from "./copy";
@@ -39,7 +40,7 @@ function sidesLabel(round: SettledRound): string {
  */
 export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking = false }: HistoryRowProps) {
   const settledAtMs = roundSettledAtMs(round);
-  const claimLine = HISTORY.claim[round.claim];
+  const claimLine = round.paidByCrank ? HISTORY.paidAutomatically : HISTORY.claim[round.claim];
   const vault = round.source === "vault";
 
   return (
@@ -79,7 +80,7 @@ export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking 
         {HISTORY.receipt} ↗
       </button>
       {!vault && (
-        <a href={txUrl(round.entryTxHash)} target="_blank" rel="noreferrer" title={HISTORY.entryTx} className="history-proof-link numbers">
+        <a href={txUrl(round.entryTxHash, webEnv.markets.cluster)} target="_blank" rel="noreferrer" title={HISTORY.entryTx} className="history-proof-link numbers">
           ↗
         </a>
       )}
