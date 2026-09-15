@@ -1,11 +1,11 @@
 import { addressSchema, isAddress, marketIdSchema, signatureSchema } from "@agari/core/types";
 import { hasBet, hasBetOnSymbol, hasIndexedBet, hasIndexedBetOnSymbol, hasIndexedFill, isDbConfigured, recordBettor } from "@agari/db";
-import { parseMarketsEnv } from "@agari/markets";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ROOM_ERRORS } from "@/features/room/copy";
 import { clientIp, ROOM_LIMITS } from "@/features/room/limits.server";
 import { parseRoomId } from "@/features/room/room-id";
+import { webEnv } from "@/lib/env";
 
 /**
  * The bettors registry's two doors.
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
   const room = parseRoomId(url.searchParams.get("marketId") ?? "");
   const address = url.searchParams.get("address");
   if (!room || !isAddress(address)) return refuse(ROOM_ERRORS.badRequest, 400);
-  const { chainId } = parseMarketsEnv();
+  const { chainId } = webEnv.markets;
   try {
     const registry = room.kind === "window" ? await hasBet(chainId, room.marketId, address) : await hasBetOnSymbol(chainId, room.symbol, address);
     const answer = registry || (room.kind === "window" ? await hasIndexedBet(room.marketId, address) : await hasIndexedBetOnSymbol(room.symbol, address));
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ recorded: false }, { status: 202, headers: NO_STORE });
   }
 
-  const recorded = await recordBettor({ chainId: parseMarketsEnv().chainId, marketId, wallet: address, txHash, route });
+  const recorded = await recordBettor({ chainId: webEnv.markets.chainId, marketId, wallet: address, txHash, route });
   console.info(`[room] bet ${marketId} ${address}: indexed fill ${txHash}; registry ${recorded ? "written" : "unavailable"}`);
   return recorded ? NextResponse.json({ recorded: true }, { headers: NO_STORE }) : refuse(ROOM_ERRORS.unavailable, 503);
 }

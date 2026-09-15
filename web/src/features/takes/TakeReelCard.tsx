@@ -8,8 +8,10 @@ import { memo, type CSSProperties } from "react";
 import { usdLine } from "@/features/markets/hero/units";
 import { timeAgo } from "@/features/markets/history/time-ago";
 import { addressHue } from "@/lib/address-hue";
+import { captionParts, profileHref, tickerHref } from "./cashtags";
 import { TAKES } from "./copy";
 import type { FeedTake } from "./protocol";
+import "./take-cashtag.css";
 
 const shortAddress = (address: string): string => (address.length > 10 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address || TAKES.anon);
 
@@ -18,6 +20,23 @@ function callParts(take: FeedTake): { glyph: string; dir: string; band: string }
   const line = take.lineRaw === null ? null : usdLine(BigInt(take.lineRaw));
   const band = line === null ? TAKES.noLine(take.asset) : take.side === "up" ? TAKES.over(take.asset, line) : TAKES.under(take.asset, line);
   return take.side === "up" ? { glyph: "▲", dir: "UP", band } : { glyph: "▼", dir: "DOWN", band };
+}
+
+/** The caption with each registry `$TICKER` as a link to its ticker hub; any other `$` word stays text. */
+function Caption({ caption }: { caption: string }) {
+  return (
+    <p className="take-caption">
+      {captionParts(caption).map((part, index) =>
+        "symbol" in part ? (
+          <Link key={index} href={tickerHref(part.symbol)} className="take-cashtag" data-cursor="hover">
+            {part.text}
+          </Link>
+        ) : (
+          part.text
+        ),
+      )}
+    </p>
+  );
 }
 
 interface TakeReelCardProps {
@@ -35,7 +54,8 @@ interface TakeReelCardProps {
  * Provenance is what changes. The reference's footer says "◆ on Walrus · verify ↗"
  * and links the posting transaction; ours says the take is signed by the wallet and
  * links the author on the explorer, because that is what holds a take here. The
- * reference's "comments soon" is a live link: the Room exists.
+ * reference's "comments soon" is a live link: the Room exists. The author's name opens
+ * their profile, and a caption's cashtags open their ticker hubs.
  *
  * The frame is `.reel-card`, so it follows the theme exactly as the market card does
  * (the user's 2026-09-01 ruling) — one ink triplet, no dark island.
@@ -54,9 +74,9 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: TakeReel
         <div className="take-ident">
           <span aria-hidden className="take-avatar" style={{ "--take-hue": addressHue(take.author) } as CSSProperties} />
           <div className="min-w-0">
-            <a href={addressUrl(take.author)} target="_blank" rel="noreferrer" className="take-name" data-cursor="hover">
+            <Link href={profileHref(take.author)} className="take-name" data-cursor="hover">
               {shortAddress(take.author)}
-            </a>
+            </Link>
             <div className="take-meta">
               {nowMs > 0 ? timeAgo(take.createdAtMs, nowMs) : ""}
               {nowMs > 0 ? " · " : ""}
@@ -79,7 +99,7 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: TakeReel
         </span>
       </div>
 
-      <div className="take-voice">{take.caption ? <p className="take-caption">{take.caption}</p> : <p className="take-caption quiet">{TAKES.noNote}</p>}</div>
+      <div className="take-voice">{take.caption ? <Caption caption={take.caption} /> : <p className="take-caption quiet">{TAKES.noNote}</p>}</div>
 
       <div className="take-foot">
         <div className="take-prov">

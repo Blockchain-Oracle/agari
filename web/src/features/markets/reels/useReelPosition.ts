@@ -16,8 +16,11 @@ import { useEffect, useRef, type RefObject } from "react";
  *
  * ↑/↓ and PageUp/PageDown move one card, as a thumb would — additive; neither reference had a
  * keyboard path — and stay out of the composer's textarea.
+ *
+ * `leading` counts cards rendered before the reel's first item (the off-hours closed card), so a
+ * restore scrolls to the right child.
  */
-export function useReelPosition(scrollRef: RefObject<HTMLElement | null>, reel: readonly ReelItem[], activeIndex: number): void {
+export function useReelPosition(scrollRef: RefObject<HTMLElement | null>, reel: readonly ReelItem[], activeIndex: number, leading = 0): void {
   const restored = useRef(false);
   // False between a restore that scrolled and the observer's first report, so the write below
   // does not stamp the first card's id over the one that was asked for.
@@ -28,14 +31,14 @@ export function useReelPosition(scrollRef: RefObject<HTMLElement | null>, reel: 
     restored.current = true;
     const wanted = new URLSearchParams(window.location.search).get(MARKET_PARAM);
     const index = wanted ? reel.findIndex((item) => item.kind === "market" && item.market.marketId === wanted) : -1;
-    const card = index > 0 ? (scrollRef.current?.children[index] as HTMLElement | undefined) : undefined;
+    const card = index >= 0 && index + leading > 0 ? (scrollRef.current?.children[index + leading] as HTMLElement | undefined) : undefined;
     if (card) {
       card.scrollIntoView({ block: "start" });
       armed.current = false;
     } else {
       armed.current = true;
     }
-  }, [reel, scrollRef]);
+  }, [reel, scrollRef, leading]);
 
   useEffect(() => {
     if (!armed.current) {

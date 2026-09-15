@@ -1,8 +1,9 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { isAddress, isSignature, type Address, type MarketId } from "@agari/core/types";
 import { hasBet, hasBetOnSymbol, hasIndexedBet, hasIndexedBetOnSymbol, indexedWindowState } from "@agari/db";
-import { ensureMarkets, marketsProvider, parseMarketsEnv } from "@agari/markets";
+import { ensureMarkets, marketsProvider } from "@agari/markets";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
+import { webEnv } from "@/lib/env";
 import { ROOM_TOKEN_TTL_MS, roomJoinMessage } from "./protocol";
 import { parseRoomId, type RoomId } from "./room-id";
 
@@ -77,8 +78,7 @@ export class GateUnreadableError extends Error {
 async function seatHolds(address: string, marketId: MarketId): Promise<boolean> {
   const window = await indexedWindowState(marketId, Math.floor(Date.now() / 1000));
   if (window === "past") return false;
-  const env = parseMarketsEnv();
-  ensureMarkets(env);
+  ensureMarkets(webEnv.markets);
   const onchain = await marketsProvider.getOnchain(marketId);
   if (!onchain.ok) {
     if (onchain.error.kind === "market-not-trading") return false;
@@ -103,7 +103,7 @@ async function seatHolds(address: string, marketId: MarketId): Promise<boolean> 
 export async function admittingStep(address: string, roomId: RoomId): Promise<RoomGateStep | null> {
   const room = parseRoomId(roomId);
   if (!room) return null;
-  const { chainId } = parseMarketsEnv();
+  const { chainId } = webEnv.markets;
   const steps: [RoomGateStep, () => Promise<boolean | null>][] =
     room.kind === "window"
       ? [
