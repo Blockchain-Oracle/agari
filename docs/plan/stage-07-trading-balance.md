@@ -45,11 +45,12 @@
   - **Invariant:** `session-key-non-extractable` (`optional: true` until the files exist).
   - **User:** devnet SOL for the deployer (≈ 5.5 SOL; Handoff).
 - [x] 7a.1 IDL freeze: every vault accounts struct, arg, zero-copy layout (offset and size asserts), event and error builds with `NO_DNA=1 anchor build --arch v0`. Stage owner: `pnpm codegen` → `@agari/clients/agari-vault` (D-025); `idl-no-destination` and `program-id-drift` green.
-- [ ] 7a program:
+- [x] 7a program:
   - handlers per vault.md §3;
   - LiteSVM `vault_caps` (10 vectors), `vault_funding`, `vault_trading` (AD-5, WindowPredatesVault, seat invariant, Ledger closes after cranks);
   - CU and transaction bytes measured into vault.md §9;
   - `.so` size of both CPI-client options (D-064).
+  - Merged ebf9259 (f842877): vault_caps 10/10 vectors, vault_funding 8/8, vault_trading 13/13, events 34/34; program_autofixer clean. Measured CU/bytes and sizes in vault.md §9; D-064 outcome keeps (a); budget ≈ 6 SOL.
 - [ ] 7b adapter:
   - vault reads and `vaultBase`;
   - every vault TxIntent;
