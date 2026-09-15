@@ -191,7 +191,7 @@ Chrome is shared (§4). Rows list what differs inside `<main>` at 1440 dark, fro
 | P-08 | Wallet stack in the bundle | wagmi + viem + RainbowKit on every page | Kit wallet plugin only | Smaller | — |
 | P-09 | `next.config.ts` | `@coinbase/cdp-sdk` stub alias (RainbowKit baggage) | still present, now dead | Noise (plan §5 "Removed noise") | SO |
 | P-10 | Bundle size | 58 JS files, 3,492 KB decoded / 934 KB brotli on `/markets` | 34 files, 1,952 KB decoded / 608 KB gzip | ≈ 44 % less JS (see §8) | — |
-| P-11 | `/api/sponsor` on every page load | `SessionKeyProvider` → `useSponsorStatus()` (one GET, no poll), mounted in `AppProviders` | same: `features/session/SessionKeyProvider.tsx:40`, mounted by `providers/AppProviders.tsx` for every route. The route answers a constant `configured:false` until S7 | Wasted request (parity with Masayume, whose route did have a relayer to report) | SO (S7): fetch only when a session key is being enabled, or behind a sponsor-enabled flag |
+| P-11 | `/api/sponsor` on every page load | `SessionKeyProvider` → `useSponsorStatus()` (one GET, no poll), mounted in `AppProviders` | same: `features/session/SessionKeyProvider.tsx:40`, mounted by `providers/AppProviders.tsx` for every route. The route answers a constant `configured:false` until S7 | Wasted request (parity with Masayume, whose route did have a relayer to report) | SO (S7): fetch only when a session key is being enabled, or behind a sponsor-enabled flag. **Closed 2026-09-15 (S7c f7e971a, merged 651b5c1):** status lives in the query cache and is fetched only while the enable/manage sheet is open or a key is armed; no page load on `/portfolio` or `/dev/session` requests it |
 
 ## 8. Build and bundle
 

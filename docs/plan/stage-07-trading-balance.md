@@ -45,11 +45,12 @@
   - **Invariant:** `session-key-non-extractable` (`optional: true` until the files exist).
   - **User:** devnet SOL for the deployer (≈ 5.5 SOL; Handoff).
 - [x] 7a.1 IDL freeze: every vault accounts struct, arg, zero-copy layout (offset and size asserts), event and error builds with `NO_DNA=1 anchor build --arch v0`. Stage owner: `pnpm codegen` → `@agari/clients/agari-vault` (D-025); `idl-no-destination` and `program-id-drift` green.
-- [ ] 7a program:
+- [x] 7a program:
   - handlers per vault.md §3;
   - LiteSVM `vault_caps` (10 vectors), `vault_funding`, `vault_trading` (AD-5, WindowPredatesVault, seat invariant, Ledger closes after cranks);
   - CU and transaction bytes measured into vault.md §9;
   - `.so` size of both CPI-client options (D-064).
+  - Merged ebf9259 (f842877): vault_caps 10/10 vectors, vault_funding 8/8, vault_trading 13/13, events 34/34; program_autofixer clean. Measured CU/bytes and sizes in vault.md §9; D-064 outcome keeps (a); budget ≈ 6 SOL.
 - [ ] 7b adapter:
   - vault reads and `vaultBase`;
   - every vault TxIntent;
@@ -67,7 +68,7 @@
   - Solana copy (`VAULT.notDeployed.how`, how-it-works cash-out answer);
   - dev fixtures;
   - checked against masayume.app.
-  - Merged f11ff6d (18 sponsor/key-signer vitests, build green). The sponsor policy lives in `web/src/features/session/sponsor/` until 7b lifts it; the invariant is no longer optional. Top-up writes: `vault-grant.keyTopUpLamports?` and `vault-key-top-up` (7b adapts both).
+  - Merged f11ff6d and 034738c (651b5c1): `useKeySession` signs with `{ keyPair }`; the sponsor policy, chain checks, gates, co-sign and service live in `packages/markets/src/sponsor` (`@agari/markets/sponsor`, server-only: its index pulls node:fs); `/api/sponsor` is a thin route. 17 sponsor vitests on real Kit v0 transactions, build green. The invariant is no longer optional; P-11 closed. Top-up writes: `vault-grant.keyTopUpLamports?` and `vault-key-top-up` (7b builds, 7c wires). Still 7b: client sponsor transport, DB `SponsorLedger`, real `resolveVaultDeployment`.
 - [ ] Deploy (stage owner):
   - `solana program deploy` `--arch v0` binary;
   - IDL metadata (D-026);

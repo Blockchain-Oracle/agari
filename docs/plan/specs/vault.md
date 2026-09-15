@@ -334,6 +334,17 @@ The indexer builds the Masayume tally (`VaultTally.sol:13-25`) from `Executed` a
 | enable: CU limit + SOL top-up + `owner_open_account` + `owner_deposit_and_grant` (14 keys) | 45–60k | ≈ 710 |
 | `owner_withdraw` + idempotent ATA | 15–25k | ≈ 520 |
 
+**Measured (7a, ebf9259; LiteSVM, SBPF v0, v0 tx, no ALT; +≈ 40 B with a SetComputeUnitLimit instruction):**
+
+| Instruction | CU | Tx bytes |
+|---|---|---|
+| `actor_place_for` sponsored (2 sigs), 1 fill | 39,326 | 866 |
+| `actor_place_for` sponsored, 10 fills | 50,995 | 866 |
+| `owner_place`, 1 fill | 38,204 | 696 |
+| `public_crank_settle`, both sides | 51,225 (over the 35–45k estimate) | 710 |
+| enable (CU limit + top-up + open + `owner_deposit_and_grant`) | 40,320 | 708 |
+| `owner_withdraw` + idempotent ATA | 19,228 | 527 |
+
 The compute limit is simulation × 1.1, ≤ 400k (D-012). All sizes are under 1,232 B with no ALT; the sponsor refuses ALTs (tap-trading.md §3). Plan §3.3's 110–150k is the upper bound; LiteSVM measures in 7a.
 
 **Program size and deploy:**
@@ -342,7 +353,8 @@ The compute limit is simulation × 1.1, ≤ 400k (D-012). All sizes are under 1,
 - **Deploy peak ≈ 3.1–4.6 SOL** (buffer + programdata; the buffer is refunded). No `--max-len`; `solana program extend` if an upgrade grows.
 - Plus IDL metadata ≈ 0.03 SOL (events' larger IDL cost 0.0569), `VaultConfig` 0.00175, `admin_set_authorities` fee.
 - Sponsor role float 0.5 SOL; two drive owners 2 × 0.03 SOL.
-- **S7 budget ≈ 5.5 SOL.** Deployer held 3.32 SOL at 2026-09-14 16:50Z (STATUS), so the user needs to fund it (stage file Handoff).
+- **Measured (7a):** option (a) path dependency 516,904 B → programdata rent ≈ 2.63 SOL, **deploy peak ≈ 5.25 SOL**; option (b) `declare_program!` 513,056 B. `opt-level = "z"` for the vault gives 427,904 B (≈ 2.18 SOL rent) at +8–12% CU; not applied (D-064 outcome).
+- **S7 budget ≈ 6 SOL** (was 5.5 before the measured binary). Deployer held 3.32 SOL at 2026-09-14 16:50Z (STATUS), so the user needs to fund it (stage file Handoff).
 
 ## 10. Proofs (LiteSVM, `anchor/tests`, D-019 harness; loads `target/deploy/agari_vault.so` beside `agari_events.so`)
 
