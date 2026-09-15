@@ -56,6 +56,8 @@ export const AGARI_VAULT_ERROR__GRANT_ACCOUNT_MISSING = 0x1bc8; // 7112
 export const AGARI_VAULT_ERROR__ACTIVE_GRANT_MISMATCH = 0x1bc9; // 7113
 /** StaleGrantId: grant id is not the next grant id */
 export const AGARI_VAULT_ERROR__STALE_GRANT_ID = 0x1bca; // 7114
+/** GrantMarketMismatch: grant is scoped to another Window */
+export const AGARI_VAULT_ERROR__GRANT_MARKET_MISMATCH = 0x1bcb; // 7115
 /** UnknownMarket: market, series, book or ledger is not a bound agari-events Window */
 export const AGARI_VAULT_ERROR__UNKNOWN_MARKET = 0x1c20; // 7200
 /** MarketNotTrading: market is not trading */
@@ -90,6 +92,7 @@ export type AgariVaultError =
   | typeof AGARI_VAULT_ERROR__GRANT_ACCOUNT_MISSING
   | typeof AGARI_VAULT_ERROR__GRANT_EXPIRED
   | typeof AGARI_VAULT_ERROR__GRANT_IS_REVOKED
+  | typeof AGARI_VAULT_ERROR__GRANT_MARKET_MISMATCH
   | typeof AGARI_VAULT_ERROR__INSUFFICIENT
   | typeof AGARI_VAULT_ERROR__MARKET_NOT_SETTLED
   | typeof AGARI_VAULT_ERROR__MARKET_NOT_TRADING
@@ -126,6 +129,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [AGARI_VAULT_ERROR__GRANT_ACCOUNT_MISSING]: `a grant attributed to this position was not passed`,
     [AGARI_VAULT_ERROR__GRANT_EXPIRED]: `grant has expired`,
     [AGARI_VAULT_ERROR__GRANT_IS_REVOKED]: `grant is revoked`,
+    [AGARI_VAULT_ERROR__GRANT_MARKET_MISMATCH]: `grant is scoped to another Window`,
     [AGARI_VAULT_ERROR__INSUFFICIENT]: `not enough balance for this amount`,
     [AGARI_VAULT_ERROR__MARKET_NOT_SETTLED]: `market is not resolved or voided`,
     [AGARI_VAULT_ERROR__MARKET_NOT_TRADING]: `market is not trading`,
