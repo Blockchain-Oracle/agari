@@ -5,7 +5,7 @@
  * the newest `print_archive` row is served as `source: "archive"`, so a last close always exists.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKER_SYMBOLS, TICKERS, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
 import { latestArchivedPrints, type PrintArchiveSource } from "@agari/db";
 import type { SpotFeed, SpotQuote } from "../prices/spot";
 
@@ -16,7 +16,8 @@ const ARCHIVE_MEMO_MS = 60_000;
 const KEEPALIVE_MS = 15_000;
 
 export interface WireQuote {
-  symbol: TickerSymbol;
+  /** A ticker, or an xStock the token lane's spot ticks for (S6); the archive fallback covers tickers only. */
+  symbol: TickerSymbol | XStockSymbol;
   priceE8: string;
   publishTimeSec: number;
   source: SpotQuote["source"] | "archive";
@@ -39,7 +40,7 @@ export interface LatestOptions {
 
 const wallSec = () => Math.floor(Date.now() / 1000);
 
-function toWire(symbol: TickerSymbol, priceE8: string, publishTimeSec: number, source: WireQuote["source"], nowSec: number): WireQuote {
+function toWire(symbol: WireQuote["symbol"], priceE8: string, publishTimeSec: number, source: WireQuote["source"], nowSec: number): WireQuote {
   const ageSec = Math.max(0, nowSec - publishTimeSec);
   return { symbol, priceE8, publishTimeSec, source, ageSec, fresh: ageSec <= FRESH_MAX_AGE_SEC };
 }
