@@ -2,7 +2,7 @@
  * the reference's own quiet meta language rather than a new one: the `.cadence-note` type
  * (yosuku/part-06.css — mono 10px, 0.16em, uppercase, gray-600) with the `.clock-dot` beside it, and
  * the `.live-pill` pulse (`pulseDot`) only while the session is open. Gray and white tokens flip with
- * the theme (part-13), so one set of rules serves both. */
+ * the theme (part-13), so one set of rules serves both. `data-state` is core's `SessionState` (D-087). */
 
 .mks-chip {
   display: inline-flex;
@@ -28,13 +28,27 @@
   color: var(--gray-400);
 }
 
-.mks-chip[data-state="open"] .mks-chip-dot {
+/* Open: the live pulse. */
+.mks-chip[data-state="regular"] .mks-chip-dot,
+.mks-chip[data-state="early-close"] .mks-chip-dot {
   background: var(--vermilion);
   animation: pulseDot 1.6s var(--ease) infinite;
 }
 
-.mks-chip[data-state="open"] .mks-chip-state {
+.mks-chip[data-state="regular"] .mks-chip-state,
+.mks-chip[data-state="early-close"] .mks-chip-state {
   color: var(--vermilion);
+}
+
+/* Pre-market and after hours: lit, not live — the dot brightens without the pulse. */
+.mks-chip[data-state="pre"] .mks-chip-dot,
+.mks-chip[data-state="post"] .mks-chip-dot {
+  background: var(--gray-300);
+}
+
+/* A holiday reads as a named day, not a fault: half the brand ink, still. */
+.mks-chip[data-state="holiday"] .mks-chip-dot {
+  background: color-mix(in srgb, var(--vermilion) 55%, transparent);
 }
 
 /* A halt: the open dot stops pulsing and the reason is the whole label, so it stays on a phone too. */
@@ -52,8 +66,18 @@
   letter-spacing: 0.14em;
 }
 
+/* The global header carries the chip from 768px up (D-087); below that the marquee's session cell says it. */
+.header-session {
+  display: none;
+}
+@media (min-width: 768px) {
+  .header-right .header-session {
+    display: inline-flex;
+  }
+}
+
 /* A phone keeps Masayume's hero head as it was: the chip stays in the lanes header below, and there
-   the dot carries open or closed, so the label fits beside "Live windows" (the aria-label keeps the word). */
+   the dot carries the state, so the phrase fits beside "Live windows" (the aria-label keeps the word). */
 @media (max-width: 639px) {
   .mh-asset-row .mks-chip {
     display: none;
@@ -65,7 +89,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mks-chip[data-state="open"] .mks-chip-dot {
+  .mks-chip[data-state="regular"] .mks-chip-dot,
+  .mks-chip[data-state="early-close"] .mks-chip-dot {
     animation: none;
   }
 }

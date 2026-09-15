@@ -1,14 +1,15 @@
 "use client";
 
+import { LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { MarketId, Side } from "@agari/core/types";
 import { mark } from "@agari/markets/perf";
 import type { ReactNode } from "react";
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { MARKETS } from "@/lib/copy";
+import { ErrorState, LoadingState } from "@/components/states";
+import { HeroAssetChart } from "./hero/HeroAssetChart";
 import { HeroChart } from "./hero/HeroChart";
 import type { LanesState } from "./lanes";
-import { useMarketSession } from "./session";
+import { TicketPlaceholder } from "./ticket/TicketPlaceholder";
 import type { MarketsSelection } from "./useMarketsSelection";
 
 export interface MarketsHeroProps {
@@ -29,20 +30,21 @@ export interface MarketsHeroProps {
  * the lanes below became a way to change the hero rather than a list you pick from
  * and then scroll past.
  */
+/** The hero's asset when no Window is selected: the rail's pinned ticker, else the registry's first launch ticker. */
+const DEFAULT_ASSET: TickerSymbol = LAUNCH_TICKERS[0] ?? "TSLA";
+
 /**
  * What the hero shows before it has a Window.
  *
  * These were one branch — "Pick a Window above to read it here" — shown whenever the lane set
  * was not yet a value. That sentence asks the reader to act, so a cold load and a dead RPC both
- * looked like the app waiting for a click it never needed. They are three different facts and
- * they get three different faces: still loading, actually broken, genuinely empty.
+ * looked like the app waiting for a click it never needed. Two faces remain here: still loading,
+ * actually broken. A lane set with no Window in it is the asset hero (D-086), never an empty panel.
  */
 function HeroPlaceholder({ lanes }: { lanes: LanesState }) {
-  const session = useMarketSession();
   if (lanes.reading === null) return <LoadingState shape="chart" label="Loading live Windows" />;
   if (!isOk(lanes.reading)) return <ErrorState diagnosis={lanes.reading.error} retry={lanes.retry} />;
-  // A stock venue is empty every night and weekend: that is the session, not a fault, and it says when it ends.
-  return <EmptyState why={session && !session.open ? MARKETS.closedWindows(session.label).why : MARKETS.noLiveWindows.why} />;
+  return <LoadingState shape="chart" />;
 }
 
 export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTicket }: MarketsHeroProps) {
@@ -68,12 +70,14 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
               onSelect={onSelect}
               onOpenRoom={onOpenRoom}
             />
+          ) : lanes.laneSet ? (
+            <HeroAssetChart asset={lanes.ticker ?? DEFAULT_ASSET} tickers={LAUNCH_TICKERS} onPickAsset={lanes.pinTicker} />
           ) : (
             <div className="hero-chart mh-hero-empty">
               <HeroPlaceholder lanes={lanes} />
             </div>
           )}
-          {renderTicket(selection)}
+          {selection.market ? renderTicket(selection) : lanes.laneSet ? <TicketPlaceholder asset={lanes.ticker ?? DEFAULT_ASSET} /> : null}
         </div>
       </div>
     </section>

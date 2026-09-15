@@ -36,7 +36,7 @@ export interface ArchiveRead {
  * The window only moves when a session closes, which is when `status.state` and `date` turn over — so it is memoized
  * on those, not on the clock, and the read's key holds all night.
  */
-export function useArchiveRead(symbol: TickerSymbol | null, session: MarketSession | null): ArchiveRead {
+export function useArchiveRead(symbol: TickerSymbol | null, session: MarketSession | null, enabled = true): ArchiveRead {
   const sessions = session?.sessions ?? null;
   const state = session?.status.state ?? null;
   const date = session?.status.date ?? null;
@@ -49,7 +49,7 @@ export function useArchiveRead(symbol: TickerSymbol | null, session: MarketSessi
   const fromSec = window?.fromSec ?? 0;
   const toSec = window?.toSec ?? 0;
   const reading = useReadingQuery(keys.archive(symbol, fromSec, toSec), () => getArchiveSeries(symbol as TickerSymbol, fromSec, toSec), {
-    enabled: symbol !== null && window !== null,
+    enabled: enabled && symbol !== null && window !== null,
     staleTimeMs: session ? archiveStaleMs(session.status, Math.floor(marketsProvider.nowMs() / 1000)) : undefined,
     gcTimeMs: GC_MS,
     needs: [],
@@ -72,8 +72,11 @@ export function sessionCloses(rows: readonly PricePoint[], window: ArchiveWindow
   return { last: closeOf(rows, window.session), prev: closeOf(rows, window.prev) };
 }
 
-/** Null until the archive answers; a failed read reads as no closes (the surface then shows the price alone). */
-export function useDailyCloses(symbol: TickerSymbol | null, session: MarketSession | null): DailyCloses | null {
-  const { window, reading } = useArchiveRead(symbol, session);
+/**
+ * Null until the archive answers; a failed read reads as no closes (the surface then shows the price alone).
+ * `enabled: false` keeps the hook mounted without a read, for a surface that only needs the closes as a fallback.
+ */
+export function useDailyCloses(symbol: TickerSymbol | null, session: MarketSession | null, enabled = true): DailyCloses | null {
+  const { window, reading } = useArchiveRead(symbol, session, enabled);
   return useMemo(() => (window && reading?.ok ? sessionCloses(reading.value, window) : null), [window, reading]);
 }

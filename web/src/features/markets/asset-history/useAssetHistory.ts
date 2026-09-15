@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { basisRaw, FEED_DECIMALS_DEFAULT, feedRawToOracleRaw } from "../hero/units";
 import type { ChartPoint } from "../hero/useChartSeries";
 import type { MarketSession } from "../session";
+import { dayChange, type DayChange } from "./day-change";
 import type { HistoryRange } from "./range";
 import { sessionCloses, useArchiveRead, type Close } from "./useDailyCloses";
 
@@ -27,6 +28,13 @@ export interface AssetHistory {
   session: TradingSession;
   /** The live reading's own time, when the latest point is the live tick rather than an archived print. */
   liveSec: number | null;
+}
+
+/** The day's move for a history's latest point: against the previous close, or the session's open standing in for it. */
+export function historyDayChange(h: AssetHistory): DayChange | null {
+  if (!h.latest) return null;
+  const prev = h.lineIsOpen ? null : h.prevClose;
+  return dayChange(h.latest.valueRaw, h.latest.timeSec, { last: h.lastClose, prev }, h.lineIsOpen ? h.prevClose : null);
 }
 
 const toPoint = (p: PricePoint | AssetPrice, decimals = FEED_DECIMALS_DEFAULT): ChartPoint => ({

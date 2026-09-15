@@ -32,7 +32,7 @@ export function dayChange(priceRaw: bigint, priceSec: number, closes: DailyClose
 export interface DayChangeText {
   /** "−$3.12", "+$0.48", "$0.00" at the reference's scale. */
   dollars: string;
-  /** "−1.2%", "+0.1%", "0.0%" — a tenth of a percent from integer bps. */
+  /** "−1.20%", "+0.05%", "0.00%" — two decimals, straight from integer bps. */
   percent: string;
   direction: "up" | "down" | "flat";
 }
@@ -44,7 +44,7 @@ export function formatDayChange(change: DayChange): DayChangeText {
   const absBps = Math.abs(change.bps);
   return {
     dollars: `${sign}${usdLine(magnitude, change.referenceRaw)}`,
-    percent: `${sign}${Math.floor(absBps / 100)}.${Math.floor((absBps % 100) / 10)}%`,
+    percent: `${sign}${Math.floor(absBps / 100)}.${String(absBps % 100).padStart(2, "0")}%`,
     direction,
   };
 }

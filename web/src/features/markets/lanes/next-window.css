@@ -1,0 +1,11 @@
+/* The next-Window card (S18a, D-086): Masayume's between-rounds slot (`.market-card-pending`, part-06.css) with the
+ * live card's price bar and sparkline above the copy. The pending block's 200px floor and 32px pad were sized for a
+ * card that held nothing else; with the price above it the copy sits closer to the numbers it explains. */
+.market-card-pending[data-next] .mc-pending {
+  min-height: 0;
+  padding: 16px 22px 22px;
+  gap: 10px;
+}
+.market-card-pending[data-next] .mc-body {
+  padding-bottom: 0;
+}

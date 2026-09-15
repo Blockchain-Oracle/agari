@@ -1,6 +1,8 @@
 "use client";
 
+import { sessionPhrase } from "@agari/core/copy";
 import { isOk } from "@agari/core/schemas";
+import { marketsProvider } from "@agari/markets";
 import { keys, usePositions } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -10,10 +12,12 @@ import { ReadingBoundary } from "@/components/states";
 import { LEVERAGE, useLeverageBetItems } from "@/features/leverage";
 import { useVaultBetItems } from "@/features/vault";
 import { PORTFOLIO } from "@/lib/copy";
+import { SESSION_COPY } from "@/lib/copy-session";
 import { type ListItem, usePager } from "@/lib/use-pager";
 import { cn } from "@/lib/utils";
 import { useWalletSession } from "@/lib/wallet-session";
 import { HistoryRows, type HistoryReading } from "../history";
+import { useMarketSession } from "../session";
 import { useChainNowMs } from "../useChainNow";
 import { BetRow } from "./BetRow";
 
@@ -56,7 +60,13 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const vaultItems = useVaultBetItems(symbol);
   const boosts = useLeverageBetItems(symbol);
   const queryClient = useQueryClient();
+  const session = useMarketSession();
   const [tab, setTab] = useState<Tab>("open");
+  // An empty book never dead-ends (D-086): in session, make the first call; closed, see what lists next and when.
+  const empty =
+    session && !session.open
+      ? { why: `${PORTFOLIO.noBets} ${SESSION_COPY.portfolio.closed(sessionPhrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
+      : { why: PORTFOLIO.noBets, nextAction: { label: PORTFOLIO.firstCall, href: "/markets" } };
   const retry = () => {
     if (address) void queryClient.invalidateQueries({ queryKey: keys.positions(address) });
   };
@@ -87,7 +97,7 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
             shape="row"
             retry={retry}
             isEmpty={() => openItems.length === 0}
-            empty={{ why: PORTFOLIO.noBets, nextAction: { label: PORTFOLIO.firstCall, href: "/markets" } }}
+            empty={empty}
           >
             {() => (
               <>

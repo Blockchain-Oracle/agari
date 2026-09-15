@@ -9,6 +9,8 @@ export interface TickerEntry {
   direction: TickerDirection;
   /** When set the price is frozen at its last-good value and the tick says so. */
   staleAsOfMs?: number;
+  /** When set the price is the archived last close standing in for a feed that has nothing (D-086), never a stale tick. */
+  closeAsOfSec?: number;
 }
 
 // The one chrome element allowed direction color — it IS money direction.

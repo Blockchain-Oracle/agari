@@ -1,6 +1,5 @@
 import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate } from "../market/et-time";
 import type { SessionStatus } from "../market/session";
-import { formatDuration } from "./between-rounds";
 
 /**
  * The session as a word and a phrase (D-087): every always-on surface says the same thing about the hour. Pure over
@@ -28,6 +27,22 @@ export function sessionStateWord(status: Pick<SessionStatus, "state" | "date">):
   }
 }
 
+const SEC_PER_MIN = 60;
+const SEC_PER_HOUR = 3_600;
+const SEC_PER_DAY = 86_400;
+
+/**
+ * A span to the minute: "3d 2h", "1h 12m", "59m", "<1m". A session boundary is hours away as a rule, so seconds would
+ * only make every chip on the page disagree with the next; every surface counts the same beat.
+ */
+export function formatSessionSpan(remainingSec: number): string {
+  const total = Math.max(0, Math.floor(remainingSec));
+  if (total >= SEC_PER_DAY) return `${Math.floor(total / SEC_PER_DAY)}d ${Math.floor((total % SEC_PER_DAY) / SEC_PER_HOUR)}h`;
+  if (total >= SEC_PER_HOUR) return `${Math.floor(total / SEC_PER_HOUR)}h ${String(Math.floor((total % SEC_PER_HOUR) / SEC_PER_MIN)).padStart(2, "0")}m`;
+  if (total >= SEC_PER_MIN) return `${Math.floor(total / SEC_PER_MIN)}m`;
+  return "<1m";
+}
+
 export interface SessionCountdown {
   /** What the clock runs to: the close while the market is open, else the next open. */
   kind: "opens" | "closes";
@@ -45,7 +60,7 @@ export function sessionCountdown(status: Pick<SessionStatus, "state" | "closesAt
 
 /** "Opens in 16h 12m" / "Closes in 2h 05m" — the hero foot's line. */
 export function sessionCountdownLine(countdown: SessionCountdown): string {
-  return `${countdown.kind === "opens" ? "Opens" : "Closes"} in ${formatDuration(countdown.remainingSec * 1000)}`;
+  return `${countdown.kind === "opens" ? "Opens" : "Closes"} in ${formatSessionSpan(countdown.remainingSec)}`;
 }
 
 /** "Tue 09:30 ET", or "Tue 12-01 09:30 ET" a week or more away — the same rule as core `sessionLabel`. */
@@ -66,7 +81,7 @@ export function sessionPhrase(status: Pick<SessionStatus, "state" | "date" | "cl
   if (status.state === "halted") return word;
   const countdown = sessionCountdown(status, nowSec);
   if (!countdown) return word;
-  if (countdown.kind === "closes") return `${word} · closes in ${formatDuration(countdown.remainingSec * 1000)}`;
-  if (etDateOf(countdown.atSec) === status.date) return `${word} · opens in ${formatDuration(countdown.remainingSec * 1000)}`;
+  if (countdown.kind === "closes") return `${word} · closes in ${formatSessionSpan(countdown.remainingSec)}`;
+  if (etDateOf(countdown.atSec) === status.date) return `${word} · opens in ${formatSessionSpan(countdown.remainingSec)}`;
   return `${word} · reopens ${reopensAt(status, countdown.atSec)}`;
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calendarFromAlpaca } from "../market/calendar";
 import { datesBetween, weekdayOfDate } from "../market/et-time";
 import { sessionStatus } from "../market/session";
-import { sessionCountdown, sessionCountdownLine, sessionPhrase, sessionStateWord } from "./session-words";
+import { formatSessionSpan, sessionCountdown, sessionCountdownLine, sessionPhrase, sessionStateWord } from "./session-words";
 
 const HOLIDAYS = new Set(["2026-11-26"]);
 const EARLY = new Set(["2026-11-27"]);
@@ -61,6 +61,17 @@ describe("sessionPhrase", () => {
     expect(sessionPhrase(sessionStatus(CLOCK.regularTue, SEPTEMBER, { halted: true })!, CLOCK.regularTue)).toBe("Halted");
     const lastDay = calendar("2026-09-14", "2026-09-15");
     expect(sessionPhrase(at(CLOCK.postTue, lastDay), CLOCK.postTue)).toBe("After hours");
+  });
+});
+
+describe("formatSessionSpan", () => {
+  it("counts to the minute, never the second", () => {
+    expect(formatSessionSpan(3 * 86_400 + 2 * 3600 + 59)).toBe("3d 2h");
+    expect(formatSessionSpan(3600 + 12 * 60 + 30)).toBe("1h 12m");
+    expect(formatSessionSpan(59 * 60 + 58)).toBe("59m");
+    expect(formatSessionSpan(42)).toBe("<1m");
+    expect(formatSessionSpan(-5)).toBe("<1m");
+    expect(sessionPhrase(at(CLOCK.preTue), CLOCK.preTue + 31 * 60 + 2)).toBe("Pre-market · opens in 58m");
   });
 });
 
