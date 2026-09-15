@@ -90,6 +90,7 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
     const sets = actions.rows.map((action) => toSetAction(action, grids.get(action.market ?? ""))).filter((a): a is LedgerSetAction => a !== null);
     const ledgers = buildLedgers(attributed, sets, venue.decimals);
     const redeemed = new Map(positions.map((p) => [p.market, p.redeemed]));
+    const byCrank = new Map(positions.map((p) => [p.market, p.redeemed_by_crank]));
 
     const rounds: SettledRound[] = [];
     let openCount = 0;
@@ -121,7 +122,7 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
         feeBps: 0,
         liveHoldings: live,
       });
-      if (round) rounds.push(round);
+      if (round) rounds.push(round.claim === "paid" && byCrank.get(id) === true ? { ...round, paidByCrank: true } : round);
     }
     rounds.sort((a, b) => roundSettledAtMs(b) - roundSettledAtMs(a));
     return {

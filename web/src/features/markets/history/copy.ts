@@ -14,6 +14,8 @@ export const HISTORY = {
     none: "",
     unknown: "collection unread",
   } satisfies Record<ClaimState, string>,
+  /** A round the venue paid after the claim grace (D-032). */
+  paidAutomatically: "paid automatically",
   collectLink: "collect →",
   receipt: "Receipt",
   receiptTitle: "Settlement receipt",

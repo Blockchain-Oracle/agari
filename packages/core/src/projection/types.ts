@@ -94,6 +94,8 @@ export interface SettledRound {
   pnlBase: bigint;
   feeBps: number;
   claim: ClaimState;
+  /** A `paid` round the settler's `redeem_for` paid after the claim grace (D-032), not the wallet's own redeem. */
+  paidByCrank?: boolean;
   /** Whose seat the round was traded from; vault rounds link no single transaction. */
   source: LedgerSource;
   settledAtMs: number | null;

@@ -40,7 +40,7 @@ function sidesLabel(round: SettledRound): string {
  */
 export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking = false }: HistoryRowProps) {
   const settledAtMs = roundSettledAtMs(round);
-  const claimLine = HISTORY.claim[round.claim];
+  const claimLine = round.paidByCrank ? HISTORY.paidAutomatically : HISTORY.claim[round.claim];
   const vault = round.source === "vault";
 
   return (
