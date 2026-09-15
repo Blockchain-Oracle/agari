@@ -7,6 +7,8 @@ import { formatBaseUnits } from "@agari/core/units";
 import { Download, Loader2, ShieldAlert, ShieldCheck, Upload } from "lucide-react";
 import { useTick } from "@agari/markets/react";
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { blockerLabel } from "@/lib/copy";
+import { useRegionRestricted } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { exportPrivateClaims, importPrivateClaims } from "./claims-store";
 import { PRIVATE } from "./copy";
@@ -52,6 +54,8 @@ function sinceLabel(ts: number, nowMs: number): string {
  */
 export function PrivateClaims({ claims, pinnedDesk, contract, chainId, owner, decimals, symbol, onCashOut, busySlot, onChanged }: PrivateClaimsProps) {
   const [verified, setVerified] = useState<Record<string, boolean>>({});
+  // The geofence (D-095): the desk answers 451 to a held cash-out, so the control says so first.
+  const regionHeld = useRegionRestricted();
   const [restored, setRestored] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   // A ticking clock, so "3m ago" advances while the page is open (the reference re-read its rows every 4 s)
@@ -189,7 +193,7 @@ export function PrivateClaims({ claims, pinnedDesk, contract, chainId, owner, de
                   </span>
                 )}
                 {c.status === "open" && onCashOut && (
-                  <button type="button" onClick={() => onCashOut(c)} disabled={busy || ok === false} className="pc-cash" data-cursor="hover">
+                  <button type="button" onClick={() => onCashOut(c)} disabled={regionHeld || busy || ok === false} title={regionHeld ? blockerLabel("region") : undefined} className="pc-cash" data-cursor="hover">
                     {busy ? <Loader2 className="pc-icon animate-spin" aria-hidden /> : null}
                     {busy ? PRIVATE.claims.cashingOut : PRIVATE.claims.cashOut}
                   </button>

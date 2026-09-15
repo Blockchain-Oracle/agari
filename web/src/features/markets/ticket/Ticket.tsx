@@ -14,6 +14,8 @@ import { BlockedButton } from "@/components/states";
 import { LEVERAGE, useLeverageQuote, useLeverageWrites } from "@/features/leverage";
 import { PRIVATE, PrivateCta, PrivateNote, usePrivateTicket } from "@/features/private";
 import { BandControl, formatProbE6, RANGE, RangePlaced, usdBand, useRangeTicket } from "@/features/range";
+import { RegionNote } from "@/features/region/RegionNote";
+import { useRegionRestricted } from "@/lib/region";
 import { useTicketRoute, type FundingSource } from "@/features/session";
 import { diagnosisCopy, TICKET } from "@/lib/copy";
 import { notify } from "@/lib/toast";
@@ -115,6 +117,8 @@ export function Ticket({ selection, drawer }: TicketProps) {
   const seatDeposit = useSeatDeposit(walletRoute ? address : null, onchain?.ok ? onchain.value : null);
   const depositBase = walletRoute && !boosted && !isRange ? seatDeposit : 0n;
   const laneGuard = useLaneGuard(market);
+  // The geofence (D-095): a held browser reads the Window and funds nothing on it.
+  const regionHeld = useRegionRestricted();
 
   const base: TicketBlockerInput = {
     session,
@@ -131,6 +135,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     quoteStale: quoteState.stale,
     funding: walletRoute ? funding : null,
     lane: laneGuard.lane,
+    region: regionHeld,
   };
   const priv = usePrivateTicket({ market, side, stakeBase, enabled: privateMode && hasSigner, symbol, walletSpendableBase: balances?.spendableBase ?? null, base });
   // Off by default and never silently on. The desk going away is said aloud; a band takes the wallet.
@@ -235,7 +240,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     t.setStakeText("");
   };
 
-  const cta = isRange ? (
+  const cta = isRange && !regionHeld ? (
     <BlockedButton blocker={range.blocker} ctx={range.ctx} tone="primary" size="lg" className="w-full" onClick={() => void range.place()}>
       {range.draft.lowPrint !== null && range.draft.highPrint !== null ? RANGE.cta.place(usdBand(range.draft.lowPrint), usdBand(range.draft.highPrint)) : RANGE.cta.placePlain}
     </BlockedButton>
@@ -306,6 +311,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
           {t.advancedFrom && <AutoAdvanceNote from={t.advancedFrom} to={market} />}
           <OutcomeNote state={bet.state} decimals={decimals} symbol={symbol} onDismiss={bet.reset} />
           {cta}
+          {regionHeld && <RegionNote />}
           <p className="tk-foot">
             {isRange ? RANGE.cta.footnote : routing.armed ? TICKET.footnoteArmed : TICKET.footnote}
             {isRange && rangeReserve?.paused ? ` ${RANGE.ticket.reservePaused}` : null}

@@ -13,6 +13,7 @@ import { useWalletSession, type WalletSession } from "@/lib/wallet-session";
 import { SIDE_WORD } from "../side-styles";
 import { crossingOf, type Crossing } from "./crossing";
 import { DEFAULT_PRICE_CENTS } from "./PriceControl";
+import { useRegionRestricted } from "@/lib/region";
 import { deriveScheduleBlocker } from "./schedule-guards";
 import { useSeatDeposit } from "./seat-deposit";
 import type { TicketSelection } from "./types";
@@ -86,12 +87,14 @@ export function useScheduleTicket(selection: TicketSelection): ScheduleTicketApi
   const restingCount = resting === null ? null : resting.ok ? resting.value.filter((v) => v.marketId === market.marketId && (v.status === "resting" || v.status === "resting-for-open")).length : 0;
 
   const bet = usePlaceBet();
+  // The geofence (D-095): a held browser can schedule nothing either.
+  const regionHeld = useRegionRestricted();
   // A new stake, side, price or horizon starts a new composition; the previous outcome no longer describes it.
   useEffect(() => {
     bet.reset();
   }, [stakeBase, side, priceCents, restUntil, bet.reset]);
 
-  const blocker = deriveScheduleBlocker({ session, hasSigner, placing: bet.placing, phase, lane: laneGuard.lane, side, priceCents, stakeBase, availableBase, depositBase, sized, crossing, restingCount, funding });
+  const blocker = deriveScheduleBlocker({ session, hasSigner, placing: bet.placing, phase, lane: laneGuard.lane, side, priceCents, stakeBase, availableBase, depositBase, sized, crossing, restingCount, funding, region: regionHeld });
   const ctx: BlockerContext = {
     ...laneGuard.ctx,
     cadence: formatCadence(market.intervalSec),

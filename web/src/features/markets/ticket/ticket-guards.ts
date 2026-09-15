@@ -25,6 +25,8 @@ export interface TicketBlockerInput {
   funding: FundingCheck | null;
   /** The Window's lane as ops sees it (session-lanes.md §5); absent = no session read to judge by. */
   lane?: LaneGuardInput | null;
+  /** The geofence's verdict for this browser (D-095); absent = open, which is what every non-web caller is. */
+  region?: boolean;
 }
 
 export interface LaneGuardInput {
@@ -80,6 +82,8 @@ export function laneBlocker(phase: MarketPhase, lane: LaneGuardInput | null | un
 
 /** Everything before the quote: the session, the Window, the stake against what can back it. */
 export function commonBlocker(i: TicketBlockerInput): BlockerKind | null {
+  // Before the wallet: a held visitor is not missing a connection, and telling them to fix one would lie.
+  if (i.region) return "region";
   if (!i.session.isConnected) return i.session.isConnecting ? "connecting" : "disconnected";
   if (!i.session.isRightChain) return "wrong-chain";
   // The signer binds one effect after the session settles; treat the gap as still connecting.

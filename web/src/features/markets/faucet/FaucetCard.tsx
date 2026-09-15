@@ -6,6 +6,8 @@ import { Hash } from "@/components/data";
 import { BlockedButton, ErrorState } from "@/components/states";
 import { FAUCET } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { RegionNote } from "@/features/region/RegionNote";
+import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
 import { deriveFaucetBlocker } from "./faucet-blocker";
 import { GasRouting } from "./GasRouting";
@@ -19,7 +21,8 @@ export function FaucetCard({ className }: { className?: string }) {
   const session = useWalletSession();
   const faucet = useFaucet();
   const { state, mint, recheckGas, hasSigner } = faucet;
-  const blocker = deriveFaucetBlocker({ session, hasSigner, phase: faucet.busy ? "submitted" : state.phase, gasShort: false });
+  const regionHeld = useRegionRestricted();
+  const blocker = deriveFaucetBlocker({ session, hasSigner, phase: faucet.busy ? "submitted" : state.phase, gasShort: false, region: regionHeld });
   const refusal = state.diagnosis && !state.gasShort ? state.diagnosis : null;
 
   return (
@@ -41,6 +44,7 @@ export function FaucetCard({ className }: { className?: string }) {
       <BlockedButton blocker={blocker} onClick={() => void mint()} size="lg" className="w-full">
         {faucet.busy ? faucet.label : FAUCET.cta(AMOUNT_TEXT)}
       </BlockedButton>
+      {regionHeld && <RegionNote />}
     </section>
   );
 }
