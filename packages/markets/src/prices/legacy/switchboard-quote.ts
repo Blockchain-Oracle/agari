@@ -70,7 +70,7 @@ function leBig(d: Uint8Array, at: number, bytes: number, signed: boolean): bigin
 const toHex = (d: Uint8Array) => Buffer.from(d).toString("hex");
 
 /**
- * Decodes quote instruction data: `count ‖ pad ‖ offsets×count ‖ (pubkey ‖ sig)… ‖ message ‖ oracle_idx×count ‖ slot u64 ‖
+ * Decodes quote instruction data: `count ‖ pad ‖ offsets×count ‖ sig×count ‖ pubkey×count ‖ message ‖ oracle_idx×count ‖ slot u64 ‖
  * version u8 ‖ "SBOD"`. Throws on anything out of bounds; the program re-checks every field it relies on.
  */
 export function decodeSwitchboardQuote(data: Uint8Array, programId = "Ed25519SigVerify111111111111111111111111111"): SwitchboardQuote {
@@ -92,6 +92,39 @@ export function decodeSwitchboardQuote(data: Uint8Array, programId = "Ed25519Sig
   }
   const oracleIdxs = Array.from(data.subarray(tail, tail + count));
   return { data, programId, slot: leBig(data, tail + count, 8, false), oracleIdxs, signers, feeds };
+}
+
+/**
+ * Keeps the first `keep` signatures (the SDK sorts them by oracle index) and re-encodes the instruction data the SDK
+ * way, index fields 0xFFFF. Every signature covers the same message, so a subset still verifies; it only shortens the
+ * transaction (each signature is 111 B: offsets, signature, key, index).
+ */
+export function trimSwitchboardQuote(quote: SwitchboardQuote, keep: number): SwitchboardQuote {
+  const d = quote.data;
+  const count = d[0]!;
+  if (keep >= count) return quote;
+  if (keep < 1) throw new Error("quote: keep at least one signature");
+  const msgOffset = le16(d, 2 + 8);
+  const msgSize = le16(d, 2 + 10);
+  const tail = msgOffset + msgSize;
+  const sigsAt = 2 + keep * ED25519_OFFSETS_BYTES;
+  const keysAt = sigsAt + 64 * keep;
+  const messageAt = keysAt + 32 * keep;
+  const out = new Uint8Array(messageAt + msgSize + keep + 13);
+  out[0] = keep;
+  const put16 = (at: number, v: number) => ((out[at] = v & 0xff), (out[at + 1] = v >> 8));
+  for (let i = 0; i < keep; i++) {
+    const r = 2 + i * ED25519_OFFSETS_BYTES;
+    [sigsAt + 64 * i, 0xffff, keysAt + 32 * i, 0xffff, messageAt, msgSize, 0xffff].forEach((v, k) => put16(r + 2 * k, v));
+    const sigOffset = le16(d, r);
+    const keyOffset = le16(d, r + 4);
+    out.set(d.subarray(sigOffset, sigOffset + 64), sigsAt + 64 * i);
+    out.set(d.subarray(keyOffset, keyOffset + 32), keysAt + 32 * i);
+  }
+  out.set(d.subarray(msgOffset, tail), messageAt);
+  out.set(d.subarray(tail, tail + keep), messageAt + msgSize);
+  out.set(d.subarray(tail + count), messageAt + msgSize + keep);
+  return decodeSwitchboardQuote(out, quote.programId);
 }
 
 export type SurgeQuoteConfig = {
