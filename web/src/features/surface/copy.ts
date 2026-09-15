@@ -2,8 +2,8 @@ import { HERO } from "@/lib/copy";
 
 /**
  * `/surface` — the reference's page (`reference/yosuku/app/surface/page.tsx`) reads a parametric SVI
- * volatility surface back off Sui. DreamDEX prices every Window on a live order book and exposes no
- * such model, so doc 03 §Surface keeps the route and its analytical density and swaps the content
+ * volatility surface back off Sui. Agari prices every Window on a live order book (agari-events on Solana)
+ * and exposes no such model, so doc 03 §Surface keeps the route and its analytical density and swaps the content
  * for the venue's real structures: the top of the book, its depth, slippage across stake sizes, and
  * the term structure across the asset's live expiries. The words below say what the figures are.
  */
@@ -22,6 +22,7 @@ export const SURFACE = {
   },
   reading: "reading the book…",
   noLive: "No live Windows right now — the surface fills in when the next Window opens.",
+  closed: (label: string) => `The stock market is closed · ${label}. The surface fills in when the next Window opens.`,
   sections: {
     book: { number: "01", title: "The book" },
     depth: { number: "02", title: "Depth", desc: "Resting size at each price on the UP book: bids on the left, asks on the right." },

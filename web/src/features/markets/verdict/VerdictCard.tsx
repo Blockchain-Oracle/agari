@@ -9,6 +9,7 @@ import { oraclePriceText } from "@/features/markets/hero";
 import { ShareTradeButton, type TradeCard } from "@/features/share";
 import { MARKETS, VERDICT_UI, formatCadence, verdictAnnouncement, verdictStrings } from "@/lib/copy";
 import { webEnv } from "@/lib/env";
+import { proofHref } from "@/lib/routes";
 import { ClaimWinnings } from "./ClaimWinnings";
 import { PnlFigure } from "./PnlFigure";
 import { printSourceText } from "./print-source";
@@ -54,6 +55,9 @@ function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolu
     settledAtMs,
     entryTxHash: provenance?.entryTxHash ?? null,
     settlementTxHash: resolution?.settlementTxHash ?? null,
+    printSource: resolution?.printSource ?? null,
+    singleSource: resolution?.singleSource ?? false,
+    voidReason: resolution?.voidReason ?? null,
   };
 }
 
@@ -94,7 +98,8 @@ export function VerdictCard({ verdict, market, resolution, symbol, provenance }:
         <ReceiptRow label={VERDICT_UI.settlementTx} href={settlementTx ? txUrl(settlementTx, webEnv.markets.cluster) : null} degradedLabel={VERDICT_UI.pendingTx}>
           {settlementTx ? shortHex(settlementTx, 10, 4) : "—"}
         </ReceiptRow>
-        <ReceiptRow label={VERDICT_UI.oracleGraph} href={null} degradedLabel={VERDICT_UI.noQuestion}>
+        {/* The print proof page (proof-analytics.md §2.6): archive evidence and the on-chain Pyth replay beside each print. */}
+        <ReceiptRow label={VERDICT_UI.oracleGraph} href={source ? proofHref(market.marketId) : null} degradedLabel={VERDICT_UI.noQuestion}>
           {source ? VERDICT_UI.question(source) : "—"}
         </ReceiptRow>
       </Receipt>

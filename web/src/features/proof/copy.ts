@@ -1,0 +1,76 @@
+import type { PrintSource } from "@agari/core/types";
+import type { PrintWhich, ReplayState } from "@agari/markets";
+
+/**
+ * `/proof/<market>` (proof-analytics.md §2.6): the evidence behind each print that settled a Window. The page is built
+ * from Masayume's parts only (the status table, the cream receipt, the numbered section header), so its words carry
+ * the new meaning: what was signed, where the bytes are kept, and what the chain says when the update is posted again.
+ */
+export const PROOF = {
+  title: "Print proof",
+  section: { index: "00", title: "Print proof" },
+  intro:
+    "Every Window settles on signed prints: the source's own signature, checked in the program when the print was recorded. Here is each print that decided this Window, the signed bytes Agari archived at that boundary, and, for Pyth, the same update posted to the receiver again so you can read the verified account yourself.",
+  window: (asset: string, cadence: string, close: string) => `${asset} · ${cadence} Window · closed ${close}`,
+  loading: "Reading the prints…",
+  unreachable: "The print index is unreachable. The prints are still on chain: open the record transactions from the receipt.",
+  none: "No print recorded for this Window yet. The opening print lands at its start boundary.",
+  tableTitle: (n: number) => `${n} print${n === 1 ? "" : "s"}`,
+  which: { 0: "Opening print", 1: "Closing print", 2: "Check · opening", 3: "Check · closing" } satisfies Record<PrintWhich, string>,
+  whichShort: { 0: "OPEN", 1: "CLOSE", 2: "CHECK OPEN", 3: "CHECK CLOSE" } satisfies Record<PrintWhich, string>,
+  source: { pyth: "Pyth", redstone: "RedStone", switchboard: "Switchboard", attested: "Attested demo" } satisfies Record<PrintSource, string>,
+  unknownSource: "Unknown source",
+  rows: {
+    source: "Source",
+    print: "Recorded print",
+    boundary: "Boundary",
+    recordTx: "Record tx",
+    fetched: "Fetched",
+    archived: "Archived",
+    bytes: "Signed bytes",
+    sha256: "sha256",
+    signers: "Signers",
+    packageTime: "Package time",
+    priceUpdate: "PriceUpdateV2",
+    verification: "Verification",
+    price: "Price",
+    conf: "Confidence",
+    publishTime: "publish_time",
+    postTx: (i: number, n: number) => (n === 1 ? "Post tx" : `Post tx ${i + 1}/${n}`),
+    closeTx: "Close tx",
+    match: "Settled print",
+  },
+  figure: (source: string) => `${source} print`,
+  receiptTitle: (which: string) => `PRINT PROOF · ${which}`,
+  footer: "Signed at the source · recorded on Solana devnet · archived by Agari",
+  afterT: (ms: number) => `T + ${(ms / 1000).toFixed(1)} s`,
+  bytes: (n: number) => `${n.toLocaleString("en-US")} B`,
+  copied: "copied from the previous Window's close",
+  signerCount: (n: number) => `${n} signer${n === 1 ? "" : "s"}`,
+  noArchive: "no archived bytes for this boundary",
+  attested: "demo data: an operator-attested print, not a market source",
+  redstoneVerified: "in-program, at record",
+  switchboard: "verified in-program at record",
+  full: "Full (every guardian signature)",
+  matches: "exact match",
+  differs: (diff: string) => `off by ${diff} × 10⁻⁸`,
+  state: {
+    none: "not replayed yet",
+    posting: "posting to the devnet receiver…",
+    verified: "verified on devnet",
+    failed: "the last replay failed",
+    closed: "verified on devnet · account closed, rent returned",
+  } satisfies Record<ReplayState | "none", string>,
+  reverify: "Re-verify on devnet",
+  reverifying: "Posting…",
+  replayRefused: {
+    quota: "Replays are rate-limited: try again within the hour.",
+    unavailable: "Replays are unavailable on this deployment. The archived bytes and record tx remain.",
+    failed: "The replay could not start. Please retry.",
+  },
+  crossCheck: "Cross-check",
+  crossCheckBps: (bps: string) => `closing prints agree within ${bps} bps`,
+  singleSource: "single source",
+  noCheck: "no cross-check on this Window's policy",
+  tones: { verified: "good", posting: "warn", failed: "bad", closed: "good", none: "off" } as const,
+} as const;

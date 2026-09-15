@@ -6,6 +6,7 @@ import { formatCadence } from "@agari/core/market";
 import Link from "next/link";
 import { SectionHead } from "@/components/shell";
 import { ErrorState, ReadingBoundary, StaleTick } from "@/components/states";
+import { useMarketSession } from "../markets/session";
 import { useChainNowMs } from "../markets/useChainNow";
 import { useVenue } from "../markets/useVenue";
 import { BookReadout } from "./BookReadout";
@@ -38,6 +39,9 @@ export function SurfaceScreen() {
   const focal = selection.focal;
   const { book, structure, params, fee, openingRaw, spotRaw } = useFocalBook(focal);
   const points = useTermStructure(selection.windows, nowMs);
+  // Regular Windows run only in the NYSE session: off-hours the empty surface says when it opens (proof-analytics.md §2.7).
+  const session = useMarketSession();
+  const empty = session && !session.open ? SURFACE.closed(session.label) : SURFACE.noLive;
   const { sections } = SURFACE;
 
   return (
@@ -56,7 +60,7 @@ export function SurfaceScreen() {
         {SURFACE.intro.rest}
       </p>
 
-      <ReadingBoundary reading={laneReading(selection.reading, boot)} shape="plate" isEmpty={(laneSet) => laneSet.lanes.length === 0} empty={{ why: SURFACE.noLive }}>
+      <ReadingBoundary reading={laneReading(selection.reading, boot)} shape="plate" isEmpty={(laneSet) => laneSet.lanes.length === 0} empty={{ why: empty }}>
         {(_laneSet, meta) => (
           <>
             <SurfaceChips assets={selection.assets} asset={selection.asset} onAsset={selection.setAsset} windows={selection.windows} focalId={focal?.marketId ?? null} onFocal={selection.setFocal} nowMs={nowMs} />

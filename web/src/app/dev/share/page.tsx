@@ -11,7 +11,7 @@ const DEV = {
   intro: "The Call as it appears the instant a bet lands, then both PNG exports — the 1600×900 X banner with the QR stub — rendered from canned records. No wallet, no chain.",
   call: "The Call — on screen, 4:12 left of a 5m Window",
   pngCall: "The Call — the 1600×900 export",
-  pngTrade: "Earned Heat — win, loss, void, close-out, and a payout with no cost on record",
+  pngTrade: "Earned Heat — every outcome × print source: Pyth and RedStone wins and losses, a single-source settle, both void reasons, a close-out, and a payout with no cost on record",
   rendering: "rendering…",
 } as const;
 
@@ -52,13 +52,26 @@ const BASE: TradeCard = {
   settledAtMs: FIXED_NOW_MS - 880_000,
   entryTxHash: TX_HASH,
   settlementTxHash: fixtureSignature(`0x${"1c0ffee5".repeat(8)}`),
+  printSource: "pyth",
+  printSigners: 1,
+  singleSource: false,
+  voidReason: null,
 };
+
+/** NVDA settles on RedStone alone (5 signers); TSLA on Pyth with its RedStone cross-check (proof-analytics.md §2.8). */
+const REDSTONE: TradeCard = { ...BASE, asset: "NVDA", lineRaw: 17_742_000_000n, closeRaw: 17_751_150_000n, printSource: "redstone", printSigners: 5 };
+const LOSS = { outcome: "loss", payoutBase: 0n, pnlBase: -12_000_000n } as const;
+const VOID = { outcome: "void", closeRaw: null, printSource: null, payoutBase: 9_375_000n, pnlBase: -2_625_000n } as const;
 
 const TRADES: TradeCard[] = [
   BASE,
-  { ...BASE, sides: ["down"], outcome: "loss", payoutBase: 0n, pnlBase: -12_000_000n },
-  { ...BASE, outcome: "void", closeRaw: null, payoutBase: 9_375_000n, pnlBase: -2_625_000n },
-  { ...BASE, outcome: "closed", closeRaw: null, payoutBase: 0n, pnlBase: 1_120_000n, settlementTxHash: null },
+  REDSTONE,
+  { ...BASE, sides: ["down"], ...LOSS },
+  { ...REDSTONE, sides: ["down"], ...LOSS },
+  { ...BASE, singleSource: true },
+  { ...BASE, ...VOID, voidReason: "missing-print" },
+  { ...BASE, ...VOID, voidReason: "cross-check-divergence" },
+  { ...BASE, outcome: "closed", closeRaw: null, printSource: null, payoutBase: 0n, pnlBase: 1_120_000n, settlementTxHash: null },
   { ...BASE, stakeBase: null, pnlBase: 18_375_000n, entryTxHash: null },
 ];
 
