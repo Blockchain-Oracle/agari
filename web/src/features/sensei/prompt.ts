@@ -85,7 +85,7 @@ export function senseiTurnContext(request: SenseiRequest, turn: SenseiTurn = {})
     const closed = session != null && session.state !== "halted" && !isSessionOpen(session);
     lines.push(
       closed
-        ? "No Window is live until the open, so there is no Window read to give. Say the market is closed and when it opens."
+        ? "No Window is live until the open. Say the market is closed and when it opens, and offer a Window read at the open instead of a read now."
         : "No live market data was provided this turn. Say so plainly rather than guessing at a read.",
     );
     return lines.join("\n");
