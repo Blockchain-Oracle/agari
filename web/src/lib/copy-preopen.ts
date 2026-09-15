@@ -61,6 +61,16 @@ export const PREOPEN = {
     hint: "post-only · your price",
     aria: (asset: string) => `Schedule a call on this ${asset} Window`,
   },
+  /** The schedule seam on the closed surfaces (the asset hero's foot, the ticket placeholder, the next-Window card). */
+  seam: {
+    cta: "Schedule a call",
+    /** "5m · opens Wed 09:30 ET": which listed Window the call goes on. */
+    which: (cadence: string, opens: string) => `${cadence} · opens ${opens} ET`,
+    /** Nothing is listed yet: the roller lists the next session's first Windows at the close (D-090). */
+    listsAtClose: (clock: string) => `Lists at the close · ${clock} ET`,
+    listsBeforeOpen: (opens: string) => `Lists before the open · ${opens} ET`,
+    aria: (asset: string, cadence: string, opens: string) => `Schedule a call on the ${asset} ${cadence} Window that opens ${opens} ET`,
+  },
   rows: {
     restingForOpen: "Resting for the open",
     resting: "Resting",

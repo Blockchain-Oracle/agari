@@ -9,3 +9,12 @@
 .market-card-pending[data-next] .mc-body {
   padding-bottom: 0;
 }
+/* The schedule seam's line when nothing is listed yet (D-088): the Room strip's slot, in the countdown's mono. */
+.market-card-pending[data-next] .mc-lists {
+  margin: 0 22px 18px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--gray-500);
+}

@@ -56,7 +56,7 @@ export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, on
         <div className="flex flex-col gap-4">
           <LaneTabs lanes={laneSet.lanes} activeKey={activeKey} pinnedMissingKey={state.pinnedMissing ? state.activeKey : null} extraKeys={configured} onPin={state.pin} />
           {state.activeLane !== null && state.activeLane.markets.length > 0 ? null : listsNext(session, activeKey) ? (
-            <NextWindowRail laneKey={activeKey as LaneTabKey} session={session} nowSec={nowSec} ticker={state.ticker} onPick={state.pinTicker} />
+            <NextWindowRail laneKey={activeKey as LaneTabKey} session={session} nowSec={nowSec} ticker={state.ticker} onPick={state.pinTicker} onSelect={onSelect} />
           ) : (
             <BetweenRounds venueId={venueId} basis={activeKey ? laneTabParts(activeKey).basis : "regular"} intervalSec={activeKey ? laneTabParts(activeKey).intervalSec : 0} nowMs={nowMs} session={session} />
           )}
