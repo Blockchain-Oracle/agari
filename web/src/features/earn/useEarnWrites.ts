@@ -24,7 +24,7 @@ export function useEarnWrites() {
 
   const refresh = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
-    await queryClient.invalidateQueries({ queryKey: ["masayume", "makerVault"], exact: false });
+    await queryClient.invalidateQueries({ queryKey: ["agari", "makerVault"], exact: false });
   }, [address, queryClient]);
 
   const run = useCallback(

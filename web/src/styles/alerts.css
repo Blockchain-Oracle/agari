@@ -188,7 +188,7 @@
 }
 
 /* flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white
-   outline-none focus:border-white/30 */
+   outline-none focus:border-white/30 — here focus-visible:outline-none with the `.alerts-input:focus` border as the ring */
 .alerts-input {
   flex: 1 1 0%;
   min-width: 0;
@@ -199,7 +199,6 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--white);
-  outline: none;
   -moz-appearance: textfield;
   appearance: textfield;
 }
@@ -210,6 +209,7 @@
   margin: 0;
 }
 
+.alerts-input:focus-visible { outline: none; }
 .alerts-input:focus {
   border-color: rgba(255, 255, 255, 0.3);
 }

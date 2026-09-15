@@ -1,7 +1,7 @@
 import { SectionHeader } from "@/components/chrome";
 
 const SAMPLES: readonly { utility: string; sample: string; ja?: boolean }[] = [
-  { utility: "type-display", sample: "Masayume" },
+  { utility: "type-display", sample: "Agari" },
   { utility: "type-headline", sample: "The dream that came true" },
   { utility: "type-title", sample: "Will TSLA close above its open?" },
   { utility: "type-body", sample: "Calm, precise, honest. Numbers do the persuading." },

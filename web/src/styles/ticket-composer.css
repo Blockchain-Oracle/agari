@@ -110,7 +110,7 @@
   align-items: center;
   gap: 8px;
 }
-/* min-w-0 flex-1 bg-transparent font-display text-[1.75rem] leading-none font-bold text-white tabular-nums outline-none caret-vermilion */
+/* min-w-0 flex-1 bg-transparent font-display text-[1.75rem] leading-none font-bold text-white tabular-nums outline-none caret-vermilion — here focus-visible:outline-none with a vermilion hairline (inset box-shadow) as the ring, beside the reference's vermilion caret */
 .tk-amount-input {
   min-width: 0;
   flex: 1;
@@ -121,9 +121,9 @@
   font-weight: 700;
   color: var(--white);
   font-variant-numeric: tabular-nums;
-  outline: none;
   caret-color: var(--vermilion);
 }
+.tk-amount-input:focus-visible { outline: none; box-shadow: inset 0 -1px 0 var(--vermilion); }
 /* placeholder:text-white/18 */
 .tk-amount-input::placeholder {
   color: rgba(255, 255, 255, 0.18);

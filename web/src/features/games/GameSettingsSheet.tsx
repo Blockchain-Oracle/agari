@@ -59,10 +59,10 @@ export function GameSettingsSheet() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="gm-settings-title"
-      onClick={close}
       data-reduced-motion={reducedMotion ? "true" : "false"}
     >
-      <div className="du-modal gm-settings-modal" onClick={(event) => event.stopPropagation()}>
+      <button type="button" className="du-modal-scrim" aria-label={GAMES.settings.close} tabIndex={-1} onClick={close} />
+      <div className="du-modal gm-settings-modal">
         <button type="button" className="du-modal-close" onClick={close} aria-label={GAMES.settings.close}>
           ✕
         </button>

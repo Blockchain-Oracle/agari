@@ -46,8 +46,9 @@ export function LuckyResultModal({ open, onClose, row, decimals, symbol, streak 
   const line = won ? words.pays(money(row.quantityRaw), symbol) : lost ? words.lostLine(money(row.costBase), symbol) : row.result === "void" ? words.voidLine : words.cashedLine;
 
   return createPortal(
-    <div className="du-modal-root" role="dialog" aria-modal="true" aria-labelledby="lk-modal-title" onClick={onClose}>
-      <div className={`du-modal${tone}`} onClick={(event) => event.stopPropagation()}>
+    <div className="du-modal-root" role="dialog" aria-modal="true" aria-labelledby="lk-modal-title">
+      <button type="button" className="du-modal-scrim" aria-label={words.close} tabIndex={-1} onClick={onClose} />
+      <div className={`du-modal${tone}`}>
         <button type="button" className="du-modal-close" onClick={onClose} aria-label={words.close}>
           ✕
         </button>

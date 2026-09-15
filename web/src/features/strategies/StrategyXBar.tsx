@@ -7,7 +7,7 @@ import { useXStatus } from "@/features/x/useXStatus";
 import { STRATEGIES } from "./copy";
 import "./strategies.css";
 
-const DISCOVER_URL = `https://x.com/search?q=${encodeURIComponent("masayume strategy copy")}&src=typed_query&f=live`;
+const DISCOVER_URL = `https://x.com/search?q=${encodeURIComponent("agari strategy copy")}&src=typed_query&f=live`;
 
 /** Read the same durable account binding as the X setup flow, even without an OAuth cookie. */
 export function StrategyXBar() {

@@ -6,7 +6,7 @@ import { LinkStep } from "./LinkStep";
 import type { XLink } from "./useXStatus";
 import type { XStatus } from "./protocol";
 
-const status: XStatus = { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: null, handle: "@masayume_app" };
+const status: XStatus = { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: null, handle: "@agari_app" };
 function render(over: Partial<XLink>) {
   const link: XLink = { status, loading: false, busy: "", error: "", ok: "", needsLink: false, walletMismatch: false,
     sessionMatchesBinding: false, refresh: vi.fn(), link: vi.fn(), unlink: vi.fn(), startUrl: () => "/api/x/start?return=%2Ftrade-from-x",
@@ -27,7 +27,7 @@ describe("X account linking availability", () => {
   it("shows a user-facing unavailable state for failed or unconfigured reads without leaking setup names", () => {
     for (const missing of [null, { ...status, configured: false, missing: ["X_API_KEY", "X_API_KEY_SECRET", "X_SESSION_SECRET"] }]) {
       const html = render({ status: missing });
-      expect(html).toContain("temporarily unavailable");
+      expect(html).toContain("not available on this deployment");
       expect(html).not.toMatch(/X_API_KEY|X_SESSION_SECRET|href=/);
     }
   });

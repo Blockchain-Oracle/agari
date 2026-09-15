@@ -22,7 +22,7 @@ const OTHER = fixtureAddress("0x1111111111111111111111111111111111111111");
 const noop = async () => undefined;
 
 function status(over: Partial<XStatus>): XStatus {
-  return { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: EXECUTOR, handle: "@masayume_app", ...over };
+  return { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: EXECUTOR, handle: "@agari_app", ...over };
 }
 
 function link(over: Partial<XLink> & { status: XStatus }): XLink {

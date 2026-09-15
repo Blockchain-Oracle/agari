@@ -30,9 +30,7 @@ coverage/
 
 # local references (clones + symlinks) and time-sensitive price archives
 /reference/
-/data/archive/
-/data/soak/
-/data/*.log
+/data/
 
 # local AI authoring tools and prompts (CLAUDE.md and context/ ARE tracked)
 /.claude/
@@ -58,4 +56,3 @@ web/CLAUDE.md
 # deploy scripts: localnet (Surfpool) addresses are per-machine
 scripts/deploy/addresses.localnet.json
 scripts/drive/last-run.*.json
-/data/18d-directions/

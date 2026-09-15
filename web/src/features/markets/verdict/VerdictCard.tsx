@@ -61,7 +61,7 @@ function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolu
   };
 }
 
-/** Settlement as an unambiguous stamped verdict: 正夢 in vermilion, 逆夢 as a fact, 無効 with its reason — and the receipt to audit it (FR-10). */
+/** Settlement as an unambiguous stamped verdict: 上がり in vermilion, 放銃 as a fact, 無効 with its reason — and the receipt to audit it (FR-10). */
 export function VerdictCard({ verdict, market, resolution, symbol, provenance }: VerdictCardProps) {
   const strings = verdictStrings(verdict.outcome);
   const announced = useAnnounceOnce(verdictAnnouncement(verdict.outcome, `${formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })} ${symbol}`));

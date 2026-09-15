@@ -37,7 +37,7 @@ export const STEPS: readonly Step[] = [
     number: 1,
     title: "Connect & Fund",
     description:
-      "Connect any EVM wallet on Somnia Shannon testnet. Get test funds adds STT to eligible wallets, then asks you to confirm a 10,000 tUSDC mint from the venue’s faucet. STT pays network fees.",
+      "Connect any Solana wallet — Phantom, Solflare, Backpack — on devnet. Get test funds sends a little SOL for fees when your wallet is short, then mints the venue’s test tUSDC to you in one signature. SOL pays network fees.",
     icon: CoinsIcon,
     tone: "mint",
   },
@@ -45,7 +45,7 @@ export const STEPS: readonly Step[] = [
     number: 2,
     title: "Pick a Window",
     description:
-      "Each Window is an asset — BTC or ETH today — on a cadence lane the venue lists: 5m, 15m, 1h, 4h, 1d. The line is the opening print, the oracle's own first price of the round.",
+      "Each Window is a stock — TSLA, NVDA, AAPL and six more — on a cadence lane the venue lists: 5m, 15m and 1h through the session, the overnight Gap, and the 24/7 token lane. The line is the opening print, the signed price recorded at the open of the round.",
     icon: TargetIcon,
     tone: "blue",
   },
@@ -95,7 +95,7 @@ export const MECHANICS: readonly Mechanic[] = [
   {
     title: "On-Chain Settlement",
     description:
-      "Positions are ERC-6909 outcome tokens on Somnia, settled by the DreamDEX contracts with sub-second finality. Every fill, settlement and redemption is a transaction anyone can open.",
+      "Positions are seats on the Window’s ledger, an account the agari-events program owns on Solana. Every fill, settlement and redemption is a transaction anyone can open on the explorer.",
     icon: ShieldIcon,
   },
 ];
@@ -122,7 +122,7 @@ export const FEES: readonly FeeItem[] = [
   },
   {
     title: "Trading Fees",
-    body: "DreamDEX runs at zero maker and taker fees today; the protocol supports them and the venue sets 0. Your only cost of entry is the price you pay per contract.",
+    body: "The venue runs at zero maker and taker fees today; the program supports them and the venue sets 0. Your only cost of entry is the price you pay per contract.",
   },
   {
     title: "Total Cost",
@@ -138,8 +138,8 @@ export interface SettlementStep {
 
 export const SETTLEMENT_STEPS: readonly SettlementStep[] = [
   { step: "1", label: "Window Closes", desc: "The round reaches its scheduled expiry." },
-  { step: "2", label: "Oracle Prints", desc: "The Somnia oracle hub answers the settlement question; its resolution graph is linked from every receipt." },
-  { step: "3", label: "Settlement", desc: "The DreamDEX binary settlement contract compares the close with the opening print and resolves the Window. If no reliable print arrives inside the settlement window, anyone can void it." },
+  { step: "2", label: "Oracle Prints", desc: "A signed price from RedStone or Pyth is recorded on the Window at the close; the print and its signatures are linked from every receipt." },
+  { step: "3", label: "Settlement", desc: "The agari-events program compares the close with the opening print and resolves the Window. If no reliable print lands inside the settlement window, anyone can void it." },
   { step: "4", label: "Payout", desc: "Winning contracts redeem for 1 tUSDC less the settlement fee. Redemption is a contract call you make — on the Window's result, or everything at once from Portfolio." },
 ];
 
@@ -152,17 +152,17 @@ export interface ArchitectureCard {
 export const ARCHITECTURE: readonly ArchitectureCard[] = [
   {
     title: "Transparent Positions",
-    body: "Your side and size are ERC-6909 outcome tokens on Somnia — one shared token contract, one id per side of each Window. Every position is verifiable in the explorer.",
+    body: "Your side and size are a seat on the Window’s ledger — one account per Window, one seat per wallet, each side’s contracts counted on it. Every position is verifiable on the explorer.",
     icon: EyeOffIcon,
   },
   {
     title: "Instant Finality",
-    body: "Somnia confirms in under a second, so a fill is final almost as soon as you sign, and settlement lands the moment the oracle prints.",
+    body: "Solana confirms in about a second, so a fill is final almost as soon as you sign, and settlement lands the moment the print is recorded.",
     icon: LockIcon,
   },
   {
-    title: "Smart-Contract Settlement",
-    body: "The DreamDEX contracts hold the collateral, resolve the Window from the oracle's answer and pay redemptions. No middleman, and permissionless backstops so funds can never strand.",
+    title: "Program Settlement",
+    body: "The agari-events program holds the collateral, resolves the Window from the recorded print and pays redemptions. No middleman, and permissionless cranks so funds can never strand.",
     icon: ShieldIcon,
   },
 ];
@@ -174,12 +174,12 @@ export interface Faq {
 
 export const FAQS: readonly Faq[] = [
   {
-    question: "What currency does Masayume use?",
-    answer: "tUSDC, the test collateral DreamDEX Event Contracts use on Somnia Shannon. Choose Get test funds from the header or Portfolio. Eligible wallets receive STT for gas first, then you confirm the tUSDC mint. External STT faucets are available if needed.",
+    question: "What currency does Agari use?",
+    answer: "tUSDC, the test collateral the venue mints on Solana devnet. Choose Get test funds from the header or Portfolio: eligible wallets receive a little SOL for fees first, then the tUSDC mint. External SOL faucets are available if needed.",
   },
   {
     question: "How is the outcome decided?",
-    answer: "When the Window closes, the Somnia oracle prints the closing price. Close at or above the opening print and UP wins; below it and DOWN wins. The contract does the comparison; the oracle's resolution graph is linked from the receipt.",
+    answer: "When the Window closes, a signed price print is recorded on it. Close at or above the opening print and UP wins; below it and DOWN wins. The program does the comparison; the print and its signatures are linked from the receipt.",
   },
   {
     question: "How much do I win?",
@@ -187,15 +187,15 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "What wallet do I need?",
-    answer: "Any EVM wallet. The connect dialog offers your browser wallet, Rabby and Brave, plus MetaMask, Rainbow and WalletConnect where a WalletConnect project is configured. Masayume never holds a key.",
+    answer: "Any Solana wallet that speaks the Wallet Standard — Phantom, Solflare, Backpack and the rest. Agari never holds a key.",
   },
   {
     question: "Is this real money?",
-    answer: "No. Masayume runs on Somnia Shannon testnet with tUSDC from a faucet. Nothing here is worth anything off the testnet.",
+    answer: "No. Agari runs on Solana devnet with tUSDC from a faucet. Nothing here is worth anything off devnet.",
   },
   {
-    question: "How does Masayume ensure fair pricing?",
-    answer: "It doesn't set prices at all. Every quote is read off DreamDEX's open on-chain order book for your exact size, and orders go in immediate-or-cancel at a protective limit, so a fill can never cost more than the quote you confirmed.",
+    question: "How does Agari ensure fair pricing?",
+    answer: "It doesn't set prices at all. Every quote is read off the venue's open on-chain order book for your exact size, and orders go in immediate-or-cancel at a protective limit, so a fill can never cost more than the quote you confirmed.",
   },
   {
     question: "Can I sell a position before settlement?",
