@@ -31,7 +31,7 @@ export function ProfileCalls({ address, units }: { address: Address; units: Mone
   const positions = usePositions(address);
   const queryClient = useQueryClient();
   const takes = useQuery({
-    queryKey: ["masayume", "takes", "authors", address],
+    queryKey: ["agari", "takes", "authors", address],
     queryFn: ({ signal }) => readTakes(address, signal),
     staleTime: TAKES_STALE_MS,
   });

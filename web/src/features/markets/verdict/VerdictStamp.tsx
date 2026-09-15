@@ -8,7 +8,7 @@ interface VerdictStampProps {
   className?: string;
 }
 
-/** Color law: vermilion belongs to 正夢 alone; a loss is printed in neutral ink, a void in muted ink. */
+/** Color law: vermilion belongs to 上がり alone; a loss is printed in neutral ink, a void in muted ink. */
 const STAMP_INK: Record<VerdictOutcome, string> = {
   win: "text-(--verdict-stamp-win-ink)",
   loss: "text-(--verdict-stamp-loss-ink)",

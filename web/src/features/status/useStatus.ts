@@ -6,7 +6,7 @@ import { statusPayloadSchema, type StatusPayload } from "./protocol";
 
 /** The reference re-checks every 30 s (`app/status/page.tsx` L28). */
 const POLL_MS = 30_000;
-export const STATUS_KEY = ["masayume", "status"] as const;
+export const STATUS_KEY = ["agari", "status"] as const;
 
 async function readStatus(): Promise<Reading<StatusPayload>> {
   const response = await fetch("/api/status", { cache: "no-store" });

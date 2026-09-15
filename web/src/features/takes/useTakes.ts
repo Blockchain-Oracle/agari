@@ -10,7 +10,7 @@ import { TAKES_FEED_LIMIT, takeMessage, type FeedTake, type TakesFeed } from "./
 
 /** The reference polls its takes every 20 s (`app/reels/page.tsx` L272). */
 const POLL_MS = 20_000;
-const KEY = ["masayume", "takes"] as const;
+const KEY = ["agari", "takes"] as const;
 
 /** Masayume's key, with the ticker appended when the feed is one ticker's (social-assistant.md §4). */
 export const takesKey = (symbol?: TickerSymbol) => (symbol ? ([...KEY, symbol] as const) : KEY);

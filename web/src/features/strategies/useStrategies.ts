@@ -11,9 +11,9 @@ import { healthPayloadSchema, strategiesPayloadSchema, type HealthPayload, type 
 
 const POLL_MS = 30_000;
 const HEALTH_POLL_MS = 60_000;
-export const STRATEGIES_KEY = ["masayume", "strategies"] as const;
-export const strategyHealthKey = (ids: string) => ["masayume", "strategies", "health", ids] as const;
-export const subscriptionsKey = (wallet: string | null) => ["masayume", "strategies", "subscriptions", wallet] as const;
+export const STRATEGIES_KEY = ["agari", "strategies"] as const;
+export const strategyHealthKey = (ids: string) => ["agari", "strategies", "health", ids] as const;
+export const subscriptionsKey = (wallet: string | null) => ["agari", "strategies", "subscriptions", wallet] as const;
 
 async function readStrategies(): Promise<Reading<StrategiesPayload>> {
   const response = await fetch("/api/strategies", { cache: "no-store" });

@@ -23,7 +23,7 @@ export interface VaultOpenBet {
 
 const SETTLED: ReadonlySet<IndexedStatus> = new Set<IndexedStatus>(["Resolved", "Voided", "Finalized"]);
 
-export const vaultOpenBetsKey = (wallet: string | null) => ["masayume", "vault-open-bets", wallet] as const;
+export const vaultOpenBetsKey = (wallet: string | null) => ["agari", "vault-open-bets", wallet] as const;
 
 export async function listVaultOpenBets(wallet: Address): Promise<Reading<VaultOpenBet[]>> {
   return withReading(`vault-open-bets:${wallet}`, async (inner) => {

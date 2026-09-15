@@ -3,7 +3,10 @@
 import { ChevronUpIcon, FeatherIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
+import { sessionPhrase } from "@agari/core/copy";
+import { marketsProvider } from "@agari/markets";
 import { REELS } from "@/lib/copy";
+import { SESSION_COPY } from "@/lib/copy-session";
 import { useChainNowMs } from "../useChainNow";
 import { useLanesState } from "../lanes";
 import { useMarketSession } from "../session";
@@ -50,8 +53,8 @@ export function ReelsScreen() {
   const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? []), [rounds, feed]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.
-  const closedLabel = session && !session.open ? session.label : null;
-  const leading = closedLabel !== null && reel.length > 0 ? 1 : 0;
+  const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(sessionPhrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
+  const leading = closedLine !== null && reel.length > 0 ? 1 : 0;
   const { register, isNear, activeIndex } = useActiveReel(scrollRef, reel.length);
   useReelPosition(scrollRef, reel, activeIndex, leading);
   const minuteMs = Math.floor(nowMs / MINUTE_MS) * MINUTE_MS;
@@ -74,10 +77,10 @@ export function ReelsScreen() {
         ) : venue.venueId === null ? (
           <ReelHolding>{REELS.noVenue}</ReelHolding>
         ) : !hasReel ? (
-          <ReelHolding>{closedLabel !== null ? REELS.closed(closedLabel) : REELS.betweenRounds}</ReelHolding>
+          <ReelHolding>{closedLine ?? REELS.betweenRounds}</ReelHolding>
         ) : (
           <>
-            {closedLabel !== null && <ReelHolding>{REELS.closed(closedLabel)}</ReelHolding>}
+            {closedLine !== null && <ReelHolding>{closedLine}</ReelHolding>}
             {reel.map((item, index) =>
               item.kind === "market" ? (
                 <section key={item.market.marketId} ref={register(index)} className="feed-card reel-slot">
@@ -106,7 +109,7 @@ export function ReelsScreen() {
               swipe sees one market and assumes that is the whole app. */}
           <div aria-hidden className="reel-hint" data-scrolled={scrolled}>
             <ChevronUpIcon size={20} strokeWidth={3} className="reel-hint-arrow" />
-            <span className="reel-hint-pill">{closedLabel !== null ? REELS.swipeTakes : REELS.swipeHint}</span>
+            <span className="reel-hint-pill">{closedLine !== null ? REELS.swipeTakes : REELS.swipeHint}</span>
           </div>
         </>
       )}

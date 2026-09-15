@@ -12,8 +12,8 @@ const VOID_WORD: Record<VoidReason, string> = { "missing-print": "VOID · MISSIN
  */
 const BRAND = {
   brand: "AGARI",
-  site: "masayume.app",
-  siteUrl: "https://masayume.app",
+  site: (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://agari.app").replace(/^https?:\/\//, ""),
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://agari.app",
   handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "@agari_app",
 } as const;
 

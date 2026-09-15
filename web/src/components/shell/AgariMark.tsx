@@ -1,8 +1,8 @@
-// The Masayume mark: 正夢 — "the dream that comes true".
+// The Agari mark: 上がり — "the rise", the hand that comes in.
 //
 // A crescent (the dream) opening upward into a single vermilion point (the call that
 // landed). Identity is the one thing that is ours rather than the reference's, so the
-// glyph is Masayume's own — but it keeps the reference's drawing grammar exactly: the
+// glyph is Agari's own — but it keeps the reference's drawing grammar exactly: the
 // same 266×322 footprint the shell CSS sizes against, rounded caps, confident stroke
 // weights, figure on currentColor so it is cream on ink and ink on cream, and exactly
 // one vermilion accent.

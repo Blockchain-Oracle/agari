@@ -7,7 +7,7 @@ import { newsPayloadSchema, type Article } from "./protocol";
 
 /** The reference refreshes the wire every minute (`NewsFeed.tsx` L65). */
 const POLL_MS = 60_000;
-export const NEWS_KEY = ["masayume", "news"] as const;
+export const NEWS_KEY = ["agari", "news"] as const;
 
 /** Masayume's key, with the ticker appended when the wire is narrowed to one (spec §4). */
 export const newsKey = (symbol: TickerSymbol | null) => (symbol ? ([...NEWS_KEY, symbol] as const) : NEWS_KEY);

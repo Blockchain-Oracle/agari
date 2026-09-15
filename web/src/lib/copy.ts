@@ -229,8 +229,6 @@ export const REELS = {
   down: "DOWN",
   reading: "reading the market…",
   betweenRounds: "between rounds. a new one rolls on the next cadence.",
-  /** Outside regular hours no stock Window runs at all; the session label says when that changes. */
-  closed: (label: string) => `the stock market is closed · ${label}.`,
   noVenue: "no live venue to read right now.",
   swipeHint: "Swipe up for the next market",
   /** Off-hours the reel below the closed card is takes alone. */

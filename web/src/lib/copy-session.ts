@@ -3,7 +3,11 @@
  * `copy.ts` for the 400-line rule; the session word and phrase themselves come from core `session-words.ts`, so a
  * surface only ever adds the sentence around them.
  */
+/** The one closed-market sentence (D-083): the session phrase, then when Windows return. Lanes and the reel share it. */
+const sessionClosedLine = (phrase: string) => `${phrase}. Regular Windows roll from the open.`;
+
 export const SESSION_COPY = {
+  sessionClosedLine,
   hero: {
     /** The question slot's label under the last price: "Last close · as of 16:00 ET". */
     lastClose: "Last close",
@@ -37,7 +41,7 @@ export const SESSION_COPY = {
     lastClose: (price: string, clock: string) => `Last close ${price} · ${clock} ET`,
   },
   lanes: {
-    closed: (phrase: string) => `${phrase}. Regular Windows roll from the open.`,
+    closed: sessionClosedLine,
   },
   board: {
     closed: (phrase: string) => `${phrase}. The questions return with the first Window of the session.`,
