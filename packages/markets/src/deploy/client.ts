@@ -25,6 +25,8 @@ export type DeployClientConfig = {
   payerSecret: Uint8Array;
   /** The pacing lane (`rpc-transport.ts`); price-relay uses `priority`. */
   rpcLane?: RpcLane;
+  /** Send without preflight, so a transaction the program refuses still lands as a failed one (drive evidence only). */
+  skipPreflight?: boolean;
 };
 
 export async function keypairSigner(secret: Uint8Array): Promise<KeyPairSigner> {
@@ -53,7 +55,7 @@ export async function createDeployClient(config: DeployClientConfig) {
     .use(rpcGetMinimumBalance())
     .use(rpcTransactionPlanner())
     .use(rpcTransactionPlanSigningExecutor())
-    .use(rpcTransactionPlanSendingExecutor())
+    .use(rpcTransactionPlanSendingExecutor({ skipPreflight: config.skipPreflight ?? false }))
     .use(systemProgram())
     .use(tokenProgram())
     .use(agariEventsProgram());
