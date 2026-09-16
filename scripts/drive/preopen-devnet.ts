@@ -24,15 +24,18 @@ import { costOf, openDrive, phases, userSession, type Drive } from "./first-call
 const STOP_REASON = ["Filled", "NoCross", "FillCap", "SkipCap", "PostOnlyRested"] as const;
 const USER_LAMPORTS = 20_000_000n;
 const USER_TUSDC = 2_000_000n;
-const PRE_OPEN_CENTS = 55;
-const FAR_CENTS = 20;
-const TAKER_TICKS = 600;
+const PRE_OPEN_CENTS = Number(arg("--pre-open-cents", "55"));
+const FAR_CENTS = Number(arg("--far-cents", "20"));
+const TAKER_TICKS = Number(arg("--taker-ticks", "600"));
 
 const dryRun = flag("--dry-run");
 const scratch = resolve(arg("--scratch", ""));
 if (!arg("--scratch", "") || scratch.startsWith(resolve("."))) throw new Error("--scratch must name a directory outside the repo (the users' keys go there)");
 const seriesKey = arg("--series", "TSLA-5m");
 const index = BigInt(arg("--index", "64"));
+/** Which of the three actions to run: `all` (default), `pre-open`, `far` or `taker`. The expiry drive rests one far call alone. */
+const only = arg("--only", "all");
+if (!["all", "pre-open", "far", "taker"].includes(only)) throw new Error(`--only must be all, pre-open, far or taker, got ${only}`);
 const { rpcUrl, rpcSubscriptionsUrl: wsUrl, label } = endpoints("devnet");
 const iso = (sec: number | bigint) => new Date(Number(sec) * 1000).toISOString();
 const link = (sig: string) => `https://explorer.solana.com/tx/${sig}?cluster=devnet`;
@@ -112,7 +115,8 @@ async function main() {
     return decoded?.events.find((e) => e.name === "OrderExecuted")?.data ?? null;
   }
 
-  for (const [step, user, cents] of [["pre-open call", users[0]!, PRE_OPEN_CENTS], ["far call", users[1]!, FAR_CENTS]] as const) {
+  const calls = ([["pre-open call", users[0]!, PRE_OPEN_CENTS], ["far call", users[1]!, FAR_CENTS]] as const).filter(([step]) => only === "all" || step.startsWith(only));
+  for (const [step, user, cents] of calls) {
     await d.clock.sync();
     const session = await userSession(d, { ...user, signer: await keypairSigner(user.secret) } as never, `${scratch}/preopen-${user.label}-journal.json`);
     const quote = quoteAt(cents);
@@ -128,6 +132,7 @@ async function main() {
 
   // (c) The order lane refuses a taker on a Listed Window before signing, so the refusal is built directly and sent
   // without preflight: the program, not the client, answers.
+  if (only === "all" || only === "taker") {
   const taker = users[2]!;
   const takerClient = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl: wsUrl, payerSecret: taker.secret, skipPreflight: true });
   const opened: OpenedWindow = { ...w, book: account.data.book as never, mint: d.mint as never, tradingStartSec: tradingStart, expirySec: lockAt, policyVersion: account.data.policyVersion, signature: "" };
@@ -151,6 +156,7 @@ async function main() {
     }
   }
   results["pre-open taker"] = refusal;
+  }
   writeFileSync(`${scratch}/preopen-evidence.json`, `${JSON.stringify({ ...results, evidence: d.evidence }, jsonSafe, 2)}\n`);
   console.log(`evidence → ${scratch}/preopen-evidence.json`);
 }
