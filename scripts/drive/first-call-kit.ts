@@ -8,10 +8,14 @@ import {
   readTokenBalance, solana, type IntentStore, type JournalRecord, type WriteRpc,
 } from "@agari/markets";
 import { chainNowSec, createDeployClient, fundUser, keypairSigner, type SendContext, type StepLog, type VenueRecord } from "@agari/markets/deploy";
+import { createOpsClient } from "@agari/markets/ops";
+import { lamportsOf, transferSol } from "@agari/markets/ops/roller";
 import type { EventMarket, PhaseListener, Quote, Side } from "@agari/core";
 import { ensureRole } from "../deploy/roles.mjs";
 
-export type DriveOptions = { cluster: "localnet" | "devnet"; rpcUrl: string; wsUrl: string; scratch: string };
+/** `solSource` funds throwaway users: the `sol-faucet` role (the devnet default, because `requestAirdrop` is unreliable
+ * there) or the cluster airdrop (Surfpool). */
+export type DriveOptions = { cluster: "localnet" | "devnet"; rpcUrl: string; wsUrl: string; scratch: string; solSource?: "airdrop" | "sol-faucet" };
 
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, "utf8")) as T;
 const secretOf = (role: string) => Uint8Array.from(readJson<number[]>(ensureRole(role).path));
@@ -22,7 +26,7 @@ export type User = { label: string; secret: Uint8Array; address: string; signer:
 export type Evidence = StepLog & { atSec: number; detail?: unknown };
 
 /** Everything both flows share: the operator client, the markets runtime on the same endpoint, a chain clock, users. */
-export async function openDrive({ cluster, rpcUrl, wsUrl, scratch }: DriveOptions) {
+export async function openDrive({ cluster, rpcUrl, wsUrl, scratch, solSource }: DriveOptions) {
   configureMarkets(parseMarketsEnv({ cluster, rpcHttpUrls: rpcUrl, rpcWsUrls: wsUrl }));
   const evidence: Evidence[] = [];
   const log = (entry: StepLog & { detail?: unknown }) => {
@@ -43,14 +47,24 @@ export async function openDrive({ cluster, rpcUrl, wsUrl, scratch }: DriveOption
   };
   await clock.sync();
 
+  const fundSol = solSource ?? (cluster === "devnet" ? "sol-faucet" : "airdrop");
+  let faucet: Awaited<ReturnType<typeof createOpsClient>> | null = null;
+
   async function newUser(label: string, lamports: bigint, tusdcBase: bigint): Promise<User> {
     const { privateKey } = generateKeyPairSync("ed25519");
     const jwk = privateKey.export({ format: "jwk" });
     const secret = Uint8Array.from([...Buffer.from(jwk.d!, "base64url"), ...Buffer.from(jwk.x!, "base64url")]);
     const signer = await keypairSigner(secret);
-    // Surfpool airdrops at once. On devnet the public airdrop stands in until the stage owner wires lane 4c's SOL top-up.
-    await solana().rpc.requestAirdrop(signer.address, lamports as never).send();
-    if (cluster === "devnet") await waitForLamports(signer.address, lamports);
+    if (fundSol === "sol-faucet") {
+      // Devnet's public airdrop is unreliable, so lane 4c's `sol-faucet` role pays the user's fees, as preopen-devnet does.
+      faucet ??= await createOpsClient({ rpcUrl, rpcSubscriptionsUrl: wsUrl, payerSecret: secretOf("sol-faucet") });
+      const have = await lamportsOf(faucet, signer.address);
+      if (have < lamports) log({ step: `fund SOL ${label}`, signature: await transferSol(faucet, signer.address, lamports - have), note: `${lamports - have} lamports sol-faucet → ${signer.address}` });
+    } else {
+      // Surfpool airdrops at once.
+      await solana().rpc.requestAirdrop(signer.address, lamports as never).send();
+      if (cluster === "devnet") await waitForLamports(signer.address, lamports);
+    }
     const token = await fundUser(ctx, { faucet: await keypairSigner(secretOf("faucet-mint-authority")), mint: config.data.collateralMint, owner: signer.address, amount: tusdcBase });
     return { label, secret, address: keypairAddress(secret), signer, token };
   }
