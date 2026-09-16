@@ -25,6 +25,21 @@
 
 ## Gate
 
+### Wednesday 2026-09-16 re-measure (session 13:30–20:00Z) — **S3 gate NOT passed**
+
+Four criteria pass on a clean session with no actor failure; two fail, and the 09-15 attribution of the lag failure (reboot + DNS outage) was **wrong**.
+
+1. **Indexer lag < 10 s — FAIL.** The logged `lag X s` is unusable: `lastLagSec` is written only when a transaction arrives through the live WebSocket subscription (`indexer/subscribe.ts`), and the devnet subscription has been dropping since 09-16 05:52Z (3,691 reconnects this session), so all 1,003 logged samples read a frozen **1.5 s**. Measured from the index itself (`idx_txs.indexed_at_ms − block_time_sec`): **n 10,367, p50 7.03 s, p95 13.32 s, max 159.61 s, 1,703 (16.4%) over 10 s**.
+   - It tracks **throughput, not the WebSocket**: Tue session (subscription healthy) n 5,600, p50 1.63, p95 12.52, max 946.83, 408 over; Wed 00:00–05:50Z (healthy) n 3,273, p50 3.10, p95 8.04; Wed 05:50–13:30Z (broken, quiet) n 383, p50 4.95, p95 **7.70**, max 12.07 — the quiet window with a broken subscription is the best of the four.
+   - Mechanism: the soak throttles the indexer to `INDEXER_RPS=2` (in `run.sh` and in the running process), and it walked **5,776 signatures in 1,003 passes** (mean 5.8) while the session produced 10,367 transactions. Under session load the walk rate, not the chain, sets the lag. A tuning choice, not venue logic.
+2. **RedStone boundaries archived within 60 s — FAIL at the tail, PASS on coverage.** 546 rows = 7 feeds × **78/78 boundaries**, no gaps. **518 (94.9%) within 60 s**, 503 within 20 s. Late: exactly four boundaries — 18:10Z (92 s), 18:25Z (89 s), 19:30Z (105 s), 19:45Z (82 s) — 7 rows each, the delay identical per boundary because all feeds archive in one pass. Mechanism: the archiver polls on a **60 s cadence** (`[archive] …` lines exactly 60 s apart, each reporting `missing RedStone 1`), so a boundary whose packages are not ready on the first pass lands on the next, 60–120 s out. Pyth shows the same 105 s worst case.
+3. **Zero Window overlaps — PASS** (0 overlapping spans among the session's Windows).
+4. **Every Window terminal — PASS** (988 resolved, 2 voided, 0 left open).
+5. **No actor failure in the window — PASS** (0 `failed to start`, 0 `ops exited`, 0 stuck passes).
+6. **Prints match `price-sources.json`, TSLA cross-check, zero leftover `PriceUpdateV2`, post-trial dry run — PASS** (unchanged from the 09-15 measure, bcfc7ec).
+
+**To close:** raise `INDEXER_RPS` or batch the walk until p95 < 10 s at ~10k tx/session, and either shorten the archiver cadence or restate the bound as "within two poll cycles". Both are ops tuning. `main` stays blocked while S3 is open (the S1–S4 gate rule).
+
 **S3 gate not passed (evidence run 2026-09-15 22:30Z–23:30Z).** Three items fail:
 
 1. RedStone archive within 60 s: 322 of 553 rows. Every row was archived, but 33 of 79 boundaries were backfilled late during outages.
