@@ -1052,6 +1052,14 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** an outage in one actor stops the venue rolling until someone notices; the checks cap that at an hour.
 - **Approval:** stage owner.
 
+### D-099 — A quote-source outage must not be able to deadlock a token lane
+- **Date / owner:** 2026-09-16 · S18/S6 owner
+- **Evidence:** Switchboard's gateway has returned `Gateway.fetchSignaturesConsensus failed (status 500, ERR_BAD_RESPONSE)` since 05:50:16Z; a read-only `fetchTokenQuote` probe still got 500 in 3.3 s at 14:36Z. `QUOTE_FAILURES_TO_HALT = 3` flagged every xStock `quote-unavailable` at 05:50:59Z (`confirmPasses = 2`), pausing all 12 token lanes. Clearing requires `tokenHaltReason` to return null → streak < 3 → `recordQuoteResult(..., true)`, which only the relay's Switchboard pass calls, and only for a due print slot on a live token Window. The roller opens none while halted, so after the last Windows expired at 11:51Z no quote was ever attempted again: 529 minutes halted, 0 token Windows open, and the lane would stay paused even after the upstream recovered. Regular lanes were unaffected throughout (today 150 resolved / 2 voided, against the token lanes' 54 / 302).
+- **Rule:** the halt must be able to clear without a successful print quote. Either halt-watch ages an untested streak out (no quote attempted for N minutes → treat as unknown, not halted), or the relay probes the quote source on a timer while a lane is halted and reports the result through `recordQuoteResult`. Recorded, not built before the Friday deadline. **Operationally until then:** a halted token lane is cleared by an ops restart (the streaks are in-process), but **only after the upstream recovers** — restarting during the outage reopens Windows that void on missing prints within minutes and burns roller float for nothing. Cost of the restart: one `pkill -f 'src/main.ts'`, the supervisor relaunches with the same env; no code or config change.
+- **Also recorded:** the `xstock-spot` Jupiter timeouts are a separate, cosmetic fault and did **not** cause this halt (an earlier STATUS note wrongly said so). That poller feeds the chart, the token maker's reference and the opt-in attested fallback, and never settles anything; it polls the keyless lite endpoint (0.5 RPS) every 5 s with a 5 s abort. Fix: set `JUPITER_API_KEY` in the ops env or slow the poll to match the keyless rate.
+- **User-visible:** token markets stop listing during a quote outage and say so, instead of listing Windows that would void.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
