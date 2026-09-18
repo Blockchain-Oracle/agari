@@ -32,6 +32,8 @@ export interface PreStocksRead {
   tokens: Map<string, PreStocksToken>;
   /** The wall second the body arrived. The catalogue carries no timestamp, so the reader stamps its own. */
   fetchedAtSec: number;
+  /** The `age` an intermediary cache claimed for the body, in seconds, when it sent one. `null` means it did not. */
+  ageSec: number | null;
 }
 
 const PRICE_KEYS = new Set(["markPrice", "tokenPrice"]);
@@ -47,6 +49,9 @@ export function parsePreStocks(text: string): Map<string, PreStocksToken> {
     const { symbol, name, contract_address: mint, markPrice, tokenPrice } = row;
     if (typeof symbol !== "string" || typeof mint !== "string") continue;
     if (typeof markPrice !== "string" || typeof tokenPrice !== "string") continue;
+    // Two rows for one symbol (an SPV re-issue, a migrated mint, a staging row) must not silently resolve to whichever
+    // came last: that is how a lane ends up printing a different instrument than the one it opened on.
+    if (out.has(symbol)) throw new Error(`the PreStocks catalogue carries ${symbol} twice`);
     try {
       out.set(symbol, {
         symbol,
@@ -65,11 +70,16 @@ export function parsePreStocks(text: string): Map<string, PreStocksToken> {
 /** One catalogue read. Throws on a non-200, a timeout or a body that prices nothing; the caller decides what a miss means. */
 export async function fetchPreStocks(options: { url?: string; timeoutMs?: number; fetchImpl?: typeof fetch } = {}): Promise<PreStocksRead> {
   const { url = PRESTOCKS_CATALOGUE_URL, timeoutMs = 5_000, fetchImpl = fetch } = options;
-  const response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs), headers: { accept: "application/json" } });
+  // A cache-buster and a no-cache request: a cached body would be stamped with a fresh read time, which is how a frozen
+  // feed settles a Window on two identical prices with nothing reporting a failure.
+  const bust = `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`;
+  const headers = { accept: "application/json", "cache-control": "no-cache" };
+  const response = await fetchImpl(bust, { signal: AbortSignal.timeout(timeoutMs), headers });
   if (!response.ok) throw new Error(`PreStocks ${url} answered ${response.status}`);
   const tokens = parsePreStocks(await response.text());
   if (tokens.size === 0) throw new Error("the PreStocks catalogue priced nothing");
-  return { tokens, fetchedAtSec: Math.floor(Date.now() / 1000) };
+  const age = Number(response.headers.get("age"));
+  return { tokens, fetchedAtSec: Math.floor(Date.now() / 1000), ageSec: Number.isFinite(age) && response.headers.get("age") !== null ? age : null };
 }
 
 /** The one row a lane is about, or a thrown error naming what the catalogue did carry. */
