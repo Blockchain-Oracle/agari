@@ -5,7 +5,7 @@
 import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstructionDataArgs } from "@agari/clients/agari-events";
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@solana/kit";
-import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, type PolicyVersionArgs, type PriceSources } from "./policies";
+import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
 
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
 export const COLLATERAL_DECIMALS = 6;
@@ -99,5 +99,41 @@ export function s2Authorities(keys: AuthorityKeys, sources: PriceSources): Admin
     switchboardMinOracles: 0,
     programAuthorities: pad([], 8),
     resultRetentionSec: RESULT_RETENTION_SEC,
+  };
+}
+
+/** The Pre-IPO lane's drive tickers (900–902 are the other drives); one id per PreStocks symbol. */
+export const PRESTOCKS_TICKER_BASE = 910;
+/** `prestocks-v1:OPENAI` is 19 B of the 32. The attestor signs this id, so it names the source and its version. */
+export const preStocksFeedId = (symbol: string) => asciiFeedId(`prestocks-v1:${symbol}`);
+
+/**
+ * A PreStocks Pre-IPO Series (D-100): attested primary, no cross-check, 60 s bars, a 10 s correction delay and 15 min
+ * to land each print. The missing check is the point — no second venue publishes a pre-IPO mark, so a check source
+ * would void every Window (D-101). `validate_policy_version` admits `Source::None` only when the check is the zero
+ * policy and divergence is zero, which is exactly this shape. The attestor's signature over the 158 B message is the
+ * whole guarantee, and the README says so. One 256-node Book.
+ */
+export function preStocksSeries(symbol: string, ticker: number, cadenceSec = 300): SeriesSpec {
+  const primary = {
+    ...ZERO_POLICY,
+    source: SOURCE.attested,
+    feedId: preStocksFeedId(symbol),
+    minDelaySec: 10,
+    barLenSec: 60,
+    openAdmissionSec: 900,
+    closeAdmissionSec: 900,
+  };
+  return {
+    key: `PRE-${symbol}-${cadenceSec / 60}m`,
+    // The chain stores the numeric `ticker`; this label never leaves the deploy record. A PreStocks name is
+    // deliberately absent from `TICKERS` (no NYSE clock, no price-source version), so it is cast, not added there.
+    symbol: symbol as TickerSymbol,
+    ticker,
+    cadenceSec,
+    basis: BASIS.regular,
+    params: LAUNCH_GRID,
+    versions: [{ validFromTs: 0n, validUntilTs: I64_MAX, primary, check: ZERO_POLICY, maxDivergenceBps: 0, checkAdmissionSec: 0 }],
+    books: { count: 1, capacity: 256 },
   };
 }

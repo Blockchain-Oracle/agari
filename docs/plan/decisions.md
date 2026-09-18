@@ -1045,6 +1045,20 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** no placeholder video, ever.
 - **Approval:** stage owner.
 
+### D-100 — The PreStocks bounty track is a Pre-IPO lane on the attested print path, not a new program
+- **Date / owner:** 2026-09-18 · S18 owner
+- **Evidence:** the venue already deploys `public_record_print_attested` with `config.attestors` carrying the price-attestor `BCK1izTw…`; PreStocks publishes a keyless catalogue of eight pre-IPO tokens with a `markPrice` (the SPV's valuation) and a `tokenPrice` (what the token trades at on Solana).
+- **Rule:** the Pre-IPO lane is a Series like any other — `SOURCE.attested`, 60 s bars, a 10 s correction delay — so PreStocks support costs a configuration change and two files, no program change and no redeploy. The lane prints `tokenPrice`, the only price a holder can realise; `markPrice` rides along for the UI. Agari does not trade the PreStocks token: it runs Up/Down markets **on** its price, which is what a prediction venue can honestly offer against a pre-IPO name.
+- **User-visible:** OPENAI first. Any of the eight can be listed by ticker id without touching the program.
+- **Approval:** stage owner, on the user's choice of the PreStocks + Pyth lanes.
+
+### D-101 — The Pre-IPO lane runs attested-primary with no cross-check, and says so
+- **Date / owner:** 2026-09-18 · S18 owner
+- **Evidence:** every other lane carries a second source (Pyth ↔ RedStone, Switchboard) and voids on divergence. No second venue publishes a pre-IPO mark for OpenAI, so a check source would void every Window. `validate_policy_version` (policy_rules.rs §4) admits `Source::None` **only** when the check policy is the zero default and `max_divergence_bps` is 0 — the shape this lane uses.
+- **Rule:** what a Pre-IPO settlement trusts is the venue's own ed25519 signature over the 158 B `agari-print-v1` message, not PreStocks. The README and the lane's UI must say that plainly rather than implying oracle-grade redundancy the lane does not have. A single-source lane is honest; a single-source lane pretending to be checked is not.
+- **User-visible:** the Pre-IPO lane is labelled single-source and attested by Agari.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

@@ -4,9 +4,20 @@ Updated **2026-09-15**. This is a preparation checklist, not a submission record
 
 ## Deadline and requirements
 
-Per `docs/plan/00-plan.md` §0 (Context): the Stocklana hackathon runs a **$100k prize, one main track, no bounty tracks, no required SDK**. Submissions close **Fri 2026-09-18, 16:00 ET**; judging runs to **2026-10-02**. Judges ask four things: **a real user and problem, a working end-to-end demo, why Solana, and execution quality**.
+Per `docs/plan/00-plan.md` §0 (Context): the Stocklana hackathon runs a **$100k prize, one main track, no required SDK**. **Amended 2026-09-18:** the organisers added five sponsor bounty tracks (PreStocks $10k, Tessera $6k, Clawpump $5k, Meteora DBC $5k, Pyth non-cash), so the line in `00-plan.md` §0 that says "no bounty tracks" is now stale. Agari claims two of them; see **Bounty tracks** below. Submissions close **Fri 2026-09-18, 16:00 ET**; judging runs to **2026-10-02**. Judges ask four things: **a real user and problem, a working end-to-end demo, why Solana, and execution quality**.
 
 This tree does not record the exact submission-platform URL, its form fields or an authenticated view of it (unlike Masayume's DoraHacks submission, which this checklist's structure is adapted from). Whoever completes the actual submission should recheck the platform's exact requirements immediately before submitting — not yet verified here.
+
+## Bounty tracks
+
+Claimed on the strength of work that is already on devnet, not of anything built to fit a track.
+
+| Track | Claim | Evidence |
+| --- | --- | --- |
+| **PreStocks** | Agari runs Up/Down prediction markets **on** pre-IPO token prices. It does not trade the token. `PRE-OPENAI-5m` is a real Series whose Windows open, print at both boundaries from the PreStocks catalogue and settle, with the venue attesting each price (`D-100`). Any of the eight PreStocks names can be listed without a program change. | The four devnet transactions in the README's Pre-IPO rows; the drive is `scripts/drive/prestocks-attest.ts`, the price module `packages/markets/src/prices/prestocks.ts`. |
+| **Pyth** | Pyth is a settlement-grade source in the venue, not a display feed: TSLA/QQQ/VOO Windows resolve against a Wormhole-verified Pyth pull-oracle update admitted on-chain by `public_record_print_pyth`, cross-checked against RedStone, and a divergence voids the Window rather than paying out. | The settlement rows in the README's "Settlement & claims" group, including a cross-checked settle and a `MissingPrint` void. |
+
+**Not claimed:** Tessera, Clawpump and Meteora DBC. Each would mean bolting a token-launch or fractional-ownership mechanic onto a prediction venue days before the deadline, and the result would be a track-shaped feature rather than something the venue does. Saying so is cheaper than a thin claim.
 
 ## Required package
 

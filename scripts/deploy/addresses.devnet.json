@@ -503,6 +503,15 @@
           "8bMXqZMqZaEpdYE81CKEE9kGHCkFXAg15JuSfnsw8VHy",
           "4JAWDs44a8NHvic1NqHPGSAVwgNYasLknSsQ9ZWUKxnc"
         ]
+      },
+      "PRE-OPENAI-5m": {
+        "address": "C8JCSGPmf4bvBN1aiwGP4gGqt2JRfcJPCdhK8PWWTYKH",
+        "ticker": 910,
+        "cadenceSec": 300,
+        "basis": 0,
+        "books": [
+          "EVtZLCP9hawvHw9a7ehNxkbTBz7bi4hjifs99vpVBN6r"
+        ]
       }
     }
   }
