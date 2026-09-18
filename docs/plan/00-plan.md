@@ -25,8 +25,9 @@
 ## 0. Context
 
 **Why.** Abu is entering the Solana **Stocklana** hackathon:
-- $100k prize, one main track, no bounty tracks, no required SDK.
-- Submissions close Fri 2026-09-18 16:00 ET; judging runs to 10-02.
+- $126k prize pool, one main track plus five sponsor bounty tracks, no required SDK.
+- **Submissions close Fri 2026-09-25 16:00 ET (20:00 UTC); judging runs to 10-02.** The organisers extended this from
+  09-18 and raised the pool from $100k; edits are allowed until submissions close.
 - Judges ask four things: a real user and problem, a working end-to-end demo, why Solana, and execution quality.
 
 Abu said deadlines are not the constraint: "architect well; I'm using AI agents".
