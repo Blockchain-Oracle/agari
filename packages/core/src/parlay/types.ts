@@ -61,6 +61,12 @@ export interface ParlayParams {
   minCombinedProbRaw: bigint;
   /** The least depth (raw contracts) a leg is priced over; a bigger payout is priced over its own size. */
   priceDepthRaw: bigint;
+  /** The widest gap, in YES ticks, between a leg's price and the other side's touch the reserve prices through; 0 = off. */
+  maxSpreadTicks: number;
+  /** Only orders that have rested this many slots price a leg (a floor under the Series' own). */
+  minRestSlots: number;
+  /** A leg is refused once its Window has less than this left. */
+  minTimeLeftSec: number;
 }
 
 /** Where the reserve lives on one chain — regenerated from `contracts/deployments` (AD-10). */

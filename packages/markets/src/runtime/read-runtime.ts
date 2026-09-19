@@ -29,6 +29,7 @@ export interface ReadClient {
   /** The agari-vault program id (`NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID`); null = no vault on this cluster (S7). */
   vaultProgramId: Address | null;
   rangeProgramId: Address | null;
+  parlayProgramId: Address | null;
   makerProgramId: Address | null;
   /** `/api/index` base (absolute); null = no indexer, lists read `indexer-down`. */
   indexerUrl: string | null;
@@ -60,6 +61,7 @@ export function configureMarkets(env: MarketsEnv): void {
     venueId: env.venueId ?? null,
     vaultProgramId: env.vaultProgramId ?? null,
     rangeProgramId: env.rangeProgramId ?? null,
+    parlayProgramId: env.parlayProgramId ?? null,
     makerProgramId: env.makerProgramId ?? null,
     indexerUrl: env.indexerUrl ?? null,
     priceFeedUrl: env.priceFeedUrl ?? null,
