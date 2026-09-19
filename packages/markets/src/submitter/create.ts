@@ -1,4 +1,6 @@
-import type { AttributionHook, IntentJournal, StopGate, Submitter } from "@agari/core/ports";
+import type { AttributionHook, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
+import type { RangeIntent } from "@agari/core/range";
+import type { RangeOpenOutcome } from "../range/read";
 import type { Address } from "@agari/core/types";
 import type { TransactionSigner } from "@solana/kit";
 import { nowMs as chainNowMs } from "../provider/clock";
@@ -9,6 +11,7 @@ import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
+import { submitRangeOpenWrite } from "../range/writes";
 import { submitCashOut } from "./cash-out";
 import { submitOrder } from "./order-lane";
 import { submitRest } from "./rest-lane";
@@ -45,6 +48,8 @@ export interface MarketsSubmitter extends Submitter {
   readonly wallet: Address;
   /** Recovery's reconciler over this session's RPC and indexer: what `recoverUnresolved` asks about open intents. */
   readonly reconciler: Reconciler;
+  /** The range reserve's open, bound to this session's signer like every other lane (S10b). */
+  submitRangeOpen: (intent: Extract<RangeIntent, { kind: "range-open" }>, onPhase?: PhaseListener) => Promise<RangeOpenOutcome>;
   checkGas(lane: FeeLane): Promise<GasCheck>;
 }
 
@@ -74,6 +79,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     // A pre-open call (`entry: "rest"`, D-088) takes the rest lane; everything else is the taker's IOC lane.
     submitOrder: (request, onPhase) => enqueue(() => (request.entry === "rest" ? submitRest : submitOrder)({ ...context(), stopGate, attribution }, request, onPhase)),
     submitCashOut: (request, onPhase) => enqueue(() => submitCashOut({ ...context(), stopGate, attribution }, request, onPhase)),
+    submitRangeOpen: (intent, onPhase) => enqueue(() => submitRangeOpenWrite(context(), intent, onPhase)),
     checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };
 }

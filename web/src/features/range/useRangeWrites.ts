@@ -3,13 +3,11 @@
 import type { RangeSide } from "@agari/core/range";
 import type { MarketId } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { submitRangeOpen, type RangeOpenOutcome } from "@agari/markets/range";
+import type { RangeOpenOutcome } from "@agari/markets/range";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
-import { webEnv } from "@/lib/env";
 import { notify } from "@/lib/toast";
 import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { RANGE } from "./copy";
@@ -38,29 +36,25 @@ export function useRangeWrites() {
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<RangeBusyKey | null>(null);
 
-  const contracts = useCallback((): VaultContracts | null => {
-    if (!wallet) return null;
-    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [wallet]);
-
   const refresh = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
   }, [address, queryClient]);
 
   const open = useCallback(
     async (input: RangeOpenInput): Promise<RangeOpenOutcome | null> => {
-      if (!submitter || !address) return null;
-      const c = contracts();
-      if (!c) return null;
+      // A submitter exists only because a session bound a signer, so there is no separate "is a wallet connected"
+      // question here; the range open needs no vault deployment of its own — the reserve is its own custody.
+      if (!submitter || !address || !wallet) return null;
       setBusy("open");
       try {
-        return await submitRangeOpen({ journal: submitter.journal, wallet: address, contracts: c }, { kind: "range-open", ...input });
+        // The submitter owns the session signer, so the open goes through the same lane as every other write.
+        return await submitter.submitRangeOpen({ kind: "range-open", ...input });
       } finally {
         setBusy(null);
         await refresh();
       }
     },
-    [submitter, address, contracts, refresh],
+    [submitter, address, wallet, refresh],
   );
 
   const claim = useCallback(
