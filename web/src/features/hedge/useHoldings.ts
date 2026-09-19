@@ -1,6 +1,6 @@
 "use client";
 
-import { SHARE_TOKENS, type ShareSymbol, type ShareToken, type TickerSymbol } from "@agari/core/market";
+import { SHARE_ISSUERS, SHARE_TOKENS, type ShareSymbol, type ShareToken, type TickerSymbol } from "@agari/core/market";
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import type { Address } from "@agari/core/types";
 import { useReadingQuery } from "@agari/markets/react";
@@ -17,7 +17,10 @@ export interface HoldingView {
   issuer: ShareToken["issuer"];
   underlying: TickerSymbol;
   sharesE8: bigint;
+  /** Null when no price is known, or when the only known price is stale (`priceAgeSec` says how stale). */
   exposureUsdE6: bigint | null;
+  /** Seconds since the price behind `exposureUsdE6` was published; null when no price is known. */
+  priceAgeSec: number | null;
 }
 
 const digits = z.string().regex(/^\d+$/).transform((text) => BigInt(text));
@@ -25,25 +28,25 @@ const SYMBOLS = SHARE_TOKENS.map((token) => token.symbol) as [ShareSymbol, ...Sh
 const UNDERLYINGS = [...new Set(SHARE_TOKENS.map((token) => token.underlying))] as [TickerSymbol, ...TickerSymbol[]];
 
 /** `GET /api/holdings` (`app/api/holdings/route.ts`): bigints travel as decimal strings. */
-const bodySchema = z.object({
-  holdings: z.array(
-    z.object({
-      mint: z.string(),
-      symbol: z.enum(SYMBOLS),
-      issuer: z.enum(["xstocks", "ondo"]),
-      underlying: z.enum(UNDERLYINGS),
-      sharesE8: digits,
-      exposureUsdE6: digits.nullable(),
-    }),
-  ),
+const rowSchema = z.object({
+  mint: z.string(),
+  symbol: z.enum(SYMBOLS),
+  issuer: z.enum(SHARE_ISSUERS),
+  underlying: z.enum(UNDERLYINGS),
+  sharesE8: digits,
+  exposureUsdE6: digits.nullable(),
+  priceAgeSec: z.number().int().nonnegative().nullable().default(null),
 });
+// Rows parse one by one: a token this build does not know yet is dropped alone, instead of hiding every holding.
+const bodySchema = z.object({ holdings: z.array(z.unknown()) });
 
 async function readHoldings(owner: Address): Promise<Reading<HoldingView[]>> {
   const response = await fetch(`/api/holdings?owner=${encodeURIComponent(owner)}`, { cache: "no-store" });
   if (!response.ok) return err(diagnosis("unknown", `holdings route answered ${response.status}`));
   const parsed = bodySchema.safeParse(await response.json());
   if (!parsed.success) return err(diagnosis("unknown", "holdings payload did not parse"));
-  return ok(parsed.data.holdings, Date.now());
+  const rows = parsed.data.holdings.map((row) => rowSchema.safeParse(row)).flatMap((r) => (r.success ? [r.data] : []));
+  return ok(rows, Date.now());
 }
 
 /** The connected wallet's mainnet share tokens, read-only; never persisted (the read cache's allowlist refuses account data). */

@@ -2,6 +2,7 @@
  * Canned holdings and Windows for `/dev/hedge` (session-lanes.md §4): the card's three targets (a trading Gap, a Regular
  * Window in session, a weekend token Window), a holding with no fresh spot, and the cases where no card shows.
  */
+import { isTickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet } from "@agari/core/types";
 import { type HedgePick, pickHedge, type HoldingView } from "@/features/hedge";
 import { fixtureAddress, fixtureMarketId } from "../fixture-ids";
@@ -15,13 +16,20 @@ const E8 = 100_000_000n;
 const holding = (symbol: HoldingView["symbol"], underlying: HoldingView["underlying"], sharesE8: bigint, priceE8: bigint | null): HoldingView => ({
   mint: `fixture-${symbol}`,
   symbol,
-  issuer: symbol.endsWith("on") ? "ondo" : "xstocks",
+  // A PreStocks token's symbol is the ticker itself; Ondo twins end in "on"; everything else is an xStock.
+  issuer: isTickerSymbol(symbol) ? "prestocks" : symbol.endsWith("on") ? "ondo" : "xstocks",
   underlying,
   sharesE8,
   exposureUsdE6: priceE8 === null ? null : (sharesE8 * priceE8) / 10n ** 10n,
+  priceAgeSec: priceE8 === null ? null : 0,
 });
 
 const laneSet = (...markets: EventMarket[]): LaneSet => ({ venueId: VENUE, lanes: [{ basis: markets[0]!.lane, intervalSec: markets[0]!.intervalSec, label: "", markets, nextStartSec: null }] });
+
+/** 4.2 OPENAI PreStocks at $1,127.38 → $4,735: a pre-IPO token, covered on its own 24/7 Window (D-100). */
+const OPENAI_PRE = holding("OPENAI", "OPENAI", 420_000_000n, 112_738_000_000n);
+/** The 24/7 OPENAI Window the cover card offers; a pre-IPO name has no other lane (D-103). */
+const OPENAI_WINDOW = fixtureWindow({ marketId: fixtureMarketId(0x56_0091), asset: "OPENAI", lane: "token", intervalSec: 3_600, expirySec: CLOCK.weekendSat + 3_600, decimals: 6, openingPriceRaw: 112_738_000_000n });
 
 /** 12.5 TSLAx at $359.795 → $4,497 (the spec's own example line). */
 const TSLAX = holding("TSLAx", "TSLA", 1_250_000_000n, 35_979_500_000n);
@@ -42,6 +50,7 @@ export const HEDGE_FIXTURES = {
   session: must(pickHedge([TSLAX, TSLAON], laneSet(HOUR_WINDOW, REGULAR_TRADING), CLOCK.regularTue * 1000)),
   token: must(pickHedge([NVDAX, TSLAX], laneSet(TOKEN_WINDOW), CLOCK.weekendSat * 1000)),
   noPrice: must(pickHedge([holding("TSLAx", "TSLA", 1_250_000_000n, null)], laneSet(GAP_CARDS[1]!.market), CLOCK.weekendSat * 1000)),
+  preIpo: must(pickHedge([OPENAI_PRE, TSLAX], laneSet(OPENAI_WINDOW), CLOCK.weekendSat * 1000)),
 } as const;
 
 /** No card: no verified holding, and a holding whose underlying has no trading Window (SPYx before the token lane lists). */

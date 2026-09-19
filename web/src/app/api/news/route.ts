@@ -1,4 +1,7 @@
-import { isTickerSymbol, TICKER_SYMBOLS, tickerSymbolSchema, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, TICKER_SYMBOLS, TICKERS, tickerSymbolSchema, type TickerSymbol } from "@agari/core/market";
+
+/** A pre-IPO name has no exchange listing, so no company wire and no earnings date exist for it (D-100). */
+const LISTED = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].kind !== "preIpo");
 import { NextResponse, type NextRequest } from "next/server";
 import type { Article } from "@/features/news/protocol";
 import { companyNews, finnhubConfigured, marketNews, type FinnhubArticle } from "@/lib/finnhub.server";
@@ -62,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const symbol: TickerSymbol | null = parsed ? parsed.data : null;
-    const feeds = symbol ? [await companyNews(symbol)] : await Promise.all([marketNews(), ...TICKER_SYMBOLS.map(companyNews)]);
+    const feeds = symbol ? [await companyNews(symbol)] : await Promise.all([marketNews(), ...LISTED.map(companyNews)]);
     const articles = merge(feeds);
     if (articles.length === 0) {
       return NextResponse.json({ articles: [], error: "no live headlines" }, { headers: { "cache-control": UNCACHED } });

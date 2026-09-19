@@ -9,7 +9,8 @@ export interface SpotQuote {
   priceE8: bigint;
   /** The source's own publish time. */
   publishTimeSec: number;
-  source: "pyth" | "redstone" | "jupiter";
+  /** `"prestocks"`: the catalogue's `tokenPrice` for a pre-IPO name (plan Step 1); display and quoting only. */
+  source: "pyth" | "redstone" | "jupiter" | "prestocks";
 }
 
 export interface SpotFeed {

@@ -43,6 +43,7 @@ export function HedgeFixtures() {
         <Canned label={HEDGE.dev.session} pick={HEDGE_FIXTURES.session} onSelect={open} />
         <Canned label={HEDGE.dev.token} pick={HEDGE_FIXTURES.token} onSelect={open} />
         <Canned label={HEDGE.dev.noPrice} pick={HEDGE_FIXTURES.noPrice} onSelect={open} />
+        <Canned label={HEDGE.dev.preIpo} pick={HEDGE_FIXTURES.preIpo} onSelect={open} />
         <Fixture label={HEDGE.dev.none}>
           <p className="type-caption text-ink-muted">
             empty → {String(NO_CARD.empty)} · SPYx with no Window → {String(NO_CARD.noWindow)}

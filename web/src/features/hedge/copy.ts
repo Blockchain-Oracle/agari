@@ -16,8 +16,9 @@ export const HEDGE = {
     session: "In session — TSLAx + TSLAon, Down on the 1h Window",
     token: "Weekend token lane — NVDAx, Down on the 24/7 Window",
     noPrice: "No fresh spot — shares only, no stake preset",
+    preIpo: "Pre-IPO — 4.2 OPENAI PreStocks, Down on the 24/7 OpenAI Window (the TSLAx holding has no Window here)",
     none: "No verified holding, or no Window to hedge into — the card is absent",
     live: "Live — your wallet (mainnet read, devnet hedge)",
-    liveEmpty: "Connect a wallet that holds TSLAx, NVDAx, SPYx, QQQx or their Ondo tokens to see the live card.",
+    liveEmpty: "Connect a wallet that holds an xStock, an Ondo token or a PreStocks token (OPENAI, ANTHROPIC, SPACEX…) to see the live card.",
   },
 } as const;

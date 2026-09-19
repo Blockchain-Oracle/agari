@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isHash32 } from "../types/primitives";
-import { LAUNCH_TICKERS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
+import { LAUNCH_TICKERS, PRE_IPO_SYMBOLS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
 
 describe("ticker registry", () => {
   it("gives every ticker a distinct, u16, never-reserved series id (it is part of every Series address)", () => {
@@ -23,7 +23,7 @@ describe("ticker registry", () => {
   });
 
   it("models a pre-IPO name as having no exchange listing and a PreStocks token (D-100)", () => {
-    expect(PRE_IPO_TICKERS).toEqual(["OPENAI"]);
+    expect(PRE_IPO_TICKERS).toEqual([...PRE_IPO_SYMBOLS]);
     for (const symbol of PRE_IPO_TICKERS) {
       const t = TICKERS[symbol];
       expect(t.kind).toBe("preIpo");

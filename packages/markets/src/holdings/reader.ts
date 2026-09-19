@@ -4,10 +4,11 @@
  * their `scaledUiAmountConfig` — plus one ops `/prices/latest` snapshot. Server-only: the RPC URL carries the Helius
  * key, so it is never logged, echoed or thrown.
  *
- * Pricing: ops serves the xStock's own 24/7 quote (Jupiter, per UI token with the multiplier already in it) once 6b
- * joins that feed; a UI amount times that price is the exposure. Without one — an Ondo token, or a weekday before the
- * feed lands — it falls back to the underlying's signed spot, which is per share and so takes the same UI amount. Ops
- * drops a quote older than 60 s, so a weekend without the xStock feed leaves the exposure unknown, never zero.
+ * Pricing: ops serves the xStock's own 24/7 quote (Jupiter, per UI token with the multiplier already in it) and a
+ * pre-IPO name's PreStocks token price; a UI amount times that price is the exposure. Without one — an Ondo token — it
+ * falls back to the underlying's signed spot, which is per share and so takes the same UI amount. Since D-086 ops never
+ * drops a quote: an old one comes back with `fresh: false` and its `ageSec`. Such a quote is reported with its age but
+ * never sized — a stale price sized as current is a wrong number, so the exposure stays unknown, never zero.
  */
 import { SHARE_TOKENS, type ShareToken, type TickerSymbol } from "@agari/core/market";
 import { z } from "zod";
@@ -27,8 +28,10 @@ export interface Holding {
   decimals: number;
   multiplierE12: string;
   sharesE8: string;
-  /** Null when ops has no fresh quote for the token or its underlying (it serves ≤ 60 s old quotes only). */
+  /** The newest quote ops has for the token or its underlying, fresh or not; null when it has none at all. */
   priceE8: string | null;
+  /** How old that quote was when read, in seconds; null without a quote. The exposure is sized only from a fresh one. */
+  priceAgeSec: number | null;
   /** Which quote priced it: the xStock's own ("jupiter"), or the underlying's signed source ("pyth", "redstone", …). */
   priceSource: string | null;
   /** The asset the quote prices: the xStock symbol, or the underlying ticker. */
@@ -79,7 +82,11 @@ const mintsSchema = z.object({
       .nullable(),
   ),
 });
-const latestSchema = z.record(z.string(), z.object({ priceE8: z.string().regex(/^\d+$/), source: z.string().optional() }));
+const latestSchema = z.record(
+  z.string(),
+  z.object({ priceE8: z.string().regex(/^\d+$/), source: z.string().optional(), fresh: z.boolean().optional(), ageSec: z.number().int().nonnegative().optional() }),
+);
+type LatestQuote = z.infer<typeof latestSchema>[string];
 
 async function rpc(url: string, method: string, params: unknown[]): Promise<unknown> {
   let response: Response;
@@ -134,7 +141,7 @@ async function mintStates(rpcUrl: string): Promise<Map<string, ScaledUiAmountSta
 }
 
 /** Spot is display-only context for the card; a dead ops process leaves exposure unknown, never zero. */
-async function latestPrices(priceFeedUrl: string | null): Promise<Record<string, { priceE8: string; source?: string }>> {
+async function latestPrices(priceFeedUrl: string | null): Promise<Record<string, LatestQuote>> {
   if (!priceFeedUrl) return {};
   try {
     const response = await fetch(`${priceFeedUrl.replace(/\/$/, "")}/prices/latest`, { cache: "no-store", signal: AbortSignal.timeout(RPC_TIMEOUT_MS) });
@@ -150,7 +157,7 @@ const descending = (a: bigint, b: bigint): number => (a > b ? -1 : a < b ? 1 : 0
 
 export async function readHoldings(input: HoldingsInput): Promise<HoldingsBody> {
   const balances = await verifiedBalances(input);
-  const [states, prices] = balances.size === 0 ? [new Map<string, ScaledUiAmountState | null>(), {}] : await Promise.all([mintStates(input.rpcUrl), latestPrices(input.priceFeedUrl)]);
+  const [states, prices] = balances.size === 0 ? [new Map<string, ScaledUiAmountState | null>(), {} as Record<string, LatestQuote>] : await Promise.all([mintStates(input.rpcUrl), latestPrices(input.priceFeedUrl)]);
   const holdings: Holding[] = [];
   for (const [mint, { raw, decimals }] of balances) {
     const token = VERIFIED.get(mint) as ShareToken;
@@ -171,9 +178,12 @@ export async function readHoldings(input: HoldingsInput): Promise<HoldingsBody> 
       multiplierE12: multiplier.toString(),
       sharesE8: shares.toString(),
       priceE8: quote?.priceE8 ?? null,
+      priceAgeSec: quote?.ageSec ?? null,
       priceSource: quote?.source ?? null,
       pricedAs,
-      exposureUsdE6: quote ? exposureUsdE6(shares, BigInt(quote.priceE8)).toString() : null,
+      // A quote ops marks stale (D-086 keeps it, flagged) is shown with its age but never sized: `fresh` absent means a
+      // pre-D-086 ops that only ever served fresh quotes.
+      exposureUsdE6: quote && quote.fresh !== false ? exposureUsdE6(shares, BigInt(quote.priceE8)).toString() : null,
     });
   }
   holdings.sort((a, b) => descending(BigInt(a.exposureUsdE6 ?? "0"), BigInt(b.exposureUsdE6 ?? "0")) || descending(BigInt(a.sharesE8), BigInt(b.sharesE8)));

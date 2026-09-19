@@ -1,4 +1,7 @@
-import { addDays, etDateOf, TICKER_SYMBOLS, tickerSymbolSchema } from "@agari/core/market";
+import { addDays, etDateOf, TICKER_SYMBOLS, TICKERS, tickerSymbolSchema } from "@agari/core/market";
+
+/** A pre-IPO name has no exchange listing, so no company wire and no earnings date exist for it (D-100). */
+const LISTED = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].kind !== "preIpo");
 import { NextResponse, type NextRequest } from "next/server";
 import type { EarningsPayload } from "@/features/news/protocol";
 import { earningsWithin, finnhubConfigured } from "@/lib/finnhub.server";
@@ -22,7 +25,7 @@ export async function GET(request: NextRequest) {
   if (parsed && !parsed.success) return NextResponse.json({ error: "unknown symbol" }, { status: 400, headers: UNCACHED });
   if (!finnhubConfigured()) return NextResponse.json({ error: "earnings provider not configured" }, { status: 503, headers: UNCACHED });
 
-  const events = await earningsWithin(parsed ? [parsed.data] : TICKER_SYMBOLS, HORIZON_DAYS);
+  const events = await earningsWithin(parsed ? [parsed.data] : LISTED, HORIZON_DAYS);
   if (events === null) return NextResponse.json({ error: "earnings calendar unavailable" }, { status: 503, headers: UNCACHED });
   const body: EarningsPayload = { events, throughDateEt: addDays(etDateOf(Math.floor(Date.now() / 1000)), HORIZON_DAYS) };
   return NextResponse.json(body, { headers: { "cache-control": CACHED } });

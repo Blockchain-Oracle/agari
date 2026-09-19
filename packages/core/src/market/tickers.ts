@@ -11,7 +11,11 @@ import { toAddress, type Address, type Hash32 } from "../types/primitives";
  * mirrored on-chain per Series), so a ticker here can still show "paused: no signed source".
  */
 
-export const TICKER_SYMBOLS = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "SPY", "OPENAI"] as const;
+/** The eight PreStocks pre-IPO names (D-100). Series ids 910–917; every mint verified on mainnet 2026-09-19 (Token-2022, 9 dp, scaledUiAmount). */
+export const PRE_IPO_SYMBOLS = ["OPENAI", "ANTHROPIC", "SPACEX", "NEURALINK", "ANDURIL", "KALSHI", "POLYMARKET", "FIGUREAI"] as const;
+export type PreIpoSymbol = (typeof PRE_IPO_SYMBOLS)[number];
+
+export const TICKER_SYMBOLS = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "SPY", ...PRE_IPO_SYMBOLS] as const;
 export type TickerSymbol = (typeof TICKER_SYMBOLS)[number];
 
 export const XSTOCK_SYMBOLS = ["TSLAx", "NVDAx", "SPYx", "QQQx"] as const;
@@ -38,7 +42,7 @@ export interface XStock {
  */
 export interface PreIpoToken {
   /** The catalogue's own symbol, which is also the registry key. */
-  symbol: string;
+  symbol: PreIpoSymbol;
   mint: Address;
 }
 
@@ -49,7 +53,11 @@ export interface OndoStock {
 }
 
 /** The `--brand-<slug>` custom property in `web/src/styles/icons.css` and the `.mark-<slug>-disc` fill. */
-export const BRAND_SLUGS = ["tesla", "nvidia", "apple", "microsoft", "meta", "amazon", "google", "invesco", "vanguard", "spdr", "openai"] as const;
+export const BRAND_SLUGS = [
+  "tesla", "nvidia", "apple", "microsoft", "meta", "amazon", "google", "invesco", "vanguard", "spdr",
+  // Pre-IPO names (D-100): approximate brand colours, chosen for contrast under the typed monogram.
+  "openai", "anthropic", "spacex", "neuralink", "anduril", "kalshi", "polymarket", "figure",
+] as const;
 export type BrandSlug = (typeof BRAND_SLUGS)[number];
 
 /**
@@ -93,7 +101,7 @@ export interface Ticker {
 const xstock = (symbol: XStockSymbol, mint: string, surgeSymbol: string): XStock => ({ symbol, mint: toAddress(mint), surgeSymbol });
 const ondo = (symbol: OndoSymbol, mint: string): OndoStock => ({ symbol, mint: toAddress(mint) });
 const brand = (slug: BrandSlug, hex: string): Brand => ({ slug, hex });
-const preIpo = (symbol: string, mint: string): PreIpoToken => ({ symbol, mint: toAddress(mint) });
+const preIpo = (symbol: PreIpoSymbol, mint: string): PreIpoToken => ({ symbol, mint: toAddress(mint) });
 
 export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
   TSLA: {
@@ -157,6 +165,48 @@ export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
     xstock: null, ondo: null, preIpo: preIpo("OPENAI", "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF"),
     monogram: "O", brand: brand("openai", "#412991"),
   },
+  ANTHROPIC: {
+    symbol: "ANTHROPIC", seriesId: 911, name: "Anthropic", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("ANTHROPIC", "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw"),
+    monogram: "A", brand: brand("anthropic", "#D97757"),
+  },
+  SPACEX: {
+    symbol: "SPACEX", seriesId: 912, name: "SpaceX", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("SPACEX", "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh"),
+    monogram: "S", brand: brand("spacex", "#005288"),
+  },
+  NEURALINK: {
+    symbol: "NEURALINK", seriesId: 913, name: "Neuralink", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("NEURALINK", "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S"),
+    monogram: "N", brand: brand("neuralink", "#111111"),
+  },
+  ANDURIL: {
+    symbol: "ANDURIL", seriesId: 914, name: "Anduril", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("ANDURIL", "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB"),
+    monogram: "A", brand: brand("anduril", "#1F2A44"),
+  },
+  KALSHI: {
+    symbol: "KALSHI", seriesId: 915, name: "Kalshi", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("KALSHI", "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua"),
+    monogram: "K", brand: brand("kalshi", "#00C389"),
+  },
+  POLYMARKET: {
+    symbol: "POLYMARKET", seriesId: 916, name: "Polymarket", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("POLYMARKET", "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP"),
+    monogram: "P", brand: brand("polymarket", "#1652F0"),
+  },
+  FIGUREAI: {
+    symbol: "FIGUREAI", seriesId: 917, name: "Figure AI", kind: "preIpo", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: preIpo("FIGUREAI", "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd"),
+    monogram: "F", brand: brand("figure", "#F26522"),
+  },
 };
 
 /** Series ids 11 (COIN) and 12 (MSTR) are reserved for the deferred tickers; they return with a signed source. */
@@ -187,14 +237,18 @@ const HEDGE_ONLY_SHARES = [
 ] as const satisfies readonly { symbol: string; mint: string; issuer: "xstocks" | "ondo"; underlying: TickerSymbol }[];
 
 export type HedgeShareSymbol = (typeof HEDGE_ONLY_SHARES)[number]["symbol"];
-/** Every verified share token's symbol: the token lane's four xStocks, their Ondo twins, and the hedge-only shares. */
-export type ShareSymbol = XStockSymbol | OndoSymbol | HedgeShareSymbol;
+/** Every verified share token's symbol: the token lane's four xStocks, their Ondo twins, the hedge-only shares, and the PreStocks tokens (whose symbol is the ticker itself). */
+export type ShareSymbol = XStockSymbol | OndoSymbol | HedgeShareSymbol | PreIpoSymbol;
+
+/** Who issued a verified share token. `prestocks` tokens are read-only for the cover card, like the hedge-only shares. */
+export const SHARE_ISSUERS = ["xstocks", "ondo", "prestocks"] as const;
+export type ShareIssuer = (typeof SHARE_ISSUERS)[number];
 
 /** One verified tokenized share of a registry ticker, as the holdings reader keys it (always by mint, never by symbol). */
 export interface ShareToken {
   symbol: ShareSymbol;
   mint: Address;
-  issuer: "xstocks" | "ondo";
+  issuer: ShareIssuer;
   underlying: TickerSymbol;
   /** True for the four xStocks the token lane prices; the rest are read-only for the hedge. */
   traded: boolean;
@@ -202,10 +256,11 @@ export interface ShareToken {
 
 export const SHARE_TOKENS: readonly ShareToken[] = [
   ...TICKER_SYMBOLS.flatMap((symbol) => {
-    const { xstock: x, ondo: o } = TICKERS[symbol];
+    const { xstock: x, ondo: o, preIpo: p } = TICKERS[symbol];
     return [
       ...(x ? [{ symbol: x.symbol, mint: x.mint, issuer: "xstocks" as const, underlying: symbol, traded: true }] : []),
       ...(o ? [{ symbol: o.symbol, mint: o.mint, issuer: "ondo" as const, underlying: symbol, traded: false }] : []),
+      ...(p ? [{ symbol: p.symbol, mint: p.mint, issuer: "prestocks" as const, underlying: symbol, traded: false }] : []),
     ];
   }),
   ...HEDGE_ONLY_SHARES.map((share) => ({ ...share, mint: toAddress(share.mint), traded: false })),

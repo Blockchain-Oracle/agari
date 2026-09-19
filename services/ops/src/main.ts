@@ -25,6 +25,7 @@ import { createSessionService } from "./calendar/session-service";
 import { startOpsHttp } from "./http/server";
 import type { SpotFeed } from "./prices/spot";
 import { createXStockSpotFeed, joinXStockSpot } from "./prices/xstock-spot";
+import { createPreStocksSpotFeed, joinPreStocksSpot, PRESTOCKS_SPOT_EVERY_MS, type PreStocksSpotHandle } from "./prices/prestocks-spot";
 import { createHaltBoard, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
 
 const HEARTBEAT_MS = 30_000;
@@ -70,13 +71,18 @@ const spot = relay?.spot ?? null;
 // S6 token lane (session-lanes.md §2.4): the Jupiter xStock spot runs only for the maker and HTTP, joined under the xStock
 // symbols; halt-watch keeps the relay's own feed. Keyless lite-api (0.5 RPS) serves the 5 s poll when no key is set.
 let marketSpot: SpotFeed | null = spot;
+let prestocksSpot: PreStocksSpotHandle | null = null;
 if (actors.has("maker") || actors.has("http")) {
   if (!process.env.JUPITER_API_KEY) log("xstock-spot")("JUPITER_API_KEY not set: polling keyless lite-api.jup.ag; the token maker pulls while Jupiter fails");
   const xstockSpot = createXStockSpotFeed({ log: log("xstock-spot"), apiKey: process.env.JUPITER_API_KEY || undefined });
   xstockSpot.start();
-  marketSpot = joinXStockSpot(spot, xstockSpot);
+  // Plan Step 1 (D-100): the PreStocks catalogue prices the pre-IPO names for the holdings card, the maker and /prestocks/latest.
+  prestocksSpot = createPreStocksSpotFeed({ log: log("prestocks-spot") });
+  prestocksSpot.start();
+  log("prestocks-spot")(`polling the PreStocks catalogue every ${PRESTOCKS_SPOT_EVERY_MS / 1000} s for ${prestocksSpot.symbols().join(",")}`);
+  marketSpot = joinPreStocksSpot(joinXStockSpot(spot, xstockSpot), prestocksSpot);
 }
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: marketSpot, sessions, halts, events, env, log: log("http") }));
+if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: marketSpot, prestocks: prestocksSpot, sessions, halts, events, env, log: log("http") }));
 if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
 if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
 if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));

@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
  */
 type Mark = ComponentType<{ className?: string }>;
 
-/** The badge a token lane wears over the stock's mark: xStocks' "x", Ondo's "on". */
-export const TOKEN_BADGE: Record<ShareToken["issuer"], string> = { xstocks: "x", ondo: "on" };
+/** The badge a token lane wears over the stock's mark: xStocks' "x", Ondo's "on", PreStocks' "pre". */
+export const TOKEN_BADGE: Record<ShareToken["issuer"], string> = { xstocks: "x", ondo: "on", prestocks: "pre" };
 
 /** The letter on the disc: the registry's monogram for a listed ticker, else the name's first letter. */
 export function assetMonogram(asset: string): string {

@@ -57,6 +57,17 @@ describe("/prices/latest never drops a symbol", () => {
     expect(rows).toEqual([]);
   });
 
+  it("serves an xStock's own Jupiter quote beside the tickers, and never asks the archive for it", async () => {
+    const asked: string[][] = [];
+    const archive: ArchiveReader = async (symbols) => {
+      asked.push([...symbols]);
+      return new Map();
+    };
+    const rows = await latestQuotes(feedOf([quote("TSLA", 5, "pyth"), quote("TSLAx", 8, "jupiter")]), { nowSec: NOW, archive });
+    expect(rows.find((r) => r.symbol === "TSLAx")).toMatchObject({ source: "jupiter", ageSec: 8, fresh: true });
+    expect(asked.flat()).not.toContain("TSLAx");
+  });
+
   it("keeps the live rows when the archive read fails", async () => {
     const failing: ArchiveReader = () => Promise.reject(new Error("db down"));
     const rows = await latestQuotes(feedOf([quote("TSLA", 5)]), { nowSec: NOW, archive: failing });

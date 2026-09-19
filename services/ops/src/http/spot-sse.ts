@@ -5,7 +5,7 @@
  * the newest `print_archive` row is served as `source: "archive"`, so a last close always exists.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
+import { TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
 import { latestArchivedPrints, type PrintArchiveSource } from "@agari/db";
 import type { SpotFeed, SpotQuote } from "../prices/spot";
 
@@ -84,16 +84,22 @@ export const readArchiveLatest: ArchiveReader = (symbols) => {
   return rows;
 };
 
-/** Every symbol with a price: the fresh quote, else the aged one, else the newest archived print. Absent only when nothing is known anywhere. */
+/**
+ * Every symbol with a price: the fresh quote, else the aged one, else the newest archived print. Absent only when nothing
+ * is known anywhere. xStock symbols are served from the joined feed too (Jupiter, 24/7), so a wallet's TSLAx is priced by
+ * its own token quote on a weekend rather than the underlying's Friday close; they have no archive fallback.
+ */
 export async function latestQuotes(spot: SpotFeed, { nowSec = wallSec(), archive = readArchiveLatest }: LatestOptions = {}): Promise<WireQuote[]> {
   const out: WireQuote[] = [];
   const missing: TickerSymbol[] = [];
-  for (const symbol of TICKER_SYMBOLS) {
+  const served = (symbol: TickerSymbol | XStockSymbol): boolean => {
     // Fresh first (Pyth wins when both are fresh), then anything the feed has ever seen.
     const q = spot.latest(symbol, FRESH_MAX_AGE_SEC) ?? spot.latest(symbol, Number.POSITIVE_INFINITY);
     if (q) out.push(wire(q, nowSec));
-    else missing.push(symbol);
-  }
+    return q !== null;
+  };
+  for (const symbol of TICKER_SYMBOLS) if (!served(symbol)) missing.push(symbol);
+  for (const symbol of XSTOCK_SYMBOLS) served(symbol);
   if (missing.length === 0) return out;
   // The archive is a fallback, never a gate: a failed read leaves the live rows as they are.
   const archived = await archive(missing).catch(() => new Map<TickerSymbol, ArchiveLatest>());
