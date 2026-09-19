@@ -61,6 +61,8 @@
 - Lane 15d: the chrome-devtools MCP profile lock was worked around with headless Chrome over CDP on its own profile; games/duel copy keeps three Masayume strings (deferred S12).
 - Lane 15d (S15d.8): the X relay reply names Agari and Solana devnet, with the app URL from `NEXT_PUBLIC_SITE_URL` (default `https://agari.app`, as `share/copy.ts` already does); set it in the ops env at S16. Open for S17: the relay's reply context only names BTC or ETH assets, so a TSLA receipt drops its ticker. Identity audit: 137 kept, 11 changed, 3 open (games/duel copy, deferred S12).
 
+- The user (2026-09-15 ~22:15Z): the landing tagline "Up or down. Call the close." stays; Agari is MIT and private for now (Q-007); the docs deploy on the app's docs subdomain like Masayume's (Q-S15-1); the Phantom check looks good (S1 gate).
+
 ## Handoff
 
 - Resume from the first unchecked box. The user's blocking items: devnet SOL for the token Series, the Phantom check, the S16 deploy go (web, ops, docs).

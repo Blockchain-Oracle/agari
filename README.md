@@ -17,7 +17,7 @@ The venue is Agari's own Anchor order book (`agari-events`, a from-scratch rebui
 | Install the PWA | [`/download`](web/src/app/download) |
 | Check service health | [`/status`](web/src/app/status) |
 | Read the on-chain proof feed | [`/proof`](web/src/app/proof) |
-| Step-by-step documentation | `agari-docs` — deployed URL pending the user's go at S16 (`Q-S15-1`) |
+| Step-by-step documentation | `agari-docs`, deployed at S16 on the app's docs subdomain (`Q-S15-1`); the exact domain is pending |
 
 The app is not deployed publicly yet; every route above exists in this repository and runs at `pnpm dev` on `localhost:3000`. The public devnet deploy is an S16 decision.
 
@@ -41,7 +41,7 @@ Every row below is a confirmed devnet transaction from `docs/plan/acceptance.md`
 | Series | TSLA-5m and NVDA-5m Series + policy versions registered | [tx](https://explorer.solana.com/tx/3gqWrR3Pn5e9kbNCuURUL3J6hAUZcEEdsRnr6fpa1yzh7HDYn6svRju2Jka8o27FYPyA2qzcnhCdatjGhewWyzLm?cluster=devnet) |
 | Series | 25 further Series + 50 order books registered across AAPL, MSFT, META, AMZN, GOOGL, QQQ, VOO and TSLA/NVDA's 15m/60m cadences (13.569 SOL rent, all confirmed) | [`scripts/deploy/addresses.devnet.json`](scripts/deploy/addresses.devnet.json) — 27 Series total; every one of the 54 order books has its own confirmed transaction in `docs/plan/acceptance.md` |
 | Series | 7 Monday Gap Series (TSLA, NVDA, AAPL, META, GOOGL, QQQ, VOO), Friday close to Monday open, one order book each | [tx](https://explorer.solana.com/tx/421muY4paeAsEyKFK3ir7uTEGkhKAvyzgcQcoay6pEs51NW92DN4q6HavUNyEVAYYghdMNKzsfYTyrpjWXpx1x3C?cluster=devnet) (TSLA-gap; the other six are in the ledger) |
-| Series | TSLAx token Series at 5m, 15m and 60m on Switchboard, trading around the clock, two order books each | [tx](https://explorer.solana.com/tx/5DtCMzqcgBR6BAYWwSMXXKHvwJaNrLqLvn2o7nukepRmjqDgd9KmEXnAuGwG2jibnRkHatbBHoWkDXjTn2vzLuwF?cluster=devnet) (TSLAx-5m) |
+| Series | TSLAx token Series at 5m, 15m and 60m on Switchboard with two order books each, built to run around the clock — **paused since 2026-09-16 05:50Z** while Switchboard's quote gateway returns 500 (see Honest limitations) | [tx](https://explorer.solana.com/tx/5DtCMzqcgBR6BAYWwSMXXKHvwJaNrLqLvn2o7nukepRmjqDgd9KmEXnAuGwG2jibnRkHatbBHoWkDXjTn2vzLuwF?cluster=devnet) (TSLAx-5m) |
 | Faucet | Devnet SOL top-up through the running app's faucet | [tx](https://explorer.solana.com/tx/5WpKEWoPiXn2EvM2NwiyG3mgmp3rzfkzJiA8yPECbKJJdK2jQctAQYHZ929kvF4hQPooJ7AbPcP71iH9jP43RBiG?cluster=devnet) |
 | Faucet | tUSDC mint through the same faucet claim (10,000 tUSDC) | [tx](https://explorer.solana.com/tx/23Ge127UJi8JJeGx7BV5XBB2qEw94TrEygbEW7dosHwdAjN4MGNTaZ322TTWfXjj9WvkTf1AqJGFN3fFxmG5Qu5R?cluster=devnet) |
 | Calls & fills | TSLA Window opened (5m cadence, Pyth-primary + RedStone-check policy) | [tx](https://explorer.solana.com/tx/3tMvXbgGmHGXjsYJXTEZ1pTPzgbBKgAeokvv9wngbvDbwr2n9C8ZSjSCZVruqtdvUCx6oZWg9NiQfjzxFUQhPe4V?cluster=devnet) |
@@ -94,6 +94,7 @@ Venue config: [`42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3`](https://explorer.
 
 ## Honest limitations
 
+- **The token lane is paused by an upstream outage.** All 12 token Series (TSLAx, NVDAx, SPYx, QQQx at 5m/15m/60m) are registered on chain and their Windows settle from signed Switchboard prints, but Switchboard's gateway has returned `Gateway.fetchSignaturesConsensus failed (status 500)` since 2026-09-16 05:50:16Z, so the four issuers are flagged `quote-unavailable` and no token Windows list. Probes at 14:36Z, 16:50Z and 19:20Z on 09-16 and 13:45Z on 09-17 all failed. The Regular and Gap lanes are unaffected and carry every proof in the table above. Recovery needs the upstream back, then an ops restart (D-099).
 - **Devnet only, tUSDC only.** Nothing here moves mainnet value; tUSDC is a faucet-minted test token with no market value.
 - **Pyth is on a 14-day trial** covering only TSLA, QQQ and VOO among equities, ending `≈ 2026-09-27`. After it, TSLA moves to a RedStone-primary policy version registered in advance (no redeploy); QQQ and VOO pause with an honest "no signed source" state unless a Stork key or similar is granted.
 - **RedStone and Switchboard licence terms for redistribution are unverified**, disclosed rather than assumed favorable.
@@ -148,3 +149,7 @@ A local server browses `/markets` and every story page with no environment file.
 ## Lineage
 
 Agari is a source-led port of [Masayume](https://github.com/Blockchain-Oracle/masayume) (`reference/masayume` @ `68f7a09`), the only design authority for this build: Somnia → Solana, BTC/ETH → US stocks and ETFs, brand → Agari, plus the additive features `docs/plan/00-plan.md` records. Source and asset attribution is in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+## License
+
+Agari's own code is released under the [MIT License](LICENSE). The repository is private for now. Third-party material keeps its own terms; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

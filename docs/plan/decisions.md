@@ -1045,6 +1045,21 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** no placeholder video, ever.
 - **Approval:** stage owner.
 
+### D-098 — Ops must exit when an actor fails to start; until it does, the health check watches for it
+- **Date / owner:** 2026-09-15 · S18/S3 owner
+- **Evidence:** on 09-15 the window-roller logged `failed to start: fetch failed ← getaddrinfo ENOTFOUND devnet.helius-rpc.com` at 19:09Z. The other actors kept the process alive, so `data/soak/run.sh` never restarted it, `/session` served `lanes: {}`, and the 20:00Z prelist did not run until ops was killed by hand at 20:25Z, 98 minutes later. The S3 gate re-measure found the same pattern at 18:47Z. A second case on 2026-09-16: the watchdog exited ops on a stuck seed-maker pass at 03:09Z and the supervisor restarted it, but on that boot the **indexer** failed to start with `write CONNECT_TIMEOUT localhost:5432` and stayed silent while every other actor logged; Postgres itself never went down. The index froze until ops was killed by hand at 03:17:28Z. So the rule covers any actor, not only the roller, and a silent actor hides behind a healthy-looking process.
+- **Rule:** a start failure in any actor is fatal: ops logs it and exits non-zero so the supervisor restarts the whole process, with the supervisor's existing 10 s sleep as the backoff. This is recorded, not built: the change lands after the Friday deadline, because a crash loop introduced the night before the bell drive is worse than the known workaround. Until then the hourly health check and the pre-bell check grep the log for `failed to start` newer than the last actor start and verify `/session` lanes is non-empty.
+- **User-visible:** an outage in one actor stops the venue rolling until someone notices; the checks cap that at an hour.
+- **Approval:** stage owner.
+
+### D-099 — A quote-source outage must not be able to deadlock a token lane
+- **Date / owner:** 2026-09-16 · S18/S6 owner
+- **Evidence:** Switchboard's gateway has returned `Gateway.fetchSignaturesConsensus failed (status 500, ERR_BAD_RESPONSE)` since 05:50:16Z; a read-only `fetchTokenQuote` probe still got 500 in 3.3 s at 14:36Z. `QUOTE_FAILURES_TO_HALT = 3` flagged every xStock `quote-unavailable` at 05:50:59Z (`confirmPasses = 2`), pausing all 12 token lanes. Clearing requires `tokenHaltReason` to return null → streak < 3 → `recordQuoteResult(..., true)`, which only the relay's Switchboard pass calls, and only for a due print slot on a live token Window. The roller opens none while halted, so after the last Windows expired at 11:51Z no quote was ever attempted again: 529 minutes halted, 0 token Windows open, and the lane would stay paused even after the upstream recovered. Regular lanes were unaffected throughout (today 150 resolved / 2 voided, against the token lanes' 54 / 302).
+- **Rule:** the halt must be able to clear without a successful print quote. Either halt-watch ages an untested streak out (no quote attempted for N minutes → treat as unknown, not halted), or the relay probes the quote source on a timer while a lane is halted and reports the result through `recordQuoteResult`. Recorded, not built before the Friday deadline. **Operationally until then:** a halted token lane is cleared by an ops restart (the streaks are in-process), but **only after the upstream recovers** — restarting during the outage reopens Windows that void on missing prints within minutes and burns roller float for nothing. Cost of the restart: one `pkill -f 'src/main.ts'`, the supervisor relaunches with the same env; no code or config change.
+- **Also recorded:** the `xstock-spot` Jupiter timeouts are a separate, cosmetic fault and did **not** cause this halt (an earlier STATUS note wrongly said so). That poller feeds the chart, the token maker's reference and the opt-in attested fallback, and never settles anything; it polls the keyless lite endpoint (0.5 RPS) every 5 s with a 5 s abort. Fix: set `JUPITER_API_KEY` in the ops env or slow the poll to match the keyless rate.
+- **User-visible:** token markets stop listing during a quote outage and say so, instead of listing Windows that would void.
+- **Approval:** stage owner.
+
 ### D-100 — The PreStocks bounty track is a Pre-IPO lane on the attested print path, not a new program
 - **Date / owner:** 2026-09-18 · S18 owner
 - **Evidence:** the venue already deploys `public_record_print_attested` with `config.attestors` carrying the price-attestor `BCK1izTw…`; PreStocks publishes a keyless catalogue of eight pre-IPO tokens with a `markPrice` (the SPV's valuation) and a `tokenPrice` (what the token trades at on Solana).
@@ -1085,7 +1100,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 | Q-004 | "Bet against" depth: A-1b inverse position; Phoenix perps (mainnet-only)? | Open. Default: A-1a/A-1c built; A-1b after approval; Phoenix not built on devnet | A-1b (S10c) |
 | Q-005 | Yield: Kamino/Jupiter Lend are mainnet-only | Open. Default: honest "mainnet only" state + Earn reserves as yield | A-2a (S14) |
 | Q-006 | Solana Mobile / Seeker beyond the PWA? | Open. Default: PWA only | — |
-| Q-007 | Public repo licensing for Yosuku-derived CSS | Open. Default: keep repo private | Public visibility |
+| Q-007 | Public repo licensing for Yosuku-derived CSS | ✅ Answered (user, 2026-09-15): Agari's code is **MIT** (`LICENSE`); the repositories stay **private for now**. Third-party material keeps its own terms (`THIRD_PARTY_NOTICES.md`); going public is a later user call | Public visibility |
 | Q-008 | Agari X account + X API keys; geofence method; corporate-action source | Partly answered: X keys not a blocker (user, 2026-09-13); geofence S15; corporate actions S6 | S11 live test |
 | Q-S6-1 | List the six RedStone single-name Gaps for 09-18 on the 09-14 archive? | Open. Default (stage owner, pending the user): yes, per name, if every archived open 09-14…09-17 had ≥ 3 signers at 09:30:00 ET; 3-signer risk disclosed (D-052) | 6a listing set |
 | Q-S6-2 | TSLA Gap: keep the RedStone check? | Open. Default: keep (D-052) | — |
@@ -1096,4 +1111,4 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 | Q-S6-7 | A void claim shows Masayume's "You won" trophy? | Open. Default (pending the user): void stamp, "Returned" and the reason line (D-057) | 6d claim card |
 | Q-S6-8 | Hedge placement and size | Default: under the `/markets` hero, 10% of exposure, devnet tUSDC only (D-058) | — |
 | Q-S6-9 | Halt wording without a licensed halt feed | Default: "Trading halted" only for `pyth-wide` / `issuer-halt`, else "Signed price stale" (D-057) | — |
-| Q-S15-1 | Deploy `agari-docs` as its own Vercel project alongside the web app? | Open. Default: yes at S16, needs the user's go (D-094) | Docs URL in README |
+| Q-S15-1 | Deploy `agari-docs` as its own Vercel project alongside the web app? | ✅ Answered (user, 2026-09-15): yes, its own project on the app's docs subdomain, as Masayume ran `docs.masayume.app`; the exact domain comes from the user at S16 (D-094) | Docs URL in README |
