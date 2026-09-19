@@ -62,12 +62,16 @@ The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-0
 
 | Mark | Source | Terms |
 | --- | --- | --- |
-| Tesla, NVIDIA, Apple, Meta, Google | [simple-icons](https://github.com/simple-icons/simple-icons) **16.31.0** (`icons/<slug>.svg`) | CC0 1.0 Universal |
+| Tesla, NVIDIA, Apple, Meta, Google, Anthropic, SpaceX | [simple-icons](https://github.com/simple-icons/simple-icons) **16.31.0** (`icons/<slug>.svg`) | CC0 1.0 Universal |
+| OpenAI | simple-icons **15.22.0**, the last release to carry `openai.svg` | CC0 1.0 at publication. Removed in 16.0.0 ([#13944](https://github.com/simple-icons/simple-icons/issues/13944)) because no contributor obtained usage permission, not on a request from OpenAI — the same footing as Amazon below. |
+| Polymarket | The standalone symbol from [`Polymarket.svg`](https://commons.wikimedia.org/wiki/File:Polymarket.svg) on Wikimedia Commons, which the uploader marked as below the threshold of originality (public domain). Only the pennant is vendored; the wordmark beside it in that file is not, and the path was refitted to the 24-box by a uniform scale. | Public domain (trademark still the owner's). |
 | Amazon | simple-icons **14.15.0**, the last release to carry `amazon.svg` | CC0 1.0 at publication. The maintainers removed the Amazon and AWS icons in 15.0.0 ([PR #13056](https://github.com/simple-icons/simple-icons/pull/13056)) pending permission, not on a request from Amazon. |
 | Microsoft | Own geometry: four rectangles drawn in `paths.ts`; no third-party artwork | simple-icons removed its Microsoft icons in 13.0.0 on Microsoft's trademark terms ([PR #10019](https://github.com/simple-icons/simple-icons/pull/10019)), so none is vendored. |
 | Invesco QQQ, Vanguard S&P 500, SPDR S&P 500 | None: the registry monogram typed on the fund house's colour | — |
 
-The brand colours in `packages/core/src/market/tickers.ts` (`Ticker.brand`) and `web/src/styles/icons.css` are the issuers' published mark colours (simple-icons `hex` for the vendored marks, near-black for Apple).
+The brand colours in `packages/core/src/market/tickers.ts` (`Ticker.brand`) and `web/src/styles/icons.css` are the issuers' published mark colours (simple-icons `hex` for the vendored marks, near-black for Apple). Two vendored marks take the issuer's own published colour rather than simple-icons' near-black, so two discs do not go black and need rings: Anthropic's clay `#D97757` (simple-icons records `#191919`) and SpaceX's blue `#005288` (simple-icons records `#000000`).
+
+**Pre-IPO names without a vendored mark.** Neuralink, Anduril, Kalshi and Figure AI keep the monogram disc, on the same footing as QQQ, VOO and SPY: searched on 2026-09-19 in simple-icons, svgl, gilbarbara/logos and Wikimedia Commons, none carries a square symbol for them, and their public logos are wordmarks that do not reduce to a 32px disc. No approximation is drawn for them — a made-up mark would be worse than an honest letter.
 
 ## Agent portraits and packaged libraries
 
