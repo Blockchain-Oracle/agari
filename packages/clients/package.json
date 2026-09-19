@@ -9,6 +9,8 @@
     "./agari-events/idl.json": "./agari-events/idl.json",
     "./agari-maker": "./agari-maker/src/generated/index.ts",
     "./agari-maker/idl.json": "./agari-maker/idl.json",
+    "./agari-parlay": "./agari-parlay/src/generated/index.ts",
+    "./agari-parlay/idl.json": "./agari-parlay/idl.json",
     "./agari-range": "./agari-range/src/generated/index.ts",
     "./agari-range/idl.json": "./agari-range/idl.json",
     "./agari-vault": "./agari-vault/src/generated/index.ts",

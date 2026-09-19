@@ -8,27 +8,868 @@
   },
   "instructions": [
     {
-      "name": "noop",
-      "docs": [
-        "The instruction set lands with the open and resolve steps; the arithmetic and the balance sheet are here."
-      ],
+      "name": "admin_init_reserve",
       "discriminator": [
-        9,
-        178,
-        13,
+        52,
+        121,
+        137,
+        255,
+        134,
+        216,
         115,
-        129,
-        35,
-        237,
-        102
+        8
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "admin",
+          "writable": true,
           "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "The reserve's own custody. Collateral leaves it only to a ticket's owner or a provider (AD-5)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ParlayParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_params",
+      "discriminator": [
+        194,
+        243,
+        1,
+        30,
+        162,
+        133,
+        247,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "reserve"
+          ]
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ParlayParams"
+            }
+          }
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "owner_open_parlay",
+      "discriminator": [
+        252,
+        33,
+        143,
+        195,
+        224,
+        151,
+        31,
+        20
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ticket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "reserve.next_parlay_id",
+                "account": "ParlayReserve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "legs_up",
+          "type": {
+            "vec": "bool"
+          }
+        },
+        {
+          "name": "max_payout_base",
+          "type": "u64"
+        },
+        {
+          "name": "max_stake_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "provider_supply",
+      "discriminator": [
+        73,
+        69,
+        72,
+        253,
+        228,
+        71,
+        82,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "This wallet's own share balance. Created on first supply; never writable by anyone else."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "provider_withdraw",
+      "discriminator": [
+        58,
+        126,
+        168,
+        66,
+        6,
+        165,
+        115,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "This wallet's own share balance. Created on first supply; never writable by anyone else."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_claim_parlay",
+      "discriminator": [
+        44,
+        113,
+        60,
+        159,
+        244,
+        85,
+        191,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Permissionless to call; the money only ever goes to `ticket.owner` (AD-5)."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ticket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "ticket.parlay_id",
+                "account": "ParlayTicket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
         }
       ],
       "args": []
+    },
+    {
+      "name": "public_resolve_leg",
+      "discriminator": [
+        77,
+        22,
+        172,
+        215,
+        92,
+        95,
+        229,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Permissionless: deciding a ticket never pays the caller."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ticket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "ticket.parlay_id",
+                "account": "ParlayTicket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market"
+        }
+      ],
+      "args": [
+        {
+          "name": "leg_idx",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "public_void_stale",
+      "discriminator": [
+        151,
+        10,
+        111,
+        181,
+        112,
+        44,
+        51,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Permissionless: deciding a ticket never pays the caller."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ticket",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  99,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "ticket.parlay_id",
+                "account": "ParlayTicket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ParlayReserve",
+      "discriminator": [
+        165,
+        187,
+        165,
+        56,
+        230,
+        50,
+        253,
+        223
+      ]
+    },
+    {
+      "name": "ParlayTicket",
+      "discriminator": [
+        119,
+        158,
+        115,
+        228,
+        52,
+        0,
+        122,
+        28
+      ]
+    },
+    {
+      "name": "Provider",
+      "discriminator": [
+        164,
+        180,
+        71,
+        17,
+        75,
+        216,
+        80,
+        195
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "LegPriced",
+      "discriminator": [
+        148,
+        105,
+        0,
+        129,
+        226,
+        246,
+        111,
+        67
+      ]
+    },
+    {
+      "name": "LegResolved",
+      "discriminator": [
+        83,
+        94,
+        20,
+        246,
+        252,
+        125,
+        188,
+        166
+      ]
+    },
+    {
+      "name": "ParamsUpdated",
+      "discriminator": [
+        2,
+        163,
+        138,
+        99,
+        135,
+        11,
+        136,
+        169
+      ]
+    },
+    {
+      "name": "ParlayClaimed",
+      "discriminator": [
+        56,
+        158,
+        46,
+        185,
+        146,
+        91,
+        152,
+        111
+      ]
+    },
+    {
+      "name": "ParlayOpened",
+      "discriminator": [
+        41,
+        252,
+        93,
+        226,
+        116,
+        56,
+        14,
+        17
+      ]
+    },
+    {
+      "name": "ParlaySettled",
+      "discriminator": [
+        143,
+        27,
+        37,
+        15,
+        205,
+        154,
+        47,
+        216
+      ]
+    },
+    {
+      "name": "ReserveInitialized",
+      "discriminator": [
+        22,
+        27,
+        136,
+        173,
+        244,
+        120,
+        20,
+        49
+      ]
+    },
+    {
+      "name": "Supplied",
+      "discriminator": [
+        137,
+        114,
+        239,
+        72,
+        162,
+        75,
+        133,
+        39
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
     }
   ],
   "errors": [
@@ -39,138 +880,831 @@
     },
     {
       "code": 6001,
-      "name": "BadLegCount",
-      "msg": "a ticket needs at least the minimum number of legs and no more than the maximum"
+      "name": "BadParams",
+      "msg": "those parameters are outside what the reserve accepts"
     },
     {
       "code": 6002,
+      "name": "BadLegCount",
+      "msg": "a ticket needs at least two legs and no more than the reserve's maximum"
+    },
+    {
+      "code": 6003,
+      "name": "BadLegAccounts",
+      "msg": "each leg needs its Market, its Book and its Series, in that order"
+    },
+    {
+      "code": 6004,
       "name": "DuplicateLeg",
       "msg": "the same Window cannot be two legs of one ticket"
     },
     {
-      "code": 6003,
+      "code": 6005,
       "name": "WindowNotTrading",
       "msg": "that Window is not open for calls"
     },
     {
-      "code": 6004,
-      "name": "NoOpeningPrint",
-      "msg": "that Window has no opening print yet"
-    },
-    {
-      "code": 6005,
-      "name": "NoClosingPrint",
-      "msg": "that Window has no closing print yet"
-    },
-    {
       "code": 6006,
-      "name": "ThinBook",
-      "msg": "the venue's book is too thin to price that leg"
-    },
-    {
-      "code": 6007,
       "name": "TooLate",
       "msg": "too little time is left in one of those Windows"
     },
     {
+      "code": 6007,
+      "name": "WrongBook",
+      "msg": "that Book does not belong to that Window"
+    },
+    {
       "code": 6008,
+      "name": "WrongSeries",
+      "msg": "that Series does not belong to that Window"
+    },
+    {
+      "code": 6009,
+      "name": "WrongGrid",
+      "msg": "that Series is priced on a different scale from the reserve's collateral"
+    },
+    {
+      "code": 6010,
+      "name": "ThinBook",
+      "msg": "the venue's book is too thin to price that leg"
+    },
+    {
+      "code": 6011,
+      "name": "WideSpread",
+      "msg": "the two sides of that book are too far apart to price a leg"
+    },
+    {
+      "code": 6012,
       "name": "LongShot",
       "msg": "the combination is too much of a long shot"
     },
     {
-      "code": 6009,
+      "code": 6013,
       "name": "Underpriced",
       "msg": "the stake would not be less than the payout"
     },
     {
-      "code": 6010,
+      "code": 6014,
       "name": "OverPayoutCap",
       "msg": "the payout exceeds the reserve's per-ticket cap"
     },
     {
-      "code": 6011,
+      "code": 6015,
       "name": "StakeAboveMax",
       "msg": "the fresh stake is above the most the buyer agreed to pay"
     },
     {
-      "code": 6012,
+      "code": 6016,
       "name": "InsufficientLiquidity",
       "msg": "the reserve cannot back that payout right now"
     },
     {
-      "code": 6013,
+      "code": 6017,
       "name": "OverExposure",
       "msg": "that would take the reserve past its exposure limit"
     },
     {
-      "code": 6014,
+      "code": 6018,
       "name": "OverExpiryCap",
       "msg": "too much of the reserve already settles at that boundary"
     },
     {
-      "code": 6015,
+      "code": 6019,
+      "name": "TooManyExpiries",
+      "msg": "the reserve has capital riding on too many boundaries at once"
+    },
+    {
+      "code": 6020,
       "name": "TicketNotLive",
       "msg": "the ticket is not live"
     },
     {
-      "code": 6016,
-      "name": "LegAlreadyResolved",
-      "msg": "that leg has already been resolved"
-    },
-    {
-      "code": 6017,
+      "code": 6021,
       "name": "WrongLeg",
       "msg": "that leg is not part of this ticket"
     },
     {
-      "code": 6018,
-      "name": "LegsPending",
-      "msg": "the ticket still has legs waiting on their Windows"
+      "code": 6022,
+      "name": "LegOutOfOrder",
+      "msg": "an earlier leg of this ticket has to be decided first"
     },
     {
-      "code": 6019,
+      "code": 6023,
+      "name": "LegNotSettled",
+      "msg": "that Window has not settled yet"
+    },
+    {
+      "code": 6024,
       "name": "TicketNotSettled",
       "msg": "the ticket has not been settled"
     },
     {
-      "code": 6020,
-      "name": "TicketDidNotWin",
-      "msg": "the ticket did not win"
+      "code": 6025,
+      "name": "NothingToClaim",
+      "msg": "there is nothing to claim on that ticket"
     },
     {
-      "code": 6021,
+      "code": 6026,
       "name": "NotStale",
       "msg": "the ticket is not stale enough to void"
     },
     {
-      "code": 6022,
-      "name": "WrongEngine",
-      "msg": "that Market belongs to a different engine"
+      "code": 6027,
+      "name": "MustResolve",
+      "msg": "the venue has an answer for that leg, so it must be resolved rather than voided"
     },
     {
-      "code": 6023,
-      "name": "WrongExpiry",
-      "msg": "that expiry book belongs to a different boundary"
+      "code": 6028,
+      "name": "WrongReserve",
+      "msg": "that ticket belongs to a different reserve"
     },
     {
-      "code": 6024,
+      "code": 6029,
+      "name": "NotAdmin",
+      "msg": "only the reserve's admin may do that"
+    },
+    {
+      "code": 6030,
       "name": "InsufficientShares",
       "msg": "that wallet does not hold that many shares"
     },
     {
-      "code": 6025,
+      "code": 6031,
       "name": "ZeroAmount",
       "msg": "the amount is zero"
     },
     {
-      "code": 6026,
+      "code": 6032,
       "name": "NoEquity",
       "msg": "the reserve has no equity to price shares against"
     },
     {
-      "code": 6027,
+      "code": 6033,
       "name": "MathOverflow",
       "msg": "arithmetic overflowed"
+    }
+  ],
+  "types": [
+    {
+      "name": "ExpiryLock",
+      "docs": [
+        "Provider capital coming due at one boundary. A slot with nothing locked is free, whatever instant it names."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          },
+          {
+            "name": "locked_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LegPriced",
+      "docs": [
+        "One per leg at open, so a reader can re-price the ticket from the prices the chain actually used."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "leg_idx",
+            "type": "u8"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_up",
+            "type": "bool"
+          },
+          {
+            "name": "price_raw",
+            "type": "u64"
+          },
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LegResolved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "leg_idx",
+            "type": "u8"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "LegStatus"
+              }
+            }
+          },
+          {
+            "name": "cranker",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LegStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Won"
+          },
+          {
+            "name": "Lost"
+          },
+          {
+            "name": "Void"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "paid_base",
+            "type": "u64"
+          },
+          {
+            "name": "cranker",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayLeg",
+      "docs": [
+        "One leg, frozen at open: the Window, the side, the price it was bought at, and when it decides."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_up",
+            "docs": [
+              "True for a call that the close is at or above the open."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "LegStatus"
+              }
+            }
+          },
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          },
+          {
+            "name": "resolved_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "price_raw",
+            "docs": [
+              "Collateral per whole contract of the chosen side at open: this leg's priced win probability."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayOpened",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "leg_count",
+            "type": "u8"
+          },
+          {
+            "name": "stake_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "combined_prob_raw",
+            "type": "u64"
+          },
+          {
+            "name": "last_expiry_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayParams",
+      "docs": [
+        "The reserve's tunables, mirrored by `ParlayParams` in `packages/core/src/parlay/types.ts`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "margin_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_exposure_bps",
+            "type": "u16"
+          },
+          {
+            "name": "correlation_bps",
+            "docs": [
+              "The floor a same-instant combination is held to, as a fraction of its cheapest leg."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_spread_ticks",
+            "docs": [
+              "The widest gap between a leg's price and the other side's touch the reserve will price through. 0 = off."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_legs",
+            "type": "u8"
+          },
+          {
+            "name": "min_rest_slots",
+            "docs": [
+              "A floor under each Series' own `min_rest_slots`: only orders that have rested this long price a leg (PD-2)."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "min_time_left_sec",
+            "type": "u32"
+          },
+          {
+            "name": "max_payout_cap_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_expiry_locked_base",
+            "type": "u64"
+          },
+          {
+            "name": "min_combined_prob_raw",
+            "type": "u64"
+          },
+          {
+            "name": "price_depth_raw",
+            "docs": [
+              "The least depth a leg is priced over, in payout base units; a bigger payout is priced over its own size."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayReserve",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "events_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "ParlayParams"
+              }
+            }
+          },
+          {
+            "name": "user_escrow_base",
+            "type": "u64"
+          },
+          {
+            "name": "locked_base",
+            "type": "u64"
+          },
+          {
+            "name": "supply_shares",
+            "type": "u64"
+          },
+          {
+            "name": "next_parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "tickets_open",
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "expiry_locks",
+            "docs": [
+              "Capital per settlement instant, so the reserve cannot put its whole book on one print."
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "ExpiryLock"
+                  }
+                },
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlaySettled",
+      "docs": [
+        "The ticket left the live book. `owed_base` is what its owner may now claim: the payout, the stake, or nothing."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "outcome",
+            "type": {
+              "defined": {
+                "name": "LegStatus"
+              }
+            }
+          },
+          {
+            "name": "owed_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayStatus",
+      "docs": [
+        "In the client's enum order (`PARLAY_STATUSES`)."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Live"
+          },
+          {
+            "name": "Won"
+          },
+          {
+            "name": "Lost"
+          },
+          {
+            "name": "Void"
+          },
+          {
+            "name": "Claimed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParlayTicket",
+      "docs": [
+        "PDA `[\"ticket\", parlay_id u64 LE]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "parlay_id",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ParlayStatus"
+              }
+            }
+          },
+          {
+            "name": "leg_count",
+            "type": "u8"
+          },
+          {
+            "name": "won_count",
+            "type": "u8"
+          },
+          {
+            "name": "legs",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ParlayLeg"
+                }
+              }
+            }
+          },
+          {
+            "name": "opened_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "settled_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "last_expiry_sec",
+            "docs": [
+              "The latest boundary any leg settles on; the stale sweep counts its grace from here."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "stake_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "house_locked_base",
+            "type": "u64"
+          },
+          {
+            "name": "combined_prob_raw",
+            "type": "u64"
+          },
+          {
+            "name": "claimed_base",
+            "docs": [
+              "What a claim paid: the payout for a win, the stake for a void."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Provider",
+      "docs": [
+        "One wallet's share of the reserve. PDA `[\"provider\", owner]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "supplied_base",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn_base",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Supplied",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "equity_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "equity_base",
+            "type": "u64"
+          }
+        ]
+      }
     }
   ]
 }
