@@ -178,11 +178,7 @@ export interface Faq {
 export const FAQS: readonly Faq[] = [
   {
     question: "What currency does Agari use?",
-    answer: "tUSDC, a test dollar the venue mints on Solana devnet: every stake, price and payout is in it, and a winning contract pays 1 tUSDC. Choose Get test funds from the header or Portfolio: eligible wallets receive a little SOL for fees first, then the tUSDC mint. External SOL faucets are available if needed.",
-  },
-  {
-    question: "Why not bet in SOL, or in Circle's USDC?",
-    answer: "Stocks are priced in dollars, so the bet is too: a stake held in SOL would also be a bet on SOL's own price. SOL only pays network fees here. Only Circle can mint USDC, so Agari's faucet could not hand it out; tUSDC is Agari's own mint, which is how one signature funds a new wallet and how the house maker stays funded to quote every Window. It is worth nothing anywhere. The venue's collateral is a single setting, and a mainnet launch would point it at real USDC.",
+    answer: "tUSDC, the test collateral the venue mints on Solana devnet. Choose Get test funds from the header or Portfolio: eligible wallets receive a little SOL for fees first, then the tUSDC mint. External SOL faucets are available if needed.",
   },
   {
     question: "When can I trade?",

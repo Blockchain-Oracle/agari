@@ -23,18 +23,7 @@
 /* font-display text-2xl font-extrabold tracking-tight mb-1 */
 .fund-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; color: var(--white); margin-bottom: 4px; }
 /* text-gray-400 text-sm leading-relaxed mb-6 */
-.fund-body { font-size: 14px; line-height: 1.625; color: var(--gray-400); margin-bottom: 16px; }
-/* "What is tUSDC?" — closed by default, in the modal's own inks; it takes the 24px the body used to leave. */
-.fund-what { margin-bottom: 24px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; }
-.fund-what summary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--vermilion); cursor: pointer; list-style: none; }
-.fund-what summary::-webkit-details-marker { display: none; }
-.fund-what summary::after { content: " +"; }
-.fund-what[open] summary::after { content: " −"; }
-.fund-what dl { margin-top: 12px; display: grid; gap: 10px; }
-.fund-what dt { font-size: 12px; font-weight: 600; color: var(--white); }
-.fund-what dd { margin: 2px 0 0; font-size: 13px; line-height: 1.55; color: var(--gray-400); }
-[data-theme="light"] .fund-what { border-top-color: rgba(20, 18, 16, 0.1); }
-[data-theme="light"] .fund-what dt { color: #141210; }
+.fund-body { font-size: 14px; line-height: 1.625; color: var(--gray-400); margin-bottom: 24px; }
 /* font-mono text-xs text-gray-500 text-center py-6 */
 .fund-connect-first { display: flex; flex-direction: column; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); text-align: center; padding-block: 24px; }
 /* flex items-center justify-between border border-white/[0.06] rounded-xl px-4 py-3 mb-4 */
