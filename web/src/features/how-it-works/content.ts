@@ -182,7 +182,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "Why not bet in SOL, or in Circle's USDC?",
-    answer: "Stocks are priced in dollars, so the bet is too: a stake held in SOL would also be a bet on SOL's own price. SOL only pays network fees here. Circle's devnet USDC comes in small amounts from Circle's own site, so it could not fund you in one tap; tUSDC is Agari's own mint, free from the faucet and worth nothing anywhere. The venue's collateral is a single setting, and a mainnet launch would point it at real USDC.",
+    answer: "Stocks are priced in dollars, so the bet is too: a stake held in SOL would also be a bet on SOL's own price. SOL only pays network fees here. Only Circle can mint USDC, so Agari's faucet could not hand it out; tUSDC is Agari's own mint, which is how one signature funds a new wallet and how the house maker stays funded to quote every Window. It is worth nothing anywhere. The venue's collateral is a single setting, and a mainnet launch would point it at real USDC.",
   },
   {
     question: "When can I trade?",

@@ -9,7 +9,7 @@ export const MONEY = {
   points: [
     { k: "You bet in tUSDC", v: "Every stake, price and payout is in tUSDC, a test dollar Agari mints on Solana devnet. A winning contract pays 1 tUSDC, so a price of 64¢ reads as a 64% chance." },
     { k: "Not SOL", v: "Stocks are priced in dollars. A bet held in SOL would also be a bet on SOL's own price. SOL is only used for network fees." },
-    { k: "Not Circle's USDC", v: "Circle hands out its devnet USDC in small amounts from its own site, so it could not fund you here in one tap. tUSDC is Agari's own mint. It has no value anywhere, and the venue's collateral is one setting that a mainnet launch would point at real USDC." },
+    { k: "Not Circle's USDC", v: "Only Circle can mint USDC, so Agari's faucet could not hand it to you. Agari mints tUSDC itself, which is how it funds a new wallet in one signature and keeps the house maker quoting every Window. tUSDC has no value anywhere. The venue's collateral is one setting that a mainnet launch would point at real USDC." },
   ],
 } as const;
 
