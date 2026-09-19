@@ -14,6 +14,13 @@
 import { floorDecimalE8 } from "./jupiter";
 
 export const PRESTOCKS_CATALOGUE_URL = "https://prestocks.com/api/prestocks";
+/**
+ * The latest a read may land after its boundary and still stand for that boundary's 60 s bar. The program bounds the
+ * read only from below (the correction delay) and above by `now`, so 900 s of admission would accept a price read a
+ * quarter of an hour late. Past this, the honest outcome is a void on a missing print, never a stale attestation.
+ * Shared by the drive and the relay so the two can never disagree about what "on time" means.
+ */
+export const PRESTOCKS_MAX_LATE_SEC = 45;
 /** The eight tokens the catalogue carried when the lane was built; the parser accepts whatever it actually returns. */
 export const PRESTOCKS_KNOWN_SYMBOLS = ["ANDURIL", "ANTHROPIC", "FIGUREAI", "KALSHI", "NEURALINK", "OPENAI", "POLYMARKET", "SPACEX"] as const;
 

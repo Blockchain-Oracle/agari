@@ -28,7 +28,7 @@ import {
   preStocksSeries, PRESTOCKS_TICKER_BASE, recordAttestedPrint, redeem, seatHintFor, seriesAddress, settleWindow,
   windowAddresses, WHICH, type OpenedWindow, type StepContext,
 } from "@agari/markets/deploy";
-import { fetchPreStocks, requireToken, type PreStocksRead, type PreStocksToken } from "@agari/markets/ops/prints";
+import { fetchPreStocks, PRESTOCKS_MAX_LATE_SEC, requireToken, type PreStocksRead, type PreStocksToken } from "@agari/markets/ops/prints";
 import { addressesFor, arg, clusterArg, endpoints, flag, redactKey } from "../deploy/ops-cluster";
 import { check, openDrive, sleep } from "./first-call-kit";
 
@@ -54,7 +54,8 @@ const ADMISSION_SEC = spec.versions[0]!.primary.openAdmissionSec;
 // The print claims to be the `BAR_LEN_SEC` bar ending at the boundary. The program only bounds the read from below, by
 // the correction delay, and above by `now` — 900 s of admission would happily accept a price read a quarter of an hour
 // late and sign it as that bar. This is the drive's own upper bound, and the only guard against a silently wrong price.
-const MAX_LATE_SEC = 45;
+// Shared with the relay pass, so the drive and ops can never disagree about what "on time" means.
+const MAX_LATE_SEC = PRESTOCKS_MAX_LATE_SEC;
 
 // A first read before anything is sent: if PreStocks cannot price the symbol there is no lane to build.
 const opening = await fetchPreStocks();
@@ -182,13 +183,14 @@ try {
   const [chainOpen, chainClose] = [BigInt(market.data.open.price), BigInt(market.data.close.price)];
   const close = prints[prints.length - 1]!.token.tokenPriceE8;
   const open = prints.length > 1 ? prints[0]!.token.tokenPriceE8 : chainOpen;
-  const call = close > open ? "UP" : close < open ? "DOWN" : "FLAT";
+  // PD-3 (`resolve_rules.rs`): `close >= open` pays Up, so a tie is an Up, never a split.
+  const call = close >= open ? "UP" : "DOWN";
   // The whole point of the drive is to rule out a wrong price, so the chain's own record is compared with what was
   // signed rather than assumed to match, and the payout is compared with the direction the prices imply.
   check(chainOpen === open, `the chain's opening print ${chainOpen} is the price the attestor signed`);
   check(chainClose === close, `the chain's closing print ${chainClose} is the price the attestor signed`);
-  check(call === "UP" ? payoutYes > payoutNo : call === "DOWN" ? payoutNo > payoutYes : payoutYes === payoutNo,
-    `the payout (YES ${payoutYes} / NO ${payoutNo}) agrees with the ${call} the prints imply`);
+  check(call === "UP" ? payoutYes > payoutNo : payoutNo > payoutYes,
+    `the payout (YES ${payoutYes} / NO ${payoutNo}) agrees with the ${call} the prints imply (a tie pays Up, PD-3)`);
   console.log(`  settled ${opened.market}: ${usd(open)} → ${usd(close)}, the close called ${call}`);
   console.log(`  market state ${state}, payout YES ${payoutYes} / NO ${payoutNo}${voidReason ? `, void reason ${voidReason}` : ""}`);
   check(voidReason === 0, "the Window settled on the two prints with no void reason");
