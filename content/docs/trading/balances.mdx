@@ -10,7 +10,7 @@ Every stake, ticket and pre-open order on Agari is sized in **tUSDC**: a 6-decim
 ### Why a test dollar, and not SOL or Circle's USDC
 
 - **Not SOL.** Stocks are priced in dollars, and a contract pays 1 tUSDC, so a price of 64¢ reads as a 64% chance. A stake held in SOL would also be a position on SOL's own price. SOL only pays network fees.
-- **Not Circle's devnet USDC.** Circle hands that out in small amounts from its own site, so Agari could not fund a fresh wallet in one signature. tUSDC is Agari's own mint, which its faucet can hand out freely.
+- **Not Circle's devnet USDC.** Only Circle can mint it, so Agari's faucet could not hand it out. Circle's own public faucet gives 20 USDC every 2 hours per address, behind a captcha (faucet.circle.com, read 2026-09-19). Agari mints tUSDC itself, which is how one signature funds a fresh wallet and how the house maker stays funded to quote every Window.
 - **On mainnet.** The venue's collateral mint is a single setting. A mainnet venue would name Circle's USDC there; nothing else about a Window changes.
 
 An ordinary wallet order escrows tUSDC straight from your wallet's token account for the life of the order, and returns it to your wallet (or pays out the settled result there) once the position closes.
