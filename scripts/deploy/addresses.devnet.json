@@ -60,7 +60,15 @@
       "seat": "Ht3WcbwvYYh7qPSy3JX1vZrXgpApZQ6zhC8vp2vvBuhi",
       "maker": "8ZjW7FjMPbk9iC6DtX95fBt47CEr7BEvd3yMuTqauSbB",
       "fromSlot": 500931877,
-      "seatSignature": "Lsau2qNT3S96Wp4z5z83omY2azjfz95p2tuCitXPEjh4mkejbGJFT1HmYxs1557uWNJQxfWakgTqV6QGfXCgDDM"
+      "seatSignature": "Lsau2qNT3S96Wp4z5z83omY2azjfz95p2tuCitXPEjh4mkejbGJFT1HmYxs1557uWNJQxfWakgTqV6QGfXCgDDM",
+      "programId": "442oD4u4fHnAwPjSqdQvkgGeDaGVEZ9YHHaLny98nEaN",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "msyKQNBXEu2EMXwDzdkmWMQ7DZRyvrSXmyEeJm8wVBsumyiQBgPX9bPNN1ftLSUGJDor3iyMKsYt3pxASET6hvT",
+      "deployedSlot": 500931376,
+      "sbpfArch": "v0",
+      "soBytes": 417192,
+      "soSha256": "5e2057f5d66afcfc4c01d16bc51f1fdee6bf874d6d763cea060a212a5b863b52",
+      "authorityIndex": 1
     }
   },
   "venue": {
