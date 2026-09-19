@@ -1,6 +1,6 @@
 import { formatCadence, LAUNCH_TICKERS, TICKERS, WINDOW_CADENCES_SEC } from "@agari/core/market";
 import type { SenseiRequest } from "./protocol";
-import { earningsLine, type EarningsTurn, isSessionOpen, positionLines, recordLine, sessionLine } from "./turn-lines";
+import { earningsLine, type EarningsTurn, holdingsLine, isSessionOpen, positionLines, recordLine, sessionLine } from "./turn-lines";
 
 const WHOLE_DOLLARS_FROM = 1_000;
 
@@ -68,7 +68,7 @@ export interface SenseiTurn {
 
 /** The per-turn block: live figures and the tilt cue, kept out of the stable prefix. */
 export function senseiTurnContext(request: SenseiRequest, turn: SenseiTurn = {}): string {
-  const { snapshot, restless, session, positions, record } = request;
+  const { snapshot, restless, session, positions, record, holdings } = request;
   const lines: string[] = [];
 
   if (restless) {
@@ -78,6 +78,7 @@ export function senseiTurnContext(request: SenseiRequest, turn: SenseiTurn = {})
   if (session !== undefined) lines.push(sessionLine(session));
   if (record) lines.push(recordLine(record));
   if (positions) lines.push(...positionLines(positions));
+  if (holdings) lines.push(holdingsLine(holdings));
   if (turn.earnings) lines.push(earningsLine(turn.earnings));
 
   if (snapshot === null || snapshot.markets.length === 0) {

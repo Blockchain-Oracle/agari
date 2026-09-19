@@ -1,13 +1,14 @@
 import { ET_WEEKDAY_SHORT, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
 import type { EarningsEvent } from "@/lib/finnhub.server";
-import type { SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
+import type { SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { centsText } from "./units";
 
 /**
  * The per-turn lines Sensei's server adds about the session, the reader's own book and earnings (S13 spec §1.1).
  *
  * Pure strings over the request, so the route stays a transport and the whole block can be measured: it has to stay
- * under 2 KB with eight positions, four Windows and the full earnings list, because it rides on every turn.
+ * under 2.5 KB with eight positions, four Windows, four holdings and the full earnings list, because it rides on every
+ * turn (2 KB before the holdings line; D-104).
  */
 
 /** The report horizon the prompt speaks about; the Finnhub client serves it from its 6 h cache. */
@@ -56,6 +57,18 @@ export function positionLines(positions: readonly SenseiPosition[]): string[] {
       (p) => `- ${p.asset} ${p.cadence} ${SIDE[p.side]}, staked ${centsText(p.stakeCents)}, worth ${centsText(p.markCents)} at last trade, closes in ${p.minsToClose} min`,
     ),
   ];
+}
+
+const ISSUER = { xstocks: "xStocks", ondo: "Ondo", prestocks: "PreStocks" } as const;
+
+/**
+ * What the wallet holds, stated as a fact with its one allowed use: a Window on the same name is cover, with test
+ * funds. The token itself stays behind the advice line in the system prompt; this line only reminds the model of it.
+ */
+export function holdingsLine(holdings: readonly SenseiHolding[]): string {
+  if (holdings.length === 0) return "Their wallet holds no stock tokens (real tokens, read-only).";
+  const rows = holdings.map((h) => `${h.tokens} ${h.symbol} (${h.name}, ${ISSUER[h.issuer]})${h.valueCents === null ? "" : ` about ${centsText(h.valueCents)}`}`);
+  return `Their wallet holds, real tokens read-only, not test funds: ${rows.join("; ")}. A DOWN Window on that name is cover with test funds; UP adds to it. Never advise on the tokens themselves.`;
 }
 
 function reportDay(dateEt: string): string {

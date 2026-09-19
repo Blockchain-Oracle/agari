@@ -1,25 +1,34 @@
 "use client";
 
-import { formatCadence } from "@agari/core/market";
+import { formatCadence, TICKERS } from "@agari/core/market";
 import { roundSettledAtMs, type SettledRound } from "@agari/core/projection";
 import type { OpenPosition } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { usePositions, useWalletHistory } from "@agari/markets/react";
 import { useMemo } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
+import { useHoldings, type HoldingView } from "@/features/hedge";
 import { useMarketSession } from "../markets/session/useMarketSession";
-import type { SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
+import type { SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { baseToCents } from "./units";
 
 /** The request's ceiling (`protocol.ts`); the soonest to close are the ones a read is about. */
 const MAX_POSITIONS = 8;
+/** Four names is the holdings ceiling (`protocol.ts`): the per-turn block has a byte budget (D-104). */
+const MAX_HOLDINGS = 4;
 /** Minutes to close are what the positions carry, so they are rebuilt once a minute, like the snapshot's figures. */
 const TICK_MS = 60_000;
+const SHARES_DP = 8;
+const SHARES_SHOWN_DP = 4;
+/** USD e6 → cents, rounded half up, integer only. */
+const USD_E6_PER_CENT = 10_000n;
 
 /** What Sensei's request adds about the reader (S13 spec §1.1). A field left undefined is unknown, never "none". */
 export interface SenseiContext {
   session: SenseiSession | null;
   positions?: SenseiPosition[];
   record?: SenseiRecord;
+  holdings?: SenseiHolding[];
 }
 
 function sideOf(position: OpenPosition): SenseiPosition["side"] {
@@ -39,6 +48,21 @@ function toPositions(positions: readonly OpenPosition[], nowMs: number): SenseiP
       stakeCents: Math.max(0, baseToCents(position.costBasisBase, position.decimals)),
       markCents: Math.max(0, baseToCents(position.markValueBase, position.decimals)),
       minsToClose: Math.max(0, Math.round((position.expirySec * 1000 - nowMs) / 60_000)),
+    }));
+}
+
+/** The wallet's stock tokens for Sensei, largest value first, at the request's ceiling; nothing names the wallet or a mint. */
+export function toHoldings(holdings: readonly HoldingView[]): SenseiHolding[] {
+  const value = (h: HoldingView) => h.exposureUsdE6 ?? -1n;
+  return [...holdings]
+    .sort((a, b) => (value(b) > value(a) ? 1 : value(b) < value(a) ? -1 : 0))
+    .slice(0, MAX_HOLDINGS)
+    .map((h) => ({
+      name: TICKERS[h.underlying].name,
+      symbol: h.symbol,
+      issuer: h.issuer,
+      tokens: formatBaseUnits(h.sharesE8, SHARES_DP, { maxDp: SHARES_SHOWN_DP, minDp: 0 }),
+      valueCents: h.exposureUsdE6 === null ? null : Number((h.exposureUsdE6 + USD_E6_PER_CENT / 2n) / USD_E6_PER_CENT),
     }));
 }
 
@@ -66,6 +90,8 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
   const market = useMarketSession();
   const positions = usePositions(open ? address : null);
   const history = useWalletHistory(address, open);
+  // The same query the cover card and "Your stocks" read (one TanStack key), so an open drawer adds no request of its own.
+  const holdings = useHoldings(open ? address : null);
   const tick = Math.floor(nowMs / TICK_MS);
 
   const state = market?.status.state ?? null;
@@ -74,13 +100,15 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
 
   const positionRows = open && address !== null && positions?.ok ? positions.value : null;
   const rounds = open && address !== null && history?.ok ? history.value.rounds : null;
+  const holdingRows = open && address !== null && holdings?.ok ? holdings.value : null;
 
   return useMemo<SenseiContext>(
     () => ({
       session,
       ...(positionRows ? { positions: toPositions(positionRows, tick * TICK_MS) } : {}),
       ...(rounds ? { record: toRecord(rounds) } : {}),
+      ...(holdingRows ? { holdings: toHoldings(holdingRows) } : {}),
     }),
-    [session, positionRows, rounds, tick],
+    [session, positionRows, rounds, holdingRows, tick],
   );
 }

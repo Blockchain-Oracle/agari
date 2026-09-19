@@ -1097,6 +1097,13 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none until the 24/7 OPENAI Series exists; then it appears under the 24/7 tab and nowhere else.
 - **Approval:** stage owner, from the approved 2026-09-19 plan (Step 0.3, "never cut").
 
+### D-104 — Sensei is told what the wallet holds, as a fact with one use; its per-turn block grows from 2 KB to 2.5 KB
+- **Date / owner:** 2026-09-19 · S18 owner
+- **Evidence:** the approved plan's Sensei note ("holdings summary in `useSenseiContext.ts`; `ADVICE_TRIPWIRE` unchanged; add turn tests"). Measured: the S13 per-turn block already sat at ≈2,007 bytes at its ceilings (eight positions, four Windows, the full earnings list), so no holdings line fits under the 2 KB guard, not even one row; four rows at their own ceiling add ≈390 bytes.
+- **Rule:** the request carries `holdings` (≤ 4, largest value first; name, symbol, issuer, token amount as text, integer `valueCents` or null when the only price is stale; never the wallet or a mint), read from the same TanStack entry the cover card and "Your stocks" use, only while the drawer is open and a wallet is connected. The turn line states it as a fact ("real tokens, read-only, not test funds") with the one allowed use: a DOWN Window on that name is cover with test funds, UP adds to it, "never advise on the tokens themselves". `ADVICE_TRIPWIRE` is unchanged (adding "tokens" would trip Agari's own "buy Up tokens"); the system prompt's advice line still refuses real-money advice. The block's ceiling test moves to 2,560 bytes with four holdings included.
+- **User-visible:** with a wallet that holds a recognised stock token, Sensei can say "you hold 4.2 OPENAI; a DOWN Window on OpenAI is cover" instead of not knowing; asked whether to sell the token it still refuses in one sentence.
+- **Approval:** stage owner, from the approved 2026-09-19 plan (engineer notes, Sensei).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
