@@ -8,6 +8,7 @@ import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";
 import { absent, refusedFor, unavailableFor } from "../stub/product";
 import type { VaultContracts } from "../vault/contracts";
+import { rangeProgramId } from "./deployment";
 
 /** What the pricing reads off the Window: the opening print, where the book sits, the house's σ. */
 export interface RangeWindowBasis {
@@ -45,11 +46,13 @@ export type RangeOpenOutcome =
   | { status: "reverted"; diagnosis: Diagnosis; txHash?: Signature }
   | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
 
-export const resolveRangeDeployment = (_env?: Partial<MarketsEnv>): RangeDeployment | null => null;
-export const getRangeReserveState = (): Promise<Reading<RangeReserveState | null>> => absent(null);
-export const listRangesOf = (_wallet: Address): Promise<Reading<RangeRound[]>> => absent([]);
-export const getRange = (_roundId: bigint): Promise<Reading<RangeRound | null>> => absent(null);
-export const getRangeSharesOf = (_wallet: Address): Promise<Reading<{ shares: bigint; worthBase: bigint }>> => absent({ shares: 0n, worthBase: 0n });
+/** The reserve's address on this cluster, or null where `agari-range` is not deployed. */
+export function resolveRangeDeployment(_env?: Partial<MarketsEnv>): RangeDeployment | null {
+  const program = rangeProgramId();
+  return program ? { chainId: 0, rangeReserve: program, fromBlock: 0n } : null;
+}
+
+export { getRange, getRangeReserveState, getRangeSharesOf, listRangesOf } from "./reads";
 export const previewRangeBasis = (_marketId: MarketId, _asset: TickerSymbol): Promise<Reading<RangeWindowBasis>> => unavailableFor(RANGE_NOT_DEPLOYED);
 export const previewRangeOpen = (_band: RangeBand, _maxPayoutBase: bigint): Promise<Reading<RangePreview>> => unavailableFor(RANGE_NOT_DEPLOYED);
 export const quoteRangeOnchain = (_band: RangeBand, _mode: RangeMode, _params: RangeParams, _tauSec: number): Promise<Reading<RangeQuote>> => unavailableFor(RANGE_NOT_DEPLOYED);

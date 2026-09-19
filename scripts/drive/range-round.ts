@@ -65,6 +65,21 @@ try {
     console.log(`marking Window #${live.index} ${live.marketId}; throwaway taker ${taker.address}`);
     const r = await markWindow(ctx, live.marketId, taker, faucet, Number(arg("--ticks") ?? "500"), BigInt(arg("--lots") ?? "500"));
     console.log(`marked: last price ${r.lastPrice}, trades ${r.tradeCount}; rest ${r.rest}; cross ${r.cross}`);
+  } else if (mode === "state") {
+    // The same read `/games/range` makes, through the same port, so a green page is not a separate claim.
+    const { ensureMarkets } = await import("@agari/markets");
+    const { marketsEnvInputFrom, parseMarketsEnv } = await import("@agari/markets/env");
+    ensureMarkets(parseMarketsEnv(marketsEnvInputFrom(process.env)));
+    const { getRangeReserveState } = await import("@agari/markets/range");
+    const reading = await getRangeReserveState();
+    if (!reading.ok) { console.log("read failed:", JSON.stringify(reading)); }
+    else if (!reading.value) console.log("no reserve on this cluster — /games/range would show its pending state");
+    else {
+      const r = reading.value;
+      console.log(`reserve ${r.deployment.rangeReserve}`);
+      console.log(`  equity ${r.totalValueBase} | liquid ${r.liquidBase} | locked ${r.lockedBase} | utilisation ${r.utilizationBps} bps`);
+      console.log(`  shares ${r.supplyShares} | paused ${r.paused} | margin ${r.params.marginBps} bps | per-expiry cap ${r.params.maxExpiryLockedBase}`);
+    }
   } else if (mode === "probe") {
     // Which live Windows the reserve would price, and which it would refuse for want of a mark.
     for (const spec of (arg("--lanes") ?? "910:3600:2,1:604800:1,2:604800:1,7:604800:1").split(",")) {
