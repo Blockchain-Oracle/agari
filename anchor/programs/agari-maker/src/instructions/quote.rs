@@ -7,12 +7,15 @@ use crate::errors::MakerError;
 use crate::events::{Pulled, Quoted};
 use crate::state::{MakerVault, WindowBook};
 
-/// The engine's order kinds. A two-sided YES market without YES inventory is a BUY_YES at the bid and a BUY_NO at
-/// the ask's complement — economically the offer, and it needs no position to rest.
+/// The engine's order kinds.
+///
+/// A two-sided YES market without YES inventory is a BUY_YES at the bid and a BUY_NO at the ask. The book is one
+/// YES-denominated ladder — `Kind::is_bid` puts BUY_YES on the bid side and BUY_NO on the ask side — so a BUY_NO
+/// carries the *YES* price it is offering at, not its own complement. Sending the complement offers YES at
+/// `1000 − ask` instead of `ask`, which is an offer to sell at the wrong end of the book entirely: post-only
+/// refuses it as a cross, and a taker would have filled it at a price the vault never meant.
 const KIND_BUY_YES: u8 = 0;
 const KIND_BUY_NO: u8 = 2;
-/// Prices are ticks out of this.
-const TICK_ONE: u32 = 1_000;
 
 #[derive(Accounts)]
 pub struct MakerQuote<'info> {
@@ -105,12 +108,11 @@ pub fn maker_quote(ctx: Context<MakerQuote>, bid_ticks: u16, ask_ticks: u16, lot
     let custody_before = ctx.accounts.custody.amount;
     let total_before = ctx.accounts.vault.total_value_base(custody_before);
 
-    // The bid buys YES at `bid_ticks`; the ask is a BUY_NO at the complement of `ask_ticks`.
+    // The bid buys YES at `bid_ticks`; the ask offers YES at `ask_ticks` as a BUY_NO on the ask side.
     let engine = engine_of(&ctx.accounts);
     let seat_bump = ctx.accounts.vault.seat_bump;
     let bid = place(&engine, seat_bump, quote_args(&window, KIND_BUY_YES, bid_ticks, lots, expire_ts, 0))?;
-    let ask_complement = u16::try_from(TICK_ONE - u32::from(ask_ticks)).map_err(|_| MakerError::BadPrice)?;
-    let ask = place(&engine, seat_bump, quote_args(&window, KIND_BUY_NO, ask_complement, lots, expire_ts, 1))?;
+    let ask = place(&engine, seat_bump, quote_args(&window, KIND_BUY_NO, ask_ticks, lots, expire_ts, 1))?;
 
     let escrow_out = bid.transferred_in.checked_add(ask.transferred_in).ok_or(MakerError::MathOverflow)?;
     let escrow_back = bid.withdrawn.checked_add(ask.withdrawn).ok_or(MakerError::MathOverflow)?;

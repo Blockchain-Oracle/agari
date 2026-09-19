@@ -75,10 +75,17 @@ const ERROR_TABLES: ReadonlyArray<readonly [string, string, (code: never) => str
   [AGARI_VAULT_PROGRAM_ADDRESS, "agari-vault", getAgariVaultErrorMessage as (code: never) => string],
 ];
 
-/** The innermost program the runtime reported as failing; the CPI that actually refused is the last one logged. */
+/**
+ * The program whose error code this is: the innermost one that failed.
+ *
+ * A CPI failure unwinds outwards, and the runtime logs each frame as it goes — so the *first* `Program … failed`
+ * line is the program that actually refused, and the ones after it are its callers reporting the same code. Taking
+ * the last gives the outermost caller, which does not own the code: a post-only refusal from the engine (6109)
+ * came out as "agari-maker 6109: undefined", because agari-maker has no error 6109 at all.
+ */
 function failingProgram(logs: readonly string[]): (typeof ERROR_TABLES)[number] | null {
-  for (let i = logs.length - 1; i >= 0; i--) {
-    const match = /^Program ([1-9A-HJ-NP-Za-km-z]{32,44}) failed/.exec(logs[i] ?? "");
+  for (const line of logs) {
+    const match = /^Program ([1-9A-HJ-NP-Za-km-z]{32,44}) failed/.exec(line);
     const table = match ? ERROR_TABLES.find(([address]) => address === match[1]) : undefined;
     if (table) return table;
   }
@@ -99,7 +106,9 @@ export function describeSendError(error: unknown): string {
   }
   if (code !== null) {
     const table = failingProgram(logs);
-    parts.push(table ? `${table[1]} ${code}: ${table[2](code as never)}` : `custom program error ${code} (program not identified)`);
+    // A code outside the table's own range decodes to nothing, so say the number rather than print "undefined".
+    const described = table ? table[2](code as never) : undefined;
+    parts.push(described ? `${table![1]} ${code}: ${described}` : `custom program error ${code}${table ? ` from ${table[1]}` : ""}`);
   }
   const tail = logs.filter((l) => /Program log|failed|error/i.test(l)).slice(-6);
   return [...parts, ...tail.map((l) => `  log: ${l}`)].join("\n");

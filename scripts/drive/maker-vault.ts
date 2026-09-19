@@ -59,6 +59,18 @@ try {
     console.log(`settled; vault deployed ${r.deployedBase}`);
     if (r.book) console.log(`  book: out ${r.book.escrowOutBase}, back ${r.book.escrowBackBase}, merged ${r.book.mergedBase}, payout ${r.book.payoutBase}, settled ${r.book.settled}`);
     console.log(r.signature);
+  } else if (mode === "book") {
+    // What the vault's own quoting actor sees: the depth it must rest outside of.
+    const { ensureMarkets } = await import("@agari/markets");
+    const { marketsEnvInputFrom, parseMarketsEnv } = await import("@agari/markets/env");
+    ensureMarkets(parseMarketsEnv(marketsEnvInputFrom(process.env)));
+    const { readPoolTop } = await import("@agari/markets/maker");
+    const marketId = await market();
+    const m = await client.agariEvents.accounts.market.fetch(marketId as never);
+    const top = await readPoolTop(m.data.book as never, 8);
+    console.log(`book ${m.data.book}`);
+    console.log(`  best bid ${top.bestBidRaw ?? "none"} (depth ${top.bidDepthRaw}) · best ask ${top.bestAskRaw ?? "none"} (depth ${top.askDepthRaw})`);
+    console.log(`  tick ${top.tickRaw} · lot ${top.lotRaw} · min lots ${top.minQuantityRaw}`);
   } else if (mode === "state") {
     const { ensureMarkets } = await import("@agari/markets");
     const { marketsEnvInputFrom, parseMarketsEnv } = await import("@agari/markets/env");

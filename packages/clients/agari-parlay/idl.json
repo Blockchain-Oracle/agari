@@ -1,0 +1,176 @@
+{
+  "address": "H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC",
+  "metadata": {
+    "name": "agari_parlay",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's MarketMakerVault on Solana: house-banked multi-leg tickets priced off the venue's own books"
+  },
+  "instructions": [
+    {
+      "name": "noop",
+      "docs": [
+        "The instruction set lands with the open and resolve steps; the arithmetic and the balance sheet are here."
+      ],
+      "discriminator": [
+        9,
+        178,
+        13,
+        115,
+        129,
+        35,
+        237,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Paused",
+      "msg": "the reserve is paused"
+    },
+    {
+      "code": 6001,
+      "name": "BadLegCount",
+      "msg": "a ticket needs at least the minimum number of legs and no more than the maximum"
+    },
+    {
+      "code": 6002,
+      "name": "DuplicateLeg",
+      "msg": "the same Window cannot be two legs of one ticket"
+    },
+    {
+      "code": 6003,
+      "name": "WindowNotTrading",
+      "msg": "that Window is not open for calls"
+    },
+    {
+      "code": 6004,
+      "name": "NoOpeningPrint",
+      "msg": "that Window has no opening print yet"
+    },
+    {
+      "code": 6005,
+      "name": "NoClosingPrint",
+      "msg": "that Window has no closing print yet"
+    },
+    {
+      "code": 6006,
+      "name": "ThinBook",
+      "msg": "the venue's book is too thin to price that leg"
+    },
+    {
+      "code": 6007,
+      "name": "TooLate",
+      "msg": "too little time is left in one of those Windows"
+    },
+    {
+      "code": 6008,
+      "name": "LongShot",
+      "msg": "the combination is too much of a long shot"
+    },
+    {
+      "code": 6009,
+      "name": "Underpriced",
+      "msg": "the stake would not be less than the payout"
+    },
+    {
+      "code": 6010,
+      "name": "OverPayoutCap",
+      "msg": "the payout exceeds the reserve's per-ticket cap"
+    },
+    {
+      "code": 6011,
+      "name": "StakeAboveMax",
+      "msg": "the fresh stake is above the most the buyer agreed to pay"
+    },
+    {
+      "code": 6012,
+      "name": "InsufficientLiquidity",
+      "msg": "the reserve cannot back that payout right now"
+    },
+    {
+      "code": 6013,
+      "name": "OverExposure",
+      "msg": "that would take the reserve past its exposure limit"
+    },
+    {
+      "code": 6014,
+      "name": "OverExpiryCap",
+      "msg": "too much of the reserve already settles at that boundary"
+    },
+    {
+      "code": 6015,
+      "name": "TicketNotLive",
+      "msg": "the ticket is not live"
+    },
+    {
+      "code": 6016,
+      "name": "LegAlreadyResolved",
+      "msg": "that leg has already been resolved"
+    },
+    {
+      "code": 6017,
+      "name": "WrongLeg",
+      "msg": "that leg is not part of this ticket"
+    },
+    {
+      "code": 6018,
+      "name": "LegsPending",
+      "msg": "the ticket still has legs waiting on their Windows"
+    },
+    {
+      "code": 6019,
+      "name": "TicketNotSettled",
+      "msg": "the ticket has not been settled"
+    },
+    {
+      "code": 6020,
+      "name": "TicketDidNotWin",
+      "msg": "the ticket did not win"
+    },
+    {
+      "code": 6021,
+      "name": "NotStale",
+      "msg": "the ticket is not stale enough to void"
+    },
+    {
+      "code": 6022,
+      "name": "WrongEngine",
+      "msg": "that Market belongs to a different engine"
+    },
+    {
+      "code": 6023,
+      "name": "WrongExpiry",
+      "msg": "that expiry book belongs to a different boundary"
+    },
+    {
+      "code": 6024,
+      "name": "InsufficientShares",
+      "msg": "that wallet does not hold that many shares"
+    },
+    {
+      "code": 6025,
+      "name": "ZeroAmount",
+      "msg": "the amount is zero"
+    },
+    {
+      "code": 6026,
+      "name": "NoEquity",
+      "msg": "the reserve has no equity to price shares against"
+    },
+    {
+      "code": 6027,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflowed"
+    }
+  ]
+}
