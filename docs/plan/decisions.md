@@ -1076,7 +1076,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 
 ### D-101 — The Pre-IPO lane runs attested-primary with no cross-check, and says so
 - **Date / owner:** 2026-09-18 · S18 owner
-- **Evidence:** every other lane carries a second source (Pyth ↔ RedStone, Switchboard) and voids on divergence. No second venue publishes a pre-IPO mark for OpenAI, so a check source would void every Window. `validate_policy_version` (policy_rules.rs §4) admits `Source::None` **only** when the check policy is the zero default and `max_divergence_bps` is 0 — the shape this lane uses.
+- **Evidence:** every other lane carries a second source (Pyth ↔ RedStone, Switchboard) and voids on divergence. No second venue publishes a pre-IPO mark for OpenAI, so a check source would void every Window. (Amended 2026-09-19: Jupiter quotes the same mint, so a second *read* of the token price exists, but it is the same DEX liquidity through another router, not an independent source; using it as the check would only ever agree with itself and would not be the redundancy the equity lanes have.) `validate_policy_version` (policy_rules.rs §4) admits `Source::None` **only** when the check policy is the zero default and `max_divergence_bps` is 0 — the shape this lane uses.
 - **Rule:** what a Pre-IPO settlement trusts is the venue's own ed25519 signature over the 158 B `agari-print-v1` message, not PreStocks. The README and the lane's UI must say that plainly rather than implying oracle-grade redundancy the lane does not have. A single-source lane is honest; a single-source lane pretending to be checked is not.
 - **User-visible:** the Pre-IPO lane is labelled single-source and attested by Agari.
 - **Approval:** stage owner.
