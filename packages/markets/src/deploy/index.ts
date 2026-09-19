@@ -30,6 +30,7 @@ export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks
 export { attestedMessage, ed25519Instruction } from "../prices/attested";
 export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX, vaultAddresses } from "./vault";
 export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
+export { DEVNET_MAKER_PARAMS, initMakerVault, makerAddresses, MAKER_AUTHORITY_INDEX, registerMakerSeat } from "./maker";
 export { expiryBookAddressOf, liveWindowFor, markWindow, probeWindow, openRangeRound, roundAddressOf, settleRangeRound, supplyRange, type OpenRangeInput } from "./range-drive";
 export { packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, redstonePayload, decimalToE8, type RedStonePackage } from "../prices/redstone";
 

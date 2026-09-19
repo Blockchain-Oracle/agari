@@ -24,6 +24,7 @@ export const webEnv: WebEnv = {
     eventsProgramId: process.env.NEXT_PUBLIC_AGARI_EVENTS_PROGRAM_ID,
     vaultProgramId: process.env.NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID,
     rangeProgramId: process.env.NEXT_PUBLIC_AGARI_RANGE_PROGRAM_ID,
+    makerProgramId: process.env.NEXT_PUBLIC_AGARI_MAKER_PROGRAM_ID,
     priceFeedUrl: process.env.NEXT_PUBLIC_PRICE_FEED_URL,
   }),
   ...webOnlySchema.parse({

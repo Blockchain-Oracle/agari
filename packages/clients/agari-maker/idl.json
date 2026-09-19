@@ -1,0 +1,1664 @@
+{
+  "address": "442oD4u4fHnAwPjSqdQvkgGeDaGVEZ9YHHaLny98nEaN",
+  "metadata": {
+    "name": "agari_maker",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's MarketMakerVault on Solana: pooled liquidity that quotes both sides of a Window through its own engine seat"
+  },
+  "instructions": [
+    {
+      "name": "admin_init_vault",
+      "discriminator": [
+        75,
+        169,
+        219,
+        105,
+        46,
+        136,
+        26,
+        78
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "docs": [
+            "Idle collateral. Its authority is the seat, because the engine moves it as the seat."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "venue_config"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "maker",
+          "type": "pubkey"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "MakerParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_params",
+      "discriminator": [
+        194,
+        243,
+        1,
+        30,
+        162,
+        133,
+        247,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "maker",
+          "type": "pubkey"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "MakerParams"
+            }
+          }
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "maker_pull",
+      "discriminator": [
+        175,
+        23,
+        145,
+        1,
+        188,
+        40,
+        189,
+        142
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "book_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "events_config"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "venue_book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "maker_quote",
+      "discriminator": [
+        9,
+        240,
+        8,
+        244,
+        55,
+        189,
+        21,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "book_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "events_config"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "venue_book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "bid_ticks",
+          "type": "u16"
+        },
+        {
+          "name": "ask_ticks",
+          "type": "u16"
+        },
+        {
+          "name": "lots",
+          "type": "u64"
+        },
+        {
+          "name": "expire_ts",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "provider_supply",
+      "discriminator": [
+        73,
+        69,
+        72,
+        253,
+        228,
+        71,
+        82,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "provider_withdraw",
+      "discriminator": [
+        58,
+        126,
+        168,
+        66,
+        6,
+        165,
+        115,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_merge",
+      "discriminator": [
+        114,
+        20,
+        202,
+        107,
+        147,
+        15,
+        80,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "book_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "events_config"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority"
+        }
+      ],
+      "args": [
+        {
+          "name": "lots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_settle",
+      "discriminator": [
+        236,
+        104,
+        129,
+        104,
+        54,
+        32,
+        122,
+        42
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "signer": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "book_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  100,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "events_config"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "MakerVault",
+      "discriminator": [
+        212,
+        193,
+        200,
+        30,
+        211,
+        177,
+        228,
+        74
+      ]
+    },
+    {
+      "name": "Provider",
+      "discriminator": [
+        164,
+        180,
+        71,
+        17,
+        75,
+        216,
+        80,
+        195
+      ]
+    },
+    {
+      "name": "WindowBook",
+      "discriminator": [
+        132,
+        210,
+        243,
+        131,
+        94,
+        85,
+        163,
+        81
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Merged",
+      "discriminator": [
+        57,
+        129,
+        241,
+        73,
+        156,
+        41,
+        126,
+        251
+      ]
+    },
+    {
+      "name": "ParamsUpdated",
+      "discriminator": [
+        2,
+        163,
+        138,
+        99,
+        135,
+        11,
+        136,
+        169
+      ]
+    },
+    {
+      "name": "Pulled",
+      "discriminator": [
+        65,
+        228,
+        151,
+        236,
+        209,
+        242,
+        90,
+        236
+      ]
+    },
+    {
+      "name": "Quoted",
+      "discriminator": [
+        229,
+        103,
+        133,
+        57,
+        86,
+        210,
+        35,
+        126
+      ]
+    },
+    {
+      "name": "Supplied",
+      "discriminator": [
+        137,
+        114,
+        239,
+        72,
+        162,
+        75,
+        133,
+        39
+      ]
+    },
+    {
+      "name": "VaultInitialized",
+      "discriminator": [
+        180,
+        43,
+        207,
+        2,
+        18,
+        71,
+        3,
+        75
+      ]
+    },
+    {
+      "name": "WindowSettled",
+      "discriminator": [
+        74,
+        19,
+        147,
+        64,
+        255,
+        182,
+        28,
+        150
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Paused",
+      "msg": "the vault is paused"
+    },
+    {
+      "code": 6001,
+      "name": "NotMaker",
+      "msg": "only the vault's maker may quote or pull"
+    },
+    {
+      "code": 6002,
+      "name": "UnknownMarket",
+      "msg": "that Market, Book or Ledger is not the Window it claims to be"
+    },
+    {
+      "code": 6003,
+      "name": "WrongCollateral",
+      "msg": "that Window uses a different collateral"
+    },
+    {
+      "code": 6004,
+      "name": "BadPrice",
+      "msg": "the price is not on the engine's grid"
+    },
+    {
+      "code": 6005,
+      "name": "VaultNotRegistered",
+      "msg": "the vault is not registered as a program authority on the venue"
+    },
+    {
+      "code": 6006,
+      "name": "WindowPredatesVault",
+      "msg": "that Window was opened before the vault had a seat"
+    },
+    {
+      "code": 6007,
+      "name": "EngineResultMissing",
+      "msg": "the engine returned no result"
+    },
+    {
+      "code": 6008,
+      "name": "WindowNotTrading",
+      "msg": "that Window is not open for quoting"
+    },
+    {
+      "code": 6009,
+      "name": "WindowNotSettled",
+      "msg": "that Window has not settled"
+    },
+    {
+      "code": 6010,
+      "name": "SpreadTooTight",
+      "msg": "the spread is tighter than the vault will quote"
+    },
+    {
+      "code": 6011,
+      "name": "PriceOutOfBand",
+      "msg": "the quote is outside the price band the vault will make"
+    },
+    {
+      "code": 6012,
+      "name": "QuantityTooLarge",
+      "msg": "the quote is larger than the vault's per-quote ceiling"
+    },
+    {
+      "code": 6013,
+      "name": "WindowCapExceeded",
+      "msg": "that would put more of the vault into one Window than its ceiling"
+    },
+    {
+      "code": 6014,
+      "name": "TooManyOpenWindows",
+      "msg": "the vault already has as many Windows open as it will carry"
+    },
+    {
+      "code": 6015,
+      "name": "TooLate",
+      "msg": "too little time is left in that Window to quote into it"
+    },
+    {
+      "code": 6016,
+      "name": "OverExposure",
+      "msg": "that would take the vault past its exposure limit"
+    },
+    {
+      "code": 6017,
+      "name": "InsufficientLiquidity",
+      "msg": "the vault has not got that much idle collateral"
+    },
+    {
+      "code": 6018,
+      "name": "InsufficientShares",
+      "msg": "that wallet does not hold that many shares"
+    },
+    {
+      "code": 6019,
+      "name": "NoValue",
+      "msg": "the vault has no value to price shares against"
+    },
+    {
+      "code": 6020,
+      "name": "ZeroAmount",
+      "msg": "the amount is zero"
+    },
+    {
+      "code": 6021,
+      "name": "AlreadySettled",
+      "msg": "this Window's book has already been settled"
+    },
+    {
+      "code": 6022,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflowed"
+    }
+  ],
+  "types": [
+    {
+      "name": "MakerParams",
+      "docs": [
+        "What the vault will and will not do with its providers' money, mirrored by `MakerParams` in",
+        "`packages/core/src/maker/types.ts`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_exposure_bps",
+            "docs": [
+              "The most of the vault's value that may sit in the venue at once."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "min_spread_ticks",
+            "docs": [
+              "A quote tighter than this is not a quote, it is a gift."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "min_price_ticks",
+            "docs": [
+              "The band the vault will quote inside; outside it the edge stops covering the rounding."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_price_ticks",
+            "type": "u16"
+          },
+          {
+            "name": "max_quantity_lots",
+            "docs": [
+              "Per-quote and per-Window ceilings, so one Window cannot take the book."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_window_deployed_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_open_windows",
+            "type": "u16"
+          },
+          {
+            "name": "min_time_left_sec",
+            "docs": [
+              "A Window with less than this left is not worth quoting into."
+            ],
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MakerVault",
+      "docs": [
+        "The vault's balance sheet and who is allowed to quote it.",
+        "",
+        "`deployed_base` is capital the venue holds against live quotes and positions; everything else is idle in",
+        "custody. Share price is total value over shares, and total value is custody plus deployed — so a provider's",
+        "claim does not jump when the maker quotes, only when a Window settles for or against the vault."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "maker",
+            "docs": [
+              "The one actor allowed to quote and pull. Providers' money, one hand on it."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "events_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "venue_config",
+            "type": "pubkey"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "MakerParams"
+              }
+            }
+          },
+          {
+            "name": "deployed_base",
+            "docs": [
+              "Capital the venue holds for the vault: escrow out, less what has come back."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "supply_shares",
+            "type": "u64"
+          },
+          {
+            "name": "open_windows",
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "custody_bump",
+            "type": "u8"
+          },
+          {
+            "name": "seat_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Merged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "merged_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "maker",
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Provider",
+      "docs": [
+        "One provider's claim on the vault. Shares move only under this wallet's own signature."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "supplied_base",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn_base",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pulled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "escrow_back_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Quoted",
+      "docs": [
+        "One two-sided quote, with what the engine actually took for it."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "bid_ticks",
+            "type": "u16"
+          },
+          {
+            "name": "ask_ticks",
+            "type": "u16"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "escrow_out_base",
+            "type": "u64"
+          },
+          {
+            "name": "deployed_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Supplied",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "total_value_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "maker",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WindowBook",
+      "docs": [
+        "One Window's flow through the vault — the contract's `WindowBook`.",
+        "",
+        "Kept per Window rather than netted into one number because a vault that cannot say *where* its capital went",
+        "cannot be audited by the people whose capital it is. `escrow_out − escrow_back − merged − payout` is what the",
+        "venue still holds for this Window, and the four are only ever added to, so the arithmetic cannot drift."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "escrow_out_base",
+            "type": "u64"
+          },
+          {
+            "name": "escrow_back_base",
+            "type": "u64"
+          },
+          {
+            "name": "merged_base",
+            "type": "u64"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "opened_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "settled_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "quote_count",
+            "type": "u32"
+          },
+          {
+            "name": "settled",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WindowSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "realized_base",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "total_value_base",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

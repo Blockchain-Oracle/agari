@@ -17,11 +17,9 @@ export interface PoolTop {
   minQuantityRaw: bigint;
 }
 
-export const resolveMakerDeployment = (_env?: Partial<MarketsEnv>): MakerDeployment | null => null;
-export const getMakerVaultState = (): Promise<Reading<MakerVaultState | null>> => absent(null);
+export { getMakerSharesOf, getMakerVaultState, getMakerWindow, makerProgramId, resolveMakerDeployment, windowBookAddress } from "./reads";
 export const listMakerOpenWindows = (): Promise<Reading<MakerWindowView[]>> => absent([]);
 export const listMakerHistory = (_limit = 20, _offset = 0): Promise<Reading<MakerWindowView[]>> => absent([]);
-export const getMakerSharesOf = (_wallet: Address): Promise<Reading<{ shares: bigint; worthBase: bigint }>> => absent({ shares: 0n, worthBase: 0n });
 export const getMakerUnsettledExpired = (): Promise<Reading<MarketId | null>> => absent(null);
 
 /** The maker's view of one Window's Book (a plain promise: it throws the not-deployed reading until the engine exists). */
