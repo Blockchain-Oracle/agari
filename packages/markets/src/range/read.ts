@@ -53,9 +53,7 @@ export function resolveRangeDeployment(_env?: Partial<MarketsEnv>): RangeDeploym
 }
 
 export { getRange, getRangeReserveState, getRangeSharesOf, listRangesOf } from "./reads";
-export const previewRangeBasis = (_marketId: MarketId, _asset: TickerSymbol): Promise<Reading<RangeWindowBasis>> => unavailableFor(RANGE_NOT_DEPLOYED);
-export const previewRangeOpen = (_band: RangeBand, _maxPayoutBase: bigint): Promise<Reading<RangePreview>> => unavailableFor(RANGE_NOT_DEPLOYED);
-export const quoteRangeOnchain = (_band: RangeBand, _mode: RangeMode, _params: RangeParams, _tauSec: number): Promise<Reading<RangeQuote>> => unavailableFor(RANGE_NOT_DEPLOYED);
+export { previewRangeBasis, previewRangeOpen, quoteRangeOnchain, readRangeCapacity } from "./reads";
 
 /** The program's preview as the one quote shape every ticket reads. */
 export function toRangeQuote(preview: RangePreview, side: RangeSide, maxPayoutBase: bigint, one: bigint, decimals: number): RangeQuote {

@@ -142,7 +142,5 @@ export interface RangeCapacity {
   lockedByExpiryBase: bigint;
 }
 
-/** The reserve's caps for a round, asked before the popup (S10). */
-export function readRangeCapacity(_houseLockedBase: bigint, _expirySec: number): Promise<Reading<RangeCapacity>> {
-  return unavailableFor(RANGE_NOT_DEPLOYED);
-}
+/** The reserve's caps for a round, asked before the popup (S10) — re-exported from the chain reads. */
+export { readRangeCapacity } from "./reads";
