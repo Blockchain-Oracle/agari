@@ -1,0 +1,31 @@
+[package]
+name = "agari-maker"
+version = "0.1.0"
+description = "Masayume's MarketMakerVault on Solana: pooled liquidity that quotes both sides of a Window through its own engine seat"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_maker"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["event-cpi", "init-if-needed"] }
+anchor-spl = { workspace = true }
+bytemuck = { workspace = true }
+agari-common = { path = "../../crates/agari-common" }
+agari-events = { path = "../agari-events", features = ["cpi"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
