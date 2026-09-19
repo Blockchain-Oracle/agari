@@ -12,6 +12,7 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
 import { HEDGE } from "./copy";
+import { DropBellToggle } from "./DropBellToggle";
 import { hedgeTarget } from "./hedge-target";
 import { useHoldings, type HoldingView } from "./useHoldings";
 import "./hedge.css";
@@ -63,6 +64,7 @@ export function YourStocksList({ holdings, laneSet, nowMs, index }: { holdings: 
                 <div className="ys-text">
                   <span className="ys-name">{TICKERS[g.underlying].name}</span>
                   <span className="ys-line">{value === null ? tokensText(g.holdings) : `${tokensText(g.holdings)} ≈ ${value}`}</span>
+                  <DropBellToggle asset={g.underlying} />
                 </div>
                 {target ? (
                   <div className="ys-actions">
@@ -81,6 +83,7 @@ export function YourStocksList({ holdings, laneSet, nowMs, index }: { holdings: 
           })}
         </ul>
       )}
+      {groups.length > 0 && <p className="hg-banner-foot ys-foot">{HEDGE.bell.foot}</p>}
       <p className="hg-banner-foot ys-foot">{HEDGE.stocks.foot}</p>
     </section>
   );

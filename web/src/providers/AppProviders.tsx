@@ -4,6 +4,7 @@ import { MarketsProvider } from "@agari/markets/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { AlertsWatcher } from "@/features/alerts";
+import { DropBellWatcher } from "@/features/hedge";
 import { LifecycleWatcher } from "@/features/activity/LifecycleWatcher";
 import { PerfProbe } from "@/features/perf";
 import { WriteRecovery } from "@/features/recovery";
@@ -32,6 +33,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
                 {/* The price-alert evaluator: one watch per asset with a pending rule, on the shared read runtime. */}
                 <AlertsWatcher />
                 <LifecycleWatcher />
+                {/* The opt-in "tell me if it drops" bell: one price watch per stock it is switched on for. */}
+                <DropBellWatcher />
                 {/* Writes the journal still holds open are asked about once per session; nothing is re-sent. */}
                 <WriteRecovery />
                 <SessionRecovery />

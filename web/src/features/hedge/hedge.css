@@ -267,3 +267,27 @@
   color: rgb(var(--reel-ink-rgb) / 0.45);
 }
 
+/* The "tell me if it drops" bell on a "Your stocks" row (plan Step 8). */
+.ys-bell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  opacity: 0.6;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+.ys-bell:hover,
+.ys-bell:focus-visible,
+.ys-bell[data-on] {
+  opacity: 1;
+}
+

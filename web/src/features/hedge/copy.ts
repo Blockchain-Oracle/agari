@@ -55,6 +55,16 @@ export const HEDGE = {
     foot: "Both are Agari bets with test money. Read from your wallet only. Not investment advice.",
     aria: (name: string) => `You hold ${name}: cover it with Down or add with Up`,
   },
+  /** The opt-in "tell me if it drops" bell (plan Step 8). Its message states a fact, never a forecast. */
+  bell: {
+    off: (name: string) => `Tell me if ${name} falls 3% within an hour`,
+    on: (name: string) => `Watching ${name} · tell me if it falls 3% within an hour`,
+    foot: "The bell watches while Agari is open in a tab. It rings as a browser notification if you allow one, otherwise as a message here.",
+    fired: {
+      title: (name: string, pct: string) => `${name} fell ${pct}% in the last hour`,
+      body: (from: string, to: string) => `Was ${from}, now ${to}. You switched this bell on. Test money, not investment advice.`,
+    },
+  },
   /** One quiet message the first time a wallet is found to hold something, never repeated for that wallet. */
   noticed: {
     title: (name: string) => `We noticed you hold ${name}`,
