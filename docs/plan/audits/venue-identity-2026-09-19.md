@@ -26,12 +26,27 @@ contain "tUSDC" reading the computed `text-transform`. Decisions: D-106 (money),
 | `packages/core/src/strategies/{agent,spec}.ts` | `asset = "BTC"` default; the web passed "all live venue assets", producing "If all live venue assets moved…" | default and web phrase "each/every listed stock"; sentence rebuilt around it |
 | Lucky reel label and intro | "Asset" | "Stock" |
 
+## Second pass (same evening): what a word search cannot see
+
+| Where | What | Fix |
+| --- | --- | --- |
+| `web/src/features/markets/hero/units.ts`, `sensei/units.ts` | the reference's "whole dollars from $1,000 up" rule, written for BTC and ETH, caught OPENAI (~$1,130): the Reel asked "above $1,132?" for a line of $1,132.74, the markets spot read "$1,148", Sensei was told $1,133 | threshold $10,000, one constant for both; every listed price keeps its cents |
+| `range/RangeTicket.tsx`, `range/WindowPicker.tsx`, `games/moonshot/MoonshotTicket.tsx` | the opening print always in whole dollars ("$364" for $364.30) | `usdBand`: cents below $10,000 |
+| `web/src/features/sensei/prompt.ts` | "Windows list only in the NYSE session", untrue since the 24/7 lanes | names the lanes that never close |
+
+Also checked in this pass and clean: CSS `content:` strings and selectors (only comments and the `.wq-btc` class), non-code
+assets under `web/src`, `packages/brain`, `packages/clients`, `scripts/` (`probe-keys.mjs` probes Pyth's BTC feed on purpose:
+it answers outside market hours), the Sensei and agent prompts, and the Range presets, which scale with price (TSLA 15m:
+±$0.12 / $0.24 / $0.44 on a $0.02 grid; OPENAI 60m: ±$0.90 / $1.80 / $3.20 on a $0.10 grid). The unused `.mc-btbtc`
+("Bet with Bitcoin") rule in the ported stylesheet has no component and is left with the reference's file (D-081).
+
 ## Money (D-106)
 
 "tUSDC" rendered as "TUSDC" under uppercasing labels in: the ticket's bet amount, Lucky's stake, the parlay and range
 place buttons ("PLACE · 28.22 TUSDC", "INSUFFICIENT TUSDC"), the balance plate ("SPENDABLE · TUSDC"), the earn withdraw
 button, the strategies desk ("NET SO FAR · TUSDC", card meta, the copy drawer's two field labels). All fixed; the rerun
-of the text-node walk over 21 pages on the patched build found none.
+of the text-node walk over 21 pages on the patched build found none. The explanations first added beside this fix (a
+modal section, two tooltips, an FAQ entry, a docs section) were removed on the user's call: the currency is not a topic.
 
 ## Internal names (no reader sees them; renamed for hygiene)
 

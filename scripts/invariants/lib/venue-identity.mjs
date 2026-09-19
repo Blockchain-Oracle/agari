@@ -11,7 +11,7 @@ import { readText, walkFiles } from "./walk.mjs";
  *
  * Comments and tests may say what the reference did; code and copy may not, outside the allowlist.
  */
-const SCOPES = ["web/src", "packages/core/src", "packages/markets/src", "packages/db/src", "services/ops/src"];
+const SCOPES = ["web/src", "packages/core/src", "packages/markets/src", "packages/db/src", "packages/brain/src", "services/ops/src"];
 const EXTS = [".ts", ".tsx"];
 const SKIP_FILE = /\.test\.tsx?$|^web\/src\/app\/dev\//;
 const FORBIDDEN = /\b(btc|wbtc|eth|weth|bitcoin|ethereum|masayume|yosuku|somnia|dreamdex|flicky)\b|shannon-explorer/i;
