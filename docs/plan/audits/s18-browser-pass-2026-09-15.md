@@ -92,4 +92,24 @@ Directory: `/private/tmp/claude-501/-Users-abu-dev-hackathon-stocklana/1762a6a4-
 2. **`/markets` · all widths · dark and light** — the "Live windows" lane tabs show only `5m` / `15m` / `1h`; no `Gap` or token (`5m · 24/7`) tab appears. Root cause is at the data layer, not the component: `curl :8787/session` returns 27 lane keys, all `<TICKER>-5m`/`-15m`/`-60m` (Regular basis only) — no Gap or token entries at all. `LaneTabs` itself renders Gap and token tabs correctly and at zero-count when given them (confirmed on `/dev/states`'s own "LANE TABS — 5M · 15M · 1H · GAP · 5M · 24/7" fixture). This reads as an ops/session-config gap rather than a UI defect, but the checklist expected to see them live and they are absent.
 3. **(Secondary, non-blocking) `/markets` · 1440 · dark** — see §7: a 15 s poll (indexer list + indexer detail + ~8 raw devnet RPC reads per cycle) runs indefinitely against the closed/Listed selected Window. Passes the literal 2-minute gate as stated but conflicts with 18a's closed-surface `staleTime` goal. Pre-existing `packages/markets/src/runtime/coordinator.ts` behavior (P-05), not introduced by S18.
 
-## Open state (pending, Wed 09-16 during NYSE hours)
+## Open state (Wed 09-16, 13:34–13:36Z, market open)
+
+Same method as the closed pass: headless Chrome over CDP on its own profile and port (the chrome-devtools MCP profile stayed locked), `Emulation.setDeviceMetricsOverride`, the `agari_theme` key per job, 6 s settle. Target `:3018` (`stage/S18-always-on`, build of 09-15 22:06Z). Screenshots: session scratchpad `s18-open/`.
+
+| Width × theme | LOADING in DOM | closed sentence | live price | session chip | lane tabs |
+| --- | --- | --- | --- | --- | --- |
+| 390 dark | absent | absent | $334.47 | Open · closes in 6h 25m | 5m 18 · 15m 9 · 1h 9 · Gap 0 · token 5m/15m/1h 24/7 |
+| 390 light | absent | absent | $334.09 | Open · closes in 6h 25m | same |
+| 768 dark | absent | absent | $334.23 | Open · closes in 6h 24m | 5m 9 · 15m 9 · 1h 9 · Gap 0 · token ×3 |
+| 768 light | absent | absent | $334.23 | Open · closes in 6h 24m | same |
+| 1440 dark | absent | absent | $334.23 | Open · closes in 6h 24m | same |
+| 1440 light | absent | absent | $334.23 | Open · closes in 6h 24m | same |
+
+- The hero carries a live price that moves between captures, the chip reads **Open** with a countdown to the close, and the marquee renders tickers. The gate's DOM assertions hold in the open state as they did closed: no `LOADING`, no closed sentence.
+- Lane tabs show the three Regular cadences with live counts, the Gap tab (0 Windows: Gap lists at the Friday close), and the three token cadences labelled 24/7 with 0 Windows because the token lanes are paused on `quote-unavailable` (see the S18 STATUS; `xstock-spot`'s keyless Jupiter polls time out).
+- Console errors: 0 in all six captures.
+
+### Defect (open pass)
+
+4. **`:3018` serves a stale build**, so `/markets` requests `/app/bet-screen.png` and gets **500**; the current sources reference `/demo/bet-screen.png` only (lane 15b's capture, 15d deleted the old asset). Proof: `grep -rn 'app/bet-screen' web/src` is empty in s18, w1 and s15; `:3000` (built 22:54Z) answers 404 on `/app/bet-screen.png` and 200 on `/demo/bet-screen.png`, while `:3018` (built 22:06Z) answers 500 and 404. Fix: rebuild and restart `:3018`, which the S18 gate does anyway. Not a code defect.
+
