@@ -1,0 +1,13 @@
+{
+  "_doc": [
+    "venue-identity allowlist (2026-09-19). Agari lists stocks; the reference listed BTC and ETH on another chain.",
+    "Each entry is a line that names a reference asset, brand or chain ON PURPOSE. `match` is a substring of that line.",
+    "The rule fails on an entry that no longer matches anything, so the list cannot rot."
+  ],
+  "entries": [
+    { "file": "packages/core/src/x/parse.ts", "match": "UNLISTED_ASSET_RE", "why": "the X grammar names crypto tickers so it can refuse them in words" },
+    { "file": "web/src/features/pitch/copy.ts", "match": "Built from Masayume's source", "why": "the pitch credits the reference it was ported from" },
+    { "file": "web/src/features/pitch/copy.ts", "match": "source-led port of Masayume", "why": "the pitch credits the reference it was ported from" },
+    { "file": "web/src/features/markets/word-board/WordCard.tsx", "match": "wq-btc", "why": "a ported CSS class name; it never reaches a reader" }
+  ]
+}

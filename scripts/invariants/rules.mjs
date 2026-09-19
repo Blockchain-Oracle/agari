@@ -16,6 +16,7 @@ import { codeLines, readText, walkFiles } from "./lib/walk.mjs";
 import { finding } from "./lib/report.mjs";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
+import { venueIdentity } from "./lib/venue-identity.mjs";
 
 const TS = [".ts", ".tsx"];
 const OUTSIDE_MARKETS = ["web", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
@@ -129,5 +130,6 @@ export const rules = [
     scopes: ["packages/markets/src/sessions", "web/src/features/session"],
     check: sessionKeyNonExtractable,
   },
+  { id: "venue-identity", description: "no reference asset, brand or chain (BTC, ETH, Masayume, Somnia…) in live code or copy; comments and tests may name them", check: venueIdentity },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];
