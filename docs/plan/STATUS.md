@@ -1,5 +1,25 @@
 # STATUS — updated 2026-09-19 ~18:40 UTC by Claude (**feedback pass on `integration/w1` in wt `../agari-wt/w1`**: the user saw BTC on `/games/lucky` and could not tell what currency bets are in. Both fixed, plus a sweep beyond what was named: D-106 money, D-107 venue identity + a gate rule, audit in `docs/plan/audits/venue-identity-2026-09-19.md`. The patched build is served on **:3100** from w1; `:3000` still serves the pinned `live` build and shows none of it until the held cutover. Before that: the deferred-stages session — S11 Blinks DONE, S10b `agari-range` deployed, S8 `agari-maker` deployed and quoting. NEXT = the user's look at :3100, then S9/S10a/S10c/S10d/S12b.)
 
+## Resume here (written 2026-09-19 ~19:40 UTC, before a context clear)
+
+**Deadline:** Fri 2026-09-25 20:00 UTC. Trunk = `integration/w1` (wt `../agari-wt/w1`), clean at the commit that adds this block. Read `handoff-deferred-stages.md` next; it is still the plan for what follows.
+
+**Built and proven on devnet (4 programs):** `agari-events` (the venue: 9 stocks × 5m/15m/60m, the weekend Gap, 24/7 token lanes, the live `OPENAI-60m` pre-IPO lane), `agari-vault` (Trading Balance, tap-trading), `agari-range` (Range + Moonshot; price → open → settle closed 16:00Z 09-19), `agari-maker` (Earn; deployed, funded, seated, holding the best bid on a live Window). Off-chain: S11 Blinks proven end to end; S13 Sensei, takes, rooms, news; S15 landing, story pages, pitch, README; S18 closed-state and pre-open surfaces; the PreStocks "cover what you hold" plan, all 8 steps.
+
+**In progress:** S10a `agari-parlay` — two commits (`a0679a7` arithmetic pinned to the client's vectors, `1b886e8` the reserve's balance sheet). It has **no instructions yet**, is not built for SBF and not deployed; the program id `H4gdpoPi…` is declared in `Anchor.toml` only. The web's `/parlay` still runs on stub arms.
+
+**Not started (each needs a new on-chain program):** S9 agents/strategies (`agari-strategy` + the `strategy-runner` actor), S10c boost/leverage (`agari-leverage` + keeper), S10d private desk (`agari-private`), S12b duel arena. The handoff's honest option still stands for any of these that will not be finished properly: take the page out of the nav rather than ship a "not live" state.
+
+**Small things left on shipped work:** S8 — the vault's merge → settle → withdraw proof row. S10b — `previewRangeOpen` / `quoteRangeOnchain` / `readRangeCapacity` are still stub arms. S11 — a live X trade needs the Agari X account (the handle in `.env.local` is still the reference's), and the Dialect registry entry needs the domain.
+
+**Bookkeeping that is behind (judges read it):** `parity.md` has 102 rows and **none is Done** (86 Pending, 14 Excluded, 2 Blocked) although most are built; stage checkboxes are stale for S5 (0/13) and S13 (0/16), and partly for S4, S6, S7. About an hour's work against `acceptance.md`.
+
+**Parked by the user (do not spend time):** demo video, S16 deploy go, the Monday Phantom check. Domain `agari.live` is bought and moving to Vercel DNS. Still the user's: public-release decision for the repo (Q-007), the submission form itself.
+
+**Held:** the `soak-8` ops cutover (Switchboard's quote gateway was answering 500; re-probe before any restart). `:3000` keeps serving the pinned `live` build and shows none of today's feedback fixes until that cutover; `:3100` serves w1 with them.
+
+**Infra at 19:40Z:** `:3000` had died when its launch task was stopped; it is restarted from `live/web` **via detach.pl**, so a context clear can no longer take it down. `:3018`, `:3100`, ops, archivers, Postgres up. **Battery 20% and discharging** — if the Mac died, use the recovery recipe further down.
+
 ## Feedback pass (2026-09-19 evening, `integration/w1`)
 
 The user's note, in short: "it was showing USDC … is it SOL or USDC or a custom one … make it make sense", "I go into games, lucky draw, and I'm seeing BTC — this is a stock project", and "how many more are out there?".
