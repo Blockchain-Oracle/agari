@@ -1,5 +1,8 @@
 /** Sending, drift errors and the addresses record shared by the deploy steps. */
-import { getAgariEventsErrorMessage, type AgariEventsError } from "@agari/clients/agari-events";
+import { AGARI_EVENTS_PROGRAM_ADDRESS, getAgariEventsErrorMessage } from "@agari/clients/agari-events";
+import { AGARI_MAKER_PROGRAM_ADDRESS, getAgariMakerErrorMessage } from "@agari/clients/agari-maker";
+import { AGARI_RANGE_PROGRAM_ADDRESS, getAgariRangeErrorMessage } from "@agari/clients/agari-range";
+import { AGARI_VAULT_PROGRAM_ADDRESS, getAgariVaultErrorMessage } from "@agari/clients/agari-vault";
 import type { Instruction } from "@solana/kit";
 import type { DeployClient } from "./client";
 
@@ -58,18 +61,45 @@ export async function send(ctx: SendContext, step: string, instructions: Instruc
 
 const ENGINE_CODES = { min: 6000, max: 6399 };
 
+/**
+ * Anchor numbers every program's errors from 6000, so a code alone does not say which program refused. Each
+ * Agari program is looked up in its own table, found from the `Program <id> failed` line the runtime logs.
+ *
+ * Without this a range refusal reads as an events one — `StaleMark` (6005) printed as "window overlaps the
+ * previous window" — which sends whoever is reading the drive output to entirely the wrong place.
+ */
+const ERROR_TABLES: ReadonlyArray<readonly [string, string, (code: never) => string]> = [
+  [AGARI_EVENTS_PROGRAM_ADDRESS, "agari-events", getAgariEventsErrorMessage as (code: never) => string],
+  [AGARI_RANGE_PROGRAM_ADDRESS, "agari-range", getAgariRangeErrorMessage as (code: never) => string],
+  [AGARI_MAKER_PROGRAM_ADDRESS, "agari-maker", getAgariMakerErrorMessage as (code: never) => string],
+  [AGARI_VAULT_PROGRAM_ADDRESS, "agari-vault", getAgariVaultErrorMessage as (code: never) => string],
+];
+
+/** The innermost program the runtime reported as failing; the CPI that actually refused is the last one logged. */
+function failingProgram(logs: readonly string[]): (typeof ERROR_TABLES)[number] | null {
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const match = /^Program ([1-9A-HJ-NP-Za-km-z]{32,44}) failed/.exec(logs[i] ?? "");
+    const table = match ? ERROR_TABLES.find(([address]) => address === match[1]) : undefined;
+    if (table) return table;
+  }
+  return null;
+}
+
 /** The first custom program error code and any logs found along a Kit error's cause chain. */
 export function describeSendError(error: unknown): string {
   const parts: string[] = [];
   let logs: string[] = [];
+  let code: number | null = null;
   for (let e: unknown = error, depth = 0; e && depth < 8; e = (e as { cause?: unknown }).cause, depth++) {
     const context = (e as { context?: Record<string, unknown> }).context ?? {};
     if (parts.length === 0 && e instanceof Error) parts.push(e.message);
-    const code = context.code;
-    if (typeof code === "number" && code >= ENGINE_CODES.min && code <= ENGINE_CODES.max) {
-      parts.push(`agari-events ${code}: ${getAgariEventsErrorMessage(code as AgariEventsError)}`);
-    }
+    const found = context.code;
+    if (code === null && typeof found === "number" && found >= ENGINE_CODES.min && found <= ENGINE_CODES.max) code = found;
     if (Array.isArray(context.logs) && logs.length === 0) logs = context.logs.map(String);
+  }
+  if (code !== null) {
+    const table = failingProgram(logs);
+    parts.push(table ? `${table[1]} ${code}: ${table[2](code as never)}` : `custom program error ${code} (program not identified)`);
   }
   const tail = logs.filter((l) => /Program log|failed|error/i.test(l)).slice(-6);
   return [...parts, ...tail.map((l) => `  log: ${l}`)].join("\n");
