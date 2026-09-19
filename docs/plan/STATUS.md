@@ -1,5 +1,25 @@
 # STATUS — updated 2026-09-19 ~18:40 UTC by Claude (**feedback pass on `integration/w1` in wt `../agari-wt/w1`**: the user saw BTC on `/games/lucky` and could not tell what currency bets are in. Both fixed, plus a sweep beyond what was named: D-106 money, D-107 venue identity + a gate rule, audit in `docs/plan/audits/venue-identity-2026-09-19.md`. The patched build is served on **:3100** from w1; `:3000` still serves the pinned `live` build and shows none of it until the held cutover. Before that: the deferred-stages session — S11 Blinks DONE, S10b `agari-range` deployed, S8 `agari-maker` deployed and quoting. NEXT = the user's look at :3100, then S9/S10a/S10c/S10d/S12b.)
 
+## Parlay session (2026-09-19 evening) — READ THIS FIRST
+
+**Machine warning (19:45Z): battery 7%, ~20 min, on battery power.** If the Mac died, run the recovery recipe further down (Postgres, archivers, the soak from `live`, `next start` on :3000/:3100, `caffeinate`), and re-probe Switchboard before any ops restart.
+
+**S10a `agari-parlay`: the program is WRITTEN, TESTED and SBF-BUILT at `26ad3e7` (pushed).** Eight instructions; 26 Rust tests green (`cargo test -p agari-parlay` from `anchor/`); `NO_DNA=1 anchor build --arch v0 -p agari_parlay` gives 370,776 B and `anchor/target/idl/agari_parlay.json`. Program id `H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC`, keypair at `anchor/target/deploy/agari_parlay-keypair.json` with a copy in `~/.config/agari/devnet/agari-parlay-program.json`. **Not deployed yet.**
+
+**Next, in order (mirror what S10b did for range, file for file):**
+1. Copy the IDL to `packages/clients/agari-parlay/idl.json`, add the two `./agari-parlay` exports to `packages/clients/package.json`, add it to `scripts/codegen.mjs`, run `pnpm codegen`.
+2. `packages/markets/src/deploy/parlay.ts` (DEVNET_PARLAY_PARAMS + `initParlayReserve`, as `deploy/range.ts`) and `scripts/deploy/init-parlay.ts`. Suggested devnet params: margin 1,200 bps, exposure 6,000 bps, correlation 4,000 bps, `max_spread_ticks` 0 to start, `max_legs` 3, `min_rest_slots` 50, `min_time_left_sec` 60, payout cap 50 tUSDC, per-boundary 100 tUSDC, `min_combined_prob_raw` 10,000, `price_depth_raw` 1,000,000. **The live maker quotes only 5,000 lots a side (`MM_QUOTE_LOTS` default), so a leg prices at most a 5 tUSDC payout** until that is raised at the held cutover.
+3. Deploy: `solana program deploy` with the deployer (~2.6 SOL for 370 KB; deployer had ~17 SOL). Every transaction gets an `acceptance.md` row, checked with `getSignatureStatuses`.
+4. Replace the stub arms in `packages/markets/src/parlay/index.ts` with real reads and writes, as `packages/markets/src/range/{deployment,read,reads,writes}.ts`. The open sends remaining accounts Market, Book, Series per leg, and needs a 400k compute-unit limit (it walks up to four Books). **The client estimate must walk the book with `restedOnly: true`** (`packages/core/src/market/book-math.ts` already supports it) or it will show quotes the chain refuses as thin.
+5. Drive on devnet: supply → open a 2-leg ticket on two live Windows → resolve both legs in boundary order → claim. Then the page on :3100.
+6. `decisions.md` entries owed (none written yet for S8/S10b either): the leg-order rule, the `void_stale` guard, 32 expiry slots in the reserve instead of PDAs, PD-2(b) oracle bound not implemented.
+
+**Two bugs found in the DEPLOYED `agari-range`, not fixed yet (step 2 of the user's list):**
+- **The mark is read 10x too small.** `anchor/programs/agari-range/src/basis.rs` (`TICK_TO_E6 = 100`) and `packages/markets/src/range/reads.ts:192` (`lastPrice * 100n`) treat a YES tick as a ten-thousandth. Ticks run 1..999 of `PAIR_TICKS = 1000` (`TICKS_PER_CENT = 10`), so the factor is 1,000. A 65.0c market is priced as a 6.5% centre. Client and chain agree with each other, which is why the quotes matched, but every round is mispriced. Needs the two-line fix, a test that pins it, and a program upgrade.
+- **`public_void_stale` checks only the clock**, so a winning round nobody settled within the hour can be voided by anyone. Parlay's version takes the Market and refuses while the venue has an answer; port that.
+
+**Bookkeeping (step 4) is running in a background agent** on branch `slice/bookkeeping-parity`, worktree `../agari-wt/books`. It must not be merged blind: read its report, then `git merge` into `integration/w1`. If the session died, check `git -C ../agari-wt/books log --oneline -3` and `git status` there.
+
 ## Resume here (written 2026-09-19 ~19:40 UTC, before a context clear)
 
 **Deadline:** Fri 2026-09-25 20:00 UTC. Trunk = `integration/w1` (wt `../agari-wt/w1`), clean at the commit that adds this block. Read `handoff-deferred-stages.md` next; it is still the plan for what follows.
