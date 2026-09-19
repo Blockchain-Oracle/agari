@@ -9,7 +9,7 @@ const CLIENT_SEED = `0x${"33".repeat(32)}` as Hash32;
 const WALLET = toAddress(encodeBase58(Uint8Array.from((`${"00".repeat(12)}aaaa${"00".repeat(17)}01`.match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16)))));
 
 /** The other half of core's golden vector (`packages/core/src/games/lucky.test.ts`): the digest node:crypto produces. */
-const GOLDEN_DIGEST = "0x24fba7527be1e82474ae75357b23615d5585e1038d487d3f8ebde5b99ec0af26";
+const GOLDEN_DIGEST = "0xaefedfee7e1dc28fd842709c3bb825283102a89ac7e82254ed81d498bce52621";
 
 const toHex = (bytes: Uint8Array) => `0x${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
 
@@ -17,7 +17,7 @@ describe("the server's HMAC", () => {
   it("lands on the golden digest, and the draw core pins to it", () => {
     const digest = luckyDigest(SERVER_SEED, { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_VERSION });
     expect(toHex(digest)).toBe(GOLDEN_DIGEST);
-    expect(mapLuckyDraw(digest, { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS })).toEqual({ asset: "BTC", side: "down", multiplier: 5 });
+    expect(mapLuckyDraw(digest, { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS })).toEqual({ asset: "META", side: "up", multiplier: 10 });
   });
 
   it("agrees with WebCrypto, which is what the browser's check runs", async () => {

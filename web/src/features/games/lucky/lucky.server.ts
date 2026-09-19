@@ -171,6 +171,9 @@ export async function revealDraw(input: { drawId: Hash32; clientSeed: Hash32 }):
     return { ok: true, wire: await dealFromRow(row) };
   }
 
+  // A seed sealed under a retired policy cannot be dealt under this one: the asset list it would index has changed.
+  if (row.policyVersion !== LUCKY_POLICY_VERSION) return { ok: false, status: 409, error: "that draw was sealed under a retired policy; spin again" };
+
   const wallet = row.wallet as Address;
   const digest = luckyDigest(row.serverSeed as Hash32, { clientSeed: input.clientSeed, wallet, nonce: row.nonce, policyVersion: row.policyVersion });
   const draw = mapLuckyDraw(digest, { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS });

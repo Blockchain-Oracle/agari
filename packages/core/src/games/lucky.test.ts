@@ -12,6 +12,7 @@ import {
   luckyBestStreak,
   luckyCandidatePreimage,
   luckyDrifted,
+  luckyPolicyAssets,
   luckyStreak,
   luckyVerdict,
   targetPriceBps,
@@ -35,8 +36,8 @@ const GOLDEN_MESSAGE =
   "0x3333333333333333333333333333333333333333333333333333333333333333" +
   "000000000000000000000000aaaa000000000000000000000000000000000001" +
   "0000000000000000000000000000000000000000000000000000000000000007" +
-  "0000000000000000000000000000000000000000000000000000000000000001";
-const GOLDEN_DIGEST = "0x24fba7527be1e82474ae75357b23615d5585e1038d487d3f8ebde5b99ec0af26";
+  "0000000000000000000000000000000000000000000000000000000000000002";
+const GOLDEN_DIGEST = "0xaefedfee7e1dc28fd842709c3bb825283102a89ac7e82254ed81d498bce52621";
 
 describe("the draw", () => {
   it("builds the canonical message the HMAC is keyed over", () => {
@@ -44,10 +45,18 @@ describe("the draw", () => {
     expect(luckyDrawMessage({ clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 8, policyVersion: LUCKY_POLICY_VERSION })).not.toBe(GOLDEN_MESSAGE);
   });
 
-  it("maps the golden digest to one draw under policy 1, the same way every time", () => {
+  it("maps the golden digest to one draw under policy 2, the same way every time", () => {
     const draw = mapLuckyDraw(hexBytes(GOLDEN_DIGEST), { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS });
-    expect(draw).toEqual({ asset: "BTC", side: "down", multiplier: 5 });
+    expect(draw).toEqual({ asset: "META", side: "up", multiplier: 10 });
     expect(mapLuckyDraw(hexBytes(GOLDEN_DIGEST), { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS })).toEqual(draw);
+  });
+});
+
+describe("the asset universe", () => {
+  it("is what the venue lists, and never the reference's crypto pair", () => {
+    expect(LUCKY_ASSETS).toEqual(["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "OPENAI"]);
+    expect(luckyPolicyAssets(LUCKY_POLICY_VERSION)).toBe(LUCKY_ASSETS);
+    expect(luckyPolicyAssets(1)).toBeNull();
   });
 });
 

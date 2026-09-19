@@ -1,6 +1,6 @@
 "use client";
 
-import { luckyDrawMessage, mapLuckyDraw } from "@agari/core/games";
+import { luckyDrawMessage, luckyPolicyAssets, mapLuckyDraw } from "@agari/core/games";
 import type { Hex } from "@agari/core/types";
 import { useEffect, useState } from "react";
 import { keccak256 } from "../keccak";
@@ -29,6 +29,10 @@ async function replay(deal: LuckyDealWire): Promise<LuckyCheck> {
   const subtle = globalThis.crypto?.subtle;
   if (!subtle) return "unavailable";
   if (keccak256(deal.serverSeed).toLowerCase() !== deal.commitment.toLowerCase()) return "mismatch";
+  // The asset list is part of the policy, not of the deal: a server that reordered it could steer the draw, so a
+  // list that differs from the one this build pins to the deal's policy version fails the check.
+  const pinned = luckyPolicyAssets(deal.policyVersion);
+  if (pinned && (pinned.length !== deal.assets.length || pinned.some((asset, i) => asset !== deal.assets[i]))) return "mismatch";
   const message = luckyDrawMessage({ clientSeed: deal.clientSeed, wallet: deal.wallet, nonce: deal.nonce, policyVersion: deal.policyVersion });
   const key = await subtle.importKey("raw", hexBytes(deal.serverSeed), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const digest = new Uint8Array(await subtle.sign("HMAC", key, hexBytes(message)));

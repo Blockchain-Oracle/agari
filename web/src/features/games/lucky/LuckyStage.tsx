@@ -2,12 +2,14 @@
 
 import type { BookedOrder } from "@agari/core/ports";
 import { isOk } from "@agari/core/schemas";
+import { LUCKY_LIVE_PRE_IPO } from "@agari/core/games";
 import { belowMinStake, minStakeBase } from "@agari/core/sizing";
 import type { Signature } from "@agari/core/types";
 import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet, useSigner } from "@agari/markets/react";
 import { useCallback, useState } from "react";
 import { useVenue } from "@/features/markets";
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { QuickChips } from "@/features/markets/ticket/QuickChips";
 import { usePersistedState } from "@/lib/persisted";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -44,6 +46,7 @@ export function LuckyStage() {
   const { boot } = useVenue();
   const { feedback } = useGames();
   const draw = useLuckyDraw();
+  const market = useMarketSession();
   const [stakeText, setStakeText] = usePersistedState(STAKE_KEY, "1", stakeCodec);
   const [skipping, setSkipping] = useState(false);
 
@@ -128,6 +131,8 @@ export function LuckyStage() {
               {phase.kind === "committing" ? LUCKY.spin.committing : phase.kind === "spinning" ? (phase.deal ? LUCKY.spin.dealing : LUCKY.spin.spinning) : phase.kind === "idle" ? LUCKY.spin.cta : LUCKY.spin.again}
             </button>
             {spinBlock && atRest && <p className="lk-cta-note">{spinBlock}</p>}
+            {/* Said before the reels move: outside regular hours only the 24/7 names have a Window, so most draws deal nothing. */}
+            {market && !market.open && atRest && <p className="lk-cta-note">{LUCKY.spin.closed(market.label, LUCKY_LIVE_PRE_IPO.join(", "))}</p>}
           </section>
 
           {dealt && <LuckyDeal deal={dealt} symbol={symbol} onReport={onReport} onSkip={() => void onSkip()} skipping={skipping} />}

@@ -1,3 +1,4 @@
+import { LAUNCH_TICKERS } from "../market/tickers";
 import type { MarketId, Side } from "../types/market";
 import type { Hex } from "../types/primitives";
 import { addressWord, concatWords, uintWord } from "./commitment";
@@ -15,12 +16,23 @@ import { INTERVAL_5M_SEC } from "./deck";
  */
 
 /**
- * Version 1 (2026-09-04): the assets below, the owner's 2/3/5/10/25 reach ladder, no 5m Windows, and two
- * minutes of headroom so a signature never lands on a Window that has already closed to entry.
+ * Version 2 (2026-09-19): the draw is over what this venue lists. Version 1 carried the reference's BTC and ETH,
+ * which Agari never listed, so no v1 spin could ever be dealt a Window. The rest of the policy is unchanged: the
+ * owner's 2/3/5/10/25 reach ladder, no 5m Windows, and two minutes of headroom so a signature never lands on a
+ * Window that has already closed to entry.
  */
-export const LUCKY_POLICY_VERSION = 1;
-/** The asset universe the draw is over, pinned by the policy so a verifier replays the same list. */
-export const LUCKY_ASSETS: readonly string[] = ["BTC", "ETH"];
+export const LUCKY_POLICY_VERSION = 2;
+/**
+ * The asset universe the draw is over, pinned by the policy so a verifier replays the same list: the nine
+ * launch tickers' Regular lanes, then the one pre-IPO name with a live 24/7 lane. Order is part of the policy —
+ * the draw is an index into this list — so a name is only ever appended, under a new version.
+ */
+export const LUCKY_LIVE_PRE_IPO: readonly string[] = ["OPENAI"];
+export const LUCKY_ASSETS: readonly string[] = [...LAUNCH_TICKERS, ...LUCKY_LIVE_PRE_IPO];
+/** The list a verifier must replay a draw against, or null for a version this build does not know. */
+export function luckyPolicyAssets(policyVersion: number): readonly string[] | null {
+  return policyVersion === LUCKY_POLICY_VERSION ? LUCKY_ASSETS : null;
+}
 export const LUCKY_MULTIPLIERS: readonly number[] = [2, 3, 5, 10, 25];
 /** Headroom for a human signature between the deal and the fill. */
 export const LUCKY_MIN_HEADROOM_SEC = 120;

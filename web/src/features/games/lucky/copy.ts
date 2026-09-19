@@ -12,7 +12,7 @@ export const LUCKY = {
   eyebrow: "A live Window, drawn for you",
   title: "Lucky",
   intro:
-    "Set a stake and spin. The reels draw an asset, a side and a reach from two seeds — one the server commits to before they move, one your browser adds after — and the deal shows the real quote on a live Window before one tap places one order.",
+    "Set a stake and spin. The reels draw a stock, a side and a reach from two seeds — one the server commits to before they move, one your browser adds after — and the deal shows the real quote on a live Window before one tap places one order.",
 
   stake: {
     label: "Stake",
@@ -34,10 +34,12 @@ export const LUCKY = {
     noSigner: "Waiting for the wallet…",
     noStore: "This deployment has no games store, so a draw has nowhere to keep its seed.",
     failed: (why: string) => `The spin did not deal: ${why}`,
+    /** `label` is the session chip's own words ("Opens Mon 09:30 ET"); `live` names what still trades. */
+    closed: (label: string, live: string) => `The stock market is closed.${/^closed$/i.test(label) ? "" : ` ${label}.`} Only ${live} trades right now, so a spin that draws any other stock deals nothing.`,
   },
 
   reels: {
-    asset: "Asset",
+    asset: "Stock",
     side: "Side",
     reach: "Reach",
     blank: "?",
@@ -87,11 +89,12 @@ export const LUCKY = {
       drift: (dealt: string, live: string) =>
         `The live multiple is ${live}, not the ${dealt} the reel dealt — the book moved. Placing takes the live quote; the reach is the book's, not the reel's.`,
     },
+    /** The key stays `gas` (the reference's); the words are Solana's: a network fee, paid in SOL. */
     gas: {
-      label: "Gas",
+      label: "Network fee",
       wallet: "You sign once from your wallet and pay the network fee in SOL.",
-      key: "Your session key places it with no prompt; the gas is the sponsor's.",
-      fallback: (why: string) => `${why} You sign from your wallet and pay the gas.`,
+      key: "Your session key places it with no prompt; the sponsor pays the network fee.",
+      fallback: (why: string) => `${why} You sign from your wallet and pay the network fee in SOL.`,
     },
     place: (side: string) => `Place ${side} ·`,
     skip: "Skip this deal",
