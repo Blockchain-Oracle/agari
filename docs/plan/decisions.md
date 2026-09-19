@@ -1051,6 +1051,13 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **Rule:** the Pre-IPO lane is a Series like any other — `SOURCE.attested`, 60 s bars, a 10 s correction delay — so PreStocks support costs a configuration change and two files, no program change and no redeploy. The lane prints `tokenPrice`, the only price a holder can realise; `markPrice` rides along for the UI. Agari does not trade the PreStocks token: it runs Up/Down markets **on** its price, which is what a prediction venue can honestly offer against a pre-IPO name.
 - **User-visible:** OPENAI first. Any of the eight can be listed by ticker id without touching the program.
 - **Approval:** stage owner, on the user's choice of the PreStocks + Pyth lanes.
+- **Measured 2026-09-19 02:42–02:44Z (4 samples, 136 s, overnight in the US):** `markPrice` was frozen for 7 of the 8
+  names while `tokenPrice` moved for 5 of them — OPENAI fell 1,138.42 → 1,123.65, about 1.3% in two minutes. This is the
+  data behind printing `tokenPrice`: the mark is an SPV valuation that barely updates, so a lane settling on it would
+  return FLAT almost every Window. It also shows the token price is genuinely live outside US hours, because it is an
+  on-chain DEX price, which is what makes a 24/7 Pre-IPO lane meaningful rather than a lane that idles overnight.
+  Liquid enough for a 5 m cadence: OPENAI, ANTHROPIC, NEURALINK, ANDURIL, POLYMARKET. Quiet over the same window:
+  FIGUREAI, KALSHI, SPACEX — those would settle FLAT more often, so OPENAI stays the first listing.
 
 ### D-101 — The Pre-IPO lane runs attested-primary with no cross-check, and says so
 - **Date / owner:** 2026-09-18 · S18 owner
