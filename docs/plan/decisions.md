@@ -1113,6 +1113,29 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** a holder of a quiet token is told the truth rather than shown a Down bet; a holder of a moving token sees how much it moved.
 - **Approval:** stage owner, from the approved 2026-09-19 plan (§2, "decided by measurement, not by my opinion").
 
+### D-106 — Bets stay in a dollar test token, not SOL and not Circle's devnet USDC, and the app says so where the unit stands
+- **Date / owner:** 2026-09-19 · feedback pass on `integration/w1`
+- **Evidence:** the user's note: the unit read as "USDC" (and as "TUSD"), and nothing on screen said whether bets were in SOL, Circle's USDC or a mint of our own. A runtime walk of text nodes on `:3000` found the cause of the second reading: ported label classes carry `text-transform: uppercase`, so "tUSDC" rendered as "TUSDC" on the ticket, the Lucky stake, the parlay and range place buttons, the balance plate, the earn withdraw button and the strategies desk. TUSD is a different, real token.
+- **Rule:**
+  - **Collateral:** unchanged from D-026: tUSDC, Agari's own 6-dp SPL mint on devnet, minted by the faucet. A contract pays 1 tUSDC, so a price in cents reads as a chance.
+  - **Why not SOL:** stocks are priced in dollars. A stake held in SOL would also be a position on SOL/USD. SOL pays network fees only.
+  - **Why not Circle's devnet USDC:** Circle's faucet is rate-limited and lives on Circle's site, so "Get test funds" could not fund a fresh wallet in one signature (D-034). The venue's collateral mint is one config value; a mainnet venue would name Circle's USDC.
+  - **Casing:** the symbol never uppercases. `.sym { text-transform: none }` (`styles/tokens.css`), `<KeepCase>` for a symbol inside an uppercased label, `<Money>` carries it, and the two bare unit slots (`.tk-amount-unit`, `.lk-stake-unit`) stop uppercasing. This is a deliberate deviation from the reference's label style (D-081): a token's name is not decoration.
+  - **One explanation:** `MONEY` in `web/src/features/funding/copy.ts` feeds the add-funds modal ("What is tUSDC?"), the header pill's and the ticket unit's tooltip; `/how-it-works` gains "Why not bet in SOL, or in Circle's USDC?".
+- **User-visible:** the unit reads "tUSDC" everywhere, and the first place a player meets it says what it is, why it is not SOL and why it is not Circle's.
+- **Approval:** default awaiting user override. The user leaned towards SOL ("in my opinion it was supposed to be SOL … or USDC"); if SOL is still wanted after the reasons above, it is a program change (wSOL collateral, every price and cap re-denominated), not a label.
+
+### D-107 — Code and copy name what the venue lists; a gate rule keeps the reference's assets, brand and chain out
+- **Date / owner:** 2026-09-19 · feedback pass on `integration/w1`
+- **Evidence:** the user opened `/games/lucky` and saw BTC. The 09-15 identity audit grepped `masayume` only and deferred the games copy (D-084); nobody had searched for assets. Full list in `docs/plan/audits/venue-identity-2026-09-19.md`. Four of the leftovers were functional: Lucky drew from `["BTC","ETH"]` and could never be dealt a Window; the parlay preset filtered for BTC Windows and always refused; the X reply named an asset only when it was BTC or ETH, so every stock receipt lost its ticker; the X permission panel linked Solana signatures to the Somnia explorer.
+- **Rule:**
+  - **Lucky policy v2:** the draw is over `[...LAUNCH_TICKERS, "OPENAI"]` (the nine Regular-lane names, then the one live 24/7 pre-IPO lane). Order is part of the policy, so a name is only appended under a new version. The browser check now pins the list to the policy version (`luckyPolicyAssets`), so a server cannot steer the draw by reordering it; a seed sealed under a retired version is refused at reveal. Outside regular hours the stage says, before the reels move, that only OPENAI trades.
+  - **Parlay:** the one-tap streak names the stock with the most Windows live.
+  - **Words:** "gas" becomes "network fee" / "SOL for fees" in copy (identifiers such as `out-of-gas` stay); "testnet" becomes "devnet"; "A duel on Masayume" becomes "A duel on Agari"; strategy descriptions name "each listed stock".
+  - **Guard:** invariant `venue-identity` fails the fast gate on BTC, ETH, Bitcoin, Ethereum, Masayume, Yosuku, Somnia, DreamDEX, Flicky or `shannon-explorer` in non-comment, non-test code under `web/src`, `packages/{core,markets,db}/src` and `services/ops/src`. `venue-identity.allow.json` holds the four deliberate lines, each with a reason; a stale entry fails the rule.
+- **User-visible:** no crypto asset appears anywhere in the app; Lucky, the parlay streak and X replies work on stocks.
+- **Approval:** stage owner, from the user's 2026-09-19 instruction to look beyond the two places named.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
