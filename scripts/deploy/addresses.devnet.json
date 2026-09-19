@@ -512,6 +512,16 @@
         "books": [
           "EVtZLCP9hawvHw9a7ehNxkbTBz7bi4hjifs99vpVBN6r"
         ]
+      },
+      "OPENAI-60m": {
+        "address": "6u4hgFGAfoFTQxaRe4hB9m7cLWqpywwwMXVb8u7JqLqG",
+        "ticker": 910,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "8whwDWY4K86PmNViYCqjd4b9d9neaerJJWtTxS6QLdnh",
+          "C4kGEmnfhGVSur9hfinyu1342bbuMrEuRdiUcHJhuhTc"
+        ]
       }
     }
   }
