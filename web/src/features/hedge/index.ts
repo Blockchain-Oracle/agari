@@ -1,7 +1,8 @@
 export { HEDGE } from "./copy";
 export { HedgeCard, holdingTokens, type HedgeCardProps } from "./HedgeCard";
 export { HEDGE_BPS, hedgeStakeBase, usdE6ToBase } from "./hedge-size";
-export { hedgeTarget, pickHedge, type HedgeHorizon, type HedgePick, type HedgeTarget } from "./hedge-target";
+export { hedgeTarget, pickAllHedges, pickHedge, type HedgeHorizon, type HedgePick, type HedgeTarget } from "./hedge-target";
+export { HoldingReelCard } from "./HoldingReelCard";
 export { EXAMPLE_HOLDINGS, exampleLaneSet, examplePick } from "./example";
 export { hedgeCardState, type HedgeCardState } from "./hedge-state";
 export { HedgeTeaser } from "./HedgeTeaser";

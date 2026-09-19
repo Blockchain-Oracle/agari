@@ -50,17 +50,20 @@ export function hedgeTarget(laneSet: LaneSet | null, underlying: TickerSymbol, n
   return token ? { market: token, kind: "down", horizon: tokenHorizon(Math.floor(nowMs / 1000)) } : null;
 }
 
-/** The underlying with the most exposure that has a Window to hedge into; null hides the card. */
-export function pickHedge(holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number): HedgePick | null {
+/** Every underlying with a Window to cover into, most exposure first (the Reels card rotates through them). */
+export function pickAllHedges(holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number): HedgePick[] {
   const byUnderlying = new Map<TickerSymbol, HoldingView[]>();
   for (const holding of holdings) byUnderlying.set(holding.underlying, [...(byUnderlying.get(holding.underlying) ?? []), holding]);
-  let best: HedgePick | null = null;
+  const picks: HedgePick[] = [];
   for (const [underlying, group] of byUnderlying) {
     const target = hedgeTarget(laneSet, underlying, nowMs);
     if (!target) continue;
     const exposureUsdE6 = group.some((h) => h.exposureUsdE6 === null) ? null : group.reduce((sum, h) => sum + (h.exposureUsdE6 ?? 0n), 0n);
     const pick: HedgePick = { underlying, holdings: [...group].sort((a, b) => (b.sharesE8 > a.sharesE8 ? 1 : b.sharesE8 < a.sharesE8 ? -1 : 0)), sharesE8: group.reduce((sum, h) => sum + h.sharesE8, 0n), exposureUsdE6, target };
-    if (!best || (pick.exposureUsdE6 ?? 0n) > (best.exposureUsdE6 ?? 0n)) best = pick;
+    picks.push(pick);
   }
-  return best;
+  return picks.sort((a, b) => ((b.exposureUsdE6 ?? 0n) > (a.exposureUsdE6 ?? 0n) ? 1 : (b.exposureUsdE6 ?? 0n) < (a.exposureUsdE6 ?? 0n) ? -1 : 0));
 }
+
+/** The underlying with the most exposure that has a Window to hedge into; null hides the card. */
+export const pickHedge = (holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number): HedgePick | null => pickAllHedges(holdings, laneSet, nowMs)[0] ?? null;

@@ -2,11 +2,13 @@
 
 import { ChevronUpIcon, FeatherIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
 import { sessionPhrase } from "@agari/core/copy";
 import { marketsProvider } from "@agari/markets";
 import { REELS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
+import { useWalletSession } from "@/lib/wallet-session";
 import { useChainNowMs } from "../useChainNow";
 import { useLanesState } from "../lanes";
 import { useMarketSession } from "../session";
@@ -50,7 +52,11 @@ export function ReelsScreen() {
 
   const waiting = lanes.reading === null || nowMs === 0;
   const feed = useTakes(!waiting);
-  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? []), [rounds, feed]);
+  // Plan Step 7: the wallet's stock tokens, read-only, as "you hold this" cards once every few items (same query the /markets card uses).
+  const { address } = useWalletSession();
+  const holdings = useHoldings(address);
+  const holdingPicks = useMemo(() => (holdings?.ok ? pickAllHedges(holdings.value, lanes.laneSet, nowMs) : []), [holdings, lanes.laneSet, nowMs]);
+  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks), [rounds, feed, holdingPicks]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.
   const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(sessionPhrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
@@ -86,9 +92,13 @@ export function ReelsScreen() {
                 <section key={item.market.marketId} ref={register(index)} className="feed-card reel-slot">
                   <ReelCard market={item.market} near={isNear(index)} closing={isClosing(reelPhase(item.market, nowMs))} />
                 </section>
-              ) : (
+              ) : item.kind === "take" ? (
                 <section key={`take-${item.take.id}`} ref={register(index)} className="feed-card reel-slot">
                   <TakeReelCard take={item.take} nowMs={minuteMs} />
+                </section>
+              ) : (
+                <section key={`hold-${item.pick.underlying}-${index}`} ref={register(index)} className="feed-card reel-slot">
+                  <HoldingReelCard pick={item.pick} />
                 </section>
               ),
             )}

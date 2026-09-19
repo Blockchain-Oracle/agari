@@ -254,3 +254,16 @@
   }
 }
 
+/* The Reels holding card (plan Step 7): two take-style CTAs side by side, the foot in the reel's own ink. */
+.hc-mark { width: 28px; height: 28px; }
+.hc-actions { display: flex; gap: 10px; }
+.hc-cta { flex: 1; }
+.hc-cta[data-side="down"] { border-color: color-mix(in srgb, var(--vermilion) 45%, transparent); }
+.hc-foot {
+  margin: 10px 0 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: rgb(var(--reel-ink-rgb) / 0.45);
+}
+

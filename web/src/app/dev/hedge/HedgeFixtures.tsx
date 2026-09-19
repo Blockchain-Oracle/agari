@@ -5,7 +5,7 @@ import { marketDeepLink } from "@agari/core/urls";
 import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/components/chrome";
 import { EmptyState } from "@/components/states";
-import { EXAMPLE_HOLDINGS, exampleLaneSet, examplePick, HEDGE, HedgeCard, hedgeStakeBase, HedgeTeaser, LiveHedgeCard, YourStocksList, type HedgePick } from "@/features/hedge";
+import { EXAMPLE_HOLDINGS, exampleLaneSet, examplePick, HEDGE, HedgeCard, hedgeStakeBase, HedgeTeaser, HoldingReelCard, LiveHedgeCard, YourStocksList, type HedgePick } from "@/features/hedge";
 import { useLanesState } from "@/features/markets/lanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
@@ -63,6 +63,15 @@ export function HedgeFixtures() {
         </Fixture>
         <Fixture label={HEDGE.dev.stocks}>
           <YourStocksList holdings={EXAMPLE_HOLDINGS} laneSet={exampleLaneSet(Math.floor((nowMs || Date.now()) / 1000))} nowMs={nowMs || Date.now()} index="01" />
+        </Fixture>
+        <Fixture label={HEDGE.dev.reel}>
+          {example && (
+            <div className="reel-page" style={{ height: "auto", overflow: "visible" }}>
+              <div className="feed-card reel-slot" style={{ height: "auto" }}>
+                <HoldingReelCard pick={example} />
+              </div>
+            </div>
+          )}
         </Fixture>
         <Fixture label={HEDGE.dev.live}>
           <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={open} />

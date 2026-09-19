@@ -47,6 +47,14 @@ export const HEDGE = {
     empty: "No stock tokens found in this wallet. Agari looks for xStocks, Ondo tokens and PreStocks such as OpenAI, Anthropic and SpaceX.",
     foot: "Test money on Solana devnet. Agari only looks at your wallet: it never moves, sells or protects anything. Not investment advice.",
   },
+  /** The Reels card (plan Step 7): the take card's grammar, both bets offered. */
+  reel: {
+    badge: "YOU HOLD IT",
+    title: (name: string) => `You hold ${name}`,
+    voice: "Worried it drops? Cover it with Down. Confident? Add to it with Up.",
+    foot: "Both are Agari bets with test money. Read from your wallet only. Not investment advice.",
+    aria: (name: string) => `You hold ${name}: cover it with Down or add with Up`,
+  },
   /** One quiet message the first time a wallet is found to hold something, never repeated for that wallet. */
   noticed: {
     title: (name: string) => `We noticed you hold ${name}`,
@@ -65,6 +73,7 @@ export const HEDGE = {
     teasers: "No offer — the four states the card shows instead of a blank",
     example: "Example mode — sample holdings through the real picker, stamped",
     stocks: "Your stocks — the /portfolio section from the sample holdings",
+    reel: "Reels — the \"you hold this\" card woven into the feed",
     live: "Live — your wallet (mainnet read, devnet cover)",
     liveEmpty: "Connect a wallet that holds an xStock, an Ondo token or a PreStocks token (OPENAI, ANTHROPIC, SPACEX…) to see the live card.",
   },
