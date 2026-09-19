@@ -122,12 +122,21 @@
 }
 
 /* Clears the fixed chrome: app strip + marquee (28) + header (64) = 92, and on phones
- * the slim pair (20 + 46) = 66, matching the reference's own offsets. The bottom pad
- * keeps content clear of the floating mobile pill nav. */
+ * the slim pair (20 + 46) = 66, matching the reference's own offsets.
+ *
+ * The bottom pad exists for the floating mobile pill nav, which only renders below 720px, so it
+ * lives in that media query alone. On desktop it stacked with the ported footer's own rhythm
+ * (`margin-top: 120px` + `padding-top: 64px`, part-07.css, which is the reference's and stays
+ * untouched) and left ~280px of dead band under every page. */
 .page-shell {
   padding-top: calc(var(--appstrip) + 92px);
-  padding-bottom: 96px;
+  padding-bottom: 0;
   min-height: 100vh;
+}
+
+/* The reel hides the shell footer (`reel.css`), so it keeps the clearance itself. */
+body:has(.reel-page) .page-shell {
+  padding-bottom: 96px;
 }
 
 @media (max-width: 720px) {
