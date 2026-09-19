@@ -115,7 +115,13 @@ export const preStocksFeedId = (symbol: string): Uint8Array => Uint8Array.from(p
  * policy and divergence is zero, which is exactly this shape. The attestor's signature over the 158 B message is the
  * whole guarantee, and the README says so. One 256-node Book.
  */
-export function preStocksSeries(symbol: string, ticker: number, cadenceSec = 300): SeriesSpec {
+export function preStocksSeries(
+  symbol: string,
+  ticker: number,
+  cadenceSec = 300,
+  basis: (typeof BASIS)[keyof typeof BASIS] = BASIS.regular,
+  books: NonNullable<SeriesSpec["books"]> = { count: 1, capacity: 256 },
+): SeriesSpec {
   const primary = {
     ...ZERO_POLICY,
     source: SOURCE.attested,
@@ -126,15 +132,16 @@ export function preStocksSeries(symbol: string, ticker: number, cadenceSec = 300
     closeAdmissionSec: 900,
   };
   return {
-    key: `PRE-${symbol}-${cadenceSec / 60}m`,
+    // The live 24/7 lane keys like every token Series (`OPENAI-60m`); the drive-only Regular one keeps its PRE- key.
+    key: basis === BASIS.token ? `${symbol}-${cadenceSec / 60}m` : `PRE-${symbol}-${cadenceSec / 60}m`,
     // The chain stores the numeric `ticker`; this label never leaves the deploy record. A PreStocks name is
     // deliberately absent from `TICKERS` (no NYSE clock, no price-source version), so it is cast, not added there.
     symbol: symbol as TickerSymbol,
     ticker,
     cadenceSec,
-    basis: BASIS.regular,
+    basis,
     params: LAUNCH_GRID,
     versions: [{ validFromTs: 0n, validUntilTs: I64_MAX, primary, check: ZERO_POLICY, maxDivergenceBps: 0, checkAdmissionSec: 0 }],
-    books: { count: 1, capacity: 256 },
+    books,
   };
 }
