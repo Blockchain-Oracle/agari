@@ -42,7 +42,17 @@ export interface PreStocksSpotHandle extends PreStocksSpotFeed {
   stop(): void;
 }
 
-export const PRESTOCKS_SPOT_EVERY_MS = 10_000;
+/** The base poll; `PRESTOCKS_POLL_MS` overrides it. 10 s keeps ~3 samples inside a print's 35 s honest window. */
+export const PRESTOCKS_SPOT_EVERY_MS = Math.max(5_000, Number(process.env.PRESTOCKS_POLL_MS) || 10_000);
+/** PreStocks rate-limits (a 429 landed after a minute of 10 s polling on 2026-09-19, no limit headers): back off, double, cap. */
+export const BACKOFF_FIRST_MS = 30_000;
+export const BACKOFF_MAX_MS = 5 * 60_000;
+
+/** The wait after `failures` consecutive failed reads: the base poll after none, else 30 s doubling to 5 min. Pure. */
+export function nextDelayMs(failures: number, baseMs = PRESTOCKS_SPOT_EVERY_MS): number {
+  if (failures <= 0) return baseMs;
+  return Math.min(BACKOFF_MAX_MS, BACKOFF_FIRST_MS * 2 ** Math.min(failures - 1, 10));
+}
 const KEEP_SEC = 2 * 3_600;
 /** Every registry pre-IPO name with its verified mint; the catalogue is matched against this, never the other way. */
 const NAMES: readonly { symbol: TickerSymbol; mint: string }[] = PRE_IPO_TICKERS.map((symbol) => ({ symbol, mint: String(TICKERS[symbol].preIpo!.mint) }));
@@ -109,11 +119,12 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
       } catch (error) {
         beat.failures += 1;
         beat.lastPassMs = Date.now();
-        beat.lastWhy = `PreStocks catalogue failed: ${errorText(error)}`;
+        beat.lastWhy = `PreStocks catalogue failed: ${errorText(error)} (next read in ${Math.round(nextDelayMs(beat.failures) / 1000)} s)`;
         if (!loggedFailure) input.log(beat.lastWhy);
         loggedFailure = true;
       }
-      await sleep(Math.max(0, PRESTOCKS_SPOT_EVERY_MS - (Date.now() - started)));
+      // A failed read (a 429 above all) waits longer each time; a good one returns to the base poll.
+      await sleep(Math.max(0, nextDelayMs(beat.failures) - (Date.now() - started)));
     }
   }
 

@@ -68,3 +68,15 @@ describe("joinPreStocksSpot", () => {
     expect(feed.at("OPENAI", NOW)).toBeNull();
   });
 });
+
+describe("nextDelayMs", () => {
+  it("polls at the base rate while reads succeed, then backs off 30 s doubling to a 5 min cap", async () => {
+    const { nextDelayMs } = await import("./prestocks-spot");
+    expect(nextDelayMs(0, 10_000)).toBe(10_000);
+    expect(nextDelayMs(1)).toBe(30_000);
+    expect(nextDelayMs(2)).toBe(60_000);
+    expect(nextDelayMs(4)).toBe(240_000);
+    expect(nextDelayMs(5)).toBe(300_000);
+    expect(nextDelayMs(40)).toBe(300_000);
+  });
+});
