@@ -10,10 +10,10 @@ The user's note, in short: "it was showing USDC … is it SOL or USDC or a custo
 
 **So it does not come back.** Invariant `venue-identity` fails the fast gate on the reference's assets, brand or chain in non-comment, non-test code; four deliberate lines are allowlisted with reasons, and a stale entry fails the rule. Proven by planting a probe file and watching it fail.
 
-**Commits:** 23ba0cd Lucky v2 · ec4dbd3 identity · a01b7d4 money · 919a963 invariant · docs repo cc12453. Gates after the last one: typecheck 0, invariants 0 (15 rules), `pnpm build` green, 266 tests across the touched suites pass.
+**Commits:** 23ba0cd Lucky v2 · ec4dbd3 identity · a01b7d4 money · 919a963 invariant · 1309e96 plan docs · 1f0d023 X diagram box · docs repo cc12453. Gates after the last one: typecheck 0, invariants 0 (15 rules), `pnpm build` green, 266 tests across the touched suites pass.
 **Not verified:** the Lucky reels in motion, the deal card and the header pill need a connected wallet. The user should spin once on `:3100/games/lucky` during regular hours (Mon 09-21 from 13:30Z), or now for an OPENAI draw.
 **Serving:** `:3100` = w1 `next start` via detach.pl (log `w1/data/soak/web-3100.log`). Stop with `pkill -f "next start -p 3100"`. Do not rebuild w1's `.next` while it serves.
-**Health check recipe is stale:** it names `s6/data/soak/ops-2026-09-15.log`; the live soak logs to `live/data/soak/ops-live.log`, and the truth is `/health` per actor (`lastOkMs` age and `failures`), not `/session`. At 18:33Z `/health` was `ok:false` after ~20 min of `ENOTFOUND devnet.helius-rpc.com`; DNS answered again by itself and the settler and roller recovered without a restart. The Mac was on **battery at 52%** — the charger is off again.
+**Health check recipe is stale:** it names `s6/data/soak/ops-2026-09-15.log`; the live soak logs to `live/data/soak/ops-live.log`, and the truth is `/health` per actor (`lastOkMs` age and `failures`), not `/session`. At 18:33Z `/health` was `ok:false` after ~20 min of `ENOTFOUND devnet.helius-rpc.com`; DNS answered again by itself and every actor recovered without a restart (`ok:true`, all `failures=0` at 18:52Z). The Mac was on **battery at 52%** — the charger is off again.
 
 ## Deferred-stages session (2026-09-19, `integration/w1`)
 
