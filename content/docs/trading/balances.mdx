@@ -7,6 +7,12 @@ description: "What your test collateral is, and what the Trading Balance vault a
 
 Every stake, ticket and pre-open order on Agari is sized in **tUSDC**: a 6-decimal SPL token minted by a faucet authority with no freeze authority. It has no market value — it exists only so devnet trading has a consistent unit. Get some from **Get test funds** in the header or Portfolio; see [Wallet and devnet funds](/start/wallet) for the exact flow.
 
+### Why a test dollar, and not SOL or Circle's USDC
+
+- **Not SOL.** Stocks are priced in dollars, and a contract pays 1 tUSDC, so a price of 64¢ reads as a 64% chance. A stake held in SOL would also be a position on SOL's own price. SOL only pays network fees.
+- **Not Circle's devnet USDC.** Circle hands that out in small amounts from its own site, so Agari could not fund a fresh wallet in one signature. tUSDC is Agari's own mint, which its faucet can hand out freely.
+- **On mainnet.** The venue's collateral mint is a single setting. A mainnet venue would name Circle's USDC there; nothing else about a Window changes.
+
 An ordinary wallet order escrows tUSDC straight from your wallet's token account for the life of the order, and returns it to your wallet (or pays out the settled result there) once the position closes.
 
 ## Trading Balance

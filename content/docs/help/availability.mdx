@@ -17,7 +17,7 @@ Agari runs on **Solana devnet** with **tUSDC** test collateral. A local screen o
 | Trading Balance / tap-trading | `agari-vault` deployed and a funded, valid grant/session key. As of this snapshot, `agari-vault`'s deploy is a pending devnet sequence — check [Programs](/architecture/programs) for its current status before assuming tap-trading is live. |
 | Pre-open ("schedule a call") | A Window listed before the open (the roller pre-lists the next session's first Window at the prior close) and a PostOnly order. |
 | Sensei | An `AI_MODEL` setting and a matching provider credential, server-side. Without one, the dock still renders but says the reply is unavailable. |
-| Reels / Takes | A wallet signature (no gas) and the social store running. |
+| Reels / Takes | A wallet signature (no network fee) and the social store running. |
 | The Room | A real position on that Window or ticker, read from the index. |
 | Price alerts | An open browser tab watching a fresh, in-session price tick. |
 | News | A readable headline feed — no wallet. |
