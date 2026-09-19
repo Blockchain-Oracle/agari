@@ -68,8 +68,20 @@ export const LANDING = {
       open: (cadences: string) => `Open now · ${cadences}`,
     },
   },
+  /** Plan Step 6 (D-100): the case for covering a stock token you already own, in plain words, beside the card itself. */
+  cover: {
+    section: { index: "03", title: "Cover what you hold", desc: "Own a stock token? Protect it without selling it." },
+    paragraphs: [
+      "Tokenized stocks trade on Solana around the clock: Tesla and Nvidia as xStocks, and private companies like OpenAI, Anthropic and SpaceX as PreStocks. Until now, a holder who feared a drop had two choices: sell, or hope.",
+      "Agari adds a third. Connect the wallet the tokens sit in and Agari reads it, only reads it, and offers a Down bet on that name as cover. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
+    ],
+    story: "In May 2026 the OpenAI token fell 39% in a week after OpenAI and Anthropic disputed the tokens, and there was too little liquidity for everyone to sell. A holder with a Down bet would have been paid as it fell.",
+    note: "On devnet with test money, so this shows how the cover works rather than protecting real money. Not investment advice. Every token you hold is listed on your",
+    portfolio: "Portfolio page →",
+    cta: "See it on Markets",
+  },
   proof: {
-    section: { index: "03", title: "Proof", desc: "Every address and every settled Window below opens on Solana Explorer." },
+    section: { index: "04", title: "Proof", desc: "Every address and every settled Window below opens on Solana Explorer." },
     program: "Program",
     venue: "Venue config",
     clusterLabel: "Cluster",

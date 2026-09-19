@@ -230,3 +230,19 @@
   .lp-settled-when { grid-column: 2 / -1; grid-row: 2; }
   .lp-settled-links { grid-column: 2 / -1; grid-row: 3; }
 }
+
+/* Cover what you hold (plan Step 6): the words beside the card, in the lanes' own grid rhythm. */
+.lp-cover { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.lp-cover-copy { display: flex; flex-direction: column; gap: 14px; }
+.lp-cover-p { margin: 0; color: var(--gray-300); font-size: 16px; line-height: 1.6; }
+.lp-cover-story {
+  margin: 0; padding: 14px 18px;
+  border-left: 2px solid var(--vermilion);
+  color: var(--white); font-size: 15px; line-height: 1.55;
+}
+.lp-cover-note { margin: 0; color: var(--gray-500); font-size: 13px; line-height: 1.6; }
+.lp-cover-card .hg-banner { margin-bottom: 0; }
+@media (max-width: 900px) {
+  .lp-cover { grid-template-columns: minmax(0, 1fr); }
+}
+
