@@ -21,6 +21,19 @@ export const PRESTOCKS_CATALOGUE_URL = "https://prestocks.com/api/prestocks";
  * Shared by the drive and the relay so the two can never disagree about what "on time" means.
  */
 export const PRESTOCKS_MAX_LATE_SEC = 45;
+
+/**
+ * The 32-byte attested feed id `prestocks-v1:<SYMBOL>` (ASCII, zero-padded) as lower-case hex, the form `PrintSlot.feedIdHex`
+ * carries. The attestor signs this id, so it names the source and its version; `deploy/venue-spec.ts` derives the bytes
+ * it registers on chain from this same function.
+ */
+export function preStocksFeedHex(symbol: string): string {
+  const ascii = `prestocks-v1:${symbol}`;
+  if (ascii.length > 32) throw new Error(`feed id "${ascii}" exceeds 32 bytes`);
+  const bytes = new Uint8Array(32);
+  for (let i = 0; i < ascii.length; i++) bytes[i] = ascii.charCodeAt(i);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
 /** The eight tokens the catalogue carried when the lane was built; the parser accepts whatever it actually returns. */
 export const PRESTOCKS_KNOWN_SYMBOLS = ["ANDURIL", "ANTHROPIC", "FIGUREAI", "KALSHI", "NEURALINK", "OPENAI", "POLYMARKET", "SPACEX"] as const;
 

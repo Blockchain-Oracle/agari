@@ -5,6 +5,7 @@
 import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstructionDataArgs } from "@agari/clients/agari-events";
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@solana/kit";
+import { preStocksFeedHex } from "../prices/prestocks";
 import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
 
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
@@ -104,8 +105,8 @@ export function s2Authorities(keys: AuthorityKeys, sources: PriceSources): Admin
 
 /** The Pre-IPO lane's drive tickers (900–902 are the other drives); one id per PreStocks symbol. */
 export const PRESTOCKS_TICKER_BASE = 910;
-/** `prestocks-v1:OPENAI` is 19 B of the 32. The attestor signs this id, so it names the source and its version. */
-export const preStocksFeedId = (symbol: string) => asciiFeedId(`prestocks-v1:${symbol}`);
+/** The registered feed id bytes, derived from the price module's hex so the relay and the chain can never disagree. */
+export const preStocksFeedId = (symbol: string): Uint8Array => Uint8Array.from(preStocksFeedHex(symbol).match(/../g)!.map((b) => Number.parseInt(b, 16)));
 
 /**
  * A PreStocks Pre-IPO Series (D-100): attested primary, no cross-check, 60 s bars, a 10 s correction delay and 15 min

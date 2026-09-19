@@ -12,6 +12,7 @@ import type { BoundaryCache } from "./boundary-cache";
 import { gapArchivePass } from "./gap-slots";
 import { jupiterAttestPass } from "./jupiter-attest";
 import type { LanePassResult } from "./lane-pass";
+import { isPreStocksSlot, prestocksPass } from "./prestocks-pass";
 import { switchboardPass } from "./switchboard-pass";
 import { feedAt } from "./redstone-fetch";
 import type { RelaySources } from "./sources";
@@ -31,6 +32,8 @@ export interface RelayContext {
   cache: BoundaryCache;
   tracker: VenueTracker;
   attested: AttestedContext | null;
+  /** The Pre-IPO lane's attestor (`RELAY_PRESTOCKS=1`); null leaves PreStocks slots unrecorded. */
+  prestocks?: AttestedContext | null;
   log: (why: string) => void;
   /** Slot key → failed attempts and the last reason. */
   failures: Map<string, { attempts: number; reason: string }>;
@@ -149,10 +152,13 @@ export async function relayPass(ctx: RelayContext): Promise<PassResult> {
   const pending: PrintSlot[] = [];
   const switchboard: PrintSlot[] = [];
   const tokenAttested: PrintSlot[] = [];
+  const prestocks: PrintSlot[] = [];
   for (const { series, market } of tracked) {
     for (const slot of emptySlots(series, market)) {
       const failure = ctx.failures.get(slotKey(slot));
       if (chainNow > slot.deadlineSec) reportMissed(ctx, slot, failure?.reason ?? "no admissible print was recorded before the deadline");
+      // The feed id names the source: a PreStocks slot goes to its own pass whatever the Series' basis (plan Step 3).
+      else if (isPreStocksSlot(slot)) prestocks.push(slot);
       else if (slot.source === "switchboard") switchboard.push(slot);
       else if (slot.source === "attested" && slot.basis === "token") tokenAttested.push(slot);
       else if (slot.source === "attested" && !ctx.attested) continue;
@@ -163,7 +169,7 @@ export async function relayPass(ctx: RelayContext): Promise<PassResult> {
   }
   const lines: string[] = [];
   const gap = await gapArchivePass(ctx, due, chainNow);
-  const lanes: LanePassResult[] = [gap, await switchboardPass(ctx, switchboard, chainNow), await jupiterAttestPass(ctx, tokenAttested, chainNow)];
+  const lanes: LanePassResult[] = [gap, await prestocksPass(ctx, prestocks, chainNow), await switchboardPass(ctx, switchboard, chainNow), await jupiterAttestPass(ctx, tokenAttested, chainNow)];
   for (const lane of lanes) if (lane.line) lines.push(lane.line);
   const regular = gap.taken.size ? due.filter((s) => !gap.taken.has(slotKey(s))) : due;
   const fetchable = (s: PrintSlot, after: number) => wall >= s.boundarySec + after;

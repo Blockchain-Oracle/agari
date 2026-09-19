@@ -277,11 +277,17 @@ export const SHARE_TOKENS: readonly ShareToken[] = [
  */
 export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => TICKERS[symbol].kind !== "preIpo" || basis === "token";
 
+/** The asset a 24/7 Window prices (D-103): the xStock of a listed ticker, the PreStocks token of a pre-IPO name, else null. */
+export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | null {
+  const t = TICKERS[symbol];
+  return t.xstock?.symbol ?? t.preIpo?.symbol ?? null;
+}
+
 export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: number): string {
   // An off-lane key names no lane: `parseLaneKey` returns null for it, so no clock is ever derived from it.
   if (!laneListable(symbol, basis)) return `#${symbol}-${basis}-${cadenceSec}`;
   if (basis === "gap") return `${symbol}-gap`;
-  const asset = basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? TICKERS[symbol].preIpo?.symbol ?? symbol) : symbol;
+  const asset = basis === "token" ? (tokenLaneAsset(symbol) ?? symbol) : symbol;
   return `${asset}-${cadenceSec / 60}m`;
 }
 

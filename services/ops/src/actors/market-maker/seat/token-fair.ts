@@ -8,6 +8,7 @@
  * accrues around the clock, so the time left is scaled from calendar to trading seconds before `fairYesTicks`.
  */
 import { haltOf, TICKERS } from "@agari/core/market";
+import { currentPreStocksSpot, type PreStocksSpotFeed } from "../../../prices/prestocks-spot";
 import { currentXStockSpot, type XStockSpotFeed } from "../../../prices/xstock-spot";
 import { fairYesTicks, TRADING_YEAR_SEC } from "./fair";
 import type { LaneQuote, LaneQuoteInput } from "./lane-quote";
@@ -15,11 +16,14 @@ import type { LaneQuote, LaneQuoteInput } from "./lane-quote";
 const CALENDAR_YEAR_SEC = 365 * 86_400;
 /** The spot at a Window's start may be sampled up to this long after T (the feed polls every 5 s). */
 const START_SAMPLE_WINDOW_SEC = 15;
+/** The PreStocks feed polls every 10 s, so its start sample may land a little later. */
+const PRE_IPO_START_WINDOW_SEC = 30;
 
 /** Trading-time seconds equivalent to `sec` of 24/7 time, so an annual σ in trading time applies unchanged. */
 export const tradingSecondsOf = (sec: number) => Math.floor((Math.max(0, sec) * TRADING_YEAR_SEC) / CALENDAR_YEAR_SEC);
 
-export function tokenQuote(input: LaneQuoteInput, spotFeed: XStockSpotFeed | null = currentXStockSpot()): LaneQuote {
+export function tokenQuote(input: LaneQuoteInput, spotFeed: XStockSpotFeed | null = currentXStockSpot(), preFeed: PreStocksSpotFeed | null = currentPreStocksSpot()): LaneQuote {
+  if (TICKERS[input.symbol].preIpo) return preIpoQuote(input, preFeed);
   const cap = input.env.tokenMaxCashPerWindow;
   const pull = (why: string): LaneQuote => ({ phase: "pull", fairTicks: null, maxCashPerWindow: cap, why });
   const xstock = TICKERS[input.symbol].xstock?.symbol;
@@ -45,3 +49,32 @@ export function tokenQuote(input: LaneQuoteInput, spotFeed: XStockSpotFeed | nul
   });
   return { phase: "quote", fairTicks, maxCashPerWindow: cap, why: `${xstock} ${spot.priceE8} vs start ${reference.priceE8}` };
 }
+
+/**
+ * The Pre-IPO lane (D-100, plan Step 3): the same 24/7 model over the PreStocks token price — the print source and the
+ * chart spot are one number here, so there is no cross-source basis to hide. Halts key by the ticker itself (D-103).
+ */
+function preIpoQuote(input: LaneQuoteInput, feed: PreStocksSpotFeed | null): LaneQuote {
+  const cap = input.env.tokenMaxCashPerWindow;
+  const pull = (why: string): LaneQuote => ({ phase: "pull", fairTicks: null, maxCashPerWindow: cap, why });
+  const halt = haltOf(input.halts, input.symbol);
+  if (halt) return pull(`halted (${halt.reason})`);
+  const m = input.market.data;
+  if (input.nowSec >= Number(m.lockAt) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
+  if (!feed) return pull("no PreStocks feed running");
+  const spot = feed.latest(input.symbol, input.env.spotMaxAgeSec);
+  if (!spot) return pull(`${input.symbol} PreStocks price stale`);
+  if (m.open.source === 0) return { phase: "quote", fairTicks: null, maxCashPerWindow: cap, why: "waiting for the open print" };
+  const startSec = Number(m.tradingStart);
+  const reference = feed.at(input.symbol, startSec + PRE_IPO_START_WINDOW_SEC, PRE_IPO_START_WINDOW_SEC + 5);
+  if (!reference) return pull(`no ${input.symbol} PreStocks sample near the Window's start`);
+  const fairTicks = fairYesTicks({
+    spotE8: spot.tokenPriceE8,
+    openE8: reference.tokenPriceE8,
+    secondsLeft: tradingSecondsOf(Number(m.expiry) - input.nowSec),
+    sigmaBps: input.env.sigmaBps(input.symbol),
+    minTick: input.env.minTick,
+  });
+  return { phase: "quote", fairTicks, maxCashPerWindow: cap, why: `${input.symbol} PreStocks ${spot.tokenPriceE8} vs start ${reference.tokenPriceE8}` };
+}
+

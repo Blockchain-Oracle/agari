@@ -49,11 +49,17 @@ export async function startPriceRelay(deps: VenueDeps): Promise<PriceRelayHandle
   const payerSecret = secret ?? readOnlySecret();
   // Prints have the tightest deadlines (RedStone checks by T + 120), so the relay paces in the reserved priority lane.
   const client = await createOpsClient({ rpcUrl: env.rpcUrl, rpcSubscriptionsUrl: env.rpcSubscriptionsUrl, payerSecret, rpcLane: "priority" });
-  const attestorSecret = process.env.RELAY_ATTESTED === "1" ? roleSecret("price-attestor") : null;
-  if (process.env.RELAY_ATTESTED === "1" && !attestorSecret) log("RELAY_ATTESTED=1 but PRICE_ATTESTOR_PRIVATE_KEY is not set: attested slots stay unrecorded");
+  const attestedOn = process.env.RELAY_ATTESTED === "1";
+  // RELAY_PRESTOCKS is the Pre-IPO lane only; RELAY_ATTESTED would also switch on the Jupiter and RedStone demo fallbacks.
+  const prestocksOn = process.env.RELAY_PRESTOCKS === "1";
+  const attestorSecret = attestedOn || prestocksOn ? roleSecret("price-attestor") : null;
+  if ((attestedOn || prestocksOn) && !attestorSecret) log("RELAY_ATTESTED/RELAY_PRESTOCKS=1 but PRICE_ATTESTOR_PRIVATE_KEY is not set: attested slots stay unrecorded");
+  const attestorContext = attestorSecret ? { attestorSecret, clusterTag: await readClusterTag(client) } : null;
+  if (prestocksOn && attestorContext) log("RELAY_PRESTOCKS=1: Pre-IPO slots are attested from the PreStocks feed by " + client.payer.address.slice(0, 6));
   const ctx: RelayContext = {
     client, rpcUrl: env.rpcUrl, payerSecret, dryRun, sources, cache, tracker: new VenueTracker(client), log,
-    attested: attestorSecret ? { attestorSecret, clusterTag: await readClusterTag(client) } : null,
+    attested: attestedOn ? attestorContext : null,
+    prestocks: prestocksOn ? attestorContext : null,
     failures: new Map(), missed: new Set(),
     counters: { recorded: 0, already: 0, failed: 0, missed: 0, pythPosted: 0, pythClosed: 0 },
   };

@@ -54,3 +54,13 @@ describe("window-roller token plan", () => {
     expect(planTokenSeries(series({ freeBooks: [] }), clock(SAT - 60)).state).toBe("waiting: no free book");
   });
 });
+
+describe("window-roller token plan for a pre-IPO name (D-103)", () => {
+  const ATTESTED: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 4, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0 }];
+  it("rolls OPENAI-60m on its PreStocks token without an xStock, and pauses a listed ticker that has neither", () => {
+    const openai = planTokenSeries(series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: ATTESTED, lastExpirySec: SAT }), clock(SAT - 60));
+    expect(openai.kind).toBe("open");
+    expect(planTokenSeries(series({ key: "AAPL-5m", symbol: "AAPL", versions: ATTESTED }), clock(SAT - 60)).state).toBe("paused: AAPL has no 24/7 token");
+    expect(planTokenSeries(series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: ATTESTED }), { ...clock(SAT - 60), halts: { OPENAI: { reason: "quote-unavailable", sinceSec: SAT - 900 } } }).state).toBe("paused: halted (quote-unavailable)");
+  });
+});

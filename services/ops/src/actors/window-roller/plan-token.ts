@@ -8,7 +8,7 @@
  * Switchboard quote inside `[T + 10, T + 60]`, so a late open still has to leave the relay `PRINT_MARGIN_SEC` before
  * `open_deadline`; after downtime the next aligned Window is the candidate.
  */
-import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, TICKERS, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
+import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, tokenLaneAsset, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { describeVersion, highestCoveringVersion, openPrintsAdmissible } from "./versions";
 
@@ -28,9 +28,10 @@ export function nextTokenCandidate(series: PlanSeries, clock: PlanClock): Schedu
 
 function pauseReason(series: PlanSeries, w: ScheduledWindow, clock: PlanClock): string | null {
   const symbol = series.symbol as TickerSymbol;
-  const xstock = TICKERS[symbol]?.xstock?.symbol;
-  if (!xstock) return `paused: ${symbol} has no xStock`;
-  const halt = haltOf(clock.halts, xstock);
+  // The 24/7 asset: an xStock for a listed ticker, the PreStocks token for a pre-IPO name (D-103); halts key by it.
+  const asset = tokenLaneAsset(symbol);
+  if (!asset) return `paused: ${symbol} has no 24/7 token`;
+  const halt = haltOf(clock.halts, asset);
   if (halt) return haltPausedState(halt);
   const action = corporateActionFor({ symbol, lane: "token", window: w }, clock.skips, clock.multipliers);
   return action ? corporatePausedState(action.why) : null;
