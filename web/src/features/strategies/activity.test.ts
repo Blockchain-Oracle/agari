@@ -62,7 +62,7 @@ describe("strategy operating state alongside copy permission", () => {
   it("separates dependency failures, held reads, and unrecognized report text", () => {
     expect(activity({ health: report("lanes unreadable: stale state; 1 live subscriber") }).label).toBe("Unavailable");
     expect(activity({ health: report("holding: risk memory unavailable") }).label).toBe("Held");
-    expect(activity({ health: report("read 1 of 2 agent Windows: ETH/5m held; BTC/5m: slot opens in 20s; 1 live subscriber") }).label).toBe("Held in last read");
+    expect(activity({ health: report("read 1 of 2 agent Windows: NVDA/5m held; TSLA/5m: slot opens in 20s; 1 live subscriber") }).label).toBe("Held in last read");
     expect(activity({ health: report("published; waiting for a funded live subscriber") }).label).toBe("Waiting for the next check");
     expect(activity({ health: report("a future report format") }).label).toBe("Operation unavailable");
   });

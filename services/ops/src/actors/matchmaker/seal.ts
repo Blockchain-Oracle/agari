@@ -22,7 +22,7 @@ import { dirname } from "node:path";
 
 const KEY_ENV = "GAME_DECK_KEY";
 const JOURNAL_ENV = "GAME_DECK_JOURNAL";
-const DEFAULT_JOURNAL = ".masayume/deck-journal.jsonl";
+const DEFAULT_JOURNAL = ".agari/deck-journal.jsonl";
 
 export interface RevealMaterial {
   matchId: string;

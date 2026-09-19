@@ -34,13 +34,13 @@ describe("receipt reply artwork", () => {
     expect(renderReplyCardSvg({ status: "unknown", sender: "@bad\\nname", txHash: "0xfake" })).not.toMatch(/@bad|0xfake/);
   });
   it("escapes supplied copy and removes layout/control characters", () => {
-    const svg = renderReplyCardSvg({ status: "refused", detail: '<script>alert("x")</script> & <image href="https://bad.test"/>\u0001\u202E', context: 'BTC\nUP & "test"' });
+    const svg = renderReplyCardSvg({ status: "refused", detail: '<script>alert("x")</script> & <image href="https://bad.test"/>\u0001\u202E', context: 'TSLA\nUP & "test"' });
     expect(svg).not.toContain("<script>");
     expect(svg).not.toContain("<image ");
     expect(svg).not.toContain("\u0001");
     expect(svg).not.toContain("\u202E");
     expect(svg).toContain("&lt;script&gt;");
-    expect(svg).toContain("BTC UP &amp; &quot;test&quot;");
+    expect(svg).toContain("TSLA UP &amp; &quot;test&quot;");
   });
 
   it("does not invent missing market, amount or transaction information", () => {
@@ -90,7 +90,7 @@ describe("receipt reply artwork", () => {
   });
 
   it("exports a repeatable 1200×600 PNG under the image upload limit", async () => {
-    const model = { status: "filled" as const, context: "BTC · UP · Devnet", detail: "Requested stake: 5 tUSDC. Booked amount is unavailable." };
+    const model = { status: "filled" as const, context: "TSLA · UP · Devnet", detail: "Requested stake: 5 tUSDC. Booked amount is unavailable." };
     const first = await renderReplyCardPng(model, { demo: true });
     const second = await renderReplyCardPng(model, { demo: true });
     expect(first.equals(second)).toBe(true);

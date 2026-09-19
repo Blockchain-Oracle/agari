@@ -1,3 +1,4 @@
+import { assetTicker } from "@agari/core/market";
 import { isSignature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import { formatBaseUnits } from "@agari/core/units";
@@ -37,7 +38,8 @@ function amount(value: string | null | undefined, decimals: number): string | nu
 }
 
 function marketContext(receipt: XReceipt): string {
-  const asset = receipt.asset === "BTC" || receipt.asset === "ETH" ? receipt.asset : null;
+  // Only an asset the registry knows reaches public text: a ticker, or a verified share token of one.
+  const asset = typeof receipt.asset === "string" && assetTicker(receipt.asset) ? receipt.asset : null;
   const side = receipt.side === "up" ? "UP" : receipt.side === "down" ? "DOWN" : null;
   const cadence = Number.isInteger(receipt.intervalSec) ? CADENCES[receipt.intervalSec as number] : undefined;
   const expiry = receipt.expirySec;
@@ -68,7 +70,7 @@ export function createReplyPresentation(receipt: XReceipt, decimals: number, sym
     case "nothing-filled":
       return { ...base, title: "No fill", detail: "No position was booked.", footer: "A successful transaction does not guarantee a fill." };
     case "reverted":
-      return { ...base, title: "Order reverted", detail: "The trade reverted on-chain.", footer: "Transaction gas may still have been spent." };
+      return { ...base, title: "Order reverted", detail: "The trade reverted on-chain.", footer: "The network fee may still have been spent." };
     case "unknown":
       return hash
         ? { ...base, title: "Status needs checking", detail: "Check the linked transaction for the latest result.", footer: "Check this transaction before trying again." }

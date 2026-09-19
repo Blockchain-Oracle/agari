@@ -11,13 +11,13 @@
 /* m6x11plus by Daniel Linssen (public/fonts/SOURCES.md), the game frame's display type; Sora, Inter and Mono stay on the shell.
  * A pixel face reads clean at multiples of its 11px em, so the sizes below are 11, 22, 33, 44. */
 @font-face {
-  font-family: "Masayume Pixel";
+  font-family: "Agari Pixel";
   src: url("/fonts/m6x11plus.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
-.gm-frame, .du-modal, .gm-howto, .gm-settings-modal { --font-pixel: "Masayume Pixel", var(--font-mono); }
+.gm-frame, .du-modal, .gm-howto, .gm-settings-modal { --font-pixel: "Agari Pixel", var(--font-mono); }
 
 .gm-frame { --gm-accent: var(--vermilion); }
 

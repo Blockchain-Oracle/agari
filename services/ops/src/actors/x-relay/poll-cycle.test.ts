@@ -7,7 +7,7 @@ function fixture() {
   const order: string[] = [];
   const ctx: MentionCycleContext = {
     getCursor: vi.fn(async () => "0"), setCursor: vi.fn(async id => { order.push(`cursor:${id}`); }),
-    fetch: vi.fn(async () => [{ id: "1", authorId: "2", handle: "caller", text: "BTC UP 5 5m", createdAtMs: 1 }]),
+    fetch: vi.fn(async () => [{ id: "1", authorId: "2", handle: "caller", text: "TSLA UP 5 5m", createdAtMs: 1 }]),
     isRelayReply: vi.fn(async () => false),
     claim: vi.fn(async r => { if (receipts.has(r.mentionId)) return false; receipts.set(r.mentionId, r); return true; }),
     execute: vi.fn(async m => ({ ...receipts.get(m.id)!, status: "refused" as const })),

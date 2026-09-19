@@ -11,7 +11,7 @@ function receipt(over: Partial<XReceipt> = {}): XReceipt {
   return {
     mentionId: "1", authorId: "2", handle: "example", wallet: null, grantId: null,
     marketId: null, side: "up", stakeBase: "100000000", status: "filled", reason: null,
-    txHash: HASH, instruction: "BTC up $100 5m", atMs: 0, asset: "BTC", intervalSec: 300,
+    txHash: HASH, instruction: "TSLA up $100 5m", atMs: 0, asset: "TSLA", intervalSec: 300,
     expirySec: Date.parse("2026-09-05T12:00:00Z") / 1000, ...over,
   };
 }
@@ -28,7 +28,7 @@ describe("public X receipt text", () => {
     expect(result).not.toContain("100");
     expect(result.toLowerCase()).not.toMatch(/partial|profit|you won/);
     expect(result).toContain("The market result comes later.");
-    expect(result).toContain("BTC / UP / 5m Window / ends 2026-09-05 12:00 UTC");
+    expect(result).toContain("TSLA / UP / 5m Window / ends 2026-09-05 12:00 UTC");
   });
 
   it("keeps older filled records useful without inventing their booked amount", () => {
@@ -56,7 +56,7 @@ describe("public X receipt text", () => {
 
   it("keeps no-fill, unknown, reverted and initial instruction states distinct", () => {
     expect(replyText(receipt({ status: "nothing-filled" }), 6)).toContain("No position was booked.");
-    expect(replyText(receipt({ status: "reverted" }), 6)).toContain("Transaction gas may still have been spent.");
+    expect(replyText(receipt({ status: "reverted" }), 6)).toContain("The network fee may still have been spent.");
     expect(replyText(receipt({ status: "submitted", txHash: null }), 6)).toContain("Checks are in progress; no confirmed trade yet.");
     const pending = replyText(receipt({ status: "unknown" }), 6);
     expect(pending).toContain("Status needs checking");
@@ -119,7 +119,7 @@ describe("public X receipt text", () => {
 
   it("stays within raw and weighted standard-post limits with real newlines and intact links", () => {
     for (const status of X_RECEIPT_STATUSES) for (const decimals of [0, 6, 18]) for (const txHash of [HASH, null]) {
-      const result = replyText(receipt({ status, txHash, side: "down", asset: "ETH", intervalSec: 14400, bookedCostBase: MAX_UINT256, expirySec: 253402300799 }), decimals, "LongestToken");
+      const result = replyText(receipt({ status, txHash, side: "down", asset: "NVDA", intervalSec: 14400, bookedCostBase: MAX_UINT256, expirySec: 253402300799 }), decimals, "LongestToken");
       expect(result.length).toBeLessThanOrEqual(REPLY_LIMIT);
       expect(weightedLength(result)).toBeLessThanOrEqual(REPLY_LIMIT);
       expect(result).toMatch(/^[\x00-\x7F]+$/);

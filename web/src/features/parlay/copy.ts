@@ -44,8 +44,9 @@ export const PARLAY = {
   },
   builder: {
     yourLegs: "Your legs",
-    preset: "BTC close streak",
-    presetNeedTwo: "Need at least two live BTC Windows for a streak parlay.",
+    /** The reference: "BTC close streak". The stock is whichever has the most Windows live; none is named while none qualifies. */
+    preset: (asset: string | null) => (asset ? `${asset} close streak` : "Close streak"),
+    presetNeedTwo: "A streak parlay needs at least two live Windows on the same stock.",
     loading: "Loading markets…",
     noLegs: "No legs yet",
     /** The reference: "Stack 2 or 3 BTC rounds." — the venue lists more than BTC. */

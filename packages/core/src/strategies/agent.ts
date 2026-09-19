@@ -108,11 +108,14 @@ function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+/** What a description names when no asset is given: the venue lists stocks, and a runner follows every one it lists. */
+export const DEFAULT_SPEC_ASSET = "each listed stock";
+
 /** The plain-words line the studio, the card and the drawer all show for an agent. */
-export function describeAgentSpec(spec: AgentSpec, asset = "BTC"): string {
+export function describeAgentSpec(spec: AgentSpec, asset = DEFAULT_SPEC_ASSET): string {
   const rules = POSTURES[spec.posture];
   const cadences = joinWords(spec.cadences.map(formatCadence));
-  return `On ${asset} ${cadences} Windows it reads the print once, a quarter of the way in, and asks the model for up, down or hold. ${capitalize(spec.posture)}: it holds under ${Math.round(rules.minConfidence * 100)}% confidence, over ${rules.maxPriceCents}¢ a side, or after ${rules.breakerLosses} straight losses.`;
+  return `On ${cadences} Windows of ${asset} it reads the print once, a quarter of the way in, and asks the model for up, down or hold. ${capitalize(spec.posture)}: it holds under ${Math.round(rules.minConfidence * 100)}% confidence, over ${rules.maxPriceCents}¢ a side, or after ${rules.breakerLosses} straight losses.`;
 }
 
 export interface GateInput {

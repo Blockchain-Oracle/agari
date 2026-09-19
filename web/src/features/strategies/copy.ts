@@ -15,7 +15,7 @@ export const STRATEGIES = {
     whatAgent: (asset: string) => `An AI agent that reads eligible Windows and says up, down or hold. A fixed gate decides what is sent. Markets: ${asset}.`,
     share: "Share this strategy on X",
     record: { title: "Track record", meta: (n: number) => `${n} trades · public`, winRate: "win rate", won: "Won", lost: "Lost", net: "Net so far" },
-    disconnectedNote: "Withdraw anytime · testnet · you can lose what you put on.",
+    disconnectedNote: "Withdraw anytime · devnet test funds · you can lose what you put on.",
     joined: { eyebrow: "⊙ You're on the desk", body: (name: string) => `You're following ${name} now. Its next trade carries you.`, receipt: "your join receipt ↗" },
     status: {
       checking: "Checking the desk",

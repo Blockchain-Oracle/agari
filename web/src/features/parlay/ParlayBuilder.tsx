@@ -93,10 +93,20 @@ export function ParlayBuilder({ reserve, symbol }: ParlayBuilderProps) {
     });
   }, [byId, windows]);
 
-  /** One-tap "BTC close streak": UP at the soonest distinct BTC Windows. */
-  const btcWindows = useMemo(() => windows.filter((w) => w.asset.toUpperCase() === "BTC"), [windows]);
+  /**
+   * One-tap close streak: UP at the soonest distinct Windows of one stock. The reference's venue listed only BTC, so
+   * its preset named it; here the stock is whichever has the most Windows live, the soonest-settling one on a tie.
+   */
+  const streak = useMemo(() => {
+    const byAsset = new Map<string, typeof windows>();
+    for (const w of windows) byAsset.set(w.asset, [...(byAsset.get(w.asset) ?? []), w]);
+    let best: { asset: string; windows: typeof windows } | null = null;
+    // `windows` is soonest first and a Map keeps insertion order, so a strict `>` leaves ties with the soonest stock.
+    for (const [asset, list] of byAsset) if (list.length >= 2 && (best === null || list.length > best.windows.length)) best = { asset, windows: list };
+    return best;
+  }, [windows]);
   const loadStreakPreset = useCallback(() => {
-    const picks = btcWindows.slice(0, maxLegs);
+    const picks = streak?.windows.slice(0, maxLegs) ?? [];
     if (picks.length < 2) {
       notify.warning(PARLAY.builder.presetNeedTwo);
       return;
@@ -104,7 +114,7 @@ export function ParlayBuilder({ reserve, symbol }: ParlayBuilderProps) {
     setLegs(picks.map((w) => ({ key: newKey(), marketId: w.marketId, asset: w.asset, intervalSec: w.intervalSec, side: "up" })));
     setSolveMode("fixStake");
     setStakeInput("5");
-  }, [btcWindows, maxLegs]);
+  }, [streak, maxLegs]);
 
   // ── the quote ──
   const legInputs: ParlayLegInput[] = useMemo(() => legs.map((l) => ({ marketId: l.marketId, side: l.side })), [legs]);
@@ -186,9 +196,9 @@ export function ParlayBuilder({ reserve, symbol }: ParlayBuilderProps) {
               {legs.length}/{maxLegs}
             </span>
           </div>
-          <button type="button" onClick={loadStreakPreset} disabled={btcWindows.length < 2} className="pl-preset" data-cursor="hover">
+          <button type="button" onClick={loadStreakPreset} disabled={streak === null} className="pl-preset" data-cursor="hover">
             <Zap />
-            {PARLAY.builder.preset}
+            {PARLAY.builder.preset(streak?.asset ?? null)}
           </button>
         </div>
 

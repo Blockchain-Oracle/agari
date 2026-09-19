@@ -20,7 +20,7 @@ export function CustodyRail({ handle }: { handle: string }) {
           <path d="M252,142 L252,190" fill="none" stroke="var(--xt-v)" strokeWidth="1.4" strokeDasharray="3 4" opacity="0.55" />
           <g>
             <rect x="6" y="32" width="150" height="32" rx="8" fill="var(--xt-paper)" stroke="rgba(255,255,255,0.14)" />
-            <text x="16" y="52" fontSize="11" fill="var(--xt-wire)">{`${handle} btc up 5 15m`}</text>
+            <text x="16" y="52" fontSize="11" fill="var(--xt-wire)">{`${handle} tsla up 5 15m`}</text>
           </g>
           <g>
             <path className="xt-node-draw" d="M252,90 L280,106 L280,138 L252,154 L224,138 L224,106 Z" fill="var(--xt-agent)" stroke="var(--xt-v)" strokeWidth="1.4" />
@@ -29,7 +29,7 @@ export function CustodyRail({ handle }: { handle: string }) {
           <text x="252" y="172" textAnchor="middle" fontSize="8.5" fill="var(--xt-muted)">bounded key · placeFor</text>
           <g>
             <rect x="346" y="92" width="88" height="50" rx="10" fill="var(--xt-mint-paper)" stroke="var(--xt-m)" strokeOpacity="0.5" />
-            <text x="390" y="112" textAnchor="middle" fontSize="10" fill="var(--xt-mint-ink)">BTC · yours</text>
+            <text x="390" y="112" textAnchor="middle" fontSize="10" fill="var(--xt-mint-ink)">TSLA · yours</text>
             <text x="390" y="130" textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--xt-m)">5.00</text>
           </g>
           <text x="390" y="160" textAnchor="middle" fontSize="8" fill="var(--xt-m)" opacity="0.8">unchanged</text>

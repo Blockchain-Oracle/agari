@@ -1,4 +1,4 @@
-import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, AGENT_POSTURES, describeAgentSpec } from "./agent";
+import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, AGENT_POSTURES, DEFAULT_SPEC_ASSET, describeAgentSpec } from "./agent";
 import type { AgentSpec, OracleFollowSpec, PresetKey, StrategyMetadata, StrategySpec } from "./types";
 
 /** The presets, in the reference's words (`lib/sui/strategyClient.ts` PRESETS), plus the agent. */
@@ -24,11 +24,11 @@ export const LOOKBACK_MIN = 2;
 export const LOOKBACK_MAX = 12;
 
 /** Plain-language description of exactly what the runner will do with this spec (reference `describeSpec`). */
-export function describeSpec(s: StrategySpec, asset = "BTC"): string {
+export function describeSpec(s: StrategySpec, asset = DEFAULT_SPEC_ASSET): string {
   if (s.preset === "agent") return describeAgentSpec(s, asset);
   const dir = s.preset === "momentum" ? "with" : "against";
   const pct = (s.thresholdBps / 100).toFixed(2).replace(/\.?0+$/, "");
-  return `Every round it reads the last ${s.lookback} prices. If ${asset} moved at least ${pct}%, it bets ${dir} that move. Otherwise it sits out.`;
+  return `Every round it reads the last ${s.lookback} prices of ${asset}. If the price moved at least ${pct}%, it bets ${dir} that move. Otherwise it sits out.`;
 }
 
 /**

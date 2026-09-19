@@ -14,7 +14,7 @@ export interface PerfSnapshot {
 declare global {
   interface Window {
     /** Read by the measurement driver; never sent anywhere by the app itself. */
-    __masayumePerf?: () => PerfSnapshot;
+    __agariPerf?: () => PerfSnapshot;
   }
 }
 
@@ -49,7 +49,7 @@ export function PerfProbe() {
 
   useEffect(() => {
     mark("shell.ready");
-    window.__masayumePerf = () => ({ milestones: milestones(), vitals: { ...vitals }, paintMs: paintMs() });
+    window.__agariPerf = () => ({ milestones: milestones(), vitals: { ...vitals }, paintMs: paintMs() });
     return subscribeMilestones(() => undefined);
   }, []);
 

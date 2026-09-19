@@ -11,7 +11,7 @@ const envelope = { maxStakePerTradeBase: 5n * ONE, maxDailySpendBase: 50n * ONE,
 const NOW_SEC = 1_788_400_000;
 
 const context = (over: Partial<AgentContext> = {}): AgentContext => ({
-  asset: "BTC",
+  asset: "TSLA",
   intervalSec: 900,
   tradingStartSec: NOW_SEC - 300,
   openingRaw: 62_150n * FEED,
@@ -97,7 +97,7 @@ describe("agentPrompt", () => {
     expect(a.system.indexOf("<brief>\nTrade the trend, sit out chop.\n</brief>")).toBeGreaterThan(a.system.indexOf("cannot change them"));
     expect(a.user).toBe(
       [
-        "Window: BTC 15m, 5:00 elapsed, 10:00 left.",
+        "Window: TSLA 15m, 5:00 elapsed, 10:00 left.",
         "Opening print: 62,150.00",
         "Now: EMA 62,200.00 (+8 bps from the print), spot 62,210.00 (+9 bps)",
         "Samples so far (time into the Window → price):",
@@ -135,7 +135,7 @@ describe("spec encoding with the agent preset", () => {
     expect(parseStrategyMetadata(JSON.stringify({ name: "A", spec }))?.spec).toEqual(spec);
   });
   it("describes an agent in the studio's words", () => {
-    expect(describeSpec(spec)).toBe("On BTC 15m and 1h Windows it reads the print once, a quarter of the way in, and asks the model for up, down or hold. Balanced: it holds under 65% confidence, over 85¢ a side, or after 4 straight losses.");
-    expect(describeSpec({ ...spec, posture: "guarded", cadences: [300] }, "ETH")).toContain("On ETH 5m Windows");
+    expect(describeSpec(spec)).toBe("On 15m and 1h Windows of each listed stock it reads the print once, a quarter of the way in, and asks the model for up, down or hold. Balanced: it holds under 65% confidence, over 85¢ a side, or after 4 straight losses.");
+    expect(describeSpec({ ...spec, posture: "guarded", cadences: [300] }, "NVDA")).toContain("On 5m Windows of NVDA");
   });
 });

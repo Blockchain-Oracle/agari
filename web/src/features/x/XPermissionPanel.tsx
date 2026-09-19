@@ -1,6 +1,8 @@
 "use client";
 
 import { formatBaseUnits, formatUtc } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
+import { webEnv } from "@/lib/env";
 import type { XGrantState } from "./useXGrant";
 import { X_CARD } from "./copy";
 
@@ -41,6 +43,6 @@ export function XPermissionPanel({ grant, executor, symbol, disabled = false }: 
     {state === "ready" && grant.grant && <p className="xw-slab-note">
       {grant.grant.openPositions}/{grant.grant.caps.maxOpenPositions} open Windows · expires {formatUtc(grant.grant.expiresAtSec * 1000, { withSeconds: false, withDate: true })}
     </p>}
-    {pending?.txHash && <a className="xw-btn-ink" href={`https://shannon-explorer.somnia.network/tx/${pending.txHash}`} target="_blank" rel="noreferrer">View update transaction ↗</a>}
+    {pending?.txHash && <a className="xw-btn-ink" href={txUrl(pending.txHash, webEnv.markets.cluster)} target="_blank" rel="noreferrer">View update transaction ↗</a>}
   </div>;
 }

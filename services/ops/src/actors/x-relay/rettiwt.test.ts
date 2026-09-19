@@ -13,7 +13,7 @@ import { rettiwtTransport } from "./rettiwt";
 describe("X media transport", () => {
   beforeEach(() => { mocks.configs.length = 0; vi.clearAllMocks(); });
 
-  const tweet = (id: string) => ({ id, tweetBy: { id: "55", userName: "caller" }, fullText: "BTC UP 5 5m" });
+  const tweet = (id: string) => ({ id, tweetBy: { id: "55", userName: "caller" }, fullText: "TSLA UP 5 5m" });
   it("verifies the session's stable identity and retains reply-parent metadata", async () => {
     mocks.details.mockResolvedValue({ id: "99", userName: "BOT" });
     const transport = rettiwtTransport("fixture", "@bot");

@@ -42,7 +42,7 @@ const states: Record<XReceiptStatus, { title: string; footer: string }> = {
   submitted: { title: "Instruction received", footer: "Execution has not been confirmed." },
   unknown: { title: "Status needs checking", footer: "Check the app before trying again." },
   refused: { title: "Order not confirmed", footer: "This instruction was not confirmed." },
-  reverted: { title: "Order reverted", footer: "Transaction gas may still have been spent." },
+  reverted: { title: "Order reverted", footer: "The network fee may still have been spent." },
   "nothing-filled": { title: "No fill", footer: "A successful transaction does not guarantee a fill." },
 };
 

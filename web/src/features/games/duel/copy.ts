@@ -66,8 +66,8 @@ export const DUEL = {
     costNoPot: "No side-pot is escrowed.",
     costCards: (cap: string, symbol: string) =>
       `Up to ${cap} ${symbol} per card, spent as a real order on that Window. You keep what those positions pay, win or lose the pot.`,
-    costGas: "One signature. Entering names a key this browser holds to place your picks and sends it the gas they need; nothing else is asked of your wallet. There is no sponsor ready on this deployment, so that gas is yours.",
-    costGasSponsored: "One signature. Entering names a key this browser holds to place your picks; this deployment's sponsor sends that key the gas they need. Your wallet pays only for the entry itself.",
+    costGas: "One signature. Entering names a key this browser holds to place your picks and sends it the SOL their network fees need; nothing else is asked of your wallet. There is no sponsor ready on this deployment, so that SOL is yours.",
+    costGasSponsored: "One signature. Entering names a key this browser holds to place your picks; this deployment's sponsor sends that key the SOL their network fees need. Your wallet pays only for the entry itself.",
     /** The chosen stake's own queue, so "nobody is here" is never said about the wrong one. */
     queueHere: (n: number) => (n === 0 ? "Nobody is waiting at this stake" : n === 1 ? "1 player waiting at this stake" : `${n} players waiting at this stake`),
     find: "Find a match",
@@ -130,10 +130,10 @@ export const DUEL = {
     joinBody: (pot: string, symbol: string) =>
       pot === "0" ? "The match is on chain and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on chain and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
     /** Said under the entry's own sentence once this browser holds a key: what else the one signature does. */
-    oneSignature: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks, and sends it the gas they need.",
-    oneSignatureSponsored: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks. Their gas is the sponsor's.",
+    oneSignature: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks, and sends it the SOL their network fees need.",
+    oneSignatureSponsored: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks. The sponsor pays their network fees.",
     sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the fees its picks need." : `The sponsor sent your key ${amount} SOL for its picks.`),
-    sponsorDeclined: (why: string) => `The sponsor declined to fund your key: ${why}. Your picks will wait until it holds gas — the stage offers a way.`,
+    sponsorDeclined: (why: string) => `The sponsor declined to fund your key: ${why}. Your picks will wait until it holds SOL for fees — the stage offers a way.`,
     waitingCreate: "Waiting for the other player to put the match on chain.",
     opening: "Opening…",
     joining: "Joining…",
@@ -198,13 +198,13 @@ export const DUEL = {
     locking: "Closing…",
     /** The key's own state, while it is the thing placing picks. */
     keySwipes: "Your key places each pick — no wallet prompt.",
-    keyGasShort: "Your key holds no gas for this pick, so nothing will fill until it does.",
+    keyGasShort: "Your key holds no SOL for this pick's network fee, so nothing will fill until it does.",
     keyGasShortWhy: "The entry funds a key for one deck's picks and a retry each; a longer run of retries spends that.",
     askSponsor: "Ask the sponsor to fund it",
     asking: "Asking the sponsor…",
     fundKey: (amount: string) => `Fund it from your wallet (${amount} SOL)`,
     funding: "Waiting for your wallet…",
-    keyFunded: "Your key holds gas again.",
+    keyFunded: "Your key holds SOL for fees again.",
     /** Flicky's auto-swipe: at a card's own deadline the favoured side is played rather than the card forfeited. */
     autoPlayed: "played for you at the deadline",
     autoNote: (side: string) => `Time ran out on that card, so your key played the favoured side — ${side}.`,
@@ -231,7 +231,7 @@ export const DUEL = {
 
   /** The read-only view of a match this wallet is not seated in. */
   public: {
-    title: "A duel on Masayume",
+    title: "A duel on Agari",
     reading: "Reading the match from the arena…",
     unreadable: "The arena could not be read just now.",
     unknown: "The arena has no match by that id.",
@@ -248,7 +248,7 @@ export const DUEL = {
     /** Flicky's result modal, in our words. */
     modal: {
       close: "Close",
-      eyebrow: "A duel on Masayume",
+      eyebrow: "A duel on Agari",
       recordType: "DUEL RESULT",
       verdict: { won: "Victory", lost: "Defeat", tied: "Draw" } as const,
       hits: "Cards won",
@@ -263,7 +263,7 @@ export const DUEL = {
       footerKind: "DUEL",
       reopen: "See the result",
       shareText: (verdict: "won" | "lost" | "tied", ret: string | null, url: string) =>
-        `${verdict === "won" ? "Won" : verdict === "lost" ? "Lost" : "Drew"} a duel on Masayume${ret ? ` — ${ret} on the cards` : ""}. ${url}`,
+        `${verdict === "won" ? "Won" : verdict === "lost" ? "Lost" : "Drew"} a duel on Agari${ret ? ` — ${ret} on the cards` : ""}. ${url}`,
     },
     title: "Result",
     won: "You took the match",

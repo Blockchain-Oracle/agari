@@ -12,4 +12,4 @@ export function strategyIdentity(card: { strategyId: string; runner: string; met
   return { name: meta?.name.trim().slice(0, 64) || codenameFromAddress(seed), seed };
 }
 
-export const STRATEGY_MARKETS = "all live venue assets";
+export const STRATEGY_MARKETS = "every listed stock";

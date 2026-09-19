@@ -215,7 +215,7 @@ export const PITCH = {
       tokensValue: "agari-vault",
       indexer: "Indexer",
       indexerValue: "Fill tape + RPC · about a second",
-      gas: "Gas",
+      gas: "Network fees",
       gasValue: "SOL on devnet",
     },
   },

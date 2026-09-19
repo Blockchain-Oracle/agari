@@ -69,7 +69,7 @@ export const TRADE_FROM_X = {
     contract: "the vault pays only its owner — test_AD5_no_divert",
     caps: "every X order spends only from its allocated balance",
   },
-  testnetNote: "testnet · you can lose a call · the agent just can’t take your funds.",
+  testnetNote: "devnet test funds · you can lose a call · the agent just can’t take your funds.",
   receipt: {
     lede: (amount: string, symbol: string) => [`Fund `, `${amount} ${symbol}`, `. Grant `, `one`, ` power: open a position you own.`] as const,
     amountAria: "Amount to fund",

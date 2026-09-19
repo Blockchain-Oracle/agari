@@ -1,9 +1,5 @@
-/* The asset marks — reference/yosuku/components/icons/BitcoinIcon.tsx and ChainIcon.tsx L68–84.
-   A brand colour identifies the asset, so it does not flip with the theme. */
-.mark-btc-disc { fill: #F7931A; }
-.mark-btc-glyph { fill: #fff; }
-.mark-eth-disc { fill: #627EEA; }
-.mark-eth-face { fill: #fff; }
+/* The collateral mark and the listed tickers' brand colours. A brand colour identifies the asset, so it does not
+   flip with the theme. */
 /* The USDC blue, the ring and the glyph in white — a brand mark, so it does not flip with the theme either. */
 .mark-usdc-disc { fill: #2775CA; }
 .mark-usdc-ring, .mark-usdc-glyph { fill: none; stroke: #fff; }
