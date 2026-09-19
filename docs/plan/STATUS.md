@@ -1,4 +1,54 @@
-# STATUS — updated 2026-09-19 ~11:05 UTC by Claude (PreStocks plan Steps 0–8 ALL committed; soak runs from `live` @ soak-5 since 10:32Z; `OPENAI-60m` (24/7) registered 10:34Z, first Window #0 (11:00–12:00Z) OPENED 10:58Z, open print RECORDED 11:00:21Z, maker quoted 471/531 — all in acceptance.md; `live` moved to `soak-6` and :3000 rebuilt on it 11:03Z (Steps 6–8 served); NEXT = watch the 12:00Z close print + settle (background watcher), then Windows #1–#2 for the three-in-a-row proof and one fill against the maker; charger is on)
+# STATUS — updated 2026-09-19 ~15:30 UTC by Claude (**deferred-stages session on `integration/w1` in wt `../agari-wt/w1`**. S11 Blinks DONE and proven on devnet; S10b `agari-range` DEPLOYED, reserve funded, two rounds open, `/games/range` + `/games/moonshot` no longer say "not connected yet"; S8 `agari-maker` written, SBF-built and deploying. NEXT = settle Range round 2 at 16:00Z (watcher running), finish the `agari-maker` deploy → `init-maker` → supply → quote → merge → settle, then S9/S10a/S10c/S10d/S12b.)
+
+## Deferred-stages session (2026-09-19, `integration/w1`)
+
+**S11 — Trade from X + Blinks.** The relay was never a stub: 23 files, 9 test files, wired in `main.ts` as a
+`LEGACY_ACTORS` entry. It boots standalone with `OPS_ACTORS=x-relay` without touching the held soak, reports its
+executor and venue, and completes mention scans. `x_links` and `x_receipts` are empty so nothing can execute.
+**Blocked only on the Agari X account** — `X_RETTIWT_API_KEY` (388 chars) and `X_HANDLE` are both set in
+`.env.local`, but the handle is `masayume_app`, the reference project's. This is not an API-key problem: rettiwt
+reads a logged-in session. `Q-008`/`B-3` are stale.
+Blinks were the genuinely missing half and are now built: `/actions.json`, `/api/actions/w/<marketId>` and
+`/api/actions/t/<symbol>/<cadence>` (a shared link outlives its Window). Wire types in `packages/core/src/x/actions.ts`
+because `@solana/actions` is an `@solana/*` module and only `packages/markets` may import those; the transaction in
+`packages/markets/src/x/action-order.ts` via `createNoopSigner`. **Proven:** a wallet that never touched the app
+signed a transaction the endpoint built and it finalized (`2cEN7qC8…`, slot 500866904), moving 50.000 → 49.275 tUSDC.
+Remaining: the Dialect registry entry (needs the domain + the user's go) and a live X trade (needs the account).
+
+**S10b — Range.** `agari-range` at `GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha` (SBPF v0, extended to 403,368 B,
+upgraded twice). Reserve `CNN4Z5MMazXTHkaYzR8wQepK2ATKrjZHNSqjRbTmwCdB`, vault `8pncTu9o…`, 200 tUSDC supplied.
+The Rust pricing is pinned to `packages/core/src/range/pricing.vectors.json` by `include_str!`, so the client and
+the chain cannot drift. Round 1 (TSLA Gap #0) and round 2 (`OPENAI-60m` #4, settles 16:00Z) are open; the client
+quoted 1,155,000 and the chain charged 1,155,303, absorbed by `RANGE_STAKE_HEADROOM_BPS`. Provider equity read back
+as exactly 200,000,000 with both rounds open. `/games/range` and `/games/moonshot` render their real pages (checked
+in headless Chrome). The open button sends through `MarketsSubmitter.submitRangeOpen`.
+**Still open:** settle + claim round 2 (watcher running), and `previewRangeOpen`/`quoteRangeOnchain`/`readRangeCapacity`
+are still the stub arms.
+
+**S8 — Earn.** `agari-maker` written and SBF-built (417 KB, ~2.12 SOL), deploying to
+`442oD4u4fHnAwPjSqdQvkgGeDaGVEZ9YHHaLny98nEaN` via buffer `E8FSufJu…`. Post-only only: the vault never takes.
+Escrow is recorded from the engine's own `PlaceResult`. Client, reads, `scripts/deploy/init-maker.ts` (which also
+registers the seat at `program_authorities[1]`, D-063) and `scripts/drive/maker-vault.ts` are written and gated.
+**Next:** finish the deploy → `init-maker` → supply → quote → merge → settle. `/earn` turns on when the vault exists.
+
+**Two bugs found and fixed.**
+1. The Moonshot ticket displayed a per-expiry cap no program enforced. Now enforced on-chain by an `ExpiryBook` PDA
+   keyed by the boundary — without it the reserve's whole book could ride on one print.
+2. **No Gap Window could ever be traded.** `scripts/drive/cover-call.ts` let `placeOrder` default `expire_ts` to the
+   Window's *expiry*; the Gap lane locks days earlier and the engine refuses that with 6108 `ExpiryAfterLock`. Six Gap
+   Windows had sat at zero trades while the maker quoted them. Fixed with `expireTs: lockAt`; the first Gap trade in
+   the venue's history filled immediately (2,000 lots at 65.0¢).
+
+**Funding.** The devnet faucet rate-limits per destination, so eight rotating inboxes exist
+(`~/.config/agari/devnet/faucet-inbox-1..8.json`) and `scripts/deploy/sweep-funding.sh` pulls them into the deployer.
+The user sent 20 SOL today; deployer ~17.6 SOL with the maker buffer outstanding. Domain **agari.live** bought and
+moving to Vercel DNS — when it resolves, set `NEXT_PUBLIC_APP_ORIGIN=https://agari.live` and the Blink icon and
+button hrefs become absolute against it.
+
+**Infra note.** `:3000` was found down at ~14:5xZ and restarted from the pinned `live` worktree (soak-7) via
+`detach.pl`; it answers 200. Ops was **not** restarted — the Switchboard cutover stays held. The health-check recipe
+still names `s6/data/soak/ops-2026-09-15.log`, which is stale: the live soak logs to `live/data/soak/ops-live.log`.
+
 
 Current stage: **S15 (W2)** on `stage/S15-public-story` (wt `../agari-wt/s15`; cut from `integration/w1` @ b09eae9, which carries every S18 lane). Four lanes (first launch 18:20Z stopped on a usage limit; relaunched 20:05Z, 15a again 20:25Z on Opus): **15a** landing + OG (`slice/S15a-landing`, wt s15a, web 3151) · **15b** story pages (`slice/S15b-story`, wt s15b, web 3152) · **15c** README + notices + submission + `agari-docs` fork (`slice/S15c-docs`, wt s15c, docs 3153) · **15d** geofence + advice copy + brand sweep (`slice/S15d-compliance`, wt s15d, web 3154). Merge order 15a → 15b → 15c → 15d → stage → w1. Decisions D-092…D-097, Q-S15-1. Stage file `stage-15-public-story.md`.
 **S18 gate PASSED 2026-09-16 13:53Z** (`d4b19d3` on `stage/S18-always-on`, wt s18, :3018): every lane merged (18a/18c/18f/18d/18e), typecheck 0, invariants 0, build green, `21st review` 0 errors, `cargo test` 72/72; devnet drives done (Tue prelist 27/27, Wed bell fills, settle/redeem, expiry path). Still open on the stage file: Foundation bookkeeping and the closed-state browser pass. **2026-09-19 06:5xZ:** S4, S3, S15 and S18 are all merged into `integration/w1` (docs only + LICENSE); the two days of ops "outages" were the Mac idle-sleeping on battery (see `pmset -g log`), mitigated with a detached `caffeinate -ims`, the real fix is the charger. S18 parity rows advance at S18's gate only.
