@@ -12,7 +12,7 @@ import { RegionNote } from "@/features/region/RegionNote";
 import { blockerLabel, diagnosisCopy } from "@/lib/copy";
 import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
-import { FUNDING } from "./copy";
+import { FUNDING, MONEY } from "./copy";
 import "./funding.css";
 import { FundingProgress } from "./FundingProgress";
 
@@ -63,6 +63,17 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
           {FUNDING.modal.title}
         </h2>
         <p className="fund-body">{FUNDING.modal.body}</p>
+        <details className="fund-what">
+          <summary data-cursor="hover">{MONEY.title}</summary>
+          <dl>
+            {MONEY.points.map((point) => (
+              <div key={point.k}>
+                <dt>{point.k}</dt>
+                <dd>{point.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
 
         {!address ? (
           <div className="fund-connect-first"><p>{FUNDING.modal.connectFirst}</p><ConnectButton /></div>

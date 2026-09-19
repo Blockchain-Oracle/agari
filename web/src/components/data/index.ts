@@ -1,6 +1,7 @@
 export * from "./Countdown";
 export * from "./CountdownRing";
 export * from "./Hash";
+export * from "./KeepCase";
 export * from "./Money";
 export * from "./Odds";
 export * from "./useNowMs";

@@ -2,6 +2,7 @@
 
 import { AlertCircle, Check, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
+import { KeepCase } from "@/components/data";
 import { cn } from "@/lib/utils";
 import { PARLAY } from "./copy";
 
@@ -76,9 +77,9 @@ export function PlaceButton({ step, quoted, quoteLoading, quoteError, hasEnough,
       ) : quoteError ? (
         ticket.unavailable
       ) : !hasEnough ? (
-        ticket.insufficient(symbol)
+        <KeepCase text={ticket.insufficient(symbol)} symbol={symbol} />
       ) : quoted ? (
-        ticket.place(stakeText, symbol)
+        <KeepCase text={ticket.place(stakeText, symbol)} symbol={symbol} />
       ) : (
         ticket.build
       )}

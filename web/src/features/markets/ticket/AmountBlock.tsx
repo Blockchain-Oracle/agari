@@ -3,6 +3,7 @@
 import { minStakeBase } from "@agari/core/sizing";
 import { formatBaseUnits, oneUnit } from "@agari/core/units";
 import { useId } from "react";
+import { MONEY } from "@/features/funding/copy";
 import { TICKET } from "@/lib/copy";
 import { LeverageChips, type LeverageChipsProps } from "./LeverageChips";
 
@@ -61,7 +62,7 @@ export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBa
           aria-label={TICKET.amountAria(symbol)}
           aria-describedby={belowMin ? minId : undefined}
         />
-        <span className="tk-amount-unit">{symbol}</span>
+        <span className="tk-amount-unit" title={MONEY.short}>{symbol}</span>
       </div>
       <div className="tk-amount-row">
         <div className="tk-adds">

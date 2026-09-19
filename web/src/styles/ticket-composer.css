@@ -133,7 +133,8 @@
   flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: 9px;
-  text-transform: uppercase;
+  /* The reference uppercases its unit; "tUSDC" keeps its casing, since "TUSDC" reads as another token. */
+  text-transform: none;
   letter-spacing: 0.12em;
   color: rgba(255, 255, 255, 0.35);
 }

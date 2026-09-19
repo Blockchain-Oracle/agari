@@ -1,4 +1,5 @@
 import type { EquityPoint } from "@agari/core/projection";
+import { KeepCase } from "@/components/data";
 import { EquitySparkline } from "@/features/markets/history";
 import { STRATEGIES } from "./copy";
 import { RecordStat } from "./DeskInputs";
@@ -35,7 +36,7 @@ export function RecordCard({ record, decimals, symbol }: { record: StrategyWire[
       <div className="desk-trio">
         <RecordStat label={STRATEGIES.desk.record.won} value={String(record.wins)} />
         <RecordStat label={STRATEGIES.desk.record.lost} value={String(record.losses)} />
-        <RecordStat label={`${STRATEGIES.desk.record.net} · ${symbol}`} value={netStr} accent={netUp ? "up" : "down"} />
+        <RecordStat label={<KeepCase text={`${STRATEGIES.desk.record.net} · ${symbol}`} symbol={symbol} />} value={netStr} accent={netUp ? "up" : "down"} />
       </div>
     </div>
   );

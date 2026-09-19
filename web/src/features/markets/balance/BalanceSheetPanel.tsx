@@ -1,6 +1,6 @@
 import { FEE_RESERVE_LAMPORTS } from "@agari/core/constants";
 import type { BalanceSheet } from "@agari/core/types";
-import { Money } from "@/components/data";
+import { KeepCase, Money } from "@/components/data";
 import { StaleTick, type ReadingMeta } from "@/components/states";
 import type { ReactNode } from "react";
 import { VaultRow } from "@/features/vault";
@@ -31,7 +31,7 @@ export function BalanceSheetPanel({ sheet, symbol, stale, panels, className }: B
   return (
     <div className={cn("flex flex-col gap-3 rounded-(--balance-plate-radius) bg-(--balance-plate-surface) p-4", className)}>
       <div className="flex flex-col gap-1">
-        <span className="type-label-micro text-ink-secondary">{symbol ? `${BALANCE.spendable} · ${symbol}` : BALANCE.spendable}</span>
+        <span className="type-label-micro text-ink-secondary">{symbol ? <KeepCase text={`${BALANCE.spendable} · ${symbol}`} symbol={symbol} /> : BALANCE.spendable}</span>
         <Money value={sheet.spendableBase} decimals={sheet.decimals} className="type-data-hero text-ink" />
         <span className="type-caption text-ink-muted">{BALANCE.headlineNote}</span>
       </div>

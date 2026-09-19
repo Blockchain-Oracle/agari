@@ -74,7 +74,7 @@ export function CapsEditor({ capStr, setCapStr, suggested, symbol }: { capStr: s
 }
 
 /** One cell of the record trio under the sparkline. A loss reads in muted white — a fact, not a scare. */
-export function RecordStat({ label, value, accent }: { label: string; value: string; accent?: "up" | "down" }) {
+export function RecordStat({ label, value, accent }: { label: ReactNode; value: string; accent?: "up" | "down" }) {
   const tone = accent === "up" ? "text-vermilion" : accent === "down" ? "text-ink/80" : "text-ink";
   return (
     <div>

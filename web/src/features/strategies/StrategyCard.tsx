@@ -76,7 +76,7 @@ export function StrategyCard({ card, sub, decimals, symbol, asset, onOpen }: Str
                 {money(net < 0n ? -net : net, decimals)}
               </span>
               <span className="strat-meta text-ink/40">
-                {symbol} {STRATEGIES.archive.netMeta(card.record.settled)}
+                <span className="sym">{symbol}</span> {STRATEGIES.archive.netMeta(card.record.settled)}
               </span>
             </div>
             {card.record.curve.length >= 2 && (

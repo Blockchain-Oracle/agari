@@ -3,6 +3,7 @@
 import type { MakerVaultState } from "@agari/core/maker";
 import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useState } from "react";
+import { KeepCase } from "@/components/data";
 import { cn } from "@/lib/utils";
 import { ConnectButton } from "../markets/wallet";
 import { EARN } from "./copy";
@@ -117,7 +118,7 @@ export function PositionCard({ connected, vault, symbol, shares, worthBase, unse
           </div>
           <div className="ea-position-sub">{position.shares(formatBaseUnits(shares, decimals, { minDp: 2, maxDp: 2 }), formatSharePrice(vault.sharePriceRaw, decimals))}</div>
           <button type="button" onClick={() => onWithdraw(idleShares)} disabled={withdrawing || idleShares === 0n} className="earn-ghost ea-withdraw" data-cursor="hover">
-            {withdrawing ? position.busy : deployedBase === 0n ? position.withdrawAll : position.withdrawIdle(money2(idleBase, decimals), symbol)}
+            {withdrawing ? position.busy : deployedBase === 0n ? position.withdrawAll : <KeepCase text={position.withdrawIdle(money2(idleBase, decimals), symbol)} symbol={symbol} />}
           </button>
           {deployedBase > 0n && <p className="ea-note">{position.deployedNote(money2(deployedBase, decimals), symbol)}</p>}
           {unsettledExpired && <p className="ea-note">{position.unsettledNote}</p>}

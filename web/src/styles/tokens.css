@@ -128,3 +128,7 @@
   --nav-item-fill: rgb(20 18 16 / 0.04);
   --nav-icon-border: rgb(20 18 16 / 0.12);
 }
+
+/* A token symbol keeps its own casing under an uppercasing label: "tUSDC" must never read "TUSDC", which is
+   another token's name. Used by <KeepCase>, <Money> and the bare unit slots. */
+.sym { text-transform: none; }

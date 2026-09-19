@@ -85,7 +85,7 @@
   font-family: var(--font-pixel); font-size: 33px; line-height: 1; color: var(--white); font-variant-numeric: tabular-nums;
 }
 .lk-stake-input::placeholder { color: var(--gray-600); }
-.lk-stake-unit { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); }
+.lk-stake-unit { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: none; color: var(--gray-500); }
 .lk-stake-min { font-family: var(--font-mono); font-size: 10px; line-height: 1.5; color: var(--vermilion); }
 
 /* The SPIN: Pips' amber main button, in the brand accent, with the raised lip games.css gives commit buttons. */

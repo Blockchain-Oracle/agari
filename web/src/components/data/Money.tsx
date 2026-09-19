@@ -24,7 +24,7 @@ export function Money({ value, decimals, symbol, signed = false, maxDp, tone = "
   return (
     <span className={cn("numbers", tone === "pnl" && pnlInk(value), className)}>
       {formatBaseUnits(value, decimals, { signed: signed || tone === "pnl", maxDp })}
-      {symbol && <span className="text-ink-secondary"> {symbol}</span>}
+      {symbol && <span className="sym text-ink-secondary"> {symbol}</span>}
     </span>
   );
 }
