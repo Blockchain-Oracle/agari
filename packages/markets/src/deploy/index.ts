@@ -29,6 +29,7 @@ export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder
 export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
 export { attestedMessage, ed25519Instruction } from "../prices/attested";
 export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX, vaultAddresses } from "./vault";
+export { DEVNET_PARLAY_PARAMS, initParlayReserve, parlayAddresses } from "./parlay";
 export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
 export { DEVNET_MAKER_PARAMS, initMakerVault, makerAddresses, MAKER_AUTHORITY_INDEX, registerMakerSeat } from "./maker";
 export { mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, windowBookOf, type QuoteInput } from "./maker-drive";
