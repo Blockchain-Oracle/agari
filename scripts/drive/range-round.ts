@@ -80,6 +80,24 @@ try {
       console.log(`  equity ${r.totalValueBase} | liquid ${r.liquidBase} | locked ${r.lockedBase} | utilisation ${r.utilizationBps} bps`);
       console.log(`  shares ${r.supplyShares} | paused ${r.paused} | margin ${r.params.marginBps} bps | per-expiry cap ${r.params.maxExpiryLockedBase}`);
     }
+  } else if (mode === "quote") {
+    // The same read the Range builder makes: basis off the Window, price off the deployed reserve's own params.
+    const { ensureMarkets } = await import("@agari/markets");
+    const { marketsEnvInputFrom, parseMarketsEnv } = await import("@agari/markets/env");
+    ensureMarkets(parseMarketsEnv(marketsEnvInputFrom(process.env)));
+    const { previewRangeBasis, previewRangeOpen } = await import("@agari/markets/range");
+    const live = await liveWindowFor(ctx, Number(arg("--series") ?? "910"), Number(arg("--cadence") ?? "3600"), Number(arg("--basis") ?? "2"));
+    const basis = await previewRangeBasis(live.marketId as never);
+    if (!basis.ok) { console.log("basis:", JSON.stringify(basis.error)); }
+    else {
+      console.log(`basis: open ${basis.value.openingPrint}, mark ${basis.value.centerQE6}e-6, sigma ${basis.value.sigmaE8}e-8`);
+      const width = (basis.value.openingPrint * 30n) / 10_000n;
+      const preview = await previewRangeOpen(
+        { marketId: live.marketId as never, asset: "OPENAI" as never, side: "inside", lowPrint: basis.value.openingPrint - width, highPrint: basis.value.openingPrint + width },
+        10_000_000n,
+      );
+      console.log(preview.ok ? `preview: stake ${preview.value.stakeBase} for 10 tUSDC, p=${preview.value.probRaw}, tau ${preview.value.basis.tauSec}s` : `preview: ${JSON.stringify(preview.error)}`);
+    }
   } else if (mode === "probe") {
     // Which live Windows the reserve would price, and which it would refuse for want of a mark.
     for (const spec of (arg("--lanes") ?? "910:3600:2,1:604800:1,2:604800:1,7:604800:1").split(",")) {
