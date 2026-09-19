@@ -47,11 +47,19 @@ function selectedActors(raw: string | undefined): Set<string> {
   return new Set(names);
 }
 
-/** Starts one actor, logging (never throwing) when it fails to boot, so one bad actor can't stop the others. */
-function boot<T>(actor: string, start: () => Promise<T>): Promise<T | null> {
-  return start().catch((error: unknown) => {
-    log(actor)(`failed to start: ${errorText(error)}`);
-    return null;
+/** The exit code for an actor that failed to start (D-098); the watchdog's stuck-pass exit is 70. */
+const EXIT_START_FAILED = 78;
+
+/**
+ * Starts one actor. A start failure is fatal (D-098): ops logs it and exits non-zero so the supervisor restarts the
+ * whole process after its 10 s sleep. Before this, one actor could die at boot (`getaddrinfo ENOTFOUND`, a Postgres
+ * `CONNECT_TIMEOUT`) while the others kept the process alive, and the venue ran without a roller or an indexer for
+ * up to 98 minutes until someone noticed.
+ */
+function boot<T>(actor: string, start: () => Promise<T>): Promise<T> {
+  return start().catch((error: unknown): never => {
+    log(actor)(`failed to start: ${errorText(error)} · exiting ${EXIT_START_FAILED} so the supervisor restarts ops (D-098)`);
+    process.exit(EXIT_START_FAILED);
   });
 }
 

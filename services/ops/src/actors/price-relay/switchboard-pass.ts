@@ -9,6 +9,10 @@
  * clock (`T + 10 ≤ now ≤ T + 60`). Every quote attempt is reported to halt-watch (`recordQuoteResult`): a fetched quote
  * resets its xStocks' streaks, a failed fetch or a `QuoteSlotStale` refusal adds one, and three in a row halt the lane.
  *
+ * D-099: once a lane is halted for `quote-unavailable` no Window opens, so no print would ever try the quote again;
+ * `probeHalted` re-tests the source with a read-only quote every `PROBE_EVERY_SEC` and reports it the same way, so the
+ * halt clears by itself when the gateway recovers and stays while it does not.
+ *
  * Prints are signed by `price-attestor`, not the relay key: until `T + 40` only a configured attestor may record, so a
  * trader can't pick which quote settles the Window (D-088). Without that key the lane still copies opens (which are
  * permissionless) and falls back to the public window from `T + 40`.
@@ -23,7 +27,7 @@ import type { XStockSymbol } from "@agari/core/market";
 import { createOpsClient, type OpsClient } from "@agari/markets/ops";
 import { errorText, readOpsEnv } from "../../runtime/env";
 import { roleSecret } from "../../runtime/keys";
-import { recordQuoteResult } from "../halt-watch/quote-failures";
+import { recordQuoteResult, xstocksToProbe } from "../halt-watch/quote-failures";
 import type { LanePassResult } from "./lane-pass";
 import type { RelayContext } from "./relay-pass";
 
@@ -158,15 +162,34 @@ async function boundary(ctx: RelayContext, state: LaneState, printer: OpsClient,
   }
 }
 
+/** A read-only quote for every halted xStock whose probe is due (D-099); the outcome goes to halt-watch like a print's would. */
+async function probeHalted(ctx: RelayContext, state: LaneState, queue: string, nowSec: number): Promise<string | null> {
+  const due = new Set(xstocksToProbe(nowSec));
+  const feeds = [...state.feeds.values()].filter((f) => due.has(f.xstock));
+  if (feeds.length === 0) return null;
+  const xstocks = [...new Set(feeds.map((f) => f.xstock))];
+  try {
+    await fetchTokenQuote({ rpcUrl: ctx.rpcUrl, surgeSymbols: [...new Set(feeds.map((f) => f.surgeSymbol))], minOracles: state.venue!.minOracles, queue });
+    recordQuoteResult(xstocks, true, nowSec);
+    return `probe ${xstocks.join(",")}: quote fetched, the halt can clear`;
+  } catch (error) {
+    recordQuoteResult(xstocks, false, nowSec);
+    return `probe ${xstocks.join(",")}: still failing (${errorText(error).slice(0, 120)})`;
+  }
+}
+
 export async function switchboardPass(ctx: RelayContext, slots: readonly PrintSlot[], chainNow: number): Promise<LanePassResult> {
-  if (slots.length === 0) return { line: null, nextSec: null };
   const state = stateOf(ctx);
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (slots.length === 0 && xstocksToProbe(nowSec).length === 0) return { line: null, nextSec: null };
   if (!state.venue || Date.now() - state.venueAtMs > VENUE_TTL_MS) {
     state.venue = await readSwitchboardVenue(ctx.client);
     state.venueAtMs = Date.now();
   }
   const queue = state.venue.queue;
   if (!queue) return { line: `switchboard: ${slots.length} slot(s), no queue pinned in GlobalConfig (admin_set_authorities)`, nextSec: null };
+  const probe = await probeHalted(ctx, state, queue, nowSec);
+  if (slots.length === 0) return { line: probe, nextSec: null };
 
   const lagSec = Math.floor(Date.now() / 1000) - chainNow;
   // Without the attestor key the lane may only record from the public window; opens still copy (permissionless).
@@ -177,7 +200,7 @@ export async function switchboardPass(ctx: RelayContext, slots: readonly PrintSl
   const pending = usable.filter((s) => chainNow < printableFrom(s));
   const byT = new Map<number, PrintSlot[]>();
   for (const s of due) byT.set(s.boundarySec, [...(byT.get(s.boundarySec) ?? []), s]);
-  const lines: string[] = [];
+  const lines: string[] = probe ? [probe] : [];
   for (const [tSec, list] of [...byT].sort((a, b) => a[0] - b[0])) lines.push(await boundary(ctx, state, printer, queue, tSec, list, chainNow));
   for (const t of state.retried) if (t < chainNow - 3_600) state.retried.delete(t);
   const gaveUp = slots.length - usable.length;
