@@ -3,6 +3,7 @@
  * Server-only: it is built from a keypair's secret bytes, which scripts read from `~/.config/agari/<cluster>/`.
  */
 import { agariEventsProgram } from "@agari/clients/agari-events";
+import { agariRangeProgram } from "@agari/clients/agari-range";
 import { createClient, createKeyPairSignerFromBytes, createSolanaRpcFromTransport, createSolanaRpcSubscriptions, type KeyPairSigner } from "@solana/kit";
 import {
   rpcConnection,
@@ -58,7 +59,8 @@ export async function createDeployClient(config: DeployClientConfig) {
     .use(rpcTransactionPlanSendingExecutor({ skipPreflight: config.skipPreflight ?? false }))
     .use(systemProgram())
     .use(tokenProgram())
-    .use(agariEventsProgram());
+    .use(agariEventsProgram())
+    .use(agariRangeProgram());
 }
 
 export type DeployClient = Awaited<ReturnType<typeof createDeployClient>>;

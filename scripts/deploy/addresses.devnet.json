@@ -32,6 +32,27 @@
       "config": "FEhH7ACA3zhz2wsLxc4wRUCZg6mDCahtUNEzf1BRn9Sb",
       "initSignature": "2WRP4Lg3tS2JfCoL2DxVRS2gjDkBxbza3okaDu4143PgtRZuP7XCFoHbeSXNmWQV3YFqJEFUUAbcihi2tcNB554f",
       "idlMetadata": "54LqFBmc51qe2KsuHGUTwgAbA1qgdqzfgZhr5FXKBhDS"
+    },
+    "agari_range": {
+      "programId": "GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha",
+      "programData": "GCpX5Q5Sz4bod2NQVLH5fEiFXGCXdgx5TchTAt6dE95U",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "2m5jPxEAm7mU9qJXYS5YKUtrykR4EU4Cb2Pqs8PcemHSiLiePejN54hGEhBUz3XeoRh55nqNSdJWLZR5csYueCmS",
+      "deployedSlot": 500880561,
+      "sbpfArch": "v0",
+      "soBytes": 359728,
+      "soSha256": "6d5f299a206fb5a14d83205681f50e2b05dba1da9eda20cce03a2612d4bce410",
+      "sourceCommit": "8a1d4ac",
+      "extendSignature": "extended 80,000 bytes for the provider and expiry-book upgrades",
+      "upgradeSignatures": [
+        "4FRqfm5B1BAoLjEPN3sUZwvvyiMQwr7c2HWJQxNLWrMfMcVmki3Wxwx9HypFJGqWAoB5NYe68zYSN7qxLv2WyNrC",
+        "62J4auGCoRAHzKNa6rQAByuFg4iGdakiW3Gy6ZbkyDq1ykxevAVunFcFggaPLDwgqiqPtXaxKHKPdTGmjzk4dqQg"
+      ],
+      "upgradedSlot": 500885148,
+      "reserve": "CNN4Z5MMazXTHkaYzR8wQepK2ATKrjZHNSqjRbTmwCdB",
+      "vault": "8pncTu9o57689Kkp4x7yUBtKB7z7aRNi2CgYsiudmVvM",
+      "fromSlot": 500885976,
+      "initSignature": "d2dP4njZnoZxxUfVjNa6JeJGmf59PzhxuuimdjC1bUipwcXbHGznaGU8f96qEHAUFCNAmAyRRAXHZXDrfmtJCPi"
     }
   },
   "venue": {

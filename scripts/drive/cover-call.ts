@@ -87,7 +87,9 @@ async function main() {
     mint: d.mint, tradingStartSec: tradingStart, expirySec: expiry, policyVersion: m.data.policyVersion, signature: "",
   };
   const signature = await placeOrder({ client, log: d.log }, opened, client.payer, user.token as never,
-    { kind: side === "down" ? KIND.buyNo : KIND.buyYes, priceTicks: limitTicks, lots, orderType: ORDER_TYPE.ioc });
+    // Trading stops at `lock_at`, which the Gap lane sets days before expiry; an expiry past it is refused
+    // with 6108 (ExpiryAfterLock), which is why this drive could never trade a Gap Window.
+    { kind: side === "down" ? KIND.buyNo : KIND.buyYes, priceTicks: limitTicks, lots, orderType: ORDER_TYPE.ioc, expireTs: lockAt });
 
   // The order is only evidence if it actually filled: an IOC that crossed nothing leaves the seat empty and says so.
   const seatIdx = await seatHintFor(d.ctx, opened, user.address as never);
