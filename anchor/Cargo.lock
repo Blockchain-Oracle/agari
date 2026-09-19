@@ -69,6 +69,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "agari-range"
+version = "0.1.0"
+dependencies = [
+ "agari-common",
+ "agari-events",
+ "anchor-lang",
+ "anchor-spl",
+ "serde_json",
+]
+
+[[package]]
 name = "agari-vault"
 version = "0.1.0"
 dependencies = [

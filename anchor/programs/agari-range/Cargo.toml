@@ -1,0 +1,34 @@
+[package]
+name = "agari-range"
+version = "0.1.0"
+description = "Masayume's RangeReserve on Solana: house-banked band bets priced off a Window's book and settled from its closing print"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_range"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["event-cpi"] }
+anchor-spl = { workspace = true }
+agari-common = { path = "../../crates/agari-common" }
+# The reserve reads a Window's prints and its book from the engine's own state types, never a re-decoded copy.
+agari-events = { path = "../agari-events", features = ["cpi"] }
+
+[dev-dependencies]
+serde_json = "1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
