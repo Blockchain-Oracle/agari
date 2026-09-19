@@ -5,7 +5,7 @@ import type { EventMarket, MarketId } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { cn } from "@/lib/utils";
 import { RANGE } from "./copy";
-import { usd0 } from "./format";
+import { usdBand } from "./format";
 
 interface WindowPickerProps {
   windows: EventMarket[];
@@ -20,7 +20,7 @@ function WindowRow({ market, on, nowMs, onPick }: { market: EventMarket; on: boo
   return (
     <button type="button" onClick={() => onPick(market.marketId)} className={cn("pl-menu-item", on && "pl-menu-item--on")} aria-pressed={on} data-cursor="hover">
       <span>
-        {market.asset} {formatCadence(market.intervalSec)} · {market.openingPriceRaw !== null ? `${builder.opening} ${usd0(market.openingPriceRaw)}` : builder.openingPending}
+        {market.asset} {formatCadence(market.intervalSec)} · {market.openingPriceRaw !== null ? `${builder.opening} ${usdBand(market.openingPriceRaw)}` : builder.openingPending}
       </span>
       <span className="pl-menu-when">
         <Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />

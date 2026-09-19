@@ -1,13 +1,13 @@
 import { oneCent, oneUnit } from "@agari/core/units";
 import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
+import { WHOLE_DOLLARS_FROM } from "../markets/hero/units";
 
-const WHOLE_DOLLARS_FROM = 1_000n;
 const CENTS_DP = 2;
 
 /**
  * A print (10⁻⁸, D-011) as the dollars Sensei's snapshot carries, on the app's headline rule (lane 4d's `usdLine`):
- * whole dollars from $1,000 up, as Masayume read BTC and ETH, and cents below, where a stock's whole Window can move
- * less than a dollar and whole dollars would tell the model the price sits on its line.
+ * cents below `WHOLE_DOLLARS_FROM` ($10,000), where a stock's whole Window can move less than a dollar and whole
+ * dollars would tell the model the price sits on its line; OPENAI near $1,130 is such a stock.
  */
 export function oracleToUsd(raw: bigint | null): number | null {
   if (raw === null) return null;

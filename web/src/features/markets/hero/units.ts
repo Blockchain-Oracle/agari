@@ -20,12 +20,18 @@ export function feedRawToOracleRaw(raw: bigint, feedDecimals = FEED_DECIMALS_DEF
 /** Masayume drew every price on the oracle's cents scale (its ORACLE_SCALE was 2); prints here carry 10⁻⁸, and cents is still the display. */
 export const PRICE_DISPLAY_DP = 2;
 
-const WHOLE_DOLLARS_FROM = 1_000n;
+/**
+ * Whole dollars only from $10,000 up. The reference drew whole dollars from $1,000, which suited BTC and ETH; here a
+ * pre-IPO name trades above $1,000 (OPENAI near $1,130) and its Window settles to the cent, so "above $1,132" for a
+ * line of $1,132.74 showed a question the chain does not ask. Nothing listed trades at $10,000, so every listed price
+ * and line carries its cents; the same threshold as the range ticket's band edges (`range/format.ts`).
+ */
+export const WHOLE_DOLLARS_FROM = 10_000n;
 
 /**
- * A dollar level or move at the reference's headline scale: whole dollars from $1,000 up (Masayume's `usd0`,
- * which read BTC and ETH), cents below, where a stock's whole Window can move less than a dollar. A move takes
- * its line's scale (`levelRaw`), so "$251.37" is never followed by "+$0".
+ * A dollar level or move: cents below `WHOLE_DOLLARS_FROM`, where a stock's whole Window can move less than a
+ * dollar, whole dollars from there up (the reference's `usd0`). A move takes its line's scale (`levelRaw`), so
+ * "$251.37" is never followed by "+$0".
  */
 export function usdLine(raw: bigint, levelRaw: bigint = raw): string {
   const dp = levelRaw >= WHOLE_DOLLARS_FROM * oneUnit(ORACLE_SCALE) ? 0 : PRICE_DISPLAY_DP;

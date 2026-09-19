@@ -10,7 +10,7 @@ import { Loader2 } from "lucide-react";
 import { Countdown } from "@/components/data";
 import { diagnosisCopy } from "@/lib/copy";
 import { AmountField, ErrorBlock, PlaceButton, Row, type PlaceStep } from "../../parlay/TicketParts";
-import { formatMultiplierTenths, formatProbE6, usd0, usdBand, utilizationPct } from "../../range/format";
+import { formatMultiplierTenths, formatProbE6, usdBand, utilizationPct } from "../../range/format";
 import type { SolveMode } from "../../range/RangeTicket";
 import { MOONSHOT } from "./copy";
 
@@ -133,7 +133,7 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
                       · {w.asset} {formatCadence(w.intervalSec)} · <Countdown expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
                     </span>
                   </span>
-                  <span className="pl-bd-prob">{w.openingPriceRaw !== null ? usd0(w.openingPriceRaw) : "·"}</span>
+                  <span className="pl-bd-prob">{w.openingPriceRaw !== null ? usdBand(w.openingPriceRaw) : "·"}</span>
                 </div>
                 {distance && (
                   <div className="pl-bd-row">

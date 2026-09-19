@@ -18,8 +18,10 @@ describe("Sensei oracle dollar boundary", () => {
     expect(context).toContain("line $365.48");
   });
 
-  it("keeps whole dollars from $1,000 up, rounds cents half up, and keeps missing prints missing", () => {
-    expect(oracleToUsd(123_456_700_000n)).toBe(1_235);
+  it("keeps cents on a four-digit stock, whole dollars only from $10,000 up, rounds half up, and keeps missing prints missing", () => {
+    // OPENAI near $1,132.74 settles to the cent; the reference's $1,000 rule rounded it to $1,133.
+    expect(oracleToUsd(113_274_000_000n)).toBe(1_132.74);
+    expect(oracleToUsd(1_234_567_000_000n)).toBe(12_346);
     expect(oracleToUsd(24_949_500_000n)).toBe(249.5);
     expect(oracleToUsd(24_949_499_999n)).toBe(249.49);
     expect(oracleToUsd(null)).toBeNull();

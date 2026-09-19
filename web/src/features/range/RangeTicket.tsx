@@ -10,7 +10,7 @@ import { Countdown } from "@/components/data";
 import { diagnosisCopy } from "@/lib/copy";
 import { AmountField, ErrorBlock, PlaceButton, Row, type PlaceStep } from "../parlay/TicketParts";
 import { RANGE } from "./copy";
-import { formatMultiplierTenths, formatProbE6, usd0, usdOnGrid, utilizationPct } from "./format";
+import { formatMultiplierTenths, formatProbE6, usdBand, usdOnGrid, utilizationPct } from "./format";
 
 export type SolveMode = "fixStake" | "fixPayout";
 
@@ -111,7 +111,7 @@ export function RangeTicket(props: RangeTicketProps) {
                       · {w.asset} {formatCadence(w.intervalSec)} · <Countdown expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
                     </span>
                   </span>
-                  <span className="pl-bd-prob">{w.openingPriceRaw !== null ? usd0(w.openingPriceRaw) : "·"}</span>
+                  <span className="pl-bd-prob">{w.openingPriceRaw !== null ? usdBand(w.openingPriceRaw) : "·"}</span>
                 </div>
               </div>
 
