@@ -13,7 +13,7 @@ export const DEMO = {
     description: "Call whether a US stock closes its Window up or down, settled on a signed price on Solana devnet — and every claim a transaction you can open.",
     caption: "Markets on the NYSE clock, the call before the bell, and a settlement you can audit. Recorded on the running product.",
     pendingEyebrow: "● not recorded yet",
-    pendingTitle: "Recording Wed 16 Sep during NYSE hours",
+    pendingTitle: "Recording during NYSE hours the week of 22 Sep",
     pendingCaption: "The walkthrough is captured on the live product after the 09:30 ET bell, so it shows Windows trading rather than a closed board. Until then, everything it would show is below, as transactions you can open.",
   },
   bar: {
