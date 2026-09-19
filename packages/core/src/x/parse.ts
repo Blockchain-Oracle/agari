@@ -152,3 +152,15 @@ export function describeRefusal(reason: XRefusalReason, token?: string): string 
       return `could not read${near} — no leverage or extras here`;
   }
 }
+
+/**
+ * One stake, on its own, in base units — the Blinks amount field (S11). A Blink collects the number in its own input
+ * rather than in a sentence, but the grammar that reads it is the same one a mention gets: an optional `$`, digits,
+ * and no more precision than the collateral has. `null` is every refusal, because the caller's copy is its own.
+ */
+export function parseStakeBase(text: string | null | undefined, decimals: number): bigint | null {
+  const match = STAKE_RE.exec((text ?? "").trim());
+  if (!match?.[1]) return null;
+  const base = stakeToBase(match[1], decimals);
+  return base === null || base <= 0n ? null : base;
+}
