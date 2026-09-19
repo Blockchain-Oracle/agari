@@ -24,6 +24,7 @@ custom-panic = []
 anchor-lang = { workspace = true, features = ["event-cpi"] }
 anchor-spl = { workspace = true }
 agari-common = { path = "../../crates/agari-common" }
+bytemuck = { workspace = true }
 # The reserve reads a Window's prints and its book from the engine's own state types, never a re-decoded copy.
 agari-events = { path = "../agari-events", features = ["cpi"] }
 
