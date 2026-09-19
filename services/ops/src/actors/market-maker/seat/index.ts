@@ -6,7 +6,7 @@
  */
 import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type SeriesView } from "@agari/markets/ops";
 import { readVenueConfig, type VenueConfig } from "@agari/markets/ops/maker";
-import { haltOf, TICKERS, type HaltAsset, type TickerSymbol } from "@agari/core/market";
+import { haltOf, laneListable, TICKERS, type HaltAsset, type TickerSymbol } from "@agari/core/market";
 import { runActor, type PassResult, type VenueDeps } from "../../../runtime";
 import { roleClient } from "../../settler/role-client";
 import { seriesLabel, marketLabel } from "../../settler/views";
@@ -33,7 +33,7 @@ export async function startSeedMaker(deps: VenueDeps): Promise<{ stop: () => voi
     await deps.sessions.refresh();
     if (Date.now() - listedAtMs > SERIES_LIST_MS) {
       const wanted = (s: SeriesView) => seriesBasis(s) !== null && (seriesBasis(s) !== "regular" || env.cadencesSec.includes(s.data.cadenceSec));
-      series = (await listSeries(client)).filter((s) => s.symbol !== null && wanted(s) && (!env.symbols || env.symbols.includes(s.symbol)));
+      series = (await listSeries(client)).filter((s) => s.symbol !== null && wanted(s) && laneListable(s.symbol, seriesBasis(s)!) && (!env.symbols || env.symbols.includes(s.symbol)));
       listedAtMs = Date.now();
     } else {
       series = (await fetchSeries(client, series.map((s) => s.address))).filter((s): s is SeriesView => s !== null);

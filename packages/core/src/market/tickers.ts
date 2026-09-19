@@ -215,9 +215,18 @@ export const SHARE_TOKENS: readonly ShareToken[] = [
  * The ops lane key (roller heartbeat, `/session.lanes`): `TSLA-5m` Regular, `TSLA-gap` Gap, `TSLAx-5m` token. Cadences
  * count minutes (`TSLA-60m`), not `formatCadence`'s `1h`, because the soak and web already key Regular lanes that way.
  */
+/**
+ * Whether a ticker may be listed on a lane at all (D-103). A pre-IPO name has no exchange session, so only the 24/7
+ * token lane exists for it: the roller, the maker and the lane keys all refuse it on Regular and Gap. The drive-only
+ * Series 910 (OPENAI, basis Regular) is what this guards against — rolled on the NYSE clock it would void every Window.
+ */
+export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => TICKERS[symbol].kind !== "preIpo" || basis === "token";
+
 export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: number): string {
+  // An off-lane key names no lane: `parseLaneKey` returns null for it, so no clock is ever derived from it.
+  if (!laneListable(symbol, basis)) return `#${symbol}-${basis}-${cadenceSec}`;
   if (basis === "gap") return `${symbol}-gap`;
-  const asset = basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? symbol) : symbol;
+  const asset = basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? TICKERS[symbol].preIpo?.symbol ?? symbol) : symbol;
   return `${asset}-${cadenceSec / 60}m`;
 }
 
@@ -233,12 +242,13 @@ export function parseLaneKey(key: string): LaneKeyParts | null {
   if (dash <= 0) return null;
   const asset = key.slice(0, dash);
   const tail = key.slice(dash + 1);
-  if (tail === "gap") return isTickerSymbol(asset) ? { symbol: asset, basis: "gap", cadenceSec: GAP_CADENCE_SEC } : null;
+  if (tail === "gap") return isTickerSymbol(asset) && laneListable(asset, "gap") ? { symbol: asset, basis: "gap", cadenceSec: GAP_CADENCE_SEC } : null;
   const minutes = /^(\d+)m$/.exec(tail);
   if (!minutes) return null;
   const cadenceSec = Number(minutes[1]) * 60;
   if (cadenceSec <= 0) return null;
-  if (isTickerSymbol(asset)) return { symbol: asset, basis: "regular", cadenceSec };
+  // A bare pre-IPO symbol is its 24/7 lane (it has no other), a bare listed ticker is its Regular lane.
+  if (isTickerSymbol(asset)) return { symbol: asset, basis: TICKERS[asset].kind === "preIpo" ? "token" : "regular", cadenceSec };
   const underlying = TICKER_SYMBOLS.map((s) => TICKERS[s]).find((t) => t.xstock?.symbol === asset);
   return underlying ? { symbol: underlying.symbol, basis: "token", cadenceSec } : null;
 }

@@ -9,6 +9,7 @@ import {
   seriesBasis, seriesLaneKey, type MarketView, type OpsClient, type SeriesView,
 } from "@agari/markets/ops";
 import { fetchBookHeaders, fetchLedgerHeaders, growLedger, openWindow, releaseBook, sweepBook, type VenueConfig } from "@agari/markets/ops/roller";
+import { laneListable } from "@agari/core/market";
 import type { PassResult } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
 import { errorText } from "../../runtime/env";
@@ -54,7 +55,8 @@ const solText = (lamports: bigint) => `${lamports / 1_000_000_000n}.${(lamports 
 
 async function refreshSeries(state: RollerState): Promise<void> {
   if (Date.now() - state.seriesListedMs >= SERIES_LIST_MS) {
-    const listed = (await listSeries(state.client)).filter((s) => s.symbol !== null && seriesBasis(s) !== null);
+    // D-103: a pre-IPO name lists only on the 24/7 lane; its drive-only Regular Series must never roll on the NYSE clock.
+    const listed = (await listSeries(state.client)).filter((s) => s.symbol !== null && seriesBasis(s) !== null && laneListable(s.symbol, seriesBasis(s)!));
     state.series = state.settings.only.length ? listed.filter((s) => state.settings.only.includes(seriesKey(s))) : listed;
     state.seriesListedMs = Date.now();
     for (const s of state.series) {

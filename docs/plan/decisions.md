@@ -1090,6 +1090,13 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none yet; the lane appears once the relay pass lands.
 - **Approval:** stage owner, on Abu's direction to make the Pre-IPO lane usable in the app.
 
+### D-103 — A pre-IPO name lists only on the 24/7 lane; Regular and Gap refuse it everywhere
+- **Date / owner:** 2026-09-19 · S18 owner
+- **Evidence:** once OPENAI resolved in `TICKERS` (D-102), the roller would discover the drive-only Series 910 (basis Regular) from chain and open Windows on it at Monday's bell; the relay would value their attested slots from RedStone, find none, and void every one. `parseLaneKey("OPENAI-5m")` also returned Regular, so `landing/data.ts` and `lanes/next-window.ts` would have computed NYSE windows for a name with no NYSE session.
+- **Rule:** one predicate in core, `laneListable(symbol, basis)`: a `kind === "preIpo"` ticker is listable only on the token lane. The roller (`window-roller/execute.ts`) and the maker (`market-maker/seat/index.ts`) filter Series through it; `laneKey` returns an off-lane key `#SYMBOL-basis-cadence` for a refused pair, which `parseLaneKey` answers with null; a bare pre-IPO symbol (`OPENAI-60m`) parses as its token lane. The 24/7 planner still needs a lane-asset notion beyond xStocks (Step 3 of the plan).
+- **User-visible:** none until the 24/7 OPENAI Series exists; then it appears under the 24/7 tab and nowhere else.
+- **Approval:** stage owner, from the approved 2026-09-19 plan (Step 0.3, "never cut").
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

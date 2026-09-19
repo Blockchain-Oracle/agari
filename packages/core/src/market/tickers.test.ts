@@ -59,9 +59,17 @@ describe("ticker registry", () => {
 describe("parseLaneKey", () => {
   it("inverts laneKey for every basis", async () => {
     const { laneKey, parseLaneKey } = await import("./tickers");
-    for (const symbol of TICKER_SYMBOLS) {
+    for (const symbol of TICKER_SYMBOLS.filter((s) => TICKERS[s].kind !== "preIpo")) {
       for (const cadenceSec of [300, 900, 3600]) expect(parseLaneKey(laneKey(symbol, "regular", cadenceSec))).toEqual({ symbol, basis: "regular", cadenceSec });
       expect(parseLaneKey(laneKey(symbol, "gap", 604_800))).toEqual({ symbol, basis: "gap", cadenceSec: 604_800 });
+    }
+    // A pre-IPO name has only the 24/7 lane: its bare symbol parses as token, and its Regular/Gap keys name no lane (D-103).
+    for (const symbol of PRE_IPO_TICKERS) {
+      expect(parseLaneKey(laneKey(symbol, "token", 3600))).toEqual({ symbol, basis: "token", cadenceSec: 3600 });
+      expect(laneKey(symbol, "regular", 300)).toBe(`#${symbol}-regular-300`);
+      expect(parseLaneKey(laneKey(symbol, "regular", 300))).toBeNull();
+      expect(parseLaneKey(laneKey(symbol, "gap", 604_800))).toBeNull();
+      expect(parseLaneKey(`${symbol}-gap`)).toBeNull();
     }
     for (const symbol of TOKEN_LANE_TICKERS) expect(parseLaneKey(laneKey(symbol, "token", 300))).toEqual({ symbol, basis: "token", cadenceSec: 300 });
     expect(parseLaneKey("TSLAx-5m")).toEqual({ symbol: "TSLA", basis: "token", cadenceSec: 300 });
