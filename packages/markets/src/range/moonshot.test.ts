@@ -14,8 +14,6 @@ const WINDOW = { marketId: toMarketId(encodeBase58(new Uint8Array(32).fill(0xab)
 const PARAMS: RangeParams = {
   marginBps: 1_200,
   maxExposureBps: 6_000,
-  maxSpreadRaw: 200_000n,
-  centerDepthRaw: 20n * ONE,
   minCenterQE6: 30_000,
   maxCenterQE6: 970_000,
   minProbRaw: 20_000n,
@@ -24,6 +22,7 @@ const PARAMS: RangeParams = {
   maxHorizonSec: 172_800,
   staleAfterSec: 21_600,
   maxPayoutCapBase: 500n * ONE,
+  sigmaE8: SIGMA,
   maxExpiryLockedBase: 1_000n * ONE,
 };
 

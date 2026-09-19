@@ -33,6 +33,8 @@ export const marketsEnvSchema = z.object({
   eventsProgramId: addressSchema.optional(),
   /** The agari-vault program id (S7); absent until it deploys. Must equal `addresses.devnet.json` `programs.agari_vault`. */
   vaultProgramId: addressSchema.optional(),
+  /** The agari-range program id (S10b); absent until it deploys. Must equal `addresses.devnet.json` `programs.agari_range`. */
+  rangeProgramId: addressSchema.optional(),
   /** price-relay's spot SSE endpoint (S3). */
   priceFeedUrl: z.url().optional(),
 });
@@ -63,6 +65,7 @@ export function marketsEnvInputFrom(source: Record<string, string | undefined>):
     venueId: source.NEXT_PUBLIC_AGARI_VENUE_ID,
     eventsProgramId: source.NEXT_PUBLIC_AGARI_EVENTS_PROGRAM_ID,
     vaultProgramId: source.NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID,
+    rangeProgramId: source.NEXT_PUBLIC_AGARI_RANGE_PROGRAM_ID,
     priceFeedUrl: source.NEXT_PUBLIC_PRICE_FEED_URL,
   };
 }

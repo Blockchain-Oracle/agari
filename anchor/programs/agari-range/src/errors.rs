@@ -34,6 +34,10 @@ pub enum RangeError {
     InsufficientLiquidity,
     #[msg("that would take the reserve past its exposure limit")]
     OverExposure,
+    #[msg("too much of the reserve already settles at that boundary")]
+    OverExpiryCap,
+    #[msg("that expiry book belongs to a different boundary")]
+    WrongExpiry,
     #[msg("the round is not live")]
     RoundNotLive,
     #[msg("the round has not been settled")]
@@ -46,6 +50,8 @@ pub enum RangeError {
     WrongEngine,
     #[msg("that round belongs to a different Window")]
     WrongMarket,
+    #[msg("that wallet does not hold that many shares")]
+    InsufficientShares,
     #[msg("the amount is zero")]
     ZeroAmount,
     #[msg("the reserve has no equity to price shares against")]

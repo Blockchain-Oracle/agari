@@ -3,13 +3,16 @@ use anchor_spl::token::{transfer_checked, TransferChecked};
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::basis::read_open_basis;
-use crate::constants::{ONE_RAW, RESERVE_SEED, ROUND_SEED, VAULT_SEED};
+use crate::constants::{EXPIRY_SEED, ONE_RAW, RESERVE_SEED, ROUND_SEED, VAULT_SEED};
 use crate::errors::RangeError;
 use crate::events::RoundOpened;
 use crate::math::{band_prob_e6, floor_stake, side_prob_raw, BPS};
-use crate::state::{Reserve, Round, RoundStatus};
+use crate::state::{ExpiryBook, Reserve, Round, RoundStatus};
 
+/// `expiry_sec` is an argument only so the expiry book's PDA can be derived before the Market is read; the
+/// instruction checks it against the Window's own boundary and refuses a mismatch.
 #[derive(Accounts)]
+#[instruction(is_inside: bool, low_print: i64, high_print: i64, max_payout_base: u64, max_stake_base: u64, expiry_sec: i64)]
 pub struct OpenRound<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -23,6 +26,15 @@ pub struct OpenRound<'info> {
         bump,
     )]
     pub round: Account<'info, Round>,
+    /// The book of capital coming due at this Window's boundary. Created the first time one is opened there.
+    #[account(
+        init_if_needed,
+        payer = owner,
+        space = 8 + ExpiryBook::INIT_SPACE,
+        seeds = [EXPIRY_SEED, &expiry_sec.to_le_bytes()],
+        bump,
+    )]
+    pub expiry_book: Account<'info, ExpiryBook>,
     #[account(mut, seeds = [VAULT_SEED], bump = reserve.vault_bump)]
     pub vault: InterfaceAccount<'info, TokenAccount>,
     #[account(mut, token::mint = collateral_mint, token::authority = owner)]
@@ -48,6 +60,7 @@ pub fn open_round(
     high_print: i64,
     max_payout_base: u64,
     max_stake_base: u64,
+    expiry_sec: i64,
 ) -> Result<()> {
     let now = Clock::get()?.unix_timestamp;
     let reserve_key = ctx.accounts.reserve.key();
@@ -59,6 +72,8 @@ pub fn open_round(
 
     let params = reserve.params;
     let basis = read_open_basis(&ctx.accounts.market.to_account_info(), &reserve.events_program, &params, now)?;
+    // The caller named a boundary to derive the expiry book from; it must be this Window's own.
+    require!(expiry_sec == basis.expiry_sec, RangeError::WrongExpiry);
 
     let inside_prob_e6 = band_prob_e6(
         i128::from(basis.opening_print),
@@ -88,6 +103,10 @@ pub fn open_round(
     let exposure_cap = u64::try_from((u128::from(equity) * u128::from(params.max_exposure_bps)) / (BPS as u128))
         .map_err(|_| RangeError::MathOverflow)?;
     require!(locked_after <= exposure_cap, RangeError::OverExposure);
+
+    // And not all of it may come due at once.
+    let expiry_after = ctx.accounts.expiry_book.locked_base.checked_add(house_locked_base).ok_or(RangeError::MathOverflow)?;
+    require!(expiry_after <= params.max_expiry_locked_base, RangeError::OverExpiryCap);
 
     transfer_checked(
         CpiContext::new(
@@ -123,6 +142,13 @@ pub fn open_round(
     round.settled_at_sec = 0;
     round.expiry_sec = basis.expiry_sec;
     round.bump = ctx.bumps.round;
+
+    let expiry_book = &mut ctx.accounts.expiry_book;
+    expiry_book.reserve = reserve_key;
+    expiry_book.expiry_sec = basis.expiry_sec;
+    expiry_book.bump = ctx.bumps.expiry_book;
+    expiry_book.locked_base = expiry_after;
+    expiry_book.rounds_open = expiry_book.rounds_open.saturating_add(1);
 
     let reserve = &mut ctx.accounts.reserve;
     reserve.next_round_id = round_id.checked_add(1).ok_or(RangeError::MathOverflow)?;

@@ -46,6 +46,7 @@ pub mod agari_range {
         instructions::liquidity::withdraw(ctx, shares)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn owner_open_round(
         ctx: Context<OpenRound>,
         is_inside: bool,
@@ -53,8 +54,9 @@ pub mod agari_range {
         high_print: i64,
         max_payout_base: u64,
         max_stake_base: u64,
+        expiry_sec: i64,
     ) -> Result<()> {
-        instructions::open::open_round(ctx, is_inside, low_print, high_print, max_payout_base, max_stake_base)
+        instructions::open::open_round(ctx, is_inside, low_print, high_print, max_payout_base, max_stake_base, expiry_sec)
     }
 
     pub fn public_settle_round(ctx: Context<SettleRound>) -> Result<()> {

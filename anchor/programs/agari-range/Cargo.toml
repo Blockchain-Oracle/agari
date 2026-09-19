@@ -21,7 +21,7 @@ custom-heap = []
 custom-panic = []
 
 [dependencies]
-anchor-lang = { workspace = true, features = ["event-cpi"] }
+anchor-lang = { workspace = true, features = ["event-cpi", "init-if-needed"] }
 anchor-spl = { workspace = true }
 agari-common = { path = "../../crates/agari-common" }
 bytemuck = { workspace = true }

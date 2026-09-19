@@ -3,10 +3,10 @@ use anchor_spl::token::{transfer_checked, TransferChecked};
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::basis::read_close_print;
-use crate::constants::{RESERVE_SEED, ROUND_SEED, VAULT_SEED, VOID_GRACE_SEC};
+use crate::constants::{EXPIRY_SEED, RESERVE_SEED, ROUND_SEED, VAULT_SEED, VOID_GRACE_SEC};
 use crate::errors::RangeError;
 use crate::events::{RoundClaimed, RoundSettled, RoundVoided};
-use crate::state::{Reserve, Round, RoundStatus};
+use crate::state::{ExpiryBook, Reserve, Round, RoundStatus};
 
 #[derive(Accounts)]
 pub struct SettleRound<'info> {
@@ -21,6 +21,14 @@ pub struct SettleRound<'info> {
         constraint = round.reserve == reserve.key() @ RangeError::WrongMarket,
     )]
     pub round: Account<'info, Round>,
+    /// The boundary book this round was counted into at open; released here.
+    #[account(
+        mut,
+        seeds = [EXPIRY_SEED, &round.expiry_sec.to_le_bytes()],
+        bump = expiry_book.bump,
+        constraint = expiry_book.reserve == reserve.key() @ RangeError::WrongExpiry,
+    )]
+    pub expiry_book: Account<'info, ExpiryBook>,
     /// CHECK: the Window this round was opened against, read by cast with `load_checked`.
     #[account(address = round.market @ RangeError::WrongMarket)]
     pub market: UncheckedAccount<'info>,
@@ -38,7 +46,7 @@ pub fn settle_round(ctx: Context<SettleRound>) -> Result<()> {
     let events_program = ctx.accounts.reserve.events_program;
     let closing = read_close_print(&ctx.accounts.market.to_account_info(), &events_program, now)?;
     let Some(closing_print) = closing else {
-        return void_to_owner(&mut ctx.accounts.reserve, &mut ctx.accounts.round, now);
+        return void_to_owner(&mut ctx.accounts.reserve, &mut ctx.accounts.round, &mut ctx.accounts.expiry_book, now);
     };
 
     let round = &mut ctx.accounts.round;
@@ -46,6 +54,10 @@ pub fn settle_round(ctx: Context<SettleRound>) -> Result<()> {
     round.closing_print = closing_print;
     round.settled_at_sec = now;
     round.status = if won { RoundStatus::Won } else { RoundStatus::Lost };
+
+    let book = &mut ctx.accounts.expiry_book;
+    book.locked_base = book.locked_base.saturating_sub(round.house_locked_base);
+    book.rounds_open = book.rounds_open.saturating_sub(1);
 
     let reserve = &mut ctx.accounts.reserve;
     // The reserve's capital is no longer promised either way; what changes is who the escrow belongs to.
@@ -75,11 +87,13 @@ pub fn settle_round(ctx: Context<SettleRound>) -> Result<()> {
 }
 
 /// A round whose Window never answered. The buyer is made whole and the reserve takes its capital back.
-fn void_to_owner(reserve: &mut Account<Reserve>, round: &mut Account<Round>, now: i64) -> Result<()> {
+fn void_to_owner(reserve: &mut Account<Reserve>, round: &mut Account<Round>, book: &mut Account<ExpiryBook>, now: i64) -> Result<()> {
     round.status = RoundStatus::Void;
     round.settled_at_sec = now;
     reserve.locked_base = reserve.locked_base.saturating_sub(round.house_locked_base);
     reserve.rounds_open = reserve.rounds_open.saturating_sub(1);
+    book.locked_base = book.locked_base.saturating_sub(round.house_locked_base);
+    book.rounds_open = book.rounds_open.saturating_sub(1);
     emit!(RoundVoided {
         reserve: reserve.key(),
         round: round.key(),
@@ -101,6 +115,14 @@ pub struct VoidStale<'info> {
         constraint = round.reserve == reserve.key() @ RangeError::WrongMarket,
     )]
     pub round: Account<'info, Round>,
+    /// The boundary book this round was counted into at open; released here.
+    #[account(
+        mut,
+        seeds = [EXPIRY_SEED, &round.expiry_sec.to_le_bytes()],
+        bump = expiry_book.bump,
+        constraint = expiry_book.reserve == reserve.key() @ RangeError::WrongExpiry,
+    )]
+    pub expiry_book: Account<'info, ExpiryBook>,
 }
 
 /// A round can never be stuck live. Once the grace past its Window's close has passed with no answer from the
@@ -110,7 +132,7 @@ pub fn void_stale(ctx: Context<VoidStale>) -> Result<()> {
     require!(ctx.accounts.round.status == RoundStatus::Live, RangeError::RoundNotLive);
     let deadline = ctx.accounts.round.expiry_sec.saturating_add(VOID_GRACE_SEC);
     require!(now > deadline, RangeError::NotStale);
-    void_to_owner(&mut ctx.accounts.reserve, &mut ctx.accounts.round, now)
+    void_to_owner(&mut ctx.accounts.reserve, &mut ctx.accounts.round, &mut ctx.accounts.expiry_book, now)
 }
 
 #[derive(Accounts)]

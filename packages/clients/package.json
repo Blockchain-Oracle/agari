@@ -7,6 +7,8 @@
   "exports": {
     "./agari-events": "./agari-events/src/generated/index.ts",
     "./agari-events/idl.json": "./agari-events/idl.json",
+    "./agari-range": "./agari-range/src/generated/index.ts",
+    "./agari-range/idl.json": "./agari-range/idl.json",
     "./agari-vault": "./agari-vault/src/generated/index.ts",
     "./agari-vault/idl.json": "./agari-vault/idl.json"
   },

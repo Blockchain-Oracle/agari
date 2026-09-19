@@ -57,11 +57,17 @@ export interface RangeRound {
   probRaw: bigint;
 }
 
+/**
+ * The reserve's tunables, exactly as `agari-range` stores and enforces them.
+ *
+ * The EVM original also carried `maxSpreadRaw` and `centerDepthRaw`, which guarded against a thin or lopsided
+ * order book. This venue's Windows price off the engine's own last trade rather than a depth walk, so those two
+ * have nothing to read and are not carried here: a parameter the chain does not enforce is worse than no
+ * parameter, because a reader believes it.
+ */
 export interface RangeParams {
   marginBps: number;
   maxExposureBps: number;
-  maxSpreadRaw: bigint;
-  centerDepthRaw: bigint;
   minCenterQE6: number;
   maxCenterQE6: number;
   minProbRaw: bigint;
@@ -70,6 +76,9 @@ export interface RangeParams {
   maxHorizonSec: number;
   staleAfterSec: number;
   maxPayoutCapBase: bigint;
+  /** The house's per-√second volatility for the asset, × 1e8 — the σ every quote is priced on. */
+  sigmaE8: bigint;
+  /** The most provider capital that may come due at any one boundary: two Series expiring together are one risk. */
   maxExpiryLockedBase: bigint;
 }
 

@@ -1,0 +1,1727 @@
+{
+  "address": "GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha",
+  "metadata": {
+    "name": "agari_range",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's RangeReserve on Solana: house-banked band bets priced off a Window's book and settled from its closing print"
+  },
+  "instructions": [
+    {
+      "name": "admin_init_reserve",
+      "discriminator": [
+        52,
+        121,
+        137,
+        255,
+        134,
+        216,
+        115,
+        8
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "The reserve's own custody. Collateral leaves it only to a round's owner or a provider (AD-5)."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "RangeParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_params",
+      "discriminator": [
+        194,
+        243,
+        1,
+        30,
+        162,
+        133,
+        247,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "reserve"
+          ]
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "RangeParams"
+            }
+          }
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "owner_open_round",
+      "discriminator": [
+        224,
+        122,
+        24,
+        200,
+        139,
+        2,
+        38,
+        131
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "round",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "reserve.next_round_id",
+                "account": "Reserve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "expiry_book",
+          "docs": [
+            "The book of capital coming due at this Window's boundary. Created the first time one is opened there."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  112,
+                  105,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "expiry_sec"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "market"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "is_inside",
+          "type": "bool"
+        },
+        {
+          "name": "low_print",
+          "type": "i64"
+        },
+        {
+          "name": "high_print",
+          "type": "i64"
+        },
+        {
+          "name": "max_payout_base",
+          "type": "u64"
+        },
+        {
+          "name": "max_stake_base",
+          "type": "u64"
+        },
+        {
+          "name": "expiry_sec",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "provider_supply",
+      "discriminator": [
+        73,
+        69,
+        72,
+        253,
+        228,
+        71,
+        82,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "This wallet's own share balance. Created on first supply; never writable by anyone else."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "provider_withdraw",
+      "discriminator": [
+        58,
+        126,
+        168,
+        66,
+        6,
+        165,
+        115,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "This wallet's own share balance. Created on first supply; never writable by anyone else."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_claim_round",
+      "discriminator": [
+        148,
+        131,
+        23,
+        77,
+        194,
+        104,
+        89,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Permissionless to call; the money only ever goes to `round.owner` (AD-5)."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "round",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "round.round_id",
+                "account": "Round"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_settle_round",
+      "discriminator": [
+        34,
+        133,
+        73,
+        228,
+        42,
+        8,
+        72,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "docs": [
+            "Permissionless: settling decides a round, it never moves money to the caller."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "round",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "round.round_id",
+                "account": "Round"
+              }
+            ]
+          }
+        },
+        {
+          "name": "expiry_book",
+          "docs": [
+            "The boundary book this round was counted into at open; released here."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  112,
+                  105,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "round.expiry_sec",
+                "account": "Round"
+              }
+            ]
+          }
+        },
+        {
+          "name": "market"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_void_stale",
+      "discriminator": [
+        151,
+        10,
+        111,
+        181,
+        112,
+        44,
+        51,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "round",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  111,
+                  117,
+                  110,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "round.round_id",
+                "account": "Round"
+              }
+            ]
+          }
+        },
+        {
+          "name": "expiry_book",
+          "docs": [
+            "The boundary book this round was counted into at open; released here."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  112,
+                  105,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "round.expiry_sec",
+                "account": "Round"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ExpiryBook",
+      "discriminator": [
+        15,
+        246,
+        191,
+        118,
+        199,
+        198,
+        235,
+        43
+      ]
+    },
+    {
+      "name": "Provider",
+      "discriminator": [
+        164,
+        180,
+        71,
+        17,
+        75,
+        216,
+        80,
+        195
+      ]
+    },
+    {
+      "name": "Reserve",
+      "discriminator": [
+        43,
+        242,
+        204,
+        202,
+        26,
+        247,
+        59,
+        127
+      ]
+    },
+    {
+      "name": "Round",
+      "discriminator": [
+        87,
+        127,
+        165,
+        51,
+        73,
+        78,
+        116,
+        174
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ParamsUpdated",
+      "discriminator": [
+        2,
+        163,
+        138,
+        99,
+        135,
+        11,
+        136,
+        169
+      ]
+    },
+    {
+      "name": "ReserveInitialized",
+      "discriminator": [
+        22,
+        27,
+        136,
+        173,
+        244,
+        120,
+        20,
+        49
+      ]
+    },
+    {
+      "name": "RoundClaimed",
+      "discriminator": [
+        127,
+        74,
+        89,
+        65,
+        99,
+        237,
+        183,
+        67
+      ]
+    },
+    {
+      "name": "RoundOpened",
+      "discriminator": [
+        99,
+        173,
+        228,
+        72,
+        142,
+        57,
+        109,
+        178
+      ]
+    },
+    {
+      "name": "RoundSettled",
+      "discriminator": [
+        249,
+        225,
+        66,
+        54,
+        157,
+        200,
+        234,
+        222
+      ]
+    },
+    {
+      "name": "RoundVoided",
+      "discriminator": [
+        236,
+        16,
+        226,
+        252,
+        168,
+        201,
+        103,
+        69
+      ]
+    },
+    {
+      "name": "Supplied",
+      "discriminator": [
+        137,
+        114,
+        239,
+        72,
+        162,
+        75,
+        133,
+        39
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "BadBand",
+      "msg": "the band is empty or inverted"
+    },
+    {
+      "code": 6001,
+      "name": "Paused",
+      "msg": "the reserve is paused"
+    },
+    {
+      "code": 6002,
+      "name": "WindowNotTrading",
+      "msg": "that Window is not open for calls"
+    },
+    {
+      "code": 6003,
+      "name": "NoOpeningPrint",
+      "msg": "that Window has no opening print yet"
+    },
+    {
+      "code": 6004,
+      "name": "NoClosingPrint",
+      "msg": "that Window has no closing print yet"
+    },
+    {
+      "code": 6005,
+      "name": "StaleMark",
+      "msg": "the venue has no fresh mark for that Window"
+    },
+    {
+      "code": 6006,
+      "name": "CenterOutOfRange",
+      "msg": "the venue's mark is outside the band the reserve will price against"
+    },
+    {
+      "code": 6007,
+      "name": "TooLate",
+      "msg": "too little time is left in that Window to price a round"
+    },
+    {
+      "code": 6008,
+      "name": "BeyondHorizon",
+      "msg": "that Window closes further out than the reserve will price"
+    },
+    {
+      "code": 6009,
+      "name": "LongShot",
+      "msg": "the priced side is too much of a long shot"
+    },
+    {
+      "code": 6010,
+      "name": "NearCertain",
+      "msg": "the priced side is too close to certain"
+    },
+    {
+      "code": 6011,
+      "name": "Underpriced",
+      "msg": "the stake would not be less than the payout"
+    },
+    {
+      "code": 6012,
+      "name": "OverPayoutCap",
+      "msg": "the payout exceeds the reserve's per-round cap"
+    },
+    {
+      "code": 6013,
+      "name": "StakeAboveMax",
+      "msg": "the fresh stake is above the most the buyer agreed to pay"
+    },
+    {
+      "code": 6014,
+      "name": "InsufficientLiquidity",
+      "msg": "the reserve cannot back that payout right now"
+    },
+    {
+      "code": 6015,
+      "name": "OverExposure",
+      "msg": "that would take the reserve past its exposure limit"
+    },
+    {
+      "code": 6016,
+      "name": "OverExpiryCap",
+      "msg": "too much of the reserve already settles at that boundary"
+    },
+    {
+      "code": 6017,
+      "name": "WrongExpiry",
+      "msg": "that expiry book belongs to a different boundary"
+    },
+    {
+      "code": 6018,
+      "name": "RoundNotLive",
+      "msg": "the round is not live"
+    },
+    {
+      "code": 6019,
+      "name": "RoundNotSettled",
+      "msg": "the round has not been settled"
+    },
+    {
+      "code": 6020,
+      "name": "RoundDidNotWin",
+      "msg": "the round did not win"
+    },
+    {
+      "code": 6021,
+      "name": "NotStale",
+      "msg": "the round is not stale enough to void"
+    },
+    {
+      "code": 6022,
+      "name": "WrongEngine",
+      "msg": "that Market belongs to a different engine"
+    },
+    {
+      "code": 6023,
+      "name": "WrongMarket",
+      "msg": "that round belongs to a different Window"
+    },
+    {
+      "code": 6024,
+      "name": "InsufficientShares",
+      "msg": "that wallet does not hold that many shares"
+    },
+    {
+      "code": 6025,
+      "name": "ZeroAmount",
+      "msg": "the amount is zero"
+    },
+    {
+      "code": 6026,
+      "name": "NoEquity",
+      "msg": "the reserve has no equity to price shares against"
+    },
+    {
+      "code": 6027,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflowed"
+    }
+  ],
+  "types": [
+    {
+      "name": "ExpiryBook",
+      "docs": [
+        "How much of the reserve is committed to rounds that all settle at the same instant.",
+        "",
+        "The global exposure cap bounds the whole book, but it says nothing about *when* the book comes due. Without",
+        "this, every open round could sit on one 15:00 boundary: one print would then decide the reserve's entire",
+        "position, which is the concentration the per-expiry cap exists to prevent. Keyed by the boundary rather than",
+        "by the Window, because two Series expiring together are one risk."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          },
+          {
+            "name": "locked_base",
+            "docs": [
+              "Provider capital committed to open rounds settling at this boundary."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rounds_open",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Provider",
+      "docs": [
+        "One liquidity provider's claim on the reserve.",
+        "",
+        "The reserve keeps `supply_shares` as the total, but a total cannot tell one provider from another: without a",
+        "per-provider record there is nothing to check a withdrawal against, and the first caller could redeem the",
+        "whole supply. Shares live here, one account per wallet, and only ever move through that wallet's own signature."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "supplied_base",
+            "docs": [
+              "What this provider has put in and taken out, so a front end can show a return without replaying events."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn_base",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RangeParams",
+      "docs": [
+        "The reserve's tunables, mirrored by `RangeParams` in `packages/core/src/range/types.ts`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "margin_bps",
+            "docs": [
+              "The reserve's edge over fair value, in basis points."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_exposure_bps",
+            "docs": [
+              "The most of the reserve's equity that may back open rounds at once."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "min_center_q_e6",
+            "docs": [
+              "The venue mark must sit inside this band, × 1e6: a book with no trades yet prices nothing."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "max_center_q_e6",
+            "type": "u32"
+          },
+          {
+            "name": "min_prob_raw",
+            "docs": [
+              "Refuse a round the reserve would barely be paid for, or one it is nearly certain to lose."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_prob_raw",
+            "type": "u64"
+          },
+          {
+            "name": "min_time_left_sec",
+            "docs": [
+              "A Window with less than this left is not worth pricing; one further out than `max_horizon_sec` is guesswork."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "max_horizon_sec",
+            "type": "u32"
+          },
+          {
+            "name": "stale_after_sec",
+            "docs": [
+              "A venue mark older than this is not a mark. Measured from the Window's last trade."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "max_payout_cap_base",
+            "docs": [
+              "The largest payout one round may promise."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "sigma_e8",
+            "docs": [
+              "The house's per-√second volatility for the asset, × 1e8."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_expiry_locked_base",
+            "docs": [
+              "The most provider capital that may come due at any one boundary."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reserve",
+      "docs": [
+        "The reserve's balance sheet and its liquidity providers' claim on it.",
+        "",
+        "Two counters carry the whole accounting, and each has one meaning:",
+        "",
+        "- `user_escrow_base` is money in the vault that is **not** the providers': the stakes of rounds still open,",
+        "plus the full payout of rounds that have won and not been claimed.",
+        "- `locked_base` is the providers' own capital committed to open rounds — `max_payout − stake` summed.",
+        "",
+        "Provider equity is therefore `vault balance − user_escrow_base`, which does not move when a round opens",
+        "(the vault and the escrow rise by the same stake) and moves by exactly the right amount when one resolves.",
+        "What they may withdraw is that equity less `locked_base`, because the rest is backing live promises."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "events_program",
+            "docs": [
+              "The engine whose Windows this reserve prices. A Market owned by anything else is not a Window."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "RangeParams"
+              }
+            }
+          },
+          {
+            "name": "user_escrow_base",
+            "docs": [
+              "Vault money owed to round owners rather than to providers."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "locked_base",
+            "docs": [
+              "Provider capital backing open rounds."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "supply_shares",
+            "type": "u64"
+          },
+          {
+            "name": "next_round_id",
+            "type": "u64"
+          },
+          {
+            "name": "rounds_open",
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Round",
+      "docs": [
+        "One band bet against the reserve.",
+        "",
+        "Everything the settlement needs is frozen here at open — the band, the payout, the Window — so a round is",
+        "judged against the basis it was priced on and never against a later one."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "docs": [
+              "The agari-events Market whose closing print decides this round."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "round_id",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "RoundStatus"
+              }
+            }
+          },
+          {
+            "name": "is_inside",
+            "docs": [
+              "True when the owner bet the close lands inside `[low_print, high_print]`."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "opening_print",
+            "docs": [
+              "Prints in the oracle's own scale."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "low_print",
+            "type": "i64"
+          },
+          {
+            "name": "high_print",
+            "type": "i64"
+          },
+          {
+            "name": "closing_print",
+            "type": "i64"
+          },
+          {
+            "name": "stake_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "house_locked_base",
+            "docs": [
+              "`max_payout − stake`: the reserve's part of the escrow, released back to it when the round loses."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "prob_raw",
+            "docs": [
+              "The fair win probability the reserve priced this round at, per whole unit of collateral."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "opened_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "settled_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "expiry_sec",
+            "docs": [
+              "The Window's own close boundary, so a stale round can be voided without reading the Market again."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RoundClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "round",
+            "type": "pubkey"
+          },
+          {
+            "name": "round_id",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RoundOpened",
+      "docs": [
+        "Everything a reader needs to re-price the round themselves: the basis, the band and what it cost."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "round",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "round_id",
+            "type": "u64"
+          },
+          {
+            "name": "is_inside",
+            "type": "bool"
+          },
+          {
+            "name": "opening_print",
+            "type": "i64"
+          },
+          {
+            "name": "low_print",
+            "type": "i64"
+          },
+          {
+            "name": "high_print",
+            "type": "i64"
+          },
+          {
+            "name": "center_q_e6",
+            "type": "u32"
+          },
+          {
+            "name": "sigma_e8",
+            "type": "u64"
+          },
+          {
+            "name": "tau_sec",
+            "type": "u32"
+          },
+          {
+            "name": "prob_raw",
+            "type": "u64"
+          },
+          {
+            "name": "stake_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_payout_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RoundSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "round",
+            "type": "pubkey"
+          },
+          {
+            "name": "round_id",
+            "type": "u64"
+          },
+          {
+            "name": "closing_print",
+            "type": "i64"
+          },
+          {
+            "name": "won",
+            "type": "bool"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RoundStatus",
+      "docs": [
+        "A round's life. `Won` and `Lost` are the settled states; a claim is only ever made against `Won`."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Live"
+          },
+          {
+            "name": "Won"
+          },
+          {
+            "name": "Lost"
+          },
+          {
+            "name": "Void"
+          },
+          {
+            "name": "Claimed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RoundVoided",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "round",
+            "type": "pubkey"
+          },
+          {
+            "name": "round_id",
+            "type": "u64"
+          },
+          {
+            "name": "refund_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Supplied",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "equity_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "equity_base",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

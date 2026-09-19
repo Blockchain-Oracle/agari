@@ -22,6 +22,8 @@ pub struct RangeParams {
     pub max_payout_cap_base: u64,
     /// The house's per-√second volatility for the asset, × 1e8.
     pub sigma_e8: u64,
+    /// The most provider capital that may come due at any one boundary.
+    pub max_expiry_locked_base: u64,
 }
 
 /// The reserve's balance sheet and its liquidity providers' claim on it.

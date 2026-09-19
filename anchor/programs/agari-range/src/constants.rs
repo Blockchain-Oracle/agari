@@ -2,6 +2,8 @@
 pub const RESERVE_SEED: &[u8] = b"reserve";
 pub const VAULT_SEED: &[u8] = b"vault";
 pub const ROUND_SEED: &[u8] = b"round";
+pub const PROVIDER_SEED: &[u8] = b"provider";
+pub const EXPIRY_SEED: &[u8] = b"expiry";
 
 /// The probability scale shared with the client (`P_ONE` in `packages/core/src/range/pricing.ts`).
 pub const ONE_RAW: i128 = 1_000_000;

@@ -2,14 +2,24 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{transfer_checked, TransferChecked};
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
-use crate::constants::{RESERVE_SEED, VAULT_SEED};
+use crate::constants::{PROVIDER_SEED, RESERVE_SEED, VAULT_SEED};
 use crate::errors::RangeError;
 use crate::events::{Supplied, Withdrawn};
-use crate::state::Reserve;
+use crate::state::{Provider, Reserve};
 
 #[derive(Accounts)]
 pub struct Liquidity<'info> {
+    #[account(mut)]
     pub provider: Signer<'info>,
+    /// This wallet's own share balance. Created on first supply; never writable by anyone else.
+    #[account(
+        init_if_needed,
+        payer = provider,
+        space = 8 + Provider::INIT_SPACE,
+        seeds = [PROVIDER_SEED, provider.key().as_ref()],
+        bump,
+    )]
+    pub position: Account<'info, Provider>,
     #[account(mut, seeds = [RESERVE_SEED], bump = reserve.bump)]
     pub reserve: Account<'info, Reserve>,
     #[account(mut, seeds = [VAULT_SEED], bump = reserve.vault_bump)]
@@ -19,6 +29,7 @@ pub struct Liquidity<'info> {
     #[account(address = reserve.collateral_mint)]
     pub collateral_mint: InterfaceAccount<'info, Mint>,
     pub token_program: Interface<'info, TokenInterface>,
+    pub system_program: Program<'info, System>,
 }
 
 /// Shares are priced against provider equity, which is the vault less what it owes round owners. The first
@@ -51,6 +62,14 @@ pub fn supply(ctx: Context<Liquidity>, amount_base: u64) -> Result<()> {
         ctx.accounts.collateral_mint.decimals,
     )?;
 
+    let reserve_key = ctx.accounts.reserve.key();
+    let position = &mut ctx.accounts.position;
+    position.reserve = reserve_key;
+    position.owner = ctx.accounts.provider.key();
+    position.bump = ctx.bumps.position;
+    position.shares = position.shares.checked_add(shares).ok_or(RangeError::MathOverflow)?;
+    position.supplied_base = position.supplied_base.saturating_add(amount_base);
+
     let reserve = &mut ctx.accounts.reserve;
     reserve.supply_shares = reserve.supply_shares.checked_add(shares).ok_or(RangeError::MathOverflow)?;
     emit!(Supplied {
@@ -68,7 +87,8 @@ pub fn supply(ctx: Context<Liquidity>, amount_base: u64) -> Result<()> {
 pub fn withdraw(ctx: Context<Liquidity>, shares: u64) -> Result<()> {
     require!(shares > 0, RangeError::ZeroAmount);
     let reserve = &ctx.accounts.reserve;
-    require!(shares <= reserve.supply_shares, RangeError::ZeroAmount);
+    require!(shares <= ctx.accounts.position.shares, RangeError::InsufficientShares);
+    require!(shares <= reserve.supply_shares, RangeError::InsufficientShares);
 
     let vault_balance = ctx.accounts.vault.amount;
     let equity = reserve.equity_base(vault_balance);
@@ -94,6 +114,10 @@ pub fn withdraw(ctx: Context<Liquidity>, shares: u64) -> Result<()> {
         amount_base,
         ctx.accounts.collateral_mint.decimals,
     )?;
+
+    let position = &mut ctx.accounts.position;
+    position.shares = position.shares.checked_sub(shares).ok_or(RangeError::MathOverflow)?;
+    position.withdrawn_base = position.withdrawn_base.saturating_add(amount_base);
 
     let reserve = &mut ctx.accounts.reserve;
     reserve.supply_shares = reserve.supply_shares.checked_sub(shares).ok_or(RangeError::MathOverflow)?;

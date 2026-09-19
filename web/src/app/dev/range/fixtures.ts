@@ -22,8 +22,6 @@ export const RESERVE: RangeReserveState = {
   params: {
     marginBps: 1_200,
     maxExposureBps: 6_000,
-    maxSpreadRaw: 200_000n,
-    centerDepthRaw: 20n * UNIT,
     minCenterQE6: 30_000,
     maxCenterQE6: 970_000,
     minProbRaw: 20_000n,
@@ -32,6 +30,7 @@ export const RESERVE: RangeReserveState = {
     maxHorizonSec: 172_800,
     staleAfterSec: 21_600,
     maxPayoutCapBase: 500n * UNIT,
+    sigmaE8: 6_200n,
     maxExpiryLockedBase: 1_000n * UNIT,
   },
   liquidBase: 4_676n * UNIT + 929_760n,
