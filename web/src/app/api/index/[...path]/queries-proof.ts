@@ -4,7 +4,9 @@ import { proofRows } from "@agari/db";
 import { BadRequest, type IndexQuery } from "./queries";
 
 /** Ticker → Pyth feed hex (no `0x`), the `print_archive.feed` of a Pyth print; `@agari/db` does not import core. */
-const PYTH_FEEDS: Readonly<Record<string, string>> = Object.fromEntries(Object.values(TICKERS).map((t) => [t.symbol, t.pythFeedId.replace(/^0x/, "").toLowerCase()]));
+const PYTH_FEEDS: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.values(TICKERS).flatMap((t) => (t.pythFeedId ? [[t.symbol, t.pythFeedId.replace(/^0x/, "").toLowerCase()]] : [])),
+);
 
 /** No print is admitted later than 900 s after its boundary (the missing-print void deadline); past it the set is final. */
 const PRINT_ADMISSION_SEC = 900;

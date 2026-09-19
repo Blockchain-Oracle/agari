@@ -14,7 +14,11 @@ const rangeQuery = z.object({ from: int, to: int, limit: int.optional() });
 /** The rows a ticker's prints are archived under: RedStone by ticker, Pyth by the lower-case feed id without `0x`. */
 export function archiveKeys(symbol: TickerSymbol): Array<{ source: "redstone" | "pyth"; feed: string }> {
   const t = TICKERS[symbol];
-  return [...(t.redstoneFeedId ? [{ source: "redstone" as const, feed: t.redstoneFeedId }] : []), { source: "pyth" as const, feed: t.pythFeedId.toLowerCase().replace(/^0x/, "") }];
+  // Each source only where it exists: a pre-IPO name has neither, so its chart reads an empty archive.
+  return [
+    ...(t.redstoneFeedId ? [{ source: "redstone" as const, feed: t.redstoneFeedId }] : []),
+    ...(t.pythFeedId ? [{ source: "pyth" as const, feed: t.pythFeedId.toLowerCase().replace(/^0x/, "") }] : []),
+  ];
 }
 
 export function resolveArchiveQuery(path: readonly string[], query: Record<string, string>): IndexQuery | null {

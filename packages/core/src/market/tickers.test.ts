@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isHash32 } from "../types/primitives";
-import { LAUNCH_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
+import { LAUNCH_TICKERS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
 
 describe("ticker registry", () => {
   it("gives every ticker a distinct, u16, never-reserved series id (it is part of every Series address)", () => {
@@ -16,8 +16,30 @@ describe("ticker registry", () => {
   it("keeps the plan's launch set and token lane, with well-formed feed ids", () => {
     expect(LAUNCH_TICKERS).toEqual(["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO"]);
     expect(TOKEN_LANE_TICKERS).toEqual(["TSLA", "NVDA", "QQQ", "SPY"]);
-    expect(TICKER_SYMBOLS.every((symbol) => isHash32(TICKERS[symbol].pythFeedId))).toBe(true);
+    // Every exchange-listed ticker carries a well-formed Pyth feed id; a pre-IPO name has no listing, so it has none.
+    const listed = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].kind !== "preIpo");
+    expect(listed.every((symbol) => isHash32(TICKERS[symbol].pythFeedId))).toBe(true);
     expect(tickerOfXStock("SPYx").symbol).toBe("SPY");
+  });
+
+  it("models a pre-IPO name as having no exchange listing and a PreStocks token (D-100)", () => {
+    expect(PRE_IPO_TICKERS).toEqual(["OPENAI"]);
+    for (const symbol of PRE_IPO_TICKERS) {
+      const t = TICKERS[symbol];
+      expect(t.kind).toBe("preIpo");
+      // No exchange lists it, so nothing downstream may try to fetch an Alpaca calendar or a Pyth/RedStone print for it.
+      expect(t.alpacaSymbol).toBeNull();
+      expect(t.pythFeedId).toBeNull();
+      expect(t.redstoneFeedId).toBeNull();
+      expect(t.xstock).toBeNull();
+      expect(t.launch).toBe(false);
+      expect(t.preIpo?.symbol).toBe(symbol);
+    }
+    // Every exchange-listed ticker is the reverse: no PreStocks token, and an Alpaca symbol.
+    for (const symbol of TICKER_SYMBOLS.filter((s) => TICKERS[s].kind !== "preIpo")) {
+      expect(TICKERS[symbol].preIpo).toBeNull();
+      expect(TICKERS[symbol].alpacaSymbol).not.toBeNull();
+    }
   });
 
   // Impostor "TSLAx" mints exist (C:13 §5), so the holdings reader keys by mint alone: a repeated or mistyped mint would

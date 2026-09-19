@@ -37,14 +37,17 @@ export type ReplayOutcome =
 
 const bareHex = (id: string) => id.replace(/^0x/, "").toLowerCase();
 
-/** The registry ticker whose Pyth feed this is; the trial update carries TSLA, QQQ and VOO. */
+/** The registry ticker whose Pyth feed this is; the trial update carries TSLA, QQQ and VOO. A pre-IPO name has no feed. */
 export function symbolOfPythFeed(feedHex: string): TickerSymbol | null {
-  const hit = Object.values(TICKERS).find((t) => bareHex(t.pythFeedId) === bareHex(feedHex));
+  const want = bareHex(feedHex);
+  const hit = Object.values(TICKERS).find((t) => t.pythFeedId !== null && bareHex(t.pythFeedId) === want);
   return hit?.symbol ?? null;
 }
 
 export function pythFeedOf(symbol: string | null): string | null {
-  return symbol && symbol in TICKERS ? bareHex(TICKERS[symbol as TickerSymbol].pythFeedId) : null;
+  if (!symbol || !(symbol in TICKERS)) return null;
+  const id = TICKERS[symbol as TickerSymbol].pythFeedId;
+  return id === null ? null : bareHex(id);
 }
 
 /** Provider URLs can carry keys: an error that reaches a row or a response keeps only its words. */

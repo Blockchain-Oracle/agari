@@ -23,6 +23,7 @@
   --brand-invesco: #0A2240;
   --brand-vanguard: #96151D;
   --brand-spdr: #1F3A5F;
+  --brand-openai: #412991;
 }
 .mark-tesla-disc { fill: var(--brand-tesla); }
 .mark-nvidia-disc { fill: var(--brand-nvidia); }
@@ -34,6 +35,7 @@
 .mark-invesco-disc { fill: var(--brand-invesco); }
 .mark-vanguard-disc { fill: var(--brand-vanguard); }
 .mark-spdr-disc { fill: var(--brand-spdr); }
+.mark-openai-disc { fill: var(--brand-openai); }
 /* The glyph and the typed monogram are white on the brand disc, as Bitcoin's ₿ is. */
 .mark-glyph { fill: #fff; }
 .mark-monogram { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 17px; text-anchor: middle; dominant-baseline: central; }

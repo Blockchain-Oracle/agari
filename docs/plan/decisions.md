@@ -1066,6 +1066,15 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** the Pre-IPO lane is labelled single-source and attested by Agari.
 - **Approval:** stage owner.
 
+### D-102 — A pre-IPO name is a first-class registry ticker with no exchange listing
+- **Date / owner:** 2026-09-19 · S18 owner
+- **Evidence:** a Series only rolls in ops and lists in the app if its on-chain `ticker` resolves through `SYMBOL_BY_SERIES_ID`, which is built from `TICKERS` in three places (`ops/venue.ts:51`, `runtime/accounts.ts:61`, `ops/indexer/rpc.ts:50`). The roller drops a null-symbol Series silently (`window-roller/execute.ts:57`), the relay does the same (`price-relay/tracker.ts:36`), and the app drops a null-symbol row (`provider/rows.ts:29`). So `PRE-OPENAI-5m` (ticker 910) was invisible everywhere. The registry assumed every asset is exchange-listed: `alpacaSymbol` and `pythFeedId` were non-nullable and `kind` was `"stock" | "etf"`.
+- **Rule:** model the asset honestly rather than faking a listing. `kind` gains `"preIpo"`; `alpacaSymbol` and `pythFeedId` become nullable; a new `preIpo: { symbol, mint }` field carries the PreStocks token, null for every listed ticker. OPENAI joins `TICKERS` at series id 910 with `launch: false`. The four call sites that assumed a Pyth feed now include it only where it exists. A test asserts the rule from both sides: every listed ticker has a well-formed Pyth feed and an Alpaca symbol, and every pre-IPO name has neither, nor a RedStone feed or an xStock.
+- **Rejected:** a placeholder Pyth feed id to satisfy the old type. It would be a lie in the registry, and `symbolOfPythFeed` could match a real feed against it.
+- **Hazard:** this step alone must not reach the running ops. Once 910 resolves, the roller opens OPENAI Windows and the relay routes their attested slots to `attest-sign.ts`, which values them from RedStone, finds none, and voids every Window. It ships together with the PreStocks relay pass.
+- **User-visible:** none yet; the lane appears once the relay pass lands.
+- **Approval:** stage owner, on Abu's direction to make the Pre-IPO lane usable in the app.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

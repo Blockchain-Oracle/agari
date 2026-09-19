@@ -47,12 +47,15 @@ function toWire(symbol: WireQuote["symbol"], priceE8: string, publishTimeSec: nu
 
 const wire = (q: SpotQuote, nowSec: number) => toWire(q.symbol, q.priceE8.toString(), q.publishTimeSec, q.source, nowSec);
 
-/** The archive keys a ticker's prints are stored under: RedStone by ticker, Pyth by lower-case feed id without `0x`. */
+/**
+ * The archive keys a ticker's prints are stored under: RedStone by ticker, Pyth by lower-case feed id without `0x`.
+ * Each only where the source exists — a pre-IPO name has neither, so it has no archive keys and no spot quote here.
+ */
 function archiveKeys(symbol: TickerSymbol): Array<{ source: PrintArchiveSource; feed: string }> {
   const t = TICKERS[symbol];
   return [
     ...(t.redstoneFeedId ? [{ source: "redstone" as const, feed: t.redstoneFeedId }] : []),
-    { source: "pyth" as const, feed: t.pythFeedId.toLowerCase().replace(/^0x/, "") },
+    ...(t.pythFeedId ? [{ source: "pyth" as const, feed: t.pythFeedId.toLowerCase().replace(/^0x/, "") }] : []),
   ];
 }
 
