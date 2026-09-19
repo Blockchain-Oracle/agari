@@ -14,12 +14,12 @@ export function CustodyRail({ handle }: { handle: string }) {
             </marker>
           </defs>
           <rect x="150" y="70" width="200" height="110" fill="url(#xtGlow)" />
-          <path d="M150,48 C205,62 214,88 232,106" fill="none" stroke="var(--xt-v)" strokeWidth="1.6" opacity="0.9" className="xt-flow" />
+          <path d="M182,48 C214,58 220,88 232,106" fill="none" stroke="var(--xt-v)" strokeWidth="1.6" opacity="0.9" className="xt-flow" />
           <path d="M272,116 L346,116" fill="none" stroke="var(--xt-v)" strokeWidth="1.6" opacity="0.9" className="xt-flow" />
           <path d="M398,146 C398,214 320,262 292,262" fill="none" stroke="var(--xt-m)" strokeWidth="1.8" className="xt-flowm" markerEnd="url(#xtArrM)" />
           <path d="M252,142 L252,190" fill="none" stroke="var(--xt-v)" strokeWidth="1.4" strokeDasharray="3 4" opacity="0.55" />
           <g>
-            <rect x="6" y="32" width="150" height="32" rx="8" fill="var(--xt-paper)" stroke="rgba(255,255,255,0.14)" />
+            <rect x="6" y="32" width="176" height="32" rx="8" fill="var(--xt-paper)" stroke="rgba(255,255,255,0.14)" />
             <text x="16" y="52" fontSize="11" fill="var(--xt-wire)">{`${handle} tsla up 5 15m`}</text>
           </g>
           <g>
