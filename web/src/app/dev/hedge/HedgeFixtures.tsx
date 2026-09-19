@@ -5,7 +5,7 @@ import { marketDeepLink } from "@agari/core/urls";
 import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/components/chrome";
 import { EmptyState } from "@/components/states";
-import { HEDGE, HedgeCard, hedgeStakeBase, LiveHedgeCard, type HedgePick } from "@/features/hedge";
+import { examplePick, HEDGE, HedgeCard, hedgeStakeBase, HedgeTeaser, LiveHedgeCard, type HedgePick } from "@/features/hedge";
 import { useLanesState } from "@/features/markets/lanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
@@ -15,6 +15,7 @@ import { BALANCE_BASE, HEDGE_FIXTURES, NO_CARD } from "./fixtures";
 
 const DECIMALS = 6;
 const SYMBOL = "tUSDC";
+const noop = () => {};
 
 function Canned({ label, pick, onSelect }: { label: string; pick: HedgePick; onSelect: (marketId: MarketId, side?: Side) => void }) {
   const stakeBase = hedgeStakeBase({ exposureUsdE6: pick.exposureUsdE6, decimals: DECIMALS, ticketMaxBase: null, balanceBase: BALANCE_BASE });
@@ -33,6 +34,7 @@ export function HedgeFixtures() {
   const lanes = useLanesState(venue.venueId);
   const nowMs = useChainNowMs();
   const { address } = useWalletSession();
+  const example = examplePick(Math.floor((nowMs || Date.now()) / 1000));
 
   return (
     <div className="mx-auto flex w-full max-w-(--content-wide) flex-col gap-6 px-gutter py-8">
@@ -48,6 +50,16 @@ export function HedgeFixtures() {
           <p className="type-caption text-ink-muted">
             empty → {String(NO_CARD.empty)} · SPYx with no Window → {String(NO_CARD.noWindow)}
           </p>
+        </Fixture>
+        <Fixture label={HEDGE.dev.teasers}>
+          <HedgeTeaser state={{ kind: "no-wallet" }} onExample={noop} />
+          <HedgeTeaser state={{ kind: "reading" }} onExample={noop} />
+          <HedgeTeaser state={{ kind: "unreadable" }} onExample={noop} />
+          <HedgeTeaser state={{ kind: "no-holding" }} onExample={noop} />
+          <HedgeTeaser state={{ kind: "no-window", lead: HEDGE_FIXTURES.preIpo.holdings[0]! }} onExample={noop} />
+        </Fixture>
+        <Fixture label={HEDGE.dev.example}>
+          {example && <HedgeCard pick={example} stakeBase={null} decimals={DECIMALS} symbol={SYMBOL} onSelect={noop} stamp={HEDGE.example.stamp} ctaText={HEDGE.example.hide} note={HEDGE.example.note} />}
         </Fixture>
         <Fixture label={HEDGE.dev.live}>
           <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={open} />

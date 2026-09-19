@@ -40,7 +40,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     title: "Your wallet signs",
     description:
-      "Connect any Solana wallet and choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself.",
+      "Connect any Solana wallet and choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself. If that wallet holds a stock token — TSLAx, or OpenAI PreStocks — Agari reads it (only reads it) and offers a Down bet as cover.",
   },
   {
     title: "Where your money sits",

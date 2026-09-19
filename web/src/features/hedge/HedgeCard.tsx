@@ -1,5 +1,6 @@
 "use client";
 
+import { TICKERS } from "@agari/core/market";
 import type { MarketId, Side } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
@@ -21,6 +22,10 @@ export interface HedgeCardProps {
   symbol: string;
   /** The markets page's selection, as a card's DOWN button calls it (M `MarketCard.tsx:15-22`). */
   onSelect: (marketId: MarketId, side?: Side) => void;
+  /** Example mode (plan Step 2): a stamp over the card, its own CTA words, and a note in the foot. */
+  stamp?: string;
+  ctaText?: string;
+  note?: string;
 }
 
 /** "12.5 TSLAx + 3 TSLAon": every verified token of the underlying, in shares (UI amounts, the multiplier applied). */
@@ -34,11 +39,13 @@ export function holdingTokens(pick: HedgePick): string {
  * link and its market card is a button. Its markets voice replaces the games pixel face. A tap leaves the stake preset
  * and opens the unchanged S4 ticket on DOWN; nothing is sent from here.
  */
-export function HedgeCard({ pick, stakeBase, decimals, symbol, onSelect }: HedgeCardProps) {
+export function HedgeCard({ pick, stakeBase, decimals, symbol, onSelect, stamp, ctaText, note }: HedgeCardProps) {
   const { market, kind, horizon } = pick.target;
-  const exposure = pick.exposureUsdE6 === null ? null : `$${formatBaseUnits(pick.exposureUsdE6, USD_DP, { maxDp: 0, minDp: 0 })}`;
-  const line = HEDGE.line(holdingTokens(pick), exposure, pick.underlying, HEDGE.horizon[horizon]);
-  const leadToken = pick.holdings[0]?.symbol ?? pick.underlying;
+  const value = pick.exposureUsdE6 === null ? null : `$${formatBaseUnits(pick.exposureUsdE6, USD_DP, { maxDp: 0, minDp: 0 })}`;
+  const line = HEDGE.line(holdingTokens(pick), value, TICKERS[pick.underlying].name, HEDGE.horizon[horizon]);
+  const lead = pick.holdings[0];
+  const leadToken = lead?.symbol ?? pick.underlying;
+  const cta = ctaText ?? HEDGE.cta[kind];
   const hedge = () => {
     if (stakeBase !== null) presetStake(market.marketId, stakeBase);
     onSelect(market.marketId, "down");
@@ -49,8 +56,9 @@ export function HedgeCard({ pick, stakeBase, decimals, symbol, onSelect }: Hedge
       className="hg-banner"
       role="button"
       tabIndex={0}
-      aria-label={`${HEDGE.cta[kind]}: ${HEDGE.aria(line)}`}
+      aria-label={`${cta}: ${HEDGE.aria(line)}`}
       data-kind={kind}
+      data-example={stamp ? "" : undefined}
       data-cursor="hover"
       onClick={hedge}
       onKeyDown={(event) => {
@@ -59,18 +67,20 @@ export function HedgeCard({ pick, stakeBase, decimals, symbol, onSelect }: Hedge
         hedge();
       }}
     >
+      {stamp && <span className="hg-banner-stamp">{stamp}</span>}
       <AssetDisc asset={pick.underlying} className="hg-banner-mark" />
       <div className="hg-banner-text">
-        <span className="hg-banner-eyebrow">{HEDGE.eyebrow}</span>
+        <span className="hg-banner-eyebrow">{HEDGE.eyebrow(lead?.issuer ?? "xstocks")}</span>
         <span className="hg-banner-name">
           {laneAssetLabel(market.asset, market.lane)} · {laneTabLabel(market.lane, market.intervalSec)}
         </span>
         <span className="hg-banner-line">{line}</span>
       </div>
       <span className="hg-banner-cta" aria-hidden>
-        {HEDGE.cta[kind]} →
+        {cta} →
       </span>
       <p className="hg-banner-foot">
+        {note && `${note} `}
         {stakeBase !== null && `${HEDGE.stake(formatBaseUnits(stakeBase, decimals), symbol)} `}
         {HEDGE.foot(leadToken)}
       </p>

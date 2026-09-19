@@ -124,3 +124,46 @@
     grid-column: 2;
   }
 }
+
+/* The teaser (plan Step 2): the same anatomy with no offer to make, so the vermilion wash and the pointer are off. */
+.hg-banner[data-kind="teaser"] {
+  cursor: default;
+  border-color: var(--color-hairline);
+  background: var(--color-surface-1);
+}
+.hg-banner[data-kind="teaser"] .hg-banner-line {
+  color: var(--gray-400);
+  white-space: normal;
+}
+.hg-banner[data-kind="teaser"] .hg-banner-mark {
+  filter: none;
+  color: var(--gray-400);
+}
+.hg-banner-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+.hg-banner-button:hover,
+.hg-banner-button:focus-visible {
+  color: var(--white);
+}
+/* Example mode: a stamp nobody can miss, on the offer's own anatomy. */
+.hg-banner-stamp {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--white);
+  background: var(--vermilion);
+}
+.hg-banner[data-example] .hg-banner-cta {
+  margin-top: 18px;
+}
+
