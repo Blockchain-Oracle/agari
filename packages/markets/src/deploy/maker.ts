@@ -103,6 +103,9 @@ export async function registerMakerSeat(ctx: SendContext): Promise<string | null
     switchboardMinOracles: data.switchboardMinOracles,
     programAuthorities,
     resultRetentionSec: data.resultRetentionSec,
+    // The engine re-checks the pinned Switchboard queue on every authority write, so the account must come with
+    // it whenever one is set (prints.md §4.4). Omitting it fails as `BadAuthorities`, which reads like a bad key.
+    queue: data.switchboardQueue === DEFAULT_ADDRESS ? undefined : data.switchboardQueue,
   });
   return send(ctx, "set authorities", [ix], `maker seat ${seat} at program_authorities[${MAKER_AUTHORITY_INDEX}], every other field unchanged`);
 }

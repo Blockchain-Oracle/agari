@@ -20,7 +20,10 @@ const units = (whole: string | undefined, fallback: string) => BigInt(Math.round
 
 const cluster = clusterArg();
 const { rpcUrl, rpcSubscriptionsUrl, label } = endpoints(cluster);
-const client = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret: roleSecret("deployer") });
+// Quoting and pulling are the designated maker actor's, enforced on chain, so those modes sign as the maker role
+// and everything else as the deployer. A drive that signed everything as the deployer would only prove NotMaker.
+const asMaker = mode === "quote" || mode === "pull";
+const client = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret: roleSecret(asMaker ? "maker" : "deployer") });
 const log = (e: StepLog) => console.log(`  ${e.step.padEnd(14)} ${e.note}${e.signature ? `\n  ${"".padEnd(14)} ${e.signature}` : ""}`);
 const ctx = { client, log };
 console.log(`maker drive "${mode}" on ${cluster} (${label}) as ${client.payer.address}`);

@@ -53,6 +53,14 @@
       "vault": "8pncTu9o57689Kkp4x7yUBtKB7z7aRNi2CgYsiudmVvM",
       "fromSlot": 500885976,
       "initSignature": "d2dP4njZnoZxxUfVjNa6JeJGmf59PzhxuuimdjC1bUipwcXbHGznaGU8f96qEHAUFCNAmAyRRAXHZXDrfmtJCPi"
+    },
+    "agari_maker": {
+      "vault": "EMnFiPzkEYJnPHJ8TgzMaDsV85vNsiazUfrmyoPgJHr9",
+      "custody": "G4NtDaPwpsYoNBrKcFzzBgoawhAcU1TLsgP1kMdh3uLz",
+      "seat": "Ht3WcbwvYYh7qPSy3JX1vZrXgpApZQ6zhC8vp2vvBuhi",
+      "maker": "8ZjW7FjMPbk9iC6DtX95fBt47CEr7BEvd3yMuTqauSbB",
+      "fromSlot": 500931877,
+      "seatSignature": "Lsau2qNT3S96Wp4z5z83omY2azjfz95p2tuCitXPEjh4mkejbGJFT1HmYxs1557uWNJQxfWakgTqV6QGfXCgDDM"
     }
   },
   "venue": {
