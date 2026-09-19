@@ -31,7 +31,7 @@ result would be a track-shaped feature rather than something the venue does. Say
 | Requirement | Current state | Owner / completion check |
 | --- | --- | --- |
 | Working devnet prototype | `agari-events` deployed and exercised end-to-end on devnet (window open → price print → fill → settle/void → redeem); `agari-vault` deploy is tonight's sequence (`D-096`) | Stage owner. Use `docs/plan/acceptance.md` as the live evidence ledger, failed attempts included. |
-| Repository | No GitHub remote is configured for this working tree yet (`git remote -v` empty) | User. A public-release decision is still open (`Q-007`, `public-release-audit.md`) before any repository is created and made judge-accessible. |
+| Repository | **Created 2026-09-19: <https://github.com/Blockchain-Oracle/agari>, private (per `Q-007`), MIT detected, default branch `integration/w1` (the real trunk, 527 commits; `main` is pushed but stays gated on the S1/S3 gates).** Judge access still needs the public-release call | User. A public-release decision is still open (`Q-007`, `public-release-audit.md`) before any repository is created and made judge-accessible. |
 | Demo video | Not recorded yet | Stage owner, Wed 2026-09-16 after the NYSE bell (`D-097`). Until then `/demo` shows an honest "recording" state with a live proof table, never a placeholder video. |
 | Real user and problem | Written up in `docs/submission/description.md` and `docs/plan/00-plan.md` §0 (the tokenized-stock holder who can't express a short-horizon view without selling) | Done. |
 | Why Solana | `README.md` § "Why Solana" — factual (finality/fees, upgradeable programs, live price oracles), no marketing claims | Done. |
@@ -55,7 +55,7 @@ result would be a track-shaped feature rather than something the venue does. Say
 | Field | Value |
 | --- | --- |
 | Checklist prepared | 2026-09-15 |
-| Repository created | Not yet |
+| Repository created | 2026-09-19 — <https://github.com/Blockchain-Oracle/agari> (private, MIT, default `integration/w1`) |
 | Judge-accessible source | Not yet — pending `Q-007` |
 | Demo video | Not yet — pending `D-097` (Wed 2026-09-16) |
 | Submitted project URL/id | Not submitted |
