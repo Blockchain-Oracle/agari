@@ -66,9 +66,13 @@ function exampleWindow(nowSec: number): EventMarket {
   };
 }
 
+/** The example lane set: one 24/7 OpenAI Window, mid-flight at `nowSec`. */
+export function exampleLaneSet(nowSec: number): LaneSet {
+  const market = exampleWindow(nowSec);
+  return { venueId: SERIES, lanes: [{ basis: "token", intervalSec: 3_600, label: "", markets: [market], nextStartSec: null }] };
+}
+
 /** The example pick, or null if the real picker would not offer one (it always should; the fixture test pins it). */
 export function examplePick(nowSec: number): HedgePick | null {
-  const market = exampleWindow(nowSec);
-  const laneSet: LaneSet = { venueId: SERIES, lanes: [{ basis: "token", intervalSec: 3_600, label: "", markets: [market], nextStartSec: null }] };
-  return pickHedge([...EXAMPLE_HOLDINGS], laneSet, nowSec * 1000);
+  return pickHedge([...EXAMPLE_HOLDINGS], exampleLaneSet(nowSec), nowSec * 1000);
 }

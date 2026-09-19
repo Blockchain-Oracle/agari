@@ -7,6 +7,7 @@ import { ErrorState } from "@/components/states";
 import { openFunds } from "@/features/funding";
 import { PrivateBalancePanel } from "@/features/private";
 import { TradingBalancePanel, useVaultOpenBets } from "@/features/vault";
+import { YourStocks } from "@/features/hedge";
 import { XWalletCard } from "@/features/x";
 import "@/features/x/x-card.css";
 import { CLAIM, PORTFOLIO } from "@/lib/copy";
@@ -97,15 +98,18 @@ export function PortfolioScreen() {
 
       <TraderEdgeLink />
 
-      <BetsPanel symbol={symbol} index="01" history={history} />
+      {/* Plan Step 4 (2026-09-19): the wallet's stock tokens, read-only, with both bets offered; below the plate and the edge link, so the number still comes first. */}
+      <YourStocks index="01" />
+
+      <BetsPanel symbol={symbol} index="02" history={history} />
 
       <section className="flex flex-col gap-4" aria-label={PORTFOLIO.collectTitle}>
-        <SectionHeader index="02" title={PORTFOLIO.collectTitle} />
+        <SectionHeader index="03" title={PORTFOLIO.collectTitle} />
         <p className="type-body text-ink-secondary">{CLAIM.pageIntro}</p>
         <LiveClaimPlate />
       </section>
 
-      <RecordSection history={history} symbol={symbol} index="03" />
+      <RecordSection history={history} symbol={symbol} index="04" />
     </div>
   );
 }

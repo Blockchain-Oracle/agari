@@ -167,3 +167,90 @@
   margin-top: 18px;
 }
 
+/* "Your stocks" (plan Step 4): one row per company, the same mark and mono line as the card, two text actions. */
+.ys-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-hairline);
+}
+.ys-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-hairline);
+}
+.ys-mark {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+}
+[data-theme="light"] .ys-mark {
+  background: rgba(20, 18, 16, 0.1);
+}
+.ys-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ys-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--white);
+}
+.ys-line {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--gray-400);
+  font-variant-numeric: tabular-nums;
+}
+.ys-actions {
+  display: flex;
+  gap: 14px;
+}
+.ys-action,
+.ys-none {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--gray-400);
+}
+.ys-action:hover,
+.ys-action:focus-visible {
+  color: var(--white);
+}
+.ys-action[data-side="down"] {
+  color: var(--vermilion);
+}
+.ys-foot {
+  grid-column: auto;
+}
+@media (max-width: 480px) {
+  .ys-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .ys-actions,
+  .ys-none {
+    grid-column: 2;
+  }
+}
+
