@@ -28,6 +28,7 @@ export const HEDGE = {
     unreadable: { name: "Couldn't read your wallet", line: "The lookup failed this time. Your holdings are untouched; it retries in a minute." },
     noHolding: { name: "No stock tokens found", line: "Agari looks for xStocks, Ondo tokens and PreStocks such as OpenAI, Anthropic and SpaceX." },
     noWindow: (name: string) => ({ name: `You hold ${name}`, line: "Its next market is not open yet. You can cover it once one opens." }),
+    calm: (name: string) => ({ name: `You hold ${name}`, line: "It has barely moved lately, so there is nothing to cover right now. A Down bet is offered only when it moves." }),
     foot: "Test money on Solana devnet. Agari only looks at your wallet: it never moves, sells or protects anything. Not investment advice.",
   },
   /** Sample holdings through the real picker, stamped so nobody mistakes them for a wallet. Never presets a stake. */
@@ -44,6 +45,9 @@ export const HEDGE = {
     cover: "Cover with Down",
     add: "Add with Up",
     none: "No open market for this right now",
+    /** Plan §2: a name that has barely moved gets the truth, never a Down bet. */
+    calm: (name: string, window: string) => `${name} has barely moved in the last ${window}. Nothing to cover right now.`,
+    moved: (pct: string, window: string) => `Moved ${pct} high to low in the last ${window}`,
     empty: "No stock tokens found in this wallet. Agari looks for xStocks, Ondo tokens and PreStocks such as OpenAI, Anthropic and SpaceX.",
     foot: "Test money on Solana devnet. Agari only looks at your wallet: it never moves, sells or protects anything. Not investment advice.",
   },
@@ -84,6 +88,7 @@ export const HEDGE = {
     example: "Example mode — sample holdings through the real picker, stamped",
     stocks: "Your stocks — the /portfolio section from the sample holdings",
     reel: "Reels — the \"you hold this\" card woven into the feed",
+    calm: "Calm names — SpaceX has barely moved, so no Down bet is offered; OpenAI moved, so both are",
     live: "Live — your wallet (mainnet read, devnet cover)",
     liveEmpty: "Connect a wallet that holds an xStock, an Ondo token or a PreStocks token (OPENAI, ANTHROPIC, SPACEX…) to see the live card.",
   },

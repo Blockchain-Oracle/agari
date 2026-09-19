@@ -10,8 +10,9 @@ import { useLanesState } from "@/features/markets/lanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
+import { CLOCK } from "../session/market-session-fixtures";
 import { Fixture } from "../states/_sections/Fixture";
-import { BALANCE_BASE, HEDGE_FIXTURES, NO_CARD } from "./fixtures";
+import { BALANCE_BASE, CALM_LEAD, HEDGE_FIXTURES, NO_CARD, STOCKS_FIXTURE } from "./fixtures";
 
 const DECIMALS = 6;
 const SYMBOL = "tUSDC";
@@ -57,12 +58,16 @@ export function HedgeFixtures() {
           <HedgeTeaser state={{ kind: "unreadable" }} onExample={noop} />
           <HedgeTeaser state={{ kind: "no-holding" }} onExample={noop} />
           <HedgeTeaser state={{ kind: "no-window", lead: HEDGE_FIXTURES.preIpo.holdings[0]! }} onExample={noop} />
+          <HedgeTeaser state={{ kind: "calm", lead: CALM_LEAD }} onExample={noop} />
         </Fixture>
         <Fixture label={HEDGE.dev.example}>
           {example && <HedgeCard pick={example} stakeBase={null} decimals={DECIMALS} symbol={SYMBOL} onSelect={noop} stamp={HEDGE.example.stamp} ctaText={HEDGE.example.hide} note={HEDGE.example.note} />}
         </Fixture>
         <Fixture label={HEDGE.dev.stocks}>
           <YourStocksList holdings={EXAMPLE_HOLDINGS} laneSet={exampleLaneSet(Math.floor((nowMs || Date.now()) / 1000))} nowMs={nowMs || Date.now()} index="01" />
+        </Fixture>
+        <Fixture label={HEDGE.dev.calm}>
+          <YourStocksList holdings={STOCKS_FIXTURE.holdings} laneSet={STOCKS_FIXTURE.laneSet} nowMs={CLOCK.weekendSat * 1000} index="02" movement={STOCKS_FIXTURE.movement} />
         </Fixture>
         <Fixture label={HEDGE.dev.reel}>
           {example && (

@@ -5,6 +5,7 @@
 import { isTickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet } from "@agari/core/types";
 import { type HedgePick, pickHedge, type HoldingView } from "@/features/hedge";
+import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
 import { fixtureAddress, fixtureMarketId } from "../fixture-ids";
 import { fixtureWindow } from "../fixture-window";
 import { CLOCK } from "../session/market-session-fixtures";
@@ -52,6 +53,22 @@ export const HEDGE_FIXTURES = {
   noPrice: must(pickHedge([holding("TSLAx", "TSLA", 1_250_000_000n, null)], laneSet(GAP_CARDS[1]!.market), CLOCK.weekendSat * 1000)),
   preIpo: must(pickHedge([OPENAI_PRE, TSLAX], laneSet(OPENAI_WINDOW), CLOCK.weekendSat * 1000)),
 } as const;
+
+/** 300 SPACEX at $121.32 → $36,396: the calm case (plan §2). SpaceX traded $8,708 in a day and did not move at all. */
+const SPACEX_CALM = holding("SPACEX", "SPACEX", 300n * E8, 12_132_000_000n);
+
+/** "Your stocks" with a calm name beside a moving one, and the movement the feed measured for each. */
+export const STOCKS_FIXTURE = {
+  holdings: [OPENAI_PRE, SPACEX_CALM, TSLAX],
+  movement: {
+    OPENAI: { windowSec: 7_200, samples: 720, rangeBps: 230, changeBps: -140 },
+    SPACEX: { windowSec: 7_200, samples: 720, rangeBps: 0, changeBps: 0 },
+  } satisfies Record<string, PreIpoMove>,
+  laneSet: laneSet(OPENAI_WINDOW),
+} as const;
+
+/** The teaser's calm state: the lead holding is a name that has barely moved, so no Down bet is offered. */
+export const CALM_LEAD = SPACEX_CALM;
 
 /** No card: no verified holding, and a holding whose underlying has no trading Window (SPYx before the token lane lists). */
 export const NO_CARD = {

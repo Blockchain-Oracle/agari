@@ -1104,6 +1104,15 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** with a wallet that holds a recognised stock token, Sensei can say "you hold 4.2 OPENAI; a DOWN Window on OpenAI is cover" instead of not knowing; asked whether to sell the token it still refuses in one sentence.
 - **Approval:** stage owner, from the approved 2026-09-19 plan (engineer notes, Sensei).
 
+### D-105 — A stock token that has barely moved is never offered a cover bet, and the threshold is measured
+- **Date / owner:** 2026-09-19 · S18 owner
+- **Evidence:** the approved plan §2, from the user's own instinct ("if the stock isn't moving you're not in danger, don't suggest it") and the 09-19 measurement: SpaceX traded $8,708 in a day and did not move at all over five minutes, Anduril and Figure AI likewise, while OpenAI and Anthropic moved. Agari resolves a flat Window as Up (`resolve_rules.rs:49-50`), so on a token that does not move, Down loses almost every time; offering it as "cover" would be selling a holder a bet the house nearly always wins.
+- **Rule:** `/prestocks/latest` now reports `move` per name — window, sample count, high-to-low `rangeBps` and first-to-last `changeBps`, all integer basis points over the samples the feed still holds (≈ 2 h). The web calls a name **calm** at `rangeBps < 20` (0.2%) with at least 15 minutes of samples (`web/src/features/hedge/calm.ts`). A calm name is skipped by `pickAllHedges`, so it never appears on the cover card or in Reels; "Your stocks" states the fact instead ("SpaceX has barely moved in the last 2 h. Nothing to cover right now."), and the card's new `calm` teaser state says the same. A name that is not calm shows what it did move ("Moved 2.3% high to low in the last 2 h"). Nothing is hardcoded per symbol: a name that wakes up is offered cover on the next read, and a name that goes quiet stops being offered, with no deploy.
+- **Why not a hardcoded list:** the plan's table was one measurement on one day. A list would be wrong within a week and would have to be maintained by hand; the feed already knows the answer.
+- **The drop bell is unaffected:** it states a fact ("SpaceX fell 3.4% in the last hour"), it does not offer a bet, so it stays available on a calm name — that is exactly when its holder would want to hear from it.
+- **User-visible:** a holder of a quiet token is told the truth rather than shown a Down bet; a holder of a moving token sees how much it moved.
+- **Approval:** stage owner, from the approved 2026-09-19 plan (§2, "decided by measurement, not by my opinion").
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

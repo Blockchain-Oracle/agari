@@ -2,7 +2,8 @@
 
 import { ChevronUpIcon, FeatherIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
+import { calmSet, holdsPreIpo, HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
+import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
 import { sessionPhrase } from "@agari/core/copy";
 import { marketsProvider } from "@agari/markets";
@@ -55,7 +56,11 @@ export function ReelsScreen() {
   // Plan Step 7: the wallet's stock tokens, read-only, as "you hold this" cards once every few items (same query the /markets card uses).
   const { address } = useWalletSession();
   const holdings = useHoldings(address);
-  const holdingPicks = useMemo(() => (holdings?.ok ? pickAllHedges(holdings.value, lanes.laneSet, nowMs) : []), [holdings, lanes.laneSet, nowMs]);
+  const facts = usePreIpoFactsAll(holdings?.ok === true && holdsPreIpo(holdings.value));
+  const holdingPicks = useMemo(
+    () => (holdings?.ok ? pickAllHedges(holdings.value, lanes.laneSet, nowMs, calmSet(facts?.ok ? facts.value : null)) : []),
+    [holdings, lanes.laneSet, nowMs, facts],
+  );
   const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks), [rounds, feed, holdingPicks]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.

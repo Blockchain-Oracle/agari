@@ -13,6 +13,8 @@ import { HedgeCard } from "./HedgeCard";
 import { hedgeStakeBase } from "./hedge-size";
 import { hedgeCardState } from "./hedge-state";
 import { pickHedge } from "./hedge-target";
+import { calmSet, holdsPreIpo } from "./calm";
+import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { HedgeTeaser } from "./HedgeTeaser";
 import { useHoldings, type HoldingView } from "./useHoldings";
 import type { Reading } from "@agari/core";
@@ -56,8 +58,11 @@ export function LiveHedgeCard({ laneSet, nowMs, onSelect }: LiveHedgeCardProps) 
   const [example, setExample] = useState(false);
   useNoticedOnce(address, holdings);
 
-  const pick = holdings?.ok ? pickHedge(holdings.value, laneSet, nowMs) : null;
-  const state = hedgeCardState({ address, holdings, pick, clockReady: nowMs !== 0 });
+  // Plan §2: a pre-IPO name the feed measures as calm is never offered a Down bet; the facts read runs only when one is held.
+  const facts = usePreIpoFactsAll(holdings?.ok === true && holdsPreIpo(holdings.value));
+  const calm = calmSet(facts?.ok ? facts.value : null);
+  const pick = holdings?.ok ? pickHedge(holdings.value, laneSet, nowMs, calm) : null;
+  const state = hedgeCardState({ address, holdings, pick, clockReady: nowMs !== 0, calm });
   const collateral = collateralOrNull();
 
   if (example) {

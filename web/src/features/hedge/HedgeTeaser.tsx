@@ -17,10 +17,14 @@ interface HedgeTeaserProps {
  */
 export function HedgeTeaser({ state, onExample }: HedgeTeaserProps) {
   const words =
-    state.kind === "no-window" ? HEDGE.teaser.noWindow(TICKERS[state.lead.underlying].name) : HEDGE.teaser[teaserKey(state.kind)];
+    state.kind === "no-window"
+      ? HEDGE.teaser.noWindow(TICKERS[state.lead.underlying].name)
+      : state.kind === "calm"
+        ? HEDGE.teaser.calm(TICKERS[state.lead.underlying].name)
+        : HEDGE.teaser[teaserKey(state.kind)];
   return (
     <article className="hg-banner" data-kind="teaser" data-state={state.kind} aria-label={`${words.name}. ${words.line}`}>
-      {state.kind === "no-window" ? (
+      {state.kind === "no-window" || state.kind === "calm" ? (
         <AssetDisc asset={state.lead.underlying} className="hg-banner-mark" />
       ) : (
         <span className="hg-banner-mark" aria-hidden>

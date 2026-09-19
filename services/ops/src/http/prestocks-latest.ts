@@ -4,8 +4,16 @@
  * shares `/prices/latest`'s budget (D-086) so the two routes can never disagree about what "current" means.
  */
 import type { TickerSymbol } from "@agari/core/market";
-import type { PreStocksSpotFeed } from "../prices/prestocks-spot";
+import type { PreStocksSample, PreStocksSpotFeed } from "../prices/prestocks-spot";
 import { FRESH_MAX_AGE_SEC } from "./spot-sse";
+
+/** How the token price moved over the samples the feed still holds (≈ 2 h): high to low and first to last, in bps. */
+export interface PreStocksMove {
+  windowSec: number;
+  samples: number;
+  rangeBps: number;
+  changeBps: number;
+}
 
 export interface PreStocksWire {
   tokenPriceE8: string;
@@ -15,6 +23,8 @@ export interface PreStocksWire {
   fetchedAtSec: number;
   ageSec: number;
   fresh: boolean;
+  /** Null with fewer than two samples. The web's "calm" judgement (plan §2) reads this, never a guess. */
+  move: PreStocksMove | null;
 }
 
 /** Integer basis points of `token` over `mark`; bigint throughout, so a 15-significant-digit price never rounds through a float. */
@@ -23,10 +33,31 @@ export function premiumBps(tokenPriceE8: bigint, markPriceE8: bigint): number | 
   return Number(((tokenPriceE8 - markPriceE8) * 10_000n) / markPriceE8);
 }
 
+/** Movement over `samples` (oldest first), bigint throughout; null until two samples exist. */
+export function movementOf(samples: readonly PreStocksSample[]): PreStocksMove | null {
+  const first = samples[0];
+  const last = samples.at(-1);
+  if (samples.length < 2 || !first || !last || first.tokenPriceE8 <= 0n) return null;
+  let high = first.tokenPriceE8;
+  let low = first.tokenPriceE8;
+  for (const s of samples) {
+    if (s.tokenPriceE8 > high) high = s.tokenPriceE8;
+    if (s.tokenPriceE8 < low) low = s.tokenPriceE8;
+  }
+  if (low <= 0n) return null;
+  return {
+    windowSec: last.fetchedAtSec - first.fetchedAtSec,
+    samples: samples.length,
+    rangeBps: Number(((high - low) * 10_000n) / low),
+    changeBps: Number(((last.tokenPriceE8 - first.tokenPriceE8) * 10_000n) / first.tokenPriceE8),
+  };
+}
+
 export function preStocksLatestBody(feed: PreStocksSpotFeed, nowSec = Math.floor(Date.now() / 1000)): Record<string, PreStocksWire> {
   const out: Record<string, PreStocksWire> = {};
   for (const symbol of feed.symbols() as readonly TickerSymbol[]) {
-    const s = feed.history(symbol).at(-1);
+    const history = feed.history(symbol);
+    const s = history.at(-1);
     if (!s) continue;
     const ageSec = Math.max(0, nowSec - s.fetchedAtSec);
     out[symbol] = {
@@ -36,6 +67,7 @@ export function preStocksLatestBody(feed: PreStocksSpotFeed, nowSec = Math.floor
       fetchedAtSec: s.fetchedAtSec,
       ageSec,
       fresh: ageSec <= FRESH_MAX_AGE_SEC,
+      move: movementOf(history),
     };
   }
   return out;

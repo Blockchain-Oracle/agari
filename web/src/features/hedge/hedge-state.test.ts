@@ -16,5 +16,8 @@ describe("hedgeCardState", () => {
     expect(hedgeCardState({ address: "a", holdings: ok([], 1), pick: null, clockReady: true }).kind).toBe("no-holding");
     expect(hedgeCardState({ address: "a", holdings: ok([holding], 1), pick: null, clockReady: true })).toEqual({ kind: "no-window", lead: holding });
     expect(hedgeCardState({ address: "a", holdings: ok([holding], 1), pick, clockReady: true })).toEqual({ kind: "offer", pick });
+    // A calm lead (plan §2) is told so instead of "no window", and only when the picker made no offer.
+    expect(hedgeCardState({ address: "a", holdings: ok([holding], 1), pick: null, clockReady: true, calm: new Set(["OPENAI"]) })).toEqual({ kind: "calm", lead: holding });
+    expect(hedgeCardState({ address: "a", holdings: ok([holding], 1), pick, clockReady: true, calm: new Set(["OPENAI"]) })).toEqual({ kind: "offer", pick });
   });
 });

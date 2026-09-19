@@ -51,11 +51,15 @@ export function hedgeTarget(laneSet: LaneSet | null, underlying: TickerSymbol, n
 }
 
 /** Every underlying with a Window to cover into, most exposure first (the Reels card rotates through them). */
-export function pickAllHedges(holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number): HedgePick[] {
+const NO_SKIP: ReadonlySet<TickerSymbol> = new Set();
+
+export function pickAllHedges(holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number, skip: ReadonlySet<TickerSymbol> = NO_SKIP): HedgePick[] {
   const byUnderlying = new Map<TickerSymbol, HoldingView[]>();
   for (const holding of holdings) byUnderlying.set(holding.underlying, [...(byUnderlying.get(holding.underlying) ?? []), holding]);
   const picks: HedgePick[] = [];
   for (const [underlying, group] of byUnderlying) {
+    // A calm name (plan §2) is never offered a cover bet: a flat Window resolves Up, so Down would be unfair.
+    if (skip.has(underlying)) continue;
     const target = hedgeTarget(laneSet, underlying, nowMs);
     if (!target) continue;
     const exposureUsdE6 = group.some((h) => h.exposureUsdE6 === null) ? null : group.reduce((sum, h) => sum + (h.exposureUsdE6 ?? 0n), 0n);
@@ -66,4 +70,5 @@ export function pickAllHedges(holdings: readonly HoldingView[], laneSet: LaneSet
 }
 
 /** The underlying with the most exposure that has a Window to hedge into; null hides the card. */
-export const pickHedge = (holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number): HedgePick | null => pickAllHedges(holdings, laneSet, nowMs)[0] ?? null;
+export const pickHedge = (holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number, skip: ReadonlySet<TickerSymbol> = NO_SKIP): HedgePick | null =>
+  pickAllHedges(holdings, laneSet, nowMs, skip)[0] ?? null;

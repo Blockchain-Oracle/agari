@@ -291,3 +291,11 @@
   opacity: 1;
 }
 
+/* The measured move under a "Your stocks" row (plan §2), the same ink as the token line. */
+.ys-move {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--gray-400);
+}
+
