@@ -242,6 +242,8 @@
 }
 .lp-cover-note { margin: 0; color: var(--gray-500); font-size: 13px; line-height: 1.6; }
 .lp-cover-card .hg-banner { margin-bottom: 0; }
+/* Half a column is narrower than the markets page, so the line wraps instead of ending in an ellipsis. */
+.lp-cover-card .hg-banner-line { white-space: normal; }
 @media (max-width: 900px) {
   .lp-cover { grid-template-columns: minmax(0, 1fr); }
 }
