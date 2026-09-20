@@ -1226,6 +1226,22 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** 3× is refused above about 71¢, where 2× still opens.
 - **Approval:** stage owner. A deviation from the reference, recorded for the user's override.
 
+### D-117 — `agari-private`: the reference's two halves kept apart on Solana, where a transaction lists its accounts
+- **Date / owner:** 2026-09-20 · S10d on `integration/w1`
+- **Evidence:** the reference's `PrivateDesk` keeps an owner and a slot out of the same call by giving each call only one of them as an argument. On Solana the account list of a transaction is public too, so the separation has to hold for accounts, PDA seeds and logs as well as arguments.
+- **Rule:**
+  - **Owner-side accounts** are seeded by the owner and an opaque key and nothing else: `Budget ["budget", owner]`, `KeyMark ["charge", owner, charge_key]`, `KeyMark ["credit", owner, credit_key]`. **Slot-side accounts** are seeded by the slot id alone: `Slot ["slot", slot_id]`. `desk_charge_to_pool` and `desk_credit_from_pool` list an owner, a Budget and a mark. `desk_fund_slot`, `desk_mint_in_slot`, `public_settle_slot` and `desk_sweep_slot_to_pool` list a Slot and, for the two that trade, the Window's engine accounts. No instruction lists both kinds, and the events follow the same split.
+  - **The pool is three counters on one custody account** (`owed`, `pool`, `in_slots`), and custody equals their sum after every instruction. Every movement is a pure method on `Desk`, and a randomized test (16 seeds × 3,000 operations over 6 owners, including a dishonest desk asking for more than it swept) checks the identity and both sub-sums after every operation.
+  - **A used key is a program error, not a system one:** the marks and the Slot are `init_if_needed`, and the books refuse `KeyUsed` / `SlotAlreadyFunded`. A desk resuming after a crash reads the mark to see what landed.
+  - **A credit needs an existing Budget.** A credit always follows a charge, so the desk can credit nobody who never deposited. Tighter than the reference, which credits any address.
+  - **The pause stops charges and mints only.** Withdrawals, settlements, sweeps and credits are never held up.
+  - **Sizing is `agari_common::stake_walk`,** the walk the leverage reserve uses, over every live order: the desk spends the owner's own stake under the owner's own guard, so PD-2's rested-only rule, which protects a reserve's capital, does not apply. The engine's `PlaceResult` is checked against custody as in D-114.
+  - **The seat is `program_authorities[3]`** (D-063). Slots' contracts sit pooled in it; `public_settle_slot` is a PROGRAM partial redeem of exactly one slot's lots.
+  - **Only the upgrade authority can initialise the desk,** so nobody can front-run the deploy and name their own desk key.
+- **What it is not:** anonymity. The desk key signs and pays for both halves, a charge and a fund land seconds apart for the same figure, and the desk process sees both. What a compromised desk key can take is the allowances owners have set; what it can misdirect is what the pool holds at that moment.
+- **User-visible:** none beyond the reference's.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

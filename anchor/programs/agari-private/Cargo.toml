@@ -1,0 +1,32 @@
+[package]
+name = "agari-private"
+version = "0.1.0"
+description = "Masayume's PrivateDesk on Solana: a budget only its owner can withdraw, a throwaway slot per bet, and a pool between them that neither half names"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_private"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["event-cpi", "init-if-needed"] }
+anchor-spl = { workspace = true }
+bytemuck = { workspace = true }
+agari-common = { path = "../../crates/agari-common" }
+agari-events = { path = "../agari-events", features = ["cpi"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+
