@@ -12,6 +12,7 @@
 //   lock   --match <file>                          closes a pick window whose deadline has passed
 //   settle --match <file>                          settles every played card, then finalizes and claims both credits
 //   cancel | refund-unjoined | refund-unrevealed --match <file>
+//   season --id season-1 --ends <ISO> --amount 12 --winners a:6,b:4   creates the pool, funds it, pays the winners, then the hatch
 //   release --match <file> [--as creator|rival]    what a seat's key never spent, back as its player's credit
 // A deck is saved under data/drive/duels/. Its cards are Windows the drive owns (D-115), so `--window` takes market ids.
 // Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/duel-arena.ts <mode> [...]
@@ -22,8 +23,8 @@ import type { ArenaIntent } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
 import type { Address, Hash32, MarketId } from "@agari/core/types";
 import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, parseMarketsEnv, unwrap, type SubmitterSession } from "@agari/markets";
-import { createDeployClient, fundUser, keypairSigner, type StepLog } from "@agari/markets/deploy";
-import { deckCommitment, getArenaCredit, getArenaMatch, getArenaState, quoteArenaPick, readArenaAgent, resolveArenaDeployment } from "@agari/markets/games";
+import { createDeployClient, createSeasonPool, depositSeasonPool, fundUser, keypairSigner, withdrawSeasonRemainder, type StepLog } from "@agari/markets/deploy";
+import { deckCommitment, distributeSeasonPrizes, getArenaCredit, getArenaMatch, getArenaState, getSeasonPool, quoteArenaPick, readArenaAgent, resolveArenaDeployment, seasonVaultAddress } from "@agari/markets/games";
 import { addressesFor, clusterArg, endpoints, flag, readJson, redactKey, roleSecret } from "../deploy/ops-cluster";
 
 const mode = process.argv[2] ?? "arena";
@@ -180,6 +181,29 @@ try {
     const deal = readJson<Deal>(dealPath());
     await playPicks(deal, await seat("drive-owner"), await seat("drive-rival"));
     console.log(`arena: ${await books()}`);
+  } else if (mode === "season") {
+    const seasonId = arg("--id") ?? "season-1";
+    const admin = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret: roleSecret("season-admin") });
+    const adminCtx = { client: admin, log: (e: StepLog) => console.log(`  ${e.step.padEnd(18)} ${e.note}${e.signature ? `\n  ${"".padEnd(18)} ${e.signature}` : ""}`) };
+    const endsAtSec = Math.floor(new Date(arg("--ends") ?? new Date(Date.now() + 7 * 86_400_000).toISOString()).getTime() / 1_000);
+    const mint = collateral.address as never;
+    const existing = unwrap(await getSeasonPool(seasonId));
+    if (!existing) await createSeasonPool(adminCtx, seasonId, endsAtSec, mint);
+    const pool = unwrap(await getSeasonPool(seasonId));
+    if (!pool) throw new Error("the pool did not appear");
+    const vault = (await seasonVaultAddress(pool.address)) as never;
+    // Anyone may fund it: the deployer pays in here, and the admin never had to hold the money.
+    const funded = await depositSeasonPool({ client, log: adminCtx.log }, seasonId, units(arg("--amount"), "12"), pool.address as never, vault, mint);
+    console.log(`pool ${pool.address}: ${show(unwrap(await getSeasonPool(seasonId)))}`);
+    const split = (arg("--winners") ?? "").split(",").filter(Boolean).map((part) => { const [who, amount] = part.split(":"); return { who: who as Address, amountBase: units(amount, "1") }; });
+    if (split.length > 0) {
+      const signature = await distributeSeasonPrizes({ secretKey: roleSecret("season-admin"), rpcUrl, rpcSubscriptionsUrl, seasonId, winners: split.map((w) => w.who), amountsBase: split.map((w) => w.amountBase) });
+      console.log(`  ${"distribute".padEnd(18)} ${split.length} winner(s) of ${funded.balanceBase}\n  ${"".padEnd(18)} ${signature}`);
+      const again = await distributeSeasonPrizes({ secretKey: roleSecret("season-admin"), rpcUrl, rpcSubscriptionsUrl, seasonId, winners: split.map((w) => w.who), amountsBase: split.map((w) => w.amountBase) }).then(() => "ACCEPTED — the pool was replayable").catch((e: Error) => e.message.split("\n")[0]);
+      console.log(`  ${"distribute again".padEnd(18)} ${again}`);
+    }
+    const left = await withdrawSeasonRemainder(adminCtx, pool.address as never, vault, mint);
+    console.log(`pool after: ${show(unwrap(await getSeasonPool(seasonId)))}, vault ${left.balanceBase}`);
   } else if (mode === "pick") {
     const deal = readJson<Deal>(dealPath());
     const who = arg("--as") ?? "creator";

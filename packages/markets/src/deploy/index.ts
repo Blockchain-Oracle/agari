@@ -36,6 +36,7 @@ export { initStrategyRegistry, strategyAddresses } from "./strategy";
 export { openParlayTicket, probeParlayLeg, readParlayReserve, settleParlayTicket, supplyParlay, ticketAddressOf, voidStaleParlay, type DriveLeg } from "./parlay-drive";
 export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
 export { closeOwnedWindow, DRIVE_OWNED_TICKERS, driveOwnedSeries, type OwnedLane, openOwnedWindow, ownedWindowOf, quoteOwnedWindow, type OwnedQuote, type OwnedWindowKeys } from "./drive-window";
+export { createSeasonPool, depositSeasonPool, withdrawSeasonRemainder } from "./season-drive";
 export { ARENA_AUTHORITY_INDEX, arenaAddresses, DEVNET_ARENA_PARAMS, DEVNET_ARENA_TIERS, initArena, registerArenaSeat } from "./arena";
 export { claimLeverage, exitLeverage, openLeverage, probeLeverage, readLeveragePosition, readLeverageReserve, supplyLeverage, withdrawLeverage, type BoostSpec } from "./leverage-drive";
 export { DEVNET_LEVERAGE_PARAMS, initLeverageReserve, leverageAddresses, LEVERAGE_AUTHORITY_INDEX, registerLeverageSeat } from "./leverage";

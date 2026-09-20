@@ -4,7 +4,7 @@
  * events; writes go through the session's lanes.
  */
 export { deckCommitment, keccak256 } from "./commitment";
-export { arenaProgramId } from "./deployment";
+export { arenaProgramId, seasonVaultAddress } from "./deployment";
 export { decodeArenaEvent } from "./events";
 export {
   arenaHeadBlock, getArenaCredit, getArenaMatch, getArenaState, getSeasonPool, listArenaEvents, quoteArenaPick, readArenaAgent, resolveArenaDeployment,
