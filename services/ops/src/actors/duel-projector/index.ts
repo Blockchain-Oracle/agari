@@ -1,10 +1,11 @@
 import { isOk } from "@agari/core/schemas";
 import { isDbConfigured, readCursor, writeCursor } from "@agari/db";
 import { arenaHeadBlock, listArenaEvents, resolveArenaDeployment } from "@agari/markets/games";
-import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
+import { ensureMarkets } from "@agari/markets";
 import type { RoomContext } from "../game-room/handlers";
 import { applyEvent, type ApplyDeps } from "./apply";
 import { createMatchCache } from "./facts";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
 
@@ -36,7 +37,7 @@ const SPAN = BigInt(process.env.GAME_PROJECTOR_SPAN ?? 800);
 const SPANS_PER_CYCLE = Number(process.env.GAME_PROJECTOR_SPANS ?? 25);
 
 export async function startDuelProjector(log: Log, room: RoomContext | null): Promise<void> {
-  const env = parseMarketsEnv();
+  const env = opsMarketsEnv();
   ensureMarkets(env);
   const deployment = resolveArenaDeployment(env);
   if (!deployment) return log("GameArena is not deployed on this network; nothing to project");

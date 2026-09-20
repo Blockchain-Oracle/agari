@@ -4,10 +4,11 @@ import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import type { Address, Hash32, Hex, MarketId } from "@agari/core/types";
 import { putDeck } from "@agari/db";
-import { marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
+import { marketsProvider, resolveVenueId } from "@agari/markets";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { DECK_KEY_ENV, deckKey, journal, seal, type RevealMaterial } from "./seal";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 /**
  * Dealing a deck, and making its reveal durable before anyone can be asked to pay for it.
@@ -86,7 +87,7 @@ function keccak256(hex: Hex): Hash32 {
  * where the queue has a countdown to show. Found on 2026-09-03 by `spike:duel-full` landing in the gap.
  */
 async function candidates(): Promise<readonly DeckCandidate[] | null> {
-  const venue = await resolveVenueId(parseMarketsEnv().venueId);
+  const venue = await resolveVenueId(opsMarketsEnv().venueId);
   if (!isOk(venue) || !venue.value.venueId) return null;
   const lanes = await marketsProvider.listLiveLanes(venue.value.venueId);
   if (!isOk(lanes)) return null;

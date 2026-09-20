@@ -67,9 +67,11 @@ export function VaultBetRow({ bet, symbol, nowMs, cashOutPreview }: VaultBetRowP
       )}
       <span className="bets-break" aria-hidden />
       <span className="flex-1" />
-      <span className="type-caption text-ink-secondary">
-        {VAULT.bets.staked} <Money value={bet.stakeBase} decimals={bet.decimals} symbol={symbol} />
-      </span>
+      {bet.stakeBase !== null && (
+        <span className="type-caption text-ink-secondary">
+          {VAULT.bets.staked} <Money value={bet.stakeBase} decimals={bet.decimals} symbol={symbol} />
+        </span>
+      )}
       <span className="type-caption text-ink-muted">{VAULT.bets.unpriced}</span>
       {!settling && side && cashOutPreview && <CashOutLinkView {...cashOutPreview} onCashOut={() => undefined} />}
       {!settling && side && !cashOutPreview && (

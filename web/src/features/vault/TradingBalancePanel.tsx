@@ -26,7 +26,10 @@ export function TradingBalancePanel({ inline, className }: { inline?: boolean; c
   if (account.kind !== "connected") return null;
   const blocker = deriveVaultBlocker({ session, hasSigner, busy: state.busy !== null, gasShort: state.gasShort });
   const open =
-    openBets && isOk(openBets) ? { count: openBets.value.length, stakeBase: openBets.value.reduce((sum, bet) => sum + bet.stakeBase, 0n) } : null;
+    // One bet whose cost is not recorded makes the total unknown; a partial sum would read as the whole.
+    openBets && isOk(openBets)
+      ? { count: openBets.value.length, stakeBase: openBets.value.reduce<bigint | null>((sum, bet) => (sum === null || bet.stakeBase === null ? null : sum + bet.stakeBase), 0n) }
+      : null;
 
   return (
     <TradingBalanceView

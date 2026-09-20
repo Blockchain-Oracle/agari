@@ -1,8 +1,9 @@
 import { isOk } from "@agari/core/schemas";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, type SubmitterSession } from "@agari/markets";
+import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, type SubmitterSession } from "@agari/markets";
 import { getLeverageMark, getLeverageReserveState, listLeverageOpenPositions } from "@agari/markets/leverage";
 import { decidePosition } from "./decide";
 import { readKeeperEnv, type KeeperEnv } from "./env";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
 
@@ -47,7 +48,7 @@ async function cycle(keeper: Keeper): Promise<void> {
 /** The leverage reserve's keeper: one key, one writer, cranking what the contract already allows anyone to crank; dry-run until told otherwise. */
 export async function startLeverageKeeper(log: Log): Promise<void> {
   const env = readKeeperEnv();
-  const marketsEnv = parseMarketsEnv({ venueId: env.venueId });
+  const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
   // The reads price in collateral units: the token must be loaded once before any reserve read (the first live run found this).
   const collateral = await loadCollateral();

@@ -18,7 +18,7 @@ export interface VaultOpenBet {
   heldUpRaw: bigint;
   heldDownRaw: bigint;
   /** Cost of what is still held, net of anything sold back — at cost, because the venue does not price the vault's tokens per owner. */
-  stakeBase: bigint;
+  stakeBase: bigint | null;
 }
 
 const SETTLED: ReadonlySet<IndexedStatus> = new Set<IndexedStatus>(["Resolved", "Voided", "Finalized"]);
@@ -41,7 +41,8 @@ export async function listVaultOpenBets(wallet: Address): Promise<Reading<VaultO
           decimals: market.decimals,
           heldUpRaw: ledger.heldUpRaw,
           heldDownRaw: ledger.heldDownRaw,
-          stakeBase: ledger.costBase > ledger.proceedsBase ? ledger.costBase - ledger.proceedsBase : 0n,
+          // The vault's position slots record lots, not cash, so a cost of 0 means "not recorded", never "free".
+          stakeBase: ledger.costBase > ledger.proceedsBase ? ledger.costBase - ledger.proceedsBase : null,
         } satisfies VaultOpenBet;
       }),
     );

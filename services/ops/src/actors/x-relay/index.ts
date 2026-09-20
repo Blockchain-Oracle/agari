@@ -1,4 +1,4 @@
-import { createSubmitterSession, ensureMarkets, getCollateral, loadCollateral, parseMarketsEnv, syncClock } from "@agari/markets";
+import { createSubmitterSession, ensureMarkets, getCollateral, loadCollateral, syncClock } from "@agari/markets";
 import { xAcquireReplyDelivery, xBeginReplyPost, xClaimMention, xFinishReplyPost, xMarkInterruptedReplyPosts, xReceiptByMention, xRelayStateGet, xRelayStateSet, xStopReplyDelivery, xRecoveryCandidates, xStoreRecoveredReceipt, xSetStageHealth, xHasUnresolvedBroadcast, xIsRelayReply, xSuppressRelayReplyDeliveries } from "@agari/db";
 import type { Hash32 } from "@agari/core/types";
 import { readRelayEnv, RELAY_ENV } from "./env";
@@ -9,6 +9,7 @@ import { renderReplyCardPng } from "./reply-card";
 import { createXExecutionJournal } from "./execution-journal";
 import { recoverXExecutions, resolveXExecution } from "./execution-recovery";
 import { pollMentionCycle } from "./poll-cycle";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 const HEARTBEAT_MS = 60_000;
 const CURSOR_KEY = "mentions.since_id";
@@ -29,7 +30,7 @@ export async function startXRelay(log: (why: string) => void): Promise<void> {
     return;
   }
   const relay = reading.env;
-  const marketsEnv = parseMarketsEnv({ venueId: process.env.VENUE_ID });
+  const marketsEnv = opsMarketsEnv(process.env.VENUE_ID);
   ensureMarkets(marketsEnv);
   await loadCollateral();
   await syncClock();

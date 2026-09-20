@@ -2,11 +2,12 @@ import type { ArenaIntent } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
 import type { Hash32, Hex, MarketId } from "@agari/core/types";
 import { getDeck, isDbConfigured, listLiveMatches, markDeckRevealed } from "@agari/db";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, type SubmitterSession } from "@agari/markets";
+import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, type SubmitterSession } from "@agari/markets";
 import { getArenaMatch, getArenaState, resolveArenaDeployment, sendArenaIntent } from "@agari/markets/games";
 import { deckKey, fromJournal, open } from "../matchmaker/seal";
 import { readSecretKey } from "../secret-key";
 import { decideMatch, isDone, type SettlerAction } from "./decide";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
 
@@ -124,7 +125,7 @@ async function crank(session: SubmitterSession | null, dryRun: boolean, action: 
 
 export async function startDuelSettler(log: Log): Promise<void> {
   const env = readSettlerEnv();
-  const marketsEnv = parseMarketsEnv();
+  const marketsEnv = opsMarketsEnv();
   ensureMarkets(marketsEnv);
   const deployment = resolveArenaDeployment(marketsEnv);
   if (!deployment) return log("GameArena is not deployed on this network; nothing to settle");

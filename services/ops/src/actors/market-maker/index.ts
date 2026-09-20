@@ -3,10 +3,11 @@ import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
 import { isOk } from "@agari/core/schemas";
 import type { Address, EventMarket, MarketId } from "@agari/core/types";
 import { oneUnit } from "@agari/core/units";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, parseMarketsEnv, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, resolveVenueId, type SubmitterSession } from "@agari/markets";
 import { getMakerVaultState, listMakerOpenWindows, readPoolTop } from "@agari/markets/maker";
 import { decideOpen, decideQuote, type Placed } from "./decide";
 import { readMakerEnv, type MakerEnv } from "./env";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
 
@@ -113,7 +114,7 @@ async function cycle(maker: Maker): Promise<void> {
 /** The Earn vault's maker: one key, one writer, bounded by the vault's own params; dry-run until told otherwise. */
 export async function startMarketMaker(log: Log): Promise<void> {
   const env = readMakerEnv();
-  const marketsEnv = parseMarketsEnv({ venueId: env.venueId });
+  const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
   // The reads price in collateral units: the token must be loaded once before any reserve read (the first live run found this).
   const collateral = await loadCollateral();

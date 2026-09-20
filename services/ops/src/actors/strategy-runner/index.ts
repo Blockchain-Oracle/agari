@@ -3,13 +3,14 @@ import { parseStrategyMetadata, type StrategyRecord } from "@agari/core/strategi
 import type { Address } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { interruptStrategyDecisions, isDbConfigured, listAttemptedStrategyIds, markDecisionExecution, recordHeartbeat } from "@agari/db";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import { createMemoryJournal, createSubmitterSession, ensureMarkets, marketsProvider, resolveVenueId, type SubmitterSession } from "@agari/markets";
 import { getStrategy, listLiveSubscribers, listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
 import { agentBootLine, createAgentState, scanVenueWithAgent, warmAgentState, type AgentState } from "./agent";
 import { scanVenue, type Scan } from "./decide";
 import { readRunnerEnv, type RunnerEnv } from "./env";
 import { executeForSubscriber } from "./execute";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
 
@@ -109,7 +110,7 @@ export async function startStrategyRunner(log: Log): Promise<void> {
   // secret (the owner, 2026-09-04) — the registry already says whose key each strategy is bound to.
   if (env.strategyIds.length === 0 && !env.privateKey) return log("not configured: no STRATEGY_IDS and no RUNNER_PRIVATE_KEY to discover them by; idle");
   if (!resolveRegistryDeployment()) return log("StrategyRegistry is not deployed on this network; idle");
-  const marketsEnv = parseMarketsEnv({ venueId: env.venueId });
+  const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
   const venue = await resolveVenueId(marketsEnv.venueId);
   if (!isOk(venue) || !venue.value.venueId) return log(`no venue to scan: ${isOk(venue) ? "none live" : venue.error.technical}; idle`);

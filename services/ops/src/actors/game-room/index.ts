@@ -1,12 +1,13 @@
 import { activeMatchFor } from "@agari/db";
 import type { Address, Hash32 } from "@agari/core/types";
-import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
+import { ensureMarkets } from "@agari/markets";
 import { resolveArenaDeployment } from "@agari/markets/games";
 import { readRoomEnv, ROOM_ENV } from "./env";
 import { createRoomHub } from "./hub";
 import type { RoomContext } from "./handlers";
 import { createMatchmaker } from "../matchmaker";
 import { startRoomServer } from "./server";
+import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
 
@@ -29,7 +30,7 @@ export async function startGameRoom(log: Log): Promise<RoomContext | null> {
     return null;
   }
 
-  const marketsEnv = parseMarketsEnv({ venueId: env.venueId });
+  const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
   const deployment = resolveArenaDeployment(marketsEnv);
   if (!deployment) {

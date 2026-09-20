@@ -22,7 +22,7 @@ export interface TradingBalanceViewProps {
   walletSpendableBase: bigint | null;
   needsApproval: boolean;
   /** Open Windows the vault holds and their cost; null while unread. */
-  open: { count: number; stakeBase: bigint } | null;
+  open: { count: number; stakeBase: bigint | null } | null;
   poolCredit: readonly VenueCredit[];
   blocker: BlockerKind | null;
   busy: VaultWriteKind | null;
