@@ -105,11 +105,11 @@
       "programData": "EZnJdanj8D87AufEMXfoPSnxQfkmS3F1tz2Co7ypC4M8",
       "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
       "deploySignature": "4FUhQj3BQYTmonEbrwSVAzznwHbKc35rbNnkWbT7pZwpY1DamExefR38zo43xBXY3EQvZ8XG22hnCGnkke6L5JEA",
-      "deployedSlot": 501443820,
+      "deployedSlot": 501459023,
       "sbpfArch": "v0",
-      "soBytes": 545296,
-      "soSha256": "61a3c7ae13f5b7017a5135fa42b3b3aba48817b02da604de1d3bd2052754928d",
-      "sourceCommit": "adf9783",
+      "soBytes": 545336,
+      "soSha256": "0f80794936ad04d2b35abead434011145f1a241f3734badff815339ab3e8603d",
+      "sourceCommit": "bbe091b",
       "reserve": "erQ4JNsSk7pkev7Y5KKyqqkQcD4BmmY74xLahJqjTue",
       "custody": "Cy4STHKx3j2iBiTnGydpEMVc5wMP9jNhNPzYgZGYENhD",
       "seat": "FX1WA4YaWsmn6k9PCeNTEKHsCfhin1gZusfsQZgX3FxR",
@@ -125,8 +125,34 @@
           "soSha256": "61a3c7ae13f5b7017a5135fa42b3b3aba48817b02da604de1d3bd2052754928d",
           "why": "D-116 VoidWouldShort; provider account field renamed to `record`",
           "extendedBy": 16384
+        },
+        {
+          "signature": "5oVYSdfFT5r62pEXYx89L5PHrmnXACLLaFFyjiiAp9adVfhnCeN79Sxv6tpufsQUTCi2GyM3ZHABBq1jULQ2MPKB",
+          "slot": 501459023,
+          "soBytes": 545336,
+          "soSha256": "0f80794936ad04d2b35abead434011145f1a241f3734badff815339ab3e8603d",
+          "why": "stake walk moved to agari-common (bbe091b); behaviour unchanged, 16 tests"
         }
       ]
+    },
+    "agari_private": {
+      "programId": "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j",
+      "programData": "725nBK4yB65ekieiyX7pqQHJgo6cvUH6qHsaaiFaLdCt",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "3uHz2WoNtN8Aa84vP3A7AaYy9nH8vgnABj22J3Zw5ycZRs7yPdEyZYX641jZZXC9S4Ha89LRFtfX6D2KAJRUkjNr",
+      "deployedSlot": 501461807,
+      "sbpfArch": "v0",
+      "soBytes": 518024,
+      "soSha256": "e2335bbe5c21f84c8b88a0ba368335377b33d38f7924a3999b5ce8d8953c5473",
+      "sourceCommit": "75e2933",
+      "desk": "CsKhDTNZbTMoc4qzxPPgY2VheMB8mDTWsZrSkw46r3hH",
+      "custody": "GV7z94LFVXDJSxHGiRbMEFrwGUFgGDbnizCkdnh9KR1W",
+      "seat": "6aKCb7PGgfTkvJ7S3jY3FBdkgnWKdSTQHcX3YK6D7bSD",
+      "deskKey": "76TiES6gZYPDG91pke5JWeA27B4VPPrdW6S92Mz8uGx8",
+      "fromSlot": 501462141,
+      "initSignature": "4wbtp59B8HJsy4LyvWPCVXWtfKFVQUzm6LR9VS6CHnqzs7h2GbRDgw5YSUr6BiD8Uyeb2QSNASAEx4PmwFbbGGju",
+      "seatSignature": "4bHF8ByhkPJ9y4SixS2P1fFATP9AzsNzz2WqvuwB2PDn6Qpu6b75YiJ4nDgafH8ZRtsbnThTpST8SuzmPmbHaLNv",
+      "seatFromSlot": 501462141
     }
   },
   "venue": {

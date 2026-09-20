@@ -13,6 +13,8 @@
     "./agari-maker/idl.json": "./agari-maker/idl.json",
     "./agari-parlay": "./agari-parlay/src/generated/index.ts",
     "./agari-parlay/idl.json": "./agari-parlay/idl.json",
+    "./agari-private": "./agari-private/src/generated/index.ts",
+    "./agari-private/idl.json": "./agari-private/idl.json",
     "./agari-range": "./agari-range/src/generated/index.ts",
     "./agari-range/idl.json": "./agari-range/idl.json",
     "./agari-strategy": "./agari-strategy/src/generated/index.ts",

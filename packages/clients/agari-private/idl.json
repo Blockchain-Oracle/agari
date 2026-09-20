@@ -1,0 +1,2160 @@
+{
+  "address": "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j",
+  "metadata": {
+    "name": "agari_private",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's PrivateDesk on Solana: a budget only its owner can withdraw, a throwaway slot per bet, and a pool between them that neither half names"
+  },
+  "instructions": [
+    {
+      "name": "admin_init_desk",
+      "discriminator": [
+        175,
+        71,
+        171,
+        37,
+        145,
+        167,
+        171,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "docs": [
+            "Every unit the desk holds: balances, the pool's float and every slot's cash."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "program",
+          "address": "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "desk",
+          "type": "pubkey"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "PrivateParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_desk",
+      "discriminator": [
+        123,
+        207,
+        38,
+        94,
+        103,
+        52,
+        211,
+        115
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "desk",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "admin_set_params",
+      "discriminator": [
+        194,
+        243,
+        1,
+        30,
+        162,
+        133,
+        247,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "PrivateParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_paused",
+      "discriminator": [
+        227,
+        123,
+        24,
+        239,
+        31,
+        134,
+        65,
+        247
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "desk_charge_to_pool",
+      "discriminator": [
+        18,
+        246,
+        12,
+        141,
+        134,
+        121,
+        145,
+        148
+      ],
+      "accounts": [
+        {
+          "name": "desk",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "budget",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  100,
+                  103,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mark",
+          "docs": [
+            "One per key. `init_if_needed` so a used key is refused as `KeyUsed` and not as a system error."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  114,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "arg",
+                "path": "charge_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        },
+        {
+          "name": "charge_key",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "desk_credit_from_pool",
+      "discriminator": [
+        200,
+        15,
+        244,
+        76,
+        91,
+        164,
+        190,
+        158
+      ],
+      "accounts": [
+        {
+          "name": "desk",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "budget",
+          "docs": [
+            "An existing Budget only: a credit follows a charge, so the desk can credit nobody who never deposited."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  100,
+                  103,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mark",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "arg",
+                "path": "credit_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        },
+        {
+          "name": "credit_key",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "desk_fund_slot",
+      "discriminator": [
+        244,
+        51,
+        88,
+        25,
+        226,
+        40,
+        175,
+        176
+      ],
+      "accounts": [
+        {
+          "name": "desk",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "slot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "slot_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "desk_mint_in_slot",
+      "discriminator": [
+        58,
+        4,
+        76,
+        26,
+        164,
+        101,
+        27,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "desk",
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "slot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "slot_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "outcome",
+          "type": "u8"
+        },
+        {
+          "name": "min_lots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "desk_sweep_slot_to_pool",
+      "discriminator": [
+        98,
+        212,
+        147,
+        240,
+        148,
+        144,
+        156,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "desk",
+          "signer": true,
+          "relations": [
+            "desk_account"
+          ]
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "slot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "slot_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "owner_allow",
+      "discriminator": [
+        142,
+        130,
+        16,
+        78,
+        184,
+        79,
+        49,
+        160
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "budget",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  100,
+                  103,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "allowance_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_deposit_and_allow",
+      "discriminator": [
+        16,
+        162,
+        40,
+        113,
+        230,
+        30,
+        68,
+        20
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "budget",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  100,
+                  103,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        },
+        {
+          "name": "allowance_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_revoke",
+      "discriminator": [
+        174,
+        76,
+        167,
+        28,
+        141,
+        123,
+        43,
+        184
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "budget",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  100,
+                  103,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_withdraw",
+      "discriminator": [
+        138,
+        172,
+        103,
+        228,
+        254,
+        96,
+        114,
+        178
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "budget",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  100,
+                  103,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_settle_slot",
+      "discriminator": [
+        136,
+        10,
+        76,
+        165,
+        173,
+        169,
+        208,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless: the proceeds stay in the slot whoever cranks it."
+          ],
+          "signer": true
+        },
+        {
+          "name": "desk_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "slot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  108,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "slot_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Budget",
+      "discriminator": [
+        35,
+        151,
+        58,
+        65,
+        187,
+        148,
+        119,
+        218
+      ]
+    },
+    {
+      "name": "Desk",
+      "discriminator": [
+        33,
+        28,
+        147,
+        6,
+        226,
+        158,
+        166,
+        73
+      ]
+    },
+    {
+      "name": "KeyMark",
+      "discriminator": [
+        82,
+        7,
+        231,
+        23,
+        154,
+        134,
+        92,
+        214
+      ]
+    },
+    {
+      "name": "Slot",
+      "discriminator": [
+        140,
+        54,
+        3,
+        187,
+        53,
+        189,
+        250,
+        230
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Allowed",
+      "discriminator": [
+        106,
+        173,
+        214,
+        122,
+        135,
+        22,
+        173,
+        117
+      ]
+    },
+    {
+      "name": "Charged",
+      "discriminator": [
+        167,
+        170,
+        67,
+        179,
+        47,
+        88,
+        221,
+        132
+      ]
+    },
+    {
+      "name": "Credited",
+      "discriminator": [
+        142,
+        248,
+        247,
+        7,
+        241,
+        250,
+        230,
+        55
+      ]
+    },
+    {
+      "name": "Deposited",
+      "discriminator": [
+        111,
+        141,
+        26,
+        45,
+        161,
+        35,
+        100,
+        57
+      ]
+    },
+    {
+      "name": "DeskChanged",
+      "discriminator": [
+        244,
+        154,
+        223,
+        211,
+        250,
+        204,
+        216,
+        19
+      ]
+    },
+    {
+      "name": "DeskInitialized",
+      "discriminator": [
+        224,
+        64,
+        5,
+        212,
+        234,
+        116,
+        187,
+        38
+      ]
+    },
+    {
+      "name": "ParamsUpdated",
+      "discriminator": [
+        2,
+        163,
+        138,
+        99,
+        135,
+        11,
+        136,
+        169
+      ]
+    },
+    {
+      "name": "PausedSet",
+      "discriminator": [
+        171,
+        125,
+        127,
+        156,
+        233,
+        81,
+        68,
+        66
+      ]
+    },
+    {
+      "name": "SlotFunded",
+      "discriminator": [
+        82,
+        151,
+        146,
+        230,
+        100,
+        173,
+        242,
+        125
+      ]
+    },
+    {
+      "name": "SlotMinted",
+      "discriminator": [
+        153,
+        174,
+        230,
+        123,
+        24,
+        132,
+        130,
+        115
+      ]
+    },
+    {
+      "name": "SlotSettled",
+      "discriminator": [
+        252,
+        32,
+        33,
+        185,
+        200,
+        156,
+        247,
+        236
+      ]
+    },
+    {
+      "name": "SlotSwept",
+      "discriminator": [
+        147,
+        49,
+        36,
+        202,
+        172,
+        216,
+        146,
+        222
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Paused",
+      "msg": "private mode is paused"
+    },
+    {
+      "code": 6001,
+      "name": "BadParams",
+      "msg": "the stake band is empty or inverted"
+    },
+    {
+      "code": 6002,
+      "name": "NotAdmin",
+      "msg": "only the desk's admin can do that"
+    },
+    {
+      "code": 6003,
+      "name": "NotDesk",
+      "msg": "only the desk key can do that"
+    },
+    {
+      "code": 6004,
+      "name": "UnknownMarket",
+      "msg": "those accounts are not one Window of the venue"
+    },
+    {
+      "code": 6005,
+      "name": "WrongCollateral",
+      "msg": "the venue's collateral is not the desk's"
+    },
+    {
+      "code": 6006,
+      "name": "BadOutcome",
+      "msg": "the outcome is 0 (Up) or 1 (Down)"
+    },
+    {
+      "code": 6007,
+      "name": "DeskNotRegistered",
+      "msg": "the desk's seat is not registered with the venue"
+    },
+    {
+      "code": 6008,
+      "name": "WindowPredatesDesk",
+      "msg": "this Window opened before the desk was seated"
+    },
+    {
+      "code": 6009,
+      "name": "WindowNotTrading",
+      "msg": "the Window is not trading"
+    },
+    {
+      "code": 6010,
+      "name": "TooLate",
+      "msg": "too close to the Window's end for a three-transaction open"
+    },
+    {
+      "code": 6011,
+      "name": "ZeroAmount",
+      "msg": "the amount is zero"
+    },
+    {
+      "code": 6012,
+      "name": "Insufficient",
+      "msg": "the private balance is smaller than that"
+    },
+    {
+      "code": 6013,
+      "name": "OverAllowance",
+      "msg": "the desk's allowance is smaller than that"
+    },
+    {
+      "code": 6014,
+      "name": "PoolShort",
+      "msg": "the pool holds less than that"
+    },
+    {
+      "code": 6015,
+      "name": "KeyUsed",
+      "msg": "that key has been used"
+    },
+    {
+      "code": 6016,
+      "name": "StakeOutsideBand",
+      "msg": "the stake is outside the desk's band"
+    },
+    {
+      "code": 6017,
+      "name": "SlotAlreadyFunded",
+      "msg": "the slot is already funded"
+    },
+    {
+      "code": 6018,
+      "name": "SlotNotFunded",
+      "msg": "the slot is not funded"
+    },
+    {
+      "code": 6019,
+      "name": "SlotAlreadyMinted",
+      "msg": "the slot has already minted"
+    },
+    {
+      "code": 6020,
+      "name": "SlotHoldsContracts",
+      "msg": "the slot still holds contracts; settle it first"
+    },
+    {
+      "code": 6021,
+      "name": "SlotEmpty",
+      "msg": "the slot holds no cash"
+    },
+    {
+      "code": 6022,
+      "name": "BelowMinQuantity",
+      "msg": "the book fills fewer contracts than the owner's guard"
+    },
+    {
+      "code": 6023,
+      "name": "StakeAboveMax",
+      "msg": "the fill cost more than the slot's stake"
+    },
+    {
+      "code": 6024,
+      "name": "NothingFilled",
+      "msg": "nothing filled"
+    },
+    {
+      "code": 6025,
+      "name": "MarketNotSettled",
+      "msg": "the venue has not settled that Window"
+    },
+    {
+      "code": 6026,
+      "name": "NothingToSettle",
+      "msg": "the slot holds no contracts to settle"
+    },
+    {
+      "code": 6027,
+      "name": "EngineResultMissing",
+      "msg": "the engine returned no result"
+    },
+    {
+      "code": 6028,
+      "name": "EngineAccountingMismatch",
+      "msg": "the engine's report does not match the money that moved"
+    },
+    {
+      "code": 6029,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflowed"
+    }
+  ],
+  "types": [
+    {
+      "name": "Allowed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "allowance_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Budget",
+      "docs": [
+        "An owner's money behind private bets: theirs alone to withdraw, the desk's to spend inside the allowance."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "balance_base",
+            "type": "u64"
+          },
+          {
+            "name": "allowance_base",
+            "docs": [
+              "What the desk may still spend of the balance. Zero refuses every private bet."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Charged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "charge_key",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Credited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "credit_key",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "balance_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Desk",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "desk",
+            "docs": [
+              "The one key that may charge, fund, mint, sweep and credit. It can never withdraw: only an owner can."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "PrivateParams"
+              }
+            }
+          },
+          {
+            "name": "pool_base",
+            "docs": [
+              "Money nobody has claimed yet: charged and not yet in a slot, or swept and not yet credited."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "owed_base",
+            "docs": [
+              "The sum of every owner's balance."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "in_slots_base",
+            "docs": [
+              "The sum of every slot's cash."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "seat_bump",
+            "type": "u8"
+          },
+          {
+            "name": "custody_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeskChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "desk",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeskInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "desk_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "desk",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KeyMark",
+      "docs": [
+        "One use of one key. A charge key and a credit key each get one, so a desk that resumes after a crash can see",
+        "what already landed without keeping a record, and two desk processes racing on one claim cannot pay it twice."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "PrivateParams"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PausedSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrivateParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "min_stake_base",
+            "docs": [
+              "Stake band per slot, in collateral base units."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_stake_base",
+            "type": "u64"
+          },
+          {
+            "name": "min_time_left_sec",
+            "docs": [
+              "No mints inside the last seconds of a Window: the three-transaction open needs room to land."
+            ],
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Slot",
+      "docs": [
+        "One bet's throwaway account: funded from the pool, minted on the venue, settled, swept back. It carries a market",
+        "and never an owner. The proof of whose it is lives off chain, in the claim the desk signs and the owner keeps."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "outcome",
+            "docs": [
+              "0 Up (YES), 1 Down (NO)."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "funded_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "minted_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "settled_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          },
+          {
+            "name": "lots",
+            "docs": [
+              "Contracts the desk's seat holds for this slot, in the venue's lots; zero once redeemed."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lot_base",
+            "docs": [
+              "Base units one lot pays when its side lands, so a reader need not fetch the Series to size the slot."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "balance_base",
+            "docs": [
+              "Cash in the slot: the stake before the mint, the dust after it, the payout after settlement."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "cost_base",
+            "type": "u64"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "swept_base",
+            "docs": [
+              "Cumulative: what left the slot for the pool."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotFunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotMinted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "outcome",
+            "type": "u8"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "cost_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotSwept",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "slot_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "balance_base",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}
