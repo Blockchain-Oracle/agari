@@ -24,7 +24,7 @@ export function LiveDesk({ payload, desk, nowMs, onManage }: { payload: Strategi
       <div className="desk"><div className="desk-body">
         <div className="flex items-start gap-4">
           <AgentPortrait seed={seed} name={name} />
-          <div><h2 className="desk-name text-ink">{name}</h2><p className="desk-what text-ink/70">{spec?.preset === "agent" ? "AI judgment with enforced limits" : "Opening-price momentum rule"} · {STRATEGY_MARKETS}</p></div>
+          <div><h2 className="desk-name text-ink">{name}</h2><p className="desk-what text-ink/70">{spec?.preset === "agent" ? "AI judgment with enforced limits" : spec?.preset === "reversion" ? "Opening-price reversion rule" : "Opening-price momentum rule"} · {STRATEGY_MARKETS}</p></div>
         </div>
         <div className="mt-6"><RecordCard record={card.record} decimals={decimals} symbol={symbol} /></div>
         <div className="desk-pulse mt-5">

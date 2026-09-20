@@ -40,7 +40,7 @@ export function StrategyCard({ card, sub, decimals, symbol, asset, onOpen }: Str
   const copiers = card.subscribers > 0 ? ` · ${card.subscribers} copiers` : "";
   // The instinct slot is one mono line; the agent's full sentence (`describeSpec`) lives in the drawer.
   const spec = parseStrategyMetadata(card.metadata)?.spec ?? null;
-  const instinct = spec?.preset === "agent" ? STRATEGIES.archive.agentInstinct(asset, spec.posture) : STRATEGIES.archive.instinct(asset);
+  const instinct = spec?.preset === "agent" ? STRATEGIES.archive.agentInstinct(asset, spec.posture) : STRATEGIES.archive.instinct(asset, spec?.preset === "reversion" ? "reversion" : "momentum");
   const memory = Boolean(card.agent && card.agent.decisions.length > 0);
   return (
     <div

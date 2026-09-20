@@ -8,6 +8,13 @@ import type { StudioDraft } from "./studio-draft";
 import { StudioAgentFields } from "./StudioAgentFields";
 import "./strategies.css";
 
+/** What each approach does, in the builder's own words. The two fixed rules read the same move and take opposite sides of it. */
+const APPROACH_BODY = {
+  agent: "An AI reads the opening price, recent move and order books, then explains its call. Hard limits still decide what it may trade.",
+  momentum: "A fixed rule follows the current EMA price away from each Window’s opening print. No AI model is used.",
+  reversion: "A fixed rule bets against the current EMA move away from each Window’s opening print, expecting it to pull back. No AI model is used.",
+} as const;
+
 export { draftSpec, type StudioDraft } from "./studio-draft";
 const S = STRATEGIES.studio;
 
@@ -32,11 +39,11 @@ export function StudioForm({ form, setForm, symbol, asset, decimals, houseRunner
       <Field label="Agent name"><input value={form.name} maxLength={64} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Give your agent a name" className="strat-input text-ink" /></Field>
       <div>
         <div className="desk-field-label">Trading approach</div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(["agent", "momentum"] as const).map((preset) => (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {(["agent", "momentum", "reversion"] as const).map((preset) => (
             <button key={preset} type="button" aria-pressed={form.preset === preset} onClick={() => setForm((f) => ({ ...f, preset }))} className={cn("strat-choice group", form.preset === preset && "strat-choice--on")}>
               <span className="strat-choice-title text-ink">{PRESETS[preset].name}</span>
-              <p className="strat-choice-body">{preset === "agent" ? "An AI reads the opening price, recent move and order books, then explains its call. Hard limits still decide what it may trade." : "A fixed rule follows the current EMA price away from each Window’s opening print. No AI model is used."}</p>
+              <p className="strat-choice-body">{APPROACH_BODY[preset]}</p>
             </button>
           ))}
         </div>

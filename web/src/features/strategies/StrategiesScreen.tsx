@@ -35,7 +35,7 @@ export function StrategiesScreen({ houseRunner }: { houseRunner: string | null }
   const payload = reading && isOk(reading) ? reading.value : null;
   return <div className="container pt-7 pb-12">
     <div className="strat-nameplate"><div><p className="strat-meta mb-3 text-vermilion">AGENTS · SOLANA DEVNET</p><h1 className="strat-h1">Give your strategy a life.</h1></div><StrategyXBar /></div>
-    <p className="mb-7 max-w-2xl text-sm text-ink-secondary">Build an AI agent or a momentum rule, test its thinking, and set the limits before it can trade.</p>
+    <p className="mb-7 max-w-2xl text-sm text-ink-secondary">Build an AI agent, a momentum rule or a reversion rule, test its thinking, and set the limits before it can trade.</p>
     <nav className="agent-entry" aria-label="Strategy workspace">
       {([["create", "Create"], ["copy", "Copy a strategy"], ["yours", "Your strategies"]] as const).map(([key, label]) => <button key={key} type="button" aria-pressed={view === key} onClick={() => setView(key)}>{label}</button>)}
     </nav>
