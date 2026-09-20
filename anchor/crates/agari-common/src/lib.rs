@@ -8,10 +8,12 @@
 //! - `book_walk`: filtered level walks, VWAP, exit walk and stake quote over a Book (events-engine.md §9), mirrored in
 //!   `packages/core/src/market/book-math.ts` with shared vectors.
 //! - `print`: pure per-source print verifiers and normalization (prints.md §4).
+//! - `stake_walk`: the walk that turns a stake into a size and an IOC limit, shared by the products that buy for a user.
 
 pub mod book_walk;
 pub mod grid;
 pub mod place_result;
 pub mod seeds;
+pub mod stake_walk;
 pub mod print;
 pub mod view;
