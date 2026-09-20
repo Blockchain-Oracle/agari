@@ -153,6 +153,24 @@
       "initSignature": "4wbtp59B8HJsy4LyvWPCVXWtfKFVQUzm6LR9VS6CHnqzs7h2GbRDgw5YSUr6BiD8Uyeb2QSNASAEx4PmwFbbGGju",
       "seatSignature": "4bHF8ByhkPJ9y4SixS2P1fFATP9AzsNzz2WqvuwB2PDn6Qpu6b75YiJ4nDgafH8ZRtsbnThTpST8SuzmPmbHaLNv",
       "seatFromSlot": 501462141
+    },
+    "agari_arena": {
+      "programId": "CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3",
+      "programData": "98N7g4TmNyvc6trANHMY65mMnX4fqNuzByauxWJKPhkp",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "5mDcMrbR2AApf6f4gGadUyRAwXTy3cRB4Yy4qx1S6KAkXRDAC7tRqu9uCYsYViYrxkQvLjunfCpVHLBQDKeXdoZr",
+      "deployedSlot": 501481189,
+      "sbpfArch": "v0",
+      "soBytes": 706592,
+      "soSha256": "34a2674c8b5bdfa9afcafce38439a828f99231b6e889b4a714e409abfaac5ca1",
+      "sourceCommit": "3487716",
+      "arena": "3aYbq4NtkKSPgjc86yHD6sG5zg5LGLHs1c96dHZD8jeg",
+      "custody": "Fg1Th3DNctGDrUGJLaXPUp85Gv4tdKAicuM2StQKfnXW",
+      "seat": "5LaRyjFvZn8qCjobjjQP8PYteVKY8hrPbmy3aB5MR48h",
+      "fromSlot": 501481795,
+      "initSignature": "u2e4B8hxX7NBeW1xgQHWBjr7MNo5LWkNL4sPQmrCYsp3g48ieFfy6AkWtbJcVubnbs2DWM9FKaasJsMDzRm5wbS",
+      "seatSignature": "3wef5i1Jd6J2kUjCgf47zC5PGcWzwFiT912EzvsQPUASaroFdy6FptdvsHMZgjYFELE6eXnr8meVShVZ28NgAoZY",
+      "seatFromSlot": 501481795
     }
   },
   "venue": {

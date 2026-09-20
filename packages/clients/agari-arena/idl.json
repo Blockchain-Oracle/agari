@@ -1,0 +1,4045 @@
+{
+  "address": "CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3",
+  "metadata": {
+    "name": "agari_arena",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's GameArena on Solana: a two-player duel over real Windows, each card one confirmed IOC pick, and only the side-pot the arena's to award"
+  },
+  "instructions": [
+    {
+      "name": "admin_create_season",
+      "discriminator": [
+        218,
+        171,
+        140,
+        107,
+        58,
+        7,
+        137,
+        24
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "season",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "season_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "The pool's own money. Its authority is the season account, which only this program can sign for."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "season_id",
+          "type": "string"
+        },
+        {
+          "name": "ends_at_sec",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "admin_distribute_season",
+      "discriminator": [
+        4,
+        11,
+        184,
+        49,
+        81,
+        112,
+        143,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "season"
+          ]
+        },
+        {
+          "name": "season",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season.season_id",
+                "account": "SeasonPool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amounts_base",
+          "type": {
+            "vec": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_init_arena",
+      "discriminator": [
+        168,
+        226,
+        228,
+        221,
+        100,
+        53,
+        134,
+        134
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "docs": [
+            "Every unit the arena holds: open pots, players' credits, keys' escrows."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "program",
+          "address": "CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "chain_id",
+          "type": "u64"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ArenaParams"
+            }
+          }
+        },
+        {
+          "name": "tiers",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "Tier"
+                }
+              },
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_params",
+      "discriminator": [
+        194,
+        243,
+        1,
+        30,
+        162,
+        133,
+        247,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "arena"
+          ]
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ArenaParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_paused",
+      "discriminator": [
+        227,
+        123,
+        24,
+        239,
+        31,
+        134,
+        65,
+        247
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "arena"
+          ]
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "admin_set_tier",
+      "discriminator": [
+        110,
+        42,
+        183,
+        137,
+        242,
+        72,
+        237,
+        81
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "arena"
+          ]
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "tier",
+          "type": "u8"
+        },
+        {
+          "name": "value",
+          "type": {
+            "defined": {
+              "name": "Tier"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_withdraw_season_remainder",
+      "discriminator": [
+        95,
+        187,
+        26,
+        247,
+        103,
+        78,
+        240,
+        232
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "season"
+          ]
+        },
+        {
+          "name": "season",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season.season_id",
+                "account": "SeasonPool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season"
+              }
+            ]
+          }
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "agent_place_pick",
+      "discriminator": [
+        77,
+        156,
+        16,
+        180,
+        18,
+        247,
+        55,
+        199
+      ],
+      "accounts": [
+        {
+          "name": "agent",
+          "docs": [
+            "The seat's key. It only signs: the stake and the refund are the player's."
+          ],
+          "signer": true
+        },
+        {
+          "name": "player"
+        },
+        {
+          "name": "agent_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "card_index",
+          "type": "u8"
+        },
+        {
+          "name": "outcome",
+          "type": "u8"
+        },
+        {
+          "name": "stake_base",
+          "type": "u64"
+        },
+        {
+          "name": "min_lots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "player_authorize_agent",
+      "discriminator": [
+        116,
+        8,
+        130,
+        113,
+        218,
+        106,
+        124,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "type": "pubkey"
+        },
+        {
+          "name": "ttl_sec",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "player_cancel_match",
+      "discriminator": [
+        100,
+        18,
+        55,
+        227,
+        184,
+        83,
+        11,
+        134
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.creator",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.challenger",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "player_create_match",
+      "discriminator": [
+        163,
+        215,
+        88,
+        32,
+        79,
+        65,
+        87,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "docs": [
+            "`init_if_needed` so a used id is refused as `MatchExists` and not as a system error."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "challenger",
+          "type": "pubkey"
+        },
+        {
+          "name": "tier",
+          "type": "u8"
+        },
+        {
+          "name": "deck_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "deck_size",
+          "type": "u8"
+        },
+        {
+          "name": "policy_version",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "player_join_match",
+      "discriminator": [
+        187,
+        138,
+        141,
+        108,
+        163,
+        199,
+        2,
+        164
+      ],
+      "accounts": [
+        {
+          "name": "challenger",
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "player_place_pick",
+      "discriminator": [
+        55,
+        15,
+        219,
+        118,
+        9,
+        97,
+        154,
+        77
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_token",
+          "writable": true
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "card_index",
+          "type": "u8"
+        },
+        {
+          "name": "outcome",
+          "type": "u8"
+        },
+        {
+          "name": "stake_base",
+          "type": "u64"
+        },
+        {
+          "name": "min_lots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_claim_credit",
+      "discriminator": [
+        182,
+        132,
+        40,
+        250,
+        49,
+        80,
+        254,
+        71
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless: a relayer or a friend can crank it without becoming the beneficiary."
+          ],
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player"
+        },
+        {
+          "name": "credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_token",
+          "docs": [
+            "The player's own token account, and nobody else's (AD-5)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_deposit_season",
+      "discriminator": [
+        69,
+        145,
+        125,
+        38,
+        97,
+        110,
+        228,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "from",
+          "signer": true
+        },
+        {
+          "name": "season",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season.season_id",
+                "account": "SeasonPool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  115,
+                  111,
+                  110,
+                  45,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "season"
+              }
+            ]
+          }
+        },
+        {
+          "name": "from_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_finalize",
+      "discriminator": [
+        139,
+        146,
+        103,
+        236,
+        43,
+        159,
+        245,
+        219
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.creator",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.challenger",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "public_lock_picks",
+      "discriminator": [
+        96,
+        161,
+        15,
+        62,
+        207,
+        61,
+        141,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.creator",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.challenger",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "public_refund_unjoined",
+      "discriminator": [
+        88,
+        237,
+        92,
+        60,
+        143,
+        181,
+        140,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.creator",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.challenger",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "public_refund_unrevealed",
+      "discriminator": [
+        184,
+        206,
+        215,
+        241,
+        114,
+        9,
+        118,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.creator",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.challenger",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "public_release_agent",
+      "discriminator": [
+        111,
+        164,
+        43,
+        83,
+        59,
+        57,
+        173,
+        15
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "The player to revoke their own key at any time; anyone once the pick phase is over or the key has expired."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player"
+        },
+        {
+          "name": "agent_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "public_reveal_deck",
+      "discriminator": [
+        88,
+        175,
+        147,
+        23,
+        220,
+        55,
+        3,
+        139
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless: whoever holds the preimage may publish it, because the commitment, not a key, is what proves",
+            "the deck was fixed before either player saw it."
+          ],
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "server_seed",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "client_seeds",
+          "type": {
+            "vec": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "public_settle_card",
+      "discriminator": [
+        154,
+        35,
+        61,
+        138,
+        49,
+        128,
+        126,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "match_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.creator",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "challenger_credit",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "game.challenger",
+                "account": "GameMatch"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "match_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "card_index",
+          "type": "u8"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Agent",
+      "discriminator": [
+        47,
+        166,
+        112,
+        147,
+        155,
+        197,
+        86,
+        7
+      ]
+    },
+    {
+      "name": "Arena",
+      "discriminator": [
+        243,
+        215,
+        44,
+        44,
+        231,
+        211,
+        232,
+        168
+      ]
+    },
+    {
+      "name": "Credit",
+      "discriminator": [
+        6,
+        79,
+        161,
+        136,
+        156,
+        172,
+        190,
+        149
+      ]
+    },
+    {
+      "name": "GameMatch",
+      "discriminator": [
+        87,
+        187,
+        102,
+        98,
+        236,
+        52,
+        127,
+        39
+      ]
+    },
+    {
+      "name": "SeasonPool",
+      "discriminator": [
+        236,
+        98,
+        219,
+        250,
+        20,
+        50,
+        140,
+        239
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AgentAuthorized",
+      "discriminator": [
+        153,
+        190,
+        9,
+        106,
+        195,
+        225,
+        34,
+        216
+      ]
+    },
+    {
+      "name": "AgentReleased",
+      "discriminator": [
+        73,
+        46,
+        234,
+        47,
+        212,
+        74,
+        70,
+        217
+      ]
+    },
+    {
+      "name": "CardSettled",
+      "discriminator": [
+        34,
+        206,
+        169,
+        204,
+        178,
+        170,
+        227,
+        94
+      ]
+    },
+    {
+      "name": "CreditClaimed",
+      "discriminator": [
+        173,
+        2,
+        172,
+        90,
+        249,
+        178,
+        171,
+        194
+      ]
+    },
+    {
+      "name": "DeckRevealed",
+      "discriminator": [
+        23,
+        87,
+        10,
+        63,
+        115,
+        132,
+        214,
+        102
+      ]
+    },
+    {
+      "name": "MatchCreated",
+      "discriminator": [
+        151,
+        176,
+        11,
+        24,
+        34,
+        225,
+        227,
+        16
+      ]
+    },
+    {
+      "name": "MatchFinalized",
+      "discriminator": [
+        234,
+        71,
+        250,
+        217,
+        155,
+        97,
+        21,
+        217
+      ]
+    },
+    {
+      "name": "MatchJoined",
+      "discriminator": [
+        94,
+        7,
+        113,
+        154,
+        236,
+        126,
+        100,
+        39
+      ]
+    },
+    {
+      "name": "MatchRefunded",
+      "discriminator": [
+        185,
+        57,
+        210,
+        244,
+        121,
+        237,
+        113,
+        232
+      ]
+    },
+    {
+      "name": "ParamsUpdated",
+      "discriminator": [
+        2,
+        163,
+        138,
+        99,
+        135,
+        11,
+        136,
+        169
+      ]
+    },
+    {
+      "name": "PausedSet",
+      "discriminator": [
+        171,
+        125,
+        127,
+        156,
+        233,
+        81,
+        68,
+        66
+      ]
+    },
+    {
+      "name": "PickFilled",
+      "discriminator": [
+        180,
+        128,
+        140,
+        233,
+        52,
+        28,
+        88,
+        101
+      ]
+    },
+    {
+      "name": "PicksLocked",
+      "discriminator": [
+        196,
+        173,
+        1,
+        142,
+        140,
+        106,
+        236,
+        226
+      ]
+    },
+    {
+      "name": "SeasonCreated",
+      "discriminator": [
+        69,
+        129,
+        125,
+        162,
+        208,
+        173,
+        40,
+        68
+      ]
+    },
+    {
+      "name": "SeasonDeposited",
+      "discriminator": [
+        137,
+        199,
+        122,
+        4,
+        18,
+        85,
+        130,
+        8
+      ]
+    },
+    {
+      "name": "SeasonDistributed",
+      "discriminator": [
+        6,
+        48,
+        249,
+        21,
+        185,
+        147,
+        233,
+        113
+      ]
+    },
+    {
+      "name": "SeasonRemainderWithdrawn",
+      "discriminator": [
+        40,
+        3,
+        45,
+        203,
+        93,
+        58,
+        181,
+        249
+      ]
+    },
+    {
+      "name": "TierSet",
+      "discriminator": [
+        195,
+        162,
+        76,
+        118,
+        218,
+        200,
+        225,
+        238
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Paused",
+      "msg": "the arena is paused"
+    },
+    {
+      "code": 6001,
+      "name": "BadParams",
+      "msg": "the parameters do not describe a playable match"
+    },
+    {
+      "code": 6002,
+      "name": "NotAdmin",
+      "msg": "only the arena's admin can do that"
+    },
+    {
+      "code": 6003,
+      "name": "UnknownMarket",
+      "msg": "those accounts are not one Window of the venue"
+    },
+    {
+      "code": 6004,
+      "name": "WrongCollateral",
+      "msg": "the venue's collateral is not the arena's"
+    },
+    {
+      "code": 6005,
+      "name": "BadOutcome",
+      "msg": "the outcome is 0 (Up) or 1 (Down)"
+    },
+    {
+      "code": 6006,
+      "name": "ArenaNotRegistered",
+      "msg": "the arena's seat is not registered with the venue"
+    },
+    {
+      "code": 6007,
+      "name": "WindowPredatesArena",
+      "msg": "this Window opened before the arena was seated"
+    },
+    {
+      "code": 6008,
+      "name": "WindowNotTrading",
+      "msg": "the Window is not trading"
+    },
+    {
+      "code": 6009,
+      "name": "MarketNotSettled",
+      "msg": "the venue has not settled that Window"
+    },
+    {
+      "code": 6010,
+      "name": "TooLate",
+      "msg": "that Window ends too soon to be a card"
+    },
+    {
+      "code": 6011,
+      "name": "ZeroAmount",
+      "msg": "the amount is zero"
+    },
+    {
+      "code": 6012,
+      "name": "BelowMinQuantity",
+      "msg": "the book fills fewer contracts than the player's guard"
+    },
+    {
+      "code": 6013,
+      "name": "CostAboveStake",
+      "msg": "the fill cost more than the stake"
+    },
+    {
+      "code": 6014,
+      "name": "StakeAboveCap",
+      "msg": "the stake is above the tier's cap for one card"
+    },
+    {
+      "code": 6015,
+      "name": "NothingFilled",
+      "msg": "nothing filled"
+    },
+    {
+      "code": 6016,
+      "name": "MatchExists",
+      "msg": "a match with that id exists"
+    },
+    {
+      "code": 6017,
+      "name": "WrongStatus",
+      "msg": "the match is not in a status that allows that"
+    },
+    {
+      "code": 6018,
+      "name": "UnknownTier",
+      "msg": "that tier is not enabled"
+    },
+    {
+      "code": 6019,
+      "name": "BadDeckSize",
+      "msg": "the deck size is outside the arena's limits"
+    },
+    {
+      "code": 6020,
+      "name": "DuplicateCard",
+      "msg": "the same Window twice is not a deck"
+    },
+    {
+      "code": 6021,
+      "name": "DeckMismatch",
+      "msg": "the revealed deck is not the one that was committed to"
+    },
+    {
+      "code": 6022,
+      "name": "NotAPlayer",
+      "msg": "that wallet holds no seat in this match"
+    },
+    {
+      "code": 6023,
+      "name": "SelfJoin",
+      "msg": "a player cannot be their own opponent"
+    },
+    {
+      "code": 6024,
+      "name": "DeadlinePassed",
+      "msg": "the deadline has passed"
+    },
+    {
+      "code": 6025,
+      "name": "DeadlineNotPassed",
+      "msg": "the deadline has not passed yet"
+    },
+    {
+      "code": 6026,
+      "name": "BadCard",
+      "msg": "there is no such card in this deck"
+    },
+    {
+      "code": 6027,
+      "name": "AlreadyPicked",
+      "msg": "that seat has already played this card"
+    },
+    {
+      "code": 6028,
+      "name": "AlreadySettled",
+      "msg": "that card is already settled"
+    },
+    {
+      "code": 6029,
+      "name": "CardsOutstanding",
+      "msg": "a played card is still unsettled"
+    },
+    {
+      "code": 6030,
+      "name": "NoCredit",
+      "msg": "that player has no credit to claim"
+    },
+    {
+      "code": 6031,
+      "name": "NotAgent",
+      "msg": "the signer is not that seat's key"
+    },
+    {
+      "code": 6032,
+      "name": "AgentExpired",
+      "msg": "the seat's key has expired"
+    },
+    {
+      "code": 6033,
+      "name": "AgentOverBudget",
+      "msg": "the seat's key has spent the deck's ceiling"
+    },
+    {
+      "code": 6034,
+      "name": "BadTtl",
+      "msg": "a key's lifetime is between one second and one day"
+    },
+    {
+      "code": 6035,
+      "name": "AgentStillLive",
+      "msg": "the key's escrow is still in play"
+    },
+    {
+      "code": 6036,
+      "name": "AlreadyDistributed",
+      "msg": "the season pool has already been distributed"
+    },
+    {
+      "code": 6037,
+      "name": "BadWinners",
+      "msg": "winners and amounts differ in number, or there are none"
+    },
+    {
+      "code": 6038,
+      "name": "InsufficientPool",
+      "msg": "the season pool holds less than that"
+    },
+    {
+      "code": 6039,
+      "name": "EngineResultMissing",
+      "msg": "the engine returned no result"
+    },
+    {
+      "code": 6040,
+      "name": "EngineAccountingMismatch",
+      "msg": "the engine's report does not match the money that moved"
+    },
+    {
+      "code": 6041,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflowed"
+    }
+  ],
+  "types": [
+    {
+      "name": "Agent",
+      "docs": [
+        "A match-scoped delegate for one seat: the key the player named, until when, and the deck's own ceiling on the",
+        "stakes it may hand the arena (`per_card_cap × deck_size`, booked gross).",
+        "",
+        "On the EVM the key's picks pull each stake from the player's wallet under a token allowance. An SPL token",
+        "account has one delegate, so a player in two matches would overwrite their own approval. Here the entry that",
+        "names a key escrows the ceiling beside the pot, the key's picks draw on it, and whatever is unspent becomes the",
+        "player's credit once the pick phase is over or the key is replaced."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "expires_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "budget_base",
+            "type": "u64"
+          },
+          {
+            "name": "spent_base",
+            "docs": [
+              "Gross: the stakes handed over, not the costs after refund, so the ceiling is the deck's and never a guess about fills."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "escrow_base",
+            "docs": [
+              "What is still set aside for this key's picks."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentAuthorized",
+      "docs": [
+        "`agent` is the default key for a revocation."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "expires_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "budget_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentReleased",
+      "docs": [
+        "What a key never spent, back in its player's credit."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Arena",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "chain_id",
+            "docs": [
+              "The cluster id the deck commitment carries, fixed at init, so a deck committed for one cluster opens nothing on another."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "ArenaParams"
+              }
+            }
+          },
+          {
+            "name": "tiers",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "Tier"
+                  }
+                },
+                4
+              ]
+            }
+          },
+          {
+            "name": "escrowed_base",
+            "docs": [
+              "Pots held for undecided matches."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "credited_base",
+            "docs": [
+              "Credits owed and unclaimed: payouts, pots won, pots refunded, a key's unspent escrow."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "agent_escrow_base",
+            "docs": [
+              "Stakes players have set aside for their seats' keys."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "seat_bump",
+            "type": "u8"
+          },
+          {
+            "name": "custody_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ArenaParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "join_window_sec",
+            "docs": [
+              "How long a created match waits for its challenger, a joined one for its deck, a revealed one for both players' picks."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "reveal_window_sec",
+            "type": "u32"
+          },
+          {
+            "name": "pick_window_sec",
+            "type": "u32"
+          },
+          {
+            "name": "min_deck_size",
+            "type": "u8"
+          },
+          {
+            "name": "max_deck_size",
+            "type": "u8"
+          },
+          {
+            "name": "min_card_life_sec",
+            "docs": [
+              "At reveal every card's Window must still have this long to run: a deck of Windows about to lock is a deck nobody can play."
+            ],
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CardSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "card_index",
+            "type": "u8"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          },
+          {
+            "name": "pnl_base",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Credit",
+      "docs": [
+        "A player's claimable money. It pays the player, never whoever cranks the claim (AD-5)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreditClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeckRevealed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "policy_version",
+            "type": "u32"
+          },
+          {
+            "name": "cards",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "pick_deadline_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameMatch",
+      "docs": [
+        "`creator` and `challenger` are the payout addresses too. They are never rewritten, so a compromised key cannot",
+        "redirect a pot (AD-5)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "challenger",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MatchStatus"
+              }
+            }
+          },
+          {
+            "name": "deck_size",
+            "type": "u8"
+          },
+          {
+            "name": "picked_mask0",
+            "docs": [
+              "One bit per card, per seat: set when that seat's pick is on the book."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "picked_mask1",
+            "type": "u8"
+          },
+          {
+            "name": "settled_mask",
+            "docs": [
+              "One bit per card: set when both seats' picks on it have been redeemed."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "policy_version",
+            "docs": [
+              "Bumped whenever the deck-selection rules change; part of the commitment preimage."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "deck_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "created_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "joined_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "revealed_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "pick_deadline_sec",
+            "type": "i64"
+          },
+          {
+            "name": "pot_base",
+            "type": "u64"
+          },
+          {
+            "name": "per_card_cap_base",
+            "type": "u64"
+          },
+          {
+            "name": "cards",
+            "type": {
+              "array": [
+                "pubkey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "picks",
+            "docs": [
+              "Keyed `card_index × 2 + seat`, so one card's two picks sit beside each other."
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "PickRecord"
+                  }
+                },
+                16
+              ]
+            }
+          },
+          {
+            "name": "pnl_base",
+            "docs": [
+              "`payout − cost` summed over settled cards, per seat."
+            ],
+            "type": {
+              "array": [
+                "i64",
+                2
+              ]
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "challenger",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u8"
+          },
+          {
+            "name": "pot_base",
+            "type": "u64"
+          },
+          {
+            "name": "deck_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "deck_size",
+            "type": "u8"
+          },
+          {
+            "name": "join_deadline_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchFinalized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "winner",
+            "docs": [
+              "The default key for a tie."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "creator_pnl_base",
+            "type": "i64"
+          },
+          {
+            "name": "challenger_pnl_base",
+            "type": "i64"
+          },
+          {
+            "name": "pot_awarded_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchJoined",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "challenger",
+            "type": "pubkey"
+          },
+          {
+            "name": "pot_base",
+            "type": "u64"
+          },
+          {
+            "name": "reveal_deadline_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchRefunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "reason",
+            "type": {
+              "defined": {
+                "name": "RefundReason"
+              }
+            }
+          },
+          {
+            "name": "per_player_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchStatus",
+      "docs": [
+        "WAITING until the challenger joins; ACTIVE_UNREVEALED until the deck is opened; PICKING while both players still",
+        "owe cards; then SETTLING (both complete), FORFEITED (one absent) or REFUNDED (nobody's fault). FINALIZED is the",
+        "pot's terminal state. Cards may settle in any of the last four, because a match that lost its pot still owns real",
+        "positions on the book. The order is `packages/core/src/games/types.ts`'s `ARENA_STATUSES`."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Waiting"
+          },
+          {
+            "name": "ActiveUnrevealed"
+          },
+          {
+            "name": "Picking"
+          },
+          {
+            "name": "Settling"
+          },
+          {
+            "name": "Finalized"
+          },
+          {
+            "name": "Refunded"
+          },
+          {
+            "name": "Forfeited"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "ArenaParams"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PausedSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PickFilled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "card_index",
+            "type": "u8"
+          },
+          {
+            "name": "outcome",
+            "type": "u8"
+          },
+          {
+            "name": "quantity_raw",
+            "docs": [
+              "Contracts, in raw units (`lots × lot_base`)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "cost_base",
+            "type": "u64"
+          },
+          {
+            "name": "refund_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PickRecord",
+      "docs": [
+        "What the engine reported around one IOC, and what the redemption later paid for it. Never the quote a player was shown."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "placed",
+            "type": "bool"
+          },
+          {
+            "name": "settled",
+            "type": "bool"
+          },
+          {
+            "name": "outcome",
+            "type": "u8"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "lot_base",
+            "type": "u64"
+          },
+          {
+            "name": "cost_base",
+            "type": "u64"
+          },
+          {
+            "name": "payout_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PicksLocked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MatchStatus"
+              }
+            }
+          },
+          {
+            "name": "forfeited_by",
+            "docs": [
+              "The seat that never finished; the default key when both did."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RefundReason",
+      "docs": [
+        "Why a pot went home instead of being won. The order is core's `ARENA_REFUND_REASONS`."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "CreatorCancelled"
+          },
+          {
+            "name": "JoinTimeout"
+          },
+          {
+            "name": "RevealUnavailable"
+          },
+          {
+            "name": "BothIncomplete"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeasonCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "season",
+            "type": "pubkey"
+          },
+          {
+            "name": "season_id",
+            "type": "string"
+          },
+          {
+            "name": "ends_at_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeasonDeposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "season",
+            "type": "pubkey"
+          },
+          {
+            "name": "from",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "balance_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeasonDistributed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "season",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_base",
+            "type": "u64"
+          },
+          {
+            "name": "winners",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeasonPool",
+      "docs": [
+        "A season's prize, as money that already sits in an account and not a promise on a page. Standings and",
+        "eligibility live off chain (the ladder the settler writes); this is only the payout rail. Funds leave through one",
+        "single-shot distribution or the admin's withdrawal of what is left, so the pool can be neither replayed nor",
+        "over-spent, and nothing is ever stuck. `ends_at_sec` is informational."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "season_id",
+            "type": "string"
+          },
+          {
+            "name": "ends_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "distributed",
+            "docs": [
+              "Set once `admin_distribute_season` runs; blocks a second distribution."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "deposited_base",
+            "docs": [
+              "Everything ever deposited, so a page can say how the pool was built and not only what is left."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SeasonRemainderWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "season",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tier",
+      "docs": [
+        "One entry price. `pot_base` is what each player escrows; `per_card_cap_base` is the most one card's order may",
+        "spend. Free is a tier with a zero pot: its picks are still real orders."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pot_base",
+            "type": "u64"
+          },
+          {
+            "name": "per_card_cap_base",
+            "type": "u64"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TierSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tier",
+            "type": "u8"
+          },
+          {
+            "name": "pot_base",
+            "type": "u64"
+          },
+          {
+            "name": "per_card_cap_base",
+            "type": "u64"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ]
+}
