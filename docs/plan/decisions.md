@@ -1172,6 +1172,19 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** the parlay builder opens on a ticket the venue can price.
 - **Approval:** stage owner. A deliberate deviation from the reference's values (D-081), for the user's override.
 
+### D-112 — `agari-strategy` keeps a strategy's words on chain, written in pieces and sealed against a declared hash
+- **Date / owner:** 2026-09-20 · S9 on `integration/w1`
+- **Evidence:** the reference's `StrategyRegistry.publish` takes `metadata` as one unbounded string, and its creators' words are "stored in the open". On Solana one transaction carries about 780 bytes of it after the runner, the hashes, the envelope and the accounts; the studio allows a 64-character name, a description and a 600-character persona inside the spec (`AGENT_PERSONA_MAX_CHARS`), which does not fit. The 4,000-character playbook is already off chain in `strategy_playbooks` with the creator's signature, so it is not part of this.
+- **Rule:**
+  - **Declared first:** `creator_publish` and `creator_update` take a `Revision` with `spec_hash`, `metadata_hash` (sha256 of the whole string), `metadata_len` (at most `MAX_METADATA_LEN` = 2,048) and whatever first piece fits. `creator_write_metadata(offset, chunk)` writes the rest in any order. `creator_seal` hashes what is there with the sha256 syscall and seals only on an exact match.
+  - **Nobody subscribes to unfinished text:** `subscriber_subscribe` needs `active` and `sealed`. A new revision unseals the strategy until it is sealed again; subscriptions already on record are untouched, as in the reference.
+  - **Considered and not chosen:** the hash on chain with the text served from Postgres. It is smaller, but it would make the runner and every reader depend on our database for the words a subscriber consented to, and the reference keeps them on chain.
+  - **No custody, so no money gate:** the registry holds no vault. The only transfer is the fee, signed by the subscriber, straight to a token account Anchor checks belongs to the creator. It reads the vault's zero-copy `Grant` through `AccountLoader`, which checks `agari-vault` owns it, and applies the vault's own liveness rule (`caps::require_live`: not revoked, live through the second it expires).
+  - **Added over the reference:** `max_fee_base` on subscribe. The fee the subscriber was shown is a ceiling, so a creator who raises it between the read and the signature gets a refusal.
+  - **A vault fact that shapes the product:** `agari-vault` keeps one active grant per kind per account, and a new strategy grant revokes the last. A wallet follows one strategy at a time.
+- **User-visible:** publishing a strategy with a long persona is two or three signatures instead of one.
+- **Approval:** stage owner, for the user's override.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

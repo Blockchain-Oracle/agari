@@ -104,6 +104,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "agari-strategy"
+version = "0.1.0"
+dependencies = [
+ "agari-vault",
+ "anchor-lang",
+ "anchor-spl",
+ "bytemuck",
+ "solana-sha256-hasher",
+]
+
+[[package]]
 name = "agari-vault"
 version = "0.1.0"
 dependencies = [
