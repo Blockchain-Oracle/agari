@@ -1186,6 +1186,13 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** publishing a strategy with a long persona is two or three signatures instead of one.
 - **Approval:** stage owner, for the user's override.
 
+### D-113 — Every deferred feature is built in full; the deadline is never a reason and is never raised
+- **Date / owner:** 2026-09-20 · the user
+- **Evidence:** `handoff-deferred-stages.md` told sessions that the remaining programs and the deadline "do not both fit" and to offer taking unfinished pages out of the nav. On 2026-09-20 a session did exactly that, recommending Boost be built and Private desk and the Duel arena be hidden. The user: "I keep telling you deadline's not an issue … Don't make compromise … I don't want you come here and tell me that just because of deadline you're not integrating some stuff." The rule had been stated on 2026-09-18 as well and was already in STATUS ("the deadline is never a reason to compromise scope or quality"); it kept being lost across context clears because the handoff said the opposite.
+- **Rule:** no feature is cut, hidden, deferred or thinned, and no session tells the user something will not fit or asks which to drop. S10c Boost, S10d Private desk and S12b Duel arena are all built, in that order, each with the full money gate (`00-plan.md` §7) and the same evidence standard as the programs before them. D-084's deferral is over: it was a scope cut for a deadline that moved, and every stage it named is now either done or next. The rule is in `CLAUDE.md`, which every session reads first, and the handoff's contrary text is withdrawn.
+- **User-visible:** nothing in the app will say "not live", because everything in it will be live.
+- **Approval:** the user, 2026-09-20.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

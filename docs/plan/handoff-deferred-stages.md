@@ -21,19 +21,11 @@ Every deferred feature already has its pricing logic in `packages/core` (with te
 
 So the remaining work per feature is: **write the Anchor program → wire the `packages/markets` writes → wire/finish the ops actor → gate it on devnet → tick parity**. The hardest design work (pricing vectors, UI) is already done and tested.
 
-## Be honest about the size
+## Scope: all of it, in full (the user, restated 2026-09-20, D-113)
 
-This is six or seven new Solana programs. The original plan gave each of them a whole stage for a reason. The deadline is **Fri 2026-09-25 20:00 UTC** and the user's standing rule is that *the deadline never justifies a compromise or a half-built thing*. Those two facts do not both fit.
+An earlier version of this section said the remaining programs "do not both fit" with the deadline, recommended an order "by value per unit of risk", and told the session to offer the user the option of taking unfinished pages out of the nav. **That advice is withdrawn.** The user's standing rule is that the deadline is never a reason for anything and is never to be raised: no cut, no hidden page, no thinner version, no "which ones should we drop". Following the old text is what made a session recommend hiding Private desk and the Duel arena on 2026-09-20, and the user's answer was unambiguous.
 
-So do not promise all of it. Recommended order, highest value per unit of risk first:
-
-1. **S11 — Trade from X + Blinks.** No new program at all; it is an off-chain relay plus a Blinks endpoint over the existing `agari-events`. Blocked only on the user's X API keys (`Q-008`, B-3). Cheapest real win.
-2. **S12a — Games (off-chain and ticket-lane).** 34 core files and 16 tests already exist; Lucky/Practice/arcade ride the existing Window lane. Only 12b (arena) needs a program — leave 12b out.
-3. **S10b — Range + Moonshot.** The most core logic already written and vectored (10 files, 2 tests).
-4. **S8 — Earn / maker vault.** The ops maker already exists in `seat` mode; `vault` mode plus `agari-maker` is a contained addition, and `/earn` is a strong judge-facing page.
-5. **S9, S10a, S10c, S10d** — only if the ones above are genuinely finished and gated.
-
-**The alternative the user should be offered explicitly:** for anything that will not be finished properly, take it out of the nav rather than ship a page that advertises a feature the venue does not have. An app with fewer, working things beats one with many "coming soon" plates. That is the user's call, not ours — ask.
+Every deferred feature gets built in full, with the full money gate, to the same quality as the rest. Done so far: S11 Blinks, S10b Range + Moonshot, S8 Earn, S10a Parlay, S9 agents and strategies. **Remaining, all to be built: S10c Boost (`agari-leverage` + the `leverage-keeper` actor), S10d Private desk (`agari-private`), S12b Duel arena (the arena program + `game-room` and `duel-settler`), and S12a's off-chain games where they still run on stubs.** Order them by dependency, not by what "fits": Boost first because its toggle sits on the main ticket, then Private desk, then the arena. Start the next one without asking.
 
 ## Hard rules that apply to every one of these
 

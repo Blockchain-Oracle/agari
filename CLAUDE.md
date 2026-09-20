@@ -13,6 +13,7 @@ Stock-price Up/Down prediction market on Solana: a source-led port of Masayume (
 
 ## Rules
 
+- **Scope and the deadline (the user's standing rule, restated 2026-09-20):** the deadline is never a reason for anything and is never to be raised. Never cut, hide, defer or thin a feature; never take a page out of the nav instead of building it; never tell the user something "will not fit" or ask which features to drop. Every planned feature is built in full, with its full test gate, to the same quality as the rest. When a list has unbuilt features, start the next one.
 - **Package manager:** pnpm only (`pnpm add`, `pnpm dlx`); no npm/npx/yarn/bun lockfiles.
 - **File size:** at most 400 lines (TS/TSX/CSS/RS/MJS), target 300.
 - **Boundaries:**
