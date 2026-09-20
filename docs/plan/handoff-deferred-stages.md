@@ -2,7 +2,7 @@
 
 Written 2026-09-19 for a fresh session. The user's instruction: **nothing in the app should say "not live"; finish what we started.**
 
-Read `CLAUDE.md` first, then `docs/plan/STATUS.md`. This file only covers the deferred work.
+Read `docs/plan/working-rules.md` first, then `docs/plan/STATUS.md`. This file only covers the deferred work.
 
 ## What is actually missing
 

@@ -1,10 +1,10 @@
-# Agari (上がり) — agent guide
+# Agari (上がり) — working rules
 
 Stock-price Up/Down prediction market on Solana: a source-led port of Masayume (`reference/masayume` @ `68f7a09`, the only design authority).
 
 ## Read order (every session, before editing)
 
-1. This file.
+1. This file (`docs/plan/working-rules.md`).
 2. `docs/plan/STATUS.md`: the single resume pointer. **Never trust memory over STATUS.md.**
 3. The current stage file `docs/plan/stage-NN-*.md`: first unchecked box, then `## Handoff`.
 4. The last 10 `D-` entries and all open `Q-` in `docs/plan/decisions.md`.
