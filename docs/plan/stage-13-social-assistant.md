@@ -26,7 +26,7 @@
 
 ## Steps
 
-- [ ] Foundation (stage owner, D-071…D-073):
+- [ ] Foundation (stage owner, D-071…D-073): (open: no record of the three Context7 checks. Done: spec frozen with its defaults D-071; `schema-social.ts` wired into `SCHEMA_SQL` a7fe56f; `follows` and `idx/social-activity` exported, `take-tags` and `idx/social-gate` reached through `takes.ts` and `bettors.ts`; `LifecycleWatcher` mounted dd7866a; env presence in the Handoff table)
   - Freeze `social-assistant.md` (D-071).
   - Take the spec §6 defaults or record the user's answers (D-072). Q-S13-1 sentiment source, Q-S13-5 Web Push and Q-S13-6 Finnhub licence need the user.
   - Context7:
@@ -39,45 +39,45 @@
   - `web/src/providers/AppProviders.tsx`: mount a `LifecycleWatcher` stub (renders null) beside `AlertsWatcher`.
   - Check presence (names only): `FINNHUB_API_KEY`, `AI_MODEL` + one credential, `ROOM_TOKEN_SECRET`, `DATABASE_URL`.
   - Create the lane worktrees.
-- [ ] 13c.1 Finnhub client `web/src/lib/finnhub.server.ts` (spec §3.1), merged first.
-- [ ] 13b.1 Freezes:
+- [x] 13c.1 Finnhub client `web/src/lib/finnhub.server.ts` (spec §3.1), merged first. **(done: a3c6222)**
+- [x] 13b.1 Freezes: **(done: 681f3c9; the scoped token is tested in `web/src/features/room/gate.test.ts`)**
   - `take_tags` SQL;
   - `listTakes({ limit, symbol?, authors? })`, `parseCashtags`;
   - the room id grammar and `holdsPosition(address, roomId)`;
   - scoped `mintToken`/`readToken`;
   - `TickerRoomButton`, `localFillSignatures()`.
-- [ ] 13a Sensei:
+- [x] 13a Sensei: **(done: 6dab2d9, earnings line ab3bb0a; p50 3,460 ms and p95 4,630 ms over n = 20 on a production build, D-072, fe5f032)**
   - stable prefix (ticker registry, session rule, advice line; Brake last);
   - additive request fields (session, positions, record);
   - per-turn session, positions, record and earnings lines;
   - advice tripwire;
   - rate gate.
-- [ ] 13b Room:
+- [x] 13b Room: **(done: 681f3c9, 9e4dc7c; `gate.server.ts` runs registry → index → seat, `api/room/bet` writes the registry only after finding the fill in the index, initials are the first two characters exactly)**
   - three-step gate (registry → index "ever bet" → Ledger seat);
   - index-verified `POST /api/room/bet`;
   - ticker rooms and the sheet switch;
   - avatar initials fix;
   - limits.
-- [ ] 13b Takes and Reels: cashtags into `take_tags`; `?symbol` and `?authors`; author links to `/u`; off-hours reel with takes; limits.
-- [ ] 13c News: Finnhub wire with `?symbol`; `/api/earnings`.
-- [ ] 13c Alerts: integer-cents targets with `usdLine`; `basis` field; session and staleness gate; frozen notification exports.
-- [ ] 13c Marquee: registry assets, `OPENS` cell off-hours, `/api/sentiment` + cell.
-- [ ] 13d Follows: over `game_follows`; social session token; profile `/u/[address]`; `FriendsBoard`.
-- [ ] 13d Activity: index feed queries; `/activity`; ticker hub `/tickers/[symbol]`; the Explore nav item.
-- [ ] 13d `LifecycleWatcher`: fill (not from this tab), settled win/loss/void, claimable, paid automatically, copied (empty until S9/S14).
-- [ ] Friends tab mounted on `/leaderboard` together with S5 (Q-S13-8, D-entry).
-- [ ] Devnet proofs in NYSE hours; every fill used gets an `acceptance.md` row:
+- [x] 13b Takes and Reels: cashtags into `take_tags`; `?symbol` and `?authors`; author links to `/u`; off-hours reel with takes; limits. **(done: 8fd418d; route check 2026-09-19 `GET /api/takes`: stored wallet-signed takes served with their cashtags)**
+- [x] 13c News: Finnhub wire with `?symbol`; `/api/earnings`. **(done: 52eacd2; route check 2026-09-19: `GET /api/news?symbol=TSLA` returns tagged Finnhub articles, `GET :3000/api/earnings` returns the seven stocks' report dates)**
+- [x] 13c Alerts: integer-cents targets with `usdLine`; `basis` field; session and staleness gate; frozen notification exports. **(done: df9eada, a3c6222)**
+- [x] 13c Marquee: registry assets, `OPENS` cell off-hours, `/api/sentiment` + cell. **(done: b5912c1; "REOPENS WED 09:30 ET" seen at 390/768/1440 in `audits/s18-browser-pass-2026-09-15.md` §2)**
+- [x] 13d Follows: over `game_follows`; social session token; profile `/u/[address]`; `FriendsBoard`. **(done: 2d9a92f, 93ca7ef, 8b0bbec)**
+- [x] 13d Activity: index feed queries; `/activity`; ticker hub `/tickers/[symbol]`; the Explore nav item. **(done: f8b1412, a74c52e; route check 2026-09-19 `GET /api/activity/ticker/TSLA` returns indexed fills)**
+- [x] 13d `LifecycleWatcher`: fill (not from this tab), settled win/loss/void, claimable, paid automatically, copied (empty until S9/S14). **(done: bee2ed4, mounted dd7866a; own-tab fills are suppressed through `localFillSignatures()`. No fired notification is on record; that is the devnet-proofs box below)**
+- [ ] Friends tab mounted on `/leaderboard` together with S5 (Q-S13-8, D-entry). (open: `FriendsBoard` is mounted only on `/activity`, in `web/src/features/activity/ActivityScreen.tsx`; nothing under `web/src/features/leaderboard` names it, and no D-entry records the Q-S13-8 handoff)
+- [ ] Devnet proofs in NYSE hours; every fill used gets an `acceptance.md` row: (open: `acceptance.md` has no S13 row: no signed-take and tampered-copy pair, no Room refusal then admission, no registry write, no Sensei transcript set, no fired alert or settle notification. A lane test take is stored and served by `/api/takes`)
   - signed take accepted, and tampered/stale copies refused;
   - Room refused without a position and admitted after a real fill (each gate step logged);
   - registry written from the index;
   - Sensei transcript set: live read, trade card → ticket, advice refusal, Brake, off-hours, earnings;
   - an alert fired;
   - a settle notification fired.
-- [ ] Browser pass at 390/768/1440 in both themes against masayume.app:
+- [ ] Browser pass at 390/768/1440 in both themes against masayume.app: (open: no S13 pass exists under `docs/plan/audits/`. `s18-browser-pass-2026-09-15.md` §6 covers `/news`, `/reels`, `/tickers/TSLA` and the disconnected `/activity`; Sensei, Room, Takes, alerts and the profile are not covered)
   - Sensei, Room, Reels, Takes, alerts, news, marquee: exact;
   - profile, activity and ticker hub: reviewed for Masayume visual language.
   - Update the audit doc (D-036 upkeep).
-- [ ] Measure: no new browser RPC per tab (first-call §1 budget); Sensei p50/p95 latency; feed query p95 on the soak DB.
+- [ ] Measure: no new browser RPC per tab (first-call §1 budget); Sensei p50/p95 latency; feed query p95 on the soak DB. (open: Sensei latency is recorded, D-072, fe5f032. The RPC-per-tab check against the first-call §1 budget and the feed query p95 on the soak DB are not)
 
 ## Gate
 

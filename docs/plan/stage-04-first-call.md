@@ -33,12 +33,12 @@ Also: journal recovery, Reels on the same stream, honest closed and paused state
 - [x] Tx lane `redeem` (full redeem per Window, crank-paid reconcile) + journal reconcile by signature and `lastValidBlockHeight` (4b).
 - [x] Signer seams: Wallet Standard signer (modify-and-sign, sending fallback) + keypair signer; no Privy (4b).
 - [x] Faucet: SOL top-up chain adapter + server-side tUSDC mint claims, one challenge signature (4c, merged `b4aef58`; devnet claims wait for `sol-faucet` SOL).
-- [ ] Sponsor → S7 (D-023): `/api/sponsor` unchanged; gate row restated (stage owner D-entry).
+- [x] Sponsor → S7 (D-023): `/api/sponsor` unchanged; gate row restated (stage owner D-entry). **(done: D-035 restates the two gate rows ("wallet-paid IOC fill", "a fresh Phantom wallet") and D-065 carries the co-sign policy in S7; no S4 commit touched `web/src/app/api/sponsor/route.ts`, its next change after S1 is S7c e246af0)**
 - [x] Web rewiring: ticker picker, market-session chip, closed/paused/settling copy, verdict print-source labels, per-Window claims, seat-deposit note (4d, merged `09753ec`; full gate incl. `pnpm build` green, 198 vitests).
 - [x] Masayume fidelity audit + shared chrome fixes, incl. the centered connect modal (4e, merged through `80342e6`; D-036). Data-gated rows re-checked at the 09-15 open.
-- [ ] Drive `scripts/drive/first-call.ts` on devnet: faucet → IOC up fill → ops settle → redeem or crank → `verify-index` (4b, finished by the stage owner).
-- [ ] Browser pass at 390/768/1440 in both themes: signed-out, first-run, unfunded, quote moved (requote), fill, nothing filled, unknown send (kill the tab mid-send), win/loss/void, claim and crank-paid, closed, paused.
-- [ ] Tag `m1-first-call`.
+- [x] Drive `scripts/drive/first-call.ts` on devnet: faucet → IOC up fill → ops settle → redeem or crank → `verify-index` (4b, finished by the stage owner). **(done: passed 2026-09-16 on the live TSLA-5m #73, run from w1 @ 6c9ed94: faucet top-up, tUSDC mint, wallet-paid IOC Up fill `3w7kDdBa…`, ops settle, `user_redeem` claim, crank `redeem_for`, Ledger close; `acceptance.md` rows 14:15–14:27Z, all finalized. The index was checked for that Window (`idx_positions` `redeemed_by_crank`, the full indexed lifecycle); a whole-venue `verify-index` run after the drive is not recorded)**
+- [ ] Browser pass at 390/768/1440 in both themes: signed-out, first-run, unfunded, quote moved (requote), fill, nothing filled, unknown send (kill the tab mid-send), win/loss/void, claim and crank-paid, closed, paused. (open: signed-out, first-run and the live open market are captured at 390/768/1440 in both themes (Findings 2026-09-16); closed and paused are in `audits/s18-browser-pass-2026-09-15.md`. Unfunded, requote, fill, nothing filled, unknown send, win/loss/void, claim and crank-paid need the user's real wallet, next at the Mon 09-21 13:30Z bell)
+- [ ] Tag `m1-first-call`. (open: no such tag; `git tag` lists only `soak-1`…`soak-7`. It waits on the browser pass above)
 
 ## Gate
 

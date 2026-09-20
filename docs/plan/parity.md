@@ -7,85 +7,86 @@ Seeded 2026-09-13 in S0 from `context/05-masayume-baseline-parity-inventory.md` 
 - **Owner:** the stage that completes the row (plan §7). Earlier stages may advance it to Shell or Partial.
 - **Rules:** rows are only added or advanced, and only at stage gates. Evidence is a commit, a route check or an `acceptance.md` row.
 - **Deferral (D-084, 2026-09-15):** rows owned by S8–S12 and S14 stay Pending past the 2026-09-18 deadline; their routes keep their "not live" states (S18 lane 18e checks every nav route).
+- **Reconciliation (2026-09-19):** every row that read Pending was checked against the tree at `integration/w1` @ 2515720, against `acceptance.md`, and with GET-only route checks on the local builds (`:3000` = the pinned `live` build, `:3100` = w1; 19:37–19:40Z). The rule applied: **Done** = built, with a commit, an `acceptance.md` row or a named route check as evidence; a capability that can only be proven with a connected wallet in a real browser and has no `acceptance.md` row stays **Partial** ("wallet pass pending"); a surface whose on-chain program does not exist stays **Shell**; **Pending** means a search of the tree found nothing. This pass supersedes the D-084 note above where the deferred stages have since shipped (S8, S10b and S11 on 2026-09-19); S9, S10a, S10c, S10d, S12, S14 and S16 rows stay below Done. One row was added (A-3e, Blinks). Commits cited from a stage branch that is not merged into the trunk say so.
 
 ## Baseline (L)
 
 | # | Capability | Class | Status | Owner | Evidence |
 |---|---|---|---|---|---|
-| L-01 | Root layout, providers, pre-paint theme, fonts, PWA manifest | Exact | Pending | S1 | |
-| L-02 | Desktop header, grouped nav, balance pill, account menu | Exact | Pending | S1 | |
-| L-03 | Mobile pill nav + "Everything" drawer | Exact | Pending | S1 | |
-| L-04 | AppStrip, Marquee ticker, footer, grain, cursor, theme toggle | Adapted | Pending | S13 | |
-| L-05 | Design system (Yosuku port) | Exact | Pending | S1 | |
-| L-06 | Toast / transaction feedback | Exact | Pending | S1 | |
-| L-07 | Error boundaries | Exact | Pending | S1 | |
-| L-08 | Write-journal recovery on session start | Adapted | Pending | S4 | |
-| L-09 | First-run Tutorial | Adapted | Pending | S6 | |
-| L-10 | Wrong-network banner | Adapted | Pending | S4 | |
-| L-11 | `/` editorial landing | Adapted | Pending | S15 | |
-| L-12 | How it works | Adapted | Pending | S15 | |
-| L-13 | Demo | Adapted | Pending | S15 | |
-| L-14 | Pitch folio | Adapted | Pending | S15 | |
-| L-15 | Stats / traction | Adapted | Pending | S5 | |
-| L-16 | Status | Adapted | Pending | S5 | |
-| L-17 | News wire | Adapted | Pending | S13 | |
-| L-18 | Download / PWA install | Adapted | Pending | S15 | |
+| L-01 | Root layout, providers, pre-paint theme, fonts, PWA manifest | Exact | Done | S1 | `web/src/app/layout.tsx`, `providers/AppProviders.tsx`, `public/manifest.webmanifest` (route check 200); audit `ui-fidelity-2026-09-14.md` C-21 and C-12 Match; S1 browser pass f68d1e1; S1 gate closed b4e41f5 (on `stage/S1-solana-shell`) |
+| L-02 | Desktop header, grouped nav, balance pill, account menu | Exact | Done | S1 | `components/shell/header/{Header,DesktopNavMenu,HeaderMoneyPill,HeaderAccount}.tsx`; audit C-03…C-05 Match, C-08 fixed 3787560; account modal a337a64; Wallet Standard 7e382c0; S1 gate b4e41f5 (the user's Phantom check) |
+| L-03 | Mobile pill nav + "Everything" drawer | Exact | Done | S1 | `components/shell/header/MobileBottomNav.tsx`; audit C-09 "visually identical at 390", copy fixed 3787560; S1 browser pass f68d1e1 |
+| L-04 | AppStrip, Marquee ticker, footer, grain, cursor, theme toggle | Adapted | Done | S13 | `components/shell/{AppStrip,Marquee,Footer,GrainOverlay,CustomCursor,ThemeToggle}.tsx`; marquee on registry assets with the off-hours cell and crowd sentiment b5912c1; audit C-06, C-10, C-11 Match; `s18-browser-pass-2026-09-15.md` §2 (marquee "REOPENS WED 09:30 ET" at 390/768/1440) |
+| L-05 | Design system (Yosuku port) | Exact | Done | S1 | `web/src/styles/**` and `components/ui/**` byte-identical to Masayume (audit C-12, C-13; lane 4e 80342e6) |
+| L-06 | Toast / transaction feedback | Exact | Done | S1 | `components/ui/toast.tsx`, `lib/toast.ts`, `styles/toast.css` (audit C-14 Match); S1 gate b4e41f5 |
+| L-07 | Error boundaries | Exact | Done | S1 | `app/error.tsx`, `app/global-error.tsx`, `app/not-found.tsx`, `components/states/*` (audit C-17 Match); honest not-deployed states f68d1e1 |
+| L-08 | Write-journal recovery on session start | Adapted | Partial | S4 | `features/recovery/WriteRecovery.tsx` through the session reconciler cea5f68; fork proof (SIGKILL after journaling: reconciled as landed, 0 re-sends) lane 4b 76382c9. Gap: the browser kill-the-tab pass needs a real wallet (open S4 box) |
+| L-09 | First-run Tutorial | Adapted | Done | S6 | `features/onboarding/Tutorial.tsx`, `useFirstRun.ts`; first-run walkthrough captured at 390/768/1440 in both themes, 0 console errors (stage-04 Findings 2026-09-16); copy fixed 3787560 (audit C-15) |
+| L-10 | Wrong-network banner | Adapted | Partial | S4 | `session.isRightChain` blocks the ticket, faucet, claims and range open with a `wrong-chain` reason (`ticket-guards.ts`, `faucet-blocker.ts`, `claim-blocker.ts`). Gap: `WrongNetworkBanner.tsx` is mounted only in `/dev/states`, not in the app shell |
+| L-11 | `/` editorial landing | Adapted | Done | S15 | `/` → `app/page.tsx` (`features/landing`) 51c1148, 2e6ff95, "Cover what you hold" a0940d2; `s15-browser-pass-2026-09-15.md` (320–1440, both themes, pass); route check 200 |
+| L-12 | How it works | Adapted | Done | S15 | `/how-it-works` 9f43366, merged 000fbdf; `s15-browser-pass-2026-09-15.md` pass; route check 200 |
+| L-13 | Demo | Adapted | Partial | S15 | `/demo` page c432bc0, `s15-browser-pass-2026-09-15.md` pass. Gap: the page shows its honest "not recorded yet" state; `web/public/video/agari-demo.mp4` does not exist (D-097; the recording is parked by the user) |
+| L-14 | Pitch folio | Adapted | Done | S15 | `/pitch` 9682266, merged 000fbdf; `s15-browser-pass-2026-09-15.md` pass; route check 200 |
+| L-15 | Stats / traction | Adapted | Done | S5 | `/stats` → `app/stats/page.tsx`; `app/api/traction/route.ts`, tape scan be213c0, 4a41d0c, 973681d; recount from chain and from `idx_events` matched `/api/traction` exactly for the 09-14 session b66837e; route check 2026-09-19 19:38Z `GET :3000/api/traction`: 24 h, `complete: true`, 5 wallets, 5 calls, 36 settled Windows |
+| L-16 | Status | Adapted | Done | S5 | `/status` → `app/status/page.tsx`; session-aware probes with `expected` rows 187a8e0; route check 2026-09-19 `GET /api/status`: off-hours, relay and mix rows `expected`, per-ticker prices |
+| L-17 | News wire | Adapted | Done | S13 | `/news` → `app/news/page.tsx`; Finnhub wire with `?symbol` 52eacd2; V1 Ledger rows 152a83f (D-082); `s18-browser-pass-2026-09-15.md` §6; route check 2026-09-19 `GET /api/news?symbol=TSLA` returns tagged Finnhub articles |
+| L-18 | Download / PWA install | Adapted | Done | S15 | `/download` → `features/install/*` cde231f; `public/manifest.webmanifest` (route check 200); `s15-browser-pass-2026-09-15.md` pass |
 | L-19 | Native app + `/native-auth` | Blocked (no native source) | Blocked | S15 | |
-| L-20 | Documentation site | Adapted | Pending | S15 | |
-| L-21 | Legacy redirects | Exact | Pending | S1 | |
-| L-22 | Share cards (The Call, Earned Heat) | Adapted | Pending | S5 | |
-| L-23 | Social OG images | Adapted | Pending | S15 | |
-| L-24 | Wallet connect / disconnect / account switch | Adapted | Pending | S4 | |
-| L-25 | Get test funds | Adapted | Pending | S4 | |
-| L-26 | Add-money modal + CreditWelcome | Adapted | Pending | S4 | |
-| L-27 | Tap-trading (session key + SESSION grant + sponsor) | Adapted | Pending | S7 | |
-| L-28 | Trading Balance vault | Adapted | Pending | S7 | |
-| L-29 | `/markets` hero-as-ticket | Adapted | Pending | S6 | |
-| L-30 | §01 live-now rail cards | Adapted | Pending | S4 | |
-| L-31 | §02 "Just ask" word board | Adapted | Pending | S4 | |
-| L-32 | Call ticket (one-tap) | Adapted | Pending | S6 | |
-| L-33 | Verdict + inline claim | Adapted | Pending | S6 | |
-| L-34 | Claim-all plate | Adapted | Pending | S4 | |
-| L-35 | Plain-position cash-out | Adapted | Pending | S7 | |
-| L-36 | Range (ticket mode + `/games/range`) | Adapted | Pending | S10b | |
-| L-37 | Boost 2×/3× (LeverageReserve) | Adapted | Pending | S10c | |
-| L-38 | Parlay | Adapted | Pending | S10a | |
-| L-39 | Private mode | Adapted | Pending | S10d | |
-| L-40 | Market Surface | Adapted | Pending | S5 | |
-| L-41 | Sensei AI dock | Adapted | Pending | S13 | |
-| L-42 | The Room | Adapted | Pending | S13 | |
-| L-43 | Price alerts | Adapted | Pending | S13 | |
-| L-44 | Reels | Adapted | Pending | S13 | |
-| L-45 | Takes | Adapted | Pending | S13 | |
-| L-46 | Portfolio | Adapted | Pending | S7 | |
-| L-47 | Trader Edge | Adapted | Pending | S5 | |
-| L-48 | Leaderboard | Adapted | Pending | S5 | |
-| L-49 | Reputation, badges, CSV | Adapted | Pending | S5 | |
-| L-50 | Earn (maker vault) | Adapted | Pending | S8 | |
-| L-51 | Strategies desk | Adapted | Pending | S9 | |
-| L-52 | Launch an agent (4-step builder) | Adapted | Pending | S9 | |
-| L-53 | Copy a strategy | Adapted | Pending | S9 | |
-| L-54 | Agents board | Adapted | Pending | S9 | |
-| L-55 | Strategy runner + self-host | Adapted | Pending | S9 | |
-| L-56 | Paid Memory Market | Adapted | Pending | S9 | |
-| L-57 | Reversion preset | Adapted | Pending | S9 | |
-| L-58 | Trade from X | Adapted | Pending | S11 | |
-| L-59 | X recovery / claim | Adapted | Pending | S11 | |
-| L-60 | X relay | Adapted | Pending | S11 | |
-| L-61 | Games hub | Adapted | Pending | S12 | |
-| L-62 | Practice | Adapted | Pending | S12 | |
-| L-63 | Duel (Free/Ranked) + match link | Adapted | Pending | S12 | |
-| L-64 | Games history | Adapted | Pending | S12 | |
-| L-65 | Rank + seasons | Adapted | Pending | S12 | |
-| L-66 | Lucky Draw | Adapted | Pending | S12 | |
-| L-67 | Moonshot | Adapted | Pending | S10b | |
-| L-68 | Line Rider | Exact | Pending | S12 | |
-| L-69 | Candle Hop | Exact | Pending | S12 | |
-| L-70 | Game audio, motion, art, settings | Exact | Pending | S12 | |
-| L-71 | Game profile, achievements, friends | Adapted | Pending | S12 | |
-| L-72 | `/dev/*` fixtures | Adapted | Pending | S6 | |
-| L-73 | Ops host and health | Adapted | Pending | S16 | |
-| L-74 | API surface | Adapted | Pending | S16 | |
+| L-20 | Documentation site | Adapted | Partial | S15 | `agari-docs` (its own repository, 27 pages, builds green) 934827e, D-094. Gap: not deployed (no remote; Q-S15-1 waits on the S16 go and the domain), so in-app `/docs` falls back to `/how-it-works` 2bf34cc |
+| L-21 | Legacy redirects | Exact | Done | S1 | route check 2026-09-19: `/bell`, `/beta`, `/markets-live` → 307 `/markets`; `/pool` → 307 `/earn`; `/markets/[id]` → `/markets` (`app/markets/[id]/page.tsx`); audit §6 "Same redirects, Match" |
+| L-22 | Share cards (The Call, Earned Heat) | Adapted | Done | S5 | `features/share/*`: Earned Heat names its print source and void reason 37b0ed7; asset marks on the card canvas cbbe5d2; fixtures `/dev/share` (route check 200). The live sheet after a fill rides L-32 |
+| L-23 | Social OG images | Adapted | Done | S15 | `app/opengraph-image.tsx`, `app/twitter-image.tsx`, per-ticker images 10060b8, 2e6ff95; `s15-browser-pass-2026-09-15.md` (200 `image/png`, 1200 × 630); route check 200 |
+| L-24 | Wallet connect / disconnect / account switch | Adapted | Done | S4 | Wallet Standard via the Kit wallet plugin 7e382c0; connect and account modals a337a64 (audit C-01, C-02, C-22 fixed); acceptance 2026-09-15 05:15 (a fresh wallet's challenge signature); S1 gate b4e41f5 (the user's Phantom connect, sign and server verify) |
+| L-25 | Get test funds | Adapted | Done | S4 | acceptance 2026-09-15 05:15 (SOL top-up `5WpKEWoP…` and 10,000 tUSDC mint `23Ge127U…` through the running app, one challenge signature) and 2026-09-16 14:15 (drive); lane 4c b4aef58; route check `GET /api/faucet` ready |
+| L-26 | Add-money modal + CreditWelcome | Adapted | Done | S4 | `features/funding/*` incl. `CreditWelcome.tsx`; one-signature flow ran end to end with a scripted Wallet Standard wallet ca9c6c7, 54f92c8 (stage-04 Findings, lane 4c); devnet mints as L-25 |
+| L-27 | Tap-trading (session key + SESSION grant + sponsor) | Adapted | Partial | S7 | `agari-vault` deployed and initialised on devnet, the vault seat registered at `program_authorities[0]` (acceptance 2026-09-15 20:38–20:40, 9adaf66); program ebf9259, adapter and fork drive 47f31dd, web and sponsor route e45edd6, `Grant.market` 70073c3, a4b38ce; taps, cap refusal and revoke proven on a Surfpool fork only (`scripts/drive/vault.ts`). Gap: no devnet deposit, grant or tap row; `/api/sponsor` answers `configured: false` on the local builds; wallet pass pending |
+| L-28 | Trading Balance vault | Adapted | Partial | S7 | program `84puRVxG…` on devnet, deploy hash verified, `admin_init_vault` and the IDL published (acceptance 2026-09-15 20:36–20:47, 9adaf66); LiteSVM vault suites 23/23 (ebf9259, 70073c3). Gap: no devnet deposit or withdraw row; the settler's vault crank is not wired in ops (`packages/markets/src/ops/settle/vault-crank.ts` has no caller in `services/ops`) |
+| L-29 | `/markets` hero-as-ticket | Adapted | Partial | S6 | `features/markets/hero/*`, `MarketsHero.tsx`: live hero, chart with the opening print, countdown and ticket rail at 390/768/1440 (stage-04 Findings 2026-09-16); closed and Listed states `s18-browser-pass-2026-09-15.md` §2–3 (bae07eb, 7ef5bf6). Gap: a call placed from the hero in a browser is the wallet pass (L-32) |
+| L-30 | §01 live-now rail cards | Adapted | Done | S4 | `features/markets/lanes/*` 1e1bd96, 5a9ef93; live rail with 9 Windows per cadence and `NextWindowCard`s at 390/768/1440 (stage-04 Findings 2026-09-16; `s18-browser-pass-2026-09-15.md` §2) |
+| L-31 | §02 "Just ask" word board | Adapted | Done | S4 | `features/markets/word-board/WordMarketBoard.tsx` 1e1bd96, bae07eb; seen live with nine tickers (stage-04 Findings, lane 4d 09753ec) |
+| L-32 | Call ticket (one-tap) | Adapted | Partial | S6 | submitter order lane 76382c9; wallet-paid IOC fill on devnet by the drive, fee payer the user's wallet (acceptance 2026-09-16 14:15 `3w7kDdBa…`, 6c9ed94); pre-open rest → fill at the bell (acceptance 2026-09-16 13:30). Gap: built, wallet pass pending (the S4 Phantom check at a bell, next Mon 09-21) |
+| L-33 | Verdict + inline claim | Adapted | Partial | S6 | `features/markets/verdict/*` with print-source labels dd810e0, 37b0ed7; settle → claim proven on devnet by the drive (acceptance 2026-09-16 14:22). Gap: built, wallet pass pending (win, loss, void and claim in a browser are an open S4 box) |
+| L-34 | Claim-all plate | Adapted | Partial | S4 | `features/markets/claims/ClaimPlate.tsx`, `useClaimAll.ts` dd810e0; the redeem lane proven on devnet by the drive: `user_redeem` and the crank `redeem_for` on one Window (acceptance 2026-09-16 14:22, 14:27; 6c9ed94). Gap: built, wallet pass pending (claim in a browser is an open S4 box) |
+| L-35 | Plain-position cash-out | Adapted | Partial | S7 | `packages/markets/src/submitter/cash-out.ts`, `steps/sell.ts`; cash-out link on wallet and vault bet rows f11ff6d; proven on a Surfpool fork only (`scripts/drive/vault.ts`). Gap: no devnet cash-out row; built, wallet pass pending |
+| L-36 | Range (ticket mode + `/games/range`) | Adapted | Partial | S10b | `agari-range` `GfsAzxPe…` on devnet, reserve funded with 200 tUSDC; price → open → settle closed on `OPENAI-60m` #4 (acceptance 2026-09-19 15:1x, 16:00:48; program 39d04e7, 8a1d4ac, deploy 9deeb32); `/games/range` renders its real page 054bee6, the open sends 6ec4f5f, and `previewRangeOpen`, `quoteRangeOnchain`, `readRangeCapacity` are implemented 4dcce7f. Gap: claim, settle, void and supply from the app still refuse in `submitter/tx-lane.ts`; the mark-scale bug and the `public_void_stale` guard are open in the deployed program (STATUS 2026-09-19, c0f06b1); wallet pass pending |
+| L-37 | Boost 2×/3× (LeverageReserve) | Adapted | Shell | S10c | ticket toggle and `features/leverage` ported, reads and writes are stub arms (`packages/markets/src/leverage/index.ts`); `services/ops/src/actors/leverage-keeper` is the ported stub; no program yet (`agari-leverage`, S10c) |
+| L-38 | Parlay | Adapted | Partial | S10a | `/parlay` runs on stub reads (`packages/markets/src/parlay/index.ts`); pricing pinned to the client's vectors a0679a7, the reserve's balance sheet 1b886e8; not deployed. Program in progress (S10a) |
+| L-39 | Private mode | Adapted | Shell | S10d | `features/private`, `app/api/private/*` on ed25519 verifiers 3811fdc; reads are stub arms (`packages/markets/src/private/index.ts`); no program yet (`agari-private`, S10d) |
+| L-40 | Market Surface | Adapted | Done | S5 | `/surface` → `app/surface/page.tsx` on the Book decode (tested against every Book vector and a captured devnet Book, 17e61a6) with the closed-session label 37b0ed7; fixtures `/dev/surface`; route check 200. An in-session capture is not recorded |
+| L-41 | Sensei AI dock | Adapted | Done | S13 | `features/sensei/*`, `app/api/sensei/route.ts`: stable prefix, per-turn session, positions, record and earnings lines, advice tripwire, rate gate 6dab2d9; p50 3,460 ms over n = 20 on a production build (D-072, fe5f032); holdings line bf57fe6 (D-104); audit C-16 chrome Match; `/api/status` probe `sensei` ok |
+| L-42 | The Room | Adapted | Partial | S13 | `features/room/*`: registry → index "ever bet" → Ledger seat gate, index-verified `POST /api/room/bet`, ticker rooms 681f3c9, 9e4dc7c; scoped tokens tested (`gate.test.ts`). Gap: built, wallet pass pending (refused-then-admitted on a real fill is not recorded) |
+| L-43 | Price alerts | Adapted | Done | S13 | `features/alerts/*`: integer-cents targets with `usdLine`, `basis` field, session and staleness gate df9eada; frozen notification exports a3c6222; `AlertsWatcher` mounted in `AppProviders.tsx` |
+| L-44 | Reels | Adapted | Done | S13 | `/reels` → `features/markets/reels/ReelsScreen.tsx`; off-hours reel keeps takes 8fd418d; "you hold this" card 41ed9a2; closed-state card and take card walked in `s18-browser-pass-2026-09-15.md` §6. A call from a reel rides L-32 |
+| L-45 | Takes | Adapted | Done | S13 | ed25519-signed takes with cashtags into `take_tags`, `?symbol` and `?authors` 681f3c9, 8fd418d; take chip with the asset mark 3eeeba5; route check 2026-09-19 `GET /api/takes`: stored wallet-signed takes served with their cashtags |
+| L-46 | Portfolio | Adapted | Partial | S7 | `/portfolio`: record, receipt and equity (S5a c1d8ab8), resting rows (S18f), "Your stocks" fede6cb; the disconnected state passes in `s18-browser-pass-2026-09-15.md` §4. Gap: Restore waits on the private desk (S10d, no program yet); the connected view is the wallet pass |
+| L-47 | Trader Edge | Adapted | Done | S5 | `/portfolio/edge` → `app/portfolio/edge/page.tsx`; ET session-hour buckets with a vitest across EDT and EST a7eb42d; proven on the live index for five devnet wallets (rounds, stake, proceeds, payout and pnl equal the `idx_positions` sums; ET buckets) c1d8ab8 |
+| L-48 | Leaderboard | Adapted | Done | S5 | `/leaderboard` → `app/leaderboard/page.tsx`; `/api/leaderboard?period&ticker` 973681d, 57a263b; recount matched the board and each ticker exactly for the 09-14 session (3,610 transactions walked) b66837e; route check 2026-09-19 `GET :3000/api/leaderboard?period=24h`: 5 ranked wallets, `complete: true`. The Friends tab is tracked under A-3a |
+| L-49 | Reputation, badges, CSV | Adapted | Partial | S5 | `packages/core/src/projection/{reputation,badges,csv}.ts`; the CSV equals the rows on the live index c1d8ab8; crank-paid copy b8389c6. Gap: badges and reputation have no test or recorded check; built, wallet pass pending (`features/markets/history/BadgeGrid.tsx` reads a connected wallet) |
+| L-50 | Earn (maker vault) | Adapted | Partial | S8 | `agari-maker` `442oD4u4…` deployed, vault funded with 100 tUSDC and seated, quoting both sides and holding the best bid on `OPENAI-60m` #5 (acceptance 2026-09-19 15:49, 15:52, 16:09, 16:1x); program 64b2dc7, ask-leg fix 5ec4249, reads 28bfba4, writes 0a93fdb; `/earn` renders its real page (acceptance 2026-09-19 15:5x). Gap: the merge → settle → withdraw proof row is open, and the vault panel needs a usable browser RPC |
+| L-51 | Strategies desk | Adapted | Shell | S9 | `/strategies` renders the not-deployed plate (`features/strategies/StrategiesScreen.tsx`; reads are stub arms in `packages/markets/src/strategies/index.ts`); walked b695304; no program yet (`agari-strategy`, S9) |
+| L-52 | Launch an agent (4-step builder) | Adapted | Shell | S9 | the 4-step builder is ported (`features/strategies`), its create write refuses; no program yet (`agari-strategy`, S9) |
+| L-53 | Copy a strategy | Adapted | Shell | S9 | subscription reads are stub arms (`listSubscriptionsOf` → empty); no program yet (`agari-strategy`, S9) |
+| L-54 | Agents board | Adapted | Shell | S9 | `/agents` renders the not-deployed plate (`features/strategies/AgentsScreen.tsx`); walked b695304; no program yet (`agari-strategy`, S9) |
+| L-55 | Strategy runner + self-host | Adapted | Shell | S9 | `services/ops/src/actors/strategy-runner` and `runner-main.ts` are the ported actor with nothing to run against; no program yet (`agari-strategy`, S9) |
+| L-56 | Paid Memory Market | Adapted | Shell | S9 | `app/api/strategies/playbook/route.ts` on ed25519 verifiers 3811fdc, nothing to sell against; no program yet (`agari-strategy`, S9) |
+| L-57 | Reversion preset | Adapted | Shell | S9 | the reversion model is pure core (`packages/core/src/strategies/{model,spec}.ts`, tested); no program yet (`agari-strategy`, S9) |
+| L-58 | Trade from X | Adapted | Partial | S11 | `/trade-from-x`, `features/x`, the relay and Blinks built (see A-3e; acceptance 2026-09-19 12:45–14:0x). Gap: a live X trade is blocked on the Agari X account (the handle in `.env.local` is still the reference's) |
+| L-59 | X recovery / claim | Adapted | Partial | S11 | `/claim` and `app/api/x/{bind,callback,start,status,unlink,receipts}` ported, Solana identity 2a944a4, exits stay open 981c160. Gap: X sign-in is not configured; a live X trade is blocked on the Agari X account (the handle in `.env.local` is still the reference's) |
+| L-60 | X relay | Adapted | Partial | S11 | `services/ops/src/actors/x-relay` boots standalone, reports its executor and venue and completes mention scans (acceptance 2026-09-19 14:0x, a2df241). Gap: `x_links` and `x_receipts` are empty, nothing can execute until the Agari X account exists |
+| L-61 | Games hub | Adapted | Partial | S12 | `/games` → `features/games/GamesHub.tsx` lists every mode; walked at 1440 and 390 b695304; route check 200. Gap: the achievements plate is still pending; S12 has not run, no play-through recorded |
+| L-62 | Practice | Adapted | Partial | S12 | `/games/practice` → `features/games/practice/PracticeStage.tsx` deals off the live Window list; walked b695304. Gap: S12 has not run, no play-through recorded |
+| L-63 | Duel (Free/Ranked) + match link | Adapted | Shell | S12 | `/games/duel` refuses with "No GameArena is deployed on this network" (`features/games/duel/DuelEntry.tsx`); arena reads and writes are stub arms; no program yet (arena, S12b) |
+| L-64 | Games history | Adapted | Partial | S12 | `/games/history`: the Lucky half reads its own record (`app/api/games/lucky/history`). Gap: the duel half waits on the arena program; S12 has not run |
+| L-65 | Rank + seasons | Adapted | Shell | S12 | `/games/rank` renders an empty ladder (route check: `/api/games/rank` rows `[]`, `/api/games/season` null); no program yet (arena and season pool, S12b) |
+| L-66 | Lucky Draw | Adapted | Partial | S12 | `/games/lucky` draws the nine launch tickers and OPENAI (policy v2) 23ba0cd; commit and reveal routes `app/api/games/lucky/*`. Gap: a spin with a connected wallet is not verified (STATUS 2026-09-19); S12 has not run |
+| L-67 | Moonshot | Adapted | Partial | S10b | `/games/moonshot` renders its real page on the live reserve 054bee6; the per-expiry cap is enforced on chain by `ExpiryBook` 8a1d4ac. Gap: `quoteMoonshotOnchain` is still a stub arm (`packages/markets/src/range/moonshot.ts`), so the ticket cannot price; no Moonshot round on devnet; shares L-36's program gaps |
+| L-68 | Line Rider | Exact | Partial | S12 | `/games/line-rider` → `features/games/arcade/ArcadeStage.tsx`, the Masayume port; renders (S1 browser pass f68d1e1, walk b695304). Gap: S12 has not run, no play-through or score post recorded |
+| L-69 | Candle Hop | Exact | Partial | S12 | `/games/candle-hop` → `features/games/arcade/ArcadeStage.tsx`, the Masayume port; renders (S1 browser pass f68d1e1, walk b695304). Gap: S12 has not run, no play-through or score post recorded |
+| L-70 | Game audio, motion, art, settings | Exact | Partial | S12 | `features/games/{audio,motion,settings,bed,feedback}.ts`, `art/`, `GameSettingsSheet.tsx` ported as they are. Gap: S12 has not run, not exercised in a recorded pass |
+| L-71 | Game profile, achievements, friends | Adapted | Partial | S12 | `features/games/GameProfileCard.tsx`; follows over `game_follows` 2d9a92f. Gap: achievements is a pending plate (`GamesHub.tsx`); S12 has not run |
+| L-72 | `/dev/*` fixtures | Adapted | Done | S6 | 27 fixture routes under `app/dev/*` (route check 200 on `/dev`, `/dev/states`, `/dev/wallet`, `/dev/share`, `/dev/surface`); `/dev/hero`, `/dev/session`, `/dev/states` walked in `s18-browser-pass-2026-09-15.md` §5; S6 states ce40a0c |
+| L-73 | Ops host and health | Adapted | Partial | S16 | `services/ops` runs locally under a supervisor from the pinned `live` worktree with `/health` and `/session` (acceptance 2026-09-19 10:32 cutover; D-098 fatal start failure 7260c28). Gap: no hosted deployment; the S16 deploy go is parked by the user |
+| L-74 | API surface | Adapted | Partial | S16 | 54 route handlers under `app/api/**` and `app/actions.json` answer on the local builds (route check 2026-09-19); funded routes answer 451 from a held region c2ac978. Gap: no production deployment (S16 parked), and the host must overwrite `x-forwarded-for` for the rate gates (D-072) |
 
 ## Yosuku-lineage rows (Y)
 
@@ -98,7 +99,7 @@ Q-002 and Q-003 were answered by the user on 2026-09-13.
 | Y-03 | Founder Line Studio (`/studio`) | Excluded (user 2026-09-13, Q-002) | Excluded | — | |
 | Y-04 | Internal social content board (`/social`) | Excluded (user 2026-09-13, Q-002) | Excluded | — | |
 | Y-05 | `/fund` card on-ramp + cross-chain deposit (CCTP) | Excluded (user 2026-09-13, Q-002) | Excluded | — | |
-| Y-06 | In-app editorial `/docs` page | Adapted (via L-20) | Pending | S15 | |
+| Y-06 | In-app editorial `/docs` page | Adapted (via L-20) | Partial | S15 | `/docs` answers 307 → `/how-it-works` (route check) 2bf34cc. Gap: the docs site behind it is not deployed (see L-20) |
 | Y-07 | Agent/MCP tx-builder (`/api/bet/build`), npm SDK, MCP server | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
 | Y-08 | Polymarket discovery rail; multi-coin ticker + Fear & Greed | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
 | Y-09 | Sensei persistent memory (MemWal) | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
@@ -106,9 +107,9 @@ Q-002 and Q-003 were answered by the user on 2026-09-13.
 | Y-11 | Name-service handle claim (`.yosuku.sui`) | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
 | Y-12 | Encrypted rooms (Seal) | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
 | Y-13 | TheBell floating draggable countdown widget | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
-| Y-14 | Site-wide + per-market OG images | Adapted (via L-23) | Pending | S15 | |
+| Y-14 | Site-wide + per-market OG images | Adapted (via L-23) | Partial | S15 | site-wide and per-ticker images live 10060b8 (route check 200 on `/opengraph-image`, `/tickers/TSLA/opengraph-image`). Gap: the per-market image renders but is unreachable while `/markets/[id]` redirects to `/markets` (STATUS "Known") |
 | Y-15 | `/agent` attested showcase | Excluded (user 2026-09-13, Q-003) | Excluded | — | |
-| Y-16 | Standalone Trading Balance deposit/withdraw modal | Adapted (vault controls) | Pending | S7 | |
+| Y-16 | Standalone Trading Balance deposit/withdraw modal | Adapted (vault controls) | Partial | S7 | `features/vault/*` deposit and withdraw controls e45edd6 over `agari-vault` on devnet (acceptance 2026-09-15 20:38). Gap: no devnet deposit or withdraw row; built, wallet pass pending |
 | Y-17 | Native iOS/Android app | Blocked (no native source) | Blocked | S15 | |
 | Y-18 | Creator earnings pool row (builder codes) | Excluded (user 2026-09-13, Q-002) | Excluded | — | |
 
@@ -116,13 +117,14 @@ Q-002 and Q-003 were answered by the user on 2026-09-13.
 
 | # | Capability | Class | Status | Owner | Evidence |
 |---|---|---|---|---|---|
-| A-1a | Bearish exposure via existing primitives | Additive | Pending | S14 | |
-| A-1b | Inverse position (linear short, not binary) | Additive | Pending | S10c | |
-| A-1c | Fade a trader/agent | Additive | Pending | S14 | |
-| A-2a | Yield on idle Trading Balance | Additive | Pending | S14 | |
-| A-2b | Supplier ("be the house") UI for every reserve | Additive | Pending | S8 | |
-| A-2c | Yield reporting | Additive | Pending | S14 | |
-| A-3a | Trader profiles, follows, social leaderboards | Additive | Pending | S13 | |
-| A-3b | Copy human traders | Additive | Pending | S14 | |
-| A-3c | Ticker rooms, cashtag takes, activity feed, notifications | Additive | Pending | S13 | |
-| A-3d | Trade-from-X for stocks | Additive | Pending | S11 | |
+| A-1a | Bearish exposure via existing primitives | Additive | Partial | S14 | the holdings-aware cover card, Your stocks and the Reels card 874e4b8, 2c256a9, fede6cb, 41ed9a2; one DOWN cover filled against the house maker on devnet (acceptance 2026-09-19 11:31, 7260c28). Gap: S14's bet-against toggle and Down-first presets are not built |
+| A-1b | Inverse position (linear short, not binary) | Additive | Pending | S10c | nothing in the tree (searched `web/src`, `packages`, `services/ops`, `anchor/programs` on 2026-09-19); rides `agari-leverage`, which has no program yet |
+| A-1c | Fade a trader/agent | Additive | Pending | S14 | nothing in the tree (searched `web/src`, `packages`, `services/ops`, `anchor/programs` on 2026-09-19); needs the strategy runner (S9), S14 has not run |
+| A-2a | Yield on idle Trading Balance | Additive | Pending | S14 | nothing in the tree (searched `web/src`, `packages`, `services/ops`, `anchor/programs` on 2026-09-19); Q-005: the lenders are mainnet-only, S14 has not run |
+| A-2b | Supplier ("be the house") UI for every reserve | Additive | Partial | S8 | the maker vault's supply and withdraw send from `/earn` (`packages/markets/src/maker/writes.ts` 0a93fdb; 100 tUSDC supplied on devnet, acceptance 2026-09-19 15:52). Gap: the range reserve has no in-app supply lane (its `range-*` intents still refuse in `submitter/tx-lane.ts`), and the parlay and boost reserves have no program yet |
+| A-2c | Yield reporting | Additive | Pending | S14 | nothing in the tree (searched `web/src`, `packages`, `services/ops`, `anchor/programs` on 2026-09-19); S14 has not run |
+| A-3a | Trader profiles, follows, social leaderboards | Additive | Partial | S13 | `/u/[address]` 93ca7ef; follows and the social session token 2d9a92f; `FriendsBoard` on `/activity` 8b0bbec. Gap: the Friends tab is not mounted on `/leaderboard` (Q-S13-8); the follow flow is the wallet pass |
+| A-3b | Copy human traders | Additive | Pending | S14 | nothing in the tree (searched `web/src`, `packages`, `services/ops`, `anchor/programs` on 2026-09-19); S14 has not run |
+| A-3c | Ticker rooms, cashtag takes, activity feed, notifications | Additive | Partial | S13 | ticker hub `/tickers/[symbol]` a74c52e, a8c8083; activity feed f8b1412, 36d8c37 (route check 2026-09-19 `GET /api/activity/ticker/TSLA` returns indexed fills); cashtag takes 8fd418d; `LifecycleWatcher` bee2ed4. Gap: ticker rooms and lifecycle notifications need the wallet pass, no fired notification is recorded |
+| A-3d | Trade-from-X for stocks | Additive | Partial | S11 | a Window is a signable link for every registry stock (acceptance 2026-09-19 12:45, 13:0x, 14:0x; bb97a2c, c63c248). Gap: the Dialect registry entry needs the domain, and a live X trade is blocked on the Agari X account (the handle in `.env.local` is still the reference's) |
+| A-3e | Blinks: every Window as a Solana Action (`/actions.json`, `/api/actions/w/<marketId>`, `/api/actions/t/<symbol>/<cadence>`) | Additive | Done | S11 | row added 2026-09-19 (S11 shipped Blinks as its own surface). A transaction built by the endpoint, signed by a wallet that never touched the app, finalized on devnet: `2cEN7qC8…`, slot 500866904, 50.000 → 49.275 tUSDC (acceptance 2026-09-19 13:0x); spec CORS and the card (12:45); a shared link outlives its Window (14:0x); bb97a2c, c63c248; wire types `packages/core/src/x/actions.ts`, transaction `packages/markets/src/x/action-order.ts`; route check `GET /actions.json` 200 |
