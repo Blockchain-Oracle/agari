@@ -32,7 +32,7 @@ const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
 const VENUE_ACTORS = ["relay", "roller", "settler", "maker", "indexer", "http", "halts", "earnings"] as const;
-const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-settler"] as const;
+const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler"] as const;
 
 function whyString(actor: string, why: string): string {
   return JSON.stringify({ tsMs: Date.now(), actor, why: redact(why) });
@@ -104,8 +104,10 @@ if (actors.has("maker")) {
 if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"));
 if (actors.has("x-relay")) void startXRelay(log("x-relay"));
 if (actors.has("leverage-keeper")) void startLeverageKeeper(log("leverage-keeper"));
-// The projector feeds the room it is given, so the room starts first and hands its context over.
+// The projector feeds the room it is given, so the room starts first and hands its context over. Named on its own it
+// still runs: the rows it writes are the duel history, and the room is only where live deltas go.
 if (actors.has("game-room")) void startGameRoom(log("game-room")).then((room) => startDuelProjector(log("duel-projector"), room));
+else if (actors.has("duel-projector")) void startDuelProjector(log("duel-projector"), null);
 if (actors.has("duel-settler")) void startDuelSettler(log("duel-settler"));
 setInterval(() => {
   const stuck = heartbeats().filter((b) => b.passStartedMs !== null && Date.now() - b.passStartedMs > STUCK_PASS_MS);
