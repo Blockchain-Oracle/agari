@@ -7,6 +7,7 @@
 
 mod arena;
 mod game;
+mod pot;
 mod season;
 
 pub use arena::*;
