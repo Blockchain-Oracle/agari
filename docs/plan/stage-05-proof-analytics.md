@@ -19,7 +19,7 @@
 
 ## Steps
 
-- [ ] Foundation (stage owner, D-041…D-043):
+- [x] Foundation (stage owner, D-041…D-043): **(done: c257189 — `print_proofs` DDL, lane resolvers for `tape/*`, `status/*` and `proofs/:market`, `PROOF_PATH`, the `./proof` subpath, the three root `drive:*` scripts; `/session` fields 26a7f00, live on the soak (route check 2026-09-19: `calendar.recent` 5 rows, `sources.pythTrialLastCloseSec` set); `AGARI_OPERATOR_WALLETS` c9c4b59; role funded, `acceptance.md` 2026-09-15 06:05, 121bbb6. The spec §5 answers are all in D-041 (Q-S5-1…7); no separate D-042 or D-043 entry was written)**
   - The `proof-analytics.md` contract (D-041).
   - Ops `/session` adds `calendar.recent` and `sources.pythTrialLastCloseSec`; restart the soak off-hours.
   - `/api/index` dispatch for `tape/*`, `status/*` and `proofs/:market` to lane stub files.
@@ -29,18 +29,18 @@
   - `AGARI_OPERATOR_WALLETS` (server-only).
   - The `proof-replay` role key created and funded with 0.1 SOL from the deployer (acceptance row).
   - Spec §5 answered (D-042 proof trigger, D-043 operator wallets and the traders drive).
-- [ ] Record + Edge (5a): live-wallet proof of rounds against `idx_positions`, crank-paid copy, CSV and badges; ET session buckets in `core/projection/edge.ts` + targeted vitest; Edge copy.
-- [ ] Board + stats (5b): `tape/*` queries; `readVenueBoard` with 3 paged scans, `byTicker` and traction; `/api/leaderboard?period&ticker` with the TickerPicker and period tabs; stats/leaderboard copy truthing.
-- [ ] `scripts/drive/recount.ts` (chain and events sources) and `scripts/drive/traders.ts` (5b).
-- [ ] Status (5c): the probe table in spec §2.5, `expected` rows, `status/prints` and `status/cross-checks`.
-- [ ] Proof replay (5d): `replayPythProof` + the `PriceUpdateV2` decoder vitest against the D-021 fixture; `print_proofs` writes; `proof-replay.ts` (post, verify, 24 h close); `POST /api/proof/pyth` with idempotency and quotas; the `/proof/[market]` page; receipt and verdict oracle rows link to it.
-- [ ] Surface + Earned Heat (5d): live `/surface` proof in session and the closed-session label; `TradeCard` print source, single source and void reason; `/dev/share` fixtures.
-- [ ] Traders drive during the 09-16 session (Q-S5-3 default): acceptance rows for every wallet and signature.
-- [ ] Devnet proof replays: at least one TSLA and one QQQ or VOO historical close, verified Full with an exact integer match; post and close rows in `acceptance.md`.
-- [ ] `recount.ts` in session and after close (`24h` and `session`, all and each ticker): exact match.
-- [ ] `/status` checked in session (green) and off-hours (every session row "closed (expected)", none red).
-- [ ] Browser pass against masayume.app at 390/768/1440 in both themes: `/portfolio`, `/portfolio/edge`, `/leaderboard` (both periods, one ticker), `/stats`, `/status`, `/surface`, `/proof/<market>`, share cards. Update `docs/plan/audits/ui-fidelity-2026-09-14.md` rows `/surface`, `/status`, `/leaderboard`, `/stats`.
-- [ ] Parity rows advanced at the gate; STATUS.
+- [x] Record + Edge (5a): live-wallet proof of rounds against `idx_positions`, crank-paid copy, CSV and badges; ET session buckets in `core/projection/edge.ts` + targeted vitest; Edge copy. **(done: ET buckets and the vitest a7eb42d; crank-paid copy b8389c6; unread claims and Edge copy c1d8ab8, whose message records the proof on the live index for five devnet wallets: rounds, stake, proceeds, payout and pnl equal the `idx_positions` sums, ET buckets, CSV = rows)**
+- [x] Board + stats (5b): `tape/*` queries; `readVenueBoard` with 3 paged scans, `byTicker` and traction; `/api/leaderboard?period&ticker` with the TickerPicker and period tabs; stats/leaderboard copy truthing. **(done: paged tape readers d50ca6a; `readVenueBoard` over three scans with `byTicker` and traction be213c0, 4a41d0c; `/api/leaderboard?period&ticker`, tabs, picker and copy 973681d; route check 2026-09-19 on `:3000`: 5 ranked wallets, `complete: true`)**
+- [x] `scripts/drive/recount.ts` (chain and events sources) and `scripts/drive/traders.ts` (5b). **(done: b66837e, 1c4c8a6)**
+- [x] Status (5c): the probe table in spec §2.5, `expected` rows, `status/prints` and `status/cross-checks`. **(done: 187a8e0 with the targeted vitest, fixtures 3135a06; route check 2026-09-19 `GET /api/status`: session rows carry `expected`)**
+- [x] Proof replay (5d): `replayPythProof` + the `PriceUpdateV2` decoder vitest against the D-021 fixture; `print_proofs` writes; `proof-replay.ts` (post, verify, 24 h close); `POST /api/proof/pyth` with idempotency and quotas; the `/proof/[market]` page; receipt and verdict oracle rows link to it. **(done: dfb45a8, 3d3e651, 5d61b37 (page checked at 1440 dark and 390 light, route on a Surfpool fork), fe53678, 0118c31; receipt links 37b0ed7. The devnet replays are their own box below)**
+- [ ] Surface + Earned Heat (5d): live `/surface` proof in session and the closed-session label; `TradeCard` print source, single source and void reason; `/dev/share` fixtures. (open: the live in-session `/surface` proof is not recorded. Done in 37b0ed7: the closed-session label, `TradeCard` print source, single source and void reason, and `/dev/share` with 9 trade PNGs checked in the browser)
+- [ ] Traders drive during the 09-16 session (Q-S5-3 default): acceptance rows for every wallet and signature. (open: `scripts/drive/traders.ts` exists 1c4c8a6 and its wiring was checked off-hours with `--check`; it has not been run in a session, and `acceptance.md` has no wallet or signature rows for it)
+- [ ] Devnet proof replays: at least one TSLA and one QQQ or VOO historical close, verified Full with an exact integer match; post and close rows in `acceptance.md`. (open: no post, verify or close rows in `acceptance.md`; the replay ran on a Surfpool fork only 5d61b37)
+- [ ] `recount.ts` in session and after close (`24h` and `session`, all and each ticker): exact match. (open: an after-close match is recorded in b66837e for the 09-14 session: events source for session and 24h, chain source for the session, 3,610 transactions, every ticker. No in-session run is recorded)
+- [ ] `/status` checked in session (green) and off-hours (every session row "closed (expected)", none red). (open: no in-session check is recorded. Off-hours route check 2026-09-19 19:39Z: relay, mix, RedStone and cross-check rows read `expected`, but the six ops rows were red because ops `/health` answered 503 at that moment)
+- [ ] Browser pass against masayume.app at 390/768/1440 in both themes: `/portfolio`, `/portfolio/edge`, `/leaderboard` (both periods, one ticker), `/stats`, `/status`, `/surface`, `/proof/<market>`, share cards. Update `docs/plan/audits/ui-fidelity-2026-09-14.md` rows `/surface`, `/status`, `/leaderboard`, `/stats`. (open: no S5 pass exists under `docs/plan/audits/`; rows `/surface`, `/status`, `/leaderboard` and `/stats` in `ui-fidelity-2026-09-14.md` still name S5 as the fixing stage)
+- [ ] Parity rows advanced at the gate; STATUS. (open: the 2026-09-19 reconciliation advanced them — L-15, L-16, L-22, L-40, L-47, L-48 Done; L-46, L-49 Partial — but the S5 gate itself has not passed: the six boxes above are open)
 
 ## Gate
 
