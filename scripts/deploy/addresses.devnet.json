@@ -670,6 +670,24 @@
         "books": [
           "HeqAWuyTdsJEEYvgpX8sJkFRBdq33tUDgp5AuBXVRiZa"
         ]
+      },
+      "TEST-OWNED-B": {
+        "address": "4S7UZJovZqUgNqLHcfCcST5BASXxfF3R7QQLpx2xdoSn",
+        "ticker": 904,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "93gs4E2H3hgT9UEbSQRwAKUH1Kk2jEFHhNdEJEZzvspC"
+        ]
+      },
+      "TEST-OWNED-C": {
+        "address": "5xHXyuBzntWt7EywwXMQD9MokXkkgxRsZyPx2662mW2n",
+        "ticker": 905,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "5WHhAZCEKyaSHyi1Cb4rrmopWi3iMApUJk5zFPvH1h4y"
+        ]
       }
     }
   }

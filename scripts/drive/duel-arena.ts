@@ -2,8 +2,12 @@
 // S12b drive: prove a whole duel on devnet, through the same submitter lane the app sends on.
 //   arena                                          the arena's books, params and tiers
 //   fund   --amount 20                             test tUSDC minted to both players
-//   deal   --window a,b,c [--tier 1] [--key]       creator opens with the sealed deck's hash, rival joins, the deck is revealed;
+//   deal   --window a,b,c [--tier 1] [--key] [--stop create|join]   creator opens with the sealed deck's hash, rival joins, the deck is revealed;
 //                                                  --key also names the creator's seat key and escrows the deck's ceiling
+//   duel   --window a,b,c --creator up,down,up --rival down,down,up [--tier 1] [--key] [--amount 0.5]
+//                                                  deal and then every pick of both seats, in one process: the pick
+//                                                  window is three minutes, which is no time to boot twelve of them
+//   picks  --match <file> --creator up,up,up --rival down,down,down [--amount 0.8]   every pick of both seats
 //   pick   --match <file> --card 0 --side up --amount 0.5 [--as creator|rival|key]
 //   lock   --match <file>                          closes a pick window whose deadline has passed
 //   settle --match <file>                          settles every played card, then finalizes and claims both credits
@@ -77,6 +81,36 @@ async function books(): Promise<string> {
 
 const dealPath = () => arg("--match") ?? "";
 
+/** Every pick of both seats, in one process: the pick window is three minutes, which is no time to boot twelve of them. */
+async function playPicks(deal: Deal, creator: SubmitterSession, rival: SubmitterSession): Promise<void> {
+  const sides = (name: string) => (arg(name) ?? "").split(",").map((v) => (v.trim() === "down" ? "down" : "up")) as ("up" | "down")[];
+  const [mine, theirs] = [sides("--creator"), sides("--rival")];
+  const stakeBase = units(arg("--amount"), "0.8");
+  const keySession = deal.agent ? await seat("drive-key") : null;
+  for (let cardIndex = 0; cardIndex < deal.cards.length; cardIndex += 1) {
+    for (const [who, side, session] of [
+      ["creator", mine[cardIndex] ?? "up", keySession ?? creator],
+      ["rival", theirs[cardIndex] ?? "down", rival],
+    ] as const) {
+      const card = deal.cards[cardIndex]!;
+      const quote = await quoteArenaPick(card, side, stakeBase);
+      const floor = isOk(quote) && quote.value ? (quote.value.quantityRaw * 9_500n) / 10_000n : 0n;
+      const player = who === "creator" ? deal.creator : deal.challenger;
+      const byKey = who === "creator" && keySession !== null;
+      const outcome = await session.submitter.submitArenaPick(
+        byKey
+          ? { kind: "arena-pick-for", player, matchId: deal.matchId, cardIndex, pick: side, stakeBase, minQuantityRaw: floor }
+          : { kind: "arena-pick", matchId: deal.matchId, cardIndex, pick: side, stakeBase, minQuantityRaw: floor },
+      );
+      console.log(`  card ${cardIndex} ${who.padEnd(7)} ${side.padEnd(4)}${byKey ? " (by key)" : "        "} ${outcome.status === "confirmed" ? `filled ${outcome.quantity} for ${outcome.costBase}, ${outcome.refundBase} back · ${outcome.txHash}` : `${outcome.status}: ${outcome.diagnosis.technical.split("\n")[0]}`}`);
+    }
+  }
+  const view = unwrap(await getArenaMatch(deal.matchId));
+  console.log(`match: ${show(view && { status: view.match.status, picked0: view.match.pickedMask0, picked1: view.match.pickedMask1, picks: view.picks })}`);
+  if (deal.agent) console.log(`key: ${show(unwrap(await readArenaAgent(deal.matchId, deal.creator)))}`);
+}
+
+
 try {
   const deployment = await resolveArenaDeployment(env);
   if (!deployment) throw new Error("no arena on this cluster");
@@ -93,7 +127,7 @@ try {
       const owner = (await keypairSigner(roleSecret(role))).address;
       await fundUser({ client, log }, { faucet, mint: collateral.address as never, owner, amount });
     }
-  } else if (mode === "deal") {
+  } else if (mode === "deal" || mode === "duel") {
     const cards = (arg("--window") ?? "").split(",").filter(Boolean) as MarketId[];
     if (cards.length < 3) throw new Error("--window takes three or more market ids, comma-separated");
     const [creator, rival] = [await seat("drive-owner"), await seat("drive-rival")];
@@ -114,20 +148,37 @@ try {
     if (keyed) deal.agent = { key: (await keypairSigner(roleSecret("drive-key"))).address as string as Address, ttlSec: 3_600 };
     console.log(`match ${deal.matchId}\n  creator ${deal.creator}\n  rival   ${deal.challenger}\n  deck    ${deal.deckHash} over ${cards.length} cards, tier ${tier} (pot ${priced.potBase}, cap ${priced.perCardCapBase})`);
 
+    // `--stop create` or `--stop join` leaves the match where the ways out are: cancel, the join timeout, the reveal timeout.
+    const stop = arg("--stop") ?? "";
     const grant = deal.agent ? { agent: deal.agent.key, ttlSec: deal.agent.ttlSec, budgetBase: priced.perCardCapBase * BigInt(cards.length), gasWei: 0n } : undefined;
     await send(creator, { kind: "arena-create", matchId: deal.matchId, challenger: deal.challenger, tier, deckHash: deal.deckHash, deckSize: cards.length, policyVersion: deal.policyVersion, potBase: priced.potBase, ...(grant ? { agent: grant } : {}) }, keyed ? "create + key" : "create");
-    await send(rival, { kind: "arena-join", matchId: deal.matchId, potBase: priced.potBase }, "join");
-    // Permissionless: the drive reveals with the deployer, which is neither player.
-    const cranker = await seat("deployer");
-    await send(cranker, { kind: "arena-reveal", matchId: deal.matchId, serverSeed: deal.serverSeed, clientSeeds: deal.clientSeeds, cards }, "reveal");
-
     mkdirSync("data/drive/duels", { recursive: true });
     const out = `data/drive/duels/${deal.matchId.slice(2, 14)}.json`;
     writeFileSync(out, JSON.stringify(deal, null, 2));
     console.log(`deal saved to ${out}`);
-    const view = unwrap(await getArenaMatch(deal.matchId));
+    if (stop !== "create") await send(rival, { kind: "arena-join", matchId: deal.matchId, potBase: priced.potBase }, "join");
+    // Permissionless: the drive reveals with the deployer, which is neither player.
+    const cranker = await seat("deployer");
+    if (stop === "create" || stop === "join") {
+      const stopped = unwrap(await getArenaMatch(deal.matchId));
+      console.log(`stopped at ${stop}: ${show(stopped && { status: stopped.match.status, createdAtSec: stopped.match.createdAtSec, joinedAtSec: stopped.match.joinedAtSec })}`);
+      console.log(`arena: ${await books()}`);
+      process.exit(0);
+    }
+    // A deck that is not the one committed to is refused by the chain, whoever presents it.
+    const wrong = await cranker.submitter.submitTx({ kind: "arena-reveal", matchId: deal.matchId, serverSeed: hex32(), clientSeeds: deal.clientSeeds, cards });
+    console.log(`  ${"wrong deck".padEnd(22)} ${wrong.status}: ${wrong.status === "confirmed" ? "ACCEPTED — the commitment did not bind" : wrong.diagnosis.technical.split("\n")[0]}`);
+    await send(cranker, { kind: "arena-reveal", matchId: deal.matchId, serverSeed: deal.serverSeed, clientSeeds: deal.clientSeeds, cards }, "reveal");
+
+    let view = unwrap(await getArenaMatch(deal.matchId));
     console.log(`match: ${show(view && { status: view.match.status, deckSize: view.match.deckSize, pickDeadlineSec: view.match.pickDeadlineSec, cards: view.cards })}`);
-    console.log(books ? `arena: ${await books()}` : "");
+
+    if (mode === "duel") await playPicks(deal, creator, rival);
+    console.log(`arena: ${await books()}`);
+  } else if (mode === "picks") {
+    const deal = readJson<Deal>(dealPath());
+    await playPicks(deal, await seat("drive-owner"), await seat("drive-rival"));
+    console.log(`arena: ${await books()}`);
   } else if (mode === "pick") {
     const deal = readJson<Deal>(dealPath());
     const who = arg("--as") ?? "creator";
