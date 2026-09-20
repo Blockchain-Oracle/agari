@@ -10,7 +10,7 @@ import { readBoostBook } from "../leverage/book";
 import { withReading } from "../provider/reading";
 import { requireProgramSeat } from "../runtime/program-seat";
 import { solana } from "../runtime/solana";
-import { agentAddress, arenaAddress, creditAddress, idHex, kit, matchAddress, seasonAddress, seasonVaultAddress, seatAddress } from "./deployment";
+import { agentAddress, arenaAddress, creditAddress, custodyAddress, idHex, kit, matchAddress, seasonAddress, seasonVaultAddress, seatAddress } from "./deployment";
 
 export { arenaHeadBlock, listArenaEvents } from "./events";
 export { resolveArenaDeployment } from "./deployment";
@@ -30,8 +30,12 @@ export interface ArenaState {
   params: ArenaParams;
   tiers: readonly ArenaTier[];
   paused: boolean;
+  /** The three counters custody equals after every instruction: open pots, players' credits, seats' key escrows. */
   escrowedBase: bigint;
   creditedBase: bigint;
+  agentEscrowBase: bigint;
+  /** Custody's own token balance, so a reader can check that identity rather than take the program's word. */
+  custodyBase: bigint;
 }
 
 /** The pool as the chain holds it: what it escrows, what it was ever given, and whether it has paid. */
@@ -73,6 +77,8 @@ export function getArenaState(): Promise<Reading<ArenaState | null>> {
       paused: data.paused,
       escrowedBase: data.escrowedBase,
       creditedBase: data.creditedBase,
+      agentEscrowBase: data.agentEscrowBase,
+      custodyBase: await tokenBalance(await custodyAddress()),
     } satisfies ArenaState;
   });
 }

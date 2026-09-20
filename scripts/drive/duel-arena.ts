@@ -76,7 +76,8 @@ async function books(): Promise<string> {
   const state = await getArenaState();
   if (!isOk(state) || !state.value) return "no arena on this cluster";
   const s = state.value;
-  return `escrowed ${s.escrowedBase}, credited ${s.creditedBase}, paused ${s.paused}`;
+  const owed = s.escrowedBase + s.creditedBase + s.agentEscrowBase;
+  return `custody ${s.custodyBase} = pots ${s.escrowedBase} + credits ${s.creditedBase} + key escrows ${s.agentEscrowBase} → ${s.custodyBase === owed ? "BALANCED" : `OFF BY ${s.custodyBase - owed}`}`;
 }
 
 const dealPath = () => arg("--match") ?? "";
