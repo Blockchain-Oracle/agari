@@ -7,7 +7,7 @@
 import { findConfigPda, AGARI_EVENTS_PROGRAM_ADDRESS } from "@agari/clients/agari-events";
 import {
   fetchMaybeMakerVault, fetchMaybeWindowBook, findCustodyPda, findSeatPda, findVaultPda,
-  getMakerPullInstructionAsync, getMakerQuoteInstructionAsync, getProviderSupplyInstructionAsync,
+  getMakerPullInstructionAsync, getMakerQuoteInstructionAsync, getProviderSupplyInstructionAsync, getProviderWithdrawInstructionAsync,
   getPublicMergeInstructionAsync, getPublicSettleInstructionAsync, AGARI_MAKER_PROGRAM_ADDRESS,
 } from "@agari/clients/agari-maker";
 import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
@@ -54,6 +54,20 @@ export async function supplyMaker(ctx: SendContext, amountBase: bigint) {
   const signature = await send(ctx, "supply", [ix], `${amountBase} base units into ${custody}`);
   const after = await fetchMaybeMakerVault(ctx.client.rpc, vault);
   return { signature, shares: after.exists ? after.data.supplyShares : 0n };
+}
+
+/** A provider leaves: `shares` redeemed at the vault's current value per share, out of idle capital only. */
+export async function withdrawMaker(ctx: SendContext, shares: bigint) {
+  const { vault, custody, seat, mint, payerToken } = await vaultContext(ctx);
+  const before = await ctx.client.rpc.getTokenAccountBalance(payerToken).send();
+  const ix = await getProviderWithdrawInstructionAsync({
+    provider: ctx.client.payer, custody, seat, providerToken: payerToken,
+    collateralMint: mint, tokenProgram: TOKEN_PROGRAM_ADDRESS, shares,
+  });
+  const signature = await send(ctx, "withdraw", [ix], `${shares} shares out of ${custody}`);
+  const after = await ctx.client.rpc.getTokenAccountBalance(payerToken).send();
+  const left = await fetchMaybeMakerVault(ctx.client.rpc, vault);
+  return { signature, receivedBase: BigInt(after.value.amount) - BigInt(before.value.amount), shares: left.exists ? left.data.supplyShares : 0n };
 }
 
 /** The engine accounts every maker CPI needs for one Window, derived from the Market itself. */

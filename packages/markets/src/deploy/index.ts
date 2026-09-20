@@ -33,7 +33,7 @@ export { DEVNET_PARLAY_PARAMS, initParlayReserve, parlayAddresses } from "./parl
 export { openParlayTicket, probeParlayLeg, readParlayReserve, settleParlayTicket, supplyParlay, ticketAddressOf, voidStaleParlay, type DriveLeg } from "./parlay-drive";
 export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
 export { DEVNET_MAKER_PARAMS, initMakerVault, makerAddresses, MAKER_AUTHORITY_INDEX, registerMakerSeat } from "./maker";
-export { mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, windowBookOf, type QuoteInput } from "./maker-drive";
+export { mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, withdrawMaker, windowBookOf, type QuoteInput } from "./maker-drive";
 export { expiryBookAddressOf, liveWindowFor, markWindow, probeWindow, openRangeRound, roundAddressOf, settleRangeRound, supplyRange, type OpenRangeInput } from "./range-drive";
 export { packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, redstonePayload, decimalToE8, type RedStonePackage } from "../prices/redstone";
 

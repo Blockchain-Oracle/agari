@@ -6,11 +6,12 @@
 //   pull   --market <id>           cancel the vault's resting orders
 //   merge  --market <id> --lots N  turn matched YES+NO back into collateral
 //   settle --market <id>           redeem the seat on a resolved Window and close its book
+//   withdraw --shares N            a provider leaves, at the vault's current value per share
 //   state                          the vault's balance sheet, through the app's own port
 // Run: pnpm exec tsx scripts/drive/maker-vault.ts <mode> [...]
 
 import {
-  createDeployClient, liveWindowFor, mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, type StepLog,
+  createDeployClient, liveWindowFor, mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, withdrawMaker, type StepLog,
 } from "@agari/markets/deploy";
 import { clusterArg, endpoints, redactKey, roleSecret, sol } from "../deploy/ops-cluster";
 
@@ -58,6 +59,10 @@ try {
     const r = await settleMaker(ctx, (await market()) as never);
     console.log(`settled; vault deployed ${r.deployedBase}`);
     if (r.book) console.log(`  book: out ${r.book.escrowOutBase}, back ${r.book.escrowBackBase}, merged ${r.book.mergedBase}, payout ${r.book.payoutBase}, settled ${r.book.settled}`);
+    console.log(r.signature);
+  } else if (mode === "withdraw") {
+    const r = await withdrawMaker(ctx, BigInt(arg("--shares") ?? "10000000"));
+    console.log(`withdrew; received ${r.receivedBase} base units; vault shares now ${r.shares}`);
     console.log(r.signature);
   } else if (mode === "book") {
     // What the vault's own quoting actor sees: the depth it must rest outside of.
