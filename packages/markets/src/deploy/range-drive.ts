@@ -11,7 +11,7 @@ import {
   getPublicClaimRoundInstructionAsync, getPublicSettleRoundInstructionAsync,
   AGARI_RANGE_PROGRAM_ADDRESS,
 } from "@agari/clients/agari-range";
-import { bandProbE6, floorStake, sideProbRaw } from "@agari/core/range";
+import { bandProbE6, centerQE6OfTicks, floorStake, sideProbRaw } from "@agari/core/range";
 import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import { AGARI_EVENTS_PROGRAM_ADDRESS } from "@agari/clients/agari-events";
 import { getAddressEncoder, getI64Encoder, getProgramDerivedAddress, getU64Encoder, type Address, type KeyPairSigner } from "@solana/kit";
@@ -111,7 +111,7 @@ export async function openRangeRound(ctx: SendContext, input: OpenRangeInput) {
   const nowSec = BigInt(Math.floor(Date.now() / 1000));
   const openingPrint = market.data.open.price;
   const tauSec = Number(market.data.expiry - nowSec);
-  const centerQE6 = BigInt(market.data.lastPrice) * 100n;
+  const centerQE6 = centerQE6OfTicks(market.data.lastPrice);
   const params = account.data.params;
 
   const width = (openingPrint * input.widthBps) / 10_000n;

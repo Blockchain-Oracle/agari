@@ -58,4 +58,6 @@ pub enum RangeError {
     NoEquity,
     #[msg("arithmetic overflowed")]
     MathOverflow,
+    #[msg("the venue has an answer for that Window, so the round must be settled rather than voided")]
+    MustSettle,
 }

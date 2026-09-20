@@ -785,6 +785,9 @@
               }
             ]
           }
+        },
+        {
+          "name": "market"
         }
       ],
       "args": []
@@ -1090,6 +1093,11 @@
       "code": 6027,
       "name": "MathOverflow",
       "msg": "arithmetic overflowed"
+    },
+    {
+      "code": 6028,
+      "name": "MustSettle",
+      "msg": "the venue has an answer for that Window, so the round must be settled rather than voided"
     }
   ],
   "types": [

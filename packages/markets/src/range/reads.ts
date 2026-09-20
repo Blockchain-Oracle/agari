@@ -2,7 +2,7 @@ import { fetchMaybeExpiryBook, fetchMaybeProvider, fetchMaybeReserve, fetchMaybe
 import type { Reading } from "@agari/core/schemas";
 import type { Address, MarketId } from "@agari/core/types";
 import {
-  bandProbE6, floorStake, quoteRange, sideProbRaw, RANGE_NOT_DEPLOYED,
+  bandProbE6, centerQE6OfTicks, floorStake, quoteRange, sideProbRaw, RANGE_NOT_DEPLOYED,
   type RangeMode, type RangeParams, type RangeQuote, type RangeRefusal, type RangeReserveState,
   type RangeRound, type RangeRoundStatus, type RangeSide,
 } from "@agari/core/range";
@@ -188,8 +188,7 @@ export function previewRangeBasis(marketId: MarketId): Promise<Reading<RangeWind
     if (lastPrice <= 0n) throw new ReadingError(diagnosis("thin-book", "the venue has not traded this Window yet"));
     return {
       openingPrint: BigInt(market.data.open.price),
-      // A YES tick in this engine is P(close ≥ open) in ten thousandths; the maths works in millionths.
-      centerQE6: lastPrice * 100n,
+      centerQE6: centerQE6OfTicks(lastPrice),
       sigmaE8: reserve.data.params.sigmaE8,
     } satisfies RangeWindowBasis;
   });

@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{transfer_checked, TransferChecked};
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
-use crate::basis::read_close_print;
+use crate::basis::{engine_has_answer, read_close_print};
 use crate::constants::{EXPIRY_SEED, RESERVE_SEED, ROUND_SEED, VAULT_SEED, VOID_GRACE_SEC};
 use crate::errors::RangeError;
 use crate::events::{RoundClaimed, RoundSettled, RoundVoided};
@@ -123,15 +123,24 @@ pub struct VoidStale<'info> {
         constraint = expiry_book.reserve == reserve.key() @ RangeError::WrongExpiry,
     )]
     pub expiry_book: Account<'info, ExpiryBook>,
+    /// CHECK: the Window this round was opened against, read by cast with `load_checked`.
+    #[account(address = round.market @ RangeError::WrongMarket)]
+    pub market: UncheckedAccount<'info>,
 }
 
 /// A round can never be stuck live. Once the grace past its Window's close has passed with no answer from the
 /// engine, anyone may void it and the buyer may claim their stake back.
+///
+/// It refuses while the engine does have an answer. It used to look only at the clock, so a winning round nobody
+/// had settled within the hour could be voided by anyone, and the people with a reason to were the providers it
+/// was about to cost. A decided Window has to be settled instead.
 pub fn void_stale(ctx: Context<VoidStale>) -> Result<()> {
     let now = Clock::get()?.unix_timestamp;
     require!(ctx.accounts.round.status == RoundStatus::Live, RangeError::RoundNotLive);
     let deadline = ctx.accounts.round.expiry_sec.saturating_add(VOID_GRACE_SEC);
     require!(now > deadline, RangeError::NotStale);
+    let answered = engine_has_answer(&ctx.accounts.market.to_account_info(), &ctx.accounts.reserve.events_program, now);
+    require!(!answered, RangeError::MustSettle);
     void_to_owner(&mut ctx.accounts.reserve, &mut ctx.accounts.round, &mut ctx.accounts.expiry_book, now)
 }
 

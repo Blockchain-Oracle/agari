@@ -70,6 +70,8 @@ export const AGARI_RANGE_ERROR__ZERO_AMOUNT = 0x1789; // 6025
 export const AGARI_RANGE_ERROR__NO_EQUITY = 0x178a; // 6026
 /** MathOverflow: arithmetic overflowed */
 export const AGARI_RANGE_ERROR__MATH_OVERFLOW = 0x178b; // 6027
+/** MustSettle: the venue has an answer for that Window, so the round must be settled rather than voided */
+export const AGARI_RANGE_ERROR__MUST_SETTLE = 0x178c; // 6028
 
 export type AgariRangeError =
   | typeof AGARI_RANGE_ERROR__BAD_BAND
@@ -79,6 +81,7 @@ export type AgariRangeError =
   | typeof AGARI_RANGE_ERROR__INSUFFICIENT_SHARES
   | typeof AGARI_RANGE_ERROR__LONG_SHOT
   | typeof AGARI_RANGE_ERROR__MATH_OVERFLOW
+  | typeof AGARI_RANGE_ERROR__MUST_SETTLE
   | typeof AGARI_RANGE_ERROR__NEAR_CERTAIN
   | typeof AGARI_RANGE_ERROR__NO_CLOSING_PRINT
   | typeof AGARI_RANGE_ERROR__NO_EQUITY
@@ -111,6 +114,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [AGARI_RANGE_ERROR__INSUFFICIENT_SHARES]: `that wallet does not hold that many shares`,
     [AGARI_RANGE_ERROR__LONG_SHOT]: `the priced side is too much of a long shot`,
     [AGARI_RANGE_ERROR__MATH_OVERFLOW]: `arithmetic overflowed`,
+    [AGARI_RANGE_ERROR__MUST_SETTLE]: `the venue has an answer for that Window, so the round must be settled rather than voided`,
     [AGARI_RANGE_ERROR__NEAR_CERTAIN]: `the priced side is too close to certain`,
     [AGARI_RANGE_ERROR__NO_CLOSING_PRINT]: `that Window has no closing print yet`,
     [AGARI_RANGE_ERROR__NO_EQUITY]: `the reserve has no equity to price shares against`,

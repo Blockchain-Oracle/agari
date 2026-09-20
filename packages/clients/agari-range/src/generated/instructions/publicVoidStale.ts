@@ -26,6 +26,7 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
+  type ReadonlyAccount,
   type ReadonlySignerAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
@@ -53,6 +54,7 @@ export type PublicVoidStaleInstruction<
   TAccountReserve extends string | AccountMeta<string> = string,
   TAccountRound extends string | AccountMeta<string> = string,
   TAccountExpiryBook extends string | AccountMeta<string> = string,
+  TAccountMarket extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
@@ -71,6 +73,9 @@ export type PublicVoidStaleInstruction<
       TAccountExpiryBook extends string
         ? WritableAccount<TAccountExpiryBook>
         : TAccountExpiryBook,
+      TAccountMarket extends string
+        ? ReadonlyAccount<TAccountMarket>
+        : TAccountMarket,
       ...TRemainingAccounts,
     ]
   >;
@@ -109,12 +114,14 @@ export type PublicVoidStaleAsyncInput<
   TAccountReserve extends string = string,
   TAccountRound extends string = string,
   TAccountExpiryBook extends string = string,
+  TAccountMarket extends string = string,
 > = {
   cranker: TransactionSigner<TAccountCranker>;
   reserve?: Address<TAccountReserve>;
   round: Address<TAccountRound>;
   /** The boundary book this round was counted into at open; released here. */
   expiryBook: Address<TAccountExpiryBook>;
+  market: Address<TAccountMarket>;
 };
 
 export async function getPublicVoidStaleInstructionAsync<
@@ -122,13 +129,15 @@ export async function getPublicVoidStaleInstructionAsync<
   TAccountReserve extends string,
   TAccountRound extends string,
   TAccountExpiryBook extends string,
+  TAccountMarket extends string,
   TProgramAddress extends Address = typeof AGARI_RANGE_PROGRAM_ADDRESS,
 >(
   input: PublicVoidStaleAsyncInput<
     TAccountCranker,
     TAccountReserve,
     TAccountRound,
-    TAccountExpiryBook
+    TAccountExpiryBook,
+    TAccountMarket
   >,
   config?: { programAddress?: TProgramAddress },
 ): Promise<
@@ -137,7 +146,8 @@ export async function getPublicVoidStaleInstructionAsync<
     TAccountCranker,
     TAccountReserve,
     TAccountRound,
-    TAccountExpiryBook
+    TAccountExpiryBook,
+    TAccountMarket
   >
 > {
   // Program address.
@@ -149,6 +159,7 @@ export async function getPublicVoidStaleInstructionAsync<
     reserve: { value: input.reserve ?? null, isWritable: true },
     round: { value: input.round ?? null, isWritable: true },
     expiryBook: { value: input.expiryBook ?? null, isWritable: true },
+    market: { value: input.market ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -167,6 +178,7 @@ export async function getPublicVoidStaleInstructionAsync<
       getAccountMeta("reserve", accounts.reserve),
       getAccountMeta("round", accounts.round),
       getAccountMeta("expiryBook", accounts.expiryBook),
+      getAccountMeta("market", accounts.market),
     ],
     data: getPublicVoidStaleInstructionDataEncoder().encode({}),
     programAddress,
@@ -175,7 +187,8 @@ export async function getPublicVoidStaleInstructionAsync<
     TAccountCranker,
     TAccountReserve,
     TAccountRound,
-    TAccountExpiryBook
+    TAccountExpiryBook,
+    TAccountMarket
   >);
 }
 
@@ -184,12 +197,14 @@ export type PublicVoidStaleInput<
   TAccountReserve extends string = string,
   TAccountRound extends string = string,
   TAccountExpiryBook extends string = string,
+  TAccountMarket extends string = string,
 > = {
   cranker: TransactionSigner<TAccountCranker>;
   reserve: Address<TAccountReserve>;
   round: Address<TAccountRound>;
   /** The boundary book this round was counted into at open; released here. */
   expiryBook: Address<TAccountExpiryBook>;
+  market: Address<TAccountMarket>;
 };
 
 export function getPublicVoidStaleInstruction<
@@ -197,13 +212,15 @@ export function getPublicVoidStaleInstruction<
   TAccountReserve extends string,
   TAccountRound extends string,
   TAccountExpiryBook extends string,
+  TAccountMarket extends string,
   TProgramAddress extends Address = typeof AGARI_RANGE_PROGRAM_ADDRESS,
 >(
   input: PublicVoidStaleInput<
     TAccountCranker,
     TAccountReserve,
     TAccountRound,
-    TAccountExpiryBook
+    TAccountExpiryBook,
+    TAccountMarket
   >,
   config?: { programAddress?: TProgramAddress },
 ): PublicVoidStaleInstruction<
@@ -211,7 +228,8 @@ export function getPublicVoidStaleInstruction<
   TAccountCranker,
   TAccountReserve,
   TAccountRound,
-  TAccountExpiryBook
+  TAccountExpiryBook,
+  TAccountMarket
 > {
   // Program address.
   const programAddress = config?.programAddress ?? AGARI_RANGE_PROGRAM_ADDRESS;
@@ -222,6 +240,7 @@ export function getPublicVoidStaleInstruction<
     reserve: { value: input.reserve ?? null, isWritable: true },
     round: { value: input.round ?? null, isWritable: true },
     expiryBook: { value: input.expiryBook ?? null, isWritable: true },
+    market: { value: input.market ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -235,6 +254,7 @@ export function getPublicVoidStaleInstruction<
       getAccountMeta("reserve", accounts.reserve),
       getAccountMeta("round", accounts.round),
       getAccountMeta("expiryBook", accounts.expiryBook),
+      getAccountMeta("market", accounts.market),
     ],
     data: getPublicVoidStaleInstructionDataEncoder().encode({}),
     programAddress,
@@ -243,7 +263,8 @@ export function getPublicVoidStaleInstruction<
     TAccountCranker,
     TAccountReserve,
     TAccountRound,
-    TAccountExpiryBook
+    TAccountExpiryBook,
+    TAccountMarket
   >);
 }
 
@@ -258,6 +279,7 @@ export type ParsedPublicVoidStaleInstruction<
     round: TAccountMetas[2];
     /** The boundary book this round was counted into at open; released here. */
     expiryBook: TAccountMetas[3];
+    market: TAccountMetas[4];
   };
   data: PublicVoidStaleInstructionData;
 };
@@ -270,12 +292,12 @@ export function parsePublicVoidStaleInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedPublicVoidStaleInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
+  if (instruction.accounts.length < 5) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
       {
         actualAccountMetas: instruction.accounts.length,
-        expectedAccountMetas: 4,
+        expectedAccountMetas: 5,
       },
     );
   }
@@ -292,6 +314,7 @@ export function parsePublicVoidStaleInstruction<
       reserve: getNextAccount(),
       round: getNextAccount(),
       expiryBook: getNextAccount(),
+      market: getNextAccount(),
     },
     data: getPublicVoidStaleInstructionDataDecoder().decode(instruction.data),
   };
