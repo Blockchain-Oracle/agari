@@ -4,10 +4,10 @@
  * the registration re-sends the whole current set with only that index changed. The stage owner's
  * `scripts/deploy/{init-vault,set-authorities}.ts` and the Surfpool fork drive call these; server-only.
  */
-import { findConfigPda, getAdminSetAuthoritiesInstructionAsync } from "@agari/clients/agari-events";
+import { findConfigPda } from "@agari/clients/agari-events";
 import { AGARI_VAULT_PROGRAM_ADDRESS, findSeatPda, findVaultConfigPda, getAdminInitVaultInstructionAsync } from "@agari/clients/agari-vault";
 import { getAddressEncoder, getProgramDerivedAddress, type Address } from "@solana/kit";
-import { DEFAULT_ADDRESS } from "./venue-spec";
+import { registerProgramSeat } from "./program-seat";
 import { send, type SendContext } from "./send";
 
 const BPF_LOADER_UPGRADEABLE = "BPFLoaderUpgradeab1e11111111111111111111111" as Address;
@@ -45,36 +45,8 @@ export async function initVault(ctx: SendContext): Promise<{ config: Address; si
   return { config, signature };
 }
 
-/**
- * Registers the vault's seat at `VAULT_AUTHORITY_INDEX`, re-sending every other field unchanged; signed by the config
- * admin (the client's payer). Skipped when already registered; refused when another key holds the index.
- */
+/** Registers the vault's seat at `VAULT_AUTHORITY_INDEX`, signed by the config admin; every other field is re-sent unchanged. */
 export async function registerVaultSeat(ctx: SendContext): Promise<string | null> {
-  const [config] = await findConfigPda();
   const [seat] = await findSeatPda();
-  const { data } = await ctx.client.agariEvents.accounts.globalConfig.fetch(config);
-  const current = data.programAuthorities[VAULT_AUTHORITY_INDEX];
-  if (current === seat) {
-    ctx.log({ step: "set authorities", signature: null, note: `vault seat ${seat} already at index ${VAULT_AUTHORITY_INDEX}` });
-    return null;
-  }
-  if (current !== undefined && current !== DEFAULT_ADDRESS) throw new Error(`program_authorities[${VAULT_AUTHORITY_INDEX}] holds ${current}, not the vault seat ${seat}`);
-  const programAuthorities = data.programAuthorities.map((key, i) => (i === VAULT_AUTHORITY_INDEX ? seat : key));
-  const ix = await getAdminSetAuthoritiesInstructionAsync({
-    admin: ctx.client.payer,
-    treasury: data.treasury,
-    rollers: data.rollers,
-    attestors: data.attestors,
-    redstoneSigners: data.redstoneSigners,
-    redstoneSignerCount: data.redstoneSignerCount,
-    redstoneThreshold: data.redstoneThreshold,
-    switchboardQueue: data.switchboardQueue,
-    switchboardMinOracles: data.switchboardMinOracles,
-    programAuthorities,
-    resultRetentionSec: data.resultRetentionSec,
-    // The engine re-checks the pinned Switchboard queue on every authority write, so the account must come with
-    // it whenever one is set (prints.md §4.4). Omitting it fails as `BadAuthorities`, which reads like a bad key.
-    queue: data.switchboardQueue === DEFAULT_ADDRESS ? undefined : data.switchboardQueue,
-  });
-  return send(ctx, "set authorities", [ix], `vault seat ${seat} at program_authorities[${VAULT_AUTHORITY_INDEX}], every other field unchanged`);
+  return registerProgramSeat(ctx, VAULT_AUTHORITY_INDEX, seat, "vault");
 }

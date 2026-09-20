@@ -4,14 +4,14 @@
  * · 4 agari-arena). Without that registration the engine will not give the vault a PROGRAM seat, and every quote
  * refuses with `VaultNotRegistered` — so the two steps go together.
  */
-import { findConfigPda, getAdminSetAuthoritiesInstructionAsync, AGARI_EVENTS_PROGRAM_ADDRESS } from "@agari/clients/agari-events";
+import { findConfigPda, AGARI_EVENTS_PROGRAM_ADDRESS } from "@agari/clients/agari-events";
 import {
   AGARI_MAKER_PROGRAM_ADDRESS, findCustodyPda, findSeatPda, findVaultPda,
   getAdminInitVaultInstructionAsync, type MakerParamsArgs,
 } from "@agari/clients/agari-maker";
 import { TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import type { Address } from "@solana/kit";
-import { DEFAULT_ADDRESS } from "./venue-spec";
+import { registerProgramSeat } from "./program-seat";
 import { send, type SendContext } from "./send";
 
 /** The fixed table (D-063). The maker's seat lives at 1 and nowhere else. */
@@ -73,39 +73,8 @@ export async function initMakerVault(
   return { vault, custody, seat, signature };
 }
 
-/**
- * Registers the maker's seat at `MAKER_AUTHORITY_INDEX`, re-sending every other authority unchanged because
- * `admin_set_authorities` replaces the whole set. Refused when another key already holds the index, rather than
- * overwriting it: an authority slot is somebody's money.
- */
+/** Registers the maker's seat at `MAKER_AUTHORITY_INDEX`; every other authority is re-sent unchanged. */
 export async function registerMakerSeat(ctx: SendContext): Promise<string | null> {
-  const [config] = await findConfigPda();
   const { seat } = await makerAddresses();
-  const { data } = await ctx.client.agariEvents.accounts.globalConfig.fetch(config);
-  const current = data.programAuthorities[MAKER_AUTHORITY_INDEX];
-  if (current === seat) {
-    ctx.log({ step: "set authorities", signature: null, note: `maker seat ${seat} already at index ${MAKER_AUTHORITY_INDEX}` });
-    return null;
-  }
-  if (current !== undefined && current !== DEFAULT_ADDRESS) {
-    throw new Error(`program_authorities[${MAKER_AUTHORITY_INDEX}] holds ${current}, not the maker seat ${seat}`);
-  }
-  const programAuthorities = data.programAuthorities.map((key, i) => (i === MAKER_AUTHORITY_INDEX ? seat : key));
-  const ix = await getAdminSetAuthoritiesInstructionAsync({
-    admin: ctx.client.payer,
-    treasury: data.treasury,
-    rollers: data.rollers,
-    attestors: data.attestors,
-    redstoneSigners: data.redstoneSigners,
-    redstoneSignerCount: data.redstoneSignerCount,
-    redstoneThreshold: data.redstoneThreshold,
-    switchboardQueue: data.switchboardQueue,
-    switchboardMinOracles: data.switchboardMinOracles,
-    programAuthorities,
-    resultRetentionSec: data.resultRetentionSec,
-    // The engine re-checks the pinned Switchboard queue on every authority write, so the account must come with
-    // it whenever one is set (prints.md §4.4). Omitting it fails as `BadAuthorities`, which reads like a bad key.
-    queue: data.switchboardQueue === DEFAULT_ADDRESS ? undefined : data.switchboardQueue,
-  });
-  return send(ctx, "set authorities", [ix], `maker seat ${seat} at program_authorities[${MAKER_AUTHORITY_INDEX}], every other field unchanged`);
+  return registerProgramSeat(ctx, MAKER_AUTHORITY_INDEX, seat, "maker");
 }

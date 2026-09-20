@@ -1,0 +1,2162 @@
+{
+  "address": "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb",
+  "metadata": {
+    "name": "agari_leverage",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Masayume's LeverageReserve on Solana: prefunded, capped leverage on Windows, a knock-out certificate on the venue's own contracts"
+  },
+  "instructions": [
+    {
+      "name": "admin_init_reserve",
+      "discriminator": [
+        52,
+        121,
+        137,
+        255,
+        134,
+        216,
+        115,
+        8
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "docs": [
+            "Every unit the reserve holds. Its authority is the seat, because the engine moves it as the seat."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "program",
+          "address": "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "LeverageParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_params",
+      "discriminator": [
+        194,
+        243,
+        1,
+        30,
+        162,
+        133,
+        247,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "reserve"
+          ]
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "LeverageParams"
+            }
+          }
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "owner_close",
+      "discriminator": [
+        248,
+        2,
+        235,
+        59,
+        127,
+        159,
+        91,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "The owner for a close; anyone for a knock-out, which never pays its caller."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position.position_id",
+                "account": "Position"
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  119,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "docs": [
+            "Where the owner's part goes. Optional: without it the money waits for `public_claim`."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": [
+        {
+          "name": "min_proceeds_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_open",
+      "discriminator": [
+        42,
+        184,
+        232,
+        3,
+        178,
+        96,
+        80,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "reserve.next_position_id",
+                "account": "LeverageReserve"
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "docs": [
+            "What the reserve has out on this Window. Created the first time a boost is opened there."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  119,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "outcome",
+          "type": "u8"
+        },
+        {
+          "name": "stake_base",
+          "type": "u64"
+        },
+        {
+          "name": "leverage_bps",
+          "type": "u32"
+        },
+        {
+          "name": "min_lots",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "provider_supply",
+      "discriminator": [
+        73,
+        69,
+        72,
+        253,
+        228,
+        71,
+        82,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "This wallet's own share balance. Created on first supply; never writable by anyone else."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "provider_withdraw",
+      "discriminator": [
+        58,
+        126,
+        168,
+        66,
+        6,
+        165,
+        115,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "position",
+          "docs": [
+            "This wallet's own share balance. Created on first supply; never writable by anyone else."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  118,
+                  105,
+                  100,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "provider"
+              }
+            ]
+          }
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "provider_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "public_claim",
+      "discriminator": [
+        57,
+        161,
+        227,
+        54,
+        107,
+        116,
+        1,
+        95
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless to call; the money only ever goes to `position.owner` (AD-5)."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position.position_id",
+                "account": "Position"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_knock_out",
+      "discriminator": [
+        131,
+        89,
+        216,
+        79,
+        139,
+        35,
+        99,
+        188
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "The owner for a close; anyone for a knock-out, which never pays its caller."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position.position_id",
+                "account": "Position"
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  119,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "docs": [
+            "Where the owner's part goes. Optional: without it the money waits for `public_claim`."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "book",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_settle",
+      "discriminator": [
+        236,
+        104,
+        129,
+        104,
+        54,
+        32,
+        122,
+        42
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Permissionless: a settlement never pays its caller."
+          ],
+          "signer": true
+        },
+        {
+          "name": "reserve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  115,
+                  101,
+                  114,
+                  118,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "position.position_id",
+                "account": "Position"
+              }
+            ]
+          }
+        },
+        {
+          "name": "window",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  119,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "custody",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  117,
+                  115,
+                  116,
+                  111,
+                  100,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "seat",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  97,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_token",
+          "docs": [
+            "Where the owner's part goes. Optional: without it the money waits for `public_claim`."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "events_program",
+          "address": "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
+        },
+        {
+          "name": "events_config",
+          "address": "42GFppq2YX3LVet2mLEb6EKs1MzmUY38ds3F9VRrqvQ3"
+        },
+        {
+          "name": "series"
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "ledger",
+          "writable": true
+        },
+        {
+          "name": "mvault",
+          "writable": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "events_event_authority",
+          "address": "5i6rLKrfs8wd23fjPmLCXmAzSKVW6CZ5DJYNQ2DLmLT2"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LeverageReserve",
+      "discriminator": [
+        92,
+        253,
+        189,
+        113,
+        54,
+        69,
+        6,
+        2
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    },
+    {
+      "name": "Provider",
+      "discriminator": [
+        164,
+        180,
+        71,
+        17,
+        75,
+        216,
+        80,
+        195
+      ]
+    },
+    {
+      "name": "WindowBook",
+      "discriminator": [
+        132,
+        210,
+        243,
+        131,
+        94,
+        85,
+        163,
+        81
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Claimed",
+      "discriminator": [
+        217,
+        192,
+        123,
+        72,
+        108,
+        150,
+        248,
+        33
+      ]
+    },
+    {
+      "name": "Exited",
+      "discriminator": [
+        219,
+        97,
+        107,
+        184,
+        198,
+        48,
+        50,
+        243
+      ]
+    },
+    {
+      "name": "Opened",
+      "discriminator": [
+        166,
+        172,
+        97,
+        9,
+        77,
+        76,
+        189,
+        109
+      ]
+    },
+    {
+      "name": "ParamsUpdated",
+      "discriminator": [
+        2,
+        163,
+        138,
+        99,
+        135,
+        11,
+        136,
+        169
+      ]
+    },
+    {
+      "name": "ReserveInitialized",
+      "discriminator": [
+        22,
+        27,
+        136,
+        173,
+        244,
+        120,
+        20,
+        49
+      ]
+    },
+    {
+      "name": "Supplied",
+      "discriminator": [
+        137,
+        114,
+        239,
+        72,
+        162,
+        75,
+        133,
+        39
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Paused",
+      "msg": "the reserve is paused"
+    },
+    {
+      "code": 6001,
+      "name": "BadParams",
+      "msg": "those parameters are outside what the reserve accepts"
+    },
+    {
+      "code": 6002,
+      "name": "NotAdmin",
+      "msg": "only the reserve's admin may do that"
+    },
+    {
+      "code": 6003,
+      "name": "UnknownMarket",
+      "msg": "that Window is not the venue's, or its accounts do not belong together"
+    },
+    {
+      "code": 6004,
+      "name": "WrongCollateral",
+      "msg": "that Window trades a different collateral"
+    },
+    {
+      "code": 6005,
+      "name": "BadOutcome",
+      "msg": "an outcome is 0 for Up or 1 for Down"
+    },
+    {
+      "code": 6006,
+      "name": "ReserveNotRegistered",
+      "msg": "the reserve's seat is not registered with the venue"
+    },
+    {
+      "code": 6007,
+      "name": "WindowPredatesReserve",
+      "msg": "that Window was opened before the reserve had a seat"
+    },
+    {
+      "code": 6008,
+      "name": "WindowNotTrading",
+      "msg": "that Window is not open for trading"
+    },
+    {
+      "code": 6009,
+      "name": "TooLate",
+      "msg": "too little time is left in that Window for a knock-out to act before the print"
+    },
+    {
+      "code": 6010,
+      "name": "BadLeverage",
+      "msg": "a boost is more than 1x and no more than the reserve's maximum"
+    },
+    {
+      "code": 6011,
+      "name": "ThinBook",
+      "msg": "the book is too thin for that size"
+    },
+    {
+      "code": 6012,
+      "name": "OutsideBand",
+      "msg": "the entry price is outside the band the reserve boosts in"
+    },
+    {
+      "code": 6013,
+      "name": "BelowMinQuantity",
+      "msg": "the size is under the venue's minimum, or under what the owner asked for"
+    },
+    {
+      "code": 6014,
+      "name": "StakeAboveMax",
+      "msg": "the fill would charge more than the stake"
+    },
+    {
+      "code": 6015,
+      "name": "Underpriced",
+      "msg": "the boost could not beat the plain bet even when right"
+    },
+    {
+      "code": 6016,
+      "name": "UnhealthyAtEntry",
+      "msg": "the position would open already under its knock-out line"
+    },
+    {
+      "code": 6017,
+      "name": "OverPositionCap",
+      "msg": "the front is over the reserve's cap for one position"
+    },
+    {
+      "code": 6018,
+      "name": "OverWindowCap",
+      "msg": "too much of the reserve is already fronted on that Window"
+    },
+    {
+      "code": 6019,
+      "name": "OverExposure",
+      "msg": "that would take the reserve past its exposure limit"
+    },
+    {
+      "code": 6020,
+      "name": "TooManyOpen",
+      "msg": "the reserve has as many positions open as it allows"
+    },
+    {
+      "code": 6021,
+      "name": "InsufficientLiquidity",
+      "msg": "the reserve cannot front that right now"
+    },
+    {
+      "code": 6022,
+      "name": "InsufficientShares",
+      "msg": "that wallet does not hold that many shares"
+    },
+    {
+      "code": 6023,
+      "name": "NothingFilled",
+      "msg": "nothing filled against the book"
+    },
+    {
+      "code": 6024,
+      "name": "EngineResultMissing",
+      "msg": "the engine returned no result for the order"
+    },
+    {
+      "code": 6025,
+      "name": "EngineAccountingMismatch",
+      "msg": "what the engine reported and what moved in custody do not agree"
+    },
+    {
+      "code": 6026,
+      "name": "NotOwner",
+      "msg": "only the position's owner may do that"
+    },
+    {
+      "code": 6027,
+      "name": "NotLive",
+      "msg": "the position is not live"
+    },
+    {
+      "code": 6028,
+      "name": "StillHealthy",
+      "msg": "the position is above its knock-out line"
+    },
+    {
+      "code": 6029,
+      "name": "Slippage",
+      "msg": "the sale fetched less than the owner's minimum"
+    },
+    {
+      "code": 6030,
+      "name": "MarketNotSettled",
+      "msg": "that Window has not settled yet"
+    },
+    {
+      "code": 6031,
+      "name": "UnsettledPosition",
+      "msg": "a position past its Window's expiry is unsettled; settle it first, anyone may"
+    },
+    {
+      "code": 6032,
+      "name": "NothingOwed",
+      "msg": "there is nothing owed on that position"
+    },
+    {
+      "code": 6033,
+      "name": "ZeroAmount",
+      "msg": "the amount is zero"
+    },
+    {
+      "code": 6034,
+      "name": "NoEquity",
+      "msg": "the reserve has no value to price shares against"
+    },
+    {
+      "code": 6035,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflowed"
+    }
+  ],
+  "types": [
+    {
+      "name": "Claimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "position",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "paid_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Exited",
+      "docs": [
+        "A sale or a redemption. `status` is Live while contracts remain, otherwise how the position ended."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "position",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "PositionStatus"
+              }
+            }
+          },
+          {
+            "name": "lots_sold",
+            "type": "u64"
+          },
+          {
+            "name": "proceeds_base",
+            "type": "u64"
+          },
+          {
+            "name": "reclaimed_base",
+            "type": "u64"
+          },
+          {
+            "name": "returned_base",
+            "type": "u64"
+          },
+          {
+            "name": "owed_base",
+            "docs": [
+              "What of `returned_base` could not be paid at once and waits for `public_claim`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeverageParams",
+      "docs": [
+        "The reserve's tunables, mirrored by `LeverageParams` in `packages/core/src/leverage/types.ts`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_leverage_bps",
+            "docs": [
+              "20,000 = 2x. Exposure is `leverage_bps / 10,000` of the stake."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "premium_bps",
+            "docs": [
+              "Charged on the fronted amount at open and kept whatever happens: the reserve's gap-risk fee."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "maintenance_bps",
+            "docs": [
+              "The knock-out line: anyone may sell a position once `mark × 10,000 < fronted × maintenance_bps`."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_exposure_bps",
+            "docs": [
+              "Aggregate fronted cap as a fraction of total value."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_open_positions",
+            "type": "u16"
+          },
+          {
+            "name": "min_time_left_sec",
+            "docs": [
+              "No opens inside the last seconds of a Window, where the knock-out cannot act before the print."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "min_entry_price_raw",
+            "docs": [
+              "Entry only inside this band, in the bought side's own terms: no boost on a decided Window."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_entry_price_raw",
+            "type": "u64"
+          },
+          {
+            "name": "max_fronted_per_position_base",
+            "type": "u64"
+          },
+          {
+            "name": "max_window_fronted_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeverageReserve",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "params",
+            "type": {
+              "defined": {
+                "name": "LeverageParams"
+              }
+            }
+          },
+          {
+            "name": "outstanding_base",
+            "type": "u64"
+          },
+          {
+            "name": "user_owed_base",
+            "type": "u64"
+          },
+          {
+            "name": "supply_shares",
+            "type": "u64"
+          },
+          {
+            "name": "next_position_id",
+            "type": "u64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "seat_bump",
+            "type": "u8"
+          },
+          {
+            "name": "custody_bump",
+            "type": "u8"
+          },
+          {
+            "name": "open",
+            "docs": [
+              "Live positions, so a withdrawal can see an expired unsettled one without being handed any accounts."
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "OpenSlot"
+                  }
+                },
+                128
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OpenSlot",
+      "docs": [
+        "One live position as the reserve tracks it. `position_id` 0 is a free slot."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Opened",
+      "docs": [
+        "Everything a reader needs to re-derive the terms: what was bought, what it cost, and who put in what."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "position",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "outcome",
+            "type": "u8"
+          },
+          {
+            "name": "leverage_bps",
+            "type": "u32"
+          },
+          {
+            "name": "lots",
+            "type": "u64"
+          },
+          {
+            "name": "cost_base",
+            "type": "u64"
+          },
+          {
+            "name": "stake_base",
+            "type": "u64"
+          },
+          {
+            "name": "fronted_base",
+            "type": "u64"
+          },
+          {
+            "name": "premium_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ParamsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "docs": [
+        "PDA `[\"position\", position_id u64 LE]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "position_id",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "PositionStatus"
+              }
+            }
+          },
+          {
+            "name": "outcome",
+            "docs": [
+              "0 Up (YES), 1 Down (NO)."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "leverage_bps",
+            "type": "u32"
+          },
+          {
+            "name": "opened_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "expiry_sec",
+            "type": "i64"
+          },
+          {
+            "name": "exited_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "lots",
+            "docs": [
+              "Contracts the reserve still holds for this position, in the venue's lots."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lot_base",
+            "docs": [
+              "Base units one lot pays when its side lands, so a reader need not fetch the Series to size the position."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "stake_base",
+            "docs": [
+              "What the owner put in, premium included: the most they can lose."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "fronted_base",
+            "docs": [
+              "The reserve's outstanding claim, repaid first out of whatever the contracts fetch."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "premium_base",
+            "type": "u64"
+          },
+          {
+            "name": "entry_price_raw",
+            "docs": [
+              "Collateral per whole contract paid at open, in the bought side's own terms."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "proceeds_base",
+            "docs": [
+              "Cumulative: what the contracts fetched, what the reserve took back, what the owner was due."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reclaimed_base",
+            "type": "u64"
+          },
+          {
+            "name": "returned_base",
+            "type": "u64"
+          },
+          {
+            "name": "owed_base",
+            "docs": [
+              "The part of `returned_base` not yet paid out. An exit never waits on the owner's token account: when a",
+              "permissionless exit is not handed one, the money waits here for `public_claim`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PositionStatus",
+      "docs": [
+        "Live while the reserve holds the contracts; Closed by the owner's own cash-out; KnockedOut when the mark fell to",
+        "the maintenance line and anyone sold it; Settled on the venue's resolution. In the client's enum order."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Live"
+          },
+          {
+            "name": "Closed"
+          },
+          {
+            "name": "KnockedOut"
+          },
+          {
+            "name": "Settled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Provider",
+      "docs": [
+        "One wallet's share of the reserve. PDA `[\"provider\", owner]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "supplied_base",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawn_base",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReserveInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "reserve",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Supplied",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "total_value_base",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WindowBook",
+      "docs": [
+        "What the reserve has out on one Window. PDA `[\"lwin\", market]`. Every boost on one print loses together, so the",
+        "reserve caps what it fronts per Window as well as overall."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "fronted_base",
+            "type": "u64"
+          },
+          {
+            "name": "positions_open",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "provider",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_base",
+            "type": "u64"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "total_value_base",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

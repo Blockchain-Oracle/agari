@@ -99,6 +99,24 @@
       "registry": "G7BLjSmJEShnXFAGutjZPgDNEKjbbNBSWFRN81JTJQGg",
       "fromSlot": 501136159,
       "initSignature": "4Dbgv6Aha6hpmcwa9thx23b1PTRuFmcNtECbc9BN4L7mzFoxt2dXPsti95mdSBr3xJqosLZunGu9PwmcaEjsEVgV"
+    },
+    "agari_leverage": {
+      "programId": "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb",
+      "programData": "EZnJdanj8D87AufEMXfoPSnxQfkmS3F1tz2Co7ypC4M8",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "4FUhQj3BQYTmonEbrwSVAzznwHbKc35rbNnkWbT7pZwpY1DamExefR38zo43xBXY3EQvZ8XG22hnCGnkke6L5JEA",
+      "deployedSlot": 501424717,
+      "sbpfArch": "v0",
+      "soBytes": 543672,
+      "soSha256": "e3cdf2bb5ab69b35b89df570bf7878a336a1122f61a0838f87fa7ad974e1a27e",
+      "sourceCommit": "adf9783",
+      "reserve": "erQ4JNsSk7pkev7Y5KKyqqkQcD4BmmY74xLahJqjTue",
+      "custody": "Cy4STHKx3j2iBiTnGydpEMVc5wMP9jNhNPzYgZGYENhD",
+      "seat": "FX1WA4YaWsmn6k9PCeNTEKHsCfhin1gZusfsQZgX3FxR",
+      "fromSlot": 501425587,
+      "initSignature": "4gyZ7BpuPCz6gFLV5dNdTJjwxRkZ2ep1Dqcy5DDnt4m3grMjgejRqpQQhCQDqygPDxKQny8hTwyRh99C7mcyzHVi",
+      "seatSignature": "5Z65bigyedVQsoh61eQFxtvtwHvf655HHyop88wo6ARZdH9MyKcBxYmR4VfwUM7kbPGoyv5ptiMr2Z5Ttx1JiD8J",
+      "seatFromSlot": 501425587
     }
   },
   "venue": {
