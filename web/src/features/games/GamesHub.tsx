@@ -15,7 +15,7 @@ import { MatchTile } from "./MatchTile";
 import { useRoomOccupancy, searchingNow } from "./duel/useRoomOccupancy";
 import { useSeason } from "./duel/useSeason";
 import { useGames } from "./GamesProvider";
-import { PendingPlate } from "./PendingPlate";
+import { AchievementsPlate } from "./AchievementsPlate";
 import { SeasonBanner } from "./SeasonBanner";
 
 /**
@@ -99,7 +99,7 @@ export function GamesHub() {
         <SectionHead {...GAMES.sections.profile} />
         <div className="gm-two">
           <GameProfileCard />
-          <PendingPlate title={GAMES.achievements.title} body={GAMES.achievements.pending} dependency={GAMES.achievements.dependency} />
+          <AchievementsPlate />
         </div>
       </section>
 

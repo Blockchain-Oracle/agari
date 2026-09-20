@@ -1,3 +1,4 @@
+export * from "./achievements";
 export * from "./arena";
 export * from "./commitment";
 export * from "./deck";

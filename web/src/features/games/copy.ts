@@ -90,9 +90,10 @@ export const GAMES = {
 
   achievements: {
     title: "Achievements",
-    pending:
-      "Achievements are planned. Settled duels and verified arcade scores are recorded, but do not unlock badges yet.",
-    dependency: "achievement rules and profile integration",
+    body: "Earned from the record itself: duels the arena settled, ratings the settler verified, arcade scores the room vouched for, Lucky Draws the venue resolved.",
+    connect: "Connect a wallet to see which of these you hold. Each one is earned from a settled record, never from a counter kept here.",
+    noStore: "This deployment keeps no games store, so nothing has been recorded to earn them from.",
+    count: (earned: number, total: number) => `${earned} of ${total} earned`,
   },
 
   historyPage: {

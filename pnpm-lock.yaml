@@ -153,6 +153,9 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../core
+      '@noble/hashes':
+        specifier: 1.8.0
+        version: 1.8.0
       '@pythnetwork/pyth-solana-receiver':
         specifier: 0.16.0
         version: 0.16.0(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)
