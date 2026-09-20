@@ -16,6 +16,7 @@ import { solana } from "../runtime/solana";
 import { failureDiagnosis } from "../submitter/chain-failure";
 import { OrderRefusedError, SimulationFailedError } from "../submitter/errors";
 import { signSendConfirm, type WriteContext } from "../submitter/settle-write";
+import { submitLaneWrite } from "../submitter/lane-write";
 import { buildWrite } from "../submitter/steps/message";
 import { kit, parlayProgramId, reserveAddress, ticketAddress } from "./deployment";
 import type { ParlayOpenOutcome } from "./types";
@@ -143,33 +144,6 @@ async function instructionFor(ctx: WriteContext, intent: LaneIntent): Promise<In
 }
 
 /** Every parlay write but the open: settle a leg, claim, supply and withdraw, through the session's queued lane. */
-export async function submitParlayTx(ctx: WriteContext, intent: LaneIntent, onPhase?: PhaseListener): Promise<TxOutcome> {
-  try {
-    const instruction = await instructionFor(ctx, intent);
-    const built = await buildWrite(ctx.rpc, ctx.signer, [instruction]);
-    const record = await ctx.journal.record({ kind: intent.kind, wallet: ctx.wallet, summary: intent.kind });
-    onPhase?.("submitted");
-    const settled = await signSendConfirm(ctx, record.id, built, onPhase);
-    if (settled.kind === "not-sent") return laneRefusal(settled.error);
-    const txHash = settled.signature as Signature;
-    if (settled.kind === "unknown") {
-      return { status: "unknown", diagnosis: diagnosis("send-unknown", `no confirmation (${settled.reason})`, { txHash }), txHash };
-    }
-    if (settled.kind === "landed-failed") {
-      const diag = failureDiagnosis(settled.failure);
-      await ctx.journal.markFailed(record.id, `landed: ${diag.technical}`);
-      return { status: "reverted", diagnosis: diagnosis(diag.kind, diag.technical, { txHash }), txHash };
-    }
-    await ctx.journal.markConfirmed(record.id);
-    onPhase?.("confirmed", { txHash });
-    return { status: "confirmed", txHash };
-  } catch (error) {
-    return laneRefusal(error);
-  }
-}
-
-function laneRefusal(error: unknown): TxOutcome {
-  if (error instanceof OrderRefusedError) return { status: "refused", diagnosis: error.diagnosis };
-  if (error instanceof SimulationFailedError) return { status: "refused", diagnosis: failureDiagnosis(error.failure) };
-  return { status: "refused", diagnosis: diagnose(error) };
+export function submitParlayTx(ctx: WriteContext, intent: LaneIntent, onPhase?: PhaseListener): Promise<TxOutcome> {
+  return submitLaneWrite(ctx, intent.kind, () => instructionFor(ctx, intent), onPhase);
 }

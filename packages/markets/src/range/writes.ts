@@ -1,6 +1,9 @@
-import { fetchMaybeReserve, getOwnerOpenRoundInstructionAsync } from "@agari/clients/agari-range";
+import {
+  fetchMaybeReserve, fetchMaybeRound, getOwnerOpenRoundInstructionAsync, getProviderSupplyInstructionAsync, getProviderWithdrawInstructionAsync,
+  getPublicClaimRoundInstructionAsync, getPublicSettleRoundInstructionAsync, getPublicVoidStaleInstructionAsync,
+} from "@agari/clients/agari-range";
 import { phase } from "@agari/core/lifecycle";
-import type { PhaseListener } from "@agari/core/ports";
+import type { PhaseListener, TxOutcome } from "@agari/core/ports";
 import { diagnosis, type Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { RANGE_STAKE_HEADROOM_BPS, type RangeIntent } from "@agari/core/range";
@@ -10,9 +13,11 @@ import { getMarket } from "../provider/markets";
 import { failureDiagnosis } from "../submitter/chain-failure";
 import { OrderRefusedError, SimulationFailedError } from "../submitter/errors";
 import { signSendConfirm, type WriteContext } from "../submitter/settle-write";
+import { submitLaneWrite } from "../submitter/lane-write";
 import { buildWrite } from "../submitter/steps/message";
+import type { Instruction } from "@solana/kit";
 import type { RangeOpenOutcome } from "./read";
-import { expiryBookAddress, kit, reserveAddress, roundAddress } from "./deployment";
+import { expiryBookAddress, kit, rangeProgramId, reserveAddress, roundAddress } from "./deployment";
 import { solana } from "../runtime/solana";
 
 const BPS = 10_000n;
@@ -99,4 +104,44 @@ function outcomeOf(error: unknown): RangeOpenOutcome {
   if (error instanceof OrderRefusedError) return { status: "refused", diagnosis: error.diagnosis };
   if (error instanceof SimulationFailedError) return { status: "refused", diagnosis: failureDiagnosis(error.failure) };
   return { status: "refused", diagnosis: diagnose(error) };
+}
+
+type LaneIntent = Exclude<RangeIntent, { kind: "range-open" }>;
+
+async function instructionFor(ctx: WriteContext, intent: LaneIntent): Promise<Instruction> {
+  const config = { programAddress: kit(rangeProgramId()) };
+  const reserve = await fetchMaybeReserve(solana().rpc, kit(await reserveAddress()));
+  if (!reserve.exists) throw new OrderRefusedError(diagnosis("not-deployed", "no range reserve on this cluster"));
+  const shared = { collateralMint: reserve.data.collateralMint, tokenProgram: TOKEN_PROGRAM_ADDRESS };
+
+  if (intent.kind === "range-supply" || intent.kind === "range-withdraw") {
+    const [providerToken] = await findAssociatedTokenPda({ owner: kit(ctx.wallet), mint: reserve.data.collateralMint, tokenProgram: TOKEN_PROGRAM_ADDRESS });
+    const accounts = { ...shared, provider: ctx.signer, providerToken };
+    return intent.kind === "range-supply"
+      ? getProviderSupplyInstructionAsync({ ...accounts, amountBase: intent.amountBase }, config)
+      : getProviderWithdrawInstructionAsync({ ...accounts, shares: intent.shares }, config);
+  }
+
+  const address = kit(await roundAddress(intent.roundId));
+  const round = await fetchMaybeRound(solana().rpc, address);
+  if (!round.exists) throw new OrderRefusedError(diagnosis("not-settled", `no round ${intent.roundId}`));
+  if (intent.kind === "range-claim") {
+    // A claim pays the round's owner whoever sends it, so the destination is the owner's account, not the sender's.
+    const [ownerToken] = await findAssociatedTokenPda({ owner: round.data.owner, mint: reserve.data.collateralMint, tokenProgram: TOKEN_PROGRAM_ADDRESS });
+    return getPublicClaimRoundInstructionAsync({ ...shared, cranker: ctx.signer, round: address, ownerToken }, config);
+  }
+  // Settle and the stale sweep both release the boundary book the round was counted into, and both read its Window.
+  const decide = { cranker: ctx.signer, round: address, expiryBook: kit(await expiryBookAddress(round.data.expirySec)), market: round.data.market };
+  return intent.kind === "range-settle"
+    ? getPublicSettleRoundInstructionAsync(decide, config)
+    : getPublicVoidStaleInstructionAsync(decide, config);
+}
+
+/**
+ * Every range write but the open: settle, the stale sweep, claim, supply and withdraw, through the session's queued
+ * lane. Until this existed `submitTx` refused them all as not deployed, so a round won on the page could be opened
+ * there and never collected.
+ */
+export function submitRangeTx(ctx: WriteContext, intent: LaneIntent, onPhase?: PhaseListener): Promise<TxOutcome> {
+  return submitLaneWrite(ctx, intent.kind, () => instructionFor(ctx, intent), onPhase);
 }
