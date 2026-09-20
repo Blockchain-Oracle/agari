@@ -183,7 +183,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
   const placeBoost = useCallback(async () => {
     if (!side || !boost.quote || !leverageReserve) return;
     const q = boost.quote;
-    const outcome = await leverageWrites.open({ marketId: market.marketId, side, stakeBase, leverageBps, minQuantityRaw: (q.quantityRaw * BOOST_FILL_FLOOR_BPS) / 10_000n, maintenanceBps: leverageReserve.params.maintenanceBps });
+    const outcome = await leverageWrites.open({ marketId: market.marketId, side, stakeBase, leverageBps, minQuantityRaw: (q.quantityRaw * BOOST_FILL_FLOOR_BPS) / 10_000n });
     if (!outcome) return;
     if (outcome.status === "confirmed") {
       const avgPriceBps = priceRawToBps(q.priceRaw, decimals);

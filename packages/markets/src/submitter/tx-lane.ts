@@ -1,6 +1,7 @@
 import { isVaultIntent, type PhaseListener, type TxIntent, type TxOutcome } from "@agari/core/ports";
 import { diagnosis } from "@agari/core/types";
 import { notDeployed } from "../stub/not-deployed";
+import { submitLeverageTx } from "../leverage/writes";
 import { submitMakerTx } from "../maker/writes";
 import { submitParlayTx } from "../parlay/writes";
 import { submitRangeTx } from "../range/writes";
@@ -24,6 +25,8 @@ export async function submitTx(ctx: WriteContext, intent: TxIntent, onPhase?: Ph
   if (intent.kind.startsWith("range-") && intent.kind !== "range-open") return submitRangeTx(ctx, intent as never, onPhase);
   // The open has its own lane (`submitParlayOpen`): it hands back the ticket id. Everything else is a plain write.
   if (intent.kind.startsWith("parlay-") && intent.kind !== "parlay-open") return submitParlayTx(ctx, intent as never, onPhase);
+  // Likewise the boost: `submitLeverageOpen` hands back the position. Exits, the claim and liquidity are plain writes.
+  if (intent.kind.startsWith("leverage-") && intent.kind !== "leverage-open") return submitLeverageTx(ctx, intent as never, onPhase);
   if (intent.kind === "faucet") return { status: "refused", diagnosis: diagnosis("faucet-refused", "test tUSDC comes from /api/faucet") };
   return { status: "refused", diagnosis: notDeployed() };
 }

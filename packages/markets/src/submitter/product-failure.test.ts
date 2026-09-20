@@ -7,6 +7,7 @@ const RANGE = "GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha";
 const EVENTS = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH";
 const VAULT = "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9";
 const STRATEGY = "2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ";
+const LEVERAGE = "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb";
 const custom = (code: number) => ({ InstructionError: [0, { Custom: code }] });
 
 describe("a product program's refusal", () => {
@@ -39,6 +40,22 @@ describe("a product program's refusal", () => {
     expect(failingProduct(logs)).toBeNull();
     expect(chainFailure(custom(6110), logs).engineCode).toBe(6110);
     expect(chainFailure(custom(6110), []).engineCode).toBe(6110);
+  });
+
+  it("reads the boost reserve's refusals from its own table, and the engine's through it as the engine's", () => {
+    const failed = (program: string) => [`Program ${program} invoke [1]`, `Program ${program} failed: custom program error`];
+    // 6016 UnhealthyAtEntry, 6013 BelowMinQuantity, 6018 OverWindowCap, 6007 WindowPredatesReserve, 6028 StillHealthy.
+    expect(failureDiagnosis(chainFailure(custom(6016), failed(LEVERAGE))).kind).toBe("thin-book");
+    expect(failureDiagnosis(chainFailure(custom(6013), failed(LEVERAGE))).kind).toBe("requote");
+    expect(failureDiagnosis(chainFailure(custom(6018), failed(LEVERAGE))).kind).toBe("reserve-cap");
+    expect(failureDiagnosis(chainFailure(custom(6007), failed(LEVERAGE))).kind).toBe("market-not-trading");
+    expect(failureDiagnosis(chainFailure(custom(6028), failed(LEVERAGE))).technical).toContain("agari-leverage 6028");
+    expect(chainFailure(custom(6016), failed(LEVERAGE)).engineCode).toBeNull();
+
+    // The engine refuses the reserve's IOC inside the CPI: the engine's frame fails first, so the code is the engine's.
+    const through = [`Program ${LEVERAGE} invoke [1]`, `Program ${EVENTS} invoke [2]`, `Program ${EVENTS} failed: custom program error: 0x17de`, `Program ${LEVERAGE} failed: custom program error: 0x17de`];
+    expect(failingProduct(through)).toBeNull();
+    expect(chainFailure(custom(6110), through).engineCode).toBe(6110);
   });
 
   it("never calls a code the engine's when another program refused, listed here or not", () => {

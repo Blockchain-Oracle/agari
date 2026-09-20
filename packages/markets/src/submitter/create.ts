@@ -1,4 +1,5 @@
 import type { AttributionHook, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
+import type { LeverageIntent } from "@agari/core/leverage";
 import type { ParlayIntent } from "@agari/core/parlay";
 import type { RangeIntent } from "@agari/core/range";
 import type { RangeOpenOutcome } from "../range/read";
@@ -13,6 +14,8 @@ import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
 import { submitRangeOpenWrite } from "../range/writes";
+import type { LeverageOpenOutcome } from "../leverage/types";
+import { submitLeverageOpenWrite } from "../leverage/writes";
 import type { ParlayOpenOutcome } from "../parlay/types";
 import { submitParlayOpenWrite } from "../parlay/writes";
 import { submitCashOut } from "./cash-out";
@@ -55,6 +58,8 @@ export interface MarketsSubmitter extends Submitter {
   submitRangeOpen: (intent: Extract<RangeIntent, { kind: "range-open" }>, onPhase?: PhaseListener) => Promise<RangeOpenOutcome>;
   /** The parlay reserve's open, bound to this session's signer like every other lane (S10a). */
   submitParlayOpen: (intent: Extract<ParlayIntent, { kind: "parlay-open" }>, onPhase?: PhaseListener) => Promise<ParlayOpenOutcome>;
+  /** The leverage reserve's open, bound to this session's signer like every other lane (S10c). */
+  submitLeverageOpen: (intent: Extract<LeverageIntent, { kind: "leverage-open" }>, onPhase?: PhaseListener) => Promise<LeverageOpenOutcome>;
   checkGas(lane: FeeLane): Promise<GasCheck>;
 }
 
@@ -86,6 +91,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     submitCashOut: (request, onPhase) => enqueue(() => submitCashOut({ ...context(), stopGate, attribution }, request, onPhase)),
     submitRangeOpen: (intent, onPhase) => enqueue(() => submitRangeOpenWrite(context(), intent, onPhase)),
     submitParlayOpen: (intent, onPhase) => enqueue(() => submitParlayOpenWrite(context(), intent, onPhase)),
+    submitLeverageOpen: (intent, onPhase) => enqueue(() => submitLeverageOpenWrite(context(), intent, onPhase)),
     checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };
 }

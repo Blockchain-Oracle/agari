@@ -72,6 +72,7 @@ function position(overrides: Partial<LeveragePosition> & { positionId: bigint })
     proceedsBase: 0n,
     reclaimedBase: 0n,
     returnedBase: 0n,
+    owedBase: 0n,
     ...overrides,
   };
 }

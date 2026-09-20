@@ -2,14 +2,12 @@
 
 import type { MarketId, Side } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
-import { submitLeverageOpen, type LeverageOpenOutcome } from "@agari/markets/leverage";
+import type { LeverageOpenOutcome } from "@agari/markets/leverage";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { recordBet } from "@/features/room/record-bet";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
-import { webEnv } from "@/lib/env";
 import { notify } from "@/lib/toast";
 import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { LEVERAGE } from "./copy";
@@ -23,7 +21,6 @@ export interface LeverageOpenInput {
   leverageBps: number;
   /** The owner's guard: fewer contracts than this and the open is refused rather than filled worse. */
   minQuantityRaw: bigint;
-  maintenanceBps: number;
 }
 
 /**
@@ -38,11 +35,6 @@ export function useLeverageWrites() {
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<LeverageBusyKey | null>(null);
 
-  const contracts = useCallback((): VaultContracts | null => {
-    if (!wallet) return null;
-    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [wallet]);
-
   const refresh = useCallback(
     async (marketId?: MarketId) => {
       if (address) await invalidateAfterWrite(queryClient, { wallet: address, ...(marketId ? { marketId } : {}) });
@@ -51,13 +43,11 @@ export function useLeverageWrites() {
   );
 
   const open = useCallback(
-    async ({ maintenanceBps, ...input }: LeverageOpenInput): Promise<LeverageOpenOutcome | null> => {
+    async (input: LeverageOpenInput): Promise<LeverageOpenOutcome | null> => {
       if (!submitter || !address) return null;
-      const c = contracts();
-      if (!c) return null;
       setBusy("open");
       try {
-        const outcome = await submitLeverageOpen({ journal: submitter.journal, wallet: address, contracts: c }, { kind: "leverage-open", ...input }, maintenanceBps);
+        const outcome = await submitter.submitLeverageOpen({ kind: "leverage-open", ...input });
         // The reserve holds the contracts, so the wallet never shows a position: the registry is the Room's only way to know.
         if (outcome.status === "confirmed") recordBet(input.marketId, address, outcome.txHash, "leverage");
         return outcome;
@@ -66,7 +56,7 @@ export function useLeverageWrites() {
         await refresh(input.marketId);
       }
     },
-    [submitter, address, contracts, refresh],
+    [submitter, address, refresh],
   );
 
   const warn = (outcome: { status: string; diagnosis?: { kind: Parameters<typeof diagnosisCopy>[0]; technical: string } }) => {

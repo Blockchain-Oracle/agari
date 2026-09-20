@@ -42,6 +42,8 @@ export interface LeveragePosition {
   proceedsBase: bigint;
   reclaimedBase: bigint;
   returnedBase: bigint;
+  /** The part of `returnedBase` the reserve still holds for the owner: an exit never waits on the owner's token account, so a permissionless one may leave the money to be claimed. */
+  owedBase: bigint;
 }
 
 export interface LeverageParams {
@@ -117,6 +119,8 @@ export type LeverageIntent =
   | { kind: "leverage-knock-out"; positionId: bigint; marketId: MarketId }
   /** Permissionless: settles a position whose Window the venue resolved or voided. */
   | { kind: "leverage-settle"; positionId: bigint; marketId: MarketId }
+  /** Permissionless: pays the owner what an exit left owed. The money only ever goes to the position's owner. */
+  | { kind: "leverage-claim"; positionId: bigint }
   | { kind: "leverage-supply"; amountBase: bigint }
   | { kind: "leverage-withdraw"; shares: bigint };
 

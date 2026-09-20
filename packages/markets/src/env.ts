@@ -37,6 +37,7 @@ export const marketsEnvSchema = z.object({
   rangeProgramId: addressSchema.optional(),
   /** The agari-parlay program id (S10a); absent until it deploys. Must equal `addresses.devnet.json` `programs.agari_parlay`. */
   parlayProgramId: addressSchema.optional(),
+  leverageProgramId: addressSchema.optional(),
   /** The agari-strategy program id (S9); absent until it deploys. Must equal `addresses.devnet.json` `programs.agari_strategy`. */
   strategyProgramId: addressSchema.optional(),
   /** The agari-maker program id (S8); absent until it deploys. Must equal `addresses.devnet.json` `programs.agari_maker`. */
@@ -73,6 +74,7 @@ export function marketsEnvInputFrom(source: Record<string, string | undefined>):
     vaultProgramId: source.NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID,
     rangeProgramId: source.NEXT_PUBLIC_AGARI_RANGE_PROGRAM_ID,
     parlayProgramId: source.NEXT_PUBLIC_AGARI_PARLAY_PROGRAM_ID,
+    leverageProgramId: source.NEXT_PUBLIC_AGARI_LEVERAGE_PROGRAM_ID,
     strategyProgramId: source.NEXT_PUBLIC_AGARI_STRATEGY_PROGRAM_ID,
     makerProgramId: source.NEXT_PUBLIC_AGARI_MAKER_PROGRAM_ID,
     priceFeedUrl: source.NEXT_PUBLIC_PRICE_FEED_URL,
