@@ -35,6 +35,11 @@ export interface VenueFacts {
   treasury: Address;
   /** `GlobalConfig.mode`: 0 Normal, 1 ReduceOnly, 2 Halted. */
   mode: 0 | 1 | 2;
+  /**
+   * The program seats the venue has registered (`GlobalConfig.program_authorities`, free slots dropped): the
+   * Trading Balance vault's pooled seat, the maker vault's. They trade, and they are not people.
+   */
+  programSeats: Address[];
 }
 
 export interface SeriesFacts {
@@ -90,13 +95,17 @@ export function configAddress(): Promise<Address> {
   return configPda;
 }
 
+/** An unused `program_authorities` slot is the default key. */
+const FREE_AUTHORITY = "11111111111111111111111111111111";
+
 /** Whole accounts, not slices: a full read joins the same batch as every other read this turn (856 B here). */
 async function readVenueFacts(): Promise<VenueFacts> {
   const config = await configAddress();
   const { bytes } = await loadAccount(config);
   if (!bytes) throw new Error(`GlobalConfig ${config} not found`);
   const data = getGlobalConfigDecoder().decode(bytes);
-  return { config, collateralMint: data.collateralMint, decimals: data.collateralDecimals, treasury: data.treasury, mode: data.mode as VenueFacts["mode"] };
+  const programSeats = data.programAuthorities.filter((seat) => (seat as string) !== FREE_AUTHORITY);
+  return { config, collateralMint: data.collateralMint, decimals: data.collateralDecimals, treasury: data.treasury, mode: data.mode as VenueFacts["mode"], programSeats };
 }
 
 export async function readVenue(): Promise<VenueFacts> {

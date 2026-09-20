@@ -1,6 +1,6 @@
 import type { TickerSymbol } from "@agari/core/market";
 import type { TraderRanking } from "@agari/core/projection";
-import { ensureMarkets, notDeployedReading, readVenueBoard, unwrap, type VenueBoard } from "@agari/markets";
+import { ensureMarkets, notDeployedReading, readVenueBoard, readVenueStatic, unwrap, type VenueBoard } from "@agari/markets";
 import { unstable_cache } from "next/cache";
 import { webEnv } from "@/lib/env";
 import type { BoardPeriod, BoardSliceWire, LeaderboardPayload } from "./protocol";
@@ -30,9 +30,17 @@ export interface BoardCache {
 
 const inFlight = new Map<BoardPeriod, Promise<BoardCache>>();
 
-/** Seed maker and settler crank (Q-S5-2): public keys, server-only so the list is set per deployment. */
-function operatorWallets(): string[] {
-  return (process.env.AGARI_OPERATOR_WALLETS ?? "").split(",").map((w) => w.trim()).filter(Boolean);
+/**
+ * Who is not a trader. The seed maker and settler crank are wallets, so they are listed per deployment
+ * (Q-S5-2, server-only). The program seats are read from the venue's own config instead: the Trading Balance
+ * vault books every tap and every runner fill under one pooled seat, and the maker vault quotes from another, so
+ * the day either traded it topped the board as if it were a person. A list somebody has to remember to extend
+ * was how that happened.
+ */
+async function operatorWallets(): Promise<string[]> {
+  const listed = (process.env.AGARI_OPERATOR_WALLETS ?? "").split(",").map((w) => w.trim()).filter(Boolean);
+  const seats = await readVenueStatic().then((venue) => venue.programSeats as string[]).catch(() => []);
+  return [...new Set([...listed, ...seats])];
 }
 
 const rankingsWire = (rankings: readonly TraderRanking[]) => rankings.map((r) => ({ ...r, pnlBase: r.pnlBase.toString(), volumeBase: r.volumeBase.toString() }));
@@ -75,7 +83,7 @@ async function compute(period: BoardPeriod, nowMs: number): Promise<BoardCache> 
   ensureMarkets(env);
   // No venue until agari-events is deployed and configured: the board says so instead of ranking nothing.
   if (!env.venueId) return unwrap(notDeployedReading("no Agari venue configured yet"));
-  const operators = operatorWallets();
+  const operators = await operatorWallets();
   if (period === "24h") {
     const board = unwrap(
       await readVenueBoard({ venueId: env.venueId, windowStartMs: nowMs - DAY_MS, windowEndMs: nowMs, lookbackSec: Math.floor((nowMs - LOOKBACK_MS) / 1000), top: TOP, operators }),
