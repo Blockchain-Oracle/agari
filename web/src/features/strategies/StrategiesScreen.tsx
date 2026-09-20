@@ -44,12 +44,12 @@ export function StrategiesScreen({ houseRunner }: { houseRunner: string | null }
       <CreatorStudio writes={writes} decimals={payload?.decimals ?? 6} symbol={payload?.symbol ?? "tUSDC"} asset={STRATEGY_MARKETS} houseRunner={houseRunner} onPublished={() => setView("yours")} />
     </div>
     {view !== "create" && <ReadingBoundary reading={reading} shape="plate" retry={refresh}>
-      {(data) => data.deployed ? <Catalogue payload={data} writes={writes} view={view} onCreate={() => setView("create")} /> : <CapabilityPending eyebrow={STRATEGIES.notDeployed.eyebrow} title={STRATEGIES.notDeployed.title} dependency={STRATEGIES.notDeployed.dependency}><p>{STRATEGIES.notDeployed.body}</p></CapabilityPending>}
+      {(data) => data.deployed ? <Catalogue payload={data} writes={writes} view={view} onCreate={() => setView("create")} refresh={refresh} /> : <CapabilityPending eyebrow={STRATEGIES.notDeployed.eyebrow} title={STRATEGIES.notDeployed.title} dependency={STRATEGIES.notDeployed.dependency}><p>{STRATEGIES.notDeployed.body}</p></CapabilityPending>}
     </ReadingBoundary>}
   </div>;
 }
 
-function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPayload; writes: ReturnType<typeof useDeskWrites>; view: View; onCreate: () => void }) {
+function Catalogue({ payload, writes, view, onCreate, refresh }: { payload: StrategiesPayload; writes: ReturnType<typeof useDeskWrites>; view: View; onCreate: () => void; refresh: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [drawerId, setDrawerId] = useState<string | null>(null);
   const desk = useDesk(payload, writes.address, writes.snapshot, selected);
@@ -74,7 +74,7 @@ function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPay
       <StrategyGrid strategies={visible} subscriptionOf={desk.subscriptionOf} decimals={decimals} symbol={symbol} asset={STRATEGY_MARKETS} loadError={false} onOpen={(card) => { setSelected(card.strategyId); setDrawerId(card.strategyId); }} />
     </>}
     <RecentCopyTrades fills={view === "yours" ? fills.filter((f) => f.owner === writes.address) : fills} strategies={strategies} storeConnected={payload.stores.fills} decimals={decimals} symbol={symbol} nowMs={nowMs} />
-    <details className="mt-10"><summary className="strat-h2 cursor-pointer">Memory market and shared playbooks</summary><MemoryMarket /></details>
+    <MemoryMarket strategies={strategies} subscribed={(id) => desk.subscriptionOf(id)?.active === true} decimals={decimals} symbol={symbol} onSubscribe={(card) => { setSelected(card.strategyId); setDrawerId(card.strategyId); }} onSealed={refresh} />
     <p className="strat-mono-10 mt-8 max-w-2xl text-ink-muted">{STRATEGIES.disclosure(STRATEGY_MARKETS)}</p>
     {drawer && <CopyDrawer card={drawer} sub={desk.subscriptionOf(drawer.strategyId)} grant={vault?.grants.strategy ?? null} readable={desk.readable} writes={writes} availableBase={available} decimals={decimals} symbol={symbol} asset={STRATEGY_MARKETS} nowMs={nowMs} decisionsStore={payload.stores.decisions} onClose={() => setDrawerId(null)} />}
   </>;

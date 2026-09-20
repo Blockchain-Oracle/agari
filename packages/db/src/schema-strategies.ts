@@ -3,7 +3,7 @@
  * the EventVault; this store holds only what the chain cannot say for a browser: the runner's own
  * heartbeats, the receipts of the fills it placed, and creators' plain-text playbooks.
  *
- * Writers (AD-7): `runner_heartbeats`, `strategy_fills` and `strategy_decisions` → ops (the runner); `strategy_playbooks` → web.
+ * Writers (AD-7): `runner_heartbeats`, `strategy_fills` and `strategy_decisions` → ops (the runner); `strategy_playbooks` and `strategy_sealed_memory` → web.
  */
 export const STRATEGIES_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS runner_heartbeats (
@@ -46,6 +46,17 @@ CREATE TABLE IF NOT EXISTS strategy_playbooks (
   -- Base58 creator address that wrote it, stored exactly, verified from a signature before upsert.
   creator       TEXT        NOT NULL,
   body          TEXT        NOT NULL CHECK (length(body) <= 4000),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- What an agent has learned, sealed: the creator's notes that only a wallet holding an on-chain subscription to the
+-- strategy may read (the Memory Market, L-56). The body never leaves this table except through the gated route.
+CREATE TABLE IF NOT EXISTS strategy_sealed_memory (
+  strategy_id   TEXT        PRIMARY KEY,
+  -- Base58 creator address that wrote it, stored exactly, verified from a signature before upsert.
+  creator       TEXT        NOT NULL,
+  title         TEXT        NOT NULL CHECK (length(title) BETWEEN 1 AND 80),
+  body          TEXT        NOT NULL CHECK (length(body) BETWEEN 1 AND 8000),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

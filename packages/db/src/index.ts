@@ -21,6 +21,7 @@ export * from "./x";
 export * from "./x-reply-delivery";
 export * from "./x-health";
 export * from "./strategies";
+export * from "./strategy-memory";
 export * from "./strategy-decisions";
 export * from "./strategy-attempts";
 export * from "./faucet";
