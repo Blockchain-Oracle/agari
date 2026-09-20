@@ -1193,6 +1193,19 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** nothing in the app will say "not live", because everything in it will be live.
 - **Approval:** the user, 2026-09-20.
 
+### D-114 — `agari-leverage`: an exit never waits on the owner, a position must be sellable and healthy from birth, and the engine's report is checked against the money
+- **Date / owner:** 2026-09-20 · S10c on `integration/w1`
+- **Evidence:** the reference's `LeverageReserve` pays `owner` inside `knockOut` and `settle`, marks a position over everything resting, and has no check that a position is above its line at the moment it opens. On Solana a payment needs the recipient's token account to exist, and an owner can close theirs. At 3× a wallet can sell itself overpriced contracts through the reserve: the selling side pockets the front, the position is born under water, and the knock-out recovers a fraction. And a mark taken over a partial walk would call a healthy position knockable in the seconds after the maker requotes, when little of the book has rested. `agari-vault` does not take the engine's `PlaceResult` on trust: after every order it reloads custody and refuses with `EngineAccountingMismatch` unless the report and the token movement agree.
+- **Rule:**
+  - **Exits never depend on the owner's token account.** `owner_token` is optional on `owner_close`, `public_knock_out` and `public_settle`. Present, the owner is paid in that transaction; absent, the amount goes to `position.owed_base` and `reserve.user_owed_base` and `public_claim` pays it later. Liquid capital is custody less `user_owed_base`, so money left owed is never the providers'.
+  - **Healthy and sellable at birth.** After the fill, `owner_open` walks the exit side over **rested** depth (PD-2) for the whole size bought. The book has to take all of it (`ThinBook`), and at that mark the position must not be knockable (`UnhealthyAtEntry`). On a wide book this refuses a boost the reference would have opened and let anyone knock out at once.
+  - **A knock-out is judged on the whole position over rested depth.** `public_knock_out` refuses unless rested orders can absorb every contract, takes the mark from that walk, and sells with the last rested level it touched as the limit, so a fresh lowball bid is never what a knocked-out position is sold into. An owner's own `owner_close` meets whatever rests, with their own `min_proceeds`. The cost: a position on a book that has been thinned cannot be knocked out, and the reserve carries that gap to settlement. Its loss is still bounded per position, per Window and overall, and the premium is what it is paid for that. Protecting an owner from being sold out cheaply is worth more than protecting a capped reserve from a capped gap.
+  - **The engine's report is checked against the money** on every buy and every sell, as the vault does.
+  - **Only the upgrade authority can initialise the reserve**, as the vault, so nobody can front-run the deploy and make themselves admin.
+  - **Not built, as for parlay (D-109):** PD-2's oracle fair-value bound.
+- **User-visible:** a boost is refused on a Window whose spread is so wide that the position would be knocked out the moment it opened; the ticket says the book is too thin or too wide rather than taking the stake.
+- **Approval:** stage owner. Deviations from the reference, recorded for the user's override.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
