@@ -30,6 +30,8 @@ export function refusalDiagnosis(refusal: LeverageRefusal): Diagnosis {
       return diagnosis("outside-band", `entry ${refusal.priceRaw} is outside the reserve's band ${refusal.minRaw}–${refusal.maxRaw}`);
     case "underpriced":
       return diagnosis("outside-band", "at this price a boost would pay no more than the plain bet");
+    case "void-short":
+      return diagnosis("outside-band", `at this price the front (${refusal.frontedBase}) is more than a voided Window would pay back (${refusal.voidPayoutBase}); a lower multiple fits`);
     case "liquidity":
       return diagnosis("reserve-cap", `the reserve has ${refusal.haveBase} liquid and this boost needs ${refusal.needBase}`);
     case "position-cap":

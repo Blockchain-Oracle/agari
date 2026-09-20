@@ -86,6 +86,8 @@ export const AGARI_LEVERAGE_ERROR__ZERO_AMOUNT = 0x1791; // 6033
 export const AGARI_LEVERAGE_ERROR__NO_EQUITY = 0x1792; // 6034
 /** MathOverflow: arithmetic overflowed */
 export const AGARI_LEVERAGE_ERROR__MATH_OVERFLOW = 0x1793; // 6035
+/** VoidWouldShort: at this price and multiple the front is more than a voided Window would pay back; a lower multiple fits */
+export const AGARI_LEVERAGE_ERROR__VOID_WOULD_SHORT = 0x1794; // 6036
 
 export type AgariLeverageError =
   | typeof AGARI_LEVERAGE_ERROR__BAD_LEVERAGE
@@ -120,6 +122,7 @@ export type AgariLeverageError =
   | typeof AGARI_LEVERAGE_ERROR__UNHEALTHY_AT_ENTRY
   | typeof AGARI_LEVERAGE_ERROR__UNKNOWN_MARKET
   | typeof AGARI_LEVERAGE_ERROR__UNSETTLED_POSITION
+  | typeof AGARI_LEVERAGE_ERROR__VOID_WOULD_SHORT
   | typeof AGARI_LEVERAGE_ERROR__WINDOW_NOT_TRADING
   | typeof AGARI_LEVERAGE_ERROR__WINDOW_PREDATES_RESERVE
   | typeof AGARI_LEVERAGE_ERROR__WRONG_COLLATERAL
@@ -160,6 +163,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [AGARI_LEVERAGE_ERROR__UNHEALTHY_AT_ENTRY]: `the position would open already under its knock-out line`,
     [AGARI_LEVERAGE_ERROR__UNKNOWN_MARKET]: `that Window is not the venue's, or its accounts do not belong together`,
     [AGARI_LEVERAGE_ERROR__UNSETTLED_POSITION]: `a position past its Window's expiry is unsettled; settle it first, anyone may`,
+    [AGARI_LEVERAGE_ERROR__VOID_WOULD_SHORT]: `at this price and multiple the front is more than a voided Window would pay back; a lower multiple fits`,
     [AGARI_LEVERAGE_ERROR__WINDOW_NOT_TRADING]: `that Window is not open for trading`,
     [AGARI_LEVERAGE_ERROR__WINDOW_PREDATES_RESERVE]: `that Window was opened before the reserve had a seat`,
     [AGARI_LEVERAGE_ERROR__WRONG_COLLATERAL]: `that Window trades a different collateral`,

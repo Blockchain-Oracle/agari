@@ -53,7 +53,7 @@ const ataOf = async (owner: Address, mint: Address) => (await findAssociatedToke
 export async function supplyLeverage(ctx: SendContext, amountBase: bigint) {
   const r = await readLeverageReserve(ctx);
   const ix = await getProviderSupplyInstructionAsync({
-    provider: ctx.client.payer, position: await providerOf(ctx.client.payer.address), providerToken: await ataOf(ctx.client.payer.address, r.mint),
+    provider: ctx.client.payer, record: await providerOf(ctx.client.payer.address), providerToken: await ataOf(ctx.client.payer.address, r.mint),
     collateralMint: r.mint, tokenProgram: TOKEN_PROGRAM_ADDRESS, amountBase,
   });
   const signature = await send(ctx, "supply", [ix], `${amountBase} base units into ${r.custody}`);
@@ -65,7 +65,7 @@ export async function withdrawLeverage(ctx: SendContext, shares: bigint) {
   const providerToken = await ataOf(ctx.client.payer.address, r.mint);
   const before = await tokenBalance(ctx, providerToken);
   const ix = await getProviderWithdrawInstructionAsync({
-    provider: ctx.client.payer, position: await providerOf(ctx.client.payer.address), providerToken,
+    provider: ctx.client.payer, record: await providerOf(ctx.client.payer.address), providerToken,
     collateralMint: r.mint, tokenProgram: TOKEN_PROGRAM_ADDRESS, shares,
   });
   const signature = await send(ctx, "withdraw", [ix], `${shares} shares out of ${r.custody}`);

@@ -7,7 +7,7 @@
  */
 
 export * from "./custody";
-export * from "./position";
+export * from "./record";
 export * from "./reserve";
 export * from "./seat";
 export * from "./window";

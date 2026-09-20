@@ -41,7 +41,7 @@ import {
 } from "@solana/kit/program-client-core";
 import {
   findCustodyPda,
-  findPositionPda,
+  findRecordPda,
   findReservePda,
   findSeatPda,
 } from "../pdas";
@@ -59,7 +59,7 @@ export function getProviderWithdrawDiscriminatorBytes(): ReadonlyUint8Array {
 export type ProviderWithdrawInstruction<
   TProgram extends string = typeof AGARI_LEVERAGE_PROGRAM_ADDRESS,
   TAccountProvider extends string | AccountMeta<string> = string,
-  TAccountPosition extends string | AccountMeta<string> = string,
+  TAccountRecord extends string | AccountMeta<string> = string,
   TAccountReserve extends string | AccountMeta<string> = string,
   TAccountCustody extends string | AccountMeta<string> = string,
   TAccountSeat extends string | AccountMeta<string> = string,
@@ -78,9 +78,9 @@ export type ProviderWithdrawInstruction<
         ? WritableSignerAccount<TAccountProvider> &
             AccountSignerMeta<TAccountProvider>
         : TAccountProvider,
-      TAccountPosition extends string
-        ? WritableAccount<TAccountPosition>
-        : TAccountPosition,
+      TAccountRecord extends string
+        ? WritableAccount<TAccountRecord>
+        : TAccountRecord,
       TAccountReserve extends string
         ? WritableAccount<TAccountReserve>
         : TAccountReserve,
@@ -142,7 +142,7 @@ export function getProviderWithdrawInstructionDataCodec(): FixedSizeCodec<
 
 export type ProviderWithdrawAsyncInput<
   TAccountProvider extends string = string,
-  TAccountPosition extends string = string,
+  TAccountRecord extends string = string,
   TAccountReserve extends string = string,
   TAccountCustody extends string = string,
   TAccountSeat extends string = string,
@@ -153,7 +153,7 @@ export type ProviderWithdrawAsyncInput<
 > = {
   provider: TransactionSigner<TAccountProvider>;
   /** This wallet's own share balance. Created on first supply; never writable by anyone else. */
-  position?: Address<TAccountPosition>;
+  record?: Address<TAccountRecord>;
   reserve?: Address<TAccountReserve>;
   custody?: Address<TAccountCustody>;
   seat?: Address<TAccountSeat>;
@@ -166,7 +166,7 @@ export type ProviderWithdrawAsyncInput<
 
 export async function getProviderWithdrawInstructionAsync<
   TAccountProvider extends string,
-  TAccountPosition extends string,
+  TAccountRecord extends string,
   TAccountReserve extends string,
   TAccountCustody extends string,
   TAccountSeat extends string,
@@ -178,7 +178,7 @@ export async function getProviderWithdrawInstructionAsync<
 >(
   input: ProviderWithdrawAsyncInput<
     TAccountProvider,
-    TAccountPosition,
+    TAccountRecord,
     TAccountReserve,
     TAccountCustody,
     TAccountSeat,
@@ -192,7 +192,7 @@ export async function getProviderWithdrawInstructionAsync<
   ProviderWithdrawInstruction<
     TProgramAddress,
     TAccountProvider,
-    TAccountPosition,
+    TAccountRecord,
     TAccountReserve,
     TAccountCustody,
     TAccountSeat,
@@ -209,7 +209,7 @@ export async function getProviderWithdrawInstructionAsync<
   // Original accounts.
   const originalAccounts = {
     provider: { value: input.provider ?? null, isWritable: true },
-    position: { value: input.position ?? null, isWritable: true },
+    record: { value: input.record ?? null, isWritable: true },
     reserve: { value: input.reserve ?? null, isWritable: true },
     custody: { value: input.custody ?? null, isWritable: true },
     seat: { value: input.seat ?? null, isWritable: false },
@@ -227,8 +227,8 @@ export async function getProviderWithdrawInstructionAsync<
   const args = { ...input };
 
   // Resolve default values.
-  if (!accounts.position.value) {
-    accounts.position.value = await findPositionPda(
+  if (!accounts.record.value) {
+    accounts.record.value = await findRecordPda(
       {
         provider: getAddressFromResolvedInstructionAccount(
           "provider",
@@ -260,7 +260,7 @@ export async function getProviderWithdrawInstructionAsync<
   return Object.freeze({
     accounts: [
       getAccountMeta("provider", accounts.provider),
-      getAccountMeta("position", accounts.position),
+      getAccountMeta("record", accounts.record),
       getAccountMeta("reserve", accounts.reserve),
       getAccountMeta("custody", accounts.custody),
       getAccountMeta("seat", accounts.seat),
@@ -276,7 +276,7 @@ export async function getProviderWithdrawInstructionAsync<
   } as ProviderWithdrawInstruction<
     TProgramAddress,
     TAccountProvider,
-    TAccountPosition,
+    TAccountRecord,
     TAccountReserve,
     TAccountCustody,
     TAccountSeat,
@@ -289,7 +289,7 @@ export async function getProviderWithdrawInstructionAsync<
 
 export type ProviderWithdrawInput<
   TAccountProvider extends string = string,
-  TAccountPosition extends string = string,
+  TAccountRecord extends string = string,
   TAccountReserve extends string = string,
   TAccountCustody extends string = string,
   TAccountSeat extends string = string,
@@ -300,7 +300,7 @@ export type ProviderWithdrawInput<
 > = {
   provider: TransactionSigner<TAccountProvider>;
   /** This wallet's own share balance. Created on first supply; never writable by anyone else. */
-  position: Address<TAccountPosition>;
+  record: Address<TAccountRecord>;
   reserve: Address<TAccountReserve>;
   custody: Address<TAccountCustody>;
   seat: Address<TAccountSeat>;
@@ -313,7 +313,7 @@ export type ProviderWithdrawInput<
 
 export function getProviderWithdrawInstruction<
   TAccountProvider extends string,
-  TAccountPosition extends string,
+  TAccountRecord extends string,
   TAccountReserve extends string,
   TAccountCustody extends string,
   TAccountSeat extends string,
@@ -325,7 +325,7 @@ export function getProviderWithdrawInstruction<
 >(
   input: ProviderWithdrawInput<
     TAccountProvider,
-    TAccountPosition,
+    TAccountRecord,
     TAccountReserve,
     TAccountCustody,
     TAccountSeat,
@@ -338,7 +338,7 @@ export function getProviderWithdrawInstruction<
 ): ProviderWithdrawInstruction<
   TProgramAddress,
   TAccountProvider,
-  TAccountPosition,
+  TAccountRecord,
   TAccountReserve,
   TAccountCustody,
   TAccountSeat,
@@ -354,7 +354,7 @@ export function getProviderWithdrawInstruction<
   // Original accounts.
   const originalAccounts = {
     provider: { value: input.provider ?? null, isWritable: true },
-    position: { value: input.position ?? null, isWritable: true },
+    record: { value: input.record ?? null, isWritable: true },
     reserve: { value: input.reserve ?? null, isWritable: true },
     custody: { value: input.custody ?? null, isWritable: true },
     seat: { value: input.seat ?? null, isWritable: false },
@@ -385,7 +385,7 @@ export function getProviderWithdrawInstruction<
   return Object.freeze({
     accounts: [
       getAccountMeta("provider", accounts.provider),
-      getAccountMeta("position", accounts.position),
+      getAccountMeta("record", accounts.record),
       getAccountMeta("reserve", accounts.reserve),
       getAccountMeta("custody", accounts.custody),
       getAccountMeta("seat", accounts.seat),
@@ -401,7 +401,7 @@ export function getProviderWithdrawInstruction<
   } as ProviderWithdrawInstruction<
     TProgramAddress,
     TAccountProvider,
-    TAccountPosition,
+    TAccountRecord,
     TAccountReserve,
     TAccountCustody,
     TAccountSeat,
@@ -420,7 +420,7 @@ export type ParsedProviderWithdrawInstruction<
   accounts: {
     provider: TAccountMetas[0];
     /** This wallet's own share balance. Created on first supply; never writable by anyone else. */
-    position: TAccountMetas[1];
+    record: TAccountMetas[1];
     reserve: TAccountMetas[2];
     custody: TAccountMetas[3];
     seat: TAccountMetas[4];
@@ -459,7 +459,7 @@ export function parseProviderWithdrawInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       provider: getNextAccount(),
-      position: getNextAccount(),
+      record: getNextAccount(),
       reserve: getNextAccount(),
       custody: getNextAccount(),
       seat: getNextAccount(),

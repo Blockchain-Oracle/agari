@@ -87,7 +87,7 @@ import {
 } from "../instructions";
 import {
   findCustodyPda,
-  findPositionPda,
+  findRecordPda,
   findReservePda,
   findSeatPda,
   findWindowPda,
@@ -548,7 +548,7 @@ export type AgariLeveragePluginPdas = {
   seat: typeof findSeatPda;
   custody: typeof findCustodyPda;
   window: typeof findWindowPda;
-  position: typeof findPositionPda;
+  record: typeof findRecordPda;
 };
 
 export type AgariLeveragePluginRequirements = ClientWithRpc<
@@ -624,7 +624,7 @@ export function agariLeverageProgram() {
           seat: findSeatPda,
           custody: findCustodyPda,
           window: findWindowPda,
-          position: findPositionPda,
+          record: findRecordPda,
         },
         identifyAccount: identifyAgariLeverageAccount,
         identifyInstruction: identifyAgariLeverageInstruction,

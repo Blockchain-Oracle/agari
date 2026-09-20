@@ -63,6 +63,13 @@ describe("the boost quote follows owner_open", () => {
     expect(refusalOf({ stakeBase: 150n * UNIT, leverageBps: 30_000, entry: [level(51, 2_000)], exitRested: [level(49, 2_000)] })).toBe("position-cap");
   });
 
+  it("refuses a front a voided Window would not pay back: 3x at 80c, where 2x at the same price fits", () => {
+    const book = { entry: [level(80, 100)], exitRested: [level(79, 100)] };
+    expect(refusalOf({ ...book, leverageBps: 30_000 })).toBe("void-short");
+    expect(refusalOf({ ...book, leverageBps: 20_000 })).toBe("ok");
+    expect(refusalOf({ entry: [level(70, 100)], exitRested: [level(69, 100)], leverageBps: 30_000 })).toBe("ok");
+  });
+
   it("refuses a position that could not be sold whole into rested depth", () => {
     expect(refusalOf({ exitRested: [level(49, 5)] })).toBe("thin-exit");
   });

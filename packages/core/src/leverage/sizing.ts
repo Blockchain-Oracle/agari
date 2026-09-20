@@ -93,6 +93,15 @@ export function isKnockable(markBase: bigint, frontedBase: bigint, maintenanceBp
   return frontedBase !== 0n && markBase * BPS < frontedBase * BigInt(maintenanceBps);
 }
 
+/** The venue pays every contract this share of its face when it voids a Window (`PAYOUT_VOID / PAYOUT_DENOMINATOR`). */
+const VOID_PAYOUT_NUM = 1n;
+const VOID_PAYOUT_DEN = 2n;
+
+/** Mirrors `math::void_covers`: a voided Window must still repay the whole front (D-116). */
+export function voidCovers(quantityRaw: bigint, frontedBase: bigint): boolean {
+  return frontedBase * VOID_PAYOUT_DEN <= quantityRaw * VOID_PAYOUT_NUM;
+}
+
 /** Mirrors `LeverageMath.split`: what proceeds repay of the front, and what is left for the owner. */
 export function split(proceedsBase: bigint, frontedBase: bigint): { reclaimedBase: bigint; returnedBase: bigint } {
   const reclaimedBase = proceedsBase < frontedBase ? proceedsBase : frontedBase;

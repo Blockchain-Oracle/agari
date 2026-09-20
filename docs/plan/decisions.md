@@ -1218,6 +1218,14 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none.
 - **Approval:** stage owner.
 
+### D-116 — A voided Window must still repay the reserve's whole front
+- **Date / owner:** 2026-09-20 · S10c on `integration/w1`
+- **Evidence:** the engine pays every contract half its face when it voids a Window (`PAYOUT_VOID`), and it voids when its own prints fail: every live lane voided on Sunday 2026-09-20 for want of a print. The reserve's front per contract is `price × (L − 1) / (L − (L − 1) × premium)`. At 3× and an 8% premium that is 70.4% of the entry price, so above a 71¢ entry the front is more than the 50¢ a void returns and the providers would take the difference on every contract. At 2× it is 52.1% of the price, which stays under 50¢ across the whole 5¢ to 95¢ band. The reference allows 3× to 95¢; its venue has no void that pays half.
+- **Rule:** `owner_open` refuses with `VoidWouldShort` unless `fronted × PAYOUT_DENOMINATOR ≤ quantity × PAYOUT_VOID`, checked on the quoted terms before any money moves and again on the actual fill. A void is the venue failing, not the market moving, so it is never the providers who pay for it. No parameter: the bound follows from the engine's own constant, and it moves by itself if that constant ever does. `quoteLeverage` mirrors it (`void-short`), so the ticket refuses with the reason and offers nothing the chain would not open.
+- **Not covered:** the owner. A void settles a boosted position as if the price had gone to 50¢, so an owner who entered above that loses more than a plain bettor would. That is what leverage on a half-payout void means, and the reserve cannot fix the venue's void rule from outside it.
+- **User-visible:** 3× is refused above about 71¢, where 2× still opens.
+- **Approval:** stage owner. A deviation from the reference, recorded for the user's override.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

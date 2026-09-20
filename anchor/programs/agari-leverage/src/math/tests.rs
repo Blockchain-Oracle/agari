@@ -76,6 +76,23 @@ fn the_reserve_is_repaid_first_and_the_owner_gets_the_rest() {
 }
 
 #[test]
+fn a_void_must_still_repay_the_front() {
+    // A void pays half a contract's face. 3x at 52c fronts 36.6c a contract: covered.
+    let t = terms(520_000, 30_000, 800);
+    assert!(void_covers(1_000_000, t.fronted_base));
+    // 3x at 80c fronts 56.3c a contract: a void would leave the reserve 6.3c short on every one.
+    let t = terms(800_000, 30_000, 800);
+    assert!(t.fronted_base > 500_000);
+    assert!(!void_covers(1_000_000, t.fronted_base));
+    // 2x never fronts more than 52.1% of the price, so inside the 95c band it is always covered.
+    let t = terms(950_000, 20_000, 800);
+    assert!(void_covers(1_000_000, t.fronted_base));
+    // The boundary is exact.
+    assert!(void_covers(2, 1));
+    assert!(!void_covers(1, 1));
+}
+
+#[test]
 fn degenerate_inputs_do_not_panic() {
     assert_eq!(walk_quantity(&[], false, ONE, 1).filled_raw, 0);
     assert_eq!(walk_budget(&[(0, 5)], false, ONE, 10, 1), 0);

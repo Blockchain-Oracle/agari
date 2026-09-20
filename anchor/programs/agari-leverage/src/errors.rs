@@ -75,4 +75,6 @@ pub enum LeverageError {
     NoEquity,
     #[msg("arithmetic overflowed")]
     MathOverflow,
+    #[msg("at this price and multiple the front is more than a voided Window would pay back; a lower multiple fits")]
+    VoidWouldShort,
 }

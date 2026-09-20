@@ -14,7 +14,7 @@ pub struct Liquidity<'info> {
     pub provider: Signer<'info>,
     /// This wallet's own share balance. Created on first supply; never writable by anyone else.
     #[account(init_if_needed, payer = provider, space = 8 + Provider::INIT_SPACE, seeds = [PROVIDER_SEED, provider.key().as_ref()], bump)]
-    pub position: Account<'info, Provider>,
+    pub record: Account<'info, Provider>,
     #[account(mut, seeds = [RESERVE_SEED], bump = reserve.bump)]
     pub reserve: Box<Account<'info, LeverageReserve>>,
     #[account(mut, seeds = [CUSTODY_SEED], bump = reserve.custody_bump)]
@@ -55,11 +55,11 @@ pub fn supply(ctx: Context<Liquidity>, amount_base: u64) -> Result<()> {
     )?;
 
     let provider = ctx.accounts.provider.key();
-    let position = &mut ctx.accounts.position;
-    position.owner = provider;
-    position.bump = ctx.bumps.position;
-    position.shares = position.shares.checked_add(shares).ok_or(LeverageError::MathOverflow)?;
-    position.supplied_base = position.supplied_base.saturating_add(amount_base);
+    let record = &mut ctx.accounts.record;
+    record.owner = provider;
+    record.bump = ctx.bumps.record;
+    record.shares = record.shares.checked_add(shares).ok_or(LeverageError::MathOverflow)?;
+    record.supplied_base = record.supplied_base.saturating_add(amount_base);
     let reserve = &mut ctx.accounts.reserve;
     reserve.supply_shares = reserve.supply_shares.checked_add(shares).ok_or(LeverageError::MathOverflow)?;
     emit!(Supplied { provider, amount_base, shares, total_value_base: total_before.saturating_add(amount_base) });
@@ -70,7 +70,7 @@ pub fn supply(ctx: Context<Liquidity>, amount_base: u64) -> Result<()> {
 /// Window's expiry is unsettled: settle it first, which anyone may. Withdrawing never pauses.
 pub fn withdraw(ctx: Context<Liquidity>, shares: u64) -> Result<()> {
     require!(shares > 0, LeverageError::ZeroAmount);
-    require!(shares <= ctx.accounts.position.shares, LeverageError::InsufficientShares);
+    require!(shares <= ctx.accounts.record.shares, LeverageError::InsufficientShares);
     let now = Clock::get()?.unix_timestamp;
     let custody_balance = ctx.accounts.custody.amount;
     let amount_base = ctx.accounts.reserve.amount_for(custody_balance, shares, now)?;
@@ -86,9 +86,9 @@ pub fn withdraw(ctx: Context<Liquidity>, shares: u64) -> Result<()> {
     payer.pay(&ctx.accounts.provider_token.to_account_info(), amount_base)?;
 
     let provider = ctx.accounts.provider.key();
-    let position = &mut ctx.accounts.position;
-    position.shares -= shares;
-    position.withdrawn_base = position.withdrawn_base.saturating_add(amount_base);
+    let record = &mut ctx.accounts.record;
+    record.shares -= shares;
+    record.withdrawn_base = record.withdrawn_base.saturating_add(amount_base);
     let reserve = &mut ctx.accounts.reserve;
     reserve.supply_shares = reserve.supply_shares.checked_sub(shares).ok_or(LeverageError::MathOverflow)?;
     emit!(Withdrawn { provider, amount_base, shares, total_value_base: total_before.saturating_sub(amount_base) });

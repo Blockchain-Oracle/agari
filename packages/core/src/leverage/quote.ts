@@ -1,7 +1,7 @@
 import { BPS_DENOMINATOR } from "../constants/sizing";
 import type { Side } from "../types/market";
 import { ceilDiv } from "../units/money";
-import { budgetFor, isKnockable, knockoutLine, markOverLevels, sidePrice, terms, walkBudget, walkQuantity, winIfRight, type YesLevel } from "./sizing";
+import { budgetFor, isKnockable, knockoutLine, markOverLevels, sidePrice, terms, voidCovers, walkBudget, walkQuantity, winIfRight, type YesLevel } from "./sizing";
 import type { LeverageParams, LeverageQuote } from "./types";
 
 const BPS = BigInt(BPS_DENOMINATOR);
@@ -49,6 +49,7 @@ export type LeverageRefusal =
   | { kind: "thin-book"; filledRaw: bigint; quantityRaw: bigint }
   | { kind: "outside-band"; priceRaw: bigint; minRaw: bigint; maxRaw: bigint }
   | { kind: "underpriced" }
+  | { kind: "void-short"; frontedBase: bigint; voidPayoutBase: bigint }
   | { kind: "liquidity"; needBase: bigint; haveBase: bigint }
   | { kind: "thin-exit"; filledRaw: bigint; quantityRaw: bigint }
   | { kind: "unhealthy"; markBase: bigint; lineBase: bigint }
@@ -92,6 +93,7 @@ export function quoteLeverage(input: LeverageQuoteInput): LeverageQuoteResult {
   const t = terms(walk.costBase, leverageBps, params.premiumBps);
   const winIfRightBase = winIfRight(quantityRaw, t.frontedBase);
   if (winIfRightBase <= t.stakeBase) return refuse({ kind: "underpriced" });
+  if (!voidCovers(quantityRaw, t.frontedBase)) return refuse({ kind: "void-short", frontedBase: t.frontedBase, voidPayoutBase: quantityRaw / 2n });
 
   // The venue escrows the limit for the whole size up front; custody covers it beyond the stake.
   const escrow = ceilDiv(quantityRaw * sidePrice(walk.limitYesRaw, invert, one), one);

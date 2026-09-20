@@ -7,7 +7,7 @@ use crate::engine::{ioc_args, place, read_levels, resolve, yes_ticks, Depth, Eng
 use crate::errors::LeverageError;
 use crate::events::Opened;
 use crate::instructions::payout::Payer;
-use crate::math::{budget_for, ceil_div, is_knockable, mark_over, side_price, terms, walk_budget, walk_quantity, win_if_right};
+use crate::math::{budget_for, ceil_div, is_knockable, mark_over, side_price, terms, void_covers, walk_budget, walk_quantity, win_if_right};
 use crate::state::{LeverageReserve, Position, PositionStatus, WindowBook};
 
 #[derive(Accounts)]
@@ -95,6 +95,7 @@ pub fn owner_open(ctx: Context<OwnerOpen>, outcome: u8, stake_base: u64, leverag
     let quoted = terms(walk.cost_base, leverage_bps, params.premium_bps);
     // A boost that could not beat the plain bet even when right is a fee, not a product.
     require!(win_if_right(quantity_raw, quoted.fronted_base) > quoted.stake_base, LeverageError::Underpriced);
+    require!(void_covers(quantity_raw, quoted.fronted_base), LeverageError::VoidWouldShort);
 
     // The venue escrows the limit for the whole size up front; custody covers it beyond the stake.
     let escrow = ceil_div(quantity_raw * side_price(walk.limit_yes_raw, invert, one), one);
@@ -142,6 +143,8 @@ pub fn owner_open(ctx: Context<OwnerOpen>, outcome: u8, stake_base: u64, leverag
     let (mark, exit_walk) = mark_over(&exit_rested, invert, one, got_raw);
     require!(exit_walk.filled_raw >= got_raw, LeverageError::ThinBook);
     require!(!is_knockable(mark, t.fronted_base, params.maintenance_bps), LeverageError::UnhealthyAtEntry);
+    // A void is the venue failing, not the market moving: what it pays back must cover the whole front (D-116).
+    require!(void_covers(got_raw, t.fronted_base), LeverageError::VoidWouldShort);
 
     let payer = Payer {
         custody: &ctx.accounts.custody,

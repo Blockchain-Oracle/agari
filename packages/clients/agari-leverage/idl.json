@@ -557,7 +557,7 @@
           "signer": true
         },
         {
-          "name": "position",
+          "name": "record",
           "docs": [
             "This wallet's own share balance. Created on first supply; never writable by anyone else."
           ],
@@ -681,7 +681,7 @@
           "signer": true
         },
         {
-          "name": "position",
+          "name": "record",
           "docs": [
             "This wallet's own share balance. Created on first supply; never writable by anyone else."
           ],
@@ -1567,6 +1567,11 @@
       "code": 6035,
       "name": "MathOverflow",
       "msg": "arithmetic overflowed"
+    },
+    {
+      "code": 6036,
+      "name": "VoidWouldShort",
+      "msg": "at this price and multiple the front is more than a voided Window would pay back; a lower multiple fits"
     }
   ],
   "types": [

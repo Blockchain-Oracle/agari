@@ -140,7 +140,7 @@ async function instructionsFor(ctx: WriteContext, intent: LaneIntent): Promise<I
   const shared = { collateralMint: mint, tokenProgram: TOKEN_PROGRAM_ADDRESS };
 
   if (intent.kind === "leverage-supply" || intent.kind === "leverage-withdraw") {
-    const accounts = { ...shared, provider: ctx.signer, position: kit(await providerAddress(ctx.wallet)), providerToken: await tokenAccountOf(ctx.wallet, mint) };
+    const accounts = { ...shared, provider: ctx.signer, record: kit(await providerAddress(ctx.wallet)), providerToken: await tokenAccountOf(ctx.wallet, mint) };
     return [intent.kind === "leverage-supply"
       ? await getProviderSupplyInstructionAsync({ ...accounts, amountBase: intent.amountBase }, config())
       : await getProviderWithdrawInstructionAsync({ ...accounts, shares: intent.shares }, config())];

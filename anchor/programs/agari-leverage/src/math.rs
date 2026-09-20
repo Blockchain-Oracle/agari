@@ -5,6 +5,8 @@
 //! quantity is also its payout in base units. Every rounding is in the reserve's favour: the owner's stake rounds
 //! up, the reserve's front rounds down. `tests::golden` reads the same `sizing.vectors.json` the TypeScript does.
 
+use agari_common::grid::{PAYOUT_DENOMINATOR, PAYOUT_VOID};
+
 pub const BPS: u128 = 10_000;
 
 /// One resting level in the venue's own terms: the YES price, whatever kind rests there, and what rests.
@@ -119,6 +121,15 @@ pub fn knockout_line(fronted_base: u128, maintenance_bps: u16) -> u128 {
 /// True once the mark has fallen to the maintenance line: the reserve's claim is at risk.
 pub fn is_knockable(mark_base: u128, fronted_base: u128, maintenance_bps: u16) -> bool {
     fronted_base != 0 && mark_base * BPS < fronted_base * u128::from(maintenance_bps)
+}
+
+/// True when a voided Window would still repay the whole front.
+///
+/// The venue pays every contract `PAYOUT_VOID / PAYOUT_DENOMINATOR` of its face when it voids a Window, which it
+/// does when its own prints fail. That is a failure of the venue, not a move of the market, so the providers must
+/// not be the ones who pay for it: a front larger than what a void returns is refused at open.
+pub fn void_covers(quantity_raw: u128, fronted_base: u128) -> bool {
+    fronted_base * u128::from(PAYOUT_DENOMINATOR) <= quantity_raw * u128::from(PAYOUT_VOID)
 }
 
 /// What `proceeds` repay of the front, and what is left for the owner.

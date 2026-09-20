@@ -30,8 +30,8 @@ export async function seatAddress(): Promise<Address> {
 }
 
 /**
- * The seeds a runtime id goes into are spelled here rather than taken from the generated client: Codama names a
- * PDA after the instruction field it first meets it in, so its `findPositionPda` is the provider's record.
+ * The seeds a runtime id goes into are spelled here: Codama can derive a PDA only from an instruction's own
+ * accounts and arguments, and a position's seed is a counter read from the reserve.
  */
 async function derive(seeds: Uint8Array[]): Promise<Address> {
   const [pda] = await getProgramDerivedAddress({ programAddress: kit(leverageProgramId()), seeds });
