@@ -126,12 +126,15 @@ export async function probeLeverage(ctx: SendContext, spec: BoostSpec) {
   return { reserve: r, window: w, quote };
 }
 
-/** Opens the boost the probe quoted, guarded at `floorBps` of the quoted size, and reads the position back. */
-export async function openLeverage(ctx: SendContext, spec: BoostSpec, floorBps = 9_500) {
+/**
+ * Opens the boost the probe quoted, guarded at `floorBps` of the quoted size, and reads the position back.
+ * `force` sends an open the quote refused, with no size guard, so the chain's own refusal can be put on record.
+ */
+export async function openLeverage(ctx: SendContext, spec: BoostSpec, floorBps = 9_500, force = false) {
   const { reserve: r, window: w, quote } = await probeLeverage(ctx, spec);
   if (!w.seated) throw new Error(`Window ${spec.marketId} carries no seat for the reserve: it opened before the seat was registered`);
   if (!quote || !w.levels) throw new Error(`Window ${spec.marketId} has no live Book`);
-  if (!quote.ok) return { quote, signature: null, positionId: null, position: null };
+  if (!quote.ok && !force) return { quote, signature: null, positionId: null, position: null };
   const positionId = r.data.nextPositionId;
   const position = await leveragePositionAddressOf(positionId);
   const ownerToken = await ataOf(ctx.client.payer.address, r.mint);
@@ -140,7 +143,7 @@ export async function openLeverage(ctx: SendContext, spec: BoostSpec, floorBps =
     owner: ctx.client.payer, position, window: await windowBookOfLeverage(spec.marketId), ownerToken, ...w.accounts,
     collateralMint: r.mint, tokenProgram: TOKEN_PROGRAM_ADDRESS,
     outcome: spec.side === "up" ? 0 : 1, stakeBase: spec.stakeBase, leverageBps: spec.leverageBps,
-    minLots: ((quote.quote.quantityRaw * BigInt(floorBps)) / 10_000n) / w.levels.lotRaw,
+    minLots: quote.ok ? ((quote.quote.quantityRaw * BigInt(floorBps)) / 10_000n) / w.levels.lotRaw : 0n,
   });
   const signature = await send(ctx, "open", [ix], `${spec.leverageBps / 10_000}x ${spec.side} on ${spec.marketId} with ${spec.stakeBase} staked`);
   const booked = await fetchMaybePosition(ctx.client.rpc, position);

@@ -1206,6 +1206,18 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** a boost is refused on a Window whose spread is so wide that the position would be knocked out the moment it opened; the ticket says the book is too thin or too wide rather than taking the stake.
 - **Approval:** stage owner. Deviations from the reference, recorded for the user's override.
 
+### D-115 — A product that holds positions across a settlement is proven on a Window the drive owns (Series 903)
+- **Date / owner:** 2026-09-20 · S10c on `integration/w1`
+- **Evidence:** the leverage reserve has five endings (the owner's cash-out, a knock-out, a win, a loss, and money left owed then claimed). On a live lane the book is the maker's and the print is the market's, so a drive there reaches whichever ending the day offers. A knock-out needs the rested bid to fall under a line, which nobody can arrange on a lane the seed maker quotes. And on Sunday 2026-09-20 every live lane voided for want of a print: the xStock lanes (`no open print`, Switchboard closed at weekends) and `OPENAI-60m` #11 to #13 (`no PreStocks read yet inside [T+10s, T+45s]`).
+- **Rule:**
+  - Drive-only **Series 903** `TEST-OWNED-15m`: attested primary (10 s correction delay, 60 s bars), **no check**, Regular, 900 s, one 256-node Book. `scripts/drive/owned-window.ts` opens its Window with the roller key, rests both sides from two drive wallets (`drive-bidder`, `drive-asker`; a BUY_NO rested at the ask's YES price, so they never self-match), moves them on demand, and attests both prints with the attestor key. A third wallet, `drive-owner`, opens the positions, so provider and owner are different accounts in the evidence.
+  - Its two prints are **drive data**, never market prices, and every acceptance row that rests on them says so.
+  - 903 is outside the core ticker registry, so no app surface lists it (D-027), like 900 to 902.
+  - The live ops settler may void a 903 Window whose prints the drive fails to post in time. That is the correct behaviour and needs no exception.
+  - Proof on a live, maker-quoted lane is still owed for each product and is taken on the first weekday session; the owned Window does not replace it.
+- **User-visible:** none.
+- **Approval:** stage owner.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

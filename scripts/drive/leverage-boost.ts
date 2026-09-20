@@ -6,6 +6,7 @@
 //   withdraw --shares <n>                          a provider leaves, at the reserve's value per share
 //   probe    --window <w> --side up --amount 2 --x 2    the Window, its seat, both book sides, and the quote or its refusal
 //   open     --window <w> --side up --amount 2 --x 2    opens what the probe quoted, guarded at 95% of its size
+//            [--force]                             sends an open the quote refused, to put the chain's own refusal on record
 //   position --id <n>                              a position with its mark over rested depth against its line
 //   close    --id <n> [--min 0]                    the owner's cash-out
 //   knock    --id <n> [--owed]                     permissionless, once the mark is under the line
@@ -79,7 +80,7 @@ try {
     console.log(`  reserve: ${books(reserve)}`);
     console.log(`  quote: ${show(quote)}`);
   } else if (mode === "open") {
-    const r = await openLeverage(ctx, await specOf());
+    const r = await openLeverage(ctx, await specOf(), 9_500, flag("--force"));
     console.log(`quoted: ${show(r.quote)}`);
     if (r.position) {
       const p = r.position;
