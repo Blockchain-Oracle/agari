@@ -47,8 +47,10 @@ export function ParlayBuilder({ reserve, symbol }: ParlayBuilderProps) {
 
   const [legs, setLegs] = useState<DraftLeg[]>([]);
   const [solveMode, setSolveMode] = useState<SolveMode>("fixStake");
-  const [stakeInput, setStakeInput] = useState("5");
-  const [payoutInput, setPayoutInput] = useState("40");
+  // A leg is priced over rested depth no smaller than the payout, and the house maker rests 5,000 lots a side
+  // (5 tUSDC of payout). The reference opened on 5 and 40, which this venue's books refuse as thin on first sight.
+  const [stakeInput, setStakeInput] = useState("1");
+  const [payoutInput, setPayoutInput] = useState("4");
   const [step, setStep] = useState<PlaceStep>("idle");
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");

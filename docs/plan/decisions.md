@@ -1137,6 +1137,41 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** no crypto asset appears anywhere in the app; Lucky, the parlay streak and X replies work on stocks.
 - **Approval:** stage owner, from the user's 2026-09-19 instruction to look beyond the two places named.
 
+### D-108 — `agari-parlay`: legs are decided in the order their Windows close, and the stale sweep cannot void an answered ticket
+- **Date / owner:** 2026-09-20 · S10a on `integration/w1`
+- **Evidence:** the reference's `resolveLeg` lets any pending leg be settled in any order, a lost leg kills the ticket and a voided Window refunds it. So a ticket with one lost leg and one voided leg ends Lost or refunded depending on which is cranked first, and the crank is permissionless: the owner can always reach for the voided leg. Separately, `agari-range`'s `public_void_stale` checks only the clock (`now > expiry + 3,600`), so a winning round nobody settled within the hour can be voided by anyone, and the people with a reason to are the providers it was about to cost.
+- **Rule:**
+  - **Order:** `public_resolve_leg` accepts only the pending leg with the earliest boundary, lowest index first on a tie (`ParlayTicket::next_leg`); any other leg is `LegOutOfOrder`. This is exactly what a prompt keeper would have produced under the reference, with the dependence on who cranks removed. `nextParlayLegIdx` in `packages/core/src/parlay/order.ts` mirrors it and the slip offers Settle on that one leg.
+  - **Idempotent cranks:** a finished ticket or an already decided leg is a no-op, as in the reference, so two cranks racing never fail each other. A Window that has not settled refuses with `LegNotSettled`.
+  - **Stale sweep:** `public_void_stale` takes the Market of the leg that is next to be decided and refuses with `MustResolve` while the venue holds that Window and has resolved or voided it. It voids only what the venue cannot answer: a Window still waiting on its print, or a Market account the engine has closed. `VOID_GRACE_SEC` is 3,600 past the ticket's last boundary.
+  - **Owed to S10b:** port the same guard to `agari-range`.
+- **User-visible:** on a multi-leg ticket only the next leg shows Settle; a settled leg waiting its turn reads as settling.
+- **Approval:** stage owner. Deviation from the reference, recorded for the user's override.
+
+### D-109 — `agari-parlay` prices a leg from rested depth only; the oracle fair-value bound of PD-2 is not built
+- **Date / owner:** 2026-09-20 · S10a
+- **Evidence:** plan PD-2 asks for (a) orders rested `min_rest_slots`, (b) a bound against an independent oracle fair-value model with refusal on disagreement, (c) the reference's caps. (b) needs a live price inside the open transaction, which means a Pyth or Switchboard update posted alongside it; nothing on chain holds a spot between boundaries. `agari-range` shipped without (a) or (b): it prices on `market.last_price`.
+- **Rule:**
+  - **Built:** (a) via `agari_common::book_walk::outcome_levels` with `rested_only`, at `max(series.min_rest_slots, params.min_rest_slots)`; a depth floor `price_depth_raw` and never less than the payout, so a spoofed offer must be large and must sit takeable for about 20 s; (c) the per-ticket, exposure and per-boundary caps, `min_combined_prob_raw`, the margin and the correlation floor. An optional spread guard (`max_spread_ticks`, refusing a one-sided or wide book) is in the program and ships **off**: on a one-sided devnet book it would refuse every leg.
+  - **Not built:** (b). The caps bound the loss to a manipulated book. On devnet that is test money; before mainnet the bound is required.
+  - **Same arithmetic both sides:** levels are scaled to the client's own units (`ticks × tick_base`, `lots × lot_base`) before the VWAP, so `quoteParlayOnchain` and the program run one algorithm over the same integers. Ticket 1 was worked by hand, quoted and booked at the same 1,892,800.
+- **User-visible:** right after the maker requotes, a leg is refused as thin for about 20 s. That is the filter working.
+- **Approval:** stage owner. A recorded gap against the plan, not a silent one.
+
+### D-110 — Per-boundary locks are 32 slots in the parlay reserve, not a PDA per boundary
+- **Date / owner:** 2026-09-20 · S10a
+- **Evidence:** `agari-range` keeps an `ExpiryBook` PDA per boundary, which suits a round with one boundary. A ticket touches up to four, each needing an init-if-needed account at open and again at every crank; the plan's own row for `agari-parlay` specifies `expiry_locks[32]` in the Reserve.
+- **Rule:** `ParlayReserve.expiry_locks: [ExpiryLock; 32]`. A slot with nothing locked is free whatever instant it names, so slots recycle without a sweep. A ticket locks each distinct boundary once however many legs share it, as the reference's `seenBefore` does. A thirty-third live boundary refuses with `TooManyExpiries`. `public_resolve_leg`, `public_void_stale` and `public_claim_parlay` need no boundary accounts at all.
+- **User-visible:** none.
+- **Approval:** stage owner; follows the plan.
+
+### D-111 — The parlay builder opens on 1 and 4, not the reference's 5 and 40
+- **Date / owner:** 2026-09-20 · S10a
+- **Evidence:** a leg is priced over rested depth no smaller than the payout. The house maker rests `MM_QUOTE_LOTS` = 5,000 lots a side, which is 5 tUSDC of payout. The reference's defaults ask for roughly 10 to 40, so the first quote a visitor saw was a thin-book refusal on every Window.
+- **Rule:** the builder's initial stake is 1 and its initial payout 4. The reserve's cap stays 50 tUSDC: the binding limit is the venue's depth, and it lifts when the maker's size is raised at the held ops cutover (suggested `MM_QUOTE_LOTS=50000`, subject to `maxCashPerWindow`).
+- **User-visible:** the parlay builder opens on a ticket the venue can price.
+- **Approval:** stage owner. A deliberate deviation from the reference's values (D-081), for the user's override.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
