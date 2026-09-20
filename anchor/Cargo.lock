@@ -39,6 +39,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "agari-arena"
+version = "0.1.0"
+dependencies = [
+ "agari-common",
+ "agari-events",
+ "anchor-lang",
+ "anchor-spl",
+ "bytemuck",
+ "solana-keccak-hasher",
+]
+
+[[package]]
 name = "agari-common"
 version = "0.1.0"
 dependencies = [

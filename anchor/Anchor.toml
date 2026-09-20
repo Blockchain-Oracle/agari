@@ -7,6 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
+agari_arena = "CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3"
 agari_events = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
 agari_vault = "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
 agari_range = "GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha"
@@ -17,6 +18,7 @@ agari_leverage = "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb"
 agari_private = "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j"
 
 [programs.devnet]
+agari_arena = "CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3"
 agari_events = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH"
 agari_vault = "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9"
 agari_range = "GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha"

@@ -1242,6 +1242,19 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** none beyond the reference's.
 - **Approval:** stage owner.
 
+### D-118 — `agari-arena`: a seat's key spends an escrow, not an allowance; an entry is composed of instructions; the cards are accounts
+- **Date / owner:** 2026-09-20 · S12b on `integration/w1`
+- **Evidence:** the reference's `placePickFor` pulls each stake from the player's wallet under an ERC-20 allowance the entry transaction took. An SPL token account has **one** delegate and one delegated amount, so a player in two matches at once would overwrite their own approval, and a revoked or re-approved delegate would silently break a match in play. The reference also has `createMatchWithAgent` and `joinMatchWithAgent`, which exist only because an EVM transaction is one call. And `revealDeck` takes the cards as an argument and resolves each through the venue's registry.
+- **Rule:**
+  - **A key spends an escrow.** `player_authorize_agent` sets the deck's ceiling (`per_card_cap × deck_size`) aside in custody under an `Agent ["agent", match, player]` account. `agent_place_pick` draws the stake from it, booked gross against the ceiling as the reference does, and the unspent part of a stake goes back beside the rest. What a key never spent becomes its player's credit through `public_release_agent`: the player may call it whenever they like, which is how a key is revoked, and anyone may once the match has left its pick phase or the key has expired, so an escrow never waits on a player who walked away. Core's `arenaIntentSpend` already counted an entry with a key as `pot + budget`, so no surface changes. A third counter, `agent_escrow_base`, joins `escrowed` and `credited`; custody equals their sum after every instruction, and the randomized test checks that and each sub-sum.
+  - **An entry with a key is three instructions in one transaction:** create or join, `player_authorize_agent`, and a System transfer of fee money to the key. One signature, as in the reference, and no `…WithAgent` variants.
+  - **The cards are the Market accounts themselves,** passed after the named accounts of `public_reveal_deck`. Their addresses are the cards, so something that is not a Window of the venue cannot be named. Each must be open with `min_card_life` left. The commitment is keccak-256 over core's preimage word for word, with core's golden vector as the program's own test, the Arena account's address as the arena word, and a `chain_id` fixed at init.
+  - **Whether a card's Window carries the arena's seat is the deckmaster's job to check** when it draws candidates, not the reveal's: checking it on chain would double the accounts a reveal carries. A pick on a Window that predates the seat refuses with `WindowPredatesArena`.
+  - **The season prize pool lives in the same program** (`SeasonPool ["season", season_id]` with its own token account): funding by anyone, one single-shot distribution, the admin's withdrawal of what is left.
+  - As for the other reserves: PROGRAM seat at `program_authorities[4]`, `PlaceResult` checked against custody, payout measured as custody's delta around a partial redeem, only the upgrade authority can initialise, a pause that stops entry and picks and nothing on the way out.
+- **User-visible:** a player who names a key sees the deck's ceiling leave their wallet at entry and the unspent part come back as claimable credit after the picks, where the reference left it in the wallet throughout.
+- **Approval:** stage owner. A deviation from the reference's money flow, recorded for the user's override.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
