@@ -1,10 +1,10 @@
 import { quoteLeverage, type LeverageQuote, type LeverageRefusal } from "@agari/core/leverage";
 import type { Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type Diagnosis, type MarketId, type Side } from "@agari/core/types";
+import { diagnosis, type Diagnosis, type MarketId, type Side } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { nowMs, nowSec } from "../provider/clock";
 import { withReading } from "../provider/reading";
-import { readSeat } from "../runtime/accounts";
+import { requireProgramSeat } from "../runtime/program-seat";
 import { readBoostBook } from "./book";
 import { seatAddress } from "./deployment";
 import { paramsOf, readReserve, windowFrontedBase } from "./reads";
@@ -45,20 +45,6 @@ export function refusalDiagnosis(refusal: LeverageRefusal): Diagnosis {
   }
 }
 
-/** Windows whose Ledger is known to carry the reserve's seat. A seat does not leave a live Window, so one look is enough. */
-const seated = new Set<string>();
-
-/**
- * The engine seats every registered program when it opens a Window, so a Window older than the reserve's
- * registration has no seat for it and `owner_open` there refuses with `WindowPredatesReserve`.
- */
-async function requireSeat(marketId: MarketId, ledger: Address): Promise<void> {
-  if (seated.has(marketId)) return;
-  const found = await readSeat(ledger, await seatAddress());
-  if (!found?.seat) throw new ReadingError(diagnosis("market-not-trading", "this Window opened before the reserve was seated; the next one can be boosted"));
-  seated.add(marketId);
-}
-
 type Sizing = { stakeBase: bigint } | { quantityRaw: bigint };
 
 /**
@@ -71,7 +57,7 @@ function quote(key: string, marketId: MarketId, side: Side, leverageBps: number,
     const [book, reserve, windowFronted] = await Promise.all([readBoostBook(marketId, side), readReserve(), windowFrontedBase(marketId)]);
     if (!reserve) throw new ReadingError(diagnosis("not-deployed", "no leverage reserve on this cluster"));
     if (reserve.data.paused) throw new ReadingError(diagnosis("reserve-cap", "the reserve is paused"));
-    await requireSeat(marketId, book.ledger);
+    await requireProgramSeat("the leverage reserve", marketId, book.ledger, await seatAddress());
     const result = quoteLeverage({
       side,
       leverageBps,

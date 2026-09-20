@@ -2,6 +2,7 @@
 import { AGARI_EVENTS_PROGRAM_ADDRESS, getAgariEventsErrorMessage } from "@agari/clients/agari-events";
 import { AGARI_MAKER_PROGRAM_ADDRESS, getAgariMakerErrorMessage } from "@agari/clients/agari-maker";
 import { AGARI_LEVERAGE_PROGRAM_ADDRESS, getAgariLeverageErrorMessage } from "@agari/clients/agari-leverage";
+import { AGARI_PRIVATE_PROGRAM_ADDRESS, getAgariPrivateErrorMessage } from "@agari/clients/agari-private";
 import { AGARI_PARLAY_PROGRAM_ADDRESS, getAgariParlayErrorMessage } from "@agari/clients/agari-parlay";
 import { AGARI_RANGE_PROGRAM_ADDRESS, getAgariRangeErrorMessage } from "@agari/clients/agari-range";
 import { AGARI_STRATEGY_PROGRAM_ADDRESS, getAgariStrategyErrorMessage } from "@agari/clients/agari-strategy";
@@ -76,6 +77,7 @@ const ERROR_TABLES: ReadonlyArray<readonly [string, string, (code: never) => str
   [AGARI_RANGE_PROGRAM_ADDRESS, "agari-range", getAgariRangeErrorMessage as (code: never) => string],
   [AGARI_PARLAY_PROGRAM_ADDRESS, "agari-parlay", getAgariParlayErrorMessage as (code: never) => string],
   [AGARI_LEVERAGE_PROGRAM_ADDRESS, "agari-leverage", getAgariLeverageErrorMessage as (code: never) => string],
+  [AGARI_PRIVATE_PROGRAM_ADDRESS, "agari-private", getAgariPrivateErrorMessage as (code: never) => string],
   [AGARI_STRATEGY_PROGRAM_ADDRESS, "agari-strategy", getAgariStrategyErrorMessage as (code: never) => string],
   [AGARI_MAKER_PROGRAM_ADDRESS, "agari-maker", getAgariMakerErrorMessage as (code: never) => string],
   [AGARI_VAULT_PROGRAM_ADDRESS, "agari-vault", getAgariVaultErrorMessage as (code: never) => string],

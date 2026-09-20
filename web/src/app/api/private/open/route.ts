@@ -43,7 +43,8 @@ export async function POST(req: Request) {
 
   const desk = await getDesk().catch(() => null);
   if (!desk) return refuse(503, "no desk key is configured on this deployment (PRIVATE_DESK_PRIVATE_KEY)");
-  if (!desk.contract) return refuse(503, "PrivateDesk is not deployed on this network yet");
+  const contract = await desk.contract();
+  if (!contract) return refuse(503, "There is no private desk on this network yet");
   const market = await marketsProvider.getMarket(toMarketId(body.marketId));
   if (!market.ok) return refuse(502, "could not read the Window right now");
   if (!market.value) return refuse(404, "no such Window");
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
   const stakeBase = BigInt(body.stakeBase);
   const message = privateOpenMessage({
     owner: body.owner,
-    contract: desk.contract,
+    contract,
     chainId: desk.chainId,
     marketId: market.value.marketId,
     asset: market.value.asset,

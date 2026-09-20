@@ -22,6 +22,10 @@ import {
   AGARI_RANGE_ERROR__ROUND_NOT_SETTLED, AGARI_RANGE_ERROR__STAKE_ABOVE_MAX, AGARI_RANGE_ERROR__STALE_MARK,
   AGARI_RANGE_ERROR__TOO_LATE, AGARI_RANGE_ERROR__WINDOW_NOT_TRADING, AGARI_RANGE_PROGRAM_ADDRESS, getAgariRangeErrorMessage,
 } from "@agari/clients/agari-range";
+import {
+  AGARI_PRIVATE_ERROR__INSUFFICIENT, AGARI_PRIVATE_ERROR__MARKET_NOT_SETTLED, AGARI_PRIVATE_ERROR__NOTHING_TO_SETTLE,
+  AGARI_PRIVATE_PROGRAM_ADDRESS, getAgariPrivateErrorMessage,
+} from "@agari/clients/agari-private";
 import { AGARI_EVENTS_PROGRAM_ADDRESS } from "@agari/clients/agari-events";
 import { AGARI_MAKER_PROGRAM_ADDRESS, getAgariMakerErrorMessage } from "@agari/clients/agari-maker";
 import {
@@ -137,12 +141,24 @@ const LEVERAGE: ProductTable = {
   ]),
 };
 
+/** Only the refusals a wallet can meet: an owner's withdrawal and the permissionless settle. The desk's own are the service's to word. */
+const PRIVATE: ProductTable = {
+  name: "agari-private",
+  message: getAgariPrivateErrorMessage as (code: never) => string,
+  kinds: new Map<number, DiagnosisKind>([
+    [AGARI_PRIVATE_ERROR__INSUFFICIENT, "insufficient-collateral"],
+    [AGARI_PRIVATE_ERROR__MARKET_NOT_SETTLED, "not-settled"],
+    [AGARI_PRIVATE_ERROR__NOTHING_TO_SETTLE, "already-claimed"],
+  ]),
+};
+
 const MAKER: ProductTable = { name: "agari-maker", message: getAgariMakerErrorMessage as (code: never) => string, kinds: new Map() };
 
 const TABLES = new Map<string, ProductTable>([
   [AGARI_PARLAY_PROGRAM_ADDRESS, PARLAY],
   [AGARI_RANGE_PROGRAM_ADDRESS, RANGE],
   [AGARI_LEVERAGE_PROGRAM_ADDRESS, LEVERAGE],
+  [AGARI_PRIVATE_PROGRAM_ADDRESS, PRIVATE],
   [AGARI_MAKER_PROGRAM_ADDRESS, MAKER],
   [AGARI_STRATEGY_PROGRAM_ADDRESS, STRATEGY],
 ]);

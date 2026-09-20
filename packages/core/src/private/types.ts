@@ -1,5 +1,5 @@
 import type { MarketId, Side } from "../types/market";
-import type { Address, Hash32, Hex, Signature } from "../types/primitives";
+import type { Address, Hash32, Signature } from "../types/primitives";
 
 /** Where the desk lives on one chain — regenerated from `contracts/deployments` (AD-10). */
 export interface PrivateDeployment {
@@ -90,27 +90,13 @@ export interface PrivateClaim {
   issuedAtMs: number;
 }
 
-/** EIP-712: the struct the desk signs over the claim. Append-only — reordering a field invalidates every outstanding ticket. */
-export const PRIVATE_CLAIM_TYPES = {
-  Claim: [
-    { name: "owner", type: "address" },
-    { name: "slotId", type: "bytes32" },
-    { name: "creditKey", type: "bytes32" },
-    { name: "marketId", type: "bytes32" },
-    { name: "outcomeIdx", type: "uint8" },
-    { name: "stake", type: "uint256" },
-    { name: "issuedAtMs", type: "uint64" },
-  ],
-} as const;
-export const PRIVATE_CLAIM_DOMAIN_NAME = "Agari Private Desk";
-export const PRIVATE_CLAIM_DOMAIN_VERSION = "1";
-
 export type PrivateTicketStatus = "open" | "settled" | "credited";
 
 /** A claim plus what the owner's browser knows about the bet it names — the row the claims list renders. */
 export interface PrivateTicket {
   claim: PrivateClaim;
-  signature: Hex;
+  /** The desk key's ed25519 signature over `privateClaimMessage` (base58), checked against the key the desk account pins. */
+  signature: Signature;
   /** The key that signed, and the contract that pins it, so a ticket verifies without asking the desk. */
   desk: Address;
   contract: Address;

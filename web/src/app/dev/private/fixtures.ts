@@ -46,8 +46,8 @@ function claim(seed: string, outcomeIdx: 0 | 1, stakeBase: bigint, issuedAtMs: n
   return { owner: OWNER, slotId: fixtureKey(seed, 1), creditKey: fixtureKey(seed, 2), marketId: MARKET, outcomeIdx, stakeBase: stakeBase.toString(), issuedAtMs };
 }
 
-/** A placeholder 65-byte signature, distinct per ticket. */
-const placeholder = (n: number): Hex => `0x${n.toString(16).padStart(2, "0").repeat(65)}`;
+/** A well-formed signature that verifies against nothing, distinct per ticket: fixtures show how an unverifiable claim reads. */
+const placeholder = (n: number) => fixtureSignature(n);
 
 /** Four tickets across the states; the second is the one Masayume corrupted to exercise the failure state. */
 export async function signedTickets(): Promise<PrivateTicket[]> {

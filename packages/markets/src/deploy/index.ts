@@ -29,6 +29,7 @@ export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder
 export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
 export { attestedMessage, ed25519Instruction } from "../prices/attested";
 export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX, vaultAddresses } from "./vault";
+export { depositAndAllowPrivate, readPrivateBudget, readPrivateDesk, revokePrivate, withdrawPrivate } from "./private-drive";
 export { DEVNET_PRIVATE_PARAMS, initPrivateDesk, PRIVATE_AUTHORITY_INDEX, privateAddresses, registerPrivateSeat } from "./private";
 export { DEVNET_PARLAY_PARAMS, initParlayReserve, parlayAddresses } from "./parlay";
 export { initStrategyRegistry, strategyAddresses } from "./strategy";

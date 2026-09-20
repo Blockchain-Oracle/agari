@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CLUSTER_ID } from "../constants/chain";
 import { testAddress, testMarketIdFromHex, testSignature } from "../testing/ids";
 import { PRIVATE_AUTH_TTL_MS, privateAuthFresh, privateCashoutRequestSchema, privateOpenMessage, privateOpenRequestSchema } from "./protocol";
+import { privateClaimMessage } from "./claim";
 
 const INPUT = {
   owner: testAddress(0xd3),
@@ -68,5 +69,23 @@ describe("the wire schemas", () => {
   it("accepts the open request the browser sends", () => {
     const parsed = privateOpenRequestSchema.safeParse({ owner: INPUT.owner, marketId: INPUT.marketId, side: "up", stakeBase: "10000000", minQuantityRaw: "15000000", issuedAtMs: INPUT.issuedAtMs, signature: SIG });
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("privateClaimMessage", () => {
+  const claim = { owner: "6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ", slotId: `0x${"ab".repeat(32)}`, creditKey: `0x${"cd".repeat(32)}`, marketId: "BpKpucLRc9uApoXUyoARwacEHXHz1k44dDNpW5WqXTbA", outcomeIdx: 1, stakeBase: "4000000", issuedAtMs: 1_789_900_000_000 } as never;
+  const desk = "CsKhDTNZbTMoc4qzxPPgY2VheMB8mDTWsZrSkw46r3hH";
+
+  it("binds the desk account, its cluster and every field of the claim", () => {
+    const text = privateClaimMessage(claim, desk, 103);
+    expect(text.split("\n")).toEqual([
+      "Agari private claim", `Desk: ${desk} on Solana devnet`, "Owner: 6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ", `Slot: 0x${"ab".repeat(32)}`, `Credit key: 0x${"cd".repeat(32)}`,
+      "Market: BpKpucLRc9uApoXUyoARwacEHXHz1k44dDNpW5WqXTbA", "Outcome: 1", "Stake: 4000000", "Issued: 1789900000000",
+    ]);
+    for (const patch of [{ owner: desk }, { slotId: `0x${"00".repeat(32)}` }, { creditKey: `0x${"11".repeat(32)}` }, { outcomeIdx: 0 }, { stakeBase: "4000001" }, { issuedAtMs: 1 }]) {
+      expect(privateClaimMessage({ ...(claim as object), ...patch } as never, desk, 103)).not.toBe(text);
+    }
+    expect(privateClaimMessage(claim, "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j", 103)).not.toBe(text);
+    expect(privateClaimMessage(claim, desk, 101)).not.toBe(text);
   });
 });

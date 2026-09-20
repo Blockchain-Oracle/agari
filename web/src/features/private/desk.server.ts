@@ -23,6 +23,12 @@ export async function getDesk(): Promise<DeskClient | null> {
   } catch {
     secretKey = null;
   }
-  desk = secretKey ? createDeskClient({ secretKey, rpcUrl: process.env.PRIVATE_DESK_RPC_URL || (webEnv.markets.rpcHttpUrls[0] as string) }) : null;
+  desk = secretKey
+    ? await createDeskClient({
+        secretKey,
+        rpcUrl: process.env.PRIVATE_DESK_RPC_URL || (webEnv.markets.rpcHttpUrls[0] as string),
+        rpcSubscriptionsUrl: process.env.PRIVATE_DESK_WS_URL || (webEnv.markets.rpcWsUrls[0] as string),
+      })
+    : null;
   return desk;
 }
