@@ -89,7 +89,11 @@ async function main() {
   const signature = await placeOrder({ client, log: d.log }, opened, client.payer, user.token as never,
     // Trading stops at `lock_at`, which the Gap lane sets days before expiry; an expiry past it is refused
     // with 6108 (ExpiryAfterLock), which is why this drive could never trade a Gap Window.
-    { kind: side === "down" ? KIND.buyNo : KIND.buyYes, priceTicks: limitTicks, lots, orderType: ORDER_TYPE.ioc, expireTs: lockAt });
+    // The engine takes every price in YES ticks, a BUY_NO's included: it sits on the ask side and crosses a bid
+    // when `bid ≥ limit`. `limitTicks` is what the buyer pays for NO, so the YES price sent is `1000 − limitTicks`.
+    // This sent the NO price itself until 2026-09-20. It still filled whenever Down was cheap (a 16.4¢ limit is
+    // under an 85.6¢ bid either way), which is why the first cover fills worked and a 50/50 book filled nothing.
+    { kind: side === "down" ? KIND.buyNo : KIND.buyYes, priceTicks: side === "down" ? 1_000 - limitTicks : limitTicks, lots, orderType: ORDER_TYPE.ioc, expireTs: lockAt });
 
   // The order is only evidence if it actually filled: an IOC that crossed nothing leaves the seat empty and says so.
   const seatIdx = await seatHintFor(d.ctx, opened, user.address as never);
