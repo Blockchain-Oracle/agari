@@ -14,7 +14,10 @@ export interface DeskClient {
   readonly address: Address;
   /** The numeric cluster id product types still bind (D-012). */
   readonly chainId: number;
-  readonly signer: KeyPairSigner;
+  /** The desk key as the transaction signer. It is the client's own payer instance: Kit refuses two signer objects for one address in a transaction. */
+  readonly signer: DeployClient["payer"];
+  /** The same key as a key pair, for signing claims, which are texts and never transactions. */
+  readonly claimKey: KeyPairSigner;
   readonly client: DeployClient;
   /** The on-chain Desk account, or null while there is none on this cluster. */
   contract(): Promise<Address | null>;
@@ -31,16 +34,17 @@ export interface DeskClientConfig {
 }
 
 export async function createDeskClient({ secretKey, rpcUrl, rpcSubscriptionsUrl }: DeskClientConfig): Promise<DeskClient> {
-  const signer = await keypairSigner(secretKey);
+  const claimKey = await keypairSigner(secretKey);
   const client = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret: secretKey });
   const locks = new Map<string, Promise<unknown>>();
   let queue: Promise<unknown> = Promise.resolve();
   let contract: Address | null = null;
 
   return {
-    address: signer.address as string as Address,
+    address: claimKey.address as string as Address,
     chainId: CLUSTER_ID[DEFAULT_CLUSTER],
-    signer,
+    signer: client.payer,
+    claimKey,
     client,
     async contract() {
       contract ??= (await readDesk())?.address ?? null;

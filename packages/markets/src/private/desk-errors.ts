@@ -11,10 +11,26 @@ export function isUnknownLanding(error: unknown): boolean {
   return false;
 }
 
+function textOf(error: unknown): string {
+  const parts: string[] = [];
+  for (let e: unknown = error, depth = 0; e instanceof Error && depth < 8; e = e.cause, depth += 1) parts.push(e.message);
+  return parts.length > 0 ? parts.join("\n") : String(error);
+}
+
+/**
+ * What the chain said, in the program's own words: `BelowMinQuantity (6022): the book fills fewer contracts than the
+ * owner's guard`. A refused send's first line is the transport's boilerplate about a failed simulation, which tells an
+ * owner nothing; the Anchor log line underneath it is the reason. Falls back to the first line when no program spoke.
+ */
+export function refusalTechnical(error: unknown): string {
+  const text = textOf(error);
+  const anchor = /Error Code: (\w+)\. Error Number: (\d+)\. Error Message: ([^\n]*?)\.?\s*$/m.exec(text);
+  return anchor ? `${anchor[1]} (${anchor[2]}): ${anchor[3]}` : publicReason(text);
+}
+
 /** The program's own error name out of a refused send (`Error Code: BelowMinQuantity`), or null when the chain named none. */
 export function refusalName(error: unknown): string | null {
-  const text = error instanceof Error ? `${error.message}\n${error.cause instanceof Error ? error.cause.message : ""}` : String(error);
-  return /Error Code: (\w+)/.exec(text)?.[1] ?? null;
+  return /Error Code: (\w+)/.exec(textOf(error))?.[1] ?? null;
 }
 
 export function refusalWords(name: string | null): string {

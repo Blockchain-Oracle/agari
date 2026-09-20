@@ -8,7 +8,7 @@ import { readMarket, readSeries } from "../runtime/accounts";
 import { signPrivateClaim } from "./claim";
 import { keyBytes, kit, privateProgramId } from "./deployment";
 import type { DeskClient } from "./desk-client";
-import { isUnknownLanding, publicReason, refusalName, refusalWords } from "./desk-errors";
+import { isUnknownLanding, publicReason, refusalName, refusalTechnical, refusalWords } from "./desk-errors";
 import { deriveSlotKeys } from "./keys";
 import { readBudget, readCharged, readCredited, readDesk, readSlot, sizePrivateForStake } from "./reads";
 
@@ -90,7 +90,7 @@ export async function openPrivateBet(desk: DeskClient, input: DeskOpenInput): Pr
           const name = refusalName(error);
           txs.sweep = (await desk.send("private refund sweep", [await getDeskSweepSlotToPoolInstructionAsync({ desk: desk.signer, slotId }, config())])) as Signature;
           txs.credit = (await credit(charged)) as Signature;
-          return refused(refusalWords(name), publicReason(error instanceof Error ? error.message : String(error)), charged);
+          return refused(refusalWords(name), refusalTechnical(error), charged);
         }
       }
 
@@ -98,7 +98,7 @@ export async function openPrivateBet(desk: DeskClient, input: DeskOpenInput): Pr
       const claim: PrivateClaim = { owner, slotId: keys.slotId, creditKey: keys.creditKey, marketId: input.marketId, outcomeIdx: input.side === "up" ? 0 : 1, stakeBase: charged.toString(), issuedAtMs: Date.now() };
       const ticket: PrivateTicket = {
         claim,
-        signature: await signPrivateClaim(desk.signer, contract, desk.chainId, claim),
+        signature: await signPrivateClaim(desk.claimKey, contract, desk.chainId, claim),
         desk: desk.address,
         contract,
         chainId: desk.chainId,
@@ -114,7 +114,7 @@ export async function openPrivateBet(desk: DeskClient, input: DeskOpenInput): Pr
       return { status: "opened", ticket };
     } catch (error) {
       if (isUnknownLanding(error)) return { status: "unknown", reason: "The chain has not answered yet. Try again in a moment. Nothing is charged twice.", txs };
-      return { status: "unknown", reason: publicReason(error instanceof Error ? error.message : String(error)), txs };
+      return { status: "unknown", reason: refusalTechnical(error), txs };
     }
   });
 }

@@ -8,6 +8,7 @@
 //   cashout  --ticket <file>               the way home: settle, sweep, credit, from the claim alone
 //   revoke                                 the desk may spend nothing
 //   withdraw --amount 5                    pays the owner and nobody else
+//   rawcharge --owner <addr> --amount 1 --as <role>   a bare desk_charge_to_pool signed by <role>, past the service's checks: the chain's own answer
 // `--as <role>` picks the owner wallet (default drive-owner). The desk key is the `private-desk` role.
 // A Window is a market id, or `<ticker>/<cadenceSec>/<basis>` for the Window that lane is trading now.
 // Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/private-desk.ts <mode> [...]
@@ -18,7 +19,7 @@ import { formatCadence } from "@agari/core/copy";
 import { privateOpenMessage, type PrivateTicket } from "@agari/core/private";
 import { formatBaseUnits } from "@agari/core/units";
 import { ensureMarkets, getCollateral, loadCollateral, marketsProvider, parseMarketsEnv, unwrap } from "@agari/markets";
-import { createDeployClient, depositAndAllowPrivate, liveWindowFor, readPrivateBudget, readPrivateDesk, revokePrivate, withdrawPrivate, type StepLog } from "@agari/markets/deploy";
+import { createDeployClient, depositAndAllowPrivate, liveWindowFor, rawChargeAsPayer, readPrivateBudget, readPrivateDesk, revokePrivate, withdrawPrivate, type StepLog } from "@agari/markets/deploy";
 import { cashOutPrivateBet, createDeskClient, openPrivateBet, sizePrivateForStake, verifyPrivateClaim } from "@agari/markets/private";
 import { addressesFor, clusterArg, endpoints, readJson, redactKey, roleSecret } from "../deploy/ops-cluster";
 
@@ -79,6 +80,16 @@ try {
   } else if (mode === "withdraw") {
     const r = await withdrawPrivate(ctx, units(arg("--amount"), "1"));
     console.log(`received ${r.receivedBase}; budget ${show(r.budget)}; ${books(await readPrivateDesk(ctx))}; ${r.signature}`);
+  } else if (mode === "rawcharge") {
+    const target = arg("--owner");
+    if (!target) throw new Error("--owner is required");
+    try {
+      console.log(`LANDED: ${await rawChargeAsPayer(ctx, target as never, units(arg("--amount"), "1"))}`);
+    } catch (error) {
+      const text = redactKey(error instanceof Error ? error.message : String(error));
+      console.log(`REFUSED BY THE CHAIN: ${/Error Code: \w+\. Error Number: \d+\. Error Message: [^\n]*/.exec(text)?.[0] ?? text.split("\n")[0]}`);
+    }
+    console.log(`target budget ${show(await readPrivateBudget(ctx, target as never))}; ${books(await readPrivateDesk(ctx))}`);
   } else if (mode === "open") {
     const where = arg("--window");
     const side = arg("--side") === "down" ? "down" : "up";
@@ -88,8 +99,11 @@ try {
     const desk = await bootDesk();
     const contract = await desk.contract();
     if (!contract) throw new Error("no desk account on this cluster");
-    const market = unwrap(await marketsProvider.getMarket(marketId));
-    if (!market) throw new Error(`no such Window ${marketId}`);
+    // A listed Window is read as the route reads it. A drive-only Window (Series 903, D-115) is not in the catalogue by
+    // design, so its facts come from the chain and the drive names the asset and cadence it opened it with.
+    const listed = unwrap(await marketsProvider.getMarket(marketId));
+    const onchain = unwrap(await marketsProvider.getOnchain(marketId));
+    const market = listed ?? { marketId: onchain.marketId, asset: arg("--asset") ?? "TSLA", intervalSec: Number(arg("--cadence") ?? "900"), expirySec: onchain.expirySec };
     const stakeBase = units(arg("--amount"), "2");
     const quote = await sizePrivateForStake(marketId, side, stakeBase);
     console.log(`quote: ${show(quote.ok ? quote.value : quote.error)}`);

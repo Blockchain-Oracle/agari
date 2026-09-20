@@ -3,7 +3,7 @@
  * real desk service (`openPrivateBet`, `cashOutPrivateBet` in `@agari/markets/private`), so what is proven on devnet
  * is the code the web runs, not a copy of it.
  */
-import { fetchMaybeBudget, fetchMaybeDesk, findBudgetPda, findCustodyPda, findDeskAccountPda, getOwnerDepositAndAllowInstructionAsync, getOwnerRevokeInstructionAsync, getOwnerWithdrawInstructionAsync } from "@agari/clients/agari-private";
+import { fetchMaybeBudget, fetchMaybeDesk, findBudgetPda, findCustodyPda, findDeskAccountPda, getDeskChargeToPoolInstructionAsync, getOwnerDepositAndAllowInstructionAsync, getOwnerRevokeInstructionAsync, getOwnerWithdrawInstructionAsync } from "@agari/clients/agari-private";
 import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import { getBase64Encoder, type Address } from "@solana/kit";
 import { send, type SendContext } from "./send";
@@ -57,4 +57,15 @@ export async function withdrawPrivate(ctx: SendContext, amountBase: bigint) {
   const before = await tokenBalance(ctx, ownerToken);
   const signature = await send(ctx, "withdraw", [await getOwnerWithdrawInstructionAsync({ ...accounts, amountBase })], `${amountBase} back to the owner`);
   return { signature, receivedBase: (await tokenBalance(ctx, ownerToken)) - before, budget: await readPrivateBudget(ctx, ctx.client.payer.address) };
+}
+
+/**
+ * A bare `desk_charge_to_pool` from the client's payer, with none of the desk service's own checks in front of it.
+ * It exists to put the CHAIN's answer on record: what a desk key, or somebody holding one, can take from an owner
+ * is what the owner allowed and not a unit more, and a key that is not the desk's can take nothing.
+ */
+export async function rawChargeAsPayer(ctx: SendContext, owner: Address, amountBase: bigint) {
+  const chargeKey = crypto.getRandomValues(new Uint8Array(32));
+  const ix = await getDeskChargeToPoolInstructionAsync({ desk: ctx.client.payer, owner, amountBase, chargeKey });
+  return send(ctx, "raw charge", [ix], `${amountBase} from ${owner}, signed by ${ctx.client.payer.address}`);
 }
