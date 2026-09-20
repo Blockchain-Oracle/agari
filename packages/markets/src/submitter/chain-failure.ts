@@ -22,6 +22,7 @@ import {
   SOLANA_ERROR__TRANSACTION_ERROR__INSUFFICIENT_FUNDS_FOR_RENT,
 } from "@solana/kit";
 import { describeChainFailure, type ChainFailure } from "./errors";
+import { failingProduct, productRefusal } from "./product-failure";
 
 /** The engine codes the write lanes branch on (events-accounts.md §4). */
 export const ENGINE_CODE = {
@@ -73,7 +74,9 @@ export function customCode(err: unknown): number | null {
 /** Normalises an RPC `TransactionError` and its logs. */
 export function chainFailure(err: unknown, logs: readonly string[] | null | undefined): ChainFailure {
   const code = customCode(err);
-  const engineCode = code !== null && code >= ENGINE_RANGE.min && code <= ENGINE_RANGE.max ? code : null;
+  // A product program's refusal shares the engine's number range but not its table (`product-failure.ts`).
+  const ours = failingProduct(logs ?? []) === null;
+  const engineCode = ours && code !== null && code >= ENGINE_RANGE.min && code <= ENGINE_RANGE.max ? code : null;
   return { engineCode, err, logs: logs ?? [] };
 }
 
@@ -108,6 +111,8 @@ export function preflightFailure(error: unknown): ChainFailure | null {
 /** Why a transaction that never landed was refused, as the typed diagnosis every surface renders. */
 export function failureDiagnosis(failure: ChainFailure): Diagnosis {
   const technical = describeChainFailure(failure);
+  const product = productRefusal(failure.logs, customCode(failure.err));
+  if (product) return diagnosis(product.kind, `${product.label} | ${technical}`);
   if (failure.engineCode !== null) return diagnosis(KIND_BY_CODE.get(failure.engineCode) ?? "contract-revert", technical);
   if (typeof failure.err === "string" && FEE_PAYER_ERRORS.has(failure.err)) return diagnosis("out-of-gas", technical);
   if (customCode(failure.err) === TOKEN_INSUFFICIENT_FUNDS && failure.logs.some((line) => TOKEN_PROGRAM_FAILED.test(line))) {

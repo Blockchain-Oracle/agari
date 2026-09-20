@@ -1,6 +1,7 @@
 /** Sending, drift errors and the addresses record shared by the deploy steps. */
 import { AGARI_EVENTS_PROGRAM_ADDRESS, getAgariEventsErrorMessage } from "@agari/clients/agari-events";
 import { AGARI_MAKER_PROGRAM_ADDRESS, getAgariMakerErrorMessage } from "@agari/clients/agari-maker";
+import { AGARI_PARLAY_PROGRAM_ADDRESS, getAgariParlayErrorMessage } from "@agari/clients/agari-parlay";
 import { AGARI_RANGE_PROGRAM_ADDRESS, getAgariRangeErrorMessage } from "@agari/clients/agari-range";
 import { AGARI_VAULT_PROGRAM_ADDRESS, getAgariVaultErrorMessage } from "@agari/clients/agari-vault";
 import type { Instruction } from "@solana/kit";
@@ -71,6 +72,7 @@ const ENGINE_CODES = { min: 6000, max: 6399 };
 const ERROR_TABLES: ReadonlyArray<readonly [string, string, (code: never) => string]> = [
   [AGARI_EVENTS_PROGRAM_ADDRESS, "agari-events", getAgariEventsErrorMessage as (code: never) => string],
   [AGARI_RANGE_PROGRAM_ADDRESS, "agari-range", getAgariRangeErrorMessage as (code: never) => string],
+  [AGARI_PARLAY_PROGRAM_ADDRESS, "agari-parlay", getAgariParlayErrorMessage as (code: never) => string],
   [AGARI_MAKER_PROGRAM_ADDRESS, "agari-maker", getAgariMakerErrorMessage as (code: never) => string],
   [AGARI_VAULT_PROGRAM_ADDRESS, "agari-vault", getAgariVaultErrorMessage as (code: never) => string],
 ];
