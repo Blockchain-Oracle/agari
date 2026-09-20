@@ -69,6 +69,21 @@
       "soBytes": 417192,
       "soSha256": "5e2057f5d66afcfc4c01d16bc51f1fdee6bf874d6d763cea060a212a5b863b52",
       "authorityIndex": 1
+    },
+    "agari_parlay": {
+      "programId": "H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC",
+      "programData": "Ad9BWVYx2aZCCQvtx7TdoYTWuLNPGcFCuN2pir3zJELh",
+      "upgradeAuthority": "AD8cgL3c39WxgqohfpuHzkBsr1su4eU6a6sQqzHC3V5F",
+      "deploySignature": "qf1sHyQxJPPK3GfDFq976B1oFcVCYatoQBDKSqhaVcnTFZzCzvRpWVdZVroxXWL45QXa8t4sZV7VRChqhUuiNj5",
+      "deployedSlot": 501118691,
+      "sbpfArch": "v0",
+      "soBytes": 370776,
+      "soSha256": "167c045fb93c6b78ecdc4a76732b6312daf4d80aa12ed683a17bec2887f9e69e",
+      "sourceCommit": "26ad3e7",
+      "reserve": "32y5yJ2TaK5oMJompEBSchbL8j1RXhqS7G4TEC2brvVx",
+      "vault": "2wyokJ4rquXKqNfz6ChCW4u4mb3PGbjfHjmFjidLqFap",
+      "fromSlot": 501119047,
+      "initSignature": "rdJhG95STK4wo5GYxLgtRuTYpWibUp1dUmnv4wFJ4gB5s6k74bjskbvznkyQZkcQpZwKBKbqREtzdVVdbkaDKAg"
     }
   },
   "venue": {
