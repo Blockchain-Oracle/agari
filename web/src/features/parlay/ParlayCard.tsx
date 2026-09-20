@@ -2,7 +2,7 @@
 
 import { SETTLING } from "@agari/core/copy";
 import { formatCadence } from "@agari/core/market";
-import type { ParlayLegStatus, ParlayStatus } from "@agari/core/parlay";
+import { nextParlayLegIdx, type ParlayLegStatus, type ParlayStatus } from "@agari/core/parlay";
 import { formatBaseUnits, formatClock, remainingSec } from "@agari/core/units";
 import { Check, Clock, Layers, Loader2, Minus, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,7 @@ const DOT_ICON: Record<ParlayLegStatus, () => React.ReactNode> = {
   pending: () => <Clock size={11} />,
 };
 
-function LegRow({ leg, idx, nowMs, busyHere, onSettle }: { leg: ParlayLegView; idx: number; nowMs: number; busyHere: boolean; onSettle: () => void }) {
+function LegRow({ leg, idx, nowMs, busyHere, isNext, onSettle }: { leg: ParlayLegView; idx: number; nowMs: number; busyHere: boolean; isNext: boolean; onSettle: () => void }) {
   const { slip } = PARLAY;
   const left = nowMs > 0 ? remainingSec(nowMs, leg.expirySec) : null;
   return (
@@ -47,10 +47,12 @@ function LegRow({ leg, idx, nowMs, busyHere, onSettle }: { leg: ParlayLegView; i
         {leg.status === "lost" && slip.legMissed}
         {leg.status === "void" && slip.legVoid}
         {leg.status === "pending" &&
-          (leg.settledOnchain ? (
+          (leg.settledOnchain && isNext ? (
             <button type="button" onClick={onSettle} disabled={busyHere} className="pl-settle" data-cursor="hover">
               {busyHere ? slip.settling : slip.settle}
             </button>
+          ) : leg.settledOnchain ? (
+            SETTLING
           ) : left === null ? (
             "–:––"
           ) : left === 0 ? (
@@ -77,6 +79,8 @@ export function ParlayCard({ ticket, nowMs, symbol, decimals, busy, onClaim, onS
   const lost = status === "lost";
   const claiming = busy === `claim:${ticket.parlayId}`;
   const payout = formatBaseUnits(ticket.maxPayoutBase, decimals);
+  // The reserve decides legs in the order their Windows close, so only that one leg is offered for settling.
+  const nextLeg = status === "live" ? nextParlayLegIdx(ticket.legs) : null;
   return (
     <div className={cn("pl-card pl-rise", status === "won" && "pl-card--won", (lost || status === "void") && "pl-card--lost")}>
       <div className="pl-card-head">
@@ -95,7 +99,7 @@ export function ParlayCard({ ticket, nowMs, symbol, decimals, busy, onClaim, onS
 
       <div className="pl-card-legs">
         {ticket.legs.map((leg, i) => (
-          <LegRow key={i} leg={leg} idx={i} nowMs={nowMs} busyHere={busy === `settle:${ticket.parlayId}:${i}`} onSettle={() => onSettle(ticket, i)} />
+          <LegRow key={i} leg={leg} idx={i} nowMs={nowMs} busyHere={busy === `settle:${ticket.parlayId}:${i}`} isNext={i === nextLeg} onSettle={() => onSettle(ticket, i)} />
         ))}
       </div>
 

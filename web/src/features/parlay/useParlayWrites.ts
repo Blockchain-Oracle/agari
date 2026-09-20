@@ -3,13 +3,11 @@
 import type { ParlayLegInput } from "@agari/core/parlay";
 import type { MarketId } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { submitParlayOpen, type ParlayOpenOutcome } from "@agari/markets/parlay";
+import type { ParlayOpenOutcome } from "@agari/markets/parlay";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
-import { webEnv } from "@/lib/env";
 import { notify } from "@/lib/toast";
 import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { PARLAY } from "./copy";
@@ -28,11 +26,6 @@ export function useParlayWrites() {
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<ParlayBusyKey | null>(null);
 
-  const contracts = useCallback((): VaultContracts | null => {
-    if (!wallet) return null;
-    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [wallet]);
-
   const settle = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
   }, [address, queryClient]);
@@ -40,17 +33,15 @@ export function useParlayWrites() {
   const open = useCallback(
     async (legs: ParlayLegInput[], maxPayoutBase: bigint, maxStakeBase: bigint): Promise<ParlayOpenOutcome | null> => {
       if (!submitter || !address) return null;
-      const c = contracts();
-      if (!c) return null;
       setBusy("open");
       try {
-        return await submitParlayOpen({ journal: submitter.journal, wallet: address, contracts: c }, { kind: "parlay-open", legs, maxPayoutBase, maxStakeBase });
+        return await submitter.submitParlayOpen({ kind: "parlay-open", legs, maxPayoutBase, maxStakeBase });
       } finally {
         setBusy(null);
         await settle();
       }
     },
-    [submitter, address, contracts, settle],
+    [submitter, address, settle],
   );
 
   const claim = useCallback(
