@@ -32,7 +32,7 @@ export async function startGameRoom(log: Log): Promise<RoomContext | null> {
 
   const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
-  const deployment = resolveArenaDeployment(marketsEnv);
+  const deployment = await resolveArenaDeployment(marketsEnv);
   if (!deployment) {
     log("GameArena is not deployed on this network; the duel room is not listening");
     return null;

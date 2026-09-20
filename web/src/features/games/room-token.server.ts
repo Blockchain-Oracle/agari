@@ -13,7 +13,7 @@ import {
 } from "@agari/core/games";
 import { isSignature, type Address } from "@agari/core/types";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
-import { parseMarketsEnv } from "@agari/markets";
+import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
 import { resolveArenaDeployment } from "@agari/markets/games";
 
 /**
@@ -60,8 +60,11 @@ function grant(claims: RoomTokenClaims): RoomTokenGrant {
 }
 
 /** The arena this deployment's rooms are about, or null where none is deployed. */
-export function roomArena(): { chainId: number; arena: Address } | null {
-  const deployment = resolveArenaDeployment(parseMarketsEnv());
+export async function roomArena(): Promise<{ chainId: number; arena: Address } | null> {
+  const env = parseMarketsEnv();
+  // The deployment is a PDA whose existence is a chain read, so the markets runtime has to be up before it is asked.
+  ensureMarkets(env);
+  const deployment = await resolveArenaDeployment(env);
   return deployment ? { chainId: deployment.chainId, arena: deployment.gameArena } : null;
 }
 
@@ -73,7 +76,7 @@ export type MintOutcome = { ok: true; grant: RoomTokenGrant } | { ok: false; sta
  * and checked against the arena's own agent record the moment a seat exists (`handlers.ts` §sendSnapshot).
  */
 export async function mintFromSignature(wallet: Address, key: Address, issuedAtMs: number, signature: string, nowMs: number): Promise<MintOutcome> {
-  const target = roomArena();
+  const target = await roomArena();
   if (!target) return { ok: false, status: 503, error: "No duel arena is deployed on this network." };
   if (!roomAuthFresh(issuedAtMs, nowMs)) return { ok: false, status: 400, error: "That signature is too old." };
 
@@ -88,12 +91,12 @@ export async function mintFromSignature(wallet: Address, key: Address, issuedAtM
  * A later token on the same signature. The presented token must be ours and its session still open —
  * an expired token still renews, because expiry is what renewal is for; a finished session does not.
  */
-export function renewFromToken(token: string, nowMs: number): MintOutcome {
+export async function renewFromToken(token: string, nowMs: number): Promise<MintOutcome> {
   const parsed = parseRoomToken(token);
   if (!parsed || !macMatches(parsed.payload, parsed.mac)) return { ok: false, status: 401, error: "That room token is not ours." };
   if (!canRenewRoomToken(parsed.claims, nowMs)) return { ok: false, status: 401, error: "That room session has ended." };
 
-  const target = roomArena();
+  const target = await roomArena();
   if (!target || parsed.claims.chainId !== target.chainId || parsed.claims.arena !== target.arena) {
     return { ok: false, status: 403, error: "That room token was minted for another arena." };
   }
@@ -109,8 +112,8 @@ export type TokenWallet = { ok: true; wallet: Address } | { ok: false; status: n
  * the MAC first, then the arena binding and the clocks. The claim is the browser key's word for a
  * wallet that never entered a duel; the arcade's label says what that is worth, and no money rides on it.
  */
-export function walletFromRoomToken(token: string, nowMs: number): TokenWallet {
-  const target = roomArena();
+export async function walletFromRoomToken(token: string, nowMs: number): Promise<TokenWallet> {
+  const target = await roomArena();
   if (!target) return { ok: false, status: 503, error: "No duel arena is deployed on this network, so no key can vouch for a wallet here." };
   const verdict = verifyRoomToken(token, { chainId: target.chainId, arena: target.arena }, nowMs, macMatches);
   if (!verdict.ok) return { ok: false, status: verdict.code === "forbidden" ? 403 : 401, error: `That room token is not accepted: ${verdict.why}.` };
@@ -118,7 +121,7 @@ export function walletFromRoomToken(token: string, nowMs: number): TokenWallet {
 }
 
 /** The text the browser's key signs, built here so the two copies cannot drift. */
-export function roomAuthPrompt(wallet: Address, key: Address, issuedAtMs: number): string | null {
-  const target = roomArena();
+export async function roomAuthPrompt(wallet: Address, key: Address, issuedAtMs: number): Promise<string | null> {
+  const target = await roomArena();
   return target ? roomAuthMessage({ wallet, key, chainId: target.chainId, arena: target.arena, issuedAtMs }) : null;
 }

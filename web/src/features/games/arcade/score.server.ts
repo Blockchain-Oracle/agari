@@ -72,7 +72,7 @@ export async function readBoard(game: ArcadeGame, address: string | null): Promi
 export async function acceptScore(claim: ScoreClaim, device: string, nowMs: number): Promise<ScoreVerdict> {
   if (!gamesStoreConfigured()) return { ok: false, status: 503, error: "This deployment keeps no scores." };
 
-  const identity = walletFromRoomToken(claim.token, nowMs);
+  const identity = await walletFromRoomToken(claim.token, nowMs);
   if (!identity.ok) return identity;
   const wallet = identity.wallet;
 

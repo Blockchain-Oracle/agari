@@ -27,6 +27,7 @@ export const webEnv: WebEnv = {
     parlayProgramId: process.env.NEXT_PUBLIC_AGARI_PARLAY_PROGRAM_ID,
     leverageProgramId: process.env.NEXT_PUBLIC_AGARI_LEVERAGE_PROGRAM_ID,
     privateProgramId: process.env.NEXT_PUBLIC_AGARI_PRIVATE_PROGRAM_ID,
+    arenaProgramId: process.env.NEXT_PUBLIC_AGARI_ARENA_PROGRAM_ID,
     strategyProgramId: process.env.NEXT_PUBLIC_AGARI_STRATEGY_PROGRAM_ID,
     makerProgramId: process.env.NEXT_PUBLIC_AGARI_MAKER_PROGRAM_ID,
     priceFeedUrl: process.env.NEXT_PUBLIC_PRICE_FEED_URL,

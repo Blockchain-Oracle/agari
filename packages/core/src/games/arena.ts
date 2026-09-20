@@ -246,7 +246,9 @@ export type ArenaIntent =
   /** Permissionless once the reveal window has closed. */
   | { kind: "arena-refund-unrevealed"; matchId: Hash32 }
   /** Permissionless: the credit only ever goes to the player named. */
-  | { kind: "arena-claim"; player: Address };
+  | { kind: "arena-claim"; player: Address }
+  /** Turns what a seat's key never spent into its player's credit. The player may at any time; anyone once the pick phase is over or the key has expired. */
+  | { kind: "arena-release-agent"; matchId: Hash32; player: Address };
 
 /**
  * The intents that move the caller's own money and therefore need an allowance first. An entry that names a

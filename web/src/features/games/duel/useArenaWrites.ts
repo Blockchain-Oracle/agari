@@ -13,7 +13,7 @@ import {
 import { isOk } from "@agari/core/schemas";
 import { ARENA_NOT_DEPLOYED } from "@agari/core/games";
 import { diagnosis, type Address, type Hash32, type Diagnosis, type MarketId, type Signature } from "@agari/core/types";
-import { quoteArenaPick, submitArenaPick, type ArenaPickOutcome } from "@agari/markets/games";
+import { quoteArenaPick, type ArenaPickOutcome } from "@agari/markets/games";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
 import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
@@ -178,13 +178,13 @@ export function useArenaWrites() {
    */
   const pick = useCallback(
     async (input: { matchId: Hash32; cardIndex: number; marketId: MarketId; side: Pick; stakeBase: bigint; deadlineSec: number }): Promise<ArenaPickOutcome> => {
-      const c = contracts();
-      if (!submitter || !address || !c) {
+      if (!submitter || !address) {
         return { status: "refused", diagnosis: diagnosis("signer-required", "this browser has no signing session bound") };
       }
 
+      // With a game key the pick is signed by the key's own session; without one it is the wallet's.
       const keyed = game.session;
-      const ctx = keyed ? { journal: keyed.submitter.journal, wallet: keyed.address, contracts: keyed.contracts } : { journal: submitter.journal, wallet: address, contracts: c };
+      const lane = keyed ? keyed.submitter : submitter;
       setBusy(`pick:${input.cardIndex}`);
       setRefusal(null);
       let last: ArenaPickOutcome = { status: "refused", diagnosis: diagnosis("order-expired", "the pick deadline passed before a fill landed") };
@@ -198,8 +198,7 @@ export function useArenaWrites() {
           if (!isOk(quote) || !quote.value) continue;
 
           const floor = pickFloorRaw(quote.value.quantityRaw, attempt);
-          last = await submitArenaPick(
-            ctx,
+          last = await lane.submitArenaPick(
             keyed
               ? { kind: "arena-pick-for", player: address, matchId: input.matchId, cardIndex: input.cardIndex, pick: input.side, stakeBase: input.stakeBase, minQuantityRaw: floor }
               : { kind: "arena-pick", matchId: input.matchId, cardIndex: input.cardIndex, pick: input.side, stakeBase: input.stakeBase, minQuantityRaw: floor },
@@ -218,7 +217,7 @@ export function useArenaWrites() {
         await refresh();
       }
     },
-    [submitter, address, contracts, refresh, game.session],
+    [submitter, address, refresh, game.session],
   );
 
   /**

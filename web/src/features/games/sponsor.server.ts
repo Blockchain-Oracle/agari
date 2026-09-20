@@ -43,10 +43,10 @@ export function gameSponsorCapLamports(): bigint {
   return raw && /^\d+$/.test(raw) ? BigInt(raw) : sponsorDefaultCapLamports();
 }
 
-function boot(): { config: SponsorConfig | null; deployment: ReturnType<typeof resolveArenaDeployment> } {
+async function boot(): Promise<{ config: SponsorConfig | null; deployment: Awaited<ReturnType<typeof resolveArenaDeployment>> }> {
   const env = marketsEnvFromProcess();
   ensureMarkets(env);
-  return { config: sponsorConfig(env), deployment: resolveArenaDeployment(env) };
+  return { config: sponsorConfig(env), deployment: await resolveArenaDeployment(env) };
 }
 
 /** The sponsor's SOL balance: a read the Solana adapter serves (S4). Unreadable until then, so no status claims ready. */
@@ -55,7 +55,7 @@ async function sponsorBalanceLamports(_config: SponsorConfig | null): Promise<bi
 }
 
 export async function gameSponsorStatus(): Promise<GameSponsorStatusWire> {
-  const { config, deployment } = boot();
+  const { config, deployment } = await boot();
   const cap = gameSponsorCapLamports();
   const envelope = sponsorDefaultCapLamports();
   const balance = await sponsorBalanceLamports(config);
@@ -76,7 +76,7 @@ const fundedSeats = new Map<string, Signature | null>();
 const LIVE = new Set(["waiting", "activeUnrevealed", "picking"]);
 
 export async function fundSeatKey(input: { matchId: Hash32; player: Address; agent: Address; device: string; nowMs: number }): Promise<FundVerdict> {
-  const { config, deployment } = boot();
+  const { config, deployment } = await boot();
   if (!config) return { ok: false, status: 503, error: "no sponsor is configured on this deployment; the entry funds the key" };
   if (!deployment) return { ok: false, status: 503, error: "GameArena is not deployed on this network" };
 

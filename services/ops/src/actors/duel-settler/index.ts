@@ -3,7 +3,7 @@ import { isOk } from "@agari/core/schemas";
 import type { Hash32, Hex, MarketId } from "@agari/core/types";
 import { getDeck, isDbConfigured, listLiveMatches, markDeckRevealed } from "@agari/db";
 import { createMemoryJournal, createSubmitterSession, ensureMarkets, loadCollateral, marketsProvider, type SubmitterSession } from "@agari/markets";
-import { getArenaMatch, getArenaState, resolveArenaDeployment, sendArenaIntent } from "@agari/markets/games";
+import { getArenaMatch, getArenaState, resolveArenaDeployment } from "@agari/markets/games";
 import { deckKey, fromJournal, open } from "../matchmaker/seal";
 import { readSecretKey } from "../secret-key";
 import { decideMatch, isDone, type SettlerAction } from "./decide";
@@ -112,8 +112,14 @@ async function crank(session: SubmitterSession | null, dryRun: boolean, action: 
     return false;
   }
   try {
-    const sent = await sendArenaIntent(session.contracts, intent);
-    log(`${label}: ${action.why} · ${sent.txHash}`);
+    // Through the session's own lane, as every other actor sends: built, simulated, signed, confirmed.
+    const outcome = await session.submitter.submitTx(intent);
+    if (outcome.status !== "confirmed") {
+      // A refusal here is usually a race that someone else already won, which is the system working.
+      log(`${label} ${outcome.status}: ${outcome.diagnosis.technical.split("\n")[0]}`);
+      return false;
+    }
+    log(`${label}: ${action.why} · ${outcome.txHash}`);
     if (action.kind === "arena-reveal") await markDeckRevealed(action.matchId);
     return true;
   } catch (error) {
@@ -127,7 +133,7 @@ export async function startDuelSettler(log: Log): Promise<void> {
   const env = readSettlerEnv();
   const marketsEnv = opsMarketsEnv();
   ensureMarkets(marketsEnv);
-  const deployment = resolveArenaDeployment(marketsEnv);
+  const deployment = await resolveArenaDeployment(marketsEnv);
   if (!deployment) return log("GameArena is not deployed on this network; nothing to settle");
   const arena = deployment;
   if (!isDbConfigured()) {

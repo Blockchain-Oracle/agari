@@ -1,6 +1,7 @@
 import { isVaultIntent, type PhaseListener, type TxIntent, type TxOutcome } from "@agari/core/ports";
 import { diagnosis } from "@agari/core/types";
 import { notDeployed } from "../stub/not-deployed";
+import { submitArenaTx } from "../games/write";
 import { submitLeverageTx } from "../leverage/writes";
 import { submitMakerTx } from "../maker/writes";
 import { submitParlayTx } from "../parlay/writes";
@@ -30,6 +31,8 @@ export async function submitTx(ctx: WriteContext, intent: TxIntent, onPhase?: Ph
   if (intent.kind.startsWith("leverage-") && intent.kind !== "leverage-open") return submitLeverageTx(ctx, intent as never, onPhase);
   // The owner's own private writes and the permissionless settle. The desk's sends are the server-side service's.
   if (intent.kind.startsWith("private-")) return submitPrivateTx(ctx, intent as never, onPhase);
+  // A duel's picks have their own lane (`submitArenaPick`): they report what filled. Every other arena write is a plain one.
+  if (intent.kind.startsWith("arena-") && intent.kind !== "arena-pick" && intent.kind !== "arena-pick-for") return submitArenaTx(ctx, intent as never, onPhase);
   if (intent.kind === "faucet") return { status: "refused", diagnosis: diagnosis("faucet-refused", "test tUSDC comes from /api/faucet") };
   return { status: "refused", diagnosis: notDeployed() };
 }

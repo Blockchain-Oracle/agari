@@ -24,8 +24,8 @@ export const runtime = "nodejs";
  * and arena let the client build the exact message the mint will verify, from core's own builder, so the
  * two copies of that text cannot drift.
  */
-export function GET() {
-  const target = roomArena();
+export async function GET() {
+  const target = await roomArena();
   return NextResponse.json({
     chainId: target?.chainId ?? null,
     arena: target?.arena ?? null,
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const now = Date.now();
   const outcome =
     "token" in parsed.data
-      ? renewFromToken(parsed.data.token, now)
+      ? await renewFromToken(parsed.data.token, now)
       : await mintFromSignature(parsed.data.wallet, parsed.data.key, parsed.data.issuedAtMs, parsed.data.signature, now);
 
   if (!outcome.ok) return NextResponse.json({ error: outcome.error }, { status: outcome.status });

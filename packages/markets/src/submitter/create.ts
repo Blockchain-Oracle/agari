@@ -1,4 +1,5 @@
 import type { AttributionHook, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
+import type { ArenaIntent } from "@agari/core/games";
 import type { LeverageIntent } from "@agari/core/leverage";
 import type { ParlayIntent } from "@agari/core/parlay";
 import type { RangeIntent } from "@agari/core/range";
@@ -14,6 +15,7 @@ import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
 import { submitRangeOpenWrite } from "../range/writes";
+import { submitArenaPickWrite, type ArenaPickOutcome } from "../games/write";
 import type { LeverageOpenOutcome } from "../leverage/types";
 import { submitLeverageOpenWrite } from "../leverage/writes";
 import type { ParlayOpenOutcome } from "../parlay/types";
@@ -60,6 +62,8 @@ export interface MarketsSubmitter extends Submitter {
   submitParlayOpen: (intent: Extract<ParlayIntent, { kind: "parlay-open" }>, onPhase?: PhaseListener) => Promise<ParlayOpenOutcome>;
   /** The leverage reserve's open, bound to this session's signer like every other lane (S10c). */
   submitLeverageOpen: (intent: Extract<LeverageIntent, { kind: "leverage-open" }>, onPhase?: PhaseListener) => Promise<LeverageOpenOutcome>;
+  /** One duel pick, the wallet's own or a seat key's, reporting what the chain says filled (S12b). */
+  submitArenaPick: (intent: Extract<ArenaIntent, { kind: "arena-pick" | "arena-pick-for" }>, onPhase?: PhaseListener) => Promise<ArenaPickOutcome>;
   checkGas(lane: FeeLane): Promise<GasCheck>;
 }
 
@@ -92,6 +96,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     submitRangeOpen: (intent, onPhase) => enqueue(() => submitRangeOpenWrite(context(), intent, onPhase)),
     submitParlayOpen: (intent, onPhase) => enqueue(() => submitParlayOpenWrite(context(), intent, onPhase)),
     submitLeverageOpen: (intent, onPhase) => enqueue(() => submitLeverageOpenWrite(context(), intent, onPhase)),
+    submitArenaPick: (intent, onPhase) => enqueue(() => submitArenaPickWrite(context(), intent, onPhase)),
     checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };
 }
