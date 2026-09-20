@@ -30,6 +30,7 @@ export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks
 export { attestedMessage, ed25519Instruction } from "../prices/attested";
 export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX, vaultAddresses } from "./vault";
 export { DEVNET_PARLAY_PARAMS, initParlayReserve, parlayAddresses } from "./parlay";
+export { initStrategyRegistry, strategyAddresses } from "./strategy";
 export { openParlayTicket, probeParlayLeg, readParlayReserve, settleParlayTicket, supplyParlay, ticketAddressOf, voidStaleParlay, type DriveLeg } from "./parlay-drive";
 export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
 export { DEVNET_MAKER_PARAMS, initMakerVault, makerAddresses, MAKER_AUTHORITY_INDEX, registerMakerSeat } from "./maker";
