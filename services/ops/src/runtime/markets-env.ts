@@ -1,4 +1,5 @@
 import { marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@agari/markets";
+import { readOpsEnv } from "./env";
 
 /**
  * The markets runtime's config for an ops actor: the process environment, as the web reads it, with the actor's own
@@ -10,7 +11,19 @@ import { marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@agari/ma
  * exactly what that call returned, so an actor that worked keeps working.
  *
  * An actor is not a browser: `NEXT_PUBLIC_AGARI_INDEXER_URL` has to be absolute here (`http://host/api/index`).
+ *
+ * With no `NEXT_PUBLIC_SOLANA_RPC_URL` the runtime used to fall back to the public devnet endpoint while the rest of
+ * the process spoke to the keyed one. The leverage keeper's first live cycles took 11 s to mark one position that
+ * way, on a job where seconds are the point. An actor now reads through the endpoints the ops process itself uses
+ * (`readOpsEnv`); the key stays in this server process, as it always has for the venue's own actors.
  */
 export function opsMarketsEnv(venueId?: string): MarketsEnv {
-  return parseMarketsEnv({ ...marketsEnvInputFrom(process.env), ...(venueId ? { venueId } : {}) });
+  const input = marketsEnvInputFrom(process.env);
+  const ops = readOpsEnv();
+  return parseMarketsEnv({
+    ...input,
+    rpcHttpUrls: input.rpcHttpUrls ?? ops.rpcUrl,
+    rpcWsUrls: input.rpcWsUrls ?? ops.rpcSubscriptionsUrl,
+    ...(venueId ? { venueId } : {}),
+  });
 }
