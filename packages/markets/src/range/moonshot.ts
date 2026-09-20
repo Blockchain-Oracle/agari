@@ -15,10 +15,8 @@ import {
 } from "@agari/core/range";
 import { err, ok, type Reading } from "@agari/core/schemas";
 import type { TickerSymbol } from "@agari/core/market";
-import { RANGE_NOT_DEPLOYED } from "@agari/core/range";
 import { diagnosis, type Diagnosis, type MarketId } from "@agari/core/types";
 import { oneUnit } from "@agari/core/units";
-import { unavailableFor } from "../stub/product";
 import { toRangeQuote, type RangeBand, type RangePreview, type RangeWindowBasis } from "./read";
 
 export interface MoonshotWindow {
@@ -128,9 +126,18 @@ export async function solveMoonshotQuote(
   return ok({ call, band, rangeBand, openingPrint: preview.value.openingPrint, basis: preview.value.basis, quote, houseLockedBase: payout - quote.stakeBase, payoutCapBase: capBase }, preview.asOfMs);
 }
 
-/** The live quote needs the Range program's previews (S10); the solve above stays, driven by injected reads in tests. */
-export function quoteMoonshotOnchain(_window: MoonshotWindow, _call: MoonshotCall, _mode: RangeMode, _params: RangeParams, _tauSec: number): Promise<Reading<MoonshotQuote>> {
-  return unavailableFor(RANGE_NOT_DEPLOYED);
+/** tUSDC, the venue's one collateral, as `getRangeReserveState` reports it. */
+const COLLATERAL_DECIMALS = 6;
+
+/**
+ * The live quote: the solve above over the reserve's own two previews. It answered "not deployed" long after the
+ * reserve was live, so `/games/moonshot` rendered and could never price a ticket. The reads are imported lazily
+ * because `reads.ts` takes a type from this file.
+ */
+export async function quoteMoonshotOnchain(window: MoonshotWindow, call: MoonshotCall, mode: RangeMode, params: RangeParams, tauSec: number): Promise<Reading<MoonshotQuote>> {
+  const { previewRangeBasis, previewRangeOpen } = await import("./reads");
+  const reads: MoonshotReads = { previewBasis: (marketId) => previewRangeBasis(marketId), previewOpen: previewRangeOpen };
+  return solveMoonshotQuote(reads, window, call, mode, params, tauSec, COLLATERAL_DECIMALS);
 }
 
 export interface RangeCapacity {
