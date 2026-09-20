@@ -30,6 +30,7 @@ export interface ReadClient {
   vaultProgramId: Address | null;
   rangeProgramId: Address | null;
   parlayProgramId: Address | null;
+  strategyProgramId: Address | null;
   makerProgramId: Address | null;
   /** `/api/index` base (absolute); null = no indexer, lists read `indexer-down`. */
   indexerUrl: string | null;
@@ -62,6 +63,7 @@ export function configureMarkets(env: MarketsEnv): void {
     vaultProgramId: env.vaultProgramId ?? null,
     rangeProgramId: env.rangeProgramId ?? null,
     parlayProgramId: env.parlayProgramId ?? null,
+    strategyProgramId: env.strategyProgramId ?? null,
     makerProgramId: env.makerProgramId ?? null,
     indexerUrl: env.indexerUrl ?? null,
     priceFeedUrl: env.priceFeedUrl ?? null,

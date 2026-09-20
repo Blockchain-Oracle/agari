@@ -5,8 +5,8 @@ import type { StrategyIntent } from "@agari/core/strategies";
 import type { Signature } from "@agari/core/types";
 import { isOk } from "@agari/core/schemas";
 import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
-import { getStrategy, listSubscriptionsOf, submitStrategyTx } from "@agari/markets/strategies";
-import { getVaultGrant, getVaultSnapshot, resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
+import { getStrategy, listSubscriptionsOf } from "@agari/markets/strategies";
+import { getVaultGrant, getVaultSnapshot, resolveVaultDeployment } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { webEnv } from "@/lib/env";
@@ -61,19 +61,14 @@ export function useDeskWrites() {
     setPending(progress);
   }, [storageKey]);
 
-  const contracts = useCallback((): VaultContracts | null => {
-    if (!wallet) return null;
-    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [wallet]);
-
+  // Through the session's own lane, bound to its signer, like every other registry-free write was not: the
+  // no-session arm this used to call has no signer and can only refuse.
   const registry = useCallback(
     async (intent: StrategyIntent): Promise<DeskWriteResult> => {
       if (!submitter || !address) return { ok: false, reason: "connect a wallet first" };
-      const c = contracts();
-      if (!c) return { ok: false, reason: "connect a wallet first" };
-      return failed(await submitStrategyTx({ journal: submitter.journal, wallet: address, contracts: c }, intent));
+      return failed(await submitter.submitTx(intent));
     },
-    [submitter, address, contracts],
+    [submitter, address],
   );
 
   const settle = useCallback(async () => {

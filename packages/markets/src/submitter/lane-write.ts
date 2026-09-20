@@ -8,14 +8,15 @@ import { signSendConfirm, type WriteContext } from "./settle-write";
 import { buildWrite } from "./steps/message";
 
 /**
- * One product instruction through the session's queued lane: build it, simulate, journal, sign, send, confirm.
+ * One product transaction (one instruction, or a few that belong together) through the session's queued lane: build it, simulate, journal, sign, send, confirm.
  *
  * The maker's, the parlay's and the range's plain writes were three copies of this body. A refusal while building
  * the instruction (`OrderRefusedError`) and a failed simulation both come back as `refused`, with nothing sent.
  */
-export async function submitLaneWrite(ctx: WriteContext, kind: TxIntent["kind"], build: () => Promise<Instruction>, onPhase?: PhaseListener): Promise<TxOutcome> {
+export async function submitLaneWrite(ctx: WriteContext, kind: TxIntent["kind"], build: () => Promise<Instruction | readonly Instruction[]>, onPhase?: PhaseListener): Promise<TxOutcome> {
   try {
-    const built = await buildWrite(ctx.rpc, ctx.signer, [await build()]);
+    const made = await build();
+    const built = await buildWrite(ctx.rpc, ctx.signer, Array.isArray(made) ? made : [made as Instruction]);
     const record = await ctx.journal.record({ kind, wallet: ctx.wallet, summary: kind });
     onPhase?.("submitted");
     const settled = await signSendConfirm(ctx, record.id, built, onPhase);
