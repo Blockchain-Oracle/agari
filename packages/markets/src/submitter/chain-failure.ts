@@ -22,7 +22,7 @@ import {
   SOLANA_ERROR__TRANSACTION_ERROR__INSUFFICIENT_FUNDS_FOR_RENT,
 } from "@solana/kit";
 import { describeChainFailure, type ChainFailure } from "./errors";
-import { failingProduct, productRefusal } from "./product-failure";
+import { productRefusal, refusedByEngine } from "./product-failure";
 
 /** The engine codes the write lanes branch on (events-accounts.md §4). */
 export const ENGINE_CODE = {
@@ -75,8 +75,7 @@ export function customCode(err: unknown): number | null {
 export function chainFailure(err: unknown, logs: readonly string[] | null | undefined): ChainFailure {
   const code = customCode(err);
   // A product program's refusal shares the engine's number range but not its table (`product-failure.ts`).
-  const ours = failingProduct(logs ?? []) === null;
-  const engineCode = ours && code !== null && code >= ENGINE_RANGE.min && code <= ENGINE_RANGE.max ? code : null;
+  const engineCode = refusedByEngine(logs ?? []) && code !== null && code >= ENGINE_RANGE.min && code <= ENGINE_RANGE.max ? code : null;
   return { engineCode, err, logs: logs ?? [] };
 }
 

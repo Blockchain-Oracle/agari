@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { chainFailure, failureDiagnosis } from "./chain-failure";
-import { failingProduct } from "./product-failure";
+import { failingProduct, refusedByEngine } from "./product-failure";
 
 const PARLAY = "H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC";
 const RANGE = "GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha";
 const EVENTS = "cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH";
 const VAULT = "84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9";
+const STRATEGY = "2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ";
 const custom = (code: number) => ({ InstructionError: [0, { Custom: code }] });
 
 describe("a product program's refusal", () => {
@@ -39,4 +40,21 @@ describe("a product program's refusal", () => {
     expect(chainFailure(custom(6110), logs).engineCode).toBe(6110);
     expect(chainFailure(custom(6110), []).engineCode).toBe(6110);
   });
+
+  it("never calls a code the engine's when another program refused, listed here or not", () => {
+    // The devnet refusals of 2026-09-20: agari-strategy's CapsOutsideEnvelope and FeeAboveMax.
+    const failed = (program: string) => [`Program ${program} invoke [1]`, `Program ${program} failed: custom program error`];
+    expect(chainFailure(custom(6013), failed(STRATEGY)).engineCode).toBeNull();
+    expect(failureDiagnosis(chainFailure(custom(6013), failed(STRATEGY))).kind).toBe("grant-refused");
+    expect(failureDiagnosis(chainFailure(custom(6014), failed(STRATEGY))).kind).toBe("requote");
+    expect(failureDiagnosis(chainFailure(custom(6013), failed(STRATEGY))).technical).toContain("agari-strategy 6013");
+
+    // A program nobody has listed: not the engine's code, and not mislabelled as one.
+    const unknown = "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin";
+    expect(refusedByEngine(failed(unknown))).toBe(false);
+    const diagnosis = failureDiagnosis(chainFailure(custom(6013), failed(unknown)));
+    expect(diagnosis.kind).toBe("contract-revert");
+    expect(diagnosis.technical).not.toContain("agari-events");
+  });
 });
+

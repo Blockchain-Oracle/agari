@@ -3,6 +3,7 @@ import { AGARI_EVENTS_PROGRAM_ADDRESS, getAgariEventsErrorMessage } from "@agari
 import { AGARI_MAKER_PROGRAM_ADDRESS, getAgariMakerErrorMessage } from "@agari/clients/agari-maker";
 import { AGARI_PARLAY_PROGRAM_ADDRESS, getAgariParlayErrorMessage } from "@agari/clients/agari-parlay";
 import { AGARI_RANGE_PROGRAM_ADDRESS, getAgariRangeErrorMessage } from "@agari/clients/agari-range";
+import { AGARI_STRATEGY_PROGRAM_ADDRESS, getAgariStrategyErrorMessage } from "@agari/clients/agari-strategy";
 import { AGARI_VAULT_PROGRAM_ADDRESS, getAgariVaultErrorMessage } from "@agari/clients/agari-vault";
 import type { Instruction } from "@solana/kit";
 import type { DeployClient } from "./client";
@@ -73,6 +74,7 @@ const ERROR_TABLES: ReadonlyArray<readonly [string, string, (code: never) => str
   [AGARI_EVENTS_PROGRAM_ADDRESS, "agari-events", getAgariEventsErrorMessage as (code: never) => string],
   [AGARI_RANGE_PROGRAM_ADDRESS, "agari-range", getAgariRangeErrorMessage as (code: never) => string],
   [AGARI_PARLAY_PROGRAM_ADDRESS, "agari-parlay", getAgariParlayErrorMessage as (code: never) => string],
+  [AGARI_STRATEGY_PROGRAM_ADDRESS, "agari-strategy", getAgariStrategyErrorMessage as (code: never) => string],
   [AGARI_MAKER_PROGRAM_ADDRESS, "agari-maker", getAgariMakerErrorMessage as (code: never) => string],
   [AGARI_VAULT_PROGRAM_ADDRESS, "agari-vault", getAgariVaultErrorMessage as (code: never) => string],
 ];

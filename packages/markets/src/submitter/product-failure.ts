@@ -13,7 +13,13 @@ import {
   AGARI_RANGE_ERROR__ROUND_NOT_SETTLED, AGARI_RANGE_ERROR__STAKE_ABOVE_MAX, AGARI_RANGE_ERROR__STALE_MARK,
   AGARI_RANGE_ERROR__TOO_LATE, AGARI_RANGE_ERROR__WINDOW_NOT_TRADING, AGARI_RANGE_PROGRAM_ADDRESS, getAgariRangeErrorMessage,
 } from "@agari/clients/agari-range";
+import { AGARI_EVENTS_PROGRAM_ADDRESS } from "@agari/clients/agari-events";
 import { AGARI_MAKER_PROGRAM_ADDRESS, getAgariMakerErrorMessage } from "@agari/clients/agari-maker";
+import {
+  AGARI_STRATEGY_ERROR__CAPS_OUTSIDE_ENVELOPE, AGARI_STRATEGY_ERROR__FEE_ABOVE_MAX, AGARI_STRATEGY_ERROR__GRANT_NOT_LIVE,
+  AGARI_STRATEGY_ERROR__NOT_GRANT_OWNER, AGARI_STRATEGY_ERROR__WRONG_ACTOR, AGARI_STRATEGY_ERROR__WRONG_GRANT_KIND,
+  AGARI_STRATEGY_PROGRAM_ADDRESS, getAgariStrategyErrorMessage,
+} from "@agari/clients/agari-strategy";
 import type { DiagnosisKind } from "@agari/core/types";
 
 /**
@@ -75,23 +81,54 @@ const RANGE: ProductTable = {
   ]),
 };
 
+const STRATEGY: ProductTable = {
+  name: "agari-strategy",
+  message: getAgariStrategyErrorMessage as (code: never) => string,
+  kinds: new Map<number, DiagnosisKind>([
+    // The creator changed the fee after the subscriber read it: reading it again is the whole remedy.
+    [AGARI_STRATEGY_ERROR__FEE_ABOVE_MAX, "requote"],
+    [AGARI_STRATEGY_ERROR__CAPS_OUTSIDE_ENVELOPE, "grant-refused"],
+    [AGARI_STRATEGY_ERROR__GRANT_NOT_LIVE, "grant-refused"],
+    [AGARI_STRATEGY_ERROR__NOT_GRANT_OWNER, "grant-refused"],
+    [AGARI_STRATEGY_ERROR__WRONG_ACTOR, "grant-refused"],
+    [AGARI_STRATEGY_ERROR__WRONG_GRANT_KIND, "grant-refused"],
+  ]),
+};
+
 const MAKER: ProductTable = { name: "agari-maker", message: getAgariMakerErrorMessage as (code: never) => string, kinds: new Map() };
 
 const TABLES = new Map<string, ProductTable>([
   [AGARI_PARLAY_PROGRAM_ADDRESS, PARLAY],
   [AGARI_RANGE_PROGRAM_ADDRESS, RANGE],
   [AGARI_MAKER_PROGRAM_ADDRESS, MAKER],
+  [AGARI_STRATEGY_PROGRAM_ADDRESS, STRATEGY],
 ]);
 
 const FAILED = /^Program (\w{32,44}) failed/;
 
-/** The product program that refused, from the first `Program <id> failed` line; null when it was the engine or none. */
-export function failingProduct(logs: readonly string[]): ProductTable | null {
+/** The program that refused: the first `Program <id> failed` line, which is the innermost frame. Null with no such line. */
+export function failingProgramId(logs: readonly string[]): string | null {
   for (const line of logs) {
     const id = FAILED.exec(line)?.[1];
-    if (id) return TABLES.get(id) ?? null;
+    if (id) return id;
   }
   return null;
+}
+
+/**
+ * Whether a custom code may be read as the engine's: only when the engine is the program that refused, or the logs
+ * name nobody. It is the question asked this way round on purpose. Asking "is it one of the products we listed?"
+ * called `agari-strategy`'s refusals `agari-events 6013` the day it was deployed, because nobody had listed it yet.
+ */
+export function refusedByEngine(logs: readonly string[]): boolean {
+  const id = failingProgramId(logs);
+  return id === null || id === AGARI_EVENTS_PROGRAM_ADDRESS;
+}
+
+/** The product program that refused, when it is one with a table here. */
+export function failingProduct(logs: readonly string[]): ProductTable | null {
+  const id = failingProgramId(logs);
+  return id === null ? null : (TABLES.get(id) ?? null);
 }
 
 export interface ProductRefusal {
