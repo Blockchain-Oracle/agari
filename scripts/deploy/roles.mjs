@@ -30,6 +30,9 @@ export const ROLES = {
   "game-deck": "arena deckmaster",
   "game-settler": "duel-settler",
   "season-admin": "season prize pool admin",
+  "drive-bidder": "drive-only: rests the bid on a Window the drive owns (Series 903)",
+  "drive-asker": "drive-only: rests the ask on a Window the drive owns (Series 903)",
+  "drive-owner": "drive-only: the wallet that opens positions in a product drive, distinct from the provider",
 };
 
 const DIR = join(homedir(), ".config", "agari", "devnet");

@@ -33,6 +33,8 @@ export { DEVNET_PARLAY_PARAMS, initParlayReserve, parlayAddresses } from "./parl
 export { initStrategyRegistry, strategyAddresses } from "./strategy";
 export { openParlayTicket, probeParlayLeg, readParlayReserve, settleParlayTicket, supplyParlay, ticketAddressOf, voidStaleParlay, type DriveLeg } from "./parlay-drive";
 export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
+export { closeOwnedWindow, DRIVE_OWNED_TICKER, driveOwnedSeries, openOwnedWindow, ownedWindowOf, quoteOwnedWindow, type OwnedQuote, type OwnedWindowKeys } from "./drive-window";
+export { claimLeverage, exitLeverage, openLeverage, probeLeverage, readLeveragePosition, readLeverageReserve, supplyLeverage, withdrawLeverage, type BoostSpec } from "./leverage-drive";
 export { DEVNET_LEVERAGE_PARAMS, initLeverageReserve, leverageAddresses, LEVERAGE_AUTHORITY_INDEX, registerLeverageSeat } from "./leverage";
 export { DEVNET_MAKER_PARAMS, initMakerVault, makerAddresses, MAKER_AUTHORITY_INDEX, registerMakerSeat } from "./maker";
 export { mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, withdrawMaker, windowBookOf, type QuoteInput } from "./maker-drive";

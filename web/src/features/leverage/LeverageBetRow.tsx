@@ -29,6 +29,8 @@ export interface LeverageBetRowProps {
   isOwner: boolean;
   onCashOut: (position: LeveragePosition, minProceedsBase: bigint) => void;
   onSettle: (position: LeveragePosition) => void;
+  /** Pays what a permissionless exit left owed (D-114). */
+  onClaim: (position: LeveragePosition) => void;
 }
 
 /** One decimal, as the reference's `fmtLeverage` (a position opened off-chip at an odd bps still reads as a multiple). */
@@ -53,7 +55,7 @@ function settledLabel(position: LeveragePosition): string {
  * their row and say what came back.
  */
 export function LeverageBetRow(p: LeverageBetRowProps) {
-  const { position, market, mark, symbol, decimals, nowMs, busy, canSign, isOwner, onCashOut, onSettle } = p;
+  const { position, market, mark, symbol, decimals, nowMs, busy, canSign, isOwner, onCashOut, onSettle, onClaim } = p;
   const { bets } = LEVERAGE;
   const live = position.status === "live";
   const state = live && market && nowMs > 0 ? countdown(nowMs, position.expirySec, market.intervalSec) : null;
@@ -63,6 +65,7 @@ export function LeverageBetRow(p: LeverageBetRowProps) {
   const minProceeds = mark ? (mark.markBase * CASH_OUT_FLOOR_BPS) / 10_000n : 0n;
   const cashingOut = busy === `close:${position.positionId}`;
   const settlingNow = busy === `settle:${position.positionId}`;
+  const claimingNow = busy === `claim:${position.positionId}`;
 
   return (
     <li className="bets-row">
@@ -122,6 +125,15 @@ export function LeverageBetRow(p: LeverageBetRowProps) {
                   {cashingOut ? bets.cashingOut : bets.cashOut}
                 </button>
               )}
+        </>
+      ) : position.owedBase > 0n ? (
+        <>
+          <span className="type-caption text-ink-secondary">{bets.waiting(formatBaseUnits(position.owedBase, decimals), symbol ?? "")}</span>
+          {isOwner && canSign && (
+            <button type="button" className="type-caption text-accent underline" disabled={claimingNow} onClick={() => onClaim(position)} data-cursor="hover">
+              {claimingNow ? bets.claiming : bets.claim}
+            </button>
+          )}
         </>
       ) : (
         <span className="type-caption text-ink-secondary">

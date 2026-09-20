@@ -36,6 +36,7 @@ function Row({ position, symbol, decimals, nowMs, writes }: RowProps) {
       isOwner={writes.address === position.owner}
       onCashOut={(p, min) => void writes.close(p.positionId, p.marketId, min, decimals, symbol ?? "")}
       onSettle={(p) => void writes.settle(p.positionId, p.marketId)}
+      onClaim={(p) => void writes.claim(p.positionId, p.marketId, p.owedBase, decimals, symbol ?? "")}
     />
   );
 }

@@ -5,10 +5,10 @@ import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";
 import { LEVERAGE, LeverageBetRow } from "@/features/leverage";
 import { LeverageChips } from "@/features/markets/ticket";
-import { CLOSED, FIXTURE_NOW_MS, FIXTURE_SYMBOL, KNOCKED, LIVE, LIVE_3X, LOST, MARK_AT_LINE, MARK_HEALTHY, MARK_UNPRICED, MARKET, SETTLING, WON } from "./fixtures";
+import { CLOSED, FIXTURE_NOW_MS, FIXTURE_SYMBOL, KNOCKED, KNOCKED_OWED, LIVE, LIVE_3X, LOST, MARK_AT_LINE, MARK_HEALTHY, MARK_UNPRICED, MARKET, SETTLING, WON } from "./fixtures";
 
 const noop = () => undefined;
-const ROW = { market: MARKET, symbol: FIXTURE_SYMBOL, decimals: 6, nowMs: FIXTURE_NOW_MS, busy: null, canSign: true, isOwner: true, onCashOut: noop, onSettle: noop } as const;
+const ROW = { market: MARKET, symbol: FIXTURE_SYMBOL, decimals: 6, nowMs: FIXTURE_NOW_MS, busy: null, canSign: true, isOwner: true, onCashOut: noop, onSettle: noop, onClaim: noop } as const;
 
 /** `/dev/leverage` — the chips and the portfolio rows on canned readings. Scaffolding: never linked from the app. */
 export function LeverageFixtures() {
@@ -41,12 +41,13 @@ export function LeverageFixtures() {
             <LeverageBetRow {...ROW} position={SETTLING} mark={MARK_HEALTHY} />
           </ul>
         </Fixture>
-        <Fixture label="Rows — won, lost, knocked out, cashed out">
+        <Fixture label="Rows — won, lost, knocked out, cashed out, knocked out with money waiting">
           <ul className="flex flex-col">
             <LeverageBetRow {...ROW} position={WON} mark={null} />
             <LeverageBetRow {...ROW} position={LOST} mark={null} />
             <LeverageBetRow {...ROW} position={KNOCKED} mark={null} />
             <LeverageBetRow {...ROW} position={CLOSED} mark={null} />
+            <LeverageBetRow {...ROW} position={KNOCKED_OWED} mark={null} />
           </ul>
         </Fixture>
       </FixtureGrid>

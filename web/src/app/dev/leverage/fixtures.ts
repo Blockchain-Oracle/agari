@@ -83,8 +83,10 @@ export const SETTLING = position({ positionId: 3n, expirySec: NOW_SEC - 20 });
 export const WON = position({ positionId: 4n, status: "settled", exitedAtSec: NOW_SEC - 600, expirySec: NOW_SEC - 700, quantityRaw: 0n, frontedBase: 0n, proceedsBase: 32n * UNIT, reclaimedBase: 10n * UNIT, returnedBase: 22n * UNIT });
 export const LOST = position({ positionId: 5n, status: "settled", exitedAtSec: NOW_SEC - 900, expirySec: NOW_SEC - 1000, quantityRaw: 0n, frontedBase: 0n });
 export const KNOCKED = position({ positionId: 6n, status: "knocked-out", exitedAtSec: NOW_SEC - 1200, expirySec: NOW_SEC - 900, quantityRaw: 0n, frontedBase: 0n, proceedsBase: 11_200_000n, reclaimedBase: 10n * UNIT, returnedBase: 1_200_000n });
+/** Knocked out by a keeper with no token account to pay: the owner's part waits for a claim (D-114). */
+export const KNOCKED_OWED = position({ positionId: 8n, status: "knocked-out", exitedAtSec: NOW_SEC - 1100, expirySec: NOW_SEC - 900, quantityRaw: 0n, frontedBase: 0n, proceedsBase: 11_200_000n, reclaimedBase: 10n * UNIT, returnedBase: 1_200_000n, owedBase: 1_200_000n });
 export const CLOSED = position({ positionId: 7n, status: "closed", exitedAtSec: NOW_SEC - 1500, expirySec: NOW_SEC - 1300, quantityRaw: 0n, frontedBase: 0n, proceedsBase: 18_560_000n, reclaimedBase: 10n * UNIT, returnedBase: 8_560_000n });
 
 export const MARK_HEALTHY: LeverageMark = { markBase: 18_559_999n, filledRaw: 32n * UNIT, lineBase: 12n * UNIT, knockable: false };
 export const MARK_AT_LINE: LeverageMark = { markBase: 11_199_999n, filledRaw: 32n * UNIT, lineBase: 12n * UNIT, knockable: true };
-export const MARK_UNPRICED: LeverageMark = { markBase: 0n, filledRaw: 0n, lineBase: 12n * UNIT, knockable: true };
+export const MARK_UNPRICED: LeverageMark = { markBase: 0n, filledRaw: 0n, lineBase: 12n * UNIT, knockable: false };

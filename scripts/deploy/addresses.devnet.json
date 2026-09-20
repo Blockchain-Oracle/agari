@@ -607,6 +607,15 @@
           "8whwDWY4K86PmNViYCqjd4b9d9neaerJJWtTxS6QLdnh",
           "C4kGEmnfhGVSur9hfinyu1342bbuMrEuRdiUcHJhuhTc"
         ]
+      },
+      "TEST-OWNED-15m": {
+        "address": "5JRE9DJJLnATKLmAnQ2CqL7vgBk3v6fMJSBfKW6eNjY8",
+        "ticker": 903,
+        "cadenceSec": 900,
+        "basis": 0,
+        "books": [
+          "HeqAWuyTdsJEEYvgpX8sJkFRBdq33tUDgp5AuBXVRiZa"
+        ]
       }
     }
   }

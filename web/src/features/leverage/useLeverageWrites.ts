@@ -12,7 +12,7 @@ import { notify } from "@/lib/toast";
 import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { LEVERAGE } from "./copy";
 
-export type LeverageBusyKey = "open" | `close:${string}` | `settle:${string}` | `knock:${string}`;
+export type LeverageBusyKey = "open" | `close:${string}` | `settle:${string}` | `knock:${string}` | `claim:${string}`;
 
 export interface LeverageOpenInput {
   marketId: MarketId;
@@ -111,5 +111,21 @@ export function useLeverageWrites() {
     [submitter, refresh],
   );
 
-  return { open, close, settle, knockOut, busy, address, canSign: Boolean(submitter && wallet) };
+  const claim = useCallback(
+    async (positionId: bigint, marketId: MarketId, owedBase: bigint, decimals: number, symbol: string): Promise<void> => {
+      if (!submitter) return;
+      setBusy(`claim:${positionId}`);
+      try {
+        const outcome = await submitter.submitTx({ kind: "leverage-claim", positionId });
+        if (outcome.status === "confirmed") notify.neutral(LEVERAGE.bets.claimedToast(formatBaseUnits(owedBase, decimals), symbol));
+        else warn(outcome);
+      } finally {
+        setBusy(null);
+        await refresh(marketId);
+      }
+    },
+    [submitter, refresh],
+  );
+
+  return { open, close, settle, knockOut, claim, busy, address, canSign: Boolean(submitter && wallet) };
 }
