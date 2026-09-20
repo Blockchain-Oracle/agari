@@ -7,6 +7,7 @@ import { getArenaMatch, getArenaState, resolveArenaDeployment } from "@agari/mar
 import { deckKey, fromJournal, open } from "../matchmaker/seal";
 import { readSecretKey } from "../secret-key";
 import { decideMatch, isDone, type SettlerAction } from "./decide";
+import { runActor } from "../../runtime/actor";
 import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
@@ -153,13 +154,14 @@ export async function startDuelSettler(log: Log): Promise<void> {
     log("no GAME_SETTLER_PRIVATE_KEY; watching and reporting, never sending");
   }
 
-  async function cycle(): Promise<void> {
+  async function cycle(): Promise<string> {
     const state = await getArenaState();
-    if (!isOk(state) || !state.value) return log("the arena is unreadable; idle");
-    if (state.value.paused) return log("the arena is paused; idle");
+    if (!isOk(state)) throw new Error(`the arena is unreadable: ${state.error.technical}`);
+    if (!state.value) return "there is no arena on this network; idle";
+    if (state.value.paused) return "the arena is paused; idle";
 
     const live = await listLiveMatches(arena.chainId, arena.gameArena);
-    if (live.length === 0) return log("no live match in the projection; idle");
+    if (live.length === 0) return "no live match in the projection; idle";
 
     const nowSec = Math.floor(marketsProvider.nowMs() / 1_000);
     let cranked = 0;
@@ -174,18 +176,9 @@ export async function startDuelSettler(log: Log): Promise<void> {
         if (await crank(session, env.dryRun, action, log)) cranked += 1;
       }
     }
-    log(`${live.length} live match(es) · ${cranked} crank(s)${env.dryRun ? " · DRY RUN" : ""}`);
+    return `${live.length} live match(es) · ${cranked} crank(s)${env.dryRun ? " · DRY RUN" : ""}`;
   }
 
-  const tick = async () => {
-    try {
-      await cycle();
-    } catch (error) {
-      log(`cycle failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
-
-  await tick();
-  const timer = setInterval(() => void tick(), env.refreshMs);
-  timer.unref();
+  // One pass at a time (`runActor`): a slow pass must never overlap the next and send the same crank twice.
+  runActor({ name: "duel-settler", log, dryRun: env.dryRun || !session, everyMs: env.refreshMs, pass: async () => ({ why: await cycle() }) });
 }

@@ -19,7 +19,13 @@ import { asciiFeedId, I64_MAX, policyVersions, SOURCE, ZERO_POLICY, type PriceSo
 import { send, type SendContext, type StepContext } from "./send";
 import { BASIS, LAUNCH_GRID, type SeriesSpec } from "./venue-spec";
 
-export const DRIVE_OWNED_TICKER = 903;
+/**
+ * The drive's own tickers. One Series has one Book, so one Window at a time; a duel's deck needs three live Windows
+ * at once, so there are three lanes. They share a cadence and a boundary, so one `open` deals a whole deck.
+ */
+export const DRIVE_OWNED_TICKERS = [903, 904, 905] as const;
+export type OwnedLane = 0 | 1 | 2;
+const LANE_KEYS = ["TEST-OWNED-15m", "TEST-OWNED-B", "TEST-OWNED-C"] as const;
 export const DRIVE_OWNED_FEED = asciiFeedId("agari-drive-attested:owned");
 const CADENCE_SEC = 900;
 const BAR_LEN_SEC = 60;
@@ -27,11 +33,11 @@ const MIN_DELAY_SEC = 10;
 /** A Window is opened on the running boundary only this soon after it; later, the drive waits for the next one. */
 const LATEST_START_AFTER_SEC = 120;
 
-export function driveOwnedSeries(sources: PriceSources): SeriesSpec {
+export function driveOwnedSeries(sources: PriceSources, lane: OwnedLane = 0): SeriesSpec {
   const tsla = policyVersions("TSLA", sources)[0]!;
   const primary = { ...ZERO_POLICY, source: SOURCE.attested, feedId: DRIVE_OWNED_FEED, minDelaySec: MIN_DELAY_SEC, barLenSec: BAR_LEN_SEC, openAdmissionSec: 900, closeAdmissionSec: 900 };
   return {
-    key: "TEST-OWNED-15m", symbol: "TSLA", ticker: DRIVE_OWNED_TICKER, cadenceSec: CADENCE_SEC, basis: BASIS.regular, params: LAUNCH_GRID,
+    key: LANE_KEYS[lane], symbol: "TSLA", ticker: DRIVE_OWNED_TICKERS[lane], cadenceSec: CADENCE_SEC, basis: BASIS.regular, params: LAUNCH_GRID,
     versions: [{ validFromTs: tsla.validFromTs, validUntilTs: I64_MAX, primary, check: ZERO_POLICY, maxDivergenceBps: 0, checkAdmissionSec: 0 }],
     books: { count: 1, capacity: 256 },
   };
@@ -57,17 +63,18 @@ export interface OwnedWindowKeys {
 }
 
 /** Ensures the Series and its Book, opens the Window on the running or the next 15-minute boundary, and attests its opening print. */
-export async function openOwnedWindow(ctx: StepContext, keys: OwnedWindowKeys, sources: PriceSources, openPriceE8: bigint): Promise<OpenedWindow> {
-  const spec = driveOwnedSeries(sources);
+export async function openOwnedWindow(ctx: StepContext, keys: OwnedWindowKeys, sources: PriceSources, openPriceE8: bigint, lane: OwnedLane = 0, tradingStartSec?: number): Promise<OpenedWindow> {
+  const spec = driveOwnedSeries(sources, lane);
   const series = await ensureSeries(ctx, spec);
   const books = await ensureBooks(ctx, spec, series);
   await recycleBooks(ctx, series, books);
   const now = await chainNowSec(ctx.client);
   const running = Math.floor(now / CADENCE_SEC) * CADENCE_SEC;
-  const tradingStartSec = now - running <= LATEST_START_AFTER_SEC ? running : running + CADENCE_SEC;
-  const w = await openWindow(ctx, { roller: keys.roller, series, mint: keys.mint, tradingStartSec });
-  const fetchedAtTs = await waitForChain(ctx, tradingStartSec + MIN_DELAY_SEC, "the opening print's correction delay");
-  await recordAttestedPrint(ctx, w, { attestor: keys.attestor, clusterTag: keys.clusterTag, which: WHICH.open, boundaryTs: tradingStartSec, price: openPriceE8, feedId: DRIVE_OWNED_FEED, barLenSec: BAR_LEN_SEC, fetchedAtTs });
+  // Every lane of one deal shares a boundary, so the caller passes the first lane's back for the rest.
+  const start = tradingStartSec ?? (now - running <= LATEST_START_AFTER_SEC ? running : running + CADENCE_SEC);
+  const w = await openWindow(ctx, { roller: keys.roller, series, mint: keys.mint, tradingStartSec: start });
+  const fetchedAtTs = await waitForChain(ctx, start + MIN_DELAY_SEC, "the opening print's correction delay");
+  await recordAttestedPrint(ctx, w, { attestor: keys.attestor, clusterTag: keys.clusterTag, which: WHICH.open, boundaryTs: start, price: openPriceE8, feedId: DRIVE_OWNED_FEED, barLenSec: BAR_LEN_SEC, fetchedAtTs });
   return w;
 }
 

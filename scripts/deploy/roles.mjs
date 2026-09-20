@@ -33,6 +33,8 @@ export const ROLES = {
   "drive-bidder": "drive-only: rests the bid on a Window the drive owns (Series 903)",
   "drive-asker": "drive-only: rests the ask on a Window the drive owns (Series 903)",
   "drive-owner": "drive-only: the wallet that opens positions in a product drive, distinct from the provider",
+  "drive-rival": "drive-only: the second player of a duel drive",
+  "drive-key": "drive-only: a duel seat's browser key, the one that places picks without a wallet prompt",
 };
 
 const DIR = join(homedir(), ".config", "agari", "devnet");

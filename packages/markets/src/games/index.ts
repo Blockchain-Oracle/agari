@@ -3,6 +3,7 @@
  * confirmed IOC pick, and only the side-pot the arena's to award. Reads come from the chain and the program's own
  * events; writes go through the session's lanes.
  */
+export { deckCommitment, keccak256 } from "./commitment";
 export { arenaProgramId } from "./deployment";
 export { decodeArenaEvent } from "./events";
 export {

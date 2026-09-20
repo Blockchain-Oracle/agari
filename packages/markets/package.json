@@ -37,6 +37,7 @@
   "dependencies": {
     "@agari/clients": "workspace:*",
     "@agari/core": "workspace:*",
+    "@noble/hashes": "1.8.0",
     "@pythnetwork/pyth-solana-receiver": "0.16.0",
     "@solana-program/compute-budget": "0.18.1",
     "@solana-program/system": "0.14.1",

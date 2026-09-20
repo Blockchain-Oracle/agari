@@ -5,8 +5,7 @@ import { isOk } from "@agari/core/schemas";
 import type { Address, Hash32, Hex, MarketId } from "@agari/core/types";
 import { putDeck } from "@agari/db";
 import { marketsProvider, resolveVenueId } from "@agari/markets";
-import { keccak_256 } from "@noble/hashes/sha3";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { keccak256 } from "@agari/markets/games";
 import { DECK_KEY_ENV, deckKey, journal, seal, type RevealMaterial } from "./seal";
 import { opsMarketsEnv } from "../../runtime/markets-env";
 
@@ -68,11 +67,6 @@ export function newMatchId(): Hash32 {
 /** The commitment a client publishes when it queues, and what the deckmaster checks its reveal against. */
 export function seedCommitment(seed: Hash32): Hash32 {
   return keccak256(seed);
-}
-
-/** keccak256 over 0x-hex bytes, as the arena program's `sol_keccak256` computes it (S12 keeps the packing). */
-function keccak256(hex: Hex): Hash32 {
-  return `0x${bytesToHex(keccak_256(hexToBytes(hex.slice(2))))}`;
 }
 
 /**

@@ -5,6 +5,7 @@ import { ensureMarkets } from "@agari/markets";
 import type { RoomContext } from "../game-room/handlers";
 import { applyEvent, type ApplyDeps } from "./apply";
 import { createMatchCache } from "./facts";
+import { runActor } from "../../runtime/actor";
 import { opsMarketsEnv } from "../../runtime/markets-env";
 
 type Log = (why: string) => void;
@@ -53,23 +54,19 @@ export async function startDuelProjector(log: Log, room: RoomContext | null): Pr
   let cursor = forced ?? stored ?? deployment.fromBlock;
   log(`projecting ${deployment.gameArena} from block ${cursor}${isDbConfigured() ? "" : " · no DATABASE_URL, rooms only"}${room ? "" : " · no room, rows only"}`);
 
-  let idleLogged = false;
-
-  async function cycle(): Promise<void> {
+  async function cycle(): Promise<string> {
     const head = await arenaHeadBlock();
-    if (!isOk(head)) return log(`head unreadable: ${head.error.technical}`);
-    if (head.value <= cursor) {
-      if (!idleLogged) log(`caught up at block ${cursor}`);
-      idleLogged = true;
-      return;
-    }
-    idleLogged = false;
+    if (!isOk(head)) throw new Error(`head unreadable: ${head.error.technical}`);
+    if (head.value <= cursor) return `caught up at slot ${cursor}`;
 
-    for (let span = 0; span < SPANS_PER_CYCLE && cursor < head.value; span += 1) {
+    let seen = 0;
+    let spans = 0;
+    for (; spans < SPANS_PER_CYCLE && cursor < head.value; spans += 1) {
       const from = cursor + 1n;
       const to = head.value < from + SPAN ? head.value : from + SPAN;
       const events = await listArenaEvents(from, to);
-      if (!isOk(events)) return log(`blocks ${from}–${to} unreadable: ${events.error.technical}`);
+      // The cursor stays where it is: a span that could not be read is read again, never skipped.
+      if (!isOk(events)) throw new Error(`slots ${from}–${to} unreadable: ${events.error.technical}`);
 
       for (const entry of events.value) {
         try {
@@ -82,19 +79,13 @@ export async function startDuelProjector(log: Log, room: RoomContext | null): Pr
 
       cursor = to;
       await writeCursor(name, to);
-      if (events.value.length > 0) log(`blocks ${from}–${to}: ${events.value.length} event(s) · ${events.value.map((e) => e.event.kind).join(", ")}`);
+      seen += events.value.length;
+      if (events.value.length > 0) log(`slots ${from}–${to}: ${events.value.length} event(s) · ${events.value.map((e) => e.event.kind).join(", ")}`);
     }
+    return `projected to slot ${cursor}${seen > 0 ? `, ${seen} event(s) over ${spans} span(s)` : ""}`;
   }
 
-  const tick = async () => {
-    try {
-      await cycle();
-    } catch (error) {
-      log(`cycle failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
-
-  await tick();
-  const timer = setInterval(() => void tick(), POLL_MS);
-  timer.unref();
+  // One pass at a time (`runActor`): a catch-up that walks many spans must never overlap the next poll and
+  // project the same events twice. Backoff on failure, and a heartbeat in `/health` either way.
+  runActor({ name: "duel-projector", log, dryRun: false, everyMs: POLL_MS, pass: async () => ({ why: await cycle() }) });
 }

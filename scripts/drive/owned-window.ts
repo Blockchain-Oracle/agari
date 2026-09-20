@@ -1,7 +1,7 @@
 #!/usr/bin/env -S pnpm exec tsx
 // A Window the drive owns end to end (drive-only Series 903: attested primary, no check, 15 minutes), so a product
 // that holds positions across a settlement can be taken to every ending on purpose, on any day of the week.
-//   open  [--price 100]                      ensures the Series and Book, opens the running or next Window, attests the opening print
+//   open  [--price 100] [--lanes 1]          ensures each lane's Series and Book, opens them all on one boundary, attests their opening prints
 //   quote --window <id> --bid 480 --ask 520 [--lots 20000]   rests both sides from two wallets; calling it again moves the market
 //   close --window <id> --price 101          waits for the boundary, attests the closing print and settles (above the open = Up)
 // Prices are whole dollars; the engine stores them e-8. The two prints are DRIVE DATA, not market prices.
@@ -34,8 +34,14 @@ try {
   if (mode === "open") {
     const sources = readJson<PriceSources>("services/ops/config/price-sources.json");
     const keys = { roller: await keypairSigner(roleSecret("roller")), attestor: await keypairSigner(roleSecret("price-attestor")), clusterTag: config.data.clusterTag, mint };
-    const w = await openOwnedWindow(ctx, keys, sources, e8(arg("--price"), "100"));
-    console.log(`window ${w.market}: #${w.index} ${new Date(w.tradingStartSec * 1000).toISOString()} → ${new Date(w.expirySec * 1000).toISOString()}, book ${w.book}`);
+    // A duel's deck needs three live Windows at once, and a Series has one Book, so the lanes are separate Series.
+    const lanes = Math.min(3, Math.max(1, Number(arg("--lanes") ?? "1")));
+    let boundary: number | undefined;
+    for (let lane = 0; lane < lanes; lane += 1) {
+      const w = await openOwnedWindow(ctx, keys, sources, e8(arg("--price"), "100"), lane as never, boundary);
+      boundary ??= w.tradingStartSec;
+      console.log(`window ${w.market}: lane ${lane} #${w.index} ${new Date(w.tradingStartSec * 1000).toISOString()} → ${new Date(w.expirySec * 1000).toISOString()}, book ${w.book}`);
+    }
   } else if (mode === "quote" || mode === "close") {
     const id = arg("--window");
     if (!id) throw new Error("--window <market id> is required");
