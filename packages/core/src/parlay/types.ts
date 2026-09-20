@@ -127,4 +127,10 @@ export type ParlayIntent =
   | { kind: "parlay-supply"; amountBase: bigint }
   | { kind: "parlay-withdraw"; shares: bigint };
 
+/**
+ * How far above the quoted stake a buyer's cap is sent. The chain prices every leg at its own slot, so the stake
+ * it charges can sit a little over the quote; inside this it charges the fresh price, past it it refuses.
+ */
+export const PARLAY_STAKE_HEADROOM_BPS = 300;
+
 export const PARLAY_NOT_DEPLOYED = "ParlayReserve is not deployed on this network yet" as const;

@@ -1,4 +1,5 @@
 import type { AttributionHook, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
+import type { ParlayIntent } from "@agari/core/parlay";
 import type { RangeIntent } from "@agari/core/range";
 import type { RangeOpenOutcome } from "../range/read";
 import type { Address } from "@agari/core/types";
@@ -12,6 +13,8 @@ import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
 import type { WriteRpc } from "./steps/message";
 import { submitRangeOpenWrite } from "../range/writes";
+import type { ParlayOpenOutcome } from "../parlay/types";
+import { submitParlayOpenWrite } from "../parlay/writes";
 import { submitCashOut } from "./cash-out";
 import { submitOrder } from "./order-lane";
 import { submitRest } from "./rest-lane";
@@ -50,6 +53,8 @@ export interface MarketsSubmitter extends Submitter {
   readonly reconciler: Reconciler;
   /** The range reserve's open, bound to this session's signer like every other lane (S10b). */
   submitRangeOpen: (intent: Extract<RangeIntent, { kind: "range-open" }>, onPhase?: PhaseListener) => Promise<RangeOpenOutcome>;
+  /** The parlay reserve's open, bound to this session's signer like every other lane (S10a). */
+  submitParlayOpen: (intent: Extract<ParlayIntent, { kind: "parlay-open" }>, onPhase?: PhaseListener) => Promise<ParlayOpenOutcome>;
   checkGas(lane: FeeLane): Promise<GasCheck>;
 }
 
@@ -80,6 +85,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
     submitOrder: (request, onPhase) => enqueue(() => (request.entry === "rest" ? submitRest : submitOrder)({ ...context(), stopGate, attribution }, request, onPhase)),
     submitCashOut: (request, onPhase) => enqueue(() => submitCashOut({ ...context(), stopGate, attribution }, request, onPhase)),
     submitRangeOpen: (intent, onPhase) => enqueue(() => submitRangeOpenWrite(context(), intent, onPhase)),
+    submitParlayOpen: (intent, onPhase) => enqueue(() => submitParlayOpenWrite(context(), intent, onPhase)),
     checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
   };
 }

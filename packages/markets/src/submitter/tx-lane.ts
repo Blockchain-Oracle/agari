@@ -2,6 +2,7 @@ import { isVaultIntent, type PhaseListener, type TxIntent, type TxOutcome } from
 import { diagnosis } from "@agari/core/types";
 import { notDeployed } from "../stub/not-deployed";
 import { submitMakerTx } from "../maker/writes";
+import { submitParlayTx } from "../parlay/writes";
 import { submitVaultTx } from "../vault/write";
 import { submitCancel } from "./cancel-lane";
 import { submitRedeem } from "./redeem-lane";
@@ -17,6 +18,8 @@ export async function submitTx(ctx: WriteContext, intent: TxIntent, onPhase?: Ph
   if (intent.kind === "cancel-orders") return submitCancel(ctx, intent, onPhase);
   if (isVaultIntent(intent)) return submitVaultTx(ctx, intent, onPhase);
   if (intent.kind.startsWith("maker-")) return submitMakerTx(ctx, intent as never, onPhase);
+  // The open has its own lane (`submitParlayOpen`): it hands back the ticket id. Everything else is a plain write.
+  if (intent.kind.startsWith("parlay-") && intent.kind !== "parlay-open") return submitParlayTx(ctx, intent as never, onPhase);
   if (intent.kind === "faucet") return { status: "refused", diagnosis: diagnosis("faucet-refused", "test tUSDC comes from /api/faucet") };
   return { status: "refused", diagnosis: notDeployed() };
 }
