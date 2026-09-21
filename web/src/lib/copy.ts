@@ -107,6 +107,10 @@ export const DEV = {
 
 export const MARKETS = {
   title: "Markets",
+  /** `/markets/<id>`'s own title and preview line, so a shared Window names itself rather than the whole board.
+   *  The root layout appends `· Agari`, so the brand does not belong here. */
+  windowTitle: (asset: string, cadence: string) => `${asset} ${cadence}`,
+  windowDescription: (asset: string, cadence: string) => `Call ${asset} up or down on this ${cadence} Window.`,
   up: "UP",
   down: "DOWN",
   estimated: "estimated",

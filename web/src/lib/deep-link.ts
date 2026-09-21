@@ -3,9 +3,9 @@
 import { isSettled, phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
-import { marketDeepLink, parseMarketsSearch } from "@agari/core/urls";
+import { marketDeepLink, marketIdFromPath, parseMarketsSearch } from "@agari/core/urls";
 import { useMarket, useNextWindow } from "@agari/markets/react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { formatCadence, MARKETS } from "@/lib/copy";
 import { NOTE_KIND, NOTE_PARAM } from "@/lib/routes";
@@ -49,7 +49,13 @@ function useNoteOnce(key: string | null, text: string | null) {
  */
 export function useResolveDeepLink(lanes: LaneSet | null, nowMs: number): DeepLinkResolution {
   const params = useSearchParams();
-  const { marketId: linked, dir } = parseMarketsSearch(params);
+  // Both forms name the same Window (UX-DR21). `/markets/<id>` is the one that can carry its own link preview, so
+  // it resolves here rather than redirecting into `?m=` — a redirect hands the crawler the target's card, not the
+  // Window's. The path wins when both are present: it is the address the page was opened at.
+  const fromPath = marketIdFromPath(usePathname());
+  const search = parseMarketsSearch(params);
+  const linked = fromPath ?? search.marketId;
+  const dir = search.dir;
   const routeNote = params.get(NOTE_PARAM);
 
   const live = findMarket(lanes, linked);

@@ -21,6 +21,23 @@ export function marketDeepLink(input: { origin?: string; marketId: MarketId; dir
   return `${input.origin ?? ""}/markets?${query({ [MARKET_PARAM]: input.marketId, [DIRECTION_PARAM]: input.dir })}`;
 }
 
+/** The path form of the same address, `/markets/<id>`: what a shared link and a receipt hand out. */
+export function marketPath(marketId: MarketId): string {
+  return `/markets/${marketId}`;
+}
+
+/**
+ * The Market a `/markets/<id>` path names, or null for `/markets` and anything that is not a Market address.
+ *
+ * Both forms are the same address (UX-DR21): `?m=` is the grammar the page writes back as you move around, and the
+ * path is the one that can carry its own link preview, because a redirect hands the crawler the target's card.
+ */
+export function marketIdFromPath(pathname: string | null | undefined): MarketId | null {
+  const match = /^\/markets\/([^/?#]+)\/?$/.exec(pathname ?? "");
+  const id = match?.[1] ? decodeURIComponent(match[1]) : null;
+  return id !== null && isMarketId(id) ? toMarketId(id) : null;
+}
+
 export function reelsDeepLink(input: { origin?: string; marketId: MarketId }): string {
   return `${input.origin ?? ""}/reels?${query({ [MARKET_PARAM]: input.marketId })}`;
 }

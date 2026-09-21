@@ -1,17 +1,43 @@
 import { isMarketId } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { LoadingState } from "@/components/states";
+import { readMarketCard } from "@/features/landing/og/market-data";
+import { MarketsPage } from "@/features/markets/MarketsPage";
+import { formatCadence, MARKETS } from "@/lib/copy";
 
 /**
- * `/markets/<id>` is the shareable address of one Window — the link preview (`opengraph-image.tsx`) is drawn for
- * that Window, and Blinks and receipts hand it out.
+ * `/markets/<id>` — the shareable address of one Window, which Blinks and receipts hand out.
  *
- * The market browser is the page that shows a Window, keyed by `?m=`, so this resolves into it **carrying the id**.
- * It used to redirect to a bare `/markets`, which meant a shared link previewed one Window and then opened whichever
- * one the browser happened to pick. A path that is not a Market address at all goes to the browser as before,
- * rather than failing: a mistyped link should land somewhere, not throw.
+ * It used to redirect into `/markets?m=<id>`. Both forms name the same Window (UX-DR21) and the query form is what
+ * the page writes back as you move around, so the redirect cost nothing to a person. It cost the **link preview**
+ * everything: a crawler following a 307 reads the target's metadata, so every shared Window previewed as the generic
+ * markets card while `opengraph-image.tsx` — drawn for this Window, five-minute cache — was never asked for.
+ *
+ * So the path renders. `useResolveDeepLink` reads a Market id from the path as well as `?m=`, which is the whole of
+ * what the island needed; everything else on the page is the same composition `/markets` mounts.
  */
-export default async function Redirect({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  redirect(isMarketId(id) ? marketDeepLink({ marketId: id }) : "/markets");
+  if (!isMarketId(id)) return { title: MARKETS.title };
+  // Null for a Window the index does not hold, or an index that is slow or down: the page still renders, and a
+  // preview that cannot name the Window is better than one that names the wrong one.
+  const card = await readMarketCard(id);
+  if (!card) return { title: MARKETS.title };
+  return {
+    title: MARKETS.windowTitle(card.asset, formatCadence(card.intervalSec)),
+    description: MARKETS.windowDescription(card.asset, formatCadence(card.intervalSec)),
+  };
+}
+
+export default async function MarketRoute({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  // A mistyped link should land somewhere rather than throw, as it did before.
+  if (!isMarketId(id)) redirect("/markets");
+  return (
+    <Suspense fallback={<LoadingState shape="plate" className="px-gutter py-6" />}>
+      <MarketsPage />
+    </Suspense>
+  );
 }
