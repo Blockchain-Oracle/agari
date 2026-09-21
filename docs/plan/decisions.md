@@ -1259,6 +1259,20 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 
 | Q | Question | Status / default | Blocks |
 |---|---|---|---|
+### D-119
+
+**The range and moonshot tickets build their band from the live spot; the reserve prices it from the Window's opening print. Recorded, not fixed.**
+
+Found 2026-09-21 by driving `/games/range` and `/games/moonshot` with a wallet. With the print scale corrected (the `PRINT_DECIMALS` fix in the same session), the ticket still refuses **every** band width and **both** sides with "Too close to certain or impossible", and moonshot refuses a moved Window with "Something went sideways", while the drive opens a real round on the same reserve at **inside p = 85.3%**.
+
+The difference is where the band sits. `useRangeDraft` centres on `spotUsd` and lets the player nudge within `centerMax`; `scripts/drive/range-round.ts` centres on the Window's **opening print**. On the 05:00–06:00Z `OPENAI-60m` Window the two were about **$17 apart**, which puts a band around the spot far into the tail of a diffusion the reserve appears to start from the open.
+
+**Why this is not fixed here.** Two readings, and they do not cost the same:
+1. The ticket should centre on the Window's basis, which is a client change and makes the ticket agree with the reserve at once.
+2. The reserve should start its diffusion from the **mark**, not the open — the drive's own log prints a mark beside the open — in which case the ticket is right and the pricing is wrong. That reaches `packages/core/src/range/pricing.ts` and the deployed `agari-range`, and it changes what the chain is asked to price.
+
+Reading 2 is the one that decides whether today's quotes are fair, so this needs the user before anything moves. Until then: the drive can open rounds (round 4 is live on devnet), the pages price only when the spot and the open are close, and both say so in their own words rather than quoting something wrong.
+
 | Q-001 | Build Masayume's own unfinished items? | ✅ Yes (user, 2026-09-13) | L-11, L-23, L-35, L-56, L-57, L-71, Range takes, notifications, sentiment cell, Range band, Duel sparkline |
 | Q-002 | Do routes Masayume removed on 2026-09-04 stay removed? | ✅ Stay removed (user, 2026-09-13) | Y-01…Y-05, Y-18 → Excluded |
 | Q-003 | Build Yosuku-only extras? | ✅ Not built (user, 2026-09-13) | Y-07…Y-13, Y-15 → Excluded |
