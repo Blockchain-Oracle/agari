@@ -7,10 +7,12 @@
  */
 
 export * from "./deactivated";
+export * from "./faded";
 export * from "./published";
 export * from "./registryInitialized";
 export * from "./runnerChanged";
 export * from "./sealed";
 export * from "./subscribed";
+export * from "./unfaded";
 export * from "./unsubscribed";
 export * from "./updated";

@@ -34,9 +34,12 @@ import {
   type SelfPlanAndSendFunctions,
 } from "@solana/kit/program-client-core";
 import {
+  getFadeSubscriptionCodec,
   getRegistryCodec,
   getStrategyCodec,
   getSubscriptionCodec,
+  type FadeSubscription,
+  type FadeSubscriptionArgs,
   type Registry,
   type RegistryArgs,
   type Strategy,
@@ -52,7 +55,9 @@ import {
   getCreatorSetRunnerInstruction,
   getCreatorUpdateInstruction,
   getCreatorWriteMetadataInstruction,
+  getSubscriberFadeInstructionAsync,
   getSubscriberSubscribeInstructionAsync,
+  getSubscriberUnfadeInstruction,
   getSubscriberUnsubscribeInstruction,
   parseAdminInitRegistryInstruction,
   parseCreatorDeactivateInstruction,
@@ -61,7 +66,9 @@ import {
   parseCreatorSetRunnerInstruction,
   parseCreatorUpdateInstruction,
   parseCreatorWriteMetadataInstruction,
+  parseSubscriberFadeInstruction,
   parseSubscriberSubscribeInstruction,
+  parseSubscriberUnfadeInstruction,
   parseSubscriberUnsubscribeInstruction,
   type AdminInitRegistryAsyncInput,
   type CreatorDeactivateInput,
@@ -77,9 +84,13 @@ import {
   type ParsedCreatorSetRunnerInstruction,
   type ParsedCreatorUpdateInstruction,
   type ParsedCreatorWriteMetadataInstruction,
+  type ParsedSubscriberFadeInstruction,
   type ParsedSubscriberSubscribeInstruction,
+  type ParsedSubscriberUnfadeInstruction,
   type ParsedSubscriberUnsubscribeInstruction,
+  type SubscriberFadeAsyncInput,
   type SubscriberSubscribeAsyncInput,
+  type SubscriberUnfadeInput,
   type SubscriberUnsubscribeInput,
 } from "../instructions";
 import { findRegistryPda } from "../pdas";
@@ -88,6 +99,7 @@ export const AGARI_STRATEGY_PROGRAM_ADDRESS =
   "2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ" as Address<"2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ">;
 
 export enum AgariStrategyAccount {
+  FadeSubscription,
   Registry,
   Strategy,
   Subscription,
@@ -97,6 +109,17 @@ export function identifyAgariStrategyAccount(
   account: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): AgariStrategyAccount {
   const data = "data" in account ? account.data : account;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([150, 180, 249, 251, 214, 96, 183, 94]),
+      ),
+      0,
+    )
+  ) {
+    return AgariStrategyAccount.FadeSubscription;
+  }
   if (
     containsBytes(
       data,
@@ -138,11 +161,13 @@ export function identifyAgariStrategyAccount(
 
 export enum AgariStrategyEvent {
   Deactivated,
+  Faded,
   Published,
   RegistryInitialized,
   RunnerChanged,
   Sealed,
   Subscribed,
+  Unfaded,
   Unsubscribed,
   Updated,
 }
@@ -161,6 +186,17 @@ export function identifyAgariStrategyEvent(
     )
   ) {
     return AgariStrategyEvent.Deactivated;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([123, 40, 254, 62, 39, 141, 83, 104]),
+      ),
+      0,
+    )
+  ) {
+    return AgariStrategyEvent.Faded;
   }
   if (
     containsBytes(
@@ -221,6 +257,17 @@ export function identifyAgariStrategyEvent(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([73, 160, 109, 211, 96, 147, 220, 172]),
+      ),
+      0,
+    )
+  ) {
+    return AgariStrategyEvent.Unfaded;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([142, 198, 26, 244, 100, 121, 45, 152]),
       ),
       0,
@@ -252,7 +299,9 @@ export enum AgariStrategyInstruction {
   CreatorSetRunner,
   CreatorUpdate,
   CreatorWriteMetadata,
+  SubscriberFade,
   SubscriberSubscribe,
+  SubscriberUnfade,
   SubscriberUnsubscribe,
 }
 
@@ -341,12 +390,34 @@ export function identifyAgariStrategyInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([68, 252, 37, 249, 192, 81, 234, 176]),
+      ),
+      0,
+    )
+  ) {
+    return AgariStrategyInstruction.SubscriberFade;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([33, 161, 59, 13, 27, 251, 146, 55]),
       ),
       0,
     )
   ) {
     return AgariStrategyInstruction.SubscriberSubscribe;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([8, 183, 191, 29, 6, 152, 174, 46]),
+      ),
+      0,
+    )
+  ) {
+    return AgariStrategyInstruction.SubscriberUnfade;
   }
   if (
     containsBytes(
@@ -390,8 +461,14 @@ export type ParsedAgariStrategyInstruction<
       instructionType: AgariStrategyInstruction.CreatorWriteMetadata;
     } & ParsedCreatorWriteMetadataInstruction<TProgram>)
   | ({
+      instructionType: AgariStrategyInstruction.SubscriberFade;
+    } & ParsedSubscriberFadeInstruction<TProgram>)
+  | ({
       instructionType: AgariStrategyInstruction.SubscriberSubscribe;
     } & ParsedSubscriberSubscribeInstruction<TProgram>)
+  | ({
+      instructionType: AgariStrategyInstruction.SubscriberUnfade;
+    } & ParsedSubscriberUnfadeInstruction<TProgram>)
   | ({
       instructionType: AgariStrategyInstruction.SubscriberUnsubscribe;
     } & ParsedSubscriberUnsubscribeInstruction<TProgram>);
@@ -450,11 +527,25 @@ export function parseAgariStrategyInstruction<TProgram extends string>(
         ...parseCreatorWriteMetadataInstruction(instruction),
       };
     }
+    case AgariStrategyInstruction.SubscriberFade: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: AgariStrategyInstruction.SubscriberFade,
+        ...parseSubscriberFadeInstruction(instruction),
+      };
+    }
     case AgariStrategyInstruction.SubscriberSubscribe: {
       assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: AgariStrategyInstruction.SubscriberSubscribe,
         ...parseSubscriberSubscribeInstruction(instruction),
+      };
+    }
+    case AgariStrategyInstruction.SubscriberUnfade: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: AgariStrategyInstruction.SubscriberUnfade,
+        ...parseSubscriberUnfadeInstruction(instruction),
       };
     }
     case AgariStrategyInstruction.SubscriberUnsubscribe: {
@@ -485,6 +576,8 @@ export type AgariStrategyPlugin = {
 };
 
 export type AgariStrategyPluginAccounts = {
+  fadeSubscription: ReturnType<typeof getFadeSubscriptionCodec> &
+    SelfFetchFunctions<FadeSubscriptionArgs, FadeSubscription>;
   registry: ReturnType<typeof getRegistryCodec> &
     SelfFetchFunctions<RegistryArgs, Registry>;
   strategy: ReturnType<typeof getStrategyCodec> &
@@ -521,9 +614,17 @@ export type AgariStrategyPluginInstructions = {
     input: CreatorWriteMetadataInput,
   ) => ReturnType<typeof getCreatorWriteMetadataInstruction> &
     SelfPlanAndSendFunctions;
+  subscriberFade: (
+    input: SubscriberFadeAsyncInput,
+  ) => ReturnType<typeof getSubscriberFadeInstructionAsync> &
+    SelfPlanAndSendFunctions;
   subscriberSubscribe: (
     input: SubscriberSubscribeAsyncInput,
   ) => ReturnType<typeof getSubscriberSubscribeInstructionAsync> &
+    SelfPlanAndSendFunctions;
+  subscriberUnfade: (
+    input: SubscriberUnfadeInput,
+  ) => ReturnType<typeof getSubscriberUnfadeInstruction> &
     SelfPlanAndSendFunctions;
   subscriberUnsubscribe: (
     input: SubscriberUnsubscribeInput,
@@ -546,6 +647,10 @@ export function agariStrategyProgram() {
     return extendClient(client, {
       agariStrategy: <AgariStrategyPlugin>{
         accounts: {
+          fadeSubscription: addSelfFetchFunctions(
+            client,
+            getFadeSubscriptionCodec(),
+          ),
           registry: addSelfFetchFunctions(client, getRegistryCodec()),
           strategy: addSelfFetchFunctions(client, getStrategyCodec()),
           subscription: addSelfFetchFunctions(client, getSubscriptionCodec()),
@@ -586,10 +691,20 @@ export function agariStrategyProgram() {
               client,
               getCreatorWriteMetadataInstruction(input),
             ),
+          subscriberFade: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSubscriberFadeInstructionAsync(input),
+            ),
           subscriberSubscribe: (input) =>
             addSelfPlanAndSendFunctions(
               client,
               getSubscriberSubscribeInstructionAsync(input),
+            ),
+          subscriberUnfade: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getSubscriberUnfadeInstruction(input),
             ),
           subscriberUnsubscribe: (input) =>
             addSelfPlanAndSendFunctions(

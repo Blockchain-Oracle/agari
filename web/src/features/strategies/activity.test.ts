@@ -15,7 +15,7 @@ const report = (why: string) => ({ ...HEALTH, why });
 describe("strategy operating state alongside copy permission", () => {
   it("explains a full position limit without changing enabled consent into a pause", () => {
     const grant = { ...GRANT, openPositions: 1 };
-    const state = copyStateOf({ active: true, runner: RUNNER }, { strategyId: 1n, subscriber: RUNNER, grantId: 8n, subscribedAtSec: 1, active: true, live: true }, grant, NOW / 1000);
+    const state = copyStateOf({ active: true, runner: RUNNER }, { strategyId: 1n, subscriber: RUNNER, grantId: 8n, subscribedAtSec: 1, active: true, live: true, fade: false }, grant, NOW / 1000);
     expect(state).toBe("copying");
     expect(activity({ state, grant, health: report("scanned 6 markets, 6 past the trigger; 0 filled, 6 skipped") })).toMatchObject({ label: "Awaiting settlement", detail: "Your 1-position limit is reached. A position must settle before a new one can open.", heartbeat: "Runner connected" });
     expect(activity({ grant: { ...grant, caps: { ...grant.caps, maxOpenPositions: 2 } } }).label).toBe("Watching");

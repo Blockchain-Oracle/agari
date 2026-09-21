@@ -41,22 +41,23 @@ import {
 import { findRegistryPda } from "../pdas";
 import { AGARI_STRATEGY_PROGRAM_ADDRESS } from "../programs";
 
-export const SUBSCRIBER_SUBSCRIBE_DISCRIMINATOR: ReadonlyUint8Array =
-  new Uint8Array([33, 161, 59, 13, 27, 251, 146, 55]);
+export const SUBSCRIBER_FADE_DISCRIMINATOR: ReadonlyUint8Array = new Uint8Array(
+  [68, 252, 37, 249, 192, 81, 234, 176],
+);
 
-export function getSubscriberSubscribeDiscriminatorBytes(): ReadonlyUint8Array {
+export function getSubscriberFadeDiscriminatorBytes(): ReadonlyUint8Array {
   return fixEncoderSize(getBytesEncoder(), 8).encode(
-    SUBSCRIBER_SUBSCRIBE_DISCRIMINATOR,
+    SUBSCRIBER_FADE_DISCRIMINATOR,
   );
 }
 
-export type SubscriberSubscribeInstruction<
+export type SubscriberFadeInstruction<
   TProgram extends string = typeof AGARI_STRATEGY_PROGRAM_ADDRESS,
   TAccountSubscriber extends string | AccountMeta<string> = string,
   TAccountRegistry extends string | AccountMeta<string> = string,
   TAccountStrategy extends string | AccountMeta<string> = string,
-  TAccountSubscription extends string | AccountMeta<string> = string,
   TAccountFade extends string | AccountMeta<string> = string,
+  TAccountSubscription extends string | AccountMeta<string> = string,
   TAccountGrant extends string | AccountMeta<string> = string,
   TAccountSubscriberToken extends string | AccountMeta<string> = string,
   TAccountCreatorToken extends string | AccountMeta<string> = string,
@@ -80,12 +81,12 @@ export type SubscriberSubscribeInstruction<
       TAccountStrategy extends string
         ? WritableAccount<TAccountStrategy>
         : TAccountStrategy,
-      TAccountSubscription extends string
-        ? WritableAccount<TAccountSubscription>
-        : TAccountSubscription,
       TAccountFade extends string
-        ? ReadonlyAccount<TAccountFade>
+        ? WritableAccount<TAccountFade>
         : TAccountFade,
+      TAccountSubscription extends string
+        ? ReadonlyAccount<TAccountSubscription>
+        : TAccountSubscription,
       TAccountGrant extends string
         ? ReadonlyAccount<TAccountGrant>
         : TAccountGrant,
@@ -108,51 +109,46 @@ export type SubscriberSubscribeInstruction<
     ]
   >;
 
-export type SubscriberSubscribeInstructionData = {
+export type SubscriberFadeInstructionData = {
   discriminator: ReadonlyUint8Array;
   maxFeeBase: bigint;
 };
 
-export type SubscriberSubscribeInstructionDataArgs = {
-  maxFeeBase: number | bigint;
-};
+export type SubscriberFadeInstructionDataArgs = { maxFeeBase: number | bigint };
 
-export function getSubscriberSubscribeInstructionDataEncoder(): FixedSizeEncoder<SubscriberSubscribeInstructionDataArgs> {
+export function getSubscriberFadeInstructionDataEncoder(): FixedSizeEncoder<SubscriberFadeInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ["discriminator", fixEncoderSize(getBytesEncoder(), 8)],
       ["maxFeeBase", getU64Encoder()],
     ]),
-    (value) => ({
-      ...value,
-      discriminator: SUBSCRIBER_SUBSCRIBE_DISCRIMINATOR,
-    }),
+    (value) => ({ ...value, discriminator: SUBSCRIBER_FADE_DISCRIMINATOR }),
   );
 }
 
-export function getSubscriberSubscribeInstructionDataDecoder(): FixedSizeDecoder<SubscriberSubscribeInstructionData> {
+export function getSubscriberFadeInstructionDataDecoder(): FixedSizeDecoder<SubscriberFadeInstructionData> {
   return getStructDecoder([
     ["discriminator", fixDecoderSize(getBytesDecoder(), 8)],
     ["maxFeeBase", getU64Decoder()],
   ]);
 }
 
-export function getSubscriberSubscribeInstructionDataCodec(): FixedSizeCodec<
-  SubscriberSubscribeInstructionDataArgs,
-  SubscriberSubscribeInstructionData
+export function getSubscriberFadeInstructionDataCodec(): FixedSizeCodec<
+  SubscriberFadeInstructionDataArgs,
+  SubscriberFadeInstructionData
 > {
   return combineCodec(
-    getSubscriberSubscribeInstructionDataEncoder(),
-    getSubscriberSubscribeInstructionDataDecoder(),
+    getSubscriberFadeInstructionDataEncoder(),
+    getSubscriberFadeInstructionDataDecoder(),
   );
 }
 
-export type SubscriberSubscribeAsyncInput<
+export type SubscriberFadeAsyncInput<
   TAccountSubscriber extends string = string,
   TAccountRegistry extends string = string,
   TAccountStrategy extends string = string,
-  TAccountSubscription extends string = string,
   TAccountFade extends string = string,
+  TAccountSubscription extends string = string,
   TAccountGrant extends string = string,
   TAccountSubscriberToken extends string = string,
   TAccountCreatorToken extends string = string,
@@ -163,8 +159,8 @@ export type SubscriberSubscribeAsyncInput<
   subscriber: TransactionSigner<TAccountSubscriber>;
   registry?: Address<TAccountRegistry>;
   strategy: Address<TAccountStrategy>;
-  subscription: Address<TAccountSubscription>;
   fade: Address<TAccountFade>;
+  subscription: Address<TAccountSubscription>;
   /** The subscriber's own grant on `agari-vault`. The loader checks the vault owns it, so it is a real Grant. */
   grant: Address<TAccountGrant>;
   /** Both token accounts are needed only when the strategy charges a fee. */
@@ -173,15 +169,15 @@ export type SubscriberSubscribeAsyncInput<
   collateralMint: Address<TAccountCollateralMint>;
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  maxFeeBase: SubscriberSubscribeInstructionDataArgs["maxFeeBase"];
+  maxFeeBase: SubscriberFadeInstructionDataArgs["maxFeeBase"];
 };
 
-export async function getSubscriberSubscribeInstructionAsync<
+export async function getSubscriberFadeInstructionAsync<
   TAccountSubscriber extends string,
   TAccountRegistry extends string,
   TAccountStrategy extends string,
-  TAccountSubscription extends string,
   TAccountFade extends string,
+  TAccountSubscription extends string,
   TAccountGrant extends string,
   TAccountSubscriberToken extends string,
   TAccountCreatorToken extends string,
@@ -190,12 +186,12 @@ export async function getSubscriberSubscribeInstructionAsync<
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof AGARI_STRATEGY_PROGRAM_ADDRESS,
 >(
-  input: SubscriberSubscribeAsyncInput<
+  input: SubscriberFadeAsyncInput<
     TAccountSubscriber,
     TAccountRegistry,
     TAccountStrategy,
-    TAccountSubscription,
     TAccountFade,
+    TAccountSubscription,
     TAccountGrant,
     TAccountSubscriberToken,
     TAccountCreatorToken,
@@ -205,13 +201,13 @@ export async function getSubscriberSubscribeInstructionAsync<
   >,
   config?: { programAddress?: TProgramAddress },
 ): Promise<
-  SubscriberSubscribeInstruction<
+  SubscriberFadeInstruction<
     TProgramAddress,
     TAccountSubscriber,
     TAccountRegistry,
     TAccountStrategy,
-    TAccountSubscription,
     TAccountFade,
+    TAccountSubscription,
     TAccountGrant,
     TAccountSubscriberToken,
     TAccountCreatorToken,
@@ -229,8 +225,8 @@ export async function getSubscriberSubscribeInstructionAsync<
     subscriber: { value: input.subscriber ?? null, isWritable: true },
     registry: { value: input.registry ?? null, isWritable: false },
     strategy: { value: input.strategy ?? null, isWritable: true },
-    subscription: { value: input.subscription ?? null, isWritable: true },
-    fade: { value: input.fade ?? null, isWritable: false },
+    fade: { value: input.fade ?? null, isWritable: true },
+    subscription: { value: input.subscription ?? null, isWritable: false },
     grant: { value: input.grant ?? null, isWritable: false },
     subscriberToken: { value: input.subscriberToken ?? null, isWritable: true },
     creatorToken: { value: input.creatorToken ?? null, isWritable: true },
@@ -265,8 +261,8 @@ export async function getSubscriberSubscribeInstructionAsync<
       getAccountMeta("subscriber", accounts.subscriber),
       getAccountMeta("registry", accounts.registry),
       getAccountMeta("strategy", accounts.strategy),
-      getAccountMeta("subscription", accounts.subscription),
       getAccountMeta("fade", accounts.fade),
+      getAccountMeta("subscription", accounts.subscription),
       getAccountMeta("grant", accounts.grant),
       getAccountMeta("subscriberToken", accounts.subscriberToken),
       getAccountMeta("creatorToken", accounts.creatorToken),
@@ -274,17 +270,17 @@ export async function getSubscriberSubscribeInstructionAsync<
       getAccountMeta("tokenProgram", accounts.tokenProgram),
       getAccountMeta("systemProgram", accounts.systemProgram),
     ],
-    data: getSubscriberSubscribeInstructionDataEncoder().encode(
-      args as SubscriberSubscribeInstructionDataArgs,
+    data: getSubscriberFadeInstructionDataEncoder().encode(
+      args as SubscriberFadeInstructionDataArgs,
     ),
     programAddress,
-  } as SubscriberSubscribeInstruction<
+  } as SubscriberFadeInstruction<
     TProgramAddress,
     TAccountSubscriber,
     TAccountRegistry,
     TAccountStrategy,
-    TAccountSubscription,
     TAccountFade,
+    TAccountSubscription,
     TAccountGrant,
     TAccountSubscriberToken,
     TAccountCreatorToken,
@@ -294,12 +290,12 @@ export async function getSubscriberSubscribeInstructionAsync<
   >);
 }
 
-export type SubscriberSubscribeInput<
+export type SubscriberFadeInput<
   TAccountSubscriber extends string = string,
   TAccountRegistry extends string = string,
   TAccountStrategy extends string = string,
-  TAccountSubscription extends string = string,
   TAccountFade extends string = string,
+  TAccountSubscription extends string = string,
   TAccountGrant extends string = string,
   TAccountSubscriberToken extends string = string,
   TAccountCreatorToken extends string = string,
@@ -310,8 +306,8 @@ export type SubscriberSubscribeInput<
   subscriber: TransactionSigner<TAccountSubscriber>;
   registry: Address<TAccountRegistry>;
   strategy: Address<TAccountStrategy>;
-  subscription: Address<TAccountSubscription>;
   fade: Address<TAccountFade>;
+  subscription: Address<TAccountSubscription>;
   /** The subscriber's own grant on `agari-vault`. The loader checks the vault owns it, so it is a real Grant. */
   grant: Address<TAccountGrant>;
   /** Both token accounts are needed only when the strategy charges a fee. */
@@ -320,15 +316,15 @@ export type SubscriberSubscribeInput<
   collateralMint: Address<TAccountCollateralMint>;
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  maxFeeBase: SubscriberSubscribeInstructionDataArgs["maxFeeBase"];
+  maxFeeBase: SubscriberFadeInstructionDataArgs["maxFeeBase"];
 };
 
-export function getSubscriberSubscribeInstruction<
+export function getSubscriberFadeInstruction<
   TAccountSubscriber extends string,
   TAccountRegistry extends string,
   TAccountStrategy extends string,
-  TAccountSubscription extends string,
   TAccountFade extends string,
+  TAccountSubscription extends string,
   TAccountGrant extends string,
   TAccountSubscriberToken extends string,
   TAccountCreatorToken extends string,
@@ -337,12 +333,12 @@ export function getSubscriberSubscribeInstruction<
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof AGARI_STRATEGY_PROGRAM_ADDRESS,
 >(
-  input: SubscriberSubscribeInput<
+  input: SubscriberFadeInput<
     TAccountSubscriber,
     TAccountRegistry,
     TAccountStrategy,
-    TAccountSubscription,
     TAccountFade,
+    TAccountSubscription,
     TAccountGrant,
     TAccountSubscriberToken,
     TAccountCreatorToken,
@@ -351,13 +347,13 @@ export function getSubscriberSubscribeInstruction<
     TAccountSystemProgram
   >,
   config?: { programAddress?: TProgramAddress },
-): SubscriberSubscribeInstruction<
+): SubscriberFadeInstruction<
   TProgramAddress,
   TAccountSubscriber,
   TAccountRegistry,
   TAccountStrategy,
-  TAccountSubscription,
   TAccountFade,
+  TAccountSubscription,
   TAccountGrant,
   TAccountSubscriberToken,
   TAccountCreatorToken,
@@ -374,8 +370,8 @@ export function getSubscriberSubscribeInstruction<
     subscriber: { value: input.subscriber ?? null, isWritable: true },
     registry: { value: input.registry ?? null, isWritable: false },
     strategy: { value: input.strategy ?? null, isWritable: true },
-    subscription: { value: input.subscription ?? null, isWritable: true },
-    fade: { value: input.fade ?? null, isWritable: false },
+    fade: { value: input.fade ?? null, isWritable: true },
+    subscription: { value: input.subscription ?? null, isWritable: false },
     grant: { value: input.grant ?? null, isWritable: false },
     subscriberToken: { value: input.subscriberToken ?? null, isWritable: true },
     creatorToken: { value: input.creatorToken ?? null, isWritable: true },
@@ -407,8 +403,8 @@ export function getSubscriberSubscribeInstruction<
       getAccountMeta("subscriber", accounts.subscriber),
       getAccountMeta("registry", accounts.registry),
       getAccountMeta("strategy", accounts.strategy),
-      getAccountMeta("subscription", accounts.subscription),
       getAccountMeta("fade", accounts.fade),
+      getAccountMeta("subscription", accounts.subscription),
       getAccountMeta("grant", accounts.grant),
       getAccountMeta("subscriberToken", accounts.subscriberToken),
       getAccountMeta("creatorToken", accounts.creatorToken),
@@ -416,17 +412,17 @@ export function getSubscriberSubscribeInstruction<
       getAccountMeta("tokenProgram", accounts.tokenProgram),
       getAccountMeta("systemProgram", accounts.systemProgram),
     ],
-    data: getSubscriberSubscribeInstructionDataEncoder().encode(
-      args as SubscriberSubscribeInstructionDataArgs,
+    data: getSubscriberFadeInstructionDataEncoder().encode(
+      args as SubscriberFadeInstructionDataArgs,
     ),
     programAddress,
-  } as SubscriberSubscribeInstruction<
+  } as SubscriberFadeInstruction<
     TProgramAddress,
     TAccountSubscriber,
     TAccountRegistry,
     TAccountStrategy,
-    TAccountSubscription,
     TAccountFade,
+    TAccountSubscription,
     TAccountGrant,
     TAccountSubscriberToken,
     TAccountCreatorToken,
@@ -436,7 +432,7 @@ export function getSubscriberSubscribeInstruction<
   >);
 }
 
-export type ParsedSubscriberSubscribeInstruction<
+export type ParsedSubscriberFadeInstruction<
   TProgram extends string = typeof AGARI_STRATEGY_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
@@ -445,8 +441,8 @@ export type ParsedSubscriberSubscribeInstruction<
     subscriber: TAccountMetas[0];
     registry: TAccountMetas[1];
     strategy: TAccountMetas[2];
-    subscription: TAccountMetas[3];
-    fade: TAccountMetas[4];
+    fade: TAccountMetas[3];
+    subscription: TAccountMetas[4];
     /** The subscriber's own grant on `agari-vault`. The loader checks the vault owns it, so it is a real Grant. */
     grant: TAccountMetas[5];
     /** Both token accounts are needed only when the strategy charges a fee. */
@@ -456,17 +452,17 @@ export type ParsedSubscriberSubscribeInstruction<
     tokenProgram: TAccountMetas[9];
     systemProgram: TAccountMetas[10];
   };
-  data: SubscriberSubscribeInstructionData;
+  data: SubscriberFadeInstructionData;
 };
 
-export function parseSubscriberSubscribeInstruction<
+export function parseSubscriberFadeInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
-): ParsedSubscriberSubscribeInstruction<TProgram, TAccountMetas> {
+): ParsedSubscriberFadeInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 11) {
     throw new SolanaError(
       SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
@@ -494,8 +490,8 @@ export function parseSubscriberSubscribeInstruction<
       subscriber: getNextAccount(),
       registry: getNextAccount(),
       strategy: getNextAccount(),
-      subscription: getNextAccount(),
       fade: getNextAccount(),
+      subscription: getNextAccount(),
       grant: getNextAccount(),
       subscriberToken: getNextOptionalAccount(),
       creatorToken: getNextOptionalAccount(),
@@ -503,8 +499,6 @@ export function parseSubscriberSubscribeInstruction<
       tokenProgram: getNextAccount(),
       systemProgram: getNextAccount(),
     },
-    data: getSubscriberSubscribeInstructionDataDecoder().decode(
-      instruction.data,
-    ),
+    data: getSubscriberFadeInstructionDataDecoder().decode(instruction.data),
   };
 }

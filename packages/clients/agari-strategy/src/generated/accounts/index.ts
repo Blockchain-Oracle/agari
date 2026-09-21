@@ -6,6 +6,7 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from "./fadeSubscription";
 export * from "./registry";
 export * from "./strategy";
 export * from "./subscription";

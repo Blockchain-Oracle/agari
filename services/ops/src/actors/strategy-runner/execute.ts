@@ -1,6 +1,6 @@
 import { isOk } from "@agari/core/schemas";
 import { dailyHeadroomBase, type VaultGrant } from "@agari/core/vault";
-import type { Decision, StrategyFill, StrategySubscription } from "@agari/core/strategies";
+import { sideForSubscriber, type Decision, type StrategyFill, type StrategySubscription } from "@agari/core/strategies";
 import { toMarketId, type EventMarket, type MarketId } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { marketsProvider, type SubmitterSession, readRecoveryCursor } from "@agari/markets";
@@ -26,7 +26,8 @@ async function readGrant(owner: StrategySubscription["subscriber"], grantId: big
 }
 
 /**
- * One subscriber, one Window, one decision → at most one IOC through the subscriber's grant.
+ * One subscriber, one Window, one decision → at most one IOC through the subscriber's grant, on the side their
+ * own consent record names.
  * The stake is the smallest of the per-trade cap, today's headroom and the budget; a subscriber
  * already holding this Window is left alone (one entry per Window, the reference's rule).
  */
@@ -39,7 +40,9 @@ export async function executeForSubscriber(input: {
   dryRun: boolean;
 }): Promise<ExecutionResult> {
   const { session, sub, market, decision, nowMs, dryRun } = input;
-  const side = decision.side;
+  // A-1c: a fader consented to the opposite of this strategy, so the decision is turned around for them and for
+  // nobody else. One decision, two sides, each backed by its own consent record on chain.
+  const side = decision.side === null ? null : sideForSubscriber(decision.side, sub.fade);
   if (!side) return { status: "skipped", reason: "no side" };
   const key = { strategyId: sub.strategyId.toString(), marketId: market.marketId, owner: sub.subscriber };
   if (!dryRun) {

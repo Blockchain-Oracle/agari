@@ -25,9 +25,18 @@ export async function strategyAddress(strategyId: bigint): Promise<Address> {
 }
 
 export async function subscriptionAddress(strategyId: bigint, subscriber: Address): Promise<Address> {
+  return consentAddress("subscription", strategyId, subscriber);
+}
+
+/** A-1c: the fade consent's own PDA — the same shape under its own seed, so a follow record is never mistaken for it. */
+export async function fadeAddress(strategyId: bigint, subscriber: Address): Promise<Address> {
+  return consentAddress("fade", strategyId, subscriber);
+}
+
+async function consentAddress(seed: string, strategyId: bigint, subscriber: Address): Promise<Address> {
   const [pda] = await getProgramDerivedAddress({
     programAddress: kit(strategyProgramId()),
-    seeds: [new TextEncoder().encode("subscription"), getU64Encoder().encode(strategyId), getAddressEncoder().encode(kit(subscriber))],
+    seeds: [new TextEncoder().encode(seed), getU64Encoder().encode(strategyId), getAddressEncoder().encode(kit(subscriber))],
   });
   return pda as string as Address;
 }

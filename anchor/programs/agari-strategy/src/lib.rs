@@ -58,6 +58,15 @@ pub mod agari_strategy {
         instructions::subscriber::subscribe(ctx, max_fee_base)
     }
 
+    /// A-1c: the same consent, in the other direction — the runner places the opposite of what this strategy decides.
+    pub fn subscriber_fade(ctx: Context<Fade>, max_fee_base: u64) -> Result<()> {
+        instructions::subscriber::fade(ctx, max_fee_base)
+    }
+
+    pub fn subscriber_unfade(ctx: Context<Unfade>) -> Result<()> {
+        instructions::subscriber::unfade(ctx)
+    }
+
     pub fn subscriber_unsubscribe(ctx: Context<Unsubscribe>) -> Result<()> {
         instructions::subscriber::unsubscribe(ctx)
     }

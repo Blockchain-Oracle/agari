@@ -7,7 +7,7 @@ import type { CopyProgress } from "./copy-progress";
 const RUNNER = toAddress(encodeBase58(new Uint8Array(32).fill(0x11)));
 const TX = toSignature(encodeBase58(new Uint8Array(64).fill(0xaa)));
 const CAPS = { maxStakePerTradeBase: 1n, maxDailySpendBase: 5n, maxOpenPositions: 1, maxPriceRaw: 850_000n };
-const INPUT: CopySetupInput = { strategyId: 1n, runner: RUNNER, depositBase: 5n, budgetBase: 5n, caps: CAPS, feeBase: 2n };
+const INPUT: CopySetupInput = { strategyId: 1n, runner: RUNNER, depositBase: 5n, budgetBase: 5n, caps: CAPS, feeBase: 2n, fade: false };
 
 function setup() {
   let saved: CopyProgress | null = null;

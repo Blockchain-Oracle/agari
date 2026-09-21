@@ -11,7 +11,7 @@ import { parseAmount } from "./format";
 const RUNNER = toAddress(encodeBase58(new Uint8Array(32).fill(0x11)));
 const OTHER = toAddress(encodeBase58(new Uint8Array(32).fill(0x22)));
 const CARD = { strategyId: "1", active: true, runner: RUNNER, metadata: "" };
-const SUB: StrategySubscription = { strategyId: 1n, subscriber: RUNNER, grantId: 8n, subscribedAtSec: 10, active: true, live: true };
+const SUB: StrategySubscription = { strategyId: 1n, subscriber: RUNNER, grantId: 8n, subscribedAtSec: 10, active: true, live: true, fade: false };
 const GRANT: VaultGrant = { grantId: 8n, owner: RUNNER, actor: RUNNER, kind: "strategy", revoked: false, expiresAtSec: 200, spentDay: 0, spentTodayBase: 0n, openPositions: 0, caps: { maxStakePerTradeBase: 1n, maxDailySpendBase: 5n, maxOpenPositions: 1, maxPriceRaw: 0n }, budgetBase: 5n };
 
 describe("copy lifecycle", () => {

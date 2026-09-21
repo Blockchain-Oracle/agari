@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { agentPrompt } from "./agent-prompt";
 import { AGENT_PERSONA_MAX_CHARS, decisionSlot, EMPTY_AGENT_RECORD, gateAgentVerdict, POSTURES, type AgentContext, type AgentRecordSummary, type AgentVerdict } from "./agent";
 import { describeSpec, encodeSpec, isSpec, parseStrategyMetadata } from "./spec";
+import { sideForSubscriber } from "./types";
 import type { AgentSpec } from "./types";
 
 const ONE = 1_000_000n;
@@ -137,5 +138,19 @@ describe("spec encoding with the agent preset", () => {
   it("describes an agent in the studio's words", () => {
     expect(describeSpec(spec)).toBe("On 15m and 1h Windows of each listed stock it reads the print once, a quarter of the way in, and asks the model for up, down or hold. Balanced: it holds under 65% confidence, over 85¢ a side, or after 4 straight losses.");
     expect(describeSpec({ ...spec, posture: "guarded", cadences: [300] }, "NVDA")).toContain("On 5m Windows of NVDA");
+  });
+});
+
+describe("sideForSubscriber (A-1c)", () => {
+  it("copies a follower and turns a fader around", () => {
+    expect(sideForSubscriber("up", false)).toBe("up");
+    expect(sideForSubscriber("down", false)).toBe("down");
+    expect(sideForSubscriber("up", true)).toBe("down");
+    expect(sideForSubscriber("down", true)).toBe("up");
+  });
+  it("is its own inverse, so two fades are a follow", () => {
+    for (const side of ["up", "down"] as const) {
+      expect(sideForSubscriber(sideForSubscriber(side, true), true)).toBe(side);
+    }
   });
 });

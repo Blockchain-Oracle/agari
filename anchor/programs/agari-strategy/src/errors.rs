@@ -41,4 +41,10 @@ pub enum StrategyError {
     WrongStrategy,
     #[msg("arithmetic overflowed")]
     MathOverflow,
+    #[msg("this wallet already follows this strategy; unsubscribe before fading it")]
+    AlreadyFollowing,
+    #[msg("this wallet already fades this strategy; stop fading before following it")]
+    AlreadyFading,
+    #[msg("this wallet does not fade this strategy")]
+    NotFading,
 }

@@ -67,6 +67,17 @@ export interface StrategySubscription {
   active: boolean;
   /** Consent on record AND a live grant to the runner — what the runner may act on now. */
   live: boolean;
+  /**
+   * A-1c: the consent is to be copied **in the opposite direction** — the runner places the other side of whatever
+   * this strategy decides, for this wallet only. It is a different record on chain (`FadeSubscription`), not a
+   * setting on this one, because following a strategy is not consent to trade the opposite of it.
+   */
+  fade: boolean;
+}
+
+/** The side the runner actually sends for one subscriber: a fade turns the strategy's call around. */
+export function sideForSubscriber(decided: Side, fade: boolean): Side {
+  return fade ? (decided === "up" ? "down" : "up") : decided;
 }
 
 /** One fill the runner executed for a subscriber, as the runner recorded it. */
@@ -114,6 +125,9 @@ export type StrategyIntent =
   | { kind: "strategy-update"; strategyId: bigint; spec: StrategySpec; metadata: StrategyMetadata; feeBase: bigint }
   | { kind: "strategy-subscribe"; strategyId: bigint; grantId: bigint; feeBase: bigint }
   | { kind: "strategy-unsubscribe"; strategyId: bigint }
+  /** A-1c: the same consent, the other way round. A wallet may hold one of the two at a time, and the program says so. */
+  | { kind: "strategy-fade"; strategyId: bigint; grantId: bigint; feeBase: bigint }
+  | { kind: "strategy-unfade"; strategyId: bigint }
   | { kind: "strategy-deactivate"; strategyId: bigint };
 
 /** Where the registry lives on one chain — regenerated from `contracts/deployments` (AD-10). */

@@ -63,3 +63,20 @@ pub struct Unsubscribed {
     pub subscriber: Pubkey,
     pub subscribers: u32,
 }
+
+/// A wallet consented to be copied in the opposite direction (A-1c).
+#[event]
+pub struct Faded {
+    pub strategy_id: u64,
+    pub subscriber: Pubkey,
+    pub grant_id: u64,
+    pub fee_base: u64,
+    pub subscribers: u32,
+}
+
+#[event]
+pub struct Unfaded {
+    pub strategy_id: u64,
+    pub subscriber: Pubkey,
+    pub subscribers: u32,
+}

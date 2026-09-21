@@ -111,16 +111,17 @@ export function useDeskWrites() {
         const terms = { kind: "strategy" as const, actor: input.runner, caps: input.caps, expiresAtSec, budgetBase: input.budgetBase };
         return failed(await submitter.submitTx(input.depositBase > 0n ? { kind: "vault-deposit-and-grant", amountBase: input.depositBase, terms } : { kind: "vault-grant", terms }));
       },
-      subscribed: async (grantId) => { const reading = await listSubscriptionsOf(address, [input.strategyId]); return isOk(reading) && !reading.stale && reading.value.some((s) => s.active && s.grantId.toString() === grantId); },
+      // The direction is part of the check: a follow record does not mean the fade the caller asked for landed.
+      subscribed: async (grantId) => { const reading = await listSubscriptionsOf(address, [input.strategyId]); return isOk(reading) && !reading.stale && reading.value.some((s) => s.active && s.fade === input.fade && s.grantId.toString() === grantId); },
       receipt: transactionStatus,
-      subscribe: (grantId) => registry({ kind: "strategy-subscribe", strategyId: input.strategyId, grantId, feeBase: input.feeBase }),
+      subscribe: (grantId) => registry({ kind: input.fade ? "strategy-fade" : "strategy-subscribe", strategyId: input.strategyId, grantId, feeBase: input.feeBase }),
       nowSec: Math.floor(Date.now() / 1000),
     });
   }), [run, submitter, address, storageKey, remember, registry]);
 
   /** Pause stops new copies: the grant is revoked (budget back to the Vault), then the consent record closes. */
   const pause = useCallback(
-    (strategyId: bigint, grantId: bigint) =>
+    (strategyId: bigint, grantId: bigint, fade = false) =>
       run("pause", async (): Promise<DeskWriteResult> => {
         if (!submitter) return { ok: false, reason: "connect a wallet first" };
         const fresh = address ? await getVaultSnapshot(address) : null;
@@ -129,7 +130,7 @@ export function useDeskWrites() {
           const revoked = await submitter.submitTx({ kind: "vault-revoke", grantId });
           if (revoked.status !== "confirmed") return failed(revoked);
         }
-        return registry({ kind: "strategy-unsubscribe", strategyId });
+        return registry({ kind: fade ? "strategy-unfade" : "strategy-unsubscribe", strategyId });
       }),
     [run, submitter, registry, address],
   );

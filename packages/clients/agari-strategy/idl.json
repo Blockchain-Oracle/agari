@@ -421,6 +421,169 @@
       ]
     },
     {
+      "name": "subscriber_fade",
+      "docs": [
+        "A-1c: the same consent, in the other direction — the runner places the opposite of what this strategy decides."
+      ],
+      "discriminator": [
+        68,
+        252,
+        37,
+        249,
+        192,
+        81,
+        234,
+        176
+      ],
+      "accounts": [
+        {
+          "name": "subscriber",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy.strategy_id",
+                "account": "Strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "fade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy.strategy_id",
+                "account": "Strategy"
+              },
+              {
+                "kind": "account",
+                "path": "subscriber"
+              }
+            ]
+          }
+        },
+        {
+          "name": "subscription",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy.strategy_id",
+                "account": "Strategy"
+              },
+              {
+                "kind": "account",
+                "path": "subscriber"
+              }
+            ]
+          }
+        },
+        {
+          "name": "grant",
+          "docs": [
+            "The subscriber's own grant on `agari-vault`. The loader checks the vault owns it, so it is a real Grant."
+          ]
+        },
+        {
+          "name": "subscriber_token",
+          "docs": [
+            "Both token accounts are needed only when the strategy charges a fee."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "creator_token",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "collateral_mint"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "max_fee_base",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "subscriber_subscribe",
       "discriminator": [
         33,
@@ -519,6 +682,31 @@
           }
         },
         {
+          "name": "fade",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy.strategy_id",
+                "account": "Strategy"
+              },
+              {
+                "kind": "account",
+                "path": "subscriber"
+              }
+            ]
+          }
+        },
+        {
           "name": "grant",
           "docs": [
             "The subscriber's own grant on `agari-vault`. The loader checks the vault owns it, so it is a real Grant."
@@ -554,6 +742,78 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "subscriber_unfade",
+      "discriminator": [
+        8,
+        183,
+        191,
+        29,
+        6,
+        152,
+        174,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "subscriber",
+          "signer": true
+        },
+        {
+          "name": "strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy.strategy_id",
+                "account": "Strategy"
+              }
+            ]
+          }
+        },
+        {
+          "name": "fade",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  97,
+                  100,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy.strategy_id",
+                "account": "Strategy"
+              },
+              {
+                "kind": "account",
+                "path": "subscriber"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
     },
     {
       "name": "subscriber_unsubscribe",
@@ -638,6 +898,19 @@
   ],
   "accounts": [
     {
+      "name": "FadeSubscription",
+      "discriminator": [
+        150,
+        180,
+        249,
+        251,
+        214,
+        96,
+        183,
+        94
+      ]
+    },
+    {
       "name": "Registry",
       "discriminator": [
         47,
@@ -689,6 +962,19 @@
         110,
         22,
         133
+      ]
+    },
+    {
+      "name": "Faded",
+      "discriminator": [
+        123,
+        40,
+        254,
+        62,
+        39,
+        141,
+        83,
+        104
       ]
     },
     {
@@ -754,6 +1040,19 @@
         236,
         138,
         228
+      ]
+    },
+    {
+      "name": "Unfaded",
+      "discriminator": [
+        73,
+        160,
+        109,
+        211,
+        96,
+        147,
+        220,
+        172
       ]
     },
     {
@@ -878,6 +1177,21 @@
       "code": 6018,
       "name": "MathOverflow",
       "msg": "arithmetic overflowed"
+    },
+    {
+      "code": 6019,
+      "name": "AlreadyFollowing",
+      "msg": "this wallet already follows this strategy; unsubscribe before fading it"
+    },
+    {
+      "code": 6020,
+      "name": "AlreadyFading",
+      "msg": "this wallet already fades this strategy; stop fading before following it"
+    },
+    {
+      "code": 6021,
+      "name": "NotFading",
+      "msg": "this wallet does not fade this strategy"
     }
   ],
   "types": [
@@ -919,6 +1233,85 @@
               "Dearest own-side price in ticks; 0 = the strategy sets no price ceiling."
             ],
             "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FadeSubscription",
+      "docs": [
+        "PDA `[\"fade\", strategy_id u64 LE, subscriber]` — the same consent as a `Subscription`, in the other direction:",
+        "the runner places the opposite of what the strategy decided, for this subscriber only.",
+        "",
+        "Its own account type rather than a flag on `Subscription`, for two reasons. The live accounts on chain were",
+        "sized without it and would stop deserializing the day the field appeared; and a wallet that signed \"follow this",
+        "strategy\" has not consented to the opposite of it, so the two are different records, not one record with a",
+        "setting. A wallet may hold at most one of them active per strategy, which both instructions enforce."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "strategy_id",
+            "type": "u64"
+          },
+          {
+            "name": "subscriber",
+            "type": "pubkey"
+          },
+          {
+            "name": "grant",
+            "docs": [
+              "The vault Grant account this consent rests on."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "grant_id",
+            "type": "u64"
+          },
+          {
+            "name": "subscribed_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Faded",
+      "docs": [
+        "A wallet consented to be copied in the opposite direction (A-1c)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "strategy_id",
+            "type": "u64"
+          },
+          {
+            "name": "subscriber",
+            "type": "pubkey"
+          },
+          {
+            "name": "grant_id",
+            "type": "u64"
+          },
+          {
+            "name": "fee_base",
+            "type": "u64"
+          },
+          {
+            "name": "subscribers",
+            "type": "u32"
           }
         ]
       }
@@ -1372,6 +1765,26 @@
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Unfaded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "strategy_id",
+            "type": "u64"
+          },
+          {
+            "name": "subscriber",
+            "type": "pubkey"
+          },
+          {
+            "name": "subscribers",
+            "type": "u32"
           }
         ]
       }

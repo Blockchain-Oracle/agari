@@ -38,7 +38,7 @@ it("never resends an unknown release with no transaction hash", async () => {
 
 it("blocks another subscription while a release is uncertain", async () => {
   const ports = { load: () => ({ ...PROGRESS, releasePending: true }), save: vi.fn(), strategy: vi.fn(async () => null), grant: vi.fn(async () => null), createGrant: vi.fn(async () => ({ ok: true })), subscribed: vi.fn(async () => false), receipt: vi.fn(async () => null), subscribe: vi.fn(async () => ({ ok: true })), nowSec: 100 };
-  expect((await completeCopySetup({ strategyId: 1n, runner: OWNER, depositBase: 0n, budgetBase: 5n, caps: CAPS, feeBase: 0n }, ports)).ok).toBe(false);
+  expect((await completeCopySetup({ strategyId: 1n, runner: OWNER, depositBase: 0n, budgetBase: 5n, caps: CAPS, feeBase: 0n, fade: false }, ports)).ok).toBe(false);
   expect(ports.subscribe).not.toHaveBeenCalled();
   expect(ports.createGrant).not.toHaveBeenCalled();
 });

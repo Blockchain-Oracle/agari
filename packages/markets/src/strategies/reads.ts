@@ -1,13 +1,24 @@
-import { fetchAllMaybeStrategy, fetchAllMaybeSubscription, fetchMaybeRegistry, fetchMaybeStrategy, getSubscriptionDecoder, type Strategy, type Subscription } from "@agari/clients/agari-strategy";
+import {
+  FADE_SUBSCRIPTION_DISCRIMINATOR,
+  fetchAllMaybeFadeSubscription,
+  fetchAllMaybeStrategy,
+  fetchAllMaybeSubscription,
+  fetchMaybeRegistry,
+  fetchMaybeStrategy,
+  getSubscriptionDecoder,
+  SUBSCRIPTION_DISCRIMINATOR,
+  type Strategy,
+  type Subscription,
+} from "@agari/clients/agari-strategy";
 import type { Reading } from "@agari/core/schemas";
 import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
 import type { Address, Hex } from "@agari/core/types";
-import { getBase58Decoder, getBase64Encoder, getU64Encoder, type Base58EncodedBytes } from "@solana/kit";
+import { getBase58Decoder, getBase64Encoder, getU64Encoder, type Base58EncodedBytes, type ReadonlyUint8Array } from "@solana/kit";
 import { nowSec } from "../provider/clock";
 import { withReading } from "../provider/reading";
 import { solana } from "../runtime/solana";
 import { readGrantAccount, tickBaseOf } from "../vault/accounts";
-import { kit, registryAddress, strategyAddress, strategyProgramId, subscriptionAddress } from "./deployment";
+import { fadeAddress, kit, registryAddress, strategyAddress, strategyProgramId, subscriptionAddress } from "./deployment";
 
 /** tUSDC, the venue's one collateral: the scale the envelope's price ceiling is reported on. */
 const COLLATERAL_DECIMALS = 6;
@@ -65,7 +76,7 @@ export function getStrategy(strategyId: bigint): Promise<Reading<StrategyRecord 
  * Consent on record AND a grant the runner may act on now: the subscriber's, a strategy grant, to this runner, not
  * revoked and not expired. It is the program's own `eligible_grant` less the envelope, which was checked at subscribe.
  */
-async function toSubscription(data: Subscription, runner: Address | null): Promise<StrategySubscription> {
+async function toSubscription(data: Subscription, runner: Address | null, fade = false): Promise<StrategySubscription> {
   const grant = data.active ? await readGrantAccount(data.grantId) : null;
   const live = grant !== null
     && grant.owner === data.subscriber
@@ -80,6 +91,7 @@ async function toSubscription(data: Subscription, runner: Address | null): Promi
     subscribedAtSec: Number(data.subscribedAtSec),
     active: data.active,
     live,
+    fade,
   };
 }
 
@@ -88,35 +100,63 @@ async function runnerOf(strategyId: bigint): Promise<Address | null> {
   return account.exists ? (account.data.runner as string as Address) : null;
 }
 
-/** One wallet's consent records across the given strategies; a strategy it never subscribed to is simply absent. */
+/** One wallet's consent records across the given strategies, in either direction; one it never joined is absent. */
 export function listSubscriptionsOf(wallet: Address, strategyIds: readonly bigint[]): Promise<Reading<StrategySubscription[]>> {
   return withReading(`strategies:subs:${wallet}:${strategyIds.join(",")}`, async () => {
     if (strategyIds.length === 0) return [];
-    const accounts = await fetchAllMaybeSubscription(solana().rpc, await Promise.all(strategyIds.map(async (id) => kit(await subscriptionAddress(id, wallet)))));
-    const found = accounts.flatMap((account) => (account.exists ? [account.data] : []));
-    return Promise.all(found.map(async (data) => toSubscription(data, await runnerOf(data.strategyId))));
+    const [follows, fades] = await Promise.all([
+      fetchAllMaybeSubscription(solana().rpc, await Promise.all(strategyIds.map(async (id) => kit(await subscriptionAddress(id, wallet))))),
+      fetchAllMaybeFadeSubscription(solana().rpc, await Promise.all(strategyIds.map(async (id) => kit(await fadeAddress(id, wallet))))),
+    ]);
+    const found = [
+      ...follows.flatMap((account) => (account.exists ? [{ data: account.data as Subscription, fade: false }] : [])),
+      ...fades.flatMap((account) => (account.exists ? [{ data: account.data as unknown as Subscription, fade: true }] : [])),
+    ];
+    return Promise.all(found.map(async ({ data, fade }) => toSubscription(data, await runnerOf(data.strategyId), fade)));
   });
 }
 
-/** Every Subscription account of one strategy, found by its `strategy_id` prefix rather than by paging wallets. */
-async function subscriptionsOfStrategy(strategyId: bigint): Promise<Subscription[]> {
+/**
+ * Every consent record of one strategy in one direction, found by its `strategy_id` prefix rather than by paging
+ * wallets.
+ *
+ * A fade record is the same shape and the same size as a follow (A-1c), so the discriminator is part of the filter
+ * and not an afterthought: without it this read returns both and the runner would copy a fader straight.
+ */
+async function consentsOfStrategy(strategyId: bigint, discriminator: ReadonlyUint8Array): Promise<Subscription[]> {
   const prefix = getBase58Decoder().decode(getU64Encoder().encode(strategyId)) as Base58EncodedBytes;
+  const kind = getBase58Decoder().decode(discriminator) as Base58EncodedBytes;
   const rows = await solana().rpc
     .getProgramAccounts(kit(strategyProgramId()), {
       encoding: "base64",
-      filters: [{ dataSize: SUBSCRIPTION_BYTES }, { memcmp: { offset: STRATEGY_ID_OFFSET, bytes: prefix, encoding: "base58" } }],
+      filters: [
+        { dataSize: SUBSCRIPTION_BYTES },
+        { memcmp: { offset: 0n, bytes: kind, encoding: "base58" } },
+        { memcmp: { offset: STRATEGY_ID_OFFSET, bytes: prefix, encoding: "base58" } },
+      ],
     })
     .send();
   const decoder = getSubscriptionDecoder();
   return rows.map((row) => decoder.decode(getBase64Encoder().encode(row.account.data[0])));
 }
 
-/** The subscribers a runner may act for right now. */
+const subscriptionsOfStrategy = (strategyId: bigint) => consentsOfStrategy(strategyId, SUBSCRIPTION_DISCRIMINATOR);
+const fadesOfStrategy = (strategyId: bigint) => consentsOfStrategy(strategyId, FADE_SUBSCRIPTION_DISCRIMINATOR);
+
+/**
+ * The subscribers a runner may act for right now, followers and faders together.
+ *
+ * Each carries its own direction, so the runner sends one side to the followers and the other to the faders from
+ * one decision (`sideForSubscriber`).
+ */
 export function listLiveSubscribers(strategyId: bigint): Promise<Reading<StrategySubscription[]>> {
   return withReading(`strategies:live:${strategyId}`, async () => {
-    const [all, runner] = await Promise.all([subscriptionsOfStrategy(strategyId), runnerOf(strategyId)]);
-    const subscriptions = await Promise.all(all.map((data) => toSubscription(data, runner)));
-    return subscriptions.filter((subscription) => subscription.live);
+    const [follows, fades, runner] = await Promise.all([subscriptionsOfStrategy(strategyId), fadesOfStrategy(strategyId), runnerOf(strategyId)]);
+    const consents = await Promise.all([
+      ...follows.map((data) => toSubscription(data, runner, false)),
+      ...fades.map((data) => toSubscription(data, runner, true)),
+    ]);
+    return consents.filter((consent) => consent.live);
   });
 }
 

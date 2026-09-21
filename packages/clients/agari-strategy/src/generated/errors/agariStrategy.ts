@@ -52,8 +52,16 @@ export const AGARI_STRATEGY_ERROR__NOT_SUBSCRIBED = 0x1780; // 6016
 export const AGARI_STRATEGY_ERROR__WRONG_STRATEGY = 0x1781; // 6017
 /** MathOverflow: arithmetic overflowed */
 export const AGARI_STRATEGY_ERROR__MATH_OVERFLOW = 0x1782; // 6018
+/** AlreadyFollowing: this wallet already follows this strategy; unsubscribe before fading it */
+export const AGARI_STRATEGY_ERROR__ALREADY_FOLLOWING = 0x1783; // 6019
+/** AlreadyFading: this wallet already fades this strategy; stop fading before following it */
+export const AGARI_STRATEGY_ERROR__ALREADY_FADING = 0x1784; // 6020
+/** NotFading: this wallet does not fade this strategy */
+export const AGARI_STRATEGY_ERROR__NOT_FADING = 0x1785; // 6021
 
 export type AgariStrategyError =
+  | typeof AGARI_STRATEGY_ERROR__ALREADY_FADING
+  | typeof AGARI_STRATEGY_ERROR__ALREADY_FOLLOWING
   | typeof AGARI_STRATEGY_ERROR__ALREADY_SEALED
   | typeof AGARI_STRATEGY_ERROR__BAD_ENVELOPE
   | typeof AGARI_STRATEGY_ERROR__CAPS_OUTSIDE_ENVELOPE
@@ -64,6 +72,7 @@ export type AgariStrategyError =
   | typeof AGARI_STRATEGY_ERROR__METADATA_MISMATCH
   | typeof AGARI_STRATEGY_ERROR__METADATA_TOO_LONG
   | typeof AGARI_STRATEGY_ERROR__NOT_CREATOR
+  | typeof AGARI_STRATEGY_ERROR__NOT_FADING
   | typeof AGARI_STRATEGY_ERROR__NOT_GRANT_OWNER
   | typeof AGARI_STRATEGY_ERROR__NOT_SEALED
   | typeof AGARI_STRATEGY_ERROR__NOT_SUBSCRIBED
@@ -77,6 +86,8 @@ export type AgariStrategyError =
 let agariStrategyErrorMessages: Record<AgariStrategyError, string> | undefined;
 if (process.env["NODE_ENV"] !== "production") {
   agariStrategyErrorMessages = {
+    [AGARI_STRATEGY_ERROR__ALREADY_FADING]: `this wallet already fades this strategy; stop fading before following it`,
+    [AGARI_STRATEGY_ERROR__ALREADY_FOLLOWING]: `this wallet already follows this strategy; unsubscribe before fading it`,
     [AGARI_STRATEGY_ERROR__ALREADY_SEALED]: `the strategy's metadata is sealed; publish a new revision to change it`,
     [AGARI_STRATEGY_ERROR__BAD_ENVELOPE]: `an envelope needs a stake ceiling, a daily ceiling and a position ceiling`,
     [AGARI_STRATEGY_ERROR__CAPS_OUTSIDE_ENVELOPE]: `that grant's ceilings are wider than the strategy's envelope`,
@@ -87,6 +98,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [AGARI_STRATEGY_ERROR__METADATA_MISMATCH]: `the metadata written does not hash to what the creator declared`,
     [AGARI_STRATEGY_ERROR__METADATA_TOO_LONG]: `the metadata is longer than a strategy can hold`,
     [AGARI_STRATEGY_ERROR__NOT_CREATOR]: `only the strategy's creator may do that`,
+    [AGARI_STRATEGY_ERROR__NOT_FADING]: `this wallet does not fade this strategy`,
     [AGARI_STRATEGY_ERROR__NOT_GRANT_OWNER]: `that grant belongs to a different wallet`,
     [AGARI_STRATEGY_ERROR__NOT_SEALED]: `the strategy's metadata has not been sealed yet`,
     [AGARI_STRATEGY_ERROR__NOT_SUBSCRIBED]: `that wallet is not subscribed to that strategy`,

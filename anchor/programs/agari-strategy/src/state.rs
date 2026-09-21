@@ -131,6 +131,44 @@ pub struct Subscription {
     pub bump: u8,
 }
 
+/// PDA `["fade", strategy_id u64 LE, subscriber]` — the same consent as a `Subscription`, in the other direction:
+/// the runner places the opposite of what the strategy decided, for this subscriber only.
+///
+/// Its own account type rather than a flag on `Subscription`, for two reasons. The live accounts on chain were
+/// sized without it and would stop deserializing the day the field appeared; and a wallet that signed "follow this
+/// strategy" has not consented to the opposite of it, so the two are different records, not one record with a
+/// setting. A wallet may hold at most one of them active per strategy, which both instructions enforce.
+#[account]
+#[derive(InitSpace)]
+pub struct FadeSubscription {
+    pub strategy_id: u64,
+    pub subscriber: Pubkey,
+    /// The vault Grant account this consent rests on.
+    pub grant: Pubkey,
+    pub grant_id: u64,
+    pub subscribed_at_sec: i64,
+    pub active: bool,
+    pub bump: u8,
+}
+
+/// One wallet's consent to be traded for, in either direction. Both records answer it the same way, so the guard
+/// that refuses a wallet holding both can read either one without knowing which it has.
+pub trait Consent {
+    fn is_active(&self) -> bool;
+}
+
+impl Consent for Subscription {
+    fn is_active(&self) -> bool {
+        self.active
+    }
+}
+
+impl Consent for FadeSubscription {
+    fn is_active(&self) -> bool {
+        self.active
+    }
+}
+
 /// What a vault Grant has to be for `subscriber` to follow `strategy` with it: theirs, a strategy grant, naming this
 /// runner, live by the vault's own rule (`caps::require_live`), and inside the envelope.
 pub fn eligible_grant(grant: &Grant, strategy: &Strategy, subscriber: &Pubkey, now: i64) -> std::result::Result<(), StrategyError> {

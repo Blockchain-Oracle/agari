@@ -3,7 +3,16 @@ import type { VaultCaps, VaultGrant } from "@agari/core/vault";
 import { matchesProgressGrant, type CopyProgress } from "./copy-progress";
 
 export interface CopyWriteResult { ok: boolean; txHash?: Signature; reason?: string; stage?: "grant" | "subscribe"; unknown?: boolean }
-export interface CopySetupInput { strategyId: bigint; runner: Address; depositBase: bigint; budgetBase: bigint; caps: VaultCaps; feeBase: bigint }
+export interface CopySetupInput {
+  strategyId: bigint;
+  runner: Address;
+  depositBase: bigint;
+  budgetBase: bigint;
+  caps: VaultCaps;
+  feeBase: bigint;
+  /** A-1c: consent to the opposite of what this strategy decides. Everything else about the setup is identical. */
+  fade: boolean;
+}
 export interface CopySetupPorts {
   load: () => CopyProgress | null;
   save: (progress: CopyProgress | null) => void;

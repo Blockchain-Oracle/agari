@@ -1,7 +1,7 @@
 import {
   fetchMaybeRegistry, fetchMaybeStrategy, getCreatorDeactivateInstruction, getCreatorPublishInstructionAsync,
   getCreatorSealInstruction, getCreatorUpdateInstruction, getCreatorWriteMetadataInstruction,
-  getSubscriberSubscribeInstructionAsync, getSubscriberUnsubscribeInstruction,
+  getSubscriberFadeInstructionAsync, getSubscriberSubscribeInstructionAsync, getSubscriberUnfadeInstruction, getSubscriberUnsubscribeInstruction,
 } from "@agari/clients/agari-strategy";
 import type { PhaseListener, TxOutcome } from "@agari/core/ports";
 import { encodeSpec, encodeStrategyMetadata, type StrategyIntent, type StrategyMetadata, type StrategySpec } from "@agari/core/strategies";
@@ -14,7 +14,7 @@ import { OrderRefusedError } from "../submitter/errors";
 import { laneRefusal, submitLaneWrite } from "../submitter/lane-write";
 import type { WriteContext } from "../submitter/settle-write";
 import { grantAddress, tickBaseOf } from "../vault/accounts";
-import { kit, registryAddress, strategyAddress, strategyProgramId, subscriptionAddress } from "./deployment";
+import { fadeAddress, kit, registryAddress, strategyAddress, strategyProgramId, subscriptionAddress } from "./deployment";
 
 /** What `agari-strategy` gives every Strategy account (`MAX_METADATA_LEN`). */
 export const STRATEGY_METADATA_MAX_BYTES = 2_048;
@@ -95,15 +95,18 @@ async function transactionsFor(ctx: WriteContext, intent: StrategyIntent): Promi
   const strategy = kit(await strategyAddress(intent.strategyId));
   if (intent.kind === "strategy-deactivate") return [[getCreatorDeactivateInstruction({ creator: ctx.signer, strategy }, config)]];
 
-  const subscription = kit(await subscriptionAddress(intent.strategyId, ctx.wallet));
+  const [subscription, fade] = await Promise.all([subscriptionAddress(intent.strategyId, ctx.wallet), fadeAddress(intent.strategyId, ctx.wallet)]).then(([a, b]) => [kit(a), kit(b)] as const);
   if (intent.kind === "strategy-unsubscribe") return [[getSubscriberUnsubscribeInstruction({ subscriber: ctx.signer, strategy, subscription }, config)]];
+  if (intent.kind === "strategy-unfade") return [[getSubscriberUnfadeInstruction({ subscriber: ctx.signer, strategy, fade }, config)]];
 
   const [record, registry] = await Promise.all([fetchMaybeStrategy(rpc, strategy), fetchMaybeRegistry(rpc, kit(await registryAddress()))]);
   if (!record.exists || !registry.exists) throw new OrderRefusedError(diagnosis("not-deployed", `no strategy ${intent.strategyId}`));
   const mint = registry.data.collateralMint;
-  const shared = { subscriber: ctx.signer, strategy, subscription, grant: kit(await grantAddress(intent.grantId)), collateralMint: mint, tokenProgram: TOKEN_PROGRAM_ADDRESS };
+  // Both consents name both records: the program refuses a wallet that would hold a follow and a fade at once.
+  const shared = { subscriber: ctx.signer, strategy, subscription, fade, grant: kit(await grantAddress(intent.grantId)), collateralMint: mint, tokenProgram: TOKEN_PROGRAM_ADDRESS };
+  const write = intent.kind === "strategy-fade" ? getSubscriberFadeInstructionAsync : getSubscriberSubscribeInstructionAsync;
   // `feeBase` is the fee the subscriber was shown. The program refuses a higher one rather than charge it.
-  if (record.data.subscriptionFeeBase === 0n) return [[await getSubscriberSubscribeInstructionAsync({ ...shared, maxFeeBase: intent.feeBase }, config)]];
+  if (record.data.subscriptionFeeBase === 0n) return [[await write({ ...shared, maxFeeBase: intent.feeBase }, config)]];
 
   const [[subscriberToken], [creatorToken]] = await Promise.all([
     findAssociatedTokenPda({ owner: kit(ctx.wallet), mint, tokenProgram: TOKEN_PROGRAM_ADDRESS }),
@@ -111,7 +114,7 @@ async function transactionsFor(ctx: WriteContext, intent: StrategyIntent): Promi
   ]);
   // A creator who has never held the collateral has no account to be paid into; the subscriber opens it for them.
   const open = await getCreateAssociatedTokenIdempotentInstructionAsync({ payer: ctx.signer, owner: record.data.creator, mint });
-  return [[open, await getSubscriberSubscribeInstructionAsync({ ...shared, subscriberToken, creatorToken, maxFeeBase: intent.feeBase }, config)]];
+  return [[open, await write({ ...shared, subscriberToken, creatorToken, maxFeeBase: intent.feeBase }, config)]];
 }
 
 /**

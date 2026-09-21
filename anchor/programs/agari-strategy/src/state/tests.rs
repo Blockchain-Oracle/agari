@@ -156,3 +156,69 @@ fn an_inactive_strategy_takes_nobody_even_when_sealed() {
     s.active = false;
     assert_eq!(s.takes_subscribers(), Err(StrategyError::StrategyInactive));
 }
+
+/// A-1c: the two consent records, and the rule that a wallet may hold only one of them.
+mod fade {
+    use super::*;
+    use anchor_lang::{AccountDeserialize, AccountSerialize, Discriminator};
+
+    fn subscription(active: bool) -> Subscription {
+        Subscription { strategy_id: 1, subscriber: key(9), grant: key(4), grant_id: 7, subscribed_at_sec: NOW, active, bump: 254 }
+    }
+
+    fn fade_record(active: bool) -> FadeSubscription {
+        FadeSubscription { strategy_id: 1, subscriber: key(9), grant: key(4), grant_id: 7, subscribed_at_sec: NOW, active, bump: 253 }
+    }
+
+    fn bytes<T: AccountSerialize>(record: &T) -> Vec<u8> {
+        let mut out = Vec::new();
+        record.try_serialize(&mut out).unwrap();
+        out
+    }
+
+    /// What the instruction's guard does with a buffer: deserialize as the expected record, or treat it as no consent.
+    fn reads_active<T: AccountDeserialize + Consent>(data: &[u8]) -> bool {
+        T::try_deserialize(&mut &data[..]).map(|record| record.is_active()).unwrap_or(false)
+    }
+
+    #[test]
+    fn the_two_records_are_different_account_types() {
+        assert_ne!(Subscription::DISCRIMINATOR, FadeSubscription::DISCRIMINATOR);
+    }
+
+    #[test]
+    fn a_live_follow_is_consent_and_a_cancelled_one_is_not() {
+        assert!(reads_active::<Subscription>(&bytes(&subscription(true))));
+        assert!(!reads_active::<Subscription>(&bytes(&subscription(false))));
+        assert!(reads_active::<FadeSubscription>(&bytes(&fade_record(true))));
+        assert!(!reads_active::<FadeSubscription>(&bytes(&fade_record(false))));
+    }
+
+    /// The guard is handed an address, not a type: a follow record where a fade is expected must not count, or a
+    /// wallet that follows a strategy could never fade any other one.
+    #[test]
+    fn one_record_is_never_mistaken_for_the_other() {
+        assert!(!reads_active::<FadeSubscription>(&bytes(&subscription(true))));
+        assert!(!reads_active::<Subscription>(&bytes(&fade_record(true))));
+    }
+
+    /// An account that was never created reads as empty, and a truncated one must not be read past its end.
+    #[test]
+    fn an_absent_or_half_written_record_is_no_consent() {
+        assert!(!reads_active::<Subscription>(&[]));
+        assert!(!reads_active::<FadeSubscription>(&[]));
+        assert!(!reads_active::<Subscription>(&[0u8; 8]));
+        let whole = bytes(&subscription(true));
+        for cut in [8, 16, whole.len() - 1] {
+            assert!(!reads_active::<Subscription>(&whole[..cut]), "a {cut}-byte buffer is not a consent record");
+        }
+    }
+
+    /// Both records carry the same shape, which is what lets one guard read either.
+    #[test]
+    fn a_fade_records_the_same_consent_as_a_follow() {
+        let (follow, fade) = (subscription(true), fade_record(true));
+        assert_eq!((follow.strategy_id, follow.subscriber, follow.grant, follow.grant_id), (fade.strategy_id, fade.subscriber, fade.grant, fade.grant_id));
+        assert_eq!(8 + Subscription::INIT_SPACE, 8 + FadeSubscription::INIT_SPACE);
+    }
+}

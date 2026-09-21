@@ -13,5 +13,7 @@ export * from "./creatorSeal";
 export * from "./creatorSetRunner";
 export * from "./creatorUpdate";
 export * from "./creatorWriteMetadata";
+export * from "./subscriberFade";
 export * from "./subscriberSubscribe";
+export * from "./subscriberUnfade";
 export * from "./subscriberUnsubscribe";

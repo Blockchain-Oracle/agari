@@ -277,3 +277,14 @@ export const AGENTS = {
   },
   notDeployed: { dependency: "the strategy registry program (planned after the hackathon deadline; the fill projection it ranks with is live)" },
 } as const;
+
+/** A-1c: copy a strategy, or take the other side of it. The words say what the runner will actually send. */
+export const STRATEGY_DIRECTION = {
+  label: "How you are copied",
+  copy: "Copy it",
+  fade: "Fade it",
+  copyNote: "The runner places what this strategy decides, inside your limits.",
+  fadeNote: "The runner places the opposite of what this strategy decides, inside the same limits. It is an ordinary call on the other side of the same Window — not a short, and not a different venue.",
+  lockedCopy: "You are copying this strategy. Pause it to switch to fading.",
+  lockedFade: "You are fading this strategy: the runner places the opposite of its calls. Pause it to switch to copying.",
+} as const;

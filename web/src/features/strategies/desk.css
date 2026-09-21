@@ -104,3 +104,14 @@
 @keyframes desk-pulse { 50% { opacity: 0.5; } }
 /* the +N chips: font-mono text-[10px] (desk-chip colours live in part-18) */
 .desk-chip-sized { font-size: 10px; }
+
+/* A-1c: copy a strategy, or take the other side of it. Two pills in the desk's own idiom; the chosen one carries
+ * the vermilion the rest of the drawer uses for what is active, and the fade side carries the down wash. */
+.strat-direction { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.strat-direction-pill { border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); padding: 10px 12px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray-300); background: transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s, background 0.2s; }
+.strat-direction-pill:hover:not(:disabled) { color: var(--white); border-color: color-mix(in srgb, var(--white) 30%, transparent); }
+.strat-direction-pill:disabled { opacity: 0.45; cursor: not-allowed; }
+.strat-direction-pill[aria-checked="true"] { border-color: rgba(224, 77, 38, 0.6); color: var(--color-vermilion); background: color-mix(in srgb, var(--vermilion) 10%, transparent); }
+.strat-direction-pill[aria-checked="true"]:last-child { border-color: var(--button-down-border); color: var(--button-down-ink); background: var(--button-down-fill); }
+[data-theme="light"] .strat-direction-pill { border-color: rgba(20, 18, 16, 0.16); color: rgba(20, 18, 16, 0.68); }
+[data-theme="light"] .strat-direction-pill:hover:not(:disabled) { color: rgba(20, 18, 16, 0.9); }
