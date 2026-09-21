@@ -1,4 +1,29 @@
-# STATUS — updated 2026-09-21 ~01:45 UTC by Claude (**Overnight on `integration/w1`: the achievements plate built and earned from the chain's own record, then every remaining S12a surface driven by a wallet that really signs. Parity moved from 32 Done to 50, and a real scaling bug in Range and Moonshot was found and fixed.** Clean. Five standalone processes run beside the soak: the strategy runner (8790), the leverage keeper (8791), the duel room with its matchmaker, projector and settler (room on 8795), and `:3100`. NEXT = **the weekday lane work**, which is all that is left of S12a and S12b: a Lucky spin that deals, a Practice round that completes, and a duel played by hand in the browser — each needs a catalogue Window the price feed can price, and at 01:45Z the venue has none. Owed on a weekday session: parlay's full win and claim, and Boost, Private desk and the arena on a live maker-quoted lane. Owed from the user: a wallet pass on `:3100`.)
+# STATUS — updated 2026-09-21 ~12:05 UTC by Claude (**Stage 14 built in full and proven on devnet; nine defects found by driving it**)
+
+## Session of 2026-09-21 (Stage 14) — READ THIS FIRST
+
+**Stage 14 is complete.** Every row it owns is `Done` in `parity.md` with an `acceptance.md` row, except **A-1b**, which waits on the user's Q-004 answer and was left untouched by agreement.
+
+- **A-2b** `/earn` is one tab per reserve (maker vault · range & moonshot · parlay · boost), one `ReserveSheet` in `packages/core/src/reserves`, one supplier panel. Six devnet transactions across all four reserves.
+- **A-1a** "Betting against": one switch puts DOWN first on the ticket, the pre-open ticket and every lane card, and opens any Window tapped without a side on DOWN. A real DOWN call was placed through it.
+- **A-2c** Realized / on paper, from the two lifetime counters every provider account keeps. No rate anywhere.
+- **A-2a** Q-005 answered as recorded: idle collateral earns nothing, the lenders are mainnet-only, and the reserves' own share prices are the honest number (one of them below par).
+- **A-1c** Fade: `FadeSubscription` is its own consent record (devnet upgrade `5F5cUiVQ…`, dump sha256 = local). One DOWN decision put the fader **UP and filled** while the follower took DOWN.
+- **A-3b** Copy a trader: a `mirror` preset whose signal is one wallet's own fills. A human's DOWN call was copied for a subscriber **19 seconds later**, same Window, price and size.
+- **A-3a** Q-S13-8 closed: the Friends tab is mounted on `/leaderboard`.
+- **L-10** D-120: the wrong-network banner cannot fire on Solana; the per-control `wrong-chain` guard is the port.
+- **L-55** The self-host runner (`runner-main.ts`) ran alone and an agent spec made a real model call, holding in its own words. **Owed: a model call that trades** — the agent reads once per Window at its slot.
+
+**Nine defects found by driving, all fixed and pushed.** The ones that matter beyond their own row:
+1. `programIdOf` did not fall back to the vault's own client address, so **any ops actor without `NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID` believed there was no Trading Balance** and the strategy runner refused every subscriber as "grant not live" with four live grants on chain.
+2. A stale vault read was reported as "grant not live" — an outage accusing the subscriber's permission. It holds and names the failed read now.
+3. A live runner from 09-20 was still reading consent records by **size alone**, so it copied a fader straight (a real UP fill at 10:03Z). The reads pin the account discriminator now; a `FadeSubscription` is deliberately the same size as a `Subscription`.
+4. Three defects made the **private desk unusable from a browser**: the authorisation signed `chainId: 0` while the desk verified against devnet (103); a refusal that never touched the chain stayed "pending" forever and locked private mode for that wallet; and the resume itself was unreachable behind a `1n` stand-in stake.
+5. `/markets/<id>` dropped its market id, so a shared Window link previewed one Window and opened another.
+
+**Devnet state after this session:** `agari-strategy` upgraded (slot 501,847,980) — two attempts failed on the public endpoint first, the third landed over the keyed one, and only hashing `program dump` caught it. Strategies **#5 'Shadow of EfTzYt'** (mirror) and **#6 'Window Reader'** (agent) are published and subscribed; **#7** was a duplicate I published from a faulty `dataSize` enumeration and is deactivated. Two runners are detached and running: the ops strategy runner on `STRATEGY_IDS=2,5` and the self-host `runner-main.ts` on `STRATEGY_IDS=6`, both through the keyed RPC. `:3100` serves the current build **with `PRIVATE_DESK_PRIVATE_KEY` set** — without it the private route is unavailable and says so.
+
+**Next:** the agent's trading fill (L-55), then D-119, PD-2/D-109 and Q-004 — all three need the user, not more building.
 
 ## Overnight session of 2026-09-20 → 09-21 (achievements, and the games driven by a real wallet) — READ THIS FIRST
 
