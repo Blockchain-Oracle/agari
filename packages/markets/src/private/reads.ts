@@ -1,4 +1,5 @@
 import { fetchMaybeBudget, fetchMaybeDesk, fetchMaybeKeyMark, fetchMaybeSlot, type Slot } from "@agari/clients/agari-private";
+import { CLUSTER_ID, DEFAULT_CLUSTER, type Cluster } from "@agari/core/constants";
 import { walkBudget, walkQuantity } from "@agari/core/leverage";
 import type { PrivateBudget, PrivateDeskState, PrivateParams, PrivateQuote, PrivateSlot } from "@agari/core/private";
 import type { Reading } from "@agari/core/schemas";
@@ -9,6 +10,7 @@ import { readBoostBook } from "../leverage/book";
 import { nowMs, nowSec } from "../provider/clock";
 import { withReading } from "../provider/reading";
 import { requireProgramSeat } from "../runtime/program-seat";
+import { peekClient } from "../runtime/read-runtime";
 import { solana } from "../runtime/solana";
 import { budgetAddress, chargeMarkAddress, creditMarkAddress, deskAddress, kit, privateProgramId, seatAddress, slotAddress } from "./deployment";
 
@@ -32,7 +34,11 @@ export function getPrivateDeskState(): Promise<Reading<PrivateDeskState | null>>
     const desk = await readDesk();
     if (!desk) return null;
     return {
-      deployment: { chainId: 0, privateDesk: desk.address, fromBlock: 0n },
+      // The cluster id is part of the authorisation a wallet signs (`privateOpenMessage`), and the desk rebuilds
+      // that text with its own. A placeholder 0 here — which every other product deployment can afford, because
+      // none of them signs anything with it — meant the browser signed for chain 0 and the desk verified against
+      // devnet, so every private bet from the app was refused "authorisation was not signed by the owner".
+      deployment: { chainId: CLUSTER_ID[(peekClient()?.cluster ?? DEFAULT_CLUSTER) as Cluster], privateDesk: desk.address, fromBlock: 0n },
       params: paramsOf(desk.data.params),
       desk: desk.data.desk as string as Address,
       paused: desk.data.paused,
