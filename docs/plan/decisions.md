@@ -1259,6 +1259,20 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 
 | Q | Question | Status / default | Blocks |
 |---|---|---|---|
+### D-120
+
+**The wrong-network banner cannot fire on Solana, so it is not mounted. L-10 is the per-control refusal instead.**
+
+Found 2026-09-21 while closing out L-10, whose gap read "`WrongNetworkBanner.tsx` is mounted only in `/dev/states`, not in the app shell".
+
+`useWalletSession` returns `isRightChain: isConnected` — always, by construction — and says why in its own comment: the cluster is the **app's**, chosen by the RPC endpoint it is configured with, not the wallet's. A Wallet Standard wallet signs whatever transaction it is handed; it has no chain of its own to be on the wrong side of, and there is no `switchChain` to offer. The EVM-era `switchToShannon` was dropped with the port for the same reason.
+
+Mounting the banner in the shell would therefore add a component that can never render. That is worse than leaving it out: a state nobody can reach still has to be read, maintained and explained.
+
+What the reference's banner was *for* — telling someone why they cannot sign — is already carried, per control, by the `wrong-chain` blocker in `ticket-guards.ts`, `schedule-guards.ts`, `faucet-blocker.ts` and `claim-blocker.ts`. Those fire on the one condition that can actually occur (no connection), through the same words.
+
+**Decision:** L-10 is **Adapted / Done**: the guard is the port, and the banner stays in `/dev/states` as the reference artifact it is, unreachable by design rather than by omission. If a future deployment ever lets the wallet choose a cluster, this reverses and the banner has a home.
+
 ### D-119
 
 **The range and moonshot tickets build their band from the live spot; the reserve prices it from the Window's opening print. Recorded, not fixed.**
