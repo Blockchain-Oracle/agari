@@ -2,7 +2,7 @@ import {
   Activity, BarChart3, BookOpen, Bot, ChartCandlestick, ChartLine, ChartNoAxesCombined,
   CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
   Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, ScanSearch,
-  Trophy, WalletCards, X as XLogo, type LucideIcon,
+  TrendingDown, Trophy, WalletCards, X as XLogo, type LucideIcon,
 } from "lucide-react";
 import { DOCS_URL } from "../../../lib/docs-url";
 
@@ -137,6 +137,13 @@ export const NAV_ITEMS = {
     icon: XLogo,
   },
   earn: { id: "earn", name: "Earn", href: "/earn", description: "Put capital into earning opportunities.", icon: Coins },
+  short: {
+    id: "short",
+    name: "Short",
+    href: "/short",
+    description: "Sell a stock's fall, and manage the position.",
+    icon: TrendingDown,
+  },
   parlay: {
     id: "parlay",
     name: "Parlay",
@@ -266,7 +273,7 @@ export const EXPLORE_GROUP: NavGroup = {
       id: "trade",
       name: "Trade",
       description: "More ways to make a call",
-      items: [NAV_ITEMS.earn, NAV_ITEMS.parlay, NAV_ITEMS.sensei],
+      items: [NAV_ITEMS.short, NAV_ITEMS.earn, NAV_ITEMS.parlay, NAV_ITEMS.sensei],
     },
     {
       id: "proof",
@@ -315,7 +322,7 @@ export const NAVIGABLE_ROUTE_PATHS = [
   "/activity", "/agents", "/claim", "/demo",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
-  "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/reels", "/stats",
+  "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/reels", "/short", "/stats",
   "/status", "/strategies", "/surface", "/trade-from-x",
 ] as const;
 

@@ -1,0 +1,190 @@
+/* `/short` — A-1b, the inverse position. A surface the reference does not have, so it is built from the
+ * venue's own vocabulary rather than ported: the shared `.earn-card` / `.earn-field` shells (yosuku
+ * part-17.css) carry the borders and both themes, and everything below is layout on top of them.
+ *
+ * Two rules learned the hard way and kept here:
+ *  - `sh-` is not a Tailwind utility namespace, and no `--spacing-sh*` token exists, so these class names
+ *    cannot be silently minted as utilities the way `.pl-section` once was (see parlay-page.css).
+ *  - Every colour is a theme variable that actually flips (`--vermilion`, `--gray-*`, `--white`), never a
+ *    `--color-*` @theme constant, except `--color-warning`, which is fixed and so carries a light override. */
+
+.sh-page { padding-top: 28px; padding-bottom: 64px; }
+
+/* ── hero ── */
+.sh-hero { margin-bottom: 48px; }
+.sh-eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--vermilion) 80%, transparent);
+}
+.sh-lede { max-width: 62ch; margin-top: 16px; font-size: 13px; line-height: 1.7; color: var(--gray-500); }
+
+.sh-block { margin-bottom: 32px; }
+.sh-block-body { margin-top: 24px; }
+
+/* A shared label: mono, uppercase, quiet — the `.ea-k` ladder. */
+.sh-k { display: block; margin-bottom: 8px; font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gray-500); }
+.sh-k--gap { margin-top: 20px; }
+
+/* ── §01 open: the picker and the ticket, side by side once there is room ── */
+.sh-open { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (min-width: 1024px) { .sh-open { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); } }
+
+.sh-picker, .sh-ticket { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); border-radius: 16px; padding: 24px; }
+[data-theme="light"] .sh-picker, [data-theme="light"] .sh-ticket { border-color: rgba(20, 18, 16, 0.10); background: rgba(20, 18, 16, 0.015); box-shadow: 0 20px 44px -32px rgba(20, 18, 16, 0.16); }
+@media (max-width: 420px) { .sh-picker, .sh-ticket { padding: 16px; } }
+
+.sh-picker-note { font-family: var(--font-mono); font-size: 12px; color: var(--gray-600); }
+.sh-picker-empty { padding: 28px 0; text-align: center; }
+.sh-picker-empty-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; }
+.sh-picker-empty-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }
+
+/* The stocks: a wrapping row of chips, each naming how many windows it has live. */
+.sh-stocks { display: flex; flex-wrap: wrap; gap: 8px; }
+.sh-stock {
+  display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 12px; padding: 10px 14px;
+  background: transparent; cursor: pointer; transition: border-color 150ms var(--ease), background 150ms var(--ease), color 150ms var(--ease);
+}
+[data-theme="light"] .sh-stock { border-color: rgba(20, 18, 16, 0.14); }
+.sh-stock:hover { border-color: rgba(255, 255, 255, 0.24); }
+[data-theme="light"] .sh-stock:hover { border-color: rgba(20, 18, 16, 0.26); }
+/* The selected state is a class, not a descendant rule, so a light override can never outrank it. */
+.sh-stock--on { border-color: color-mix(in srgb, var(--vermilion) 55%, transparent); background: color-mix(in srgb, var(--vermilion) 13%, transparent); }
+.sh-stock-a { font-family: var(--font-display); font-weight: 700; font-size: 14px; line-height: 1.1; color: var(--white); }
+.sh-stock-n { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; color: var(--gray-600); }
+
+/* The windows of the chosen stock, each priced from the top of its own book. */
+.sh-windows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+@media (min-width: 560px) { .sh-windows { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); } }
+.sh-window {
+  display: flex; align-items: center; gap: 10px; text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 12px; padding: 12px 14px;
+  background: transparent; cursor: pointer; transition: border-color 150ms var(--ease), background 150ms var(--ease);
+}
+[data-theme="light"] .sh-window { border-color: rgba(20, 18, 16, 0.14); }
+.sh-window:hover { border-color: rgba(255, 255, 255, 0.24); }
+[data-theme="light"] .sh-window:hover { border-color: rgba(20, 18, 16, 0.26); }
+.sh-window--on { border-color: color-mix(in srgb, var(--vermilion) 55%, transparent); background: color-mix(in srgb, var(--vermilion) 13%, transparent); }
+.sh-window-c { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--white); }
+.sh-window-t { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); }
+.sh-window-p { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; margin-left: auto; }
+.sh-window-pk { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray-600); }
+.sh-window-pv { font-size: 14px; line-height: 1.1; color: var(--white); }
+
+/* ── the ticket ── */
+.sh-ticket--connect { text-align: center; }
+.sh-connect-t { font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-500); margin-bottom: 16px; }
+/* The button is centred by its own row, not by making the button a flex container. */
+.sh-cta-row { display: flex; justify-content: center; }
+
+.sh-field-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; min-width: 0; }
+.sh-field-head .sh-k { margin-bottom: 0; font-size: 10px; color: var(--gray-600); }
+.sh-wallet { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1; }
+.sh-field { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 12px; padding: 14px 16px; transition: border-color 200ms var(--ease); }
+[data-theme="light"] .sh-field { border-color: rgba(20, 18, 16, 0.16); background: rgba(255, 255, 255, 0.45); }
+.sh-field:focus-within { border-color: rgba(255, 255, 255, 0.25); }
+[data-theme="light"] .sh-field:focus-within { border-color: color-mix(in srgb, var(--vermilion) 50%, transparent); }
+.sh-input { background: transparent; flex: 1; font-size: 24px; line-height: 32px; min-width: 0; color: inherit; }
+.sh-input:focus:not(:focus-visible) { outline: none; }
+.sh-max { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vermilion); background: transparent; cursor: pointer; transition: color 150ms var(--ease); }
+.sh-max:hover:not(:disabled) { color: var(--white); }
+.sh-max:disabled { opacity: 0.4; cursor: not-allowed; }
+.sh-unit { font-family: var(--font-mono); font-size: 14px; color: var(--gray-500); }
+
+.sh-multiples { display: flex; gap: 8px; }
+.sh-multiple {
+  flex: 1; border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 10px; padding: 10px 0;
+  font-family: var(--font-mono); font-size: 13px; color: var(--gray-500);
+  background: transparent; cursor: pointer; transition: border-color 150ms var(--ease), background 150ms var(--ease), color 150ms var(--ease);
+}
+[data-theme="light"] .sh-multiple { border-color: rgba(20, 18, 16, 0.14); }
+.sh-multiple:hover { color: var(--gray-300); }
+.sh-multiple--on { border-color: color-mix(in srgb, var(--vermilion) 55%, transparent); background: color-mix(in srgb, var(--vermilion) 13%, transparent); color: var(--white); }
+.sh-hint { margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--gray-600); }
+
+.sh-readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+[data-theme="light"] .sh-readout { border-top-color: rgba(20, 18, 16, 0.08); }
+.sh-cell dt { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray-600); margin-bottom: 4px; }
+.sh-cell dd { font-size: 14px; line-height: 1.2; color: var(--white); }
+
+.sh-note { margin-top: 12px; font-size: 11px; line-height: 1.6; color: var(--gray-500); }
+.sh-note--warn { color: var(--color-warning); }
+[data-theme="light"] .sh-note--warn { color: #A85A12; }
+
+.sh-cta {
+  display: block; width: 100%; margin-top: 16px; border-radius: 9999px; padding: 14px 0;
+  background: var(--vermilion); color: #fff; font-weight: 600; cursor: pointer;
+  transition: background 150ms var(--ease), transform 150ms var(--ease);
+}
+.sh-cta:hover:not(:disabled) { background: var(--vermilion-d); }
+.sh-cta:active:not(:disabled) { transform: scale(0.98); }
+.sh-cta:disabled { opacity: 0.4; cursor: not-allowed; }
+.sh-knock { margin-top: 10px; text-align: center; font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); }
+
+/* ── §02 the wallet's shorts ── */
+.sh-empty { border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 32px 20px; text-align: center; }
+[data-theme="light"] .sh-empty { border-color: rgba(20, 18, 16, 0.10); background: rgba(251, 247, 238, 0.94); }
+.sh-empty-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 8px; }
+.sh-empty-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }
+
+.sh-totals { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-bottom: 14px; font-size: 12px; color: var(--white); }
+.sh-totals-n { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); }
+.sh-totals-flex { flex: 1 1 auto; }
+.sh-totals-k { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray-600); }
+.sh-totals-pnl { font-size: 12px; }
+
+.sh-list { display: grid; gap: 12px; }
+.sh-done-head { margin: 28px 0 12px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-600); }
+
+.sh-pos { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); border-radius: 14px; padding: 16px 18px; }
+[data-theme="light"] .sh-pos { border-color: rgba(20, 18, 16, 0.10); background: rgba(251, 247, 238, 0.94); }
+.sh-pos--done { opacity: 0.72; }
+.sh-pos-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.sh-pos-asset { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--white); }
+.sh-pos-asset:hover { color: var(--vermilion); }
+.sh-pos-x { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--vermilion); }
+.sh-pos-c, .sh-pos-left, .sh-pos-state { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); }
+.sh-pos-state { color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.12em; }
+.sh-pos-flex { flex: 1 1 auto; }
+
+.sh-pos-body { margin-top: 12px; }
+.sh-figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 560px) { .sh-figs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.sh-fig dt { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray-600); margin-bottom: 4px; }
+.sh-fig dd { font-size: 13px; line-height: 1.25; color: var(--white); }
+.sh-fig-now { color: var(--gray-500); }
+.sh-fig-pnl { display: block; margin-top: 2px; font-size: 11px; }
+
+.sh-line { margin-top: 12px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--gray-600); }
+.sh-line--close { color: var(--color-warning); }
+[data-theme="light"] .sh-line--close { color: #A85A12; }
+.sh-line--at-line { color: var(--color-warning); font-weight: 600; }
+[data-theme="light"] .sh-line--at-line { color: #A85A12; }
+
+.sh-pos-unpriced { margin-top: 12px; font-size: 11px; line-height: 1.6; color: var(--gray-600); }
+.sh-pos-unpriced-t { color: var(--color-warning); }
+[data-theme="light"] .sh-pos-unpriced-t { color: #A85A12; }
+.sh-done { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-size: 13px; color: var(--white); }
+.sh-done .sh-fig-pnl { display: inline; margin-top: 0; }
+
+.sh-pos-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px; }
+.sh-owed { font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); }
+.sh-act { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-500); background: transparent; cursor: pointer; transition: color 150ms var(--ease); }
+.sh-act:hover:not(:disabled) { color: var(--white); }
+.sh-act:disabled { opacity: 0.4; cursor: not-allowed; }
+.sh-act--primary { color: var(--vermilion); }
+.sh-act--primary:hover:not(:disabled) { color: var(--vermilion-d); }
+
+/* ── §03 how ── */
+.sh-how { display: grid; gap: 16px; }
+@media (min-width: 640px) { .sh-how { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.sh-how-card { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(23, 23, 23, 0.4); padding: 20px; }
+[data-theme="light"] .sh-how-card { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+.sh-how-n { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; color: var(--vermilion); margin-bottom: 8px; }
+.sh-how-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; }
+.sh-how-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }

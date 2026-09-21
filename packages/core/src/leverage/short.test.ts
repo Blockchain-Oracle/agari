@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { shortBookTotals, shortHealth, shortMarkPriceRaw, shortPnl, shortPriced, shortResult } from "./short";
+import type { MarketId } from "../types/ids";
+import type { Address } from "../types/primitives";
 import type { LeverageMark, LeveragePosition } from "./types";
 
 /**
@@ -8,10 +10,10 @@ import type { LeverageMark, LeveragePosition } from "./types";
  * which side was bought, so these keep the side they were recorded with rather than being relabelled `down`.
  */
 const base = {
-  owner: "EfTzYtM22yPbriCaFaKEK7pMrWoEfmFoqNtp8vDELmgp",
+  owner: "EfTzYtM22yPbriCaFaKEK7pMrWoEfmFoqNtp8vDELmgp" as Address,
   status: "live",
   side: "up",
-  marketId: "BpKpucLR",
+  marketId: "BpKpucLR" as unknown as MarketId,
   openedAtSec: 0,
   expirySec: 900,
   exitedAtSec: null,
