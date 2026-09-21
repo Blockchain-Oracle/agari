@@ -44,6 +44,8 @@ export const LEADERBOARD = {
     stamp: (period: BoardPeriod) => (period === "24h" ? "TODAY'S BOARD" : "SESSION BOARD"),
     stampSub: (span: BoardSpan) => (span.period === "24h" ? "ROLLING" : span.sessionDate === null ? "—" : dateLabel(span.sessionDate).toUpperCase()),
     periods: { session: "This session", "24h": "Last 24 hours" } as Record<BoardPeriod, string>,
+    scopeGroup: "Whose calls",
+    scopes: { all: "Everyone", friends: "Friends" },
     periodGroup: "Board period",
     closedCalls: (n: number, span: BoardSpan, complete: boolean, ticker: string | null) =>
       `${n.toLocaleString()} closed calls${ticker ? ` · ${ticker}` : ""} · ${coverage(span, complete)}`,
@@ -59,6 +61,8 @@ export const LEADERBOARD = {
   },
   failed: "The board is taking longer than expected. We'll check again automatically.",
   retry: "Try again",
+  /** Q-S13-8: the same 24-hour board, filtered to the wallets you follow. */
+  friends: { number: "03", title: "Friends", desc: "The same settled 24-hour ranking, filtered to the people you follow — and you." },
   podium: {
     number: "01",
     title: "The podium",

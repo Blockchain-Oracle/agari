@@ -13,7 +13,12 @@ interface BoardFiltersProps {
   onBoard: (board: BoardQuery) => void;
   /** The filter meta: closed calls and how much of the period the scan covers. */
   meta: string;
+  /** Q-S13-8: the whole board, or only the wallets you follow. */
+  scope: BoardScope;
+  onScope: (scope: BoardScope) => void;
 }
+
+export type BoardScope = "all" | "friends";
 
 // 6d keys paused tickers by reason; the board never pauses a ticker.
 const NO_PAUSES: ReadonlyMap<TickerSymbol, string> = new Map();
@@ -25,9 +30,24 @@ const BOARD_TICKERS = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].launch);
  * live: the period tabs keep that exact look, and the tickers are the picker `/markets` already uses (the same
  * `.asset-tabs`). Yosuku drew periods and assets as two groups in one bar (`app/leaderboard/page.tsx` L215–241).
  */
-export function BoardFilters({ board, onBoard, meta }: BoardFiltersProps) {
+export function BoardFilters({ board, onBoard, meta, scope, onScope }: BoardFiltersProps) {
   return (
     <div className="lb-filter-bar">
+      {/* Q-S13-8: everyone, or the people you follow. The Friends board reads the same 24-hour payload. */}
+      <div className="asset-tabs lb-scopes" role="group" aria-label={LEADERBOARD.hero.scopeGroup}>
+        {(["all", "friends"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            className={cn("asset-tab", scope === option && "active")}
+            aria-pressed={scope === option}
+            onClick={() => onScope(option)}
+            data-cursor="hover"
+          >
+            {LEADERBOARD.hero.scopes[option]}
+          </button>
+        ))}
+      </div>
       <div className="asset-tabs lb-periods" role="group" aria-label={LEADERBOARD.hero.periodGroup}>
         {BOARD_PERIODS.map((period) => (
           <button

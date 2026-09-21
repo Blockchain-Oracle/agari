@@ -8,6 +8,7 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
 import type { BoardQuery } from "./leaderboard-client";
+import type { BoardScope } from "./BoardFilters";
 import { LeaderboardBoard } from "./LeaderboardBoard";
 import { LEADERBOARD_KEY, useLeaderboard } from "./useLeaderboard";
 
@@ -24,6 +25,8 @@ export function LeaderboardScreen() {
   const lanes = useLanes(venueId);
   const nowMs = useChainNowMs();
   const [board, setBoard] = useState<BoardQuery>({ period: "session", ticker: null });
+  // Q-S13-8: the Friends tab, mounted here where the board it filters lives.
+  const [scope, setScope] = useState<BoardScope>("all");
   const reading = useLeaderboard(board);
   const queryClient = useQueryClient();
   const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: LEADERBOARD_KEY }), [queryClient]);
@@ -36,5 +39,5 @@ export function LeaderboardScreen() {
           .reduce<number | null>((min, expiry) => (min === null || expiry < min ? expiry : min), null)
       : null;
 
-  return <LeaderboardBoard reading={reading} address={address} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={setBoard} retry={retry} />;
+  return <LeaderboardBoard reading={reading} address={address} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={setBoard} scope={scope} onScope={setScope} retry={retry} />;
 }
