@@ -15,14 +15,25 @@ export type ExecutionResult =
 
 /**
  * The grant, head-fresh: an owner holds one live STRATEGY grant at a time, so the vault snapshot's
- * strategy slot is the subscription's grant exactly when the ids agree — a stale or replaced grant
- * reads as "not live", never as a cached copy the contract would refuse.
+ * strategy slot is the subscription's grant exactly when the ids agree — a replaced grant reads as
+ * "not live", never as a cached copy the contract would refuse.
+ *
+ * A read that fails or comes back stale is a third answer, not the second one. It used to collapse into
+ * "grant not live", which is a sentence about the subscriber's permission, and the permission was live the
+ * whole time: four grants on chain, not revoked and not expired, while the runner declined to trade for any
+ * of them because the endpoint it reads through was rate-limiting. An outage holds; it does not accuse.
  */
-async function readGrant(owner: StrategySubscription["subscriber"], grantId: bigint): Promise<VaultGrant | null> {
+type GrantRead = { kind: "grant"; grant: VaultGrant } | { kind: "none" } | { kind: "unreadable"; why: string };
+
+async function readGrant(owner: StrategySubscription["subscriber"], grantId: bigint): Promise<GrantRead> {
   const snapshot = await marketsProvider.getVaultSnapshot(owner);
-  if (!isOk(snapshot) || snapshot.stale || !snapshot.value) return null;
+  // A read that failed or came back stale says nothing about the permission. Reporting it as "grant not live"
+  // sent a subscriber off to re-grant a permission that was live the whole time; it is an outage, and it holds.
+  if (!isOk(snapshot)) return { kind: "unreadable", why: snapshot.error.technical };
+  if (snapshot.stale) return { kind: "unreadable", why: "the vault read is stale" };
+  if (!snapshot.value) return { kind: "none" };
   const grant = snapshot.value.grants.strategy;
-  return grant && grant.grantId === grantId ? grant : null;
+  return grant && grant.grantId === grantId ? { kind: "grant", grant } : { kind: "none" };
 }
 
 /**
@@ -49,8 +60,12 @@ export async function executeForSubscriber(input: {
     const previous = await getStrategyAttempt(key);
     if (previous) return { status: previous.state === "unknown" || previous.state === "attempting" ? "unknown" : "skipped", reason: `this Window already has an ${previous.state} attempt; not resending` };
   }
-  const grant = await readGrant(sub.subscriber, sub.grantId);
-  if (!grant || grant.revoked || msToSec(nowMs) > grant.expiresAtSec) return { status: "skipped", reason: "grant not live" };
+  const read = await readGrant(sub.subscriber, sub.grantId);
+  // Skipped, not unknown: "unknown" means a write may have gone out. Nothing was sent here — a read failed.
+  if (read.kind === "unreadable") return { status: "skipped", reason: `the grant could not be read, holding: ${read.why}` };
+  if (read.kind === "none") return { status: "skipped", reason: "grant not live" };
+  const grant = read.grant;
+  if (grant.revoked || msToSec(nowMs) > grant.expiresAtSec) return { status: "skipped", reason: grant.revoked ? "grant revoked" : "grant expired" };
 
   const onchain = await marketsProvider.getOnchain(market.marketId);
   if (!isOk(onchain) || onchain.stale) return { status: "skipped", reason: `chain read unavailable: ${isOk(onchain) ? "stale state" : onchain.error.technical}; holding` };

@@ -27,7 +27,7 @@ const env = parseMarketsEnv({
 configureMarkets(env);
 await syncClock();
 
-const session = await createSubmitterSession({ env, authority: "owner", signer: { secretKey } });
+const session = await createSubmitterSession({ env, authority: "user-wallet", signer: { secretKey } });
 const wallet = session.address as Address;
 console.log(`wallet ${wallet}, strategy #${strategyId}`);
 
@@ -47,6 +47,6 @@ if (!grant) process.exit(1);
 console.log("sending a follow while the fade stands — the program should refuse it");
 const outcome = await session.submitter.submitTx({ kind: "strategy-subscribe", strategyId, grantId: grant.grantId, feeBase: 0n });
 console.log("status:", outcome.status);
-console.log("diagnosis:", JSON.stringify(outcome.diagnosis ?? null));
+console.log("diagnosis:", JSON.stringify("diagnosis" in outcome ? outcome.diagnosis : null));
 await session.dispose();
 process.exit(outcome.status === "confirmed" ? 1 : 0);
