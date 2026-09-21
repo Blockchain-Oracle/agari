@@ -6,7 +6,9 @@ import { SectionHeader } from "@/components/chrome";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { ListedCard } from "@/features/markets/lanes/ListedCard";
+import { BetAgainstToggle } from "@/features/markets/ticket/BetAgainstToggle";
 import { ScheduledCallView } from "@/features/markets/ticket/ScheduledCall";
+import { SideSegments } from "@/features/markets/ticket/SideSegments";
 import { DEFAULT_PRICE_CENTS, PriceControl } from "@/features/markets/ticket/PriceControl";
 import { plainCells } from "@/features/markets/ticket/readout-cells";
 import { ReadoutStrip } from "@/features/markets/ticket/ReadoutStrip";
@@ -87,6 +89,13 @@ export function PreOpenSection() {
         </Fixture>
         <Fixture label="Schedule ticket — the price control, the strip and the CTA on a 5.50 tUSDC stake (live control)">
           <ScheduleComposer />
+        </Fixture>
+        {/* A-1a: the bearish mode, with the side control it reorders. Live: the switch writes this browser's own choice. */}
+        <Fixture label="Betting against — the switch and the sides it reorders (live control)">
+          <div className="tk-ticket tk-ticket--rail flex flex-col gap-3">
+            <SideSegments side={null} onSelect={noop} />
+            <BetAgainstToggle />
+          </div>
         </Fixture>
         <Fixture label="Schedule ticket — the blocker ladder">
           <div className="flex flex-col gap-2">

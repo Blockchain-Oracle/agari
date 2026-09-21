@@ -8,6 +8,7 @@ import { AgentMemory } from "@/features/strategies/AgentMemory";
 import { RecentCopyTrades } from "@/features/strategies/RecentCopyTrades";
 import { DeskPulse } from "@/features/strategies/DeskStates";
 import { StudioAgentFields } from "@/features/strategies/StudioAgentFields";
+import { StudioMirrorFields } from "@/features/strategies/StudioMirrorFields";
 import type { StudioDraft } from "@/features/strategies/studio-draft";
 import { cn } from "@/lib/utils";
 import { AGENT, DECIMALS, FIXTURE_NOW_MS, FILLS, HOUSE, PAYLOADS, SYMBOL, YOUNG, FRESH } from "./fixtures";
@@ -24,6 +25,7 @@ const DEV = {
   memory: "Drawer — agent memory, with and without a store",
 } as const;
 
+const MIRROR_TRADER = "6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ";
 const DRAFT: StudioDraft = { preset: "agent", lookback: 6, thresholdPct: "0.2", persona: "", posture: "balanced", cadences: [900, 3600], hosting: "house", trader: "", mirrorWithinSec: 120, agent: "", name: "", portraitSeed: "fixture-agent", maxPerTrade: "5", maxDaily: "50", subFee: "0", playbook: "" };
 
 const PULSES = [
@@ -85,6 +87,9 @@ export default function DevStrategiesPage() {
         <SectionHeader index="05" title={DEV.studio} />
         <div className="strat-preview">
           <StudioAgentFields form={draft} setForm={(update) => setDraft(update)} asset="TSLA" decimals={DECIMALS} />
+          {/* A-3b: the copy-a-trader fields, on a draft that already names a wallet and one that does not. */}
+          <StudioMirrorFields form={{ ...draft, preset: "mirror", trader: MIRROR_TRADER }} setForm={(update) => setDraft(update)} />
+          <StudioMirrorFields form={{ ...draft, preset: "mirror", trader: "not-an-address" }} setForm={(update) => setDraft(update)} />
         </div>
       </section>
 
