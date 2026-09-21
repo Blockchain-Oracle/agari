@@ -107,6 +107,14 @@ export function PositionCard({ connected, sheet, words, symbol, shares, worthBas
   const held = supplierPosition(sheet, shares, worthBase);
   // A-2c: what has actually been paid back above cost, and what is still only a mark. Never a rate, never a forecast.
   const earned = realizedYield({ suppliedBase, withdrawnBase, worthBase });
+  // A difference under a cent is not a loss: it is the floor in the share arithmetic, so it reads as level.
+  const onPaperText = money2(earned.unrealizedBase < 0n ? -earned.unrealizedBase : earned.unrealizedBase, decimals);
+  const onPaperZero = parseDecimalToBaseUnits(onPaperText, decimals) === 0n;
+  const onPaper = onPaperZero
+    ? { tone: "ea-earned-v", text: position.unrealizedFlat }
+    : earned.unrealizedBase < 0n
+      ? { tone: "ea-earned-v ea-earned-v--down", text: position.unrealizedDown(onPaperText, symbol) }
+      : { tone: "ea-earned-v ea-earned-v--up", text: position.unrealized(onPaperText, symbol) };
   const withdrawing = busy === "withdraw";
   return (
     <div className="earn-card ea-card">
@@ -134,11 +142,7 @@ export function PositionCard({ connected, sheet, words, symbol, shares, worthBas
             {held.shares > 0n && (
               <div>
                 <dt className="ea-k">{EARN.position.unrealizedLabel}</dt>
-                <dd className={earned.unrealizedBase < 0n ? "ea-earned-v ea-earned-v--down" : "ea-earned-v"}>
-                  {earned.unrealizedBase < 0n
-                    ? position.unrealizedDown(money2(-earned.unrealizedBase, decimals), symbol)
-                    : position.unrealized(money2(earned.unrealizedBase, decimals), symbol)}
-                </dd>
+                <dd className={onPaper.tone}>{onPaper.text}</dd>
               </div>
             )}
           </dl>

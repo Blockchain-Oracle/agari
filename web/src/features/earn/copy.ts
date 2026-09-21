@@ -57,6 +57,7 @@ export const EARN = {
     unrealizedLabel: "On paper",
     realizedNone: "Nothing realized yet — a withdrawal returns what you supplied before it returns a profit.",
     unrealized: (amount: string, symbol: string) => `${amount} ${symbol} on paper at today's share price`,
+    unrealizedFlat: "Level with what is still in, at today's share price.",
     unrealizedDown: (amount: string, symbol: string) => `${amount} ${symbol} below what is still in, at today's share price`,
     withdrawAll: "Withdraw all",
     withdrawIdle: (amount: string, symbol: string) => `Withdraw ${amount} ${symbol} idle`,
