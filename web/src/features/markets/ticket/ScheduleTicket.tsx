@@ -17,6 +17,7 @@ import { PriceControl } from "./PriceControl";
 import { plainCells } from "./readout-cells";
 import { ReadoutStrip } from "./ReadoutStrip";
 import { ScheduledCall } from "./ScheduledCall";
+import { BetAgainstToggle } from "./BetAgainstToggle";
 import { SideSegments } from "./SideSegments";
 import { TicketHeader } from "./TicketHeader";
 import { TicketMiniChart } from "./TicketMiniChart";
@@ -69,6 +70,8 @@ export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
             <span>{PREOPEN.ticket.listed(etWhen(market.tradingStartSec))}</span>
           </p>
           <SideSegments side={side} onSelect={t.selectSide} />
+          {/* A-1a: a Listed Window is where a bearish caller rests a price, so the mode is offered here too. */}
+          <BetAgainstToggle />
           <AmountBlock
             value={t.stakeText}
             onChange={t.setStakeText}
