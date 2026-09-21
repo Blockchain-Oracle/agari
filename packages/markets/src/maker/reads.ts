@@ -3,6 +3,7 @@ import {
   findCustodyPda, findVaultPda,
 } from "@agari/clients/agari-maker";
 import type { MakerDeployment, MakerParams, MakerVaultState, MakerWindowView } from "@agari/core/maker";
+import type { ProviderShares } from "@agari/core/reserves";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, MarketId } from "@agari/core/types";
 import { fetchEncodedAccount, getAddressEncoder, getProgramDerivedAddress, type Address as KitAddress } from "@solana/kit";
@@ -131,15 +132,16 @@ export function getMakerWindow(marketId: MarketId): Promise<Reading<MakerWindowV
 }
 
 /** A provider's shares and what they are worth at the vault's current value. */
-export function getMakerSharesOf(wallet: Address): Promise<Reading<{ shares: bigint; worthBase: bigint }>> {
+export function getMakerSharesOf(wallet: Address): Promise<Reading<ProviderShares>> {
   return withReading(`maker:shares:${wallet}`, async () => {
     const [vaultPda] = await findVaultPda({ programAddress: kit(makerProgramId()) });
     const [position, vault] = await Promise.all([
       fetchMaybeProvider(solana().rpc, kit(await providerAddress(wallet))),
       fetchMaybeMakerVault(solana().rpc, vaultPda),
     ]);
-    if (!position.exists || !vault.exists || vault.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n };
+    const counters = position.exists ? { suppliedBase: position.data.suppliedBase, withdrawnBase: position.data.withdrawnBase } : { suppliedBase: 0n, withdrawnBase: 0n };
+    if (!position.exists || !vault.exists || vault.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n, ...counters };
     const total = (await custodyBalance()) + vault.data.deployedBase;
-    return { shares: position.data.shares, worthBase: (position.data.shares * total) / vault.data.supplyShares };
+    return { shares: position.data.shares, worthBase: (position.data.shares * total) / vault.data.supplyShares, ...counters };
   });
 }

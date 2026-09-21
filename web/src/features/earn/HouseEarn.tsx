@@ -84,7 +84,7 @@ function Page({ kind, words, reading, symbol }: { kind: HouseKind; words: Reserv
   useEffect(() => setMessage(writes.msg), [writes.msg]);
 
   const walletBase = balance && isOk(balance) ? balance.value.spendableBase : null;
-  const held = shares && isOk(shares) ? shares.value : { shares: 0n, worthBase: 0n };
+  const held = shares && isOk(shares) ? shares.value : { shares: 0n, worthBase: 0n, suppliedBase: 0n, withdrawnBase: 0n };
   const { sheet } = reading;
   const { sections } = EARN;
 
@@ -99,7 +99,7 @@ function Page({ kind, words, reading, symbol }: { kind: HouseKind; words: Reserv
       )}
       <div className="ea-cards">
         <SupplyCard connected={address !== null} sheet={sheet} symbol={symbol} walletBase={walletBase} busy={writes.busy} onSupply={writes.supply} onMessage={setMessage} />
-        <PositionCard connected={address !== null} sheet={sheet} words={words} symbol={symbol} shares={held.shares} worthBase={held.worthBase} busy={writes.busy} onWithdraw={writes.withdraw} />
+        <PositionCard connected={address !== null} sheet={sheet} words={words} symbol={symbol} shares={held.shares} worthBase={held.worthBase} suppliedBase={held.suppliedBase} withdrawnBase={held.withdrawnBase} busy={writes.busy} onWithdraw={writes.withdraw} />
       </div>
 
       {message && <p className={message.includes("✓") ? "ea-msg" : "ea-msg ea-msg--err"}>{message}</p>}

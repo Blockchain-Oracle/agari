@@ -1,6 +1,6 @@
 "use client";
 
-import { supplierPosition, type ReserveSheet } from "@agari/core/reserves";
+import { realizedYield, supplierPosition, type ReserveSheet } from "@agari/core/reserves";
 import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useState } from "react";
 import { KeepCase } from "@/components/data";
@@ -87,6 +87,9 @@ interface PositionCardProps {
   symbol: string;
   shares: bigint;
   worthBase: bigint;
+  /** The provider account's lifetime counters, for the realized line (A-2c). */
+  suppliedBase: bigint;
+  withdrawnBase: bigint;
   /** Maker only: a closed Window the exit has to settle first, which the note names before it is sent. */
   unsettledExpired?: boolean;
   busy: string | null;
@@ -98,17 +101,19 @@ interface PositionCardProps {
  * the reference's venue never had to say: every reserve pays a withdrawal out of free capital only, so the
  * button takes what is free and the note names what the reserve is still holding, in that reserve's own word.
  */
-export function PositionCard({ connected, sheet, words, symbol, shares, worthBase, unsettledExpired = false, busy, onWithdraw }: PositionCardProps) {
+export function PositionCard({ connected, sheet, words, symbol, shares, worthBase, suppliedBase, withdrawnBase, unsettledExpired = false, busy, onWithdraw }: PositionCardProps) {
   const { position } = EARN;
   const { decimals } = sheet;
   const held = supplierPosition(sheet, shares, worthBase);
+  // A-2c: what has actually been paid back above cost, and what is still only a mark. Never a rate, never a forecast.
+  const earned = realizedYield({ suppliedBase, withdrawnBase, worthBase });
   const withdrawing = busy === "withdraw";
   return (
     <div className="earn-card ea-card">
       <div className="ea-k ea-position-title">{position.title}</div>
       {!connected ? (
         <p className="ea-empty">{position.connect}</p>
-      ) : held.shares <= 0n ? (
+      ) : held.shares <= 0n && earned.realizedBase <= 0n ? (
         <p className="ea-empty">{position.empty}</p>
       ) : (
         <>
@@ -119,6 +124,24 @@ export function PositionCard({ connected, sheet, words, symbol, shares, worthBas
           <button type="button" onClick={() => onWithdraw(held.idleShares)} disabled={withdrawing || held.idleShares === 0n} className="earn-ghost ea-withdraw" data-cursor="hover">
             {withdrawing ? position.busy : held.committedBase === 0n ? position.withdrawAll : <KeepCase text={position.withdrawIdle(money2(held.idleBase, decimals), symbol)} symbol={symbol} />}
           </button>
+          <dl className="ea-earned">
+            <div>
+              <dt className="ea-k">{EARN.position.realizedLabel}</dt>
+              <dd className={earned.realizedBase > 0n ? "ea-earned-v ea-earned-v--up" : "ea-earned-v"}>
+                {earned.realizedBase > 0n ? position.realized(money2(earned.realizedBase, decimals), symbol) : position.realizedNone}
+              </dd>
+            </div>
+            {held.shares > 0n && (
+              <div>
+                <dt className="ea-k">{EARN.position.unrealizedLabel}</dt>
+                <dd className={earned.unrealizedBase < 0n ? "ea-earned-v ea-earned-v--down" : "ea-earned-v"}>
+                  {earned.unrealizedBase < 0n
+                    ? position.unrealizedDown(money2(-earned.unrealizedBase, decimals), symbol)
+                    : position.unrealized(money2(earned.unrealizedBase, decimals), symbol)}
+                </dd>
+              </div>
+            )}
+          </dl>
           {held.committedBase > 0n && <p className="ea-note">{words.committedNote(money2(held.committedBase, decimals), symbol)}</p>}
           {unsettledExpired && <p className="ea-note">{position.unsettledNote}</p>}
         </>

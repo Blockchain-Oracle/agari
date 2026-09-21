@@ -48,13 +48,13 @@ export function EarnFixtures() {
           <SupplyCard connected sheet={{ ...SHEET, paused: true }} symbol={FIXTURE_SYMBOL} walletBase={240n * UNIT} busy={null} onSupply={noop} onMessage={noop} />
         </Fixture>
         <Fixture label="Position — nothing yet">
-          <PositionCard connected sheet={SHEET} words={MAKER} symbol={FIXTURE_SYMBOL} shares={0n} worthBase={0n} busy={null} onWithdraw={noop} />
+          <PositionCard connected sheet={SHEET} words={MAKER} symbol={FIXTURE_SYMBOL} shares={0n} worthBase={0n} suppliedBase={0n} withdrawnBase={0n} busy={null} onWithdraw={noop} />
         </Fixture>
         <Fixture label="Position — all idle">
-          <PositionCard connected sheet={SHEET} words={MAKER} symbol={FIXTURE_SYMBOL} shares={500n * UNIT} worthBase={500_022_000n} busy={null} onWithdraw={noop} />
+          <PositionCard connected sheet={SHEET} words={MAKER} symbol={FIXTURE_SYMBOL} shares={500n * UNIT} worthBase={500_022_000n} suppliedBase={500n * UNIT} withdrawnBase={0n} busy={null} onWithdraw={noop} />
         </Fixture>
         <Fixture label="Position — part deployed, a Window to settle">
-          <PositionCard connected sheet={{ ...SHEET, liquidBase: 300n * UNIT }} words={MAKER} symbol={FIXTURE_SYMBOL} shares={500n * UNIT} worthBase={500_022_000n} unsettledExpired busy={null} onWithdraw={noop} />
+          <PositionCard connected sheet={{ ...SHEET, liquidBase: 300n * UNIT }} words={MAKER} symbol={FIXTURE_SYMBOL} shares={500n * UNIT} worthBase={500_022_000n} suppliedBase={520n * UNIT} withdrawnBase={40n * UNIT} unsettledExpired busy={null} onWithdraw={noop} />
         </Fixture>
       </FixtureGrid>
       <FixtureGrid>

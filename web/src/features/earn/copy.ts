@@ -51,6 +51,13 @@ export const EARN = {
     connect: "Connect a wallet to see it.",
     empty: "Nothing here yet.",
     shares: (shares: string, price: string) => `${shares} shares · at ${price} / share`,
+    /** A-2c: realized only. Money already paid back above cost, then what today's share price adds on paper. */
+    realized: (amount: string, symbol: string) => `${amount} ${symbol} realized`,
+    realizedLabel: "Realized",
+    unrealizedLabel: "On paper",
+    realizedNone: "Nothing realized yet — a withdrawal returns what you supplied before it returns a profit.",
+    unrealized: (amount: string, symbol: string) => `${amount} ${symbol} on paper at today's share price`,
+    unrealizedDown: (amount: string, symbol: string) => `${amount} ${symbol} below what is still in, at today's share price`,
     withdrawAll: "Withdraw all",
     withdrawIdle: (amount: string, symbol: string) => `Withdraw ${amount} ${symbol} idle`,
     busy: "Withdrawing…",

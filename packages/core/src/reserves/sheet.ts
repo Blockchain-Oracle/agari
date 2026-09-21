@@ -82,10 +82,40 @@ function sheetOf(
   return { kind, decimals, paused, liquidBase, committedBase, totalValueBase, utilizationBps, supplyShares, sharePriceRaw: sharePriceRawOf(totalValueBase, supplyShares, decimals) };
 }
 
-/** What every reserve's provider read answers: shares held, and what they are worth at the reserve's equity today. */
+/**
+ * What every reserve's provider read answers: shares held, what they are worth at the reserve's equity today,
+ * and the two lifetime counters the programs keep on the provider account — everything supplied, and everything
+ * paid back out. Those two are what makes a realized figure possible without a projection (A-2c).
+ */
 export interface ProviderShares {
   shares: bigint;
   worthBase: bigint;
+  suppliedBase: bigint;
+  withdrawnBase: bigint;
+}
+
+/**
+ * What a supplier has actually made here, and what is still only on paper (A-2c).
+ *
+ * A withdrawal returns cost before it returns profit, so nothing counts as earned until every unit supplied has
+ * come back: `realizedBase` is what left the reserve beyond cost, and it is money that is already in the wallet.
+ * `unrealizedBase` is the rest of the position marked at today's share price, which the next settled Window can
+ * still take away, and it is signed — a reserve carrying a loss shows it. There is no rate here and there is no
+ * projection: "never a fake APY" (`00-plan.md` §S14).
+ */
+export interface RealizedYield {
+  /** Paid out above everything ever supplied. Never negative: a loss shows as cost that has not come back. */
+  realizedBase: bigint;
+  /** Of everything supplied, what has not been paid back yet. */
+  costStillInBase: bigint;
+  /** `worth − costStillIn`, signed: what today's share price adds to, or takes off, the cost still in. */
+  unrealizedBase: bigint;
+}
+
+export function realizedYield(position: { suppliedBase: bigint; withdrawnBase: bigint; worthBase: bigint }): RealizedYield {
+  const { suppliedBase, withdrawnBase, worthBase } = position;
+  const returnedOfCost = withdrawnBase < suppliedBase ? withdrawnBase : suppliedBase;
+  return { realizedBase: withdrawnBase - returnedOfCost, costStillInBase: suppliedBase - returnedOfCost, unrealizedBase: worthBase - (suppliedBase - returnedOfCost) };
 }
 
 /** One wallet's stake in a reserve, split by what the reserve can actually pay out right now. */

@@ -48,7 +48,7 @@ function Page({ vault, symbol }: { vault: MakerVaultState; symbol: string }) {
   useEffect(() => setMessage(writes.msg), [writes.msg]);
 
   const walletBase = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
-  const held = shares && isOk(shares) ? shares.value : { shares: 0n, worthBase: 0n };
+  const held = shares && isOk(shares) ? shares.value : { shares: 0n, worthBase: 0n, suppliedBase: 0n, withdrawnBase: 0n };
   const openViews = useMemo<MakerWindowView[]>(() => (open && isOk(open) ? open.value : []), [open]);
   const historyViews = useMemo<MakerWindowView[]>(() => (history && isOk(history) ? history.value : []), [history]);
   // One round for every Window the table names, so labels do not resolve one a second and the withdraw guard sees
@@ -76,7 +76,7 @@ function Page({ vault, symbol }: { vault: MakerVaultState; symbol: string }) {
       )}
       <div className="ea-cards">
         <SupplyCard connected={address !== null} sheet={vaultSheet} symbol={symbol} walletBase={walletBase} busy={writes.busy} onSupply={writes.supply} onMessage={setMessage} />
-        <PositionCard connected={address !== null} sheet={vaultSheet} words={WORDS} symbol={symbol} shares={held.shares} worthBase={held.worthBase} unsettledExpired={unsettledExpired} busy={writes.busy} onWithdraw={writes.withdraw} />
+        <PositionCard connected={address !== null} sheet={vaultSheet} words={WORDS} symbol={symbol} shares={held.shares} worthBase={held.worthBase} suppliedBase={held.suppliedBase} withdrawnBase={held.withdrawnBase} unsettledExpired={unsettledExpired} busy={writes.busy} onWithdraw={writes.withdraw} />
       </div>
 
       {message && <p className={message.includes("✓") ? "ea-msg" : "ea-msg ea-msg--err"}>{message}</p>}

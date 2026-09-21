@@ -151,3 +151,12 @@
 /* The one sentence a supplier is owed: how the money is lost here. Never a projected return. */
 .ea-risk { margin-top: 16px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--vermilion) 30%, transparent); font-size: 13px; line-height: 1.5; color: var(--gray-300); }
 [data-theme="light"] .ea-risk { color: rgba(20, 18, 16, 0.75); }
+
+/* Ours (A-2c): realized and on-paper under the position. Two lines, no rate — the money that has come back, and
+ * what today's share price says about the rest. */
+.ea-earned { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+[data-theme="light"] .ea-earned { border-top-color: rgba(20, 18, 16, 0.08); }
+.ea-earned .ea-k { margin-bottom: 4px; }
+.ea-earned-v { font-size: 12px; line-height: 1.45; color: var(--gray-500); }
+.ea-earned-v--up { color: var(--color-new-mint); font-family: var(--font-mono); }
+.ea-earned-v--down { color: var(--vermilion); font-family: var(--font-mono); }

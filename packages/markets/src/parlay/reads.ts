@@ -1,5 +1,6 @@
 import { fetchMaybeParlayReserve, fetchMaybeParlayTicket, fetchMaybeProvider } from "@agari/clients/agari-parlay";
 import { parlayLegStatusOf, parlayStatusOf, type ParlayLeg, type ParlayParams, type ParlayReserveState, type ParlayTicket } from "@agari/core/parlay";
+import type { ProviderShares } from "@agari/core/reserves";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, MarketId } from "@agari/core/types";
 import { fetchEncodedAccount } from "@solana/kit";
@@ -138,16 +139,17 @@ export function listParlaysOf(wallet: Address): Promise<Reading<ParlayTicket[]>>
 }
 
 /** A provider's shares and what they are worth at the reserve's current equity. */
-export function getParlaySharesOf(wallet: Address): Promise<Reading<{ shares: bigint; worthBase: bigint }>> {
+export function getParlaySharesOf(wallet: Address): Promise<Reading<ProviderShares>> {
   return withReading(`parlay:shares:${wallet}`, async () => {
-    if (!parlayProgramId()) return { shares: 0n, worthBase: 0n };
+    if (!parlayProgramId()) return { shares: 0n, worthBase: 0n, suppliedBase: 0n, withdrawnBase: 0n };
     const [position, reserve] = await Promise.all([
       fetchMaybeProvider(solana().rpc, kit(await providerAddress(wallet))),
       fetchMaybeParlayReserve(solana().rpc, kit(await reserveAddress())),
     ]);
-    if (!position.exists || !reserve.exists || reserve.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n };
+    const counters = position.exists ? { suppliedBase: position.data.suppliedBase, withdrawnBase: position.data.withdrawnBase } : { suppliedBase: 0n, withdrawnBase: 0n };
+    if (!position.exists || !reserve.exists || reserve.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n, ...counters };
     const balance = await vaultBalance(await vaultAddress());
     const equity = balance > reserve.data.userEscrowBase ? balance - reserve.data.userEscrowBase : 0n;
-    return { shares: position.data.shares, worthBase: (position.data.shares * equity) / reserve.data.supplyShares };
+    return { shares: position.data.shares, worthBase: (position.data.shares * equity) / reserve.data.supplyShares, ...counters };
   });
 }

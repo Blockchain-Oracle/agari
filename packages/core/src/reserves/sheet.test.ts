@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { boostSheet, makerSheet, parlaySheet, rangeSheet, sharePriceRawOf, supplierPosition, type ReserveSheet } from "./sheet";
+import { boostSheet, makerSheet, parlaySheet, rangeSheet, realizedYield, sharePriceRawOf, supplierPosition, type ReserveSheet } from "./sheet";
 
 const ONE = 1_000_000n;
 
@@ -64,5 +64,22 @@ describe("the four reserves keep one sheet", () => {
   it("takes the maker vault's own share price, which prices Windows it is still holding", () => {
     const vault = { ...common, maker: null, deployedBase: 60n, sharePriceRaw: 1_234_000n, openWindows: [] };
     expect(makerSheet(vault as never)).toMatchObject({ kind: "maker", committedBase: 60n, sharePriceRaw: 1_234_000n });
+  });
+});
+
+describe("realizedYield", () => {
+  it("counts nothing as earned until every unit supplied has come back", () => {
+    expect(realizedYield({ suppliedBase: 100n, withdrawnBase: 0n, worthBase: 130n })).toEqual({ realizedBase: 0n, costStillInBase: 100n, unrealizedBase: 30n });
+    expect(realizedYield({ suppliedBase: 100n, withdrawnBase: 60n, worthBase: 70n })).toEqual({ realizedBase: 0n, costStillInBase: 40n, unrealizedBase: 30n });
+  });
+  it("is money already in the wallet once cost is whole", () => {
+    expect(realizedYield({ suppliedBase: 100n, withdrawnBase: 130n, worthBase: 0n })).toEqual({ realizedBase: 30n, costStillInBase: 0n, unrealizedBase: 0n });
+    expect(realizedYield({ suppliedBase: 100n, withdrawnBase: 130n, worthBase: 15n })).toEqual({ realizedBase: 30n, costStillInBase: 0n, unrealizedBase: 15n });
+  });
+  it("shows a carried loss rather than hiding it", () => {
+    expect(realizedYield({ suppliedBase: 100n, withdrawnBase: 0n, worthBase: 82n })).toEqual({ realizedBase: 0n, costStillInBase: 100n, unrealizedBase: -18n });
+  });
+  it("is empty for a wallet that never supplied", () => {
+    expect(realizedYield({ suppliedBase: 0n, withdrawnBase: 0n, worthBase: 0n })).toEqual({ realizedBase: 0n, costStillInBase: 0n, unrealizedBase: 0n });
   });
 });

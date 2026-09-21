@@ -1,5 +1,6 @@
 import { fetchMaybeLeverageReserve, fetchMaybePosition, fetchMaybeProvider, fetchMaybeWindowBook, getPositionDecoder, getPositionSize, type Position } from "@agari/clients/agari-leverage";
 import { isKnockable, knockoutLine, leverageStatusOf, markOverLevels, type LeverageMark, type LeverageParams, type LeveragePosition, type LeverageReserveState } from "@agari/core/leverage";
+import type { ProviderShares } from "@agari/core/reserves";
 import type { Reading } from "@agari/core/schemas";
 import { diagnosis, type Address, type MarketId } from "@agari/core/types";
 import { fetchEncodedAccount, getBase64Encoder, type Base58EncodedBytes } from "@solana/kit";
@@ -140,12 +141,13 @@ export function listLeverageOpenPositions(): Promise<Reading<LeveragePosition[]>
 }
 
 /** A provider's shares and what they are worth at the reserve's current value. */
-export function getLeverageSharesOf(wallet: Address): Promise<Reading<{ shares: bigint; worthBase: bigint }>> {
+export function getLeverageSharesOf(wallet: Address): Promise<Reading<ProviderShares>> {
   return withReading(`leverage:shares:${wallet}`, async () => {
-    if (!leverageProgramId()) return { shares: 0n, worthBase: 0n };
+    if (!leverageProgramId()) return { shares: 0n, worthBase: 0n, suppliedBase: 0n, withdrawnBase: 0n };
     const [provider, reserve] = await Promise.all([fetchMaybeProvider(solana().rpc, kit(await providerAddress(wallet))), readReserve()]);
-    if (!provider.exists || !reserve || reserve.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n };
-    return { shares: provider.data.shares, worthBase: (provider.data.shares * reserve.totalValueBase) / reserve.data.supplyShares };
+    const counters = provider.exists ? { suppliedBase: provider.data.suppliedBase, withdrawnBase: provider.data.withdrawnBase } : { suppliedBase: 0n, withdrawnBase: 0n };
+    if (!provider.exists || !reserve || reserve.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n, ...counters };
+    return { shares: provider.data.shares, worthBase: (provider.data.shares * reserve.totalValueBase) / reserve.data.supplyShares, ...counters };
   });
 }
 

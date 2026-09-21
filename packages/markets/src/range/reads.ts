@@ -1,5 +1,6 @@
 import { fetchMaybeExpiryBook, fetchMaybeProvider, fetchMaybeReserve, fetchMaybeRound } from "@agari/clients/agari-range";
 import type { Reading } from "@agari/core/schemas";
+import type { ProviderShares } from "@agari/core/reserves";
 import type { Address, MarketId } from "@agari/core/types";
 import {
   bandProbE6, centerQE6OfTicks, floorStake, quoteRange, sideProbRaw, RANGE_NOT_DEPLOYED,
@@ -155,17 +156,18 @@ export function listRangesOf(wallet: Address): Promise<Reading<RangeRound[]>> {
 }
 
 /** A provider's shares and what they are worth at the reserve's current equity. */
-export function getRangeSharesOf(wallet: Address): Promise<Reading<{ shares: bigint; worthBase: bigint }>> {
+export function getRangeSharesOf(wallet: Address): Promise<Reading<ProviderShares>> {
   return withReading(`range:shares:${wallet}`, async () => {
-    if (!rangeProgramId()) return { shares: 0n, worthBase: 0n };
+    if (!rangeProgramId()) return { shares: 0n, worthBase: 0n, suppliedBase: 0n, withdrawnBase: 0n };
     const [position, reserve] = await Promise.all([
       fetchMaybeProvider(solana().rpc, kit(await providerAddress(wallet))),
       fetchMaybeReserve(solana().rpc, kit(await reserveAddress())),
     ]);
-    if (!position.exists || !reserve.exists || reserve.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n };
+    const counters = position.exists ? { suppliedBase: position.data.suppliedBase, withdrawnBase: position.data.withdrawnBase } : { suppliedBase: 0n, withdrawnBase: 0n };
+    if (!position.exists || !reserve.exists || reserve.data.supplyShares === 0n) return { shares: 0n, worthBase: 0n, ...counters };
     const balance = await vaultBalance(await vaultAddress());
     const equity = balance > reserve.data.userEscrowBase ? balance - reserve.data.userEscrowBase : 0n;
-    return { shares: position.data.shares, worthBase: (position.data.shares * equity) / reserve.data.supplyShares };
+    return { shares: position.data.shares, worthBase: (position.data.shares * equity) / reserve.data.supplyShares, ...counters };
   });
 }
 

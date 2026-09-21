@@ -36,7 +36,7 @@ export function ReserveTabFixtures() {
               <SupplyCard connected sheet={sheet} symbol={FIXTURE_SYMBOL} walletBase={240n * UNIT} busy={null} onSupply={noop} onMessage={noop} />
             </Fixture>
             <Fixture label="Position — part committed">
-              <PositionCard connected sheet={sheet} words={words} symbol={FIXTURE_SYMBOL} shares={500n * UNIT} worthBase={500_022_000n} busy={null} onWithdraw={noop} />
+              <PositionCard connected sheet={sheet} words={words} symbol={FIXTURE_SYMBOL} shares={500n * UNIT} worthBase={500_022_000n} suppliedBase={480n * UNIT} withdrawnBase={490n * UNIT} busy={null} onWithdraw={noop} />
             </Fixture>
           </FixtureGrid>
           <Fixture label="Bounds — the deployed reserve's own parameters">
