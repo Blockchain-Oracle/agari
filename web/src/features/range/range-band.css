@@ -106,3 +106,8 @@
 [data-theme="light"] .rg-sides { border-color: rgba(20, 18, 16, 0.1); background: rgba(20, 18, 16, 0.02); }
 [data-theme="light"] .rg-side { color: rgba(20, 18, 16, 0.62); }
 [data-theme="light"] .rg-side:hover { color: rgba(20, 18, 16, 0.8); }
+
+/* D-119: the band is centred where the reserve prices; when that has parted from the live spot far enough that the
+ * band no longer covers it, the page says so rather than quoting in silence. */
+.rg-spot-note { margin-top: 10px; font-size: 12px; line-height: 1.5; color: var(--vermilion); }
+[data-theme="light"] .rg-spot-note { color: var(--vermilion); }

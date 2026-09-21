@@ -16,6 +16,8 @@ import { useChainNowMs } from "../markets/useChainNow";
 import { ConnectButton } from "../markets/wallet";
 import type { PlaceStep } from "../parlay/TicketParts";
 import { BandControl } from "./BandControl";
+import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS } from "@agari/core/range";
+import { useRangeBasis } from "@agari/markets/react";
 import { RANGE } from "./copy";
 import { usdBand } from "./format";
 import { RangeTicket, type SolveMode } from "./RangeTicket";
@@ -58,13 +60,23 @@ export function RangeBuilder({ reserve, symbol }: RangeBuilderProps) {
   }, [picked, marketId]);
 
   const spot = useOracleSpot(picked?.asset ?? null);
-  const draft = useRangeDraft(spot, picked?.intervalSec ?? 300);
+  // D-119: the same anchor the ticket uses — the reserve's own centre, with the spot kept for the band's note.
+  const basis = useRangeBasis(picked?.marketId ?? null);
+  const tauSec = picked ? Math.max(0, picked.expirySec - Math.floor(Date.now() / 1000)) : 0;
+  const centre = basis && isOk(basis) ? centrePrintOf(basis.value.openingPrint, basis.value.centerQE6, basis.value.sigmaE8, tauSec) : null;
+  const draft = useRangeDraft(centre ?? spot, picked?.intervalSec ?? 300);
+  // D-119: past two deviations the reserve's centre and the live price have parted far enough that no band it
+  // quotes is fair, so the page stops asking for a price and the band's own note says why.
+  const staleBasis =
+    centre !== null && spot !== null && basis && isOk(basis)
+      ? basisDriftSigmas(centre, spot, basis.value.sigmaE8, tauSec) > MAX_BASIS_DRIFT_SIGMAS
+      : false;
   const band = picked && draft.lowPrint !== null && draft.highPrint !== null ? { marketId: picked.marketId, asset: picked.asset, side, lowPrint: draft.lowPrint, highPrint: draft.highPrint } : null;
 
   const stakeBase = parseDecimalToBaseUnits(stakeInput || "0", decimals) ?? 0n;
   const payoutBase = parseDecimalToBaseUnits(payoutInput || "0", decimals) ?? 0n;
   const mode: RangeMode = solveMode === "fixStake" ? { kind: "fixStake", stakeBase } : { kind: "fixPayout", maxPayoutBase: payoutBase };
-  const quoteState = useRangeQuote({ band, expirySec: picked?.expirySec ?? null, mode, params, enabled: band !== null && !reserve.paused && !draft.dragging });
+  const quoteState = useRangeQuote({ band, expirySec: picked?.expirySec ?? null, mode, params, enabled: band !== null && !reserve.paused && !draft.dragging && !staleBasis });
   const { quote } = quoteState;
   const walletSpendableBase = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
 
@@ -130,7 +142,7 @@ export function RangeBuilder({ reserve, symbol }: RangeBuilderProps) {
         </div>
         <div className="pl-plate-body">
           <WindowPicker windows={windows} loading={windowsLoading} pickedId={picked?.marketId ?? null} nowMs={nowMs} onPick={setMarketId} />
-          {picked && <BandControl asset={picked.asset} intervalSec={picked.intervalSec} draft={draft} side={side} onSide={setSide} />}
+          {picked && <BandControl asset={picked.asset} intervalSec={picked.intervalSec} draft={draft} side={side} onSide={setSide} spot={spot} />}
         </div>
       </div>
 

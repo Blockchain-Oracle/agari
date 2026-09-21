@@ -36,7 +36,7 @@ import {
   settlementFeeBps,
   syncClock,
 } from "../provider/reads";
-import { getRangeReserveState, getRangeSharesOf, listRangesOf } from "../range/read";
+import { getRangeReserveState, getRangeSharesOf, listRangesOf, previewRangeBasis, type RangeWindowBasis } from "../range/read";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";
 
@@ -159,6 +159,14 @@ export function useParlayShares(wallet: Address | null): Reading<ProviderShares>
 /** The range reserve's sheet and tunables; `null` inside the reading where no reserve is deployed. */
 export function useRangeReserve(enabled = true): Reading<RangeReserveState | null> | null {
   return useReadingQuery(keys.rangeReserve(), getRangeReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled });
+}
+
+/**
+ * The basis the range reserve would price one Window on right now: its opening print, the venue's implied centre
+ * and the house σ. The ticket builds its band from this so the page and the chain share one middle (D-119).
+ */
+export function useRangeBasis(marketId: MarketId | null): Reading<RangeWindowBasis> | null {
+  return useReadingQuery(keys.rangeBasis(marketId, null), () => previewRangeBasis(marketId as MarketId), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: marketId !== null });
 }
 
 /** One wallet's range rounds, live first; empty (never an error) without a reserve. */

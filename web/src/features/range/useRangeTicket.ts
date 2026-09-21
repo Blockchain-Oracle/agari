@@ -3,10 +3,12 @@
 import type { BlockerContext, BlockerKind } from "@agari/core/copy";
 import type { MarketPhase } from "@agari/core/lifecycle";
 import type { RangeReserveState } from "@agari/core/range";
-import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
+import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS, RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import { belowMinStake, minStakeBase } from "@agari/core/sizing";
 import type { EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
+import { isOk } from "@agari/core/schemas";
+import { useRangeBasis } from "@agari/markets/react";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";
@@ -36,6 +38,9 @@ interface UseRangeTicketInput {
 
 export interface RangeTicketApi {
   draft: RangeDraft;
+  /** The oracle spot, and the price the reserve's distribution is centred on (D-119); either may be null. */
+  spot: bigint | null;
+  centre: bigint | null;
   quoteState: RangeQuoteState;
   quote: RangeQuoteState["quote"];
   blocker: BlockerKind | null;
@@ -67,7 +72,19 @@ const PHASE_BLOCKERS: Partial<Record<MarketPhase, BlockerKind>> = {
 export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
   const { market, phase, decimals, symbol, reserve, stakeBase, availableBase, session, hasSigner, enabled } = p;
   const spot = useOracleSpot(market.asset);
-  const draft = useRangeDraft(spot, market.intervalSec);
+  // D-119: the band is built around the price the reserve's own distribution is centred on — the opening print
+  // carried by the drift the venue's book implies — not the oracle spot, which the chain cannot see. Anchored on
+  // the spot, a Window whose book had gone quiet put every band in the tail and the reserve refused all of them.
+  const basis = useRangeBasis(market.marketId);
+  const tauSec = Math.max(0, market.expirySec - Math.floor(Date.now() / 1000));
+  const centre = basis && isOk(basis) ? centrePrintOf(basis.value.openingPrint, basis.value.centerQE6, basis.value.sigmaE8, tauSec) : null;
+  // Past two deviations the reserve's centre and the live price have parted far enough that any band it quotes is
+  // knowably wrong in the house's favour, so the ticket refuses instead of pricing it.
+  const staleBasis =
+    centre !== null && spot !== null && basis && isOk(basis)
+      ? basisDriftSigmas(centre, spot, basis.value.sigmaE8, tauSec) > MAX_BASIS_DRIFT_SIGMAS
+      : false;
+  const draft = useRangeDraft(centre ?? spot, market.intervalSec);
   const writes = useRangeWrites();
   const [placed, setPlaced] = useState<{ txHash: Signature; band: string } | null>(null);
   const band = draft.lowPrint !== null && draft.highPrint !== null ? { marketId: market.marketId, asset: market.asset, side: "inside" as const, lowPrint: draft.lowPrint, highPrint: draft.highPrint } : null;
@@ -89,6 +106,7 @@ export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
     const phaseBlocker = PHASE_BLOCKERS[phase];
     if (phaseBlocker) return phaseBlocker;
     if (availableBase === 0n) return "no-funds";
+    if (staleBasis) return "stale-basis";
     if (band === null) return "quoting";
     if (stakeBase === 0n) return "no-stake";
     if (belowMinStake(stakeBase, decimals)) return "below-min-stake";
@@ -120,5 +138,5 @@ export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
 
   const upToText = quote && !quoteState.error ? RANGE.ticket.upTo(formatBaseUnits(mulBpsCeil(quote.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS), decimals), symbol) : null;
 
-  return { draft, quoteState, quote, blocker, ctx, place, placed, reset: () => setPlaced(null), upToText };
+  return { draft, quoteState, quote, blocker, ctx, place, placed, reset: () => setPlaced(null), upToText, spot, centre };
 }

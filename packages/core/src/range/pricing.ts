@@ -71,6 +71,42 @@ export function bandProbE6(openingPrint: bigint, lowPrint: bigint, highPrint: bi
   return upper > lower ? upper - lower : 0n;
 }
 
+/**
+ * The price the reserve's own distribution is centred on, in print units (D-119).
+ *
+ * The maths works in returns from the opening print, and `centerQE6` — the venue's last traded price read as
+ * P(close > open) — shifts that distribution by `μ = Φ⁻¹(centerQ)` standard deviations. So the price the reserve
+ * actually expects at expiry is not the opening print and not the oracle spot: it is the open carried by that
+ * drift. A band built anywhere else is priced from its distance to **this** point.
+ *
+ * The ticket used to centre on the oracle spot, which the chain cannot see. When a thin book left `centerQ` near
+ * a half while the spot ran, every band sat in the tail and the reserve refused all of them ("too close to certain
+ * or impossible") — 5.8σ out on the 05:00Z Window that found this.
+ */
+export function centrePrintOf(openingPrint: bigint, centerQE6: bigint, sigmaE8: bigint, tauSec: number): bigint {
+  const driftE8 = (probitE4(centerQE6) * stdE8(sigmaE8, tauSec)) / 10_000n;
+  return openingPrint + (openingPrint * driftE8) / E8;
+}
+
+/**
+ * How far the live spot sits from the price the reserve is pricing around, in standard deviations (D-119).
+ *
+ * The reserve cannot see an oracle inside its own transaction, so its centre comes from the venue's book. When the
+ * book goes quiet the two part, and past a couple of deviations the reserve's quote is knowably wrong in the
+ * house's favour — a band around its centre is nearly certain to lose against a close that follows the spot. The
+ * surfaces refuse at that point rather than quote it.
+ */
+/** How far the live price may sit from the reserve's own centre before no band can be priced fairly (D-119). */
+export const MAX_BASIS_DRIFT_SIGMAS = 2;
+
+export function basisDriftSigmas(centrePrint: bigint, spotPrint: bigint, sigmaE8: bigint, tauSec: number): number {
+  const std = stdE8(sigmaE8, tauSec);
+  if (std === 0n || centrePrint === 0n) return 0;
+  const gap = spotPrint > centrePrint ? spotPrint - centrePrint : centrePrint - spotPrint;
+  const relE8 = (gap * E8) / centrePrint;
+  return Number((relE8 * 1_000n) / std) / 1_000;
+}
+
 /** The chosen side's fair probability per whole unit of collateral, as `RangePricing._price` scales it. */
 export function sideProbRaw(insideProbE6: bigint, side: RangeSide, one: bigint): bigint {
   const pE6 = side === "inside" ? insideProbE6 : P_ONE - insideProbE6;

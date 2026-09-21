@@ -1157,6 +1157,7 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
   - **Same arithmetic both sides:** levels are scaled to the client's own units (`ticks × tick_base`, `lots × lot_base`) before the VWAP, so `quoteParlayOnchain` and the program run one algorithm over the same integers. Ticket 1 was worked by hand, quoted and booked at the same 1,892,800.
 - **User-visible:** right after the maker requotes, a leg is refused as thin for about 20 s. That is the filter working.
 - **Approval:** stage owner. A recorded gap against the plan, not a silent one.
+- **Widened 2026-09-21 by D-119:** the same missing (b) is what lets `agari-range` price a Window whose mark is fresh by *age* and nine sigmas wrong by *price* — `stale_after_sec` is the only guard and it is set to six hours. D-119 measures that gap client-side (`basisDriftSigmas`, refusing past 2σ) because a browser has a live spot and the program does not. When (b) lands, the same σ test replaces the age check in `agari-range/src/basis.rs`. PD-2's oracle bound now covers two surfaces, not one, which is the argument for building it rather than carrying it.
 
 ### D-110 — Per-boundary locks are 32 slots in the parlay reserve, not a PDA per boundary
 - **Date / owner:** 2026-09-20 · S10a
@@ -1275,7 +1276,7 @@ What the reference's banner was *for* — telling someone why they cannot sign �
 
 ### D-119
 
-**The range and moonshot tickets build their band from the live spot; the reserve prices it from the Window's opening print. Recorded, not fixed.**
+**The range and moonshot tickets build their band from the live spot; the reserve prices it from a mark that goes stale. Resolved 2026-09-21; the on-chain half is D-109.**
 
 Found 2026-09-21 by driving `/games/range` and `/games/moonshot` with a wallet. With the print scale corrected (the `PRINT_DECIMALS` fix in the same session), the ticket still refuses **every** band width and **both** sides with "Too close to certain or impossible", and moonshot refuses a moved Window with "Something went sideways", while the drive opens a real round on the same reserve at **inside p = 85.3%**.
 
@@ -1286,6 +1287,27 @@ The difference is where the band sits. `useRangeDraft` centres on `spotUsd` and 
 2. The reserve should start its diffusion from the **mark**, not the open — the drive's own log prints a mark beside the open — in which case the ticket is right and the pricing is wrong. That reaches `packages/core/src/range/pricing.ts` and the deployed `agari-range`, and it changes what the chain is asked to price.
 
 Reading 2 is the one that decides whether today's quotes are fair, so this needs the user before anything moves. Until then: the drive can open rounds (round 4 is live on devnet), the pages price only when the spot and the open are close, and both say so in their own words rather than quoting something wrong.
+
+**Resolved 2026-09-21** (stage owner, under the user's *"any route that you go through, I don't fucking mind, as long as you can come here and the functionality works"*).
+
+Neither reading was right. Measured live on the 11:30–12:30Z `OPENAI-60m` Window: opening print **$1,127.09**, `centerQE6` **53%**, σ√τ **≈ $2.92**, spot **$1,099.35** — about **9σ** from where the reserve's distribution was centred.
+
+The model is sound. The open is only the coordinate origin; `basis.rs` re-centres the diffusion on the venue's own mark through μ = `probit(centerQE6)`. So reading 1 is wrong — the ticket must not centre on the raw open — and reading 2 is wrong too: the reserve already starts from the mark, not the open.
+
+What is broken is the **input**. `center_q_e6` comes from `market.last_price`, the last *traded* YES tick, and a quiet book leaves it standing while the spot runs. The program does guard this, but by **age**: `require!(age <= params.stale_after_sec)`. The live reserve is configured at `staleAfterSec: 21_600` — six hours, deliberately generous so a devnet Window can quote at all — so a mark five minutes old and nine sigmas wrong sails straight through.
+
+Age is a proxy for *"this mark still means something"*, and a poor one: what matters is not when the book last traded but how far the world has moved since. So the test became a **price** test.
+
+- `centrePrintOf(openingPrint, centerQE6, sigmaE8, tauSec)` — where the reserve's distribution is actually centred, in print terms.
+- `basisDriftSigmas(centrePrint, spotPrint, …)` with `MAX_BASIS_DRIFT_SIGMAS = 2` — that centre's distance from the live spot, in the reserve's own σ√τ.
+- The ticket anchors the draft band on the reserve's centre — not the raw spot, not the raw open — and raises a new `stale-basis` blocker past 2σ: *"The book has not traded near the live price — no band can be priced fairly."*
+- `BandControl` shows the **true** spot for the dot, the tick and the "now" figure, and says so when the band does not cover it.
+
+**Not taken:** deriving `center_q_e6` from the book's **mid** rather than the last trade. `basis.rs` is right that *"a mark is a trade, not a quote"* — a maker can paint a quote and then take the other side of the range round against their own mark. Quoting more often is not worth that.
+
+**The on-chain half of this is PD-2/D-109.** The client can run the σ test because it has the live spot; `basis.rs` cannot, because no oracle price exists inside the transaction. When D-109 puts a signed price in the instruction, this same test replaces the age check in `basis.rs` and the reserve refuses on its own account instead of relying on the client's goodwill. Until then the client refuses strictly more often than the chain would, which is the safe direction to be wrong in.
+
+Verified on `:3100`: the header reads "OPENAI now $1,099.35" (the mislabel is gone), band $1,125.40 → $1,129.00, the outside-spot note showing, and **"PAYS ···"** — no quote at all — where before the fix the same band offered **52.4% at 1.7×** on a near-certain loser.
 
 | Q-001 | Build Masayume's own unfinished items? | ✅ Yes (user, 2026-09-13) | L-11, L-23, L-35, L-56, L-57, L-71, Range takes, notifications, sentiment cell, Range band, Duel sparkline |
 | Q-002 | Do routes Masayume removed on 2026-09-04 stay removed? | ✅ Stay removed (user, 2026-09-13) | Y-01…Y-05, Y-18 → Excluded |

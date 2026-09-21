@@ -52,6 +52,7 @@ export {
   useOpeningPrice,
   useParlayReserve,
   useParlayShares,
+  useRangeBasis,
   useRangeReserve,
   useRangeShares,
   usePositions,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import golden from "./pricing.vectors.json";
-import { bandProbE6, cdfE6, floorStake, isqrt, maxPayoutForStake, probitE4, quoteRange, sideProbRaw, stdE8, zOf } from "./pricing";
+import { bandProbE6, basisDriftSigmas, cdfE6, centrePrintOf, floorStake, isqrt, maxPayoutForStake, probitE4, quoteRange, sideProbRaw, stdE8, zOf } from "./pricing";
 import type { RangeSide } from "./types";
 
 const ONE = 1_000_000n;
@@ -117,5 +117,58 @@ describe("quoteRange", () => {
     expect(quoteRange({ ...basis, lowPrint: P0 - 400_000n, highPrint: P0 + 400_000n, side: "inside", mode: { kind: "fixPayout", maxPayoutBase: ONE } })).toMatchObject({ ok: false, refusal: { kind: "near-certain" } });
     expect(quoteRange({ ...basis, ...band, side: "inside", mode: { kind: "fixPayout", maxPayoutBase: 501n * ONE } })).toMatchObject({ ok: false, refusal: { kind: "over-payout-cap" } });
     expect(quoteRange({ ...basis, ...band, side: "inside", mode: { kind: "fixStake", stakeBase: 1n } })).toMatchObject({ ok: false, refusal: { kind: "underpriced" } });
+  });
+});
+
+describe("centrePrintOf (D-119)", () => {
+  const OPEN = 112_708_526_047n; // $1,127.09 at 1e8, the live OPENAI Window that found this
+  const SIGMA = 6_200n;
+
+  it("is the opening print when the book says the close is a coin flip", () => {
+    expect(centrePrintOf(OPEN, 500_000n, SIGMA, 1_740)).toBe(OPEN);
+  });
+
+  it("carries the open by the drift the book implies, and the sign follows the book", () => {
+    const up = centrePrintOf(OPEN, 530_000n, SIGMA, 1_740);
+    const down = centrePrintOf(OPEN, 470_000n, SIGMA, 1_740);
+    expect(up).toBeGreaterThan(OPEN);
+    expect(down).toBeLessThan(OPEN);
+    // Symmetric about the open: a 53% book leans as far up as a 47% book leans down.
+    expect(up - OPEN).toBe(OPEN - down);
+  });
+
+  it("grows with the time left, because the distribution is wider", () => {
+    const near = centrePrintOf(OPEN, 600_000n, SIGMA, 60);
+    const far = centrePrintOf(OPEN, 600_000n, SIGMA, 3_600);
+    expect(far - OPEN).toBeGreaterThan(near - OPEN);
+  });
+
+  it("is the open when there is no time left at all", () => {
+    expect(centrePrintOf(OPEN, 600_000n, SIGMA, 0)).toBe(OPEN);
+  });
+});
+
+describe("basisDriftSigmas (D-119)", () => {
+  const CENTRE = 112_731_000_000n; // $1,127.31, where the reserve was pricing
+  const SIGMA = 6_200n;
+  const TAU = 1_740; // σ√τ ≈ 0.259%, about $2.92 on this price
+
+  it("is zero when the spot is where the reserve is pricing", () => {
+    expect(basisDriftSigmas(CENTRE, CENTRE, SIGMA, TAU)).toBe(0);
+  });
+
+  it("counts a one-deviation gap as one, either side", () => {
+    const oneStd = (CENTRE * 2_586n) / 1_000_000n; // ≈ 0.2586%
+    expect(basisDriftSigmas(CENTRE, CENTRE + oneStd, SIGMA, TAU)).toBeCloseTo(1, 1);
+    expect(basisDriftSigmas(CENTRE, CENTRE - oneStd, SIGMA, TAU)).toBeCloseTo(1, 1);
+  });
+
+  it("measures the live divergence that found this: $1,099.36 against $1,127.31 is far past two", () => {
+    expect(basisDriftSigmas(CENTRE, 109_936_000_000n, SIGMA, TAU)).toBeGreaterThan(9);
+  });
+
+  it("is zero rather than infinite when there is no time or no price left", () => {
+    expect(basisDriftSigmas(CENTRE, 109_936_000_000n, SIGMA, 0)).toBe(0);
+    expect(basisDriftSigmas(0n, 109_936_000_000n, SIGMA, TAU)).toBe(0);
   });
 });

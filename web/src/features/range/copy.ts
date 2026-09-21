@@ -28,6 +28,8 @@ export const RANGE = {
   },
   connect: { title: "Connect your wallet to call a band", sub: "Any Solana wallet, or sign in with email. Test funds are free" },
   band: {
+    /** D-119: the reserve prices around its own centre, which a quiet book can leave away from the spot. */
+    spotOutside: (spot: string) => `${spot} is the live price, and your band does not cover it. The reserve prices this Window from the venue's own book, which has not traded near that price yet.`,
     /** The reference: "Winning range" · "BTC must finish inside". */
     label: "Winning range",
     mustFinish: (asset: string, side: "inside" | "outside") => `${asset} must finish ${side}`,

@@ -24,6 +24,8 @@ export const BLOCKER_KINDS = [
   "outside-band-low",
   "outside-band-high",
   "stale-quote",
+  /** D-119: the venue's book has not traded near the live price, so the reserve would price from a stale centre. */
+  "stale-basis",
   "quote-refused",
   "boost-refused",
   "daily-stop",
@@ -78,6 +80,8 @@ const DEFAULT_MIN_STAKE = "1 tUSDC";
 /** The blocker IS the control's label — one derived string for the CTA and its accessible name. */
 export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): string {
   switch (kind) {
+    case "stale-basis":
+      return "The book has not traded near the live price — no band can be priced fairly";
     case "quote-refused":
       return "The reserve refused this band — see why above";
     case "boost-refused":

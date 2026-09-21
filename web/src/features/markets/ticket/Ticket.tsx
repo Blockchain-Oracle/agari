@@ -282,7 +282,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
         <>
           <BetModes mode={mode} onChange={setMode} rangeAvailable={rangeReserve !== null} />
           {isRange ? (
-            <BandControl asset={market.asset} intervalSec={market.intervalSec} draft={range.draft} side="inside" />
+            <BandControl asset={market.asset} intervalSec={market.intervalSec} draft={range.draft} side="inside" spot={range.spot} />
           ) : (
             <>
               <SideSegments side={side} onSelect={t.selectSide} />

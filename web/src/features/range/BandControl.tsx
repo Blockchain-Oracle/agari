@@ -4,7 +4,7 @@ import type { RangeSide } from "@agari/core/range";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RANGE } from "./copy";
-import { usdOnGrid } from "./format";
+import { printToUsd, usdOnGrid } from "./format";
 import { RANGE_PRESETS, bandHalfUsd } from "./presets";
 import type { RangeDraft } from "./useRangeDraft";
 
@@ -15,6 +15,8 @@ interface BandControlProps {
   side: RangeSide;
   /** The reference's Ticket has inside only; the game page offers both. */
   onSide?: (side: RangeSide) => void;
+  /** D-119: the live spot, so the band can say when it does not cover it. */
+  spot?: bigint | null;
 }
 
 /**
@@ -22,13 +24,20 @@ interface BandControlProps {
  * track with the spot marked, three width presets scaled per cadence, and centre steps on the asset's grid
  * (the reference's five dollars on BTC).
  */
-export function BandControl({ asset, intervalSec, draft, side, onSide }: BandControlProps) {
+export function BandControl({ asset, intervalSec, draft, side, onSide, spot = null }: BandControlProps) {
   const { band } = RANGE;
   const { spotUsd, lowUsd, highUsd, offset, centerMax, dragging, axisHalf, unit, decimals } = draft;
   const ready = spotUsd !== null && lowUsd !== null && highUsd !== null;
   const usd = (n: number) => usdOnGrid(n, decimals);
   const pct = (v: number) => (spotUsd === null ? 0 : Math.max(0, Math.min(100, ((v - (spotUsd - axisHalf)) / (axisHalf * 2)) * 100)));
   const above = offset > 0;
+  // D-119: the band is centred where the reserve prices, which is not always where the spot is. When the two have
+  // parted far enough that the band no longer covers the spot, the page says so instead of quoting in silence.
+  // The track's geometry is anchored on the reserve's centre (that is what the band is measured from), but the
+  // market dot and the "now" figure are the live price — labelling the anchor "now" would be a wrong number.
+  const spotOnGrid = spot === null ? null : printToUsd(spot);
+  const marketUsd = spotOnGrid ?? spotUsd;
+  const outsideBand = ready && spotOnGrid !== null && (spotOnGrid < (lowUsd as number) || spotOnGrid > (highUsd as number));
   const step = usd(unit);
 
   return (
@@ -81,12 +90,12 @@ export function BandControl({ asset, intervalSec, draft, side, onSide }: BandCon
                   <span />
                 </span>
               </div>
-              <div className="rg-spot-tick" style={{ left: `${pct(spotUsd)}%` }} />
-              <div className="rg-spot-dot" style={{ left: `${pct(spotUsd)}%` }} />
+              <div className="rg-spot-tick" style={{ left: `${pct(marketUsd as number)}%` }} />
+              <div className="rg-spot-dot" style={{ left: `${pct(marketUsd as number)}%` }} />
             </div>
             <div className="rg-band-foot">
               <span>{band.now(asset)}</span>
-              <span className="rg-band-foot-v">{usd(spotUsd)}</span>
+              <span className="rg-band-foot-v">{usd(marketUsd as number)}</span>
             </div>
           </>
         ) : (
@@ -123,6 +132,8 @@ export function BandControl({ asset, intervalSec, draft, side, onSide }: BandCon
           </button>
         </div>
       </div>
+
+      {outsideBand && <p className="rg-spot-note">{band.spotOutside(usd(spotOnGrid as number))}</p>}
 
       {onSide && (
         <div className="rg-sides" role="radiogroup" aria-label={band.sideLabel}>
