@@ -10,7 +10,8 @@
 //   withdraw --amount 5                    pays the owner and nobody else
 //   rawcharge --owner <addr> --amount 1 --as <role>   a bare desk_charge_to_pool signed by <role>, past the service's checks: the chain's own answer
 // `--as <role>` picks the owner wallet (default drive-owner). The desk key is the `private-desk` role.
-// A Window is a market id, or `<ticker>/<cadenceSec>/<basis>` for the Window that lane is trading now.
+// A Window is a market id, or `<tickerId>/<cadenceSec>/<basis>` for the Window that lane is trading now — the
+// ticker's *number*, not its symbol (910 is OPENAI): the lane is derived, so `OPENAI/3600/2` reads as NaN.
 // Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/private-desk.ts <mode> [...]
 
 import { createPrivateKey, sign as edSign } from "node:crypto";
@@ -93,7 +94,7 @@ try {
   } else if (mode === "open") {
     const where = arg("--window");
     const side = arg("--side") === "down" ? "down" : "up";
-    if (!where) throw new Error("--window is required: a market id, or <ticker>/<cadenceSec>/<basis>");
+    if (!where) throw new Error("--window is required: a market id, or <tickerId>/<cadenceSec>/<basis> (a number, e.g. 910/3600/2)");
     const lane = where.split("/");
     const marketId = (lane.length === 3 ? (await liveWindowFor(ctx, Number(lane[0]), Number(lane[1]), Number(lane[2]))).marketId : where) as never;
     const desk = await bootDesk();

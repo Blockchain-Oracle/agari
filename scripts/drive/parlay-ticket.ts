@@ -6,7 +6,8 @@
 //   open   --legs <leg,leg> --amount 2   quotes the ticket off the rested books and opens it at the fresh price
 //   settle --ticket <id>             decides every leg the venue has answered, in order, then claims a win or a void
 //   void   --ticket <id>             the stale backstop
-// A leg is `<marketId>:up|down`, or `<ticker>/<cadenceSec>/<basis>:up|down` for the Window that lane is trading now.
+// A leg is `<marketId>:up|down`, or `<tickerId>/<cadenceSec>/<basis>:up|down` for the Window that lane is trading
+// now — the ticker's *number*, not its symbol (910 is OPENAI): the lane is derived, so `OPENAI/3600/2` reads as NaN.
 // Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/parlay-ticket.ts <mode> [...]
 // The chain work lives in `@agari/markets/deploy` (scripts may not import the chain SDKs, plan §6).
 

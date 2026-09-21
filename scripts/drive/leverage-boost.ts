@@ -13,7 +13,8 @@
 //   settle   --id <n> [--owed]                     permissionless, once the venue has resolved or voided the Window
 //   claim    --id <n>                              pays what an exit with --owed left waiting
 // `--owed` leaves the owner's token account out, so the money is left owed instead of paid (D-114).
-// A Window is a market id, or `<ticker>/<cadenceSec>/<basis>` for the Window that lane is trading now.
+// A Window is a market id, or `<tickerId>/<cadenceSec>/<basis>` for the Window that lane is trading now — the
+// ticker's *number*, not its symbol (910 is OPENAI): the lane is derived, so `OPENAI/3600/2` reads as NaN.
 // Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/leverage-boost.ts <mode> [...]
 // The chain work lives in `@agari/markets/deploy` (scripts may not import the chain SDKs, plan §6).
 
@@ -41,7 +42,7 @@ console.log(`leverage drive "${mode}" on ${cluster} (${label}) as ${client.payer
 async function specOf(): Promise<BoostSpec> {
   const where = arg("--window");
   const side = arg("--side") ?? "up";
-  if (!where) throw new Error("--window is required: a market id, or <ticker>/<cadenceSec>/<basis>");
+  if (!where) throw new Error("--window is required: a market id, or <tickerId>/<cadenceSec>/<basis> (a number, e.g. 910/3600/2)");
   if (side !== "up" && side !== "down") throw new Error(`bad --side "${side}"`);
   const lane = where.split("/");
   const marketId = lane.length === 3 ? (await liveWindowFor(ctx, Number(lane[0]), Number(lane[1]), Number(lane[2]))).marketId : where;
