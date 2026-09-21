@@ -7,6 +7,7 @@ import { createMemoryJournal, createSubmitterSession, ensureMarkets, marketsProv
 import { getStrategy, listLiveSubscribers, listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
 import { agentBootLine, createAgentState, scanVenueWithAgent, warmAgentState, type AgentState } from "./agent";
 import { scanVenue, type Scan } from "./decide";
+import { scanVenueMirror } from "./mirror-scan";
 import { readRunnerEnv, type RunnerEnv } from "./env";
 import { executeForSubscriber } from "./execute";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
@@ -43,6 +44,7 @@ async function heartbeat(runner: Runner, strategyId: bigint, why: string, scanne
 
 /** The house model or the agent, by the spec's preset; the execution loop below never knows which. */
 function scan(runner: Runner, strategy: StrategyRecord, spec: NonNullable<ReturnType<typeof parseStrategyMetadata>>["spec"], nowMs: number): Promise<Scan> {
+  if (spec.preset === "mirror") return scanVenueMirror(runner.venueId, spec, nowMs);
   if (spec.preset !== "agent") return scanVenue(runner.venueId, spec, nowMs);
   return scanVenueWithAgent({ env: runner.env, venueId: runner.venueId, runnerKey: runner.session?.address ?? "unconfigured", agent: runner.agent, log: runner.log, onReading: (why) => heartbeat(runner, strategy.strategyId, why, 0, null) }, strategy, spec, nowMs);
 }

@@ -3,7 +3,7 @@ import type { Address, Hex, Signature } from "../types/primitives";
 import type { VaultCaps } from "../vault/types";
 
 /** A creator's strategy expressed as DATA the fixed runner evaluates — never code (reference `StrategySpec`). */
-export type PresetKey = "momentum" | "reversion" | "agent";
+export type PresetKey = "momentum" | "reversion" | "agent" | "mirror";
 
 /** How hard the gate leans on an agent's call: the confidence floor, the price cap, the breaker. */
 export type AgentPosture = "guarded" | "balanced" | "active";
@@ -31,7 +31,19 @@ export interface AgentSpec {
   cadences: number[];
 }
 
-export type StrategySpec = OracleFollowSpec | AgentSpec;
+/**
+ * Copy one named wallet (A-3b): the signal is that trader's own calls on the Window, as the index recorded them.
+ * There is no model and no threshold here — the only judgement is whose calls to copy and how fresh one has to be.
+ */
+export interface MirrorSpec {
+  preset: "mirror";
+  /** The wallet whose calls this strategy copies. */
+  trader: Address;
+  /** How recently that wallet must have traded a Window for it to be worth copying, in seconds. */
+  withinSec: number;
+}
+
+export type StrategySpec = OracleFollowSpec | AgentSpec | MirrorSpec;
 
 /** What the registry holds on-chain for one strategy, decoded. */
 export interface StrategyRecord {

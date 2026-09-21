@@ -1,5 +1,5 @@
 import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, AGENT_POSTURES, DEFAULT_SPEC_ASSET, describeAgentSpec } from "./agent";
-import type { AgentSpec, OracleFollowSpec, PresetKey, StrategyMetadata, StrategySpec } from "./types";
+import type { AgentSpec, MirrorSpec, OracleFollowSpec, PresetKey, StrategyMetadata, StrategySpec } from "./types";
 
 /** The presets, in the reference's words (`lib/sui/strategyClient.ts` PRESETS), plus the agent. */
 export const PRESETS: Record<PresetKey, { name: string; tagline: string; how: string }> = {
@@ -18,7 +18,16 @@ export const PRESETS: Record<PresetKey, { name: string; tagline: string; how: st
     tagline: "Reads, then decides",
     how: "Reads each Window once — the print, the move so far, both books — and asks a language model for up, down or hold. A fixed gate then holds any weak call.",
   },
+  mirror: {
+    name: "Copy a trader",
+    tagline: "Follow one wallet",
+    how: "Watches one named wallet. When it takes a side on a Window and is still net on it, this takes the same side, inside your own limits. Your order goes in after theirs, at whatever the book holds then — never at their price.",
+  },
 };
+
+/** A copy that chases a call older than a Window's own life is copying nothing; a few seconds is too jumpy to fill. */
+export const MIRROR_WITHIN_MIN_SEC = 30;
+export const MIRROR_WITHIN_MAX_SEC = 3_600;
 
 export const LOOKBACK_MIN = 2;
 export const LOOKBACK_MAX = 12;
@@ -26,6 +35,7 @@ export const LOOKBACK_MAX = 12;
 /** Plain-language description of exactly what the runner will do with this spec (reference `describeSpec`). */
 export function describeSpec(s: StrategySpec, asset = DEFAULT_SPEC_ASSET): string {
   if (s.preset === "agent") return describeAgentSpec(s, asset);
+  if (s.preset === "mirror") return `Every round it reads what ${shortTrader(s.trader)} did on each live Window. If that wallet took a side in the last ${s.withinSec} seconds and is still net on it, this takes the same side. Your order lands after theirs, at the book's price then.`;
   const dir = s.preset === "momentum" ? "with" : "against";
   const pct = (s.thresholdBps / 100).toFixed(2).replace(/\.?0+$/, "");
   return `Every round it reads the last ${s.lookback} prices of ${asset}. If the price moved at least ${pct}%, it bets ${dir} that move. Otherwise it sits out.`;
@@ -35,7 +45,13 @@ export function describeSpec(s: StrategySpec, asset = DEFAULT_SPEC_ASSET): strin
  * Compact, deterministic serialization — what `specHash` is taken over (reference `encodeSpec`).
  * The momentum/reversion branch is byte-identical to the first release, so no published hash moves.
  */
+/** Enough of an address to recognise, in the app's own style. */
+function shortTrader(trader: string): string {
+  return `${trader.slice(0, 4)}…${trader.slice(-4)}`;
+}
+
 export function encodeSpec(s: StrategySpec): string {
+  if (s.preset === "mirror") return JSON.stringify({ p: "mirror", t: s.trader, w: s.withinSec });
   if (s.preset === "agent") return JSON.stringify({ p: "agent", persona: s.persona, po: s.posture, c: s.cadences });
   return JSON.stringify({ p: s.preset, lb: s.lookback, th: s.thresholdBps });
 }
@@ -71,10 +87,23 @@ function isAgentSpec(v: Record<string, unknown>): v is AgentSpec & Record<string
   );
 }
 
+/** A trader's address is base58 and 32 bytes, which is 32–44 characters; the chain refuses anything else anyway. */
+function isMirrorSpec(v: Record<string, unknown>): v is MirrorSpec & Record<string, unknown> {
+  return (
+    v.preset === "mirror" &&
+    typeof v.trader === "string" &&
+    /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v.trader) &&
+    typeof v.withinSec === "number" &&
+    Number.isInteger(v.withinSec) &&
+    v.withinSec >= MIRROR_WITHIN_MIN_SEC &&
+    v.withinSec <= MIRROR_WITHIN_MAX_SEC
+  );
+}
+
 export function isSpec(value: unknown): value is StrategySpec {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
-  return isOracleFollowSpec(v) || isAgentSpec(v);
+  return isOracleFollowSpec(v) || isAgentSpec(v) || isMirrorSpec(v);
 }
 
 export function encodeStrategyMetadata(meta: StrategyMetadata): string {

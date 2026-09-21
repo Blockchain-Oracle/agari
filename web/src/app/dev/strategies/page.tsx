@@ -24,7 +24,7 @@ const DEV = {
   memory: "Drawer — agent memory, with and without a store",
 } as const;
 
-const DRAFT: StudioDraft = { preset: "agent", lookback: 6, thresholdPct: "0.2", persona: "", posture: "balanced", cadences: [900, 3600], hosting: "house", agent: "", name: "", portraitSeed: "fixture-agent", maxPerTrade: "5", maxDaily: "50", subFee: "0", playbook: "" };
+const DRAFT: StudioDraft = { preset: "agent", lookback: 6, thresholdPct: "0.2", persona: "", posture: "balanced", cadences: [900, 3600], hosting: "house", trader: "", mirrorWithinSec: 120, agent: "", name: "", portraitSeed: "fixture-agent", maxPerTrade: "5", maxDaily: "50", subFee: "0", playbook: "" };
 
 const PULSES = [
   { live: true, label: STRATEGIES.desk.status.watching("TSLA") },
