@@ -72,19 +72,20 @@ const PHASE_BLOCKERS: Partial<Record<MarketPhase, BlockerKind>> = {
 export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
   const { market, phase, decimals, symbol, reserve, stakeBase, availableBase, session, hasSigner, enabled } = p;
   const spot = useOracleSpot(market.asset);
-  // D-119: the band is built around the price the reserve's own distribution is centred on — the opening print
-  // carried by the drift the venue's book implies — not the oracle spot, which the chain cannot see. Anchored on
-  // the spot, a Window whose book had gone quiet put every band in the tail and the reserve refused all of them.
+  // D-119: the band stays centred on the live price — that is what the player is betting about, and what the
+  // control's own "at market price" says. The reserve prices from somewhere else: the opening print carried by the
+  // drift its venue's book implies, which `centrePrintOf` reconstructs. Those two agree while the book is trading.
   const basis = useRangeBasis(market.marketId);
   const tauSec = Math.max(0, market.expirySec - Math.floor(Date.now() / 1000));
   const centre = basis && isOk(basis) ? centrePrintOf(basis.value.openingPrint, basis.value.centerQE6, basis.value.sigmaE8, tauSec) : null;
-  // Past two deviations the reserve's centre and the live price have parted far enough that any band it quotes is
-  // knowably wrong in the house's favour, so the ticket refuses instead of pricing it.
+  // When they part by more than two deviations the book has stopped tracking the price, and every band the reserve
+  // quotes is knowably wrong in the house's favour — it sold "inside" at 99.9% on a band the spot had left. Past
+  // that the ticket refuses rather than pricing it; inside it, a band around the spot is priced fairly.
   const staleBasis =
     centre !== null && spot !== null && basis && isOk(basis)
       ? basisDriftSigmas(centre, spot, basis.value.sigmaE8, tauSec) > MAX_BASIS_DRIFT_SIGMAS
       : false;
-  const draft = useRangeDraft(centre ?? spot, market.intervalSec);
+  const draft = useRangeDraft(spot, market.intervalSec);
   const writes = useRangeWrites();
   const [placed, setPlaced] = useState<{ txHash: Signature; band: string } | null>(null);
   const band = draft.lowPrint !== null && draft.highPrint !== null ? { marketId: market.marketId, asset: market.asset, side: "inside" as const, lowPrint: draft.lowPrint, highPrint: draft.highPrint } : null;
@@ -93,7 +94,7 @@ export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
     expirySec: market.expirySec,
     mode: { kind: "fixStake", stakeBase },
     params: reserve?.params ?? null,
-    enabled: enabled && reserve !== null && hasSigner && phase === "trading" && !reserve.paused && !draft.dragging,
+    enabled: enabled && reserve !== null && hasSigner && phase === "trading" && !reserve.paused && !draft.dragging && !staleBasis,
   });
   const { quote } = quoteState;
 

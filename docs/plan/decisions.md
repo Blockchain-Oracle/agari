@@ -1300,14 +1300,21 @@ Age is a proxy for *"this mark still means something"*, and a poor one: what mat
 
 - `centrePrintOf(openingPrint, centerQE6, sigmaE8, tauSec)` — where the reserve's distribution is actually centred, in print terms.
 - `basisDriftSigmas(centrePrint, spotPrint, …)` with `MAX_BASIS_DRIFT_SIGMAS = 2` — that centre's distance from the live spot, in the reserve's own σ√τ.
-- The ticket anchors the draft band on the reserve's centre — not the raw spot, not the raw open — and raises a new `stale-basis` blocker past 2σ: *"The book has not traded near the live price — no band can be priced fairly."*
+- The band stays centred on the **live price** — that is what the player is betting about, and what the control's own *"at market price"* label promises. `centrePrintOf` is reconstructed only to check the two have not parted; past 2σ the ticket and the builder both stop asking for a price and raise a new `stale-basis` blocker: *"The book has not traded near the live price — no band can be priced fairly."*
+  (An earlier cut of this fix moved the band's anchor onto the reserve's centre. That was a workaround for the same problem the 2σ guard solves properly, and it cost the player an intuitive default and made the control's own label a lie — the note fired on the *default* band. With the guard in place the anchor went back to the spot.)
 - `BandControl` shows the **true** spot for the dot, the tick and the "now" figure, and says so when the band does not cover it.
 
 **Not taken:** deriving `center_q_e6` from the book's **mid** rather than the last trade. `basis.rs` is right that *"a mark is a trade, not a quote"* — a maker can paint a quote and then take the other side of the range round against their own mark. Quoting more often is not worth that.
 
 **The on-chain half of this is PD-2/D-109.** The client can run the σ test because it has the live spot; `basis.rs` cannot, because no oracle price exists inside the transaction. When D-109 puts a signed price in the instruction, this same test replaces the age check in `basis.rs` and the reserve refuses on its own account instead of relying on the client's goodwill. Until then the client refuses strictly more often than the chain would, which is the safe direction to be wrong in.
 
-Verified on `:3100`: the header reads "OPENAI now $1,099.35" (the mislabel is gone), band $1,125.40 → $1,129.00, the outside-spot note showing, and **"PAYS ···"** — no quote at all — where before the fix the same band offered **52.4% at 1.7×** on a near-certain loser.
+**Verified on devnet, both halves, 2026-09-21.**
+
+*Refuses when the mark is wrong.* On the stale 11:30–12:30Z Window the page read "OPENAI now $1,099.35" (the mislabel gone), band $1,125.40 → $1,129.00, the outside-spot note showing, and **"PAYS ···"** — no quote at all — where before the fix the same band offered **52.4% at 1.7×** on a near-certain loser. The reserve itself would have taken it: `previewRangeOpen` on that Window quoted a ±30bps band at **p = 99.98%, stake 11.20 tUSDC for a 10 tUSDC payout** — more than the payout, on a band the price had already left.
+
+*Quotes when the mark is right.* The 13:00–14:00Z Window opened with no trade and refused honestly (`thin-book`, "the venue has not traded this Window yet"). One real cross (`range-round.ts mark`, 1,000 lots) filled against the **seed maker's** own resting bid at **556 ticks** — price-time priority, so the mark is the venue's price and not one the drive picked. Basis then read open $1,110.21, mark 55.6%, and the page quoted **5.4× at 16.4%** on a $3.40 band centred at the live $1,115.03 — pay 5.00 tUSDC, win 27.07.
+
+The residual the 2σ bound admits is visible in that second figure: the reserve's centre sat $4.23 (≈1.1σ) below the spot, so a band above its centre is priced a little generously to the player, as a band below it would be priced meanly. That is the mark lagging, bounded — and it is what D-109 removes.
 
 | Q-001 | Build Masayume's own unfinished items? | ✅ Yes (user, 2026-09-13) | L-11, L-23, L-35, L-56, L-57, L-71, Range takes, notifications, sentiment cell, Range band, Duel sparkline |
 | Q-002 | Do routes Masayume removed on 2026-09-04 stay removed? | ✅ Stay removed (user, 2026-09-13) | Y-01…Y-05, Y-18 → Excluded |

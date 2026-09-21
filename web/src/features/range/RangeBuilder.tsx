@@ -60,11 +60,12 @@ export function RangeBuilder({ reserve, symbol }: RangeBuilderProps) {
   }, [picked, marketId]);
 
   const spot = useOracleSpot(picked?.asset ?? null);
-  // D-119: the same anchor the ticket uses — the reserve's own centre, with the spot kept for the band's note.
+  // D-119: the same basis the ticket reads — the band is centred on the live price, and the reserve's own centre
+  // is reconstructed only to check the two have not parted.
   const basis = useRangeBasis(picked?.marketId ?? null);
   const tauSec = picked ? Math.max(0, picked.expirySec - Math.floor(Date.now() / 1000)) : 0;
   const centre = basis && isOk(basis) ? centrePrintOf(basis.value.openingPrint, basis.value.centerQE6, basis.value.sigmaE8, tauSec) : null;
-  const draft = useRangeDraft(centre ?? spot, picked?.intervalSec ?? 300);
+  const draft = useRangeDraft(spot, picked?.intervalSec ?? 300);
   // D-119: past two deviations the reserve's centre and the live price have parted far enough that no band it
   // quotes is fair, so the page stops asking for a price and the band's own note says why.
   const staleBasis =
