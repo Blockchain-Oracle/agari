@@ -8,6 +8,7 @@ import type { VaultSnapshot } from "@agari/core/vault";
 import { ErrorState, LoadingState, StaleTick } from "@/components/states";
 import { cn } from "@/lib/utils";
 import { VAULT } from "./copy";
+import { IdleYieldNote } from "./IdleYieldNote";
 import { NotDeployedNote } from "./NotDeployedNote";
 import { grantsBudgetBase, liveGrants } from "./useVaultAccount";
 import type { VaultWriteKind } from "./useVaultWrite";
@@ -81,6 +82,9 @@ export function TradingBalanceView(props: TradingBalanceViewProps) {
         positions={open?.count ?? null}
       />
       <p className="vault-loading">{VAULT.positionsNote}</p>
+
+      {/* A-2a: what this balance earns while it waits, answered honestly (Q-005). */}
+      <IdleYieldNote idleBase={account.availableBase} decimals={decimals} />
 
       <VaultGrants grants={grants} decimals={decimals} symbol={symbol} busy={busy} disabled={blocker !== null} onRevoke={onRevoke} />
 

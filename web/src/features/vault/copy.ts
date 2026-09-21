@@ -8,6 +8,22 @@ import { VAULT_NOT_DEPLOYED } from "@agari/core/vault";
  * what the pool is FOR and who can move it, then the amount).
  */
 export const VAULT = {
+  /** A-2a (Q-005): idle collateral earns nothing here, the lenders that would pay for it are mainnet-only, and
+   *  the reserves are what actually pays on this cluster — shown as what their share price has already done. */
+  idleYield: {
+    idle: "Money sitting in your Trading Balance earns nothing. It is here to be staked, and until it is, it is just parked.",
+    empty: "An empty Trading Balance earns nothing either — this is where money waits to be staked, not where it grows.",
+    mainnetOnly: "The lending markets that pay for idle collateral — Kamino, Jupiter Lend — do not run on this cluster, so Agari shows no rate from them rather than an invented one.",
+    hereInstead: "What pays here is being the house. Each reserve's share price is what its suppliers have actually made or lost so far:",
+    maker: "Maker vault",
+    range: "Range & Moonshot",
+    parlay: "Parlay",
+    boost: "Boost",
+    up: "above par",
+    down: "below par",
+    flat: "at par",
+    cta: "Supply a reserve →",
+  },
   /** The pool row under the plate — the reference's X row reads "Your X replies bet from this. Only you can cash it out." */
   row: {
     label: "Trading Balance",

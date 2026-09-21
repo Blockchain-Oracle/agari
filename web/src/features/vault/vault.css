@@ -151,3 +151,20 @@ details[open] > .vault-row-summary .vault-row-chevron { transform: rotate(90deg)
   --input-surface: #FFFFFF;
   --bg: #FAF8F5;
 }
+
+/* A-2a (Q-005): what idle collateral earns, and where. Sits under the snapshot cells as a quiet block, not a
+ * promotion: the numbers in it are share prices that have already moved, never a rate. */
+.vault-idle { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 8px; }
+[data-theme="light"] .vault-idle { border-top-color: rgba(20, 18, 16, 0.08); }
+.vault-idle-head { font-size: 13px; line-height: 1.5; color: var(--gray-300); }
+.vault-idle-body { font-size: 12px; line-height: 1.5; color: var(--gray-500); }
+.vault-idle-rows { display: flex; flex-direction: column; gap: 4px; margin: 2px 0 2px; }
+.vault-idle-rows > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.vault-idle-rows dt { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gray-500); }
+.vault-idle-rows dd { margin: 0; font-size: 12px; color: var(--gray-300); }
+.vault-idle-link { align-self: flex-start; margin-top: 4px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--vermilion); }
+.vault-idle-link:hover { color: var(--white); }
+[data-theme="light"] .vault-idle-head { color: rgba(20, 18, 16, 0.78); }
+[data-theme="light"] .vault-idle-body, [data-theme="light"] .vault-idle-rows dt { color: rgba(20, 18, 16, 0.6); }
+[data-theme="light"] .vault-idle-rows dd { color: rgba(20, 18, 16, 0.8); }
+[data-theme="light"] .vault-idle-link:hover { color: rgba(20, 18, 16, 0.95); }
