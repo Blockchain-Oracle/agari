@@ -98,7 +98,17 @@
       "sourceCommit": "00e4067",
       "registry": "G7BLjSmJEShnXFAGutjZPgDNEKjbbNBSWFRN81JTJQGg",
       "fromSlot": 501136159,
-      "initSignature": "4Dbgv6Aha6hpmcwa9thx23b1PTRuFmcNtECbc9BN4L7mzFoxt2dXPsti95mdSBr3xJqosLZunGu9PwmcaEjsEVgV"
+      "initSignature": "4Dbgv6Aha6hpmcwa9thx23b1PTRuFmcNtECbc9BN4L7mzFoxt2dXPsti95mdSBr3xJqosLZunGu9PwmcaEjsEVgV",
+      "upgrades": [
+        {
+          "signature": "5F5cUiVQ8L8HLA6jQGuMzeK86ozZjPc1eNBzvBDQ2vrU9tCiNC8G6NinGTdPb1JSN4RT9Ws7ahhP82fCh9ng4Vzc",
+          "slot": 501847980,
+          "soBytes": 302672,
+          "soSha256": "1a6ec424e249ee19de35a3029dee17e84f0f7db6940da330619915e7887ec484",
+          "why": "A-1c fade consent (FadeSubscription, subscriber_fade / subscriber_unfade); two public-endpoint attempts failed before the keyed one landed",
+          "extendedBy": 49152
+        }
+      ]
     },
     "agari_leverage": {
       "programId": "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb",
