@@ -125,9 +125,11 @@
 .ea-msg { text-align: center; margin-top: 32px; font-size: 12px; font-family: var(--font-mono); color: var(--gray-300); }
 .ea-msg--err { color: var(--vermilion); }
 
-/* Ours (A-2b): the reserve tabs under the hero — the leaderboard's own tab row (`.asset-tabs`), in a hairline band */
-.ea-tabs { padding: 20px 0 0; }
-.ea-tabs .asset-tabs { overflow-x: auto; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); scrollbar-width: none; }
+/* Ours (A-2b): the reserve tabs under the hero — the leaderboard's own tab row (`.asset-tabs`), in a hairline band.
+ * The measure is §01's (`.ea-main`), so a tab sits directly over the section it switches; `padding-block` only,
+ * because the `padding` shorthand would zero `.container`'s side gutter and put the row against the screen edge. */
+.ea-tabs { max-width: 64rem; margin: 0 auto; padding-block: 20px 0; }
+.ea-tabs .asset-tabs { overflow-x: auto; scroll-padding-inline: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); scrollbar-width: none; }
 [data-theme="light"] .ea-tabs .asset-tabs { border-bottom-color: rgba(20, 18, 16, 0.1); }
 .ea-tabs .asset-tabs::-webkit-scrollbar { display: none; }
 .ea-tabs .asset-tab { flex: none; white-space: nowrap; }

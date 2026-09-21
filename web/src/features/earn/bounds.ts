@@ -53,7 +53,7 @@ export function boostBounds(state: LeverageReserveState, sheet: ReserveSheet, wo
     ...sheetRows(sheet, words, symbol),
     { label: "Premium taken up front", value: bpsPct(params.premiumBps), note: "Charged on the capital the reserve fronts, at the moment a boost opens. It is the whole of what suppliers earn here." },
     { label: "Most leverage", value: multiple(params.maxLeverageBps), note: "The largest multiple a boost may ask for; past it the program refuses." },
-    { label: "Knock-out line", value: bpsPct(params.maintenanceBps), note: "A boost is knocked out once its mark falls this far, which is what keeps the fronted capital whole." },
+    { label: "Knock-out line", value: `${bpsPct(params.maintenanceBps)} of the front`, note: "Anyone may close a boost once its mark falls under this much of the capital the reserve fronted, which is what keeps the front whole." },
     { label: "Most fronted on one boost", value: `${money2(params.maxFrontedPerPositionBase, decimals)} ${symbol}`, note: "A cap on how much one position can put at risk." },
     { label: "Boosts open at once", value: `${state.openPositions} of ${params.maxOpenPositions}`, note: "The reserve tracks its live positions in fixed slots, so there is a hard ceiling on how many it can carry." },
   ];

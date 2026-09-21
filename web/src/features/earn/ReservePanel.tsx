@@ -58,7 +58,7 @@ export function ReservePanel({ sheet, symbol, words, status }: ReservePanelProps
             </span>
           )}
         </div>
-        <div className="ea-since">{below ? panel.belowLaunch : panel.sinceLaunch}</div>
+        <div className="ea-since">{below ? panel.belowLaunch(words.noun) : panel.sinceLaunch}</div>
 
         <div className="earn-hair ea-hair" />
 

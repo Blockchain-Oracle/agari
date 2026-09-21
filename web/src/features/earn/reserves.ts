@@ -13,6 +13,8 @@ export interface ReserveWords {
   paused: string;
   /** The panel's first metric: the reference's "Vault value" for the vault, the reserve's equity for the rest. */
   valueLabel: string;
+  /** What this one is called in a sentence: the vault, the reserve. */
+  noun: string;
   /** What the reserve is: one sentence, naming where the money comes from. */
   blurb: string;
   /** The §01 head. */
@@ -39,6 +41,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     live: "Live · maker vault",
     paused: "Paused · maker vault",
     valueLabel: "Vault value",
+    noun: "vault",
     blurb: "The vault rests a bid and an ask on the venue's own books and earns the gap between them.",
     supplyTitle: "Supply the vault",
     supplyMeta: "withdraw what is idle, any time",
@@ -57,6 +60,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     live: "Live · range reserve",
     paused: "Paused · range reserve",
     valueLabel: "Reserve value",
+    noun: "reserve",
     blurb: "The reserve is the counterparty to every band: it prices off the Window's own opening print, takes the stake, and locks the payout until the closing print lands.",
     supplyTitle: "Supply the reserve",
     supplyMeta: "withdraw what no live band is holding",
@@ -75,6 +79,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     live: "Live · parlay reserve",
     paused: "Paused · parlay reserve",
     valueLabel: "Reserve value",
+    noun: "reserve",
     blurb: "Every leg is priced off the venue's book, with a floor for legs that settle at the same instant. The reserve keeps the stake when a ticket misses a leg.",
     supplyTitle: "Supply the reserve",
     supplyMeta: "withdraw what no live ticket is holding",
@@ -93,6 +98,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     live: "Live · boost reserve",
     paused: "Paused · boost reserve",
     valueLabel: "Reserve value",
+    noun: "reserve",
     blurb: "The reserve fronts the difference between a boosted stake and the contracts it buys, and takes a premium for it up front.",
     supplyTitle: "Supply the reserve",
     supplyMeta: "withdraw what no live boost is holding",

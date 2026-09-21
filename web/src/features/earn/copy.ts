@@ -18,7 +18,7 @@ export const EARN = {
     brand: "Agari MM",
     perShare: "/ share",
     sinceLaunch: "Up from 1.0000 at launch",
-    belowLaunch: "Below 1.0000 — the vault is carrying a loss",
+    belowLaunch: (noun: string) => `Below 1.0000 — the ${noun} is carrying a loss`,
     vaultValue: "Vault value",
     utilization: "Utilization",
     loading: "loading the vault…",
