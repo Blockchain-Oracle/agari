@@ -103,7 +103,10 @@ export function usePrivateTicket({ market, side, stakeBase, enabled, symbol, wal
   const blocker = !enabled
     ? commonBlocker({ ...guarded, availableBase: null, funding: null })
     : pending
-      ? (commonBlocker({ ...guarded, availableBase: null, funding: null, side: "up", stakeBase: 1n }) ?? null)
+      // A resume carries the request that was already signed, so the stake is its stake — not a stand-in. It used
+      // to pass `1n`, one base unit, which is under every minimum: the button then wore "below the minimum stake"
+      // and refused the one action the note above it promises, leaving the bet unresumable and the money held.
+      ? (commonBlocker({ ...guarded, availableBase: null, funding: null, side: pending.request.side, stakeBase: BigInt(pending.request.stakeBase) }) ?? null)
       : derivePrivateBlocker(guarded, { deployed, probing: status.probing, ready: status.status?.ready === true, minStakeBase, maxStakeBase, budgetReadable, shortBase: depositShortBase, walletCanCover, quote: quote.quote, quoteLoading: quote.loading, quoteError: quote.error });
   const ctx: Partial<BlockerContext> = {
     privateMinText: minStakeBase !== null ? `${formatBaseUnits(minStakeBase, decimals, { minDp: 0 })} ${symbol}` : undefined,
