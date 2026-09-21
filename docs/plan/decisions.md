@@ -1319,7 +1319,7 @@ The residual the 2σ bound admits is visible in that second figure: the reserve'
 | Q-001 | Build Masayume's own unfinished items? | ✅ Yes (user, 2026-09-13) | L-11, L-23, L-35, L-56, L-57, L-71, Range takes, notifications, sentiment cell, Range band, Duel sparkline |
 | Q-002 | Do routes Masayume removed on 2026-09-04 stay removed? | ✅ Stay removed (user, 2026-09-13) | Y-01…Y-05, Y-18 → Excluded |
 | Q-003 | Build Yosuku-only extras? | ✅ Not built (user, 2026-09-13) | Y-07…Y-13, Y-15 → Excluded |
-| Q-004 | "Bet against" depth: A-1b inverse position; Phoenix perps (mainnet-only)? | Open. Default: A-1a/A-1c built; A-1b after approval; Phoenix not built on devnet | A-1b (S10c) |
+| Q-004 | "Bet against" depth: A-1b inverse position; Phoenix perps (mainnet-only)? | ✅ Answered (user, 2026-09-21): **build A-1b on `agari-leverage`**, not on its own reserve — the Boost reserve is deployed and funded and already carries the three things a short prices against (the capital that fronts, the 8% premium, the knock-out at 120% of the front), so nothing new goes on chain. Phoenix stays recorded as mainnet-only and is not built | A-1b (S10c) |
 | Q-005 | Yield: Kamino/Jupiter Lend are mainnet-only | Open. Default: honest "mainnet only" state + Earn reserves as yield | A-2a (S14) |
 | Q-006 | Solana Mobile / Seeker beyond the PWA? | Open. Default: PWA only | — |
 | Q-007 | Public repo licensing for Yosuku-derived CSS | ✅ Answered (user, 2026-09-15): Agari's code is **MIT** (`LICENSE`); the repositories stay **private for now**. Third-party material keeps its own terms (`THIRD_PARTY_NOTICES.md`); going public is a later user call | Public visibility |
@@ -1329,7 +1329,7 @@ The residual the 2σ bound admits is visible in that second figure: the reserve'
 | Q-S6-3 | Overnight devnet Gap drive Thu 20:00Z → Fri 13:30Z (Series 902, ≈ 0.24 SOL)? | Open. Default (pending the user): yes (D-054) | Gap pre-deadline gate row |
 | Q-S6-4 | Surge signs with only 2 oracles? | Open. Default (pending the user): min 2 with halved caps and "signed by 2 oracles" disclosed, else pause (D-053) | 6b token lane |
 | Q-S6-5 | Jupiter attested demo version on devnet? | Default: no, unless Switchboard is paused and the user opts in (D-056) | — |
-| Q-S6-6 | ≈ 15 devnet SOL for S6 | Open. Needs the user: send to inbox `5zjywmmJ…` before Wed 09-16 (D-055) | Gap/token registration, program upgrade |
+| Q-S6-6 | ≈ 15 devnet SOL for S6 | ✅ Closed 2026-09-21, no longer needed: the deployer holds **11.24 SOL** and the maker **0.96 SOL**, which covered every registration and upgrade since; the inbox `5zjywmmJ…` was never funded and nothing waited on it | — |
 | Q-S6-7 | A void claim shows Masayume's "You won" trophy? | Open. Default (pending the user): void stamp, "Returned" and the reason line (D-057) | 6d claim card |
 | Q-S6-8 | Hedge placement and size | Default: under the `/markets` hero, 10% of exposure, devnet tUSDC only (D-058) | — |
 | Q-S6-9 | Halt wording without a licensed halt feed | Default: "Trading halted" only for `pyth-wide` / `issuer-halt`, else "Signed price stale" (D-057) | — |
