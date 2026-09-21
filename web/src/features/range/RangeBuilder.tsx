@@ -16,6 +16,7 @@ import { useChainNowMs } from "../markets/useChainNow";
 import { ConnectButton } from "../markets/wallet";
 import type { PlaceStep } from "../parlay/TicketParts";
 import { BandControl } from "./BandControl";
+import { blockerLabel } from "@agari/core/copy";
 import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS } from "@agari/core/range";
 import { useRangeBasis } from "@agari/markets/react";
 import { RANGE } from "./copy";
@@ -144,6 +145,9 @@ export function RangeBuilder({ reserve, symbol }: RangeBuilderProps) {
         <div className="pl-plate-body">
           <WindowPicker windows={windows} loading={windowsLoading} pickedId={picked?.marketId ?? null} nowMs={nowMs} onPick={setMarketId} />
           {picked && <BandControl asset={picked.asset} intervalSec={picked.intervalSec} draft={draft} side={side} onSide={setSide} spot={spot} />}
+          {/* D-119: the ticket raises this as a blocker on `/markets`; without it here the game page went quiet — no
+              price, no reason, and a CTA that told a funded wallet it was short. One string for both surfaces. */}
+          {picked && staleBasis && <p className="rg-spot-note">{blockerLabel("stale-basis")}</p>}
         </div>
       </div>
 

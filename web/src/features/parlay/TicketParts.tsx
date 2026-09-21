@@ -76,12 +76,15 @@ export function PlaceButton({ step, quoted, quoteLoading, quoteError, hasEnough,
         ticket.pricing
       ) : quoteError ? (
         ticket.unavailable
+      ) : !quoted ? (
+        // No price is not the same thing as no money: `hasEnough` compares the wallet with a quote that does not
+        // exist yet, so it reads false whenever the ticket has nothing to quote. Asking `quoted` first keeps a
+        // refused or unbuilt ticket from telling a funded wallet it is short.
+        ticket.build
       ) : !hasEnough ? (
         <KeepCase text={ticket.insufficient(symbol)} symbol={symbol} />
-      ) : quoted ? (
-        <KeepCase text={ticket.place(stakeText, symbol)} symbol={symbol} />
       ) : (
-        ticket.build
+        <KeepCase text={ticket.place(stakeText, symbol)} symbol={symbol} />
       )}
     </button>
   );
