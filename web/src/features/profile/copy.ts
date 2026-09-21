@@ -14,6 +14,8 @@ export const PROFILE = {
   following: "Following",
   x: "On X",
   xVerified: "verified link",
+  /** A-3b: copy this wallet's calls as a strategy. */
+  copyTrader: "Copy this trader",
   explorer: "Explorer ↗",
   copy: "Copy address",
   copied: "Copied",

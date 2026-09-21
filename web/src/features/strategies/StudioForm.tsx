@@ -13,7 +13,10 @@ const APPROACH_BODY = {
   agent: "An AI reads the opening price, recent move and order books, then explains its call. Hard limits still decide what it may trade.",
   momentum: "A fixed rule follows the current EMA price away from each Window’s opening print. No AI model is used.",
   reversion: "A fixed rule bets against the current EMA move away from each Window’s opening print, expecting it to pull back. No AI model is used.",
+  mirror: "One named wallet is the signal. When it takes a side on a Window and is still net on it, this takes the same side — after their order landed, at the book’s price then. No AI model is used.",
 } as const;
+
+import { StudioMirrorFields } from "./StudioMirrorFields";
 
 export { draftSpec, type StudioDraft } from "./studio-draft";
 const S = STRATEGIES.studio;
@@ -39,8 +42,8 @@ export function StudioForm({ form, setForm, symbol, asset, decimals, houseRunner
       <Field label="Agent name"><input value={form.name} maxLength={64} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Give your agent a name" className="strat-input text-ink" /></Field>
       <div>
         <div className="desk-field-label">Trading approach</div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {(["agent", "momentum", "reversion"] as const).map((preset) => (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {(["agent", "momentum", "reversion", "mirror"] as const).map((preset) => (
             <button key={preset} type="button" aria-pressed={form.preset === preset} onClick={() => setForm((f) => ({ ...f, preset }))} className={cn("strat-choice group", form.preset === preset && "strat-choice--on")}>
               <span className="strat-choice-title text-ink">{PRESETS[preset].name}</span>
               <p className="strat-choice-body">{APPROACH_BODY[preset]}</p>
@@ -54,7 +57,7 @@ export function StudioForm({ form, setForm, symbol, asset, decimals, houseRunner
   );
   if (step === 2) return (
     <div className="space-y-6">
-      {form.preset === "agent" ? <StudioAgentFields form={form} setForm={setForm} asset={asset} decimals={decimals} /> : (
+      {form.preset === "agent" ? <StudioAgentFields form={form} setForm={setForm} asset={asset} decimals={decimals} /> : form.preset === "mirror" ? <StudioMirrorFields form={form} setForm={setForm} /> : (
         <div>
           <div className="desk-field-label">Minimum move from the opening price</div>
           <div className="flex flex-wrap gap-2">{["0.1", "0.2", "0.5", "1"].map((value) => <button type="button" key={value} aria-pressed={form.thresholdPct === value} onClick={() => setForm((f) => ({ ...f, thresholdPct: value }))} className={cn("strat-chip", form.thresholdPct === value && "strat-chip--on")}>{value}%</button>)}</div>

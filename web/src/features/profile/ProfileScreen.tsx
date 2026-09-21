@@ -4,6 +4,7 @@ import type { Address } from "@agari/core/types";
 import { addressUrl } from "@agari/core/urls";
 import { keys, useWalletHistory } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useCallback, useState, type CSSProperties } from "react";
 import { useMoneyUnits } from "@/features/activity/useActivity";
 import { FollowButton } from "@/features/social/FollowButton";
@@ -93,6 +94,13 @@ export function ProfileScreen({ address, xHandle }: { address: Address; xHandle:
               <a className="asset-tab" href={addressUrl(address)} target="_blank" rel="noopener noreferrer" data-cursor="hover">
                 {PROFILE.explorer}
               </a>
+              {/* A-3b: copying a wallet needs nothing from its owner — their calls are on chain — so this is offered
+                  on any profile but your own, and it opens the studio with the address already in it. */}
+              {!own && (
+                <Link className="asset-tab" href={`/strategies?copy=${address}`} data-cursor="hover">
+                  {PROFILE.copyTrader}
+                </Link>
+              )}
             </div>
           </div>
         </div>

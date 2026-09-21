@@ -115,7 +115,16 @@ export const STRATEGIES = {
   tabs: { all: "All", settled: "Settled", memwal: "Has playbook", copied: "Most copied", safest: "Safest", new: "New" },
   recent: { title: "Recent copy-trades", empty: "No confirmed copy-trades yet.", copied: (n: number) => `copied ×${n}`, viewAll: (n: number) => `View all ${n} on-chain ↗`, storeOff: "The fill store is not connected on this deployment; fills are read from the runner's receipts once it is." },
   studio: {
-    eyebrow: "Creator studio",
+    /** A-3b: copying one named wallet. */
+    mirror: {
+      traderLabel: "Wallet to copy",
+      traderPlaceholder: "The trader's Solana address",
+      traderHelp: "Their calls are public on chain, so this needs nothing from them. Open a profile from the leaderboard to copy its address.",
+      traderInvalid: "That is not a Solana address. Paste the wallet exactly as the profile shows it.",
+      withinLabel: "How fresh their call has to be",
+      withinHelp: "Older than this and the Window has usually moved on; the runner sits it out rather than chase.",
+      caveat: "Your order goes in after theirs, at whatever the book holds then — never at their price, and sometimes not at all. Your own limits still decide the size.",
+    },    eyebrow: "Creator studio",
     title: "Launch an agent",
     soon: "Coming soon",
     sensei: "Meet Sensei →",

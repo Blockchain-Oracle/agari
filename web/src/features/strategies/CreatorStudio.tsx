@@ -30,6 +30,12 @@ interface CreatorStudioProps {
 /** Drafting is public; only publishing needs the creator's connected wallet. */
 export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, onPublished }: CreatorStudioProps) {
   const [form, setForm] = useState(() => initialStudioDraft(houseRunner));
+  // A-3b: a profile's "Copy this trader" arrives as `?copy=<wallet>`, so the studio opens on the mirror preset
+  // with that wallet already in it. Read once, after mount, so the server and the first client render agree.
+  useEffect(() => {
+    const trader = new URLSearchParams(window.location.search).get("copy");
+    if (trader) setForm((f) => ({ ...f, preset: "mirror", trader }));
+  }, []);
   const [step, setStep] = useState(1);
   const [published, setPublished] = useState<DeskWriteResult | null>(null);
   const [problem, setProblem] = useState<string | null>(null);

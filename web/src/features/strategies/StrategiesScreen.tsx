@@ -29,8 +29,11 @@ export function StrategiesScreen({ houseRunner }: { houseRunner: string | null }
   const writes = useDeskWrites();
   const [view, setView] = useState<View>("create");
   useEffect(() => {
-    const selected = new URLSearchParams(window.location.search).get("view");
+    const params = new URLSearchParams(window.location.search);
+    const selected = params.get("view");
     if (selected === "copy" || selected === "yours") setView(selected);
+    // A-3b: `?copy=<wallet>` means "copy this trader", which is a strategy to publish, not one to subscribe to.
+    else if (params.get("copy")) setView("create");
   }, []);
   const payload = reading && isOk(reading) ? reading.value : null;
   return <div className="container pt-7 pb-12">
