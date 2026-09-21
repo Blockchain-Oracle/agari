@@ -61,10 +61,30 @@ export interface PrivateOpenInput {
   symbol: string;
 }
 
+/**
+ * A refusal the desk made *before* it touched the chain, which therefore cannot have charged anything.
+ *
+ * The route decides these itself: 400 malformed, 401 the signature is not the owner's, 404 no such Window — every
+ * one of them returns above `openPrivateBet`. A 429 is a refusal too, but a later attempt is meaningful, and 5xx
+ * or no answer at all leaves the outcome genuinely unknown. Only the first class may drop an authorisation.
+ */
+const SETTLED_REFUSAL = new Set([400, 401, 404]);
+
+class PrivateOpenRefused extends Error {
+  readonly settled: boolean;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "PrivateOpenRefused";
+    this.settled = SETTLED_REFUSAL.has(status);
+  }
+}
+
 async function post(body: PrivateOpenRequest): Promise<PrivateOpenResult> {
   const res = await fetch("/api/private/open", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   const json = (await res.json().catch(() => null)) as (PrivateOpenResult & { error?: string }) | { error?: string } | null;
-  if (!res.ok || !json || !("status" in json)) throw new Error((json && "error" in json && json.error) || `private route answered ${res.status}`);
+  if (!res.ok || !json || !("status" in json)) {
+    throw new PrivateOpenRefused((json && "error" in json && json.error) || `private route answered ${res.status}`, res.status);
+  }
   return json;
 }
 
@@ -89,9 +109,16 @@ export function usePrivateOpen() {
         try {
           result = await post(entry.request);
         } catch (error) {
-          // The route itself failed to answer: the charge may or may not have landed, so keep the authorisation.
-          writePending(owner, entry);
-          setPending(entry);
+          // A refusal the desk settled before it touched the chain cannot have charged anything, and re-sending it
+          // will be refused the same way forever — keeping it pending locks private mode for this wallet. Anything
+          // else (no answer, a 5xx, a rate limit) may still land or may be worth another try, so it is kept.
+          if (error instanceof PrivateOpenRefused && error.settled) {
+            writePending(owner, null);
+            setPending(null);
+          } else {
+            writePending(owner, entry);
+            setPending(entry);
+          }
           throw error;
         }
         if (result.status === "unknown") {
