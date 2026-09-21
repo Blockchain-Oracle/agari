@@ -52,7 +52,12 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
   const fee = parseDecimalToBaseUnits(form.subFee, decimals);
   const behaviorValid = isSpec(spec) && perTrade !== null && perTrade > 0n && daily !== null && daily >= perTrade;
   const runnerValid = isAddress(runner);
-  const summary = spec.preset === "agent" ? describeSpec(spec, asset) : `${spec.preset === "reversion" ? "Bets against" : "Follows"} the EMA move from each Window’s opening print when it reaches ${form.thresholdPct}%. Considers all live venue assets.`;
+  // The description is what a subscriber reads before they sign, so every preset describes itself: the two fixed
+  // rules from this form's own threshold, and the agent and the copy from `describeSpec`.
+  const summary =
+    spec.preset === "agent" || spec.preset === "mirror"
+      ? describeSpec(spec, asset)
+      : `${spec.preset === "reversion" ? "Bets against" : "Follows"} the EMA move from each Window’s opening print when it reaches ${form.thresholdPct}%. Considers all live venue assets.`;
   const canPublish = behaviorValid && runnerValid && fee !== null && fee >= 0n;
   const advance = () => {
     if (step === 2 && !behaviorValid) { setProblem("Complete the brief and choose positive limits. The daily limit must cover one trade."); return; }
