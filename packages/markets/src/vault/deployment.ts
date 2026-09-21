@@ -24,8 +24,19 @@ type VaultEnv = Partial<Pick<MarketsEnv, "vaultProgramId" | "cluster">>;
 
 let inflight: { programId: string; read: Promise<VaultDeployment | null> } | null = null;
 
+/**
+ * The program the client is built against, when nothing overrides it — as every other product program resolves it
+ * (`rangeProgramId`, `leverageProgramId`, …).
+ *
+ * It used to return null with no env var, which reads as "no vault on this cluster" and is a different claim
+ * entirely. An ops actor started without `NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID` therefore believed no Trading Balance
+ * existed, and the strategy runner refused every subscriber it had — reported as "grant not live", with four live
+ * grants on chain. Nothing is asserted by this fallback that the next line does not already require: an id that is
+ * not the client's own is refused, so the only id this can be is the one below. Whether the program is *deployed*
+ * is still decided by reading its `VaultConfig`, which is the point of the probe.
+ */
 function programIdOf(env: VaultEnv | undefined): CoreAddress | null {
-  return env?.vaultProgramId ?? peekClient()?.vaultProgramId ?? null;
+  return env?.vaultProgramId ?? peekClient()?.vaultProgramId ?? (AGARI_VAULT_PROGRAM_ADDRESS as string as CoreAddress);
 }
 
 /**
