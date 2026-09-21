@@ -1,9 +1,10 @@
 import { PRINT_DECIMALS } from "@agari/core/range";
 import { formatOracleRaw } from "@agari/core/units";
 
-const CENTS = 100n;
+/** One dollar on the print scale. The reference worked in cents; a print here carries 10⁻⁸ (`PRINT_DECIMALS`). */
+const ONE_USD = 10n ** BigInt(PRINT_DECIMALS);
 /** Under this print a band's edges need cents to be told apart (ETH at $2.4k sits on a $0.20 grid). */
-const CENTS_MATTER_BELOW = 10_000_00n;
+const CENTS_MATTER_BELOW = 10_000n * ONE_USD;
 
 /** Whole dollars, grouped, from a print in cents — the reference's `fmtUsd0`. */
 export function usd0(print: bigint): string {
@@ -25,13 +26,13 @@ export function usdOnGrid(usd: number, decimals: number): string {
   return `$${usd.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
-/** A print in cents → dollars with cents, for the band arithmetic the reference does in dollars. */
+/** A print → dollars with cents, for the band arithmetic the reference does in dollars. */
 export function printToUsd(print: bigint): number {
-  return Number(print) / 100;
+  return Number(print) / Number(ONE_USD);
 }
 
 export function usdToPrint(usd: number): bigint {
-  return BigInt(Math.round(usd * Number(CENTS)));
+  return BigInt(Math.round(usd * Number(ONE_USD)));
 }
 
 /** `multiplier.toFixed(1)` without a float — the reference's slip figure. */

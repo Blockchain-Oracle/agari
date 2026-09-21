@@ -1,3 +1,4 @@
+import { PRINT_EXPO } from "../market/tickers";
 import type { MarketId } from "../types/market";
 import type { Address } from "../types/primitives";
 
@@ -140,8 +141,15 @@ export type RangeIntent =
   | { kind: "range-withdraw"; shares: bigint };
 
 export const RANGE_NOT_DEPLOYED = "RangeReserve is not deployed on this network yet" as const;
-/** The oracle's print scale for the venue's Windows: cents (context/40, context/43). */
-export const PRINT_DECIMALS = 2;
+/**
+ * The oracle's print scale for the venue's Windows, taken from `PRINT_EXPO` so it can never drift from it.
+ *
+ * The reference drew every price in cents and this was a literal 2, which made a band on a 10⁻⁸ print read a
+ * million times too large: OPENAI at $1,120.00 showed as "$1,120,001,916" on `/games/range` and `/games/moonshot`,
+ * and the band built around it was so far from the market that the reserve answered "too close to certain or
+ * impossible" and quoted nothing.
+ */
+export const PRINT_DECIMALS = -PRINT_EXPO;
 /**
  * The basis moves with every second left in a Window, so a stake cap equal to the quote can never land on a
  * short lane (measured live 2026-09-02: +0.06% in the seconds between quote and send, +0.3% on a 15m Window).
