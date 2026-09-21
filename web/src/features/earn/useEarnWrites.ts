@@ -2,56 +2,20 @@
 
 import type { MarketId } from "@agari/core/types";
 import { getMakerUnsettledExpired } from "@agari/markets/maker";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
-import { diagnosisCopy } from "@/lib/copy";
-import { useWalletSession } from "@/lib/wallet-session";
+import { useSubmitter } from "@agari/markets/react";
+import { useCallback } from "react";
 import { EARN } from "./copy";
+import { outcomeMessage, useLaneRunner } from "./useReserveWrites";
 
 export type EarnBusy = "supply" | "withdraw" | `merge:${string}` | `settle:${string}`;
 
 /** The vault caps its open Windows (`maxOpenWindows`); this is the most settles one exit will send before giving up. */
 const MAX_SETTLES_BEFORE_WITHDRAW = 16;
 
-/** Every vault write from the page through the session's lane; every read the write can change is refetched afterwards. */
+/** Every maker vault write from the page through the session's lane; every read the write can change is refetched afterwards. */
 export function useEarnWrites() {
   const submitter = useSubmitter();
-  const { address } = useWalletSession();
-  const queryClient = useQueryClient();
-  const [busy, setBusy] = useState<EarnBusy | null>(null);
-  const [msg, setMsg] = useState("");
-
-  const refresh = useCallback(async () => {
-    if (address) await invalidateAfterWrite(queryClient, { wallet: address });
-    await queryClient.invalidateQueries({ queryKey: ["agari", "makerVault"], exact: false });
-  }, [address, queryClient]);
-
-  const run = useCallback(
-    async (key: EarnBusy, body: () => Promise<string | null>): Promise<boolean> => {
-      setBusy(key);
-      setMsg("");
-      let ok = false;
-      try {
-        const failure = await body();
-        ok = failure === null;
-        setMsg(failure ?? EARN.supply.done);
-      } catch (error) {
-        setMsg(error instanceof Error ? error.message.slice(0, 120) : String(error));
-      } finally {
-        setBusy(null);
-        await refresh();
-      }
-      return ok;
-    },
-    [refresh],
-  );
-
-  const outcomeMessage = (outcome: { status: string; diagnosis?: { kind: Parameters<typeof diagnosisCopy>[0]; technical: string } }): string | null => {
-    if (outcome.status === "confirmed") return null;
-    const copy = outcome.diagnosis ? diagnosisCopy(outcome.diagnosis.kind) : null;
-    return copy ? `${copy.headline}: ${outcome.diagnosis?.technical.slice(0, 100) ?? copy.body}` : outcome.status;
-  };
+  const { busy, msg, setMsg, run } = useLaneRunner<EarnBusy>();
 
   const supply = useCallback(
     (amountBase: bigint): Promise<boolean> => {
@@ -80,7 +44,7 @@ export function useEarnWrites() {
         return outcomeMessage(await submitter.submitTx({ kind: "maker-withdraw", shares }));
       });
     },
-    [submitter, run],
+    [submitter, run, setMsg],
   );
 
   const merge = useCallback(

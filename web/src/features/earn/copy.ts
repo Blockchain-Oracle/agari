@@ -6,9 +6,10 @@ import { MAKER_NOT_DEPLOYED } from "@agari/core/maker";
  * books; the spread it earns and the inventory it carries are readable per Window.
  */
 export const EARN = {
-  /** The reference's hero: "Earn the *spread*." */
+  /** The reference's hero: "Earn the *spread*." The accented word is the tab's (`reserves.ts`). */
   title: "Earn the",
   titleAccent: "spread",
+  tabsLabel: "Reserve",
   panel: {
     /** The reference: "Closed pool · 4-16" / "Predict PLP" — its own truth correction for a retired pool. Ours is live, or says why not. */
     live: "Live · maker vault",
@@ -29,6 +30,7 @@ export const EARN = {
   paused: {
     title: "New deposits are paused",
     body: "The vault's admin has paused new supply. Anything you already supplied is untouched: settlement, merges and withdrawals keep running, and you can withdraw what is idle any time.",
+    reserveBody: "The reserve's admin has paused new supply. Anything you already supplied is untouched: live positions settle as they always would, and you can withdraw what no position is holding, any time.",
   },
   supply: {
     amount: "Amount",
@@ -79,6 +81,8 @@ export const EARN = {
     body: "Commit capital to market making, then inspect the real inventory, exposure, and exit accounting behind your share — not an advertised yield.",
     why: MAKER_NOT_DEPLOYED,
     dependency: "the maker vault program (planned after the hackathon deadline)",
+    /** A house reserve whose program is not on the cluster the app is pointed at. */
+    reserve: (label: string) => `${label} is not on this cluster. Point the app at a cluster where the reserve is deployed and this tab reads it.`,
   },
   devTitle: "Earn",
 } as const;

@@ -124,3 +124,28 @@
 /* text-center mt-8 text-[12px] font-mono text-gray-300 / text-vermilion */
 .ea-msg { text-align: center; margin-top: 32px; font-size: 12px; font-family: var(--font-mono); color: var(--gray-300); }
 .ea-msg--err { color: var(--vermilion); }
+
+/* Ours (A-2b): the reserve tabs under the hero — the leaderboard's own tab row (`.asset-tabs`), in a hairline band */
+.ea-tabs { padding: 20px 0 0; }
+.ea-tabs .asset-tabs { overflow-x: auto; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); scrollbar-width: none; }
+[data-theme="light"] .ea-tabs .asset-tabs { border-bottom-color: rgba(20, 18, 16, 0.1); }
+.ea-tabs .asset-tabs::-webkit-scrollbar { display: none; }
+.ea-tabs .asset-tab { flex: none; white-space: nowrap; }
+/* Ours: the hero sentence under the title — what this reserve is, in one line */
+.ea-blurb { margin-top: 20px; max-width: 34rem; font-size: 13px; line-height: 1.5; color: var(--gray-500); }
+
+/* Ours: §02 on a house reserve — the deployed program's own parameters, on the table's surface */
+.ea-bounds { margin-bottom: 40px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(23, 23, 23, 0.4); padding: 8px 16px 16px; }
+[data-theme="light"] .ea-bounds { border-color: rgba(20, 18, 16, 0.11); background: rgba(251, 247, 238, 0.94); }
+.ea-bound-rows { display: block; }
+.ea-bound { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 14px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+[data-theme="light"] .ea-bound { border-top-color: rgba(20, 18, 16, 0.07); }
+.ea-bound:first-child { border-top: 0; }
+@media (min-width: 640px) { .ea-bound { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); gap: 16px; align-items: baseline; } }
+.ea-bound-k { margin-bottom: 0; }
+.ea-bound-v { display: flex; flex-direction: column; gap: 4px; margin: 0; }
+.ea-bound-n { font-family: var(--font-mono); font-size: 15px; font-variant-numeric: tabular-nums; }
+.ea-bound-note { font-size: 12px; line-height: 1.5; color: var(--gray-500); }
+/* The one sentence a supplier is owed: how the money is lost here. Never a projected return. */
+.ea-risk { margin-top: 16px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--vermilion) 30%, transparent); font-size: 13px; line-height: 1.5; color: var(--gray-300); }
+[data-theme="light"] .ea-risk { color: rgba(20, 18, 16, 0.75); }

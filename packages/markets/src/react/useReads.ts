@@ -5,15 +5,16 @@ import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
 import type { TickerSymbol } from "@agari/core/market";
 import type { ParlayReserveState, ParlayTicket } from "@agari/core/parlay";
 import type { PrivateBudget, PrivateDeskState, PrivateSlot } from "@agari/core/private";
+import type { ProviderShares } from "@agari/core/reserves";
 import type { WalletHistory } from "@agari/core/projection";
 import type { RangeReserveState, RangeRound } from "@agari/core/range";
 import { isOk, type Reading } from "@agari/core/schemas";
 import type { Address, BalanceSheet, BookParams, ClaimableRow, ClockSync, EventMarket, Hash32, LaneSet, MarketId, OnchainSnapshot, OpenPosition, PricePoint, Resolution } from "@agari/core/types";
 import type { VaultHoldings, VaultSnapshot } from "@agari/core/vault";
 import { getArenaCredit, getArenaMatch, getArenaState, quoteArenaPick, type ArenaMatchView, type ArenaState } from "../games/read";
-import { getLeverageMark, getLeverageReserveState, listLeveragePositionsOf } from "../leverage";
+import { getLeverageMark, getLeverageReserveState, getLeverageSharesOf, listLeveragePositionsOf } from "../leverage";
 import { getMakerSharesOf, getMakerVaultState, listMakerHistory, listMakerOpenWindows } from "../maker";
-import { getParlayReserveState, listParlaysOf } from "../parlay";
+import { getParlayReserveState, getParlaySharesOf, listParlaysOf } from "../parlay";
 import { mark } from "../perf/milestones";
 import { getPrivateBudget, getPrivateDeskState, getPrivateSlot } from "../private";
 import {
@@ -35,7 +36,7 @@ import {
   settlementFeeBps,
   syncClock,
 } from "../provider/reads";
-import { getRangeReserveState, listRangesOf } from "../range/read";
+import { getRangeReserveState, getRangeSharesOf, listRangesOf } from "../range/read";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";
 
@@ -141,8 +142,8 @@ export function useVaultSnapshot(wallet: Address | null): Reading<VaultSnapshot 
 }
 
 /** The reserve's sheet and tunables; `null` inside the reading where no reserve is deployed. */
-export function useParlayReserve(): Reading<ParlayReserveState | null> | null {
-  return useReadingQuery(keys.parlayReserve(), getParlayReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS });
+export function useParlayReserve(enabled = true): Reading<ParlayReserveState | null> | null {
+  return useReadingQuery(keys.parlayReserve(), getParlayReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled });
 }
 
 /** One wallet's tickets, live first; empty (never an error) without a reserve. */
@@ -150,14 +151,24 @@ export function useMyParlays(wallet: Address | null): Reading<ParlayTicket[]> | 
   return useReadingQuery(keys.parlays(wallet), () => listParlaysOf(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
 }
 
+/** One wallet's parlay reserve shares and their worth; zeros without a reserve. */
+export function useParlayShares(wallet: Address | null): Reading<ProviderShares> | null {
+  return useReadingQuery(keys.parlayShares(wallet), () => getParlaySharesOf(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
+}
+
 /** The range reserve's sheet and tunables; `null` inside the reading where no reserve is deployed. */
-export function useRangeReserve(): Reading<RangeReserveState | null> | null {
-  return useReadingQuery(keys.rangeReserve(), getRangeReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS });
+export function useRangeReserve(enabled = true): Reading<RangeReserveState | null> | null {
+  return useReadingQuery(keys.rangeReserve(), getRangeReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled });
 }
 
 /** One wallet's range rounds, live first; empty (never an error) without a reserve. */
 export function useMyRanges(wallet: Address | null): Reading<RangeRound[]> | null {
   return useReadingQuery(keys.ranges(wallet), () => listRangesOf(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
+}
+
+/** One wallet's range reserve shares and their worth; zeros without a reserve. */
+export function useRangeShares(wallet: Address | null): Reading<ProviderShares> | null {
+  return useReadingQuery(keys.rangeShares(wallet), () => getRangeSharesOf(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
 }
 
 /** The maker vault's sheet and tunables; `null` inside the reading where no vault is deployed. */
@@ -176,7 +187,7 @@ export function useMakerHistory(limit = 20): Reading<MakerWindowView[]> | null {
 }
 
 /** One wallet's maker vault shares and their worth; zeros without a vault. */
-export function useMakerShares(wallet: Address | null): Reading<{ shares: bigint; worthBase: bigint }> | null {
+export function useMakerShares(wallet: Address | null): Reading<ProviderShares> | null {
   return useReadingQuery(keys.makerShares(wallet), () => getMakerSharesOf(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
 }
 
@@ -190,8 +201,13 @@ export function useVaultHoldings(wallet: Address | null, onchain: OnchainSnapsho
 }
 
 /** The leverage reserve's sheet; null (never an error) where none is deployed. */
-export function useLeverageReserve(): Reading<LeverageReserveState | null> | null {
-  return useReadingQuery(keys.leverageReserve(), getLeverageReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS });
+export function useLeverageReserve(enabled = true): Reading<LeverageReserveState | null> | null {
+  return useReadingQuery(keys.leverageReserve(), getLeverageReserveState, { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled });
+}
+
+/** One wallet's boost reserve shares and their worth; zeros without a reserve. */
+export function useLeverageShares(wallet: Address | null): Reading<ProviderShares> | null {
+  return useReadingQuery(keys.leverageShares(wallet), () => getLeverageSharesOf(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
 }
 
 /** One wallet's boosts, live first; empty without a reserve. */

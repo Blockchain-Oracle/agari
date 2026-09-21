@@ -1,23 +1,30 @@
 "use client";
 
-import type { MakerVaultState } from "@agari/core/maker";
+import type { ReserveSheet } from "@agari/core/reserves";
 import { oneUnit } from "@agari/core/units";
 import { EARN } from "./copy";
 import { formatSharePrice, money2, sharePriceDeltaPct, utilizationPct } from "./format";
+import type { ReserveWords } from "./reserves";
 
-interface VaultPanelProps {
-  vault: MakerVaultState | null;
+interface ReservePanelProps {
+  sheet: ReserveSheet | null;
   symbol: string;
+  words: ReserveWords;
+  /** The maker vault's extra state: quoting is off without a maker key, whatever the sheet says. */
+  status?: string;
 }
 
 /**
  * The hero's live panel (`app/earn/page.tsx` L157–207): the share price as the hero number, the delta chip
- * above par, vault value, utilization with its meter. Every number is the live contract, or the panel says so.
+ * above par, reserve value, utilization with its meter. Every number is the live contract, or the panel says so.
  * The reference's decorative curve beside "Up from 1.0000" drew no data, so it is not here (doc 05 §No fake-data).
+ *
+ * The reference had one vault; Agari has four reserves keeping the same books, so the words are the tab's and
+ * the arithmetic is the sheet's.
  */
-export function VaultPanel({ vault, symbol }: VaultPanelProps) {
+export function ReservePanel({ sheet, symbol, words, status }: ReservePanelProps) {
   const { panel } = EARN;
-  if (!vault) {
+  if (!sheet) {
     return (
       <div className="earn-vault ea-panel">
         <div className="earn-vault-accent" />
@@ -25,22 +32,21 @@ export function VaultPanel({ vault, symbol }: VaultPanelProps) {
       </div>
     );
   }
-  const one = oneUnit(vault.decimals);
-  const delta = sharePriceDeltaPct(vault.sharePriceRaw, one);
-  const below = vault.supplyShares > 0n && vault.sharePriceRaw < one;
-  const status = vault.paused ? panel.paused : vault.maker === null ? panel.noMaker : panel.live;
+  const one = oneUnit(sheet.decimals);
+  const delta = sharePriceDeltaPct(sheet.sharePriceRaw, one);
+  const below = sheet.supplyShares > 0n && sheet.sharePriceRaw < one;
   return (
     <div className="earn-vault ea-panel">
       <div className="earn-vault-accent" />
       <div className="ea-panel-inner">
         <div className="ea-panel-head">
-          <span className="ea-tag">{status}</span>
-          <span className="ea-tag ea-tag--brand">{panel.brand}</span>
+          <span className="ea-tag">{status ?? (sheet.paused ? words.paused : words.live)}</span>
+          <span className="ea-tag ea-tag--brand">{words.brand}</span>
         </div>
 
         <div className="ea-price-row">
           <div className="ea-price">
-            {formatSharePrice(vault.sharePriceRaw, vault.decimals)}
+            {formatSharePrice(sheet.sharePriceRaw, sheet.decimals)}
             <span className="ea-price-unit">{panel.perShare}</span>
           </div>
           {delta && (
@@ -58,16 +64,16 @@ export function VaultPanel({ vault, symbol }: VaultPanelProps) {
 
         <div className="ea-metrics">
           <div>
-            <div className="ea-k">{panel.vaultValue}</div>
+            <div className="ea-k">{words.valueLabel}</div>
             <div className="ea-v">
-              {money2(vault.totalValueBase, vault.decimals)} <span className="ea-v-unit">{symbol}</span>
+              {money2(sheet.totalValueBase, sheet.decimals)} <span className="ea-v-unit">{symbol}</span>
             </div>
           </div>
           <div>
             <div className="ea-k">{panel.utilization}</div>
-            <div className="ea-v ea-v--accent">{utilizationPct(vault.utilizationBps)}</div>
+            <div className="ea-v ea-v--accent">{utilizationPct(sheet.utilizationBps)}</div>
             <div className="earn-meter">
-              <div className="earn-meter-fill ea-meter-fill" style={{ "--ea-fill": `${Math.min(100, vault.utilizationBps / 100)}%` } as React.CSSProperties} />
+              <div className="earn-meter-fill ea-meter-fill" style={{ "--ea-fill": `${Math.min(100, sheet.utilizationBps / 100)}%` } as React.CSSProperties} />
             </div>
           </div>
         </div>

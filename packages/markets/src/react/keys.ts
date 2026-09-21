@@ -36,10 +36,12 @@ export const keys = {
   /** The reserve's own sheet, and one wallet's tickets. */
   parlayReserve: () => [QUERY_KEY_SCOPE, APP, "parlayReserve"] as const,
   parlays: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "parlays", wallet] as const,
+  parlayShares: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "parlayShares", wallet] as const,
   parlayQuote: (signature: string) => [QUERY_KEY_SCOPE, APP, "parlayQuote", signature] as const,
   /** The range reserve's sheet, one wallet's rounds, a Window's basis and a band's quote. */
   rangeReserve: () => [QUERY_KEY_SCOPE, APP, "rangeReserve"] as const,
   ranges: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "ranges", wallet] as const,
+  rangeShares: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "rangeShares", wallet] as const,
   rangeBasis: (marketId: string | null, asset: string | null) => [QUERY_KEY_SCOPE, APP, "rangeBasis", marketId, asset] as const,
   rangeQuote: (signature: string) => [QUERY_KEY_SCOPE, APP, "rangeQuote", signature] as const,
   /** The maker vault's sheet, its open Windows and history, one wallet's shares. */
@@ -50,6 +52,7 @@ export const keys = {
   /** The leverage reserve's sheet, one wallet's boosts, a boost's live mark and a stake's quote. */
   leverageReserve: () => [QUERY_KEY_SCOPE, APP, "leverageReserve"] as const,
   leveragePositions: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "leverage", wallet] as const,
+  leverageShares: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "leverageShares", wallet] as const,
   leverageMark: (positionId: string | null) => [QUERY_KEY_SCOPE, APP, "leverageMark", positionId] as const,
   leverageQuote: (signature: string) => [QUERY_KEY_SCOPE, APP, "leverageQuote", signature] as const,
   /** The private desk's sheet, one wallet's budget, a stake's quote and one slot. */

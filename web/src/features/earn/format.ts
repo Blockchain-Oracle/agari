@@ -17,9 +17,14 @@ export function money2(base: bigint, decimals: number): string {
   return formatBaseUnits(base, decimals, { minDp: 2, maxDp: 2 });
 }
 
-export function utilizationPct(bps: number): string {
+/** Basis points as a percentage to one decimal, without a float in the money path. */
+export function bpsPct(bps: number): string {
   const tenths = Math.round(bps / 10);
   return `${Math.floor(tenths / 10)}.${tenths % 10}%`;
+}
+
+export function utilizationPct(bps: number): string {
+  return bpsPct(bps);
 }
 
 /**

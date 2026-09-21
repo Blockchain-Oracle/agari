@@ -1,6 +1,6 @@
 "use client";
 
-import type { MakerVaultState } from "@agari/core/maker";
+import { supplierPosition, type ReserveSheet } from "@agari/core/reserves";
 import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useState } from "react";
 import { KeepCase } from "@/components/data";
@@ -8,23 +8,23 @@ import { cn } from "@/lib/utils";
 import { ConnectButton } from "../markets/wallet";
 import { EARN } from "./copy";
 import { formatSharePrice, money2, quickAmounts } from "./format";
-import type { EarnBusy } from "./useEarnWrites";
+import type { ReserveWords } from "./reserves";
 
 interface SupplyCardProps {
   connected: boolean;
-  vault: MakerVaultState;
+  sheet: ReserveSheet;
   symbol: string;
   walletBase: bigint | null;
-  busy: EarnBusy | null;
+  busy: string | null;
   onSupply: (amountBase: bigint) => Promise<boolean> | void;
   onMessage: (text: string) => void;
 }
 
 /** The deposit card (`app/earn/page.tsx` L227–268): the amount, Max, wallet-scaled quick amounts, Supply. */
-export function SupplyCard({ connected, vault, symbol, walletBase, busy, onSupply, onMessage }: SupplyCardProps) {
+export function SupplyCard({ connected, sheet, symbol, walletBase, busy, onSupply, onMessage }: SupplyCardProps) {
   const { supply } = EARN;
   const [amount, setAmount] = useState("");
-  const { decimals, paused } = vault;
+  const { decimals, paused } = sheet;
   // null while the balance sheet is still reading: the line says so, and nothing is sized off a zero that is not one.
   const wallet = walletBase ?? 0n;
   const walletText = formatBaseUnits(wallet, decimals, { minDp: 2, maxDp: 2, group: false });
@@ -82,45 +82,44 @@ export function SupplyCard({ connected, vault, symbol, walletBase, busy, onSuppl
 
 interface PositionCardProps {
   connected: boolean;
-  vault: MakerVaultState;
+  sheet: ReserveSheet;
+  words: ReserveWords;
   symbol: string;
   shares: bigint;
   worthBase: bigint;
-  unsettledExpired: boolean;
-  busy: EarnBusy | null;
+  /** Maker only: a closed Window the exit has to settle first, which the note names before it is sent. */
+  unsettledExpired?: boolean;
+  busy: string | null;
   onWithdraw: (shares: bigint) => void;
 }
 
 /**
  * Your position (`app/earn/page.tsx` L270–290): value, shares at the share price, Withdraw all. Ours adds what
- * the reference's venue never had to say: a withdrawal draws on idle capital only, so when the maker has
- * capital deployed the button takes what is idle and names what is still out.
+ * the reference's venue never had to say: every reserve pays a withdrawal out of free capital only, so the
+ * button takes what is free and the note names what the reserve is still holding, in that reserve's own word.
  */
-export function PositionCard({ connected, vault, symbol, shares, worthBase, unsettledExpired, busy, onWithdraw }: PositionCardProps) {
+export function PositionCard({ connected, sheet, words, symbol, shares, worthBase, unsettledExpired = false, busy, onWithdraw }: PositionCardProps) {
   const { position } = EARN;
-  const { decimals } = vault;
-  // What liquid can pay of this position right now, in shares — the contract refuses more.
-  const idleBase = worthBase < vault.liquidBase ? worthBase : vault.liquidBase;
-  const idleShares = worthBase === 0n ? 0n : (shares * idleBase) / worthBase;
-  const deployedBase = worthBase - idleBase;
+  const { decimals } = sheet;
+  const held = supplierPosition(sheet, shares, worthBase);
   const withdrawing = busy === "withdraw";
   return (
     <div className="earn-card ea-card">
       <div className="ea-k ea-position-title">{position.title}</div>
       {!connected ? (
         <p className="ea-empty">{position.connect}</p>
-      ) : shares <= 0n ? (
+      ) : held.shares <= 0n ? (
         <p className="ea-empty">{position.empty}</p>
       ) : (
         <>
           <div className="ea-position-value">
-            {money2(worthBase, decimals)} <span className="ea-position-unit">{symbol}</span>
+            {money2(held.worthBase, decimals)} <span className="ea-position-unit">{symbol}</span>
           </div>
-          <div className="ea-position-sub">{position.shares(formatBaseUnits(shares, decimals, { minDp: 2, maxDp: 2 }), formatSharePrice(vault.sharePriceRaw, decimals))}</div>
-          <button type="button" onClick={() => onWithdraw(idleShares)} disabled={withdrawing || idleShares === 0n} className="earn-ghost ea-withdraw" data-cursor="hover">
-            {withdrawing ? position.busy : deployedBase === 0n ? position.withdrawAll : <KeepCase text={position.withdrawIdle(money2(idleBase, decimals), symbol)} symbol={symbol} />}
+          <div className="ea-position-sub">{position.shares(formatBaseUnits(held.shares, decimals, { minDp: 2, maxDp: 2 }), formatSharePrice(sheet.sharePriceRaw, decimals))}</div>
+          <button type="button" onClick={() => onWithdraw(held.idleShares)} disabled={withdrawing || held.idleShares === 0n} className="earn-ghost ea-withdraw" data-cursor="hover">
+            {withdrawing ? position.busy : held.committedBase === 0n ? position.withdrawAll : <KeepCase text={position.withdrawIdle(money2(held.idleBase, decimals), symbol)} symbol={symbol} />}
           </button>
-          {deployedBase > 0n && <p className="ea-note">{position.deployedNote(money2(deployedBase, decimals), symbol)}</p>}
+          {held.committedBase > 0n && <p className="ea-note">{words.committedNote(money2(held.committedBase, decimals), symbol)}</p>}
           {unsettledExpired && <p className="ea-note">{position.unsettledNote}</p>}
         </>
       )}
