@@ -8,6 +8,20 @@ import { openingOnFeedScale } from "./price-basis";
 /** The prompt sees at most this many points over the Window so far. */
 const MAX_SAMPLES = 12;
 
+/**
+ * How far before the Window opened the price path starts.
+ *
+ * Venue prints land on Window *boundaries*, not continuously, so `[tradingStart, now]` read a quarter of the way
+ * in holds exactly one print — the opening one. On 2026-09-21 the live runner read ten Windows across nine assets
+ * and every single verdict said so in its own words ("there is only the opening sample shown"), holding or falling
+ * just under the confidence floor each time. The model was reasoning correctly about an empty chart.
+ *
+ * One Window-length of run-up is the smallest honest fix: it is the same asset on the same feed, it scales with the
+ * cadence, and the prompt labels each sample by its distance from the open so a pre-open point is never mistaken
+ * for one inside the Window.
+ */
+const runUpSec = (intervalSec: number) => intervalSec;
+
 function toSample(p: PricePoint): AgentSample {
   return { atSec: p.publishTimeSec, priceRaw: p.priceRaw };
 }
@@ -37,7 +51,7 @@ export async function readAgentContext(market: EventMarket, stakeBase: bigint, n
   const [opening, price, history, upCents, downCents] = await Promise.all([
     marketsProvider.getOpeningPrice(market.marketId),
     marketsProvider.getAssetPrice(market.asset),
-    marketsProvider.getPriceHistory(market.asset, market.tradingStartSec, nowSec),
+    marketsProvider.getPriceHistory(market.asset, market.tradingStartSec - runUpSec(market.intervalSec), nowSec),
     sideCents(market, "up", stakeBase),
     sideCents(market, "down", stakeBase),
   ]);

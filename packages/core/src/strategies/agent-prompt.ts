@@ -38,9 +38,15 @@ function cents(value: number | null): string {
   return value === null ? "not quoted at this stake" : `${value}¢`;
 }
 
+/** Time from the open, signed: a sample from before the Window opened reads `-02:30`, not a clamped `0:00`. */
+function fromOpen(atSec: number, tradingStartSec: number): string {
+  const delta = atSec - tradingStartSec;
+  return delta < 0 ? `-${formatClock(-delta)}` : formatClock(delta);
+}
+
 function sampleLines(context: AgentContext): string[] {
   if (context.samples.length === 0) return ["  (no samples yet)"];
-  return context.samples.map((s) => `  ${formatClock(Math.max(0, s.atSec - context.tradingStartSec))} → ${price(s.priceRaw, context.feedDecimals)}`);
+  return context.samples.map((s) => `  ${fromOpen(s.atSec, context.tradingStartSec)} → ${price(s.priceRaw, context.feedDecimals)}`);
 }
 
 function recordLines(record: AgentRecordSummary, collateralDecimals: number): string[] {
@@ -56,7 +62,7 @@ export function agentPrompt(spec: AgentSpec, context: AgentContext, record: Agen
     `Window: ${context.asset} ${formatCadence(context.intervalSec)}, ${formatClock(context.elapsedSec)} elapsed, ${formatClock(context.leftSec)} left.`,
     `Opening print: ${price(context.openingRaw, context.feedDecimals)}`,
     `Now: EMA ${price(context.emaRaw, context.feedDecimals)} (${signedBps(moveBps(context.openingRaw, context.emaRaw))} from the print), spot ${price(context.spotRaw, context.feedDecimals)} (${signedBps(moveBps(context.openingRaw, context.spotRaw))})`,
-    "Samples so far (time into the Window → price):",
+    "Price path (time from the open, negative before it → price):",
     ...sampleLines(context),
     `Books at a ${formatBaseUnits(context.stakeBase, context.collateralDecimals)} stake: UP ${cents(context.upCents)}, DOWN ${cents(context.downCents)}.`,
     `Posture: ${spec.posture} — the gate holds under ${rules.minConfidence.toFixed(2)} confidence, over ${rules.maxPriceCents}¢ a side, and after ${rules.breakerLosses} straight losses.`,

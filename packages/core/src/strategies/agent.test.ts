@@ -101,7 +101,7 @@ describe("agentPrompt", () => {
         "Window: TSLA 15m, 5:00 elapsed, 10:00 left.",
         "Opening print: 62,150.00",
         "Now: EMA 62,200.00 (+8 bps from the print), spot 62,210.00 (+9 bps)",
-        "Samples so far (time into the Window → price):",
+        "Price path (time from the open, negative before it → price):",
         "  0:30 → 62,140.00",
         "  4:30 → 62,205.00",
         "Books at a 5.00 stake: UP 62¢, DOWN 40¢.",
@@ -111,6 +111,23 @@ describe("agentPrompt", () => {
       ].join("\n"),
     );
   });
+  it("shows a sample from before the open as before it, not as the open itself", () => {
+    // Venue prints land on Window boundaries, so the run-up into a Window is most of the path the model has.
+    // Clamping those to 0:00 made them read as the opening print, which is a different and much stronger claim.
+    const record: AgentRecordSummary = { recent: [], consecutiveLosses: 0, lostTodayBase: 0n, lastLossAtSec: null };
+    const withRunUp = context({
+      samples: [
+        { atSec: NOW_SEC - 900, priceRaw: 62_000n * FEED },
+        { atSec: NOW_SEC - 300, priceRaw: 62_150n * FEED },
+        { atSec: NOW_SEC - 30, priceRaw: 62_205n * FEED },
+      ],
+    });
+    const lines = agentPrompt(spec, withRunUp, record).user.split("\n");
+    expect(lines).toContain("  -10:00 → 62,000.00");
+    expect(lines).toContain("  0:00 → 62,150.00");
+    expect(lines).toContain("  4:30 → 62,205.00");
+  });
+
   it("says when a side is unquoted rather than inventing a price", () => {
     expect(agentPrompt(spec, context({ upCents: null, samples: [] }), EMPTY_AGENT_RECORD).user).toContain("UP not quoted at this stake, DOWN 40¢");
     expect(agentPrompt(spec, context({ samples: [] }), EMPTY_AGENT_RECORD).user).toContain("(no samples yet)");
