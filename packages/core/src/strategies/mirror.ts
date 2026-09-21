@@ -10,6 +10,11 @@ import type { Decision, MirrorSpec } from "./types";
  *
  * What this cannot be is the same trade. A copier's order is sent after the trader's landed, into whatever the book
  * holds then, so the price differs and the fill may be smaller or nothing at all. The surface says so.
+ *
+ * It also cannot see everything that wallet does. The index records a fill's **taker**, and a call routed through a
+ * Trading Balance or the private desk is taken by a program seat on the owner's behalf — so those calls are not
+ * attributable to the wallet here and are not copied. What is copied is what the wallet does from its own wallet,
+ * which is how a person's own calls are placed; the studio says this where a trader is chosen.
  */
 const YES_SIGN: Record<LedgerFill["side"], bigint> = { BUY_YES: 1n, SELL_NO: 1n, SELL_YES: -1n, BUY_NO: -1n };
 

@@ -28,6 +28,7 @@ export function StudioMirrorFields({ form, setForm }: { form: StudioDraft; setFo
           />
         </label>
         <p className={bad ? "agent-builder-error mt-2" : "strat-choice-body mt-2"}>{bad ? words.traderInvalid : words.traderHelp}</p>
+        {!bad && <p className="strat-choice-body mt-2">{words.traderScope}</p>}
       </div>
       <div>
         <div className="desk-field-label">{words.withinLabel}</div>

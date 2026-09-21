@@ -120,6 +120,7 @@ export const STRATEGIES = {
       traderLabel: "Wallet to copy",
       traderPlaceholder: "The trader's Solana address",
       traderHelp: "Their calls are public on chain, so this needs nothing from them. Open a profile from the leaderboard to copy its address.",
+      traderScope: "It copies what that wallet does from its own wallet. Calls it routes through a Trading Balance or the private desk are placed by a program on its behalf, so they are not visible as that wallet's and are not copied.",
       traderInvalid: "That is not a Solana address. Paste the wallet exactly as the profile shows it.",
       withinLabel: "How fresh their call has to be",
       withinHelp: "Older than this and the Window has usually moved on; the runner sits it out rather than chase.",
