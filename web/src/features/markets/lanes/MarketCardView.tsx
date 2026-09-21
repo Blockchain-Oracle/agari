@@ -5,6 +5,7 @@ import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD, LANE_CARD, LANE_STATE, MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { sidesInOrder, useBetAgainst } from "../bet-against";
 import { AssetDisc } from "../hero/asset-mark";
 import { usdLine } from "../hero/units";
 import type { ChartPoint } from "../hero/useChartSeries";
@@ -77,6 +78,7 @@ function GapClock({ market, nowMs, current }: { market: EventMarket; nowMs: numb
  * unread book shows as an even market; here an unread side shows nothing.
  */
 export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, points, latestRaw, upCents, downCents, hydrating }: MarketCardViewProps) {
+  const betAgainst = useBetAgainst();
   const current = nowMs > 0 ? phase(market, nowMs) : null;
   if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
 
@@ -171,32 +173,22 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
 
       {!closing && (
         <div className="mc-foot">
-          <button
-            type="button"
-            className="mc-side up"
-            data-cursor="up"
-            aria-label={HERO_HEAD.betUp}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(market.marketId, "up");
-            }}
-          >
-            <span>{MARKETS.up}</span>
-            <span className="price">{price(upCents, hydrating)}</span>
-          </button>
-          <button
-            type="button"
-            className="mc-side down"
-            data-cursor="hover"
-            aria-label={HERO_HEAD.betDown}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(market.marketId, "down");
-            }}
-          >
-            <span>{MARKETS.down}</span>
-            <span className="price">{price(downCents, hydrating)}</span>
-          </button>
+          {sidesInOrder(betAgainst).map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={option === "up" ? "mc-side up" : "mc-side down"}
+              data-cursor={option === "up" ? "up" : "hover"}
+              aria-label={option === "up" ? HERO_HEAD.betUp : HERO_HEAD.betDown}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelect(market.marketId, option);
+              }}
+            >
+              <span>{option === "up" ? MARKETS.up : MARKETS.down}</span>
+              <span className="price">{price(option === "up" ? upCents : downCents, hydrating)}</span>
+            </button>
+          ))}
         </div>
       )}
 

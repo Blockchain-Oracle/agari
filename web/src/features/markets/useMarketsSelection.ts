@@ -5,6 +5,7 @@ import type { EventMarket, Lane, LaneSet, MarketId, Side } from "@agari/core/typ
 import { marketDeepLink } from "@agari/core/urls";
 import { useCallback, useState } from "react";
 import { findMarket, useResolveDeepLink } from "@/lib/deep-link";
+import { defaultSide, useBetAgainst } from "./bet-against";
 
 /** The reference's `lg:` — from here up the ticket is docked in the hero; below it, a drawer slides over the page. */
 export const TICKET_RAIL_MIN_WIDTH = 1024;
@@ -35,6 +36,7 @@ export interface MarketsSelectionApi {
 /** Deep link → the pinned ticker's soonest Window in the pinned lane → the pinned lane's soonest → first live Window. */
 export function useMarketsSelection(lanes: LaneSet | null, activeLane: Lane | null, ticker: TickerSymbol | null, nowMs: number): MarketsSelectionApi {
   const resolved = useResolveDeepLink(lanes, nowMs);
+  const betAgainst = useBetAgainst();
   const [sessionId, setSessionId] = useState(0);
   const pinnedTicker = ticker === null ? undefined : activeLane?.markets.find((m) => m.asset === ticker);
   const fallback = pinnedTicker ?? activeLane?.markets[0] ?? lanes?.lanes[0]?.markets[0] ?? null;
@@ -47,16 +49,17 @@ export function useMarketsSelection(lanes: LaneSet | null, activeLane: Lane | nu
    */
   const setSelection = useCallback(
     (marketId: MarketId, side?: Side) => {
-      const dir = side ?? resolved.side ?? undefined;
+      // An entry that names no side follows the page's mode: DOWN while "Betting against" is on (A-1a).
+      const dir = side ?? resolved.side ?? defaultSide(betAgainst);
       window.history.replaceState(null, "", marketDeepLink({ marketId, dir }));
       setSessionId(Date.now());
       if (window.innerWidth >= TICKET_RAIL_MIN_WIDTH) window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [resolved.side],
+    [resolved.side, betAgainst],
   );
 
   return {
-    selection: { marketId: market?.marketId ?? null, side: resolved.side, market, nowMs, resolving: resolved.resolving, sessionId },
+    selection: { marketId: market?.marketId ?? null, side: resolved.side ?? defaultSide(betAgainst) ?? null, market, nowMs, resolving: resolved.resolving, sessionId },
     setSelection,
   };
 }

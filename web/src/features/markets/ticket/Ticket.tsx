@@ -24,6 +24,7 @@ import { SIDE_WORD } from "../side-styles";
 import { AccountGate } from "./AccountGate";
 import { AmountBlock } from "./AmountBlock";
 import { AutoAdvanceNote } from "./AutoAdvanceNote";
+import { BetAgainstToggle } from "./BetAgainstToggle";
 import { BetModes, type BetMode } from "./BetModes";
 import { OutcomeNote } from "./OutcomeNote";
 import { PlacedCall } from "./PlacedCall";
@@ -280,7 +281,15 @@ export function Ticket({ selection, drawer }: TicketProps) {
       ) : (
         <>
           <BetModes mode={mode} onChange={setMode} rangeAvailable={rangeReserve !== null} />
-          {isRange ? <BandControl asset={market.asset} intervalSec={market.intervalSec} draft={range.draft} side="inside" /> : <SideSegments side={side} onSelect={t.selectSide} />}
+          {isRange ? (
+            <BandControl asset={market.asset} intervalSec={market.intervalSec} draft={range.draft} side="inside" />
+          ) : (
+            <>
+              <SideSegments side={side} onSelect={t.selectSide} />
+              {/* A-1a: the bearish mode. A band has no side to put first, so it is offered only on a direction call. */}
+              <BetAgainstToggle />
+            </>
+          )}
           <AmountBlock
             value={t.stakeText}
             onChange={t.setStakeText}

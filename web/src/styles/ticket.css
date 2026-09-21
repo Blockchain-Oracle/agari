@@ -175,3 +175,70 @@
   border-color: rgba(20, 18, 16, 0.11);
   background: rgba(20, 18, 16, 0.02);
 }
+
+/* ── A-1a: "Betting against" ──
+   Ours. Not a mode tile: it changes no contract, only which side the page offers first, so it reads as a
+   switch with its own sentence rather than a third pill beside Up/Down and Range. */
+.tk-against {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tk-against-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 0;
+}
+/* The track: the down wash while on, the ticket's own hairline while off. */
+.tk-against-track {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+.tk-against-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.55);
+  transition: transform 200ms var(--ease), background 200ms var(--ease);
+}
+.tk-against-switch[aria-checked="true"] .tk-against-track {
+  border-color: var(--button-down-border);
+  background: var(--button-down-fill);
+}
+.tk-against-switch[aria-checked="true"] .tk-against-track::after {
+  transform: translateX(14px);
+  background: var(--button-down-ink);
+}
+.tk-against-word {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 200ms var(--ease);
+}
+.tk-against-switch:hover .tk-against-word { color: rgba(255, 255, 255, 0.78); }
+.tk-against-switch[aria-checked="true"] .tk-against-word { color: var(--button-down-ink); }
+.tk-against-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.42);
+}
+[data-theme="light"] .tk-against-track { border-color: rgba(20, 18, 16, 0.16); background: rgba(20, 18, 16, 0.03); }
+[data-theme="light"] .tk-against-track::after { background: rgba(20, 18, 16, 0.5); }
+[data-theme="light"] .tk-against-word { color: rgba(20, 18, 16, 0.6); }
+[data-theme="light"] .tk-against-switch:hover .tk-against-word { color: rgba(20, 18, 16, 0.85); }
+[data-theme="light"] .tk-against-note { color: rgba(20, 18, 16, 0.6); }
