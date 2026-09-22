@@ -11,6 +11,7 @@
  * (prints.md §4.3) and why the README says the venue, not PreStocks, is what a Pre-IPO settlement trusts.
  * `ops/prints/index.ts` re-exports all of it.
  */
+import { BASKET_FEED_PREFIX } from "@agari/core/market";
 import { floorDecimalE8 } from "./jupiter";
 
 export const PRESTOCKS_CATALOGUE_URL = "https://prestocks.com/api/prestocks";
@@ -28,7 +29,19 @@ export const PRESTOCKS_MAX_LATE_SEC = 45;
  * it registers on chain from this same function.
  */
 export function preStocksFeedHex(symbol: string): string {
-  const ascii = `prestocks-v1:${symbol}`;
+  return asciiFeedHex(`prestocks-v1:${symbol}`);
+}
+
+/**
+ * The 32-byte attested feed id of a basket lane (S19, D-124): `prestocks-basket-v1:<SYMBOL>`, the same ASCII form. The
+ * `v1` names the frozen base prices as much as the source: a re-based basket is a new feed, never an edit, so a settled
+ * Window stays recomputable. A basket symbol is at most 12 characters (`baskets.test.ts` pins it).
+ */
+export function preStocksBasketFeedHex(symbol: string): string {
+  return asciiFeedHex(`${BASKET_FEED_PREFIX}${symbol}`);
+}
+
+function asciiFeedHex(ascii: string): string {
   if (ascii.length > 32) throw new Error(`feed id "${ascii}" exceeds 32 bytes`);
   const bytes = new Uint8Array(32);
   for (let i = 0; i < ascii.length; i++) bytes[i] = ascii.charCodeAt(i);

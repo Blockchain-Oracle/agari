@@ -2,7 +2,10 @@ import { TICKERS, TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 
 /** `MAKER_MODE=seat` knobs (venue-ops.md §8). Integers only; σ in annualized basis points. */
 export interface SeatMakerEnv {
-  /** Null = every launch ticker whose Series has a covering version. */
+  /**
+   * `MM_SYMBOLS=OPENAI,AILABS,PREALL` limits the maker to these registry symbols (a basket is one, S19); null = every
+   * listed Series the maker may quote (`laneListable`).
+   */
   symbols: TickerSymbol[] | null;
   cadencesSec: number[];
   sigmaBps: (symbol: TickerSymbol) => number;
@@ -28,7 +31,13 @@ const num = (raw: string | undefined, fallback: number, min: number) => {
   return Number.isInteger(n) && n >= min ? n : fallback;
 };
 
-/** `MM_SIGMA_BPS=4500` or `MM_SIGMA_BPS=TSLA:6000,QQQ:1800`; defaults 4,500 for stocks and 2,000 for ETFs. */
+/**
+ * `MM_SIGMA_BPS=4500` or `MM_SIGMA_BPS=TSLA:6000,QQQ:1800,AILABS:3500`, annualized basis points. Defaults: 4,500 for a
+ * stock and a pre-IPO name, 2,000 for an ETF, 3,000 for a basket (S19): an equal-weight group of 2–8 names moves less
+ * than any one of them, and no basket has traded long enough to measure; override per symbol once it has.
+ */
+export const DEFAULT_SIGMA_BPS = { stock: 4_500, etf: 2_000, preIpo: 4_500, basket: 3_000 } as const;
+
 function sigmaTable(raw: string | undefined): (symbol: TickerSymbol) => number {
   const perSymbol = new Map<string, number>();
   let all: number | null = null;
@@ -37,7 +46,7 @@ function sigmaTable(raw: string | undefined): (symbol: TickerSymbol) => number {
     if (b === undefined) all = num(a, 0, 1) || null;
     else perSymbol.set(a!.toUpperCase(), num(b, 0, 1));
   }
-  return (symbol) => perSymbol.get(symbol) || all || (TICKERS[symbol].kind === "etf" ? 2_000 : 4_500);
+  return (symbol) => perSymbol.get(symbol) || all || DEFAULT_SIGMA_BPS[TICKERS[symbol].kind];
 }
 
 export function readSeatMakerEnv(env: NodeJS.ProcessEnv = process.env): SeatMakerEnv {

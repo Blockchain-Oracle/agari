@@ -121,7 +121,7 @@ Actors export `start<Name>(deps: VenueDeps)`, where `VenueDeps = { env: OpsEnv; 
 Purpose: the books carry quotes during the soak and the demo. Vault mode (S8) stays the existing actor, selected by `MAKER_MODE=vault`.
 1. **Fair value** (pure `seat/fair.ts`, the `ec-oracle-follow` shape from `reference/dreamdex-bot-kit/strategies/ec-oracle-follow`):
    - `P(up) = Φ(ln(spot/open) / (σ·√(t_left / year)))`, with the tie (`close == open` → Up) folded in as a small upward bias.
-   - σ is per ticker from `MM_SIGMA_BPS` (default single names 4,500, ETFs 2,000 annualized).
+   - σ is per ticker from `MM_SIGMA_BPS` (default single names and pre-IPO names 4,500, ETFs 2,000, baskets 3,000 annualized; `MM_SIGMA_BPS=TSLA:6000,AILABS:3500` overrides one symbol, a bare number overrides all). A basket (S19) is an equal-weight group of 2–8 pre-IPO names, so it moves less than any one of them; 3,000 is the default until a basket has traded long enough to measure.
    - Floats are allowed only inside this probability function; its output is integer YES ticks, clamped to `[MM_MIN_TICK, 1000 − MM_MIN_TICK]` (default 20).
 2. **Quotes** (`seat/quote.ts`):
    - PostOnly BUY_YES at `price_ticks = fair − half` (bid) and BUY_NO at `price_ticks = fair + half` (ask). The book is YES-quoted, so a BUY_NO rests on the ask side at that YES price and escrows `1000 − (fair + half)` per lot. A crossing BUY_YES fills it through the mint-pair path, so no inventory is needed. `half` = `MM_HALF_SPREAD_TICKS` (default 30). (Amended at the 3c merge; the first wording put the escrow amount in the price field.)
@@ -132,7 +132,7 @@ Purpose: the books carry quotes during the soak and the demo. Vault mode (S8) st
    - Stop quoting at `lock_at − 60`.
    - Merge complete sets whenever both YES and NO are free, before `lock_at − 60`.
    - Cancel everything on a halt, a stale spot, or `closesAtSec − 120`.
-4. **Budget:** `MM_MAX_CASH_PER_WINDOW` (default 50 tUSDC) and `MM_SYMBOLS` (default all launch tickers with a covering version). Settled seats are redeemed by the settler (maker seats are non-PROGRAM).
+4. **Budget:** `MM_MAX_CASH_PER_WINDOW` (default 50 tUSDC) and `MM_SYMBOLS` (default every listed Series the maker may quote; `MM_SYMBOLS=OPENAI,AILABS,PREALL` limits it to those registry symbols, a basket being one like any name, S19). Settled seats are redeemed by the settler (maker seats are non-PROGRAM).
 
 ## 9. Indexer (lane 3d)
 

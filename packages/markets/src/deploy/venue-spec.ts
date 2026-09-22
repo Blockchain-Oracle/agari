@@ -5,7 +5,7 @@
 import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstructionDataArgs } from "@agari/clients/agari-events";
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@solana/kit";
-import { preStocksFeedHex } from "../prices/prestocks";
+import { preStocksBasketFeedHex, preStocksFeedHex } from "../prices/prestocks";
 import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
 
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
@@ -106,7 +106,10 @@ export function s2Authorities(keys: AuthorityKeys, sources: PriceSources): Admin
 /** The Pre-IPO lane's drive tickers (900–902 are the other drives); one id per PreStocks symbol. */
 export const PRESTOCKS_TICKER_BASE = 910;
 /** The registered feed id bytes, derived from the price module's hex so the relay and the chain can never disagree. */
-export const preStocksFeedId = (symbol: string): Uint8Array => Uint8Array.from(preStocksFeedHex(symbol).match(/../g)!.map((b) => Number.parseInt(b, 16)));
+export const preStocksFeedId = (symbol: string): Uint8Array => hexBytes(preStocksFeedHex(symbol));
+/** A basket lane's registered feed id bytes (S19, D-124), from the same hex the relay keys its pass on. */
+export const preStocksBasketFeedId = (symbol: string): Uint8Array => hexBytes(preStocksBasketFeedHex(symbol));
+const hexBytes = (hex: string): Uint8Array => Uint8Array.from(hex.match(/../g)!.map((b) => Number.parseInt(b, 16)));
 
 /**
  * A PreStocks Pre-IPO Series (D-100): attested primary, no cross-check, 60 s bars, a 10 s correction delay and 15 min
