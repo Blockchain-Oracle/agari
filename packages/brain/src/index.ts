@@ -7,4 +7,5 @@ export const BRAIN_PACKAGE = "@agari/brain" as const;
 
 export * from "./agent-decide";
 export * from "./agent-read";
+export * from "./desk-decide";
 export * from "./model";
