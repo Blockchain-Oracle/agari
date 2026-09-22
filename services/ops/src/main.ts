@@ -48,7 +48,8 @@ const log = (actor: string) => (why: string) => console.log(whyString(actor, why
 function selectedActors(raw: string | undefined): Set<string> {
   const names = (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (names.length === 0) return new Set(VENUE_ACTORS);
-  if (names.includes("all")) return new Set([...VENUE_ACTORS, ...LEGACY_ACTORS]);
+  // "all" is the venue and the legacy actors; an opt-in actor named beside it ("all,desk-runner") joins rather than being dropped.
+  if (names.includes("all")) return new Set([...VENUE_ACTORS, ...LEGACY_ACTORS, ...names.filter((n) => n !== "all" && (OPT_IN_ACTORS as readonly string[]).includes(n))]);
   return new Set(names);
 }
 
