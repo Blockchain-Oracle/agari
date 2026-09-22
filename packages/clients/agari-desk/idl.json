@@ -1,0 +1,3132 @@
+{
+  "address": "4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak",
+  "metadata": {
+    "name": "agari_desk",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Shijima's desk on Solana: a PDA holds a basket of PreStocks tokens for its owner; the operator may only trade inside caps, a band and a premium ceiling, through Jupiter by CPI; every decision is fingerprinted into a hash chain"
+  },
+  "instructions": [
+    {
+      "name": "admin_init_config",
+      "discriminator": [
+        231,
+        149,
+        184,
+        6,
+        150,
+        168,
+        5,
+        161
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "The collateral: an SPL Token mint with 6 decimals (USDC on mainnet, a test mint on LiteSVM)."
+          ]
+        },
+        {
+          "name": "swap_program"
+        },
+        {
+          "name": "program",
+          "address": "4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "cluster_tag",
+          "type": "u8"
+        },
+        {
+          "name": "attestors",
+          "type": {
+            "array": [
+              "pubkey",
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_attestors",
+      "discriminator": [
+        133,
+        137,
+        93,
+        241,
+        8,
+        217,
+        68,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "attestors",
+          "type": {
+            "array": [
+              "pubkey",
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin_set_reference_feed",
+      "discriminator": [
+        143,
+        219,
+        228,
+        196,
+        234,
+        241,
+        79,
+        76
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "desk_ref"
+          ]
+        },
+        {
+          "name": "desk_ref",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107,
+                  45,
+                  114,
+                  101,
+                  102
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "pyth_feed_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "operator_buy",
+      "discriminator": [
+        92,
+        75,
+        137,
+        95,
+        104,
+        153,
+        186,
+        53
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "signer": true
+        },
+        {
+          "name": "owner",
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "desk_usdc",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "desk"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "desk_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "desk"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "desk_ref",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107,
+                  45,
+                  114,
+                  101,
+                  102
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "swap_program"
+        },
+        {
+          "name": "usdc_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "price_update",
+          "docs": [
+            "Pyth's `Equity.Index` update for this name; required only when the owner set `require_pyth_index`."
+          ],
+          "optional": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "usdc_in",
+          "type": "u64"
+        },
+        {
+          "name": "min_token_out",
+          "type": "u64"
+        },
+        {
+          "name": "deadline_sec",
+          "type": "i64"
+        },
+        {
+          "name": "decision_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "swap_data",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "operator_checkpoint",
+      "discriminator": [
+        203,
+        218,
+        221,
+        134,
+        102,
+        22,
+        144,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "signer": true
+        },
+        {
+          "name": "owner",
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "deadline_sec",
+          "type": "i64"
+        },
+        {
+          "name": "decision_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "operator_sell",
+      "discriminator": [
+        235,
+        242,
+        76,
+        99,
+        142,
+        209,
+        241,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "operator",
+          "signer": true
+        },
+        {
+          "name": "owner",
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "desk_usdc",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "desk"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "desk_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "desk"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "desk_ref",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107,
+                  45,
+                  114,
+                  101,
+                  102
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "swap_program"
+        },
+        {
+          "name": "usdc_token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "price_update",
+          "docs": [
+            "Pyth's `Equity.Index` update for this name; required only when the owner set `require_pyth_index`."
+          ],
+          "optional": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "token_in",
+          "type": "u64"
+        },
+        {
+          "name": "min_usdc_out",
+          "type": "u64"
+        },
+        {
+          "name": "deadline_sec",
+          "type": "i64"
+        },
+        {
+          "name": "decision_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "swap_data",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "owner_allow_token",
+      "discriminator": [
+        146,
+        166,
+        195,
+        151,
+        85,
+        79,
+        237,
+        183
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "A PreStocks name: Token-2022, 9 decimals, checked in the handler."
+          ]
+        },
+        {
+          "name": "desk_ata",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_deposit",
+      "discriminator": [
+        184,
+        48,
+        123,
+        180,
+        114,
+        72,
+        157,
+        92
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "desk",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "owner_token",
+          "writable": true
+        },
+        {
+          "name": "desk_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "desk"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "owner_disallow_token",
+      "discriminator": [
+        69,
+        26,
+        66,
+        169,
+        43,
+        77,
+        121,
+        115
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_open_desk",
+      "discriminator": [
+        153,
+        228,
+        196,
+        149,
+        38,
+        65,
+        252,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "desk_usdc",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "operator",
+          "type": "pubkey"
+        },
+        {
+          "name": "per_action_cap",
+          "type": "u64"
+        },
+        {
+          "name": "daily_cap",
+          "type": "u64"
+        },
+        {
+          "name": "max_premium_bps",
+          "type": "u16"
+        },
+        {
+          "name": "mode",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "owner_revoke_operator",
+      "discriminator": [
+        27,
+        250,
+        22,
+        90,
+        172,
+        222,
+        71,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_set_limits",
+      "discriminator": [
+        76,
+        69,
+        135,
+        117,
+        176,
+        139,
+        131,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "per_action_cap",
+          "type": "u64"
+        },
+        {
+          "name": "daily_cap",
+          "type": "u64"
+        },
+        {
+          "name": "max_premium_bps",
+          "type": "u16"
+        },
+        {
+          "name": "require_pyth_index",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "owner_set_mode",
+      "discriminator": [
+        243,
+        207,
+        228,
+        174,
+        102,
+        166,
+        174,
+        175
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "mode",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "owner_set_operator",
+      "discriminator": [
+        46,
+        204,
+        252,
+        189,
+        77,
+        127,
+        109,
+        215
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "operator",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "owner_unpause",
+      "discriminator": [
+        180,
+        126,
+        178,
+        150,
+        212,
+        191,
+        234,
+        7
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "owner_withdraw",
+      "discriminator": [
+        138,
+        172,
+        103,
+        228,
+        254,
+        96,
+        114,
+        178
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "desk_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "desk"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_ata",
+          "docs": [
+            "The owner's associated token account of `mint`, and nothing else (checked in the handler)."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "pause",
+      "discriminator": [
+        211,
+        22,
+        221,
+        251,
+        74,
+        121,
+        193,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The owner or the operator."
+          ],
+          "signer": true
+        },
+        {
+          "name": "owner",
+          "relations": [
+            "desk"
+          ]
+        },
+        {
+          "name": "desk",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_init_reference",
+      "discriminator": [
+        243,
+        129,
+        113,
+        113,
+        139,
+        138,
+        225,
+        15
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "A PreStocks name: Token-2022, 9 decimals, checked in the handler."
+          ]
+        },
+        {
+          "name": "desk_ref",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107,
+                  45,
+                  114,
+                  101,
+                  102
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "public_post_reference",
+      "discriminator": [
+        187,
+        181,
+        232,
+        191,
+        255,
+        146,
+        242,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "address": "3uH5ZkphvDV522j2wAedtYkcuK3DcVBDoFPobD8LtmYZ"
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "desk_ref"
+          ]
+        },
+        {
+          "name": "desk_ref",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  115,
+                  107,
+                  45,
+                  114,
+                  101,
+                  102
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "token_price_e8",
+          "type": "u64"
+        },
+        {
+          "name": "mark_price_e8",
+          "type": "u64"
+        },
+        {
+          "name": "multiplier_e12",
+          "type": "u64"
+        },
+        {
+          "name": "fetched_at_sec",
+          "type": "i64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Desk",
+      "discriminator": [
+        33,
+        28,
+        147,
+        6,
+        226,
+        158,
+        166,
+        73
+      ]
+    },
+    {
+      "name": "DeskConfig",
+      "discriminator": [
+        50,
+        232,
+        76,
+        9,
+        116,
+        204,
+        140,
+        153
+      ]
+    },
+    {
+      "name": "DeskRef",
+      "discriminator": [
+        220,
+        57,
+        10,
+        187,
+        69,
+        186,
+        31,
+        15
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AttestorsSet",
+      "discriminator": [
+        55,
+        17,
+        167,
+        199,
+        21,
+        174,
+        235,
+        29
+      ]
+    },
+    {
+      "name": "Bought",
+      "discriminator": [
+        193,
+        56,
+        215,
+        24,
+        156,
+        76,
+        42,
+        104
+      ]
+    },
+    {
+      "name": "Checkpoint",
+      "discriminator": [
+        61,
+        240,
+        32,
+        73,
+        165,
+        69,
+        208,
+        74
+      ]
+    },
+    {
+      "name": "ConfigInitialized",
+      "discriminator": [
+        181,
+        49,
+        200,
+        156,
+        19,
+        167,
+        178,
+        91
+      ]
+    },
+    {
+      "name": "Deposited",
+      "discriminator": [
+        111,
+        141,
+        26,
+        45,
+        161,
+        35,
+        100,
+        57
+      ]
+    },
+    {
+      "name": "DeskOpened",
+      "discriminator": [
+        92,
+        209,
+        198,
+        167,
+        123,
+        179,
+        70,
+        54
+      ]
+    },
+    {
+      "name": "LimitsSet",
+      "discriminator": [
+        53,
+        198,
+        194,
+        145,
+        146,
+        149,
+        189,
+        127
+      ]
+    },
+    {
+      "name": "ModeSet",
+      "discriminator": [
+        69,
+        75,
+        205,
+        201,
+        23,
+        196,
+        156,
+        48
+      ]
+    },
+    {
+      "name": "OperatorRevoked",
+      "discriminator": [
+        234,
+        41,
+        78,
+        23,
+        191,
+        224,
+        103,
+        64
+      ]
+    },
+    {
+      "name": "OperatorSet",
+      "discriminator": [
+        187,
+        242,
+        164,
+        221,
+        208,
+        246,
+        180,
+        178
+      ]
+    },
+    {
+      "name": "Paused",
+      "discriminator": [
+        172,
+        248,
+        5,
+        253,
+        49,
+        255,
+        255,
+        232
+      ]
+    },
+    {
+      "name": "ReferenceFeedSet",
+      "discriminator": [
+        22,
+        91,
+        84,
+        111,
+        116,
+        18,
+        228,
+        192
+      ]
+    },
+    {
+      "name": "ReferenceInitialized",
+      "discriminator": [
+        50,
+        33,
+        198,
+        34,
+        132,
+        86,
+        122,
+        126
+      ]
+    },
+    {
+      "name": "ReferencePosted",
+      "discriminator": [
+        231,
+        2,
+        233,
+        145,
+        36,
+        225,
+        209,
+        20
+      ]
+    },
+    {
+      "name": "Sold",
+      "discriminator": [
+        205,
+        203,
+        210,
+        202,
+        96,
+        11,
+        192,
+        10
+      ]
+    },
+    {
+      "name": "TokenAllowed",
+      "discriminator": [
+        143,
+        122,
+        92,
+        195,
+        119,
+        118,
+        88,
+        122
+      ]
+    },
+    {
+      "name": "TokenDisallowed",
+      "discriminator": [
+        171,
+        2,
+        63,
+        82,
+        189,
+        80,
+        133,
+        85
+      ]
+    },
+    {
+      "name": "Unpaused",
+      "discriminator": [
+        156,
+        150,
+        47,
+        174,
+        120,
+        216,
+        93,
+        117
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 7000,
+      "name": "NotAdmin",
+      "msg": "signer is not the program upgrade authority"
+    },
+    {
+      "code": 7001,
+      "name": "NotOwner",
+      "msg": "signer is not the desk's owner"
+    },
+    {
+      "code": 7002,
+      "name": "NotOperator",
+      "msg": "signer is not the desk's operator"
+    },
+    {
+      "code": 7003,
+      "name": "NotOwnerOrOperator",
+      "msg": "signer is neither the owner nor the operator"
+    },
+    {
+      "code": 7004,
+      "name": "IsPaused",
+      "msg": "the desk is paused"
+    },
+    {
+      "code": 7005,
+      "name": "ShadowMode",
+      "msg": "the desk is in practice mode: nothing is sent"
+    },
+    {
+      "code": 7006,
+      "name": "ZeroHash",
+      "msg": "decision hash must not be zero"
+    },
+    {
+      "code": 7007,
+      "name": "ZeroAmount",
+      "msg": "amount must be greater than zero"
+    },
+    {
+      "code": 7008,
+      "name": "DeadlinePassed",
+      "msg": "the deadline has passed"
+    },
+    {
+      "code": 7009,
+      "name": "BadConfig",
+      "msg": "caps must be positive and the per-action cap at most the daily cap; mode must be 0, 1 or 2"
+    },
+    {
+      "code": 7010,
+      "name": "BadOperator",
+      "msg": "operator must be a real key other than the owner"
+    },
+    {
+      "code": 7011,
+      "name": "BadClusterTag",
+      "msg": "cluster tag must be 101, 103 or 104"
+    },
+    {
+      "code": 7012,
+      "name": "MathOverflow",
+      "msg": "arithmetic overflow"
+    },
+    {
+      "code": 7013,
+      "name": "CpiNotAllowed",
+      "msg": "this instruction cannot be called through CPI"
+    },
+    {
+      "code": 7100,
+      "name": "TokenNotConfigured",
+      "msg": "this mint is not configured on the desk"
+    },
+    {
+      "code": 7101,
+      "name": "TokenNotEnabled",
+      "msg": "the owner has not allowed the desk to buy this name"
+    },
+    {
+      "code": 7102,
+      "name": "TooManyTokens",
+      "msg": "the desk already holds the most names it can"
+    },
+    {
+      "code": 7103,
+      "name": "BadToken",
+      "msg": "a name must be a Token-2022 mint with 9 decimals and not the collateral"
+    },
+    {
+      "code": 7104,
+      "name": "WrongMint",
+      "msg": "mint does not match"
+    },
+    {
+      "code": 7105,
+      "name": "WrongTokenOwner",
+      "msg": "token account does not belong to the owner, or is not the owner's associated account"
+    },
+    {
+      "code": 7106,
+      "name": "WrongSwapProgram",
+      "msg": "swap program is not the configured router"
+    },
+    {
+      "code": 7107,
+      "name": "DeskAccountLeak",
+      "msg": "a token account owned by the desk was slipped into the route"
+    },
+    {
+      "code": 7200,
+      "name": "OverPerActionCap",
+      "msg": "action exceeds the per-action cap"
+    },
+    {
+      "code": 7201,
+      "name": "OverDailyCap",
+      "msg": "action exceeds what is left of the daily cap"
+    },
+    {
+      "code": 7202,
+      "name": "ReferenceUnavailable",
+      "msg": "no reference has been posted for this name"
+    },
+    {
+      "code": 7203,
+      "name": "ReferenceStale",
+      "msg": "the reference is too old, or a post is not from the last 15 minutes"
+    },
+    {
+      "code": 7204,
+      "name": "ReferenceNotMonotonic",
+      "msg": "a reference must be newer than the one posted"
+    },
+    {
+      "code": 7205,
+      "name": "InvalidReference",
+      "msg": "reference prices and the multiplier must be positive"
+    },
+    {
+      "code": 7206,
+      "name": "BadAttestation",
+      "msg": "the ed25519 instruction before this one does not sign this exact message"
+    },
+    {
+      "code": 7207,
+      "name": "UnknownAttestor",
+      "msg": "the signing key is not a configured attestor"
+    },
+    {
+      "code": 7208,
+      "name": "PremiumTooHigh",
+      "msg": "the name is further above its reference than the owner's ceiling"
+    },
+    {
+      "code": 7209,
+      "name": "PythIndexRequired",
+      "msg": "this desk requires a Pyth index update with every buy"
+    },
+    {
+      "code": 7210,
+      "name": "PythIndexInvalid",
+      "msg": "the Pyth update is not fully verified, not this name's feed, not positive, or older than 60 s"
+    },
+    {
+      "code": 7211,
+      "name": "BelowOracleFloor",
+      "msg": "the route returned less than the 8% band floor allows"
+    },
+    {
+      "code": 7212,
+      "name": "UnexpectedSpend",
+      "msg": "the route spent a different amount than the desk asked"
+    },
+    {
+      "code": 7213,
+      "name": "NothingReceived",
+      "msg": "the route returned nothing"
+    }
+  ],
+  "types": [
+    {
+      "name": "AttestorsSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "attestors",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Bought",
+      "docs": [
+        "One buy through the router. `reference_source`: 0 the PreStocks mark, 1 Pyth's index."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_in",
+            "type": "u64"
+          },
+          {
+            "name": "token_out",
+            "type": "u64"
+          },
+          {
+            "name": "token_price_e8",
+            "type": "u64"
+          },
+          {
+            "name": "reference_e8",
+            "type": "u64"
+          },
+          {
+            "name": "reference_source",
+            "type": "u8"
+          },
+          {
+            "name": "decision_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "head",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Checkpoint",
+      "docs": [
+        "\"Did nothing\", sealed into the chain like any action."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "decision_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "head",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfigInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "config",
+            "type": "pubkey"
+          },
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "swap_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "cluster_tag",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Desk",
+      "docs": [
+        "528 B struct, 536 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "docs": [
+              "Set once, never changes."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "operator",
+            "docs": [
+              "The default key means revoked."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "head",
+            "docs": [
+              "`sha256(head ‖ seq ‖ decision_hash)`: a hash chain over the record, from 32 zero bytes."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "seq",
+            "docs": [
+              "+1 on every sealed action, gap free."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "per_action_cap",
+            "docs": [
+              "USDC E6."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "daily_cap",
+            "type": "u64"
+          },
+          {
+            "name": "spent_in_window",
+            "type": "u64"
+          },
+          {
+            "name": "window_start_sec",
+            "docs": [
+              "The fixed 24 h spending window starts here (Shijima `Desk.sol` `_spend`)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "tokens",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "DeskToken"
+                  }
+                },
+                8
+              ]
+            }
+          },
+          {
+            "name": "max_premium_bps",
+            "docs": [
+              "A buy must not pay more than this above its reference."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "mode",
+            "docs": [
+              "0 practice (checkpoints only), 1 ask first, 2 on its own. 1 and 2 are the same to the program."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "paused",
+            "type": "u8"
+          },
+          {
+            "name": "require_pyth_index",
+            "docs": [
+              "1 = every buy must carry a fully verified Pyth `Equity.Index` update and is measured against it."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "token_count",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": "u8"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeskConfig",
+      "docs": [
+        "296 B struct, 304 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "The program upgrade authority at init."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_mint",
+            "docs": [
+              "The collateral: USDC on mainnet (SPL Token, 6 dp); a test mint on LiteSVM."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "swap_program",
+            "docs": [
+              "The router every operator swap goes through: Jupiter v6 on mainnet; the stub in tests."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "attestors",
+            "docs": [
+              "ed25519 keys allowed to sign reference messages."
+            ],
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "cluster_tag",
+            "docs": [
+              "Core `CLUSTER_ID` (101 / 103 / 104), bound into reference messages."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                6
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeskOpened",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "desk",
+            "type": "pubkey"
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          },
+          {
+            "name": "per_action_cap",
+            "type": "u64"
+          },
+          {
+            "name": "daily_cap",
+            "type": "u64"
+          },
+          {
+            "name": "max_premium_bps",
+            "type": "u16"
+          },
+          {
+            "name": "mode",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeskRef",
+      "docs": [
+        "168 B struct, 176 B account."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pyth_feed_id",
+            "docs": [
+              "Pyth `Equity.Index.<NAME>/USD` feed id; zero until the admin sets it."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "token_price_e8",
+            "docs": [
+              "PreStocks `tokenPrice` per UI token × 10^8."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "mark_price_e8",
+            "docs": [
+              "PreStocks `markPrice` (the SPV's valuation per token) × 10^8."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "multiplier_e12",
+            "docs": [
+              "The mint's ScaledUiAmount multiplier × 10^12, floored, as the attestor read it."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "fetched_at_sec",
+            "docs": [
+              "When the attestor fetched the catalogue; 0 = never posted."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "posted_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeskToken",
+      "docs": [
+        "40 B. A slot is free while `mint` is the default key."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "enabled",
+            "docs": [
+              "0 blocks buys. Sells stay allowed so the desk can always exit."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LimitsSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "per_action_cap",
+            "type": "u64"
+          },
+          {
+            "name": "daily_cap",
+            "type": "u64"
+          },
+          {
+            "name": "max_premium_bps",
+            "type": "u16"
+          },
+          {
+            "name": "require_pyth_index",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ModeSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "mode",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OperatorRevoked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OperatorSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "operator",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Paused",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceFeedMessage",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "feed_id",
+            "docs": [
+              "`FeedId` but avoid the type alias because of compatibility issues with Anchor's `idl-build` feature."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "price",
+            "type": "i64"
+          },
+          {
+            "name": "conf",
+            "type": "u64"
+          },
+          {
+            "name": "exponent",
+            "type": "i32"
+          },
+          {
+            "name": "publish_time",
+            "docs": [
+              "The timestamp of this price update in seconds"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "prev_publish_time",
+            "docs": [
+              "The timestamp of the previous price update. This field is intended to allow users to",
+              "identify the single unique price update for any moment in time:",
+              "for any time t, the unique update is the one such that prev_publish_time < t <= publish_time.",
+              "",
+              "Note that there may not be such an update while we are migrating to the new message-sending logic,",
+              "as some price updates on pythnet may not be sent to other chains (because the message-sending",
+              "logic may not have triggered). We can solve this problem by making the message-sending mandatory",
+              "(which we can do once publishers have migrated over).",
+              "",
+              "Additionally, this field may be equal to publish_time if the message is sent on a slot where",
+              "where the aggregation was unsuccesful. This problem will go away once all publishers have",
+              "migrated over to a recent version of pyth-agent."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "ema_price",
+            "type": "i64"
+          },
+          {
+            "name": "ema_conf",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceUpdateV2",
+      "docs": [
+        "A price update account. This account is used by the Pyth Receiver program to store a verified price update from a Pyth price feed.",
+        "It contains:",
+        "- `write_authority`: The write authority for this account. This authority can close this account to reclaim rent or update the account to contain a different price update.",
+        "- `verification_level`: The [`VerificationLevel`] of this price update. This represents how many Wormhole guardian signatures have been verified for this price update.",
+        "- `price_message`: The actual price update.",
+        "- `posted_slot`: The slot at which this price update was posted."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "write_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "verification_level",
+            "type": {
+              "defined": {
+                "name": "VerificationLevel"
+              }
+            }
+          },
+          {
+            "name": "price_message",
+            "type": {
+              "defined": {
+                "name": "PriceFeedMessage"
+              }
+            }
+          },
+          {
+            "name": "posted_slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReferenceFeedSet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pyth_feed_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReferenceInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "reference",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReferencePosted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_price_e8",
+            "type": "u64"
+          },
+          {
+            "name": "mark_price_e8",
+            "type": "u64"
+          },
+          {
+            "name": "multiplier_e12",
+            "type": "u64"
+          },
+          {
+            "name": "fetched_at_sec",
+            "type": "i64"
+          },
+          {
+            "name": "posted_by",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Sold",
+      "docs": [
+        "One sell. `counted_usdc` is what the caps charged: the larger of what came back and the attested value."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "seq",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_in",
+            "type": "u64"
+          },
+          {
+            "name": "usdc_out",
+            "type": "u64"
+          },
+          {
+            "name": "token_price_e8",
+            "type": "u64"
+          },
+          {
+            "name": "counted_usdc",
+            "type": "u64"
+          },
+          {
+            "name": "decision_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "head",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenAllowed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenDisallowed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Unpaused",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VerificationLevel",
+      "docs": [
+        "Pyth price updates are bridged to all blockchains via Wormhole.",
+        "Using the price updates on another chain requires verifying the signatures of the Wormhole guardians.",
+        "The usual process is to check the signatures for two thirds of the total number of guardians, but this can be cumbersome on Solana because of the transaction size limits,",
+        "so we also allow for partial verification.",
+        "",
+        "This enum represents how much a price update has been verified:",
+        "- If `Full`, we have verified the signatures for two thirds of the current guardians.",
+        "- If `Partial`, only `num_signatures` guardian signatures have been checked.",
+        "",
+        "# Warning",
+        "Using partially verified price updates is dangerous, as it lowers the threshold of guardians that need to collude to produce a malicious price update."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Partial",
+            "fields": [
+              {
+                "name": "num_signatures",
+                "type": "u8"
+              }
+            ]
+          },
+          {
+            "name": "Full"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

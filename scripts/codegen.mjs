@@ -13,8 +13,12 @@ import { createFromRoot, updateDefinedTypesVisitor } from "codama";
 const BUILD_IDLS = "anchor/target/idl";
 const CLIENTS = "packages/clients";
 
+/** Test-only programs built by the workspace that never get a client (S21: the desk's stand-in router). */
+const TEST_ONLY = new Set(["agari-swap-stub"]);
+
 for (const file of existsSync(BUILD_IDLS) ? readdirSync(BUILD_IDLS).filter((f) => f.endsWith(".json")) : []) {
   const program = file.replace(/\.json$/, "").replaceAll("_", "-");
+  if (TEST_ONLY.has(program)) continue;
   mkdirSync(join(CLIENTS, program), { recursive: true });
   copyFileSync(join(BUILD_IDLS, file), join(CLIENTS, program, "idl.json"));
 }

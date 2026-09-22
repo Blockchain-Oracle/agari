@@ -181,6 +181,10 @@
       "initSignature": "u2e4B8hxX7NBeW1xgQHWBjr7MNo5LWkNL4sPQmrCYsp3g48ieFfy6AkWtbJcVubnbs2DWM9FKaasJsMDzRm5wbS",
       "seatSignature": "3wef5i1Jd6J2kUjCgf47zC5PGcWzwFiT912EzvsQPUASaroFdy6FptdvsHMZgjYFELE6eXnr8meVShVZ28NgAoZY",
       "seatFromSlot": 501481795
+    },
+    "agari_desk": {
+      "programId": "4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak",
+      "note": "S21 (D-126): the desk program runs on mainnet (PreStocks tokens exist only there) and is rehearsed on a Surfpool mainnet fork; this entry pins the id for program-id-drift only. The mainnet record is addresses.mainnet.json (C7)."
     }
   },
   "venue": {

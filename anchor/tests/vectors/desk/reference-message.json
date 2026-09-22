@@ -1,0 +1,14 @@
+{
+  "note": "The 114-byte agari-desk-ref-v1 message (desk.md §3): domain(17) ‖ program(32) ‖ cluster_tag(1) ‖ mint(32) ‖ token_price_e8 u64 ‖ mark_price_e8 u64 ‖ multiplier_e12 u64 ‖ fetched_at_sec i64, little-endian. Asserted by packages/markets/src/desk/reference.test.ts and anchor/programs/agari-desk/src/reference.rs.",
+  "fields": {
+    "programId": "4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak",
+    "clusterTag": 101,
+    "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+    "tokenPriceE8": "115518656774",
+    "markPriceE8": "100300000000",
+    "multiplierE12": "1486134700000",
+    "fetchedAtSec": "1790096803"
+  },
+  "length": 114,
+  "hex": "61676172692d6465736b2d7265662d7631369ba4b581ccae358a64d4b2d66c6e986f6bea177624b84119ae101845d8ad416505daec0529e52bbf67f6ff1e146a9eb6ace7fc4ea31ca4bc9f15e10fe371972806d172e51a000000008b585a17000000e0e787045a010000a3b5b26a00000000"
+}

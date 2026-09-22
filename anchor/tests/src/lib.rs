@@ -25,3 +25,8 @@ pub mod settlement;
 pub mod vault;
 pub mod vault_ix;
 pub mod vault_trade;
+
+// S21: agari-desk world, Token-2022 fixtures and instruction builders.
+pub mod desk;
+pub mod desk_ix;
+pub mod desk_token;

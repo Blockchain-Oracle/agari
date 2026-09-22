@@ -71,9 +71,32 @@ path = "events_switchboard.rs"
 name = "events_preopen"
 path = "events_preopen.rs"
 
+# S21: agari-desk suites (desk.md §9) on the stub router and a PreStocks-shaped Token-2022 name.
+[[test]]
+name = "desk_open"
+path = "desk_open.rs"
+
+[[test]]
+name = "desk_funding"
+path = "desk_funding.rs"
+
+[[test]]
+name = "desk_guards"
+path = "desk_guards.rs"
+
+[[test]]
+name = "desk_reference"
+path = "desk_reference.rs"
+
+[[test]]
+name = "desk_chain"
+path = "desk_chain.rs"
+
 [dependencies]
 agari-events = { path = "../programs/agari-events", features = ["no-entrypoint"] }
 agari-vault = { path = "../programs/agari-vault", features = ["no-entrypoint"] }
+agari-desk = { path = "../programs/agari-desk", features = ["no-entrypoint"] }
+agari-swap-stub = { path = "../programs/agari-swap-stub", features = ["no-entrypoint"] }
 agari-common = { path = "../crates/agari-common" }
 anchor-lang = "=1.2.0"
 anchor-spl = "=1.2.0"
@@ -94,6 +117,10 @@ pyth-solana-receiver-sdk = "=2.0.0"
 sha3 = "0.10"
 # S7a: the caps vectors are read from packages/core/src/vault/caps.vectors.json.
 serde_json = "1"
+# S21: the desk's Token-2022 fixtures (TransferFee, ScaledUiAmount, Pausable, DefaultAccountState) and an independent
+# sha256 for the chain-head recompute in desk_chain.rs.
+spl-token-2022-interface = "2.1.0"
+sha2 = "0.10"
 
 # S6 lane 6b: a real Switchboard quote needs its slot in SlotHashes.
 solana-hash = "4.5"

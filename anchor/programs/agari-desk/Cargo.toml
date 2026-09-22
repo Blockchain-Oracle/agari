@@ -1,0 +1,39 @@
+[package]
+name = "agari-desk"
+version = "0.1.0"
+description = "Shijima's desk on Solana: a PDA holds a basket of PreStocks tokens for its owner; the operator may only trade inside caps, a band and a premium ceiling, through Jupiter by CPI; every decision is fingerprinted into a hash chain"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_desk"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["event-cpi"] }
+anchor-spl = { workspace = true }
+bytemuck = { workspace = true }
+agari-common = { path = "../../crates/agari-common", features = ["pyth"] }
+# The optional Pyth `Equity.Index` leg (desk.md §4.5 step 8): the default receiver, as agari-events (D-021).
+pyth-solana-receiver-sdk = { workspace = true }
+solana-instructions-sysvar = { workspace = true }
+# The chain head is sha256 (the syscall on chain), reached through the split hasher crate as agari-arena reaches keccak.
+solana-sha256-hasher = "=3.1.0"
+
+[dev-dependencies]
+# guard.rs and chain.rs assert the vectors shared with core (`gate.vectors.json`, `chain-head.json`).
+serde_json = "1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

@@ -1,0 +1,28 @@
+[package]
+name = "agari-swap-stub"
+version = "0.1.0"
+description = "Test-only stand-in for the desk's router (desk.md §9): moves the requested balances, or misbehaves on command, so every post-check of agari-desk is exercised on LiteSVM. Never deployed."
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "agari_swap_stub"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

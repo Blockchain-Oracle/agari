@@ -44,6 +44,8 @@ export const marketsEnvSchema = z.object({
   strategyProgramId: addressSchema.optional(),
   /** The agari-maker program id (S8); absent until it deploys. Must equal `addresses.devnet.json` `programs.agari_maker`. */
   makerProgramId: addressSchema.optional(),
+  /** The agari-desk program id (S21, mainnet): an override the desk layer checks against its generated client, never a second program. */
+  deskProgramId: addressSchema.optional(),
   /** price-relay's spot SSE endpoint (S3). */
   priceFeedUrl: z.url().optional(),
 });
@@ -81,6 +83,7 @@ export function marketsEnvInputFrom(source: Record<string, string | undefined>):
     arenaProgramId: source.NEXT_PUBLIC_AGARI_ARENA_PROGRAM_ID,
     strategyProgramId: source.NEXT_PUBLIC_AGARI_STRATEGY_PROGRAM_ID,
     makerProgramId: source.NEXT_PUBLIC_AGARI_MAKER_PROGRAM_ID,
+    deskProgramId: source.NEXT_PUBLIC_AGARI_DESK_PROGRAM_ID,
     priceFeedUrl: source.NEXT_PUBLIC_PRICE_FEED_URL,
   };
 }

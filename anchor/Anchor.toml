@@ -16,6 +16,7 @@ agari_parlay = "H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC"
 agari_strategy = "2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ"
 agari_leverage = "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb"
 agari_private = "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j"
+agari_desk = "4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak"
 
 [programs.devnet]
 agari_arena = "CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3"
@@ -27,6 +28,7 @@ agari_parlay = "H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC"
 agari_strategy = "2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ"
 agari_leverage = "2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb"
 agari_private = "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j"
+agari_desk = "4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak"
 
 [provider]
 cluster = "localnet"

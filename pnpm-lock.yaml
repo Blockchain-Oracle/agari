@@ -118,10 +118,16 @@ importers:
 
   packages/core:
     dependencies:
+      '@noble/hashes':
+        specifier: 1.8.0
+        version: 1.8.0
       zod:
         specifier: 'catalog:'
         version: 4.5.4
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
