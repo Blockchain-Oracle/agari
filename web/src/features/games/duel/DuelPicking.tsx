@@ -20,7 +20,7 @@ import { useArenaState, useAssetPrice, useOpeningPrice } from "@agari/markets/re
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNowMs } from "@/components/data";
 import { useVenue } from "@/features/markets";
-import { usdLine } from "@/features/markets/hero/units";
+import { assetPriceLine } from "@/features/markets/hero/units";
 import { webEnv } from "@/lib/env";
 import { clockUrgency, StageFace } from "../stage/StageFace";
 import { SwipeDeck, type DeckPlace } from "../stage/SwipeDeck";
@@ -310,9 +310,9 @@ function DuelFace({ card, place, nowMs, stake }: { card: DeckCard; place: DeckPl
       place={place}
       nowMs={nowMs}
       eyebrow={DUEL.picking.eyebrow(card.asset)}
-      question={lineRaw === null ? <span className="st-question-pending">{DUEL.picking.questionNoLine}</span> : DUEL.picking.question(usdLine(lineRaw))}
+      question={lineRaw === null ? <span className="st-question-pending">{DUEL.picking.questionNoLine}</span> : DUEL.picking.question(assetPriceLine(card.asset, lineRaw))}
       pills={[
-        { label: DUEL.picking.now, value: spot ? usdLine(spot.priceRaw) : "—", tone: "live" },
+        { label: DUEL.picking.now, value: spot ? assetPriceLine(card.asset, spot.priceRaw) : "—", tone: "live" },
         { label: DUEL.picking.stake, value: stake, tone: "up" },
       ]}
     />

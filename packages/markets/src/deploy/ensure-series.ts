@@ -70,7 +70,8 @@ export async function ensureSeries(ctx: StepContext, spec: SeriesSpec): Promise<
     }
   }
   const prior = ctx.record.series?.[spec.key];
-  const entry: SeriesRecord = { address, ticker: spec.ticker, cadenceSec: spec.cadenceSec, basis: spec.basis, books: prior?.books ?? [] };
+  // The prior record's other fields (a basket's registered base, S19) ride along; the derived ones are re-asserted.
+  const entry: SeriesRecord = { ...prior, address, ticker: spec.ticker, cadenceSec: spec.cadenceSec, basis: spec.basis, books: prior?.books ?? [] };
   if (prior && prior.address !== address) assertNoDrift(`Series ${spec.key}`, [`recorded ${prior.address} ≠ derived ${address}`]);
   ctx.save({ ...ctx.record, series: { ...ctx.record.series, [spec.key]: entry } });
   return address;

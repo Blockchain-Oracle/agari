@@ -2,7 +2,7 @@
  * How a lane reads on every surface (session-lanes.md §5): its tab key and label, the asset it prices, its ET clock
  * words and its source note. Pure, so the cards, the hero, the ticket and the `/dev` fixtures say the same thing.
  */
-import { earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, TICKERS, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
+import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, TICKERS, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
 import { HALT_REASONS, type EarningsEvent, type EventMarket, type HaltReason, type LaneBasis } from "@agari/core/types";
 import { formatCadence, HERO, LANE_STATE, MARKETS } from "@/lib/copy";
 
@@ -60,11 +60,22 @@ export function etWhen(sec: number, withSeconds = false): string {
 
 export const etWeekday = (sec: number): string => ET_WEEKDAY_SHORT[weekdayOfDate(etDateOf(sec))];
 
-/** The hero's settlement basis note (M `PriceSourceNote`): what decides this Window, in one line. */
+/**
+ * The hero's settlement basis note (M `PriceSourceNote`): what decides this Window, in one line. A 24/7 Window's source
+ * is its asset's kind, not the lane: an xStock settles on Switchboard, a pre-IPO name on the PreStocks read the venue
+ * signs (D-101), a basket on its index (S19). Before this every token-basis Window, `OPENAI-60m` included, was given
+ * the Switchboard line.
+ */
 export function priceSourceLine(market: Pick<EventMarket, "asset" | "lane" | "tradingStartSec" | "expirySec">): string {
   if (market.lane === "gap") return LANE_STATE.source.gap(etWhen(market.tradingStartSec, true), etWhen(market.expirySec, true));
-  if (market.lane === "token" && TICKERS[market.asset].kind === "valuation") return LANE_STATE.source.valuation(TICKERS[TICKERS[market.asset].valuationOf!].name);
-  if (market.lane === "token") return LANE_STATE.source.token(laneAssetLabel(market.asset, "token"));
+  if (market.lane === "token") {
+    const ticker = TICKERS[market.asset];
+    const basket = basketOf(market.asset);
+    if (basket) return LANE_STATE.source.basket(basket.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "));
+    if (ticker.kind === "valuation") return LANE_STATE.source.valuation(TICKERS[ticker.valuationOf!].name);
+    if (ticker.kind === "preIpo") return LANE_STATE.source.preIpo(ticker.name);
+    return LANE_STATE.source.token(laneAssetLabel(market.asset, "token"));
+  }
   return HERO.source;
 }
 

@@ -22,7 +22,17 @@ export type VenueRecord = {
   series?: Record<string, SeriesRecord>;
 };
 
-export type SeriesRecord = { address: string; ticker: number; cadenceSec: number; basis: number; books: string[] };
+export type SeriesRecord = {
+  address: string;
+  ticker: number;
+  cadenceSec: number;
+  basis: number;
+  books: string[];
+  /** A basket Series (S19, D-124): the frozen member base prices (E8, decimal strings) its feed version was registered on. */
+  basePrices?: Record<string, string>;
+  /** When those bases were read (`fetchedAtSec`); with `basePrices`, what a re-base must change the feed version over. */
+  baseAtSec?: number;
+};
 
 export type StepLog = { step: string; signature: string | null; note: string };
 

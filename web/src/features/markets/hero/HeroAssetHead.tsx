@@ -12,7 +12,7 @@ import type { MarketSession } from "../session";
 import { MarketSessionChipView } from "../session/MarketSessionChip";
 import { AssetDisc } from "./asset-mark";
 import { HistoryRangeTabs } from "./HistoryRangeTabs";
-import { usdLine } from "./units";
+import { assetPairUnit, assetPriceLine } from "./units";
 import { useWhen } from "@/lib/when";
 
 export interface HeroAssetHeadProps {
@@ -46,7 +46,7 @@ function priceWord(session: MarketSession, live: boolean): string {
 export function HeroAssetHead({ asset, session, nowSec, price, live, change, range, onRange, window = null }: HeroAssetHeadProps) {
   const when = useWhen();
   const countdown = sessionCountdown(session.status, nowSec);
-  const move = change ? formatDayChange(change) : null;
+  const move = change ? formatDayChange(change, asset) : null;
   // A selected listed Window is the thing that opens: its clock, not the session's (the 60m lane opens at 10:00).
   const clock = window ? { label: SESSION_COPY.hero.opensIn, value: formatSessionSpan(window.tradingStartSec - nowSec) } : { label: countdown?.kind === "closes" ? SESSION_COPY.hero.closesIn : SESSION_COPY.hero.opensIn, value: countdown ? formatSessionSpan(countdown.remainingSec) : SESSION_COPY.hero.noClock };
   return (
@@ -60,7 +60,7 @@ export function HeroAssetHead({ asset, session, nowSec, price, live, change, ran
           <HistoryRangeTabs range={range} onPick={onRange} />
           <MarketSessionChipView session={session} asset={asset} nowSec={nowSec} />
         </div>
-        <h2 className="mh-question">{price ? <span className="mh-question-line">{usdLine(price.raw)}</span> : HERO_HEAD.pair(asset)}</h2>
+        <h2 className="mh-question">{price ? <span className="mh-question-line">{assetPriceLine(asset, price.raw)}</span> : HERO_HEAD.pair(asset, assetPairUnit(asset))}</h2>
         {price && (
           <span className="pair-meta">
             {priceWord(session, live)} <span className="meta-soft">· {SESSION_COPY.hero.asOf(when(price.sec, { clock: true }))}</span>

@@ -35,16 +35,16 @@ function Tile({ label, value, sub }: { label: string; value: ReactNode; sub: Rea
 
 const price = (bps: number) => `${bpsToOddsCents(bps)}¢`;
 
-function OpeningTile({ openingRaw, spotRaw }: { openingRaw: bigint | null; spotRaw: bigint | null }) {
+function OpeningTile({ asset, openingRaw, spotRaw }: { asset: string; openingRaw: bigint | null; spotRaw: bigint | null }) {
   const { tiles } = SURFACE;
   let sub: string = tiles.noSpot;
   if (openingRaw !== null && spotRaw !== null) {
     const move = neededMove(spotRaw, openingRaw);
-    sub = `${tiles.spot(oraclePriceText(spotRaw))} · ${tiles.leading(SIDE_WORD[move.leading])}`;
+    sub = `${tiles.spot(oraclePriceText(spotRaw, asset))} · ${tiles.leading(SIDE_WORD[move.leading])}`;
   } else if (spotRaw !== null) {
-    sub = tiles.spot(oraclePriceText(spotRaw));
+    sub = tiles.spot(oraclePriceText(spotRaw, asset));
   }
-  return <Tile index={0} label={tiles.opening} value={openingRaw === null ? <span className="sf-tile-pending">{tiles.pendingPrint}</span> : oraclePriceText(openingRaw)} sub={sub} />;
+  return <Tile index={0} label={tiles.opening} value={openingRaw === null ? <span className="sf-tile-pending">{tiles.pendingPrint}</span> : oraclePriceText(openingRaw, asset)} sub={sub} />;
 }
 
 function UpTile({ structure, hydrating }: { structure: BookStructure | null; hydrating: boolean }) {
@@ -79,7 +79,7 @@ export function BookReadout({ market, structure, hydrating, openingRaw, spotRaw,
   const word = nowMs > 0 ? HERO.phase[phase(market, nowMs)] : "";
   return (
     <div className="sf-tiles">
-      <OpeningTile openingRaw={openingRaw} spotRaw={spotRaw} />
+      <OpeningTile asset={market.asset} openingRaw={openingRaw} spotRaw={spotRaw} />
       <UpTile structure={structure} hydrating={hydrating} />
       <SpreadTile structure={structure} hydrating={hydrating} />
       <Tile index={3} label={tiles.close} value={<Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />} sub={word} />

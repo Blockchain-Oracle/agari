@@ -52,6 +52,16 @@ describe("quotePair and escrow", () => {
     expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: 940, crossing: true })).toEqual({ bidTicks: 945, askTicks: null });
   });
 
+  it("defaults σ by kind (a basket 3,000, a pre-IPO name 4,500) and takes a per-symbol override", () => {
+    const sigma = readSeatMakerEnv({}).sigmaBps;
+    expect(sigma("AILABS")).toBe(3_000);
+    expect(sigma("PREALL")).toBe(3_000);
+    expect(sigma("OPENAI")).toBe(4_500);
+    expect(sigma("QQQ")).toBe(2_000);
+    expect(readSeatMakerEnv({ MM_SIGMA_BPS: "AILABS:3500" }).sigmaBps("AILABS")).toBe(3_500);
+    expect(readSeatMakerEnv({ MM_SYMBOLS: "OPENAI,AILABS,PREALL" }).symbols).toEqual(["OPENAI", "AILABS", "PREALL"]);
+  });
+
   it("defaults to post-only and switches on MM_ORDER_TYPE=limit", () => {
     expect(readSeatMakerEnv({}).orderType).toBe("post-only");
     expect(readSeatMakerEnv({ MM_ORDER_TYPE: "LIMIT" }).orderType).toBe("limit");

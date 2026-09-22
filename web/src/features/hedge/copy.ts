@@ -51,6 +51,17 @@ export const HEDGE = {
     empty: "No stock tokens found in this wallet. Agari looks for xStocks, Ondo tokens and PreStocks such as OpenAI, Anthropic and SpaceX.",
     foot: "Test money on Solana devnet. Agari only looks at your wallet: it never moves, sells or protects anything. Not investment advice.",
   },
+  /** "Your baskets" under "Your stocks" (S19 A6): a basket two or more held members sit in, covered together. */
+  baskets: {
+    title: "Your baskets",
+    intro: "A basket is a small group of companies bet on together. When you hold two or more of its members, one Down bet on the basket covers them together, with test money.",
+    holds: (held: number, total: number, value: string | null) => `You hold ${held} of ${total} members${value ? ` ≈ ${value}` : ""}`,
+    cover: "Cover the basket with Down",
+    add: "Add with Up",
+    none: "No basket Window is trading right now",
+    calm: (name: string, window: string) => `${name} has barely moved in the last ${window}. Nothing to cover right now.`,
+    one: "You hold one member of every basket. Cover it on its own name above.",
+  },
   /** The Reels card (plan Step 7): the take card's grammar, both bets offered. */
   reel: {
     badge: "YOU HOLD IT",
@@ -83,6 +94,8 @@ export const HEDGE = {
     token: "Weekend token lane — NVDAx, Down on the 24/7 Window",
     noPrice: "No fresh price — tokens only, no stake preset",
     preIpo: "Pre-IPO — 4.2 OPENAI PreStocks, Down on the 24/7 OpenAI Window (the TSLAx holding has no Window here)",
+    basket: "Basket — 4.2 OPENAI + 2 ANTHROPIC held, Down on the 24/7 AI Labs Window, sized on both (S19)",
+    baskets: "Your baskets — the /portfolio block for a wallet holding both AI Labs members, and one holding one",
     none: "No verified holding, or no Window to cover into — the picker returns null",
     teasers: "No offer — the four states the card shows instead of a blank",
     example: "Example mode — sample holdings through the real picker, stamped",

@@ -7,7 +7,7 @@ import { useOpeningPrice } from "@agari/markets/react";
 import { UnplugIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
-import { usdLine } from "@/features/markets/hero/units";
+import { assetPriceLine, assetPriceParts } from "@/features/markets/hero/units";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { ConnectButton } from "@/features/markets/wallet";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -55,7 +55,7 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
   const spotRaw = useOracleSpot(market?.asset ?? null);
 
   // The chip's words after the asset, as the card cuts them (`callParts`): " over $359.07", " vs the opening print".
-  const band = market === null ? null : lineRaw === null ? TAKES.noLine(market.asset) : side === "up" ? TAKES.over(market.asset, usdLine(lineRaw)) : TAKES.under(market.asset, usdLine(lineRaw));
+  const band = market === null ? null : lineRaw === null ? TAKES.noLine(market.asset) : side === "up" ? TAKES.over(market.asset, assetPriceLine(market.asset, lineRaw)) : TAKES.under(market.asset, assetPriceLine(market.asset, lineRaw));
   const tail = band === null || market === null ? null : band.startsWith(market.asset) ? band.slice(market.asset.length) : ` ${band}`;
   const canPost = configured === true && !!address && market !== null && !busy;
 
@@ -113,13 +113,13 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
                 <div className="take-line">
                   <div className="take-line-row">
                     <span className="take-line-label">{C.line}</span>
-                    <span className="take-line-spot">{spotRaw === null ? "" : C.spot(usdLine(spotRaw))}</span>
+                    <span className="take-line-spot">{spotRaw === null || market === null ? "" : C.spot(assetPriceLine(market.asset, spotRaw))}</span>
                   </div>
                   <div className="take-line-value">
-                    <span className="take-line-sign">$</span>
+                    <span className="take-line-sign">{market !== null && lineRaw !== null ? assetPriceParts(market.asset, lineRaw).sign : "$"}</span>
                     <span className="take-line-figure" data-pending={lineRaw === null}>
                       {/* The sign is its own span, so the figure is the line without its "$". */}
-                      {lineRaw === null ? C.linePending : usdLine(lineRaw).slice(1)}
+                      {lineRaw === null || market === null ? C.linePending : assetPriceParts(market.asset, lineRaw).figure}
                     </span>
                   </div>
                   <p className="take-line-note">{C.lineNote}</p>

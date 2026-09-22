@@ -24,8 +24,9 @@ async function readNews(symbol: TickerSymbol): Promise<Reading<Article[]>> {
 }
 
 /** One ticker's headlines (`["agari","news", symbol]`), polled while the tab is visible; a failed refresh keeps the last ones. */
-export function useTickerNews(symbol: TickerSymbol): Reading<Article[]> | null {
-  return useReadingQuery(["agari", "news", symbol], () => readNews(symbol), { pollMs: NEWS_POLL_MS, needs: [] });
+/** Null for a basket (S19): a group of companies has no wire of its own, so nothing is asked. */
+export function useTickerNews(symbol: TickerSymbol | null): Reading<Article[]> | null {
+  return useReadingQuery(["agari", "news", symbol], () => readNews(symbol as TickerSymbol), { pollMs: NEWS_POLL_MS, enabled: symbol !== null, needs: [] });
 }
 
 /** `GET /api/earnings?symbol` (lane 13c): `lib/finnhub.server.ts`'s `EarningsEvent` list and the day the answer covers through. */
@@ -44,8 +45,8 @@ async function readEarnings(symbol: TickerSymbol): Promise<Reading<EarningsPaylo
 }
 
 /** The next report for one ticker: `known` once the calendar answered (an empty answer is a real "none scheduled"). */
-export function useNextEarnings(symbol: TickerSymbol): { event: EarningsPayload["events"][number] | null; known: boolean } {
-  const reading = useReadingQuery(["agari", "social", "earnings", symbol], () => readEarnings(symbol), { staleTimeMs: EARNINGS_STALE_MS, needs: [] });
+export function useNextEarnings(symbol: TickerSymbol | null): { event: EarningsPayload["events"][number] | null; known: boolean } {
+  const reading = useReadingQuery(["agari", "social", "earnings", symbol], () => readEarnings(symbol as TickerSymbol), { staleTimeMs: EARNINGS_STALE_MS, enabled: symbol !== null, needs: [] });
   if (!reading?.ok) return { event: null, known: false };
   const next = reading.value.events.filter((event) => event.symbol === symbol).sort((a, b) => (a.dateEt < b.dateEt ? -1 : 1))[0] ?? null;
   return { event: next, known: true };

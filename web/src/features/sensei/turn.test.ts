@@ -2,7 +2,7 @@ import { TICKER_SYMBOLS } from "@agari/core/market";
 import { describe, expect, it } from "vitest";
 import { asksForAdvice, senseiTurnContext } from "./prompt";
 import type { SenseiRequest } from "./protocol";
-import { earningsLine, holdingsLine } from "./turn-lines";
+import { basketCoverLine, earningsLine, holdingsLine } from "./turn-lines";
 import { baseToCents, centsText } from "./units";
 
 const user = (content: string) => ({ role: "user" as const, content });
@@ -77,5 +77,20 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
     const events = TICKER_SYMBOLS.map((symbol) => ({ symbol, dateEt: "2026-09-17", hour: "dmh" as const }));
     const context = senseiTurnContext(request, { adviceAsked: true, earnings: { events, symbols: [...TICKER_SYMBOLS] } });
     expect(new TextEncoder().encode(context).length).toBeLessThanOrEqual(2_560);
+  });
+});
+
+describe("basket cover line (S19)", () => {
+  it("names a basket only when two or more of its members are held, and says how many", () => {
+    const openai = { name: "OpenAI", symbol: "OPENAI", issuer: "prestocks", tokens: "4.2", valueCents: 473_400 } as const;
+    const anthropic = { name: "Anthropic", symbol: "ANTHROPIC", issuer: "prestocks", tokens: "2", valueCents: 206_200 } as const;
+    const tesla = { name: "Tesla", symbol: "TSLAx", issuer: "xstocks", tokens: "12.5", valueCents: null } as const;
+    expect(basketCoverLine([openai, tesla])).toBe("");
+    const line = basketCoverLine([openai, anthropic, tesla]);
+    expect(line).toContain("AILABS (AI Labs: they hold 2 of its 2 members)");
+    expect(line).toContain("FRONTIER (Frontier AI: they hold 2 of its 4 members)");
+    expect(line).toContain("PREALL");
+    expect(line).not.toContain("PREDMKTS");
+    expect(holdingsLine([openai, anthropic])).toContain("A DOWN Window on a basket covers the members they hold together");
   });
 });

@@ -1,4 +1,4 @@
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, PRE_IPO_SYMBOLS, type BasketSymbol, type PreIpoSymbol } from "@agari/core/market";
 import { webEnv } from "@/lib/env";
 
 /**
@@ -7,6 +7,9 @@ import { webEnv } from "@/lib/env";
  * come from ops' `/prestocks/latest` (the same feed the lane settles on); holders from PreStocks' own `/api/stats`.
  * Each half fails alone: a page can show the premium without the holders and the other way round. Integers travel
  * as decimal strings; nothing here is a float.
+ *
+ * S19 (D-124): a basket symbol answers with ops' `kind: "basket"` row — its index in points × 10⁸, its movement and
+ * its members' prices and moves from their frozen bases; a basket has no holders of its own.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +18,7 @@ const STATS_URL = "https://prestocks.com/api/stats";
 const STATS_TTL_MS = 6 * 3_600_000;
 const PRICES_TTL_MS = 30_000;
 
-interface PriceRow {
+interface NameRow {
   tokenPriceE8: string;
   markPriceE8: string;
   premiumBps: number | null;
@@ -23,6 +26,17 @@ interface PriceRow {
   ageSec: number;
   fresh: boolean;
 }
+interface BasketRow {
+  kind: "basket";
+  indexE8: string;
+  fetchedAtSec: number;
+  ageSec: number;
+  fresh: boolean;
+  members: Array<{ symbol: string; weightBps: number; tokenPriceE8: string; moveBps: number | null }>;
+}
+type PriceRow = NameRow | BasketRow;
+type FactsSymbol = PreIpoSymbol | BasketSymbol;
+const FACTS_SYMBOLS: readonly FactsSymbol[] = [...PRE_IPO_SYMBOLS, ...BASKET_SYMBOLS];
 interface HolderRow {
   /** The latest weekly holder count and the one four weeks earlier, when PreStocks reports them. */
   holders: number | null;
@@ -34,7 +48,7 @@ export type PreIpoFacts = Partial<PriceRow> & HolderRow;
 let statsMemo: { atMs: number; rows: Record<string, HolderRow> } | null = null;
 let pricesMemo: { atMs: number; rows: Record<string, PriceRow> } | null = null;
 
-const isPreIpo = (s: string): s is PreIpoSymbol => (PRE_IPO_SYMBOLS as readonly string[]).includes(s);
+const isFactsSymbol = (s: string): s is FactsSymbol => (FACTS_SYMBOLS as readonly string[]).includes(s);
 
 async function readStats(nowMs: number): Promise<Record<string, HolderRow>> {
   if (statsMemo && nowMs - statsMemo.atMs < STATS_TTL_MS) return statsMemo.rows;
@@ -71,8 +85,8 @@ async function readPrices(nowMs: number): Promise<Record<string, PriceRow>> {
 
 export async function GET(request: Request) {
   const wanted = new URL(request.url).searchParams.get("symbol");
-  const symbols = wanted ? (isPreIpo(wanted.toUpperCase()) ? [wanted.toUpperCase() as PreIpoSymbol] : []) : [...PRE_IPO_SYMBOLS];
-  if (symbols.length === 0) return Response.json({ error: "Not a PreStocks name." }, { status: 400, headers: { "Cache-Control": "no-store" } });
+  const symbols: FactsSymbol[] = wanted ? (isFactsSymbol(wanted.toUpperCase()) ? [wanted.toUpperCase() as FactsSymbol] : []) : [...FACTS_SYMBOLS];
+  if (symbols.length === 0) return Response.json({ error: "Not a PreStocks name or a basket." }, { status: 400, headers: { "Cache-Control": "no-store" } });
   const nowMs = Date.now();
   const [prices, holders] = await Promise.all([readPrices(nowMs).catch(() => null), readStats(nowMs).catch(() => null)]);
   if (!prices && !holders) return Response.json({ error: "PreStocks facts are unavailable just now." }, { status: 502, headers: { "Cache-Control": "no-store" } });

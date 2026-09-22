@@ -5,7 +5,7 @@ import { marketsProvider } from "@agari/markets";
 import { useAssetPrice } from "@agari/markets/react";
 import { useEffect, useRef, useState } from "react";
 import { sendNotification } from "@/features/alerts";
-import { basisRaw, feedRawToOracleRaw, usdLine } from "@/features/markets/hero/units";
+import { basisRaw, feedRawToOracleRaw, assetPriceLine } from "@/features/markets/hero/units";
 import { notify } from "@/lib/toast";
 import { HEDGE } from "./copy";
 import { bpsToPctText, DROP_BPS, dropBps, dropBellsSnapshot, hourHigh, keepHour, subscribeDropBells, type PriceSample } from "./drop-bell";
@@ -40,7 +40,7 @@ function AssetWatch({ asset }: { asset: TickerSymbol }) {
     rung.add(asset);
     const high = hourHigh(hour)!;
     const title = HEDGE.bell.fired.title(TICKERS[asset].name, bpsToPctText(bps));
-    const body = HEDGE.bell.fired.body(usdLine(high.raw), usdLine(raw, high.raw));
+    const body = HEDGE.bell.fired.body(assetPriceLine(asset, high.raw), assetPriceLine(asset, raw, high.raw));
     sendNotification(title, body);
     notify.neutral(title, body);
   }, [asset, raw, publishTimeSec]);

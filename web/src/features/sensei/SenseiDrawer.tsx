@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import AgariMark from "@/components/shell/AgariMark";
 import { cn } from "@/lib/utils";
 import { CardSpark } from "../markets/lanes/CardSpark";
-import { usdLine } from "../markets/hero/units";
+import { assetPriceLine } from "../markets/hero/units";
 import { chipsFor, SENSEI_STARTERS, SENSEI_UI } from "./copy";
 import { SenseiTradeCards } from "./SenseiTradeCards";
 import { Typewriter } from "./Typewriter";
@@ -32,14 +32,14 @@ function SenseiMeter({ reading, secsLeft, urgent }: { reading: SenseiReading; se
   return (
     <div className={cn("sensei-meter", `sd-dir-${drift?.direction ?? "flat"}`, urgent && "urgent")}>
       <div className="sm-read">
-        <span className="sm-spot">{latestRaw === null ? SENSEI_UI.reading : usdLine(latestRaw)}</span>
+        <span className="sm-spot">{latestRaw === null ? SENSEI_UI.reading : assetPriceLine(nearest?.asset ?? "", latestRaw)}</span>
         {drift && (
           <>
             <span className="sm-tri" aria-hidden />
             <span className="sm-drift">
               {drift.direction === "flat"
                 ? SENSEI_UI.flat
-                : `${drift.moveRaw > 0n ? "+" : "−"}${usdLine(drift.moveRaw < 0n ? -drift.moveRaw : drift.moveRaw, latestRaw ?? undefined)}`}
+                : `${drift.moveRaw > 0n ? "+" : "−"}${assetPriceLine(nearest?.asset ?? "", drift.moveRaw < 0n ? -drift.moveRaw : drift.moveRaw, latestRaw ?? undefined)}`}
             </span>
             {/* The span actually held, never the span asked for — see computeDrift. */}
             <span className="sm-window">{SENSEI_UI.minute(drift.spanMin)}</span>

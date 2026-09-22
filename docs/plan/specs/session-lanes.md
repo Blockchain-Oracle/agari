@@ -172,7 +172,7 @@ A missed slot is reported, and the settler voids at T + 61.
 
 **Settler:** unchanged, since there is no check.
 
-**Maker (`seat/token-fair.ts`, new):** quotes 24/7 with `MM_TOKEN_MAX_CASH_PER_WINDOW` 10 tUSDC.
+**Maker (`seat/token-fair.ts`, new):** quotes 24/7 with `MM_TOKEN_MAX_CASH_PER_WINDOW` 10 tUSDC. A pre-IPO name and a basket (S19) take the same model, `sampledQuote`, over the PreStocks feed: a name against its own token price, a basket against its index in points from the feed's same-fetch snapshots, so the maker's fair and the venue's print agree; σ defaults per kind (`MM_SIGMA_BPS`, venue-ops.md §8).
 
 **Spot (`services/ops/src/prices/xstock-spot.ts`, new):** Jupiter Price v3 `usdPrice` for the four verified mints (`price-sources.json:69-72`), one call every 5 s (keyless 0.5 RPS, C:13 §5), published under the xStock symbol for the chart only ("chart follows Jupiter").
 

@@ -31,6 +31,10 @@ export const LANE_STATE = {
     token: (xstock: string) => `Settles on the Switchboard ${xstock} token price observed ≤ 60 s after each boundary · chart follows Jupiter`,
     /** A valuation lane (S20, D-125): Pyth's valuation index for the company, posted to the receiver and verified on chain, like TSLA. */
     valuation: (name: string) => `Settles on Pyth's ${name} valuation index, verified on chain at open and close · chart follows the index`,
+    /** A pre-IPO name (D-100, D-101): one source, the venue's own signature; the chart follows the same read. */
+    preIpo: (name: string) => `Settles on the PreStocks ${name} token price, read ≤ 45 s after each boundary and signed by Agari · single source, no cross-check`,
+    /** A basket (S19, D-124): the index the venue computes from one read of every member, in points. */
+    basket: (name: string, members: string) => `Settles on the ${name} index, in points: ${members} weighted equally from one PreStocks read ≤ 45 s after each boundary, signed by Agari · single source`,
   },
   /** An earnings line under the ticket's strip: a warning, never a blocker (L-32). */
   earnings: {

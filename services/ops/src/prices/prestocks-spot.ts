@@ -6,11 +6,15 @@
  * the sample nearest a boundary and the maker can read the spot at a Window's start. `joinPreStocksSpot` publishes
  * `tokenPrice` under the ticker symbols of the process `SpotFeed` (source `"prestocks"`, publish time = read time);
  * every other symbol falls through to the base feed. Display and quoting only: nothing here settles anything.
+ *
+ * S19 (D-124): every read is also kept whole as a `PreStocksSnapshot`, so a basket index is always computed from ONE
+ * fetch of every member (`basket-index.ts`). A basket symbol reads its index (points × 10⁸) from `joinPreStocksSpot`.
  */
-import { PRE_IPO_TICKERS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, isBasketSymbol, PRE_IPO_TICKERS, TICKERS, type TickerSymbol } from "@agari/core/market";
 import { fetchPreStocks, type PreStocksRead } from "@agari/markets/ops/prints";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
+import { basketIndexLatest, indexOfSnapshot } from "./basket-index";
 import type { SpotFeed, SpotQuote } from "./spot";
 
 export interface PreStocksSample {
@@ -25,6 +29,13 @@ export interface PreStocksSample {
   fetchedAtSec: number;
 }
 
+/** One catalogue read, whole: the samples it priced and the registry names it did not (absent or a mint mismatch). */
+export interface PreStocksSnapshot {
+  fetchedAtSec: number;
+  samples: ReadonlyMap<TickerSymbol, PreStocksSample>;
+  missing: readonly TickerSymbol[];
+}
+
 export interface PreStocksSpotFeed {
   /** The latest sample, or null when none is fresher than `maxAgeSec` (default 30). */
   latest(symbol: TickerSymbol, maxAgeSec?: number): PreStocksSample | null;
@@ -32,9 +43,13 @@ export interface PreStocksSpotFeed {
   at(symbol: TickerSymbol, sec: number, windowSec?: number): PreStocksSample | null;
   /** Every kept sample of the last two hours, oldest first. */
   history(symbol: TickerSymbol): readonly PreStocksSample[];
+  /** Every read of the last two hours, whole, oldest first (S19): the basket index is computed over these. */
+  snapshots(): readonly PreStocksSnapshot[];
   /** The pre-IPO names this feed prices. */
   symbols(): readonly TickerSymbol[];
   subscribe(listener: (sample: PreStocksSample) => void): () => void;
+  /** Every new read, whole, after its samples were published. */
+  subscribeSnapshots(listener: (snapshot: PreStocksSnapshot) => void): () => void;
 }
 
 export interface PreStocksSpotHandle extends PreStocksSpotFeed {
@@ -84,10 +99,20 @@ export function samplesOf(read: PreStocksRead): { kept: PreStocksSample[]; dropp
   return { kept, dropped, missing };
 }
 
+/** The read, whole: a dropped row counts as missing here, because a basket over it has no index either way. */
+export function snapshotOf(read: PreStocksRead): { snapshot: PreStocksSnapshot; dropped: string[] } {
+  const { kept, dropped } = samplesOf(read);
+  const samples = new Map(kept.map((s) => [s.symbol, s]));
+  const missing = NAMES.map((n) => n.symbol).filter((s) => !samples.has(s));
+  return { snapshot: { fetchedAtSec: read.fetchedAtSec, samples, missing }, dropped };
+}
+
 export function createPreStocksSpotFeed(input: { log: (why: string) => void; read?: () => Promise<PreStocksRead> }): PreStocksSpotHandle {
   const read = input.read ?? (() => fetchPreStocks());
   const history = new Map<TickerSymbol, PreStocksSample[]>();
+  const snapshots: PreStocksSnapshot[] = [];
   const listeners = new Set<(sample: PreStocksSample) => void>();
+  const snapshotListeners = new Set<(snapshot: PreStocksSnapshot) => void>();
   const beat = registerHeartbeat("prestocks-spot", false, PRESTOCKS_SPOT_EVERY_MS);
   let stopped = false;
   let loggedFailure = false;
@@ -100,21 +125,31 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
     history.set(sample.symbol, list);
     for (const listener of listeners) listener(sample);
   };
+  const keep = (snapshot: PreStocksSnapshot) => {
+    snapshots.push(snapshot);
+    while (snapshots.length && snapshots[0]!.fetchedAtSec < snapshot.fetchedAtSec - KEEP_SEC) snapshots.shift();
+    for (const listener of snapshotListeners) listener(snapshot);
+  };
 
   async function poll(): Promise<void> {
     while (!stopped) {
       const started = Date.now();
       try {
-        const { kept, dropped, missing } = samplesOf(await read());
-        for (const sample of kept) push(sample);
+        const { snapshot, dropped } = snapshotOf(await read());
+        for (const sample of snapshot.samples.values()) push(sample);
+        keep(snapshot);
         // A mint mismatch is worth one log line per distinct message, not one per poll.
         const drop = dropped.join("; ");
         if (drop && drop !== loggedDrop) input.log(`prestocks-spot dropped: ${drop}`);
         loggedDrop = drop;
         beat.lastOkMs = beat.lastPassMs = Date.now();
         beat.failures = 0;
-        beat.lastWhy = `${kept.length}/${NAMES.length} names priced${missing.length ? ` (missing ${missing.join(",")})` : ""}${dropped.length ? ` (dropped ${dropped.length})` : ""}`;
-        beat.detail = Object.fromEntries([...history].map(([s, list]) => [s, { token: list.at(-1)!.tokenPriceE8.toString(), mark: list.at(-1)!.markPriceE8.toString() }]));
+        const indexed = BASKET_SYMBOLS.filter((b) => indexOfSnapshot(BASKETS[b], snapshot) !== null);
+        beat.lastWhy = `${snapshot.samples.size}/${NAMES.length} names priced, ${indexed.length}/${BASKET_SYMBOLS.length} baskets indexed${snapshot.missing.length ? ` (missing ${snapshot.missing.join(",")})` : ""}${dropped.length ? ` (dropped ${dropped.length})` : ""}`;
+        beat.detail = {
+          ...Object.fromEntries([...history].map(([s, list]) => [s, { token: list.at(-1)!.tokenPriceE8.toString(), mark: list.at(-1)!.markPriceE8.toString() }])),
+          ...Object.fromEntries(indexed.map((b) => [b, { index: indexOfSnapshot(BASKETS[b], snapshot)!.indexE8.toString() }])),
+        };
         loggedFailure = false;
       } catch (error) {
         beat.failures += 1;
@@ -142,10 +177,15 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
       return null;
     },
     history: (symbol) => history.get(symbol) ?? [],
+    snapshots: () => snapshots,
     symbols: () => NAMES.map((n) => n.symbol),
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+    subscribeSnapshots(listener) {
+      snapshotListeners.add(listener);
+      return () => snapshotListeners.delete(listener);
     },
     start() {
       current = feed;
@@ -161,11 +201,19 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
 }
 
 const asSpot = (s: PreStocksSample): SpotQuote => ({ symbol: s.symbol, priceE8: s.tokenPriceE8, publishTimeSec: s.fetchedAtSec, source: "prestocks" });
+const indexAsSpot = (symbol: TickerSymbol, indexE8: bigint, fetchedAtSec: number): SpotQuote => ({ symbol, priceE8: indexE8, publishTimeSec: fetchedAtSec, source: "prestocks" });
 
-/** One `SpotFeed` over both: pre-IPO tickers read the PreStocks catalogue, every other symbol reads `base`. */
+/**
+ * One `SpotFeed` over both: pre-IPO tickers read the PreStocks catalogue, a basket reads its index in points × 10⁸ from
+ * the newest complete read (S19), every other symbol reads `base`.
+ */
 export function joinPreStocksSpot(base: SpotFeed | null, prestocks: PreStocksSpotFeed): SpotFeed {
   return {
     latest(symbol, maxAgeSec) {
+      if (isBasketSymbol(symbol)) {
+        const index = basketIndexLatest(prestocks.snapshots(), BASKETS[symbol], Math.floor(Date.now() / 1000), maxAgeSec);
+        return index ? indexAsSpot(symbol, index.indexE8, index.fetchedAtSec) : null;
+      }
       if (!isPreIpo(symbol)) return base?.latest(symbol, maxAgeSec) ?? null;
       const s = prestocks.latest(symbol, maxAgeSec);
       return s ? asSpot(s) : null;
@@ -173,9 +221,16 @@ export function joinPreStocksSpot(base: SpotFeed | null, prestocks: PreStocksSpo
     subscribe(listener) {
       const offBase = base?.subscribe(listener);
       const offPre = prestocks.subscribe((s) => listener(asSpot(s)));
+      const offSnapshots = prestocks.subscribeSnapshots((snapshot) => {
+        for (const symbol of BASKET_SYMBOLS) {
+          const index = indexOfSnapshot(BASKETS[symbol], snapshot);
+          if (index) listener(indexAsSpot(symbol, index.indexE8, index.fetchedAtSec));
+        }
+      });
       return () => {
         offBase?.();
         offPre();
+        offSnapshots();
       };
     },
   };

@@ -12,11 +12,22 @@ const digits = z.string().regex(/^\d+$/).transform((text) => BigInt(text));
 const moveSchema = z.object({ windowSec: z.number(), samples: z.number().int(), rangeBps: z.number().int(), changeBps: z.number().int() });
 export type PreIpoMove = z.infer<typeof moveSchema>;
 
-/** `GET /api/prestocks?symbol=` (plan Step 5): the facts only PreStocks has for a pre-IPO name. Any half may be missing. */
+/** One member of a basket row (S19): its price in the read the index came from, and its move from its frozen base. */
+const memberSchema = z.object({ symbol: z.string(), weightBps: z.number().int(), tokenPriceE8: digits, moveBps: z.number().int().nullable() });
+export type BasketMemberView = z.infer<typeof memberSchema>;
+
+/**
+ * `GET /api/prestocks?symbol=` (plan Step 5): the facts only PreStocks has for a pre-IPO name, or a basket's row
+ * (`kind: "basket"`: the index in points × 10⁸ and its members). Any half may be missing.
+ */
 const factsSchema = z.object({
+  kind: z.literal("basket").optional(),
   tokenPriceE8: digits.optional(),
   markPriceE8: digits.optional(),
   premiumBps: z.number().int().nullable().optional(),
+  indexE8: digits.optional(),
+  members: z.array(memberSchema).optional(),
+  fetchedAtSec: z.number().optional(),
   ageSec: z.number().optional(),
   fresh: z.boolean().optional(),
   move: moveSchema.nullable().optional(),

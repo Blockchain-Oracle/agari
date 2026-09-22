@@ -23,7 +23,7 @@ export { ensureBooks, ensureSeries } from "./ensure-series";
 export { chainNowSec, readSeats, windowAddresses, type Seat } from "./cycle/accounts";
 export { DRIVE_TEST_TICKER } from "./venue-spec";
 // S18 (D-100): the PreStocks Pre-IPO lane.
-export { BASIS, PRESTOCKS_TICKER_BASE, preStocksFeedId, preStocksSeries } from "./venue-spec";
+export { BASIS, PRESTOCKS_TICKER_BASE, preStocksBasketFeedId, preStocksBasketSeries, preStocksFeedId, preStocksSeries } from "./venue-spec";
 // S20 (D-125): the valuation lanes on Pyth's Equity.Index feeds.
 export { pythValuationSeries } from "./venue-spec";
 export { profileOnSurfpool, type TransactionProfile } from "./cycle/profile";

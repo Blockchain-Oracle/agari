@@ -16,7 +16,7 @@ import { useMarketSession, type MarketSession } from "../session";
 import { HeroAssetHead } from "./HeroAssetHead";
 import { PriceChart } from "./PriceChart";
 import { ScheduleCallButton } from "./ScheduleCallButton";
-import { usdLine } from "./units";
+import { assetPriceLine } from "./units";
 import "./asset-hero.css";
 import { useWhen } from "@/lib/when";
 
@@ -52,7 +52,7 @@ export function HeroAssetChartView({ asset, tickers, onPickAsset, session, histo
   const latest = h?.latest ?? null;
   const live = h !== null && h.liveSec !== null;
   const change = h ? historyDayChange(h) : null;
-  const closeLine = h?.lastClose ? SESSION_COPY.next.lastClose(usdLine(h.lastClose.priceRaw), when(h.lastClose.sec, { clock: true })) : null;
+  const closeLine = h?.lastClose ? SESSION_COPY.next.lastClose(assetPriceLine(asset, h.lastClose.priceRaw), when(h.lastClose.sec, { clock: true })) : null;
   return (
     <div className="hero-chart" data-asset={asset}>
       <HeroAssetHead

@@ -211,6 +211,8 @@ signed bytes = the first 77 B of the package; signer = keccak256(pubkey(secp256k
 
 The plan's arg list omitted `source_ts`; it is derived as T, not passed. Attested prints are "demo data" only by user opt-in (plan PD-1).
 
+**Feed id families on this path (S18–S19).** A pre-IPO name's feed id is the ASCII `prestocks-v1:<SYMBOL>` zero-padded to 32 bytes (D-100); a basket's is `prestocks-basket-v1:<SYMBOL>` (D-124), where `v1` names the frozen base prices as much as the source. A basket's `price` is its equal-weight index in points at expo −8 (`1e11` = 1,000.00000000 pts; `normalize.rs` accepts it like any print), computed by the relay from ONE catalogue read that priced every member, taken inside `[T + min_delay, T + 45 s]`; a read missing a member is never completed from an older one, so the Window voids on a missing print instead. A re-based basket is a new feed id, a new policy version and a new Series, never an edit of this one.
+
 ### 4.4 Switchboard (`public_record_print_switchboard(which)`) — **deferred to S6**, rules frozen now
 
 Crate: `switchboard-on-demand 0.13.0`, `default-features = false, features = ["solana-v3"]`, plus the `getrandom` custom stub (D-002).

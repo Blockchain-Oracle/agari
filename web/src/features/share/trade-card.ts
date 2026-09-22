@@ -2,7 +2,7 @@ import { formatCadence } from "@agari/core/copy";
 import { formatEtClock } from "@agari/core/market";
 import type { PrintSource, Side, Signature, VoidReason } from "@agari/core/types";
 import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
-import { ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
+import { ORACLE_SCALE, assetPriceLine } from "@/features/markets/hero/units";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
 import { CARD_MARK, CARD_MARK_GAP, drawAssetMark } from "./marks";
@@ -68,7 +68,7 @@ const shortHash = (hash: string): string => (hash.length > 12 ? `${hash.slice(0,
 /** "UP vs $64,316" / "UP + DOWN vs $64,316" / "UP vs the opening print". */
 export function tradeBandLabel(card: TradeCard): string {
   const sides = card.sides.map((side) => side.toUpperCase()).join(" + ") || "—";
-  return card.lineRaw === null ? `${sides} vs the opening print` : `${sides} vs ${usdLine(card.lineRaw)}`;
+  return card.lineRaw === null ? `${sides} vs the opening print` : `${sides} vs ${assetPriceLine(card.asset, card.lineRaw)}`;
 }
 
 /** Folio / filename id: the first 6 characters of the entry signature when known, else of the settlement one, exactly as written (base58 is case-sensitive, D-010). */

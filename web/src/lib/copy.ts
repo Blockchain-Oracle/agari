@@ -188,7 +188,8 @@ export const HERO = {
  */
 export const HERO_HEAD = {
   holdsAbove: (asset: string) => `${asset} holds above`,
-  pair: (asset: string) => `${asset} · USD`,
+  /** "TSLA · USD"; a basket (S19) pairs with "index", its unit being points. */
+  pair: (asset: string, unit: "USD" | "index" = "USD") => `${asset} · ${unit}`,
   cadenceGroup: "Market length",
   betweenRounds: "Between rounds",
   settlesIn: "Settles in",

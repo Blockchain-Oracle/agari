@@ -5,7 +5,7 @@ import { archiveKeys } from "@/app/api/index/[...path]/queries-archive";
 import { webEnv } from "@/lib/env";
 import { dayChange, formatDayChange, type DayChangeText } from "../../markets/asset-history/day-change";
 import { archiveWindow } from "../../markets/asset-history/range";
-import { FEED_DECIMALS_DEFAULT, feedRawToOracleRaw, usdLine } from "../../markets/hero/units";
+import { FEED_DECIMALS_DEFAULT, feedRawToOracleRaw, assetPriceLine } from "../../markets/hero/units";
 import { etWeekday } from "../../markets/lanes/lane-view";
 import { withinBudget } from "./read-budget";
 
@@ -69,7 +69,7 @@ async function readClose(symbol: TickerSymbol): Promise<TickerClose | null> {
   const last = closeOf(rows, window.session);
   if (!last) return null;
   const change = dayChange(last.priceRaw, last.sec, { last, prev: closeOf(rows, window.prev) });
-  return { price: usdLine(last.priceRaw), when: `${etWeekday(last.sec)} ${formatEtClock(last.sec)}`, change: change ? formatDayChange(change) : null };
+  return { price: assetPriceLine(symbol, last.priceRaw), when: `${etWeekday(last.sec)} ${formatEtClock(last.sec)}`, change: change ? formatDayChange(change, symbol) : null };
 }
 
 export function readTickerClose(symbol: TickerSymbol): Promise<TickerClose | null> {

@@ -93,8 +93,8 @@ export function VerdictCard({ verdict, market, resolution, symbol, provenance }:
         stamp={<VerdictStamp outcome={verdict.outcome} size="compact" />}
       >
         <ReceiptRow label={VERDICT_UI.window}>{windowLine(market, verdict)}</ReceiptRow>
-        <ReceiptRow label={VERDICT_UI.openingPrint}>{oraclePriceText(resolution?.openingRaw ?? market.openingPriceRaw)}</ReceiptRow>
-        <ReceiptRow label={VERDICT_UI.closingPrint}>{oraclePriceText(resolution?.closingRaw ?? null)}</ReceiptRow>
+        <ReceiptRow label={VERDICT_UI.openingPrint}>{oraclePriceText(resolution?.openingRaw ?? market.openingPriceRaw, market.asset)}</ReceiptRow>
+        <ReceiptRow label={VERDICT_UI.closingPrint}>{oraclePriceText(resolution?.closingRaw ?? null, market.asset)}</ReceiptRow>
         <ReceiptRow label={VERDICT_UI.settlementTx} href={settlementTx ? txUrl(settlementTx, webEnv.markets.cluster) : null} degradedLabel={VERDICT_UI.pendingTx}>
           {settlementTx ? shortHex(settlementTx, 10, 4) : "—"}
         </ReceiptRow>

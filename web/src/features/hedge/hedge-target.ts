@@ -3,12 +3,13 @@
  * the live card and the `/dev/hedge` fixtures pick the same way.
  */
 import { phase } from "@agari/core/lifecycle";
-import { etDateOf, etMinutesOf, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet } from "@agari/core/types";
+import { pickBasketHedges } from "./basket-cover";
+import { tokenHorizon, type HedgeHorizon } from "./hedge-horizon";
 import type { HoldingView } from "./useHoldings";
 
-/** "this weekend" · "this session" · "tonight": the span the hedge Window covers, in the card's own words. */
-export type HedgeHorizon = "weekend" | "session" | "overnight";
+export type { HedgeHorizon } from "./hedge-horizon";
 
 export interface HedgeTarget {
   market: EventMarket;
@@ -27,15 +28,6 @@ export interface HedgePick {
   target: HedgeTarget;
 }
 
-const FRIDAY = 4;
-const SESSION_CLOSE_MIN = 16 * 60;
-
-/** A token Window outside the session hedges the weekend from Friday's close to Sunday, otherwise the night. */
-function tokenHorizon(nowSec: number): HedgeHorizon {
-  const weekday = weekdayOfDate(etDateOf(nowSec));
-  return weekday > FRIDAY || (weekday === FRIDAY && etMinutesOf(nowSec) >= SESSION_CLOSE_MIN) ? "weekend" : "overnight";
-}
-
 const latestExpiry = (markets: EventMarket[]): EventMarket | undefined => [...markets].sort((a, b) => b.expirySec - a.expirySec)[0];
 
 /** A trading Gap first, then the longest-running Regular Window in session, then the longest token Window. */
@@ -50,7 +42,10 @@ export function hedgeTarget(laneSet: LaneSet | null, underlying: TickerSymbol, n
   return token ? { market: token, kind: "down", horizon: tokenHorizon(Math.floor(nowMs / 1000)) } : null;
 }
 
-/** Every underlying with a Window to cover into, most exposure first (the Reels card rotates through them). */
+/**
+ * Every underlying with a Window to cover into, most exposure first (the Reels card rotates through them); then the
+ * baskets two or more held members could be covered through (S19 A6), sorted in with them.
+ */
 const NO_SKIP: ReadonlySet<TickerSymbol> = new Set();
 
 export function pickAllHedges(holdings: readonly HoldingView[], laneSet: LaneSet | null, nowMs: number, skip: ReadonlySet<TickerSymbol> = NO_SKIP): HedgePick[] {
@@ -66,6 +61,7 @@ export function pickAllHedges(holdings: readonly HoldingView[], laneSet: LaneSet
     const pick: HedgePick = { underlying, holdings: [...group].sort((a, b) => (b.sharesE8 > a.sharesE8 ? 1 : b.sharesE8 < a.sharesE8 ? -1 : 0)), sharesE8: group.reduce((sum, h) => sum + h.sharesE8, 0n), exposureUsdE6, target };
     picks.push(pick);
   }
+  picks.push(...pickBasketHedges(holdings, laneSet, nowMs, skip));
   return picks.sort((a, b) => ((b.exposureUsdE6 ?? 0n) > (a.exposureUsdE6 ?? 0n) ? 1 : (b.exposureUsdE6 ?? 0n) < (a.exposureUsdE6 ?? 0n) ? -1 : 0));
 }
 

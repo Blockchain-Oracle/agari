@@ -37,11 +37,11 @@ function HeroBody({ market, side }: { market: EventMarket; side?: Side }) {
 
   return (
     <article
-      aria-label={HERO.chartLabel(market.asset, oraclePriceText(openingRaw), oraclePriceText(latestRaw))}
+      aria-label={HERO.chartLabel(market.asset, oraclePriceText(openingRaw, market.asset), oraclePriceText(latestRaw, market.asset))}
       className="flex flex-col gap-4 rounded-(--market-card-radius) border border-(--market-card-border) bg-(--market-card-surface) p-4"
     >
       <HeroHeader market={market} phase={currentPhase} />
-      <ChartLegend openingRaw={openingRaw} latestRaw={latestRaw} />
+      <ChartLegend openingRaw={openingRaw} latestRaw={latestRaw} asset={market.asset} />
       <ReadingBoundary reading={series} shape="chart">
         {(chart) => <PriceChart points={chart.points} openingRaw={openingRaw} />}
       </ReadingBoundary>

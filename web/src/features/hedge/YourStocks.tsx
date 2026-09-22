@@ -1,11 +1,12 @@
 "use client";
 
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { LaneSet } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
+import { basketHolding, heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { useLanesState } from "@/features/markets/lanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
@@ -101,7 +102,62 @@ export function YourStocksList({ holdings, laneSet, nowMs, index, movement }: Yo
       )}
       {groups.length > 0 && <p className="hg-banner-foot ys-foot">{HEDGE.bell.foot}</p>}
       <p className="hg-banner-foot ys-foot">{HEDGE.stocks.foot}</p>
+      <YourBaskets holdings={holdings} laneSet={laneSet} nowMs={nowMs} movement={movement} />
     </section>
+  );
+}
+
+/**
+ * "Your baskets" (S19 A6): every basket two or more held members sit in, with what is held and the same two bets on
+ * the basket's own Window. One held member is covered on its own name above, and the block says so once.
+ */
+function YourBaskets({ holdings, laneSet, nowMs, movement }: Omit<YourStocksListProps, "index">) {
+  const held = heldSymbols(holdings);
+  const baskets = BASKET_SYMBOLS.map((s) => BASKETS[s]).filter((b) => isBasketCoverable(b, held));
+  const oneOnly = baskets.length === 0 && BASKET_SYMBOLS.some((s) => basketMembersHeld(BASKETS[s], held).length === 1);
+  if (baskets.length === 0 && !oneOnly) return null;
+  return (
+    <div className="ys-baskets" aria-label={HEDGE.baskets.title}>
+      <SectionHeader index="" title={HEDGE.baskets.title} />
+      <p className="type-body text-ink-secondary">{HEDGE.baskets.intro}</p>
+      {oneOnly ? (
+        <p className="type-body text-ink-muted">{HEDGE.baskets.one}</p>
+      ) : (
+        <ul className="ys-list">
+          {baskets.map((basket) => {
+            const own = basketHolding(basket, holdings);
+            const window = tradingBasketWindow(laneSet, basket.symbol, nowMs);
+            const value = own.valueUsdE6 === null ? null : `$${formatBaseUnits(own.valueUsdE6, USD_DP, { maxDp: 0, minDp: 0 })}`;
+            const move = movement?.[basket.symbol] ?? null;
+            const calm = isCalm(move);
+            return (
+              <li key={basket.symbol} className="ys-row">
+                <AssetDisc asset={basket.symbol} className="ys-mark" />
+                <div className="ys-text">
+                  <span className="ys-name">{basket.name}</span>
+                  <span className="ys-line">{HEDGE.baskets.holds(own.members.length, basket.members.length, value)} · {tokensText(own.holdings)}</span>
+                  {move && !calm && <span className="ys-move">{HEDGE.stocks.moved(bpsPct(move.rangeBps), windowText(move.windowSec))}</span>}
+                </div>
+                {calm && move ? (
+                  <span className="ys-none">{HEDGE.baskets.calm(basket.name, windowText(move.windowSec))}</span>
+                ) : window ? (
+                  <div className="ys-actions">
+                    <Link href={marketDeepLink({ marketId: window.marketId, dir: "down" })} className="ys-action" data-side="down">
+                      {HEDGE.baskets.cover}
+                    </Link>
+                    <Link href={marketDeepLink({ marketId: window.marketId, dir: "up" })} className="ys-action" data-side="up">
+                      {HEDGE.baskets.add}
+                    </Link>
+                  </div>
+                ) : (
+                  <span className="ys-none">{HEDGE.baskets.none}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 

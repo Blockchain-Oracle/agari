@@ -46,6 +46,30 @@ export const TICKER_HUB = {
     withIndex: "With the index — the key is entitled",
   },
 
+  /** A basket (S19, D-124): a small group of companies bet on together; its bar shows the index, not a price. */
+  basket: {
+    intro: (name: string, members: string) => `${name} is a basket: a small group of companies bet on together. ${members}, weighted equally, read from PreStocks in one go and scored as an index that started at 1,000 points.`,
+    index: "Index",
+    indexHint: "1,000 points at the base prices, frozen when the basket was listed",
+    members: "Members",
+    membersLine: (count: number) => `${count} · equal weight`,
+    moved: (window: string) => `Moved ${window}`,
+    movedLine: (rangePct: string, change: string) => `${rangePct} high to low · ${change} first to last`,
+    quiet: "not enough reads yet",
+    table: { title: "Members", member: "Company", weight: "Weight", price: "Token price", sinceBase: "Since base", held: "You hold", yes: "yes", no: "—" },
+    window: { title: "Live Window", none: "No basket Window is trading right now. One opens every hour on the 24/7 lane once the Series is listed." },
+    hold: {
+      connect: "Connect a wallet to see which members you hold.",
+      none: (total: number) => `You hold none of the ${total} members.`,
+      some: (held: number, total: number, value: string | null) => `You hold ${held} of ${total} members${value ? ` ≈ ${value}` : ""}.`,
+      coverNeeds: "Cover needs two or more members held; one member is covered on its own name.",
+      cover: "Cover the basket with Down",
+      add: "Add with Up",
+      noWindow: "Cover and Add open when a basket Window is trading.",
+    },
+    source: "Single source · the index is computed and signed by Agari from one PreStocks read of every member · no cross-check",
+  },
+
   feed: { number: "01", title: "Calls", desc: "Fills on this ticker's Windows, the verdicts of the traders who made them, and takes tagged with its cashtag." },
   news: { number: "02", title: "Headlines", desc: "Stories about this company, newest first.", credit: "Headlines via Finnhub" },
   board: {

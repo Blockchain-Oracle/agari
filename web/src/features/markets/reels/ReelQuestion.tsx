@@ -1,10 +1,9 @@
 "use client";
 
 import { neededMove } from "@agari/core/market";
-import { formatOracleRaw } from "@agari/core/units";
 import { REELS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { ORACLE_SCALE, usdLine } from "../hero/units";
+import { assetPriceLine, assetSpotLine } from "../hero/units";
 
 interface ReelQuestionProps {
   asset: string;
@@ -13,9 +12,6 @@ interface ReelQuestionProps {
   currentRaw: bigint | null;
 }
 
-/** Two decimals — the reference's `usd2`, for the live price under the question. */
-const usd2 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 2)}`;
-
 /**
  * How far the live price sits from the line.
  *
@@ -23,14 +19,14 @@ const usd2 = (raw: bigint): string => `$${formatOracleRaw(raw, ORACLE_SCALE, 2)}
  * `$83 above the UP line`. What both take from core is the *rule*: whether UP is
  * already winning comes from `neededMove`, never from a comparison written here.
  */
-function ReelDistance({ openingRaw, currentRaw }: { openingRaw: bigint; currentRaw: bigint }) {
+function ReelDistance({ asset, openingRaw, currentRaw }: { asset: string; openingRaw: bigint; currentRaw: bigint }) {
   const move = neededMove(currentRaw, openingRaw);
   const above = move.upNeedsRaw === 0n;
   const magnitude = above ? currentRaw - openingRaw : move.upNeedsRaw;
   return (
     <span className={cn("reel-distance", above ? "above" : "below")}>
       {above ? "+" : "−"}
-      {usdLine(magnitude, openingRaw)} {REELS.versusLine}
+      {assetPriceLine(asset, magnitude, openingRaw)} {REELS.versusLine}
     </span>
   );
 }
@@ -51,13 +47,13 @@ export function ReelQuestion({ asset, openingRaw, currentRaw }: ReelQuestionProp
         {openingRaw === null ? (
           <span className="reel-question-pending">{REELS.noLine}</span>
         ) : (
-          <span className="reel-question-line">{usdLine(openingRaw)}</span>
+          <span className="reel-question-line">{assetPriceLine(asset, openingRaw)}</span>
         )}
         <span className="reel-question-mark">?</span>
       </h2>
       <div className="reel-spot">
-        <span>{currentRaw === null ? REELS.noLine : usd2(currentRaw)}</span>
-        {currentRaw !== null && openingRaw !== null && <ReelDistance openingRaw={openingRaw} currentRaw={currentRaw} />}
+        <span>{currentRaw === null ? REELS.noLine : assetSpotLine(asset, currentRaw)}</span>
+        {currentRaw !== null && openingRaw !== null && <ReelDistance asset={asset} openingRaw={openingRaw} currentRaw={currentRaw} />}
         <span className="reel-spot-label">{REELS.livePrice}</span>
       </div>
     </div>
