@@ -373,6 +373,13 @@ export function deskCoreQueries(db: Db) {
       await ready();
       await db`UPDATE desk_owner_requests SET finished_at_sec = ${i.nowSec}, note = ${i.note} WHERE id = ${i.requestId}::uuid`;
     },
+    /** The desk's event log, newest first: money moving outside the desk, state and mode changes, the owner's requests. */
+    async listEvents(i: { deskId: string; limit?: number; sinceSec?: number }): Promise<{ id: number; kind: string; actor: string; detail: Record<string, unknown> | null; atSec: number }[]> {
+      await ready();
+      const rows = await db<{ id: string; kind: string; actor: string; detail: Record<string, unknown> | null; at_sec: string }[]>`
+        SELECT id, kind, actor, detail, at_sec FROM desk_events WHERE desk_id = ${i.deskId}::uuid AND at_sec >= ${i.sinceSec ?? 0} ORDER BY at_sec DESC, id DESC LIMIT ${i.limit ?? 50}`;
+      return rows.map((r) => ({ id: Number(r.id), kind: r.kind, actor: r.actor, detail: r.detail, atSec: Number(r.at_sec) }));
+    },
     async upsertPriceMark(m: PriceMarkRow): Promise<void> {
       await ready();
       await db`INSERT INTO desk_price_marks (symbol, at_sec, token_e8, mark_e8) VALUES (${m.symbol}, ${m.atSec}, ${m.tokenE8}, ${m.markE8}) ON CONFLICT (symbol, at_sec) DO NOTHING`;
