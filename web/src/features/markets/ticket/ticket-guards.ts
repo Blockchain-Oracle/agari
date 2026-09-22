@@ -80,6 +80,14 @@ export function laneBlocker(phase: MarketPhase, lane: LaneGuardInput | null | un
   return null;
 }
 
+/** A Window this young has an empty book because the maker's pass has not reached it yet, not because nobody quotes it. */
+export const FRESH_BOOK_SEC = 180;
+
+export function isFreshBook(tradingStartSec: number, nowMs: number): boolean {
+  const ageSec = Math.floor(nowMs / 1000) - tradingStartSec;
+  return ageSec >= 0 && ageSec < FRESH_BOOK_SEC;
+}
+
 /** Everything before the quote: the session, the Window, the stake against what can back it. */
 export function commonBlocker(i: TicketBlockerInput): BlockerKind | null {
   // Before the wallet: a held visitor is not missing a connection, and telling them to fix one would lie.

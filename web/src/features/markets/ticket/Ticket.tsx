@@ -33,7 +33,7 @@ import { boostCells, plainCells, privateCells, rangeCells } from "./readout-cell
 import { ReadoutStrip } from "./ReadoutStrip";
 import { useSeatDeposit } from "./seat-deposit";
 import { SideSegments } from "./SideSegments";
-import { deriveBlocker, deriveBoostBlocker, type TicketBlockerInput } from "./ticket-guards";
+import { deriveBlocker, deriveBoostBlocker, isFreshBook, type TicketBlockerInput } from "./ticket-guards";
 import { TicketCta } from "./TicketCta";
 import { TicketHeader } from "./TicketHeader";
 import { TicketMiniChart } from "./TicketMiniChart";
@@ -163,6 +163,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     spendableText: availableBase !== null ? `${formatBaseUnits(availableBase, decimals)} ${symbol}` : undefined,
     quotedCents: displayed?.oddsCents,
     fillableStakeText: displayed?.partial ? `${formatBaseUnits(displayed.fillableStakeBase, decimals)} ${symbol}` : undefined,
+    freshBook: isFreshBook(market.tradingStartSec, t.nowMs),
   };
   const showRoute = routing.deployed && ((routing.vaultAvailableBase ?? 0n) > 0n || routing.armed);
   const privateTitle = isRange ? PRIVATE.route.titleRange : priv.probing ? PRIVATE.route.titleProbing : !priv.ready ? PRIVATE.route.titleUnavailable(priv.reason ?? "not ready") : priv.overCap && priv.ctx.privateCapText ? PRIVATE.route.titleOverCap(priv.ctx.privateCapText) : PRIVATE.route.titleReady;

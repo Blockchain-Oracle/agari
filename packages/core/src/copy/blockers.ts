@@ -72,6 +72,8 @@ export interface BlockerContext {
   haltStale?: boolean;
   /** The composed crossing sentence for `rest-would-cross` ("Someone wants UP at 55¢ — rest DOWN at 44¢ or less, or wait for the bell"). */
   crossingText?: string;
+  /** The Window opened moments ago: an empty book is quotes still arriving after the opening print, not an absent counterparty. */
+  freshBook?: boolean;
 }
 
 const DEFAULT_CHAIN = "Solana devnet";
@@ -123,7 +125,9 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "quoting":
       return "Quoting…";
     case "no-liquidity-at-size":
-      return "No liquidity at this size — nobody is on the other side of this book";
+      return ctx.freshBook
+        ? "Quotes are still arriving on this Window — the maker posts within a minute or two of the opening print"
+        : "No liquidity at this size — nobody is on the other side of this book";
     case "over-book":
       return ctx.fillableStakeText ? `Above what the book can fill — up to ${ctx.fillableStakeText}` : "Above what the book can fill";
     case "outside-band-low":
