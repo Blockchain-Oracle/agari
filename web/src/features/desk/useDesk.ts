@@ -3,7 +3,7 @@
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import type { PreIpoSymbol } from "@agari/core/market";
 import type { Address } from "@agari/core/types";
-import { createDeskRpc, readOwnerDeskBalances, type DeskRpc, type OwnerDeskBalances } from "@agari/markets/desk";
+import { createBrowserDeskRpc, readOwnerDeskBalances, type DeskRpc, type OwnerDeskBalances } from "@agari/markets/desk";
 import { useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -69,7 +69,7 @@ export function useDeskFeed(key: string | null, viewer: Address | null, since: n
 }
 
 let browserRpc: DeskRpc | null = null;
-const mainnetRpc = (): DeskRpc => (browserRpc ??= createDeskRpc(MAINNET_RPC_PATH));
+const mainnetRpc = (): DeskRpc => (browserRpc ??= createBrowserDeskRpc(MAINNET_RPC_PATH));
 type KitAddress = Parameters<typeof readOwnerDeskBalances>[1];
 
 /** The owner's own mainnet SOL, USDC and the basket's names, for the money sheet's receipts; read only while it is open. */

@@ -24,7 +24,7 @@ export interface DeskQueries {
   getRecord(i: { deskId: string; seq: number }): Promise<{ record: DbRecord & { body: unknown }; actions: DbAction[]; grade: DbGrade | null } | null>;
   listApprovals(i: { deskId: string; open?: boolean }): Promise<DbApproval[]>;
   answerApproval(i: { deskId: string; approvalId: string; answer: "approve" | "decline"; signer: string; signature: string; nowSec: number }): Promise<void>;
-  requestCheckNow(i: { deskId: string; signer: string; signature: string; nowSec: number }): Promise<{ ok: true } | { ok: false; throttledUntilSec: number }>;
+  requestCheckNow(i: { deskId: string; signer: string; signature: string; nowSec: number; trigger?: "check_now" | "test_read" }): Promise<{ ok: true } | { ok: false; throttledUntilSec: number }>;
   listPriceMarks(i: { symbol: string; fromSec: number; toSec: number }): Promise<unknown[]>;
   deskFeedSince(i: { deskId: string; sinceSeq: number }): Promise<DbFeedItem[]>;
   getPaper(deskId: string): Promise<DbPaper | null>;

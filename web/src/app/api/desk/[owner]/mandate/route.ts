@@ -50,6 +50,6 @@ export async function POST(req: Request, context: { params: Promise<{ owner: str
     deskId = loaded.desk.id;
     await loaded.store.applyMandate({ deskId, body: mandate, fingerprint, signer: owner, signature, nowSec });
   }
-  const check = trigger === "test_read" ? await loaded.store.requestCheckNow({ deskId, signer: owner, signature, nowSec }) : null;
+  const check = trigger === "test_read" ? await loaded.store.requestCheckNow({ deskId, signer: owner, signature, nowSec, trigger: "test_read" }) : null;
   return answer({ ok: true, deskId, version, fingerprint, created, checkRequested: check?.ok ?? false, ...(check && !check.ok ? { throttledUntilSec: check.throttledUntilSec } : {}) });
 }

@@ -13,7 +13,8 @@ import { readDeskMints, type DeskRpc } from "./reads";
 /** Token account layout: `amount` u64 at 64. */
 const AMOUNT_AT = 64;
 
-export function createDeskRpc(url: string): DeskRpc {
+/** The browser's RPC over the app's own mainnet proxy path; the runner's `createDeskRpc` (rpc.ts) wraps a retrying transport instead. */
+export function createBrowserDeskRpc(url: string): DeskRpc {
   return createSolanaRpcFromTransport(createDefaultRpcTransport({ url: url as Parameters<typeof createDefaultRpcTransport>[0]["url"] })) as DeskRpc;
 }
 

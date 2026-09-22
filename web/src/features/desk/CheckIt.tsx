@@ -3,7 +3,7 @@
 import { canonicalJson, hashRecord } from "@agari/core/desk";
 import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
-import { createDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
+import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
 import { useState } from "react";
 import { MAINNET_RPC_PATH } from "@/providers/wallet/mainnet-signer";
 import { RECORD } from "./copy-record";
@@ -49,7 +49,7 @@ export async function checkRecord(body: unknown, recordHash: string, proof: Proo
 
 async function sealsFromChain(signature: string): Promise<{ decisionHash: string }[] | null> {
   try {
-    rpc ??= createDeskRpc(MAINNET_RPC_PATH);
+    rpc ??= createBrowserDeskRpc(MAINNET_RPC_PATH);
     return await readSealsOf(rpc, signature as unknown as KitSignature);
   } catch {
     return null;
