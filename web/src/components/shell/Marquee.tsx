@@ -10,12 +10,12 @@ import { TICKER_SLOTS, useTickerPrices } from "@/components/chrome/useTickerPric
 import { useNowMs } from "@/components/data/useNowMs";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { CLOSED_POLL_MS } from "@/features/markets/asset-history";
-import { etWhen } from "@/features/markets/lanes/lane-view";
 import { useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
 import { useVenue } from "@/features/markets/useVenue";
 import type { SentimentReading } from "@/features/news/protocol";
 import { useSentiment } from "@/features/news/useSentiment";
 import { SESSION_COPY } from "@/lib/copy-session";
+import { useWhen } from "@/lib/when";
 
 // The ticker earns its motion by carrying live signal: asset prices, the countdown to the next close (or, off-hours,
 // the next open) and the crowd's lean. Every figure here is a real Agari reading — when there is nothing to show it
@@ -43,13 +43,14 @@ function mmss(totalSec: number): string {
  * says `NYSE · <word>`.
  */
 function sessionCell(session: MarketSession, nowSec: number): MarqueeItem {
+  const when = useWhen();
   const countdown = session.status.state === "halted" ? null : sessionCountdown(session.status, nowSec);
   if (!countdown) return { label: SESSION_COPY.marquee.nyse, value: session.label.toUpperCase() };
   if (countdown.kind === "closes") return { label: SESSION_COPY.marquee.closesIn, value: formatSessionSpan(countdown.remainingSec).toUpperCase() };
   // The same rule as core `sessionPhrase`: a countdown only while the open is today, else the day it reopens.
   return etDateOf(countdown.atSec) === session.status.date
     ? { label: SESSION_COPY.marquee.opensIn, value: formatSessionSpan(countdown.remainingSec).toUpperCase() }
-    : { label: SESSION_COPY.marquee.reopens, value: `${etWhen(countdown.atSec)} ET`.toUpperCase() };
+    : { label: SESSION_COPY.marquee.reopens, value: when(countdown.atSec).toUpperCase() };
 }
 
 /** Q-S13-1: the crowd's lean as its majority side in whole percent, `SENTIMENT —` below the fill floor or unread. */

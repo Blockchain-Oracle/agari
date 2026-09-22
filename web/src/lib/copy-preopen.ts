@@ -6,7 +6,7 @@
 export const PREOPEN = {
   ticket: {
     /** The head line above the composer: "Listed · opens Wed 09:30 ET". */
-    listed: (opens: string) => `Listed · opens ${opens} ET`,
+    listed: (opens: string) => `Listed · opens ${opens}`,
     priceLabel: "Your price",
     priceAria: (side: string) => `Price per ${side} contract, in cents`,
     priceChips: "Quick prices",
@@ -44,7 +44,7 @@ export const PREOPEN = {
     fillsBy: "Fills",
     bell: "within the first minute after the bell, or the stake comes back",
     lock: "any time until the Window locks",
-    opens: (when: string) => `opens ${when} ET`,
+    opens: (when: string) => `opens ${when}`,
     tx: "scheduled tx",
     cancel: "Cancel the call",
     cancelling: "Cancelling…",
@@ -55,7 +55,7 @@ export const PREOPEN = {
   card: {
     clock: "listed",
     /** "Schedule a call · opens Wed 09:30 ET". */
-    headline: (opens: string) => `Schedule a call · opens ${opens} ET`,
+    headline: (opens: string) => `Schedule a call · opens ${opens}`,
     why: "Rest a post-only call at your price now; it fills within the first minute after the bell if the book comes to you.",
     cta: "Schedule a call",
     hint: "post-only · your price",
@@ -63,17 +63,17 @@ export const PREOPEN = {
   },
   /** The closed hero while a listed Window is selected (D-088): its head names the Window under the last price. */
   hero: {
-    listedWindow: (cadence: string, opens: string) => `${cadence} Window · opens ${opens} ET`,
+    listedWindow: (cadence: string, opens: string) => `${cadence} Window · opens ${opens}`,
   },
   /** The schedule seam on the closed surfaces (the asset hero's foot, the ticket placeholder, the next-Window card). */
   seam: {
     cta: "Schedule a call",
     /** "5m · opens Wed 09:30 ET": which listed Window the call goes on. */
-    which: (cadence: string, opens: string) => `${cadence} · opens ${opens} ET`,
+    which: (cadence: string, opens: string) => `${cadence} · opens ${opens}`,
     /** Nothing is listed yet: the roller lists the next session's first Windows at the close (D-090). */
-    listsAtClose: (clock: string) => `Lists at the close · ${clock} ET`,
-    listsBeforeOpen: (opens: string) => `Lists before the open · ${opens} ET`,
-    aria: (asset: string, cadence: string, opens: string) => `Schedule a call on the ${asset} ${cadence} Window that opens ${opens} ET`,
+    listsAtClose: (clock: string) => `Lists at the close · ${clock}`,
+    listsBeforeOpen: (opens: string) => `Lists before the open · ${opens}`,
+    aria: (asset: string, cadence: string, opens: string) => `Schedule a call on the ${asset} ${cadence} Window that opens ${opens}`,
   },
   rows: {
     restingForOpen: "Resting for the open",

@@ -11,7 +11,7 @@ export const SESSION_COPY = {
   hero: {
     /** The question slot's label under the last price: "Last close · as of 16:00 ET". */
     lastClose: "Last close",
-    asOf: (clock: string) => `as of ${clock} ET`,
+    asOf: (clock: string) => `as of ${clock}`,
     /** A moved extended-hours tick: "Pre-market · as of 08:12 ET · since close". */
     extended: { pre: "Pre-market", post: "After hours", live: "Live" },
     since: { close: "since close", prevClose: "since last close", open: "since the open" },
@@ -37,8 +37,8 @@ export const SESSION_COPY = {
     /** The card's clock slot when the next open is unknown. */
     clock: "next",
     opensIn: (span: string) => `opens in ${span}`,
-    first: (cadence: string, when: string) => `First ${cadence} Window opens ${when} ET`,
-    lastClose: (price: string, clock: string) => `Last close ${price} · ${clock} ET`,
+    first: (cadence: string, when: string) => `First ${cadence} Window opens ${when}`,
+    lastClose: (price: string, clock: string) => `Last close ${price} · ${clock}`,
   },
   lanes: {
     closed: sessionClosedLine,

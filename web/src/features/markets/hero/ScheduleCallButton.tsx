@@ -1,16 +1,16 @@
 "use client";
 
-import { formatEtClock, type TickerSymbol } from "@agari/core/market";
+import { type TickerSymbol } from "@agari/core/market";
 import type { MarketId } from "@agari/core/types";
 import { useLanes } from "@agari/markets/react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { formatCadence, PREOPEN } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { etWhen } from "../lanes/lane-view";
 import { nextListedWindow } from "../lanes/next-window";
 import type { MarketSession } from "../session";
 import { useVenue } from "../useVenue";
+import { useWhen } from "@/lib/when";
 
 /** Where the seam sits: the hero foot's `.mh-room` control, the placeholder's full-width CTA, or the card's `.mc-room` strip. */
 export type ScheduleSeamVariant = "foot" | "cta" | "strip";
@@ -36,6 +36,7 @@ export interface ScheduleCallButtonProps {
  * (the roller lists the next session's first Windows at the close, D-090). Nothing renders until the lanes have read.
  */
 export function ScheduleCallButton({ asset, session, nowSec, onSelect, variant, intervalSec, opensSec, className }: ScheduleCallButtonProps) {
+  const when = useWhen();
   const { venueId } = useVenue();
   const lanes = useLanes(venueId);
   const laneSet = lanes?.ok ? lanes.value : null;
@@ -44,8 +45,8 @@ export function ScheduleCallButton({ asset, session, nowSec, onSelect, variant, 
 
   if (next) {
     const cadence = formatCadence(next.intervalSec);
-    const which = PREOPEN.seam.which(cadence, etWhen(next.tradingStartSec));
-    const aria = PREOPEN.seam.aria(asset, cadence, etWhen(next.tradingStartSec));
+    const which = PREOPEN.seam.which(cadence, when(next.tradingStartSec));
+    const aria = PREOPEN.seam.aria(asset, cadence, when(next.tradingStartSec));
     const open = () => onSelect(next.marketId);
     if (variant === "cta") {
       return (
@@ -72,7 +73,7 @@ export function ScheduleCallButton({ asset, session, nowSec, onSelect, variant, 
 
   // Nothing listed yet: when it will be, from the session — never a button that cannot act.
   const closesAt = session?.open ? session.status.closesAtSec : null;
-  const line = closesAt !== null && closesAt !== undefined ? PREOPEN.seam.listsAtClose(formatEtClock(closesAt)) : opensSec ? PREOPEN.seam.listsBeforeOpen(etWhen(opensSec)) : null;
+  const line = closesAt !== null && closesAt !== undefined ? PREOPEN.seam.listsAtClose(when(closesAt, { clock: true })) : opensSec ? PREOPEN.seam.listsBeforeOpen(when(opensSec)) : null;
   if (line === null) return null;
   if (variant === "cta") return <p className={cn("type-caption text-ink-muted", className)}>{line}</p>;
   if (variant === "strip") return <p className={cn("mc-lists", className)}>{line}</p>;

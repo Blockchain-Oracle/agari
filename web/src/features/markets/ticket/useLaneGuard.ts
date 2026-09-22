@@ -1,11 +1,12 @@
 "use client";
 
 import type { BlockerContext } from "@agari/core/copy";
-import { etDateOf, formatEtClock, haltLabel } from "@agari/core/market";
+import { etDateOf, haltLabel } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
-import { earningsWarning, etWhen, laneAssetLabel } from "../lanes/lane-view";
+import { earningsWarning, laneAssetLabel } from "../lanes/lane-view";
 import { laneState, useMarketSession, type MarketSession } from "../session";
 import type { LaneGuardInput } from "./ticket-guards";
+import { useWhen } from "@/lib/when";
 
 export interface LaneGuard {
   lane: LaneGuardInput | null;
@@ -17,6 +18,7 @@ export interface LaneGuard {
 
 /** The pure half, so `/dev` fixtures build the exact guard a live session would. */
 export function laneGuardOf(market: EventMarket, session: MarketSession | null): LaneGuard {
+  const when = useWhen();
   const halt = session?.halt ?? null;
   const nextOpenSec = session?.status.nextOpenSec ?? null;
   const opensSec = market.lane === "gap" ? market.tradingStartSec : nextOpenSec;
@@ -27,7 +29,7 @@ export function laneGuardOf(market: EventMarket, session: MarketSession | null):
       ? { basis: market.lane, sessionOpen: session.open, halt, laneState: laneState(session, market.asset, market.lane, market.intervalSec) }
       : null,
     ctx: {
-      opensText: opensSec === null ? undefined : `${sameDay ? formatEtClock(opensSec) : etWhen(opensSec)} ET`,
+      opensText: opensSec === null ? undefined : when(opensSec, { clock: sameDay }),
       haltStale: halt ? haltLabel(halt.reason) === "Signed price stale" : undefined,
     },
     earnings: session ? earningsWarning(market, session.earnings) : null,

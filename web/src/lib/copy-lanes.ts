@@ -14,15 +14,15 @@ export const LANE_STATE = {
     name: "Monday Gap",
     /** "TSLA opens Mon above" — the line follows, as `holdsAbove` does. */
     opensAbove: (asset: string, weekday: string) => `${asset} opens ${weekday} above`,
-    locks: (when: string) => `Locks ${when} ET`,
-    settles: (when: string) => `Settles ${when} ET`,
+    locks: (when: string) => `Locks ${when}`,
+    settles: (when: string) => `Settles ${when}`,
     settledClock: "settled",
     /** The card's clock slot, as a paused card's says "paused". */
     listedClock: "listed",
     /** The Listed card (M `.market-card-pending`): trading starts at the Friday close. */
-    listed: (opens: string) => `Monday Gap · calls open ${opens} ET`,
-    listedWhy: (locks: string, settles: string) => `Locks ${locks} ET · settles on the ${settles} ET print.`,
-    locked: (settles: string) => `LOCKED · SETTLES ${settles.toUpperCase()} ET`,
+    listed: (opens: string) => `Monday Gap · calls open ${opens}`,
+    listedWhy: (locks: string, settles: string) => `Locks ${locks} · settles on the ${settles} print.`,
+    locked: (settles: string) => `LOCKED · SETTLES ${settles.toUpperCase()}`,
     pendingOpen: "WAITING FOR THE FRIDAY PRINT",
     settled: { up: "SETTLED · UP WON", down: "SETTLED · DOWN WON", void: "VOID · BOTH SIDES PAY 0.5" },
   },

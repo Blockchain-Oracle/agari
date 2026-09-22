@@ -1,7 +1,7 @@
 "use client";
 
 import { formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import { formatEtClock, type TickerSymbol } from "@agari/core/market";
+import { type TickerSymbol } from "@agari/core/market";
 import type { LaneBasis, MarketId } from "@agari/core/types";
 import { HERO_HEAD } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
@@ -13,9 +13,10 @@ import { ScheduleCallButton } from "../hero/ScheduleCallButton";
 import { usdLine } from "../hero/units";
 import type { MarketSession } from "../session";
 import { CardSpark } from "./CardSpark";
-import { etWhen, laneCadenceLabel } from "./lane-view";
+import { laneCadenceLabel } from "./lane-view";
 import { firstWindowStartSec } from "./next-window";
 import "./next-window.css";
+import { useWhen } from "@/lib/when";
 
 export interface NextWindowCardViewProps {
   asset: TickerSymbol;
@@ -36,6 +37,7 @@ export interface NextWindowCardViewProps {
  * listed Window in this lane, or the line that says when one lists.
  */
 export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec, history, onSelect }: NextWindowCardViewProps) {
+  const when = useWhen();
   const cadence = laneCadenceLabel(basis, intervalSec);
   const countdown = sessionCountdown(session.status, nowSec);
   const opensSec = firstWindowStartSec(session, intervalSec);
@@ -73,8 +75,8 @@ export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec,
       <div className="mc-pending">
         <span className="mc-pending-dot" aria-hidden />
         <p className="mc-pending-copy">
-          {opensSec !== null && <strong>{SESSION_COPY.next.first(cadence, etWhen(opensSec))}.</strong>}
-          {history?.lastClose ? ` ${SESSION_COPY.next.lastClose(usdLine(history.lastClose.priceRaw), formatEtClock(history.lastClose.sec))}.` : null}
+          {opensSec !== null && <strong>{SESSION_COPY.next.first(cadence, when(opensSec))}.</strong>}
+          {history?.lastClose ? ` ${SESSION_COPY.next.lastClose(usdLine(history.lastClose.priceRaw), when(history.lastClose.sec, { clock: true }))}.` : null}
         </p>
       </div>
       {onSelect && <ScheduleCallButton asset={asset} session={session} nowSec={nowSec} onSelect={onSelect} variant="strip" intervalSec={intervalSec} opensSec={opensSec} />}

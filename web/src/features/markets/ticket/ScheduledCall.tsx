@@ -9,9 +9,10 @@ import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { Hash, Money } from "@/components/data";
 import { PREOPEN } from "@/lib/copy";
-import { etWhen, laneAssetLabel } from "../lanes/lane-view";
+import { laneAssetLabel } from "../lanes/lane-view";
 import { SIDE_WORD } from "../side-styles";
 import { useCancelResting } from "./useCancelResting";
+import { useWhen } from "@/lib/when";
 
 export interface ScheduledCallCancel {
   busy: boolean;
@@ -45,6 +46,7 @@ function Cell({ label, children }: { label: string; children: React.ReactNode })
  * the escrow returns to venue credit and the row leaves Portfolio's Open tab on the next read.
  */
 export function ScheduledCallView({ rested, market, decimals, symbol, cancel, onAnother }: ScheduledCallViewProps) {
+  const when = useWhen();
   const cents = ownCentsOf(rested.side, rested.priceTicks);
   const untilLock = rested.expireSec >= market.lockAtSec;
   return (
@@ -58,7 +60,7 @@ export function ScheduledCallView({ rested, market, decimals, symbol, cancel, on
         <Cell label={PREOPEN.receipt.price}>{cents}¢</Cell>
       </div>
       <p className="tk-gate-line">
-        {PREOPEN.receipt.window}: {laneAssetLabel(market.asset, market.lane)} · {formatCadence(market.intervalSec)} · {SIDE_WORD[rested.side]} · {PREOPEN.receipt.opens(etWhen(market.tradingStartSec))}
+        {PREOPEN.receipt.window}: {laneAssetLabel(market.asset, market.lane)} · {formatCadence(market.intervalSec)} · {SIDE_WORD[rested.side]} · {PREOPEN.receipt.opens(when(market.tradingStartSec))}
       </p>
       <p className="tk-gate-line">
         {PREOPEN.receipt.fillsBy} {untilLock ? PREOPEN.receipt.lock : PREOPEN.receipt.bell}.

@@ -11,9 +11,9 @@ import { formatCadence, PREOPEN } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import type { ListItem } from "@/lib/use-pager";
 import { useWalletSession } from "@/lib/wallet-session";
-import { etWhen } from "../lanes/lane-view";
 import { SIDE_WORD } from "../side-styles";
 import { useCancelResting } from "../ticket/useCancelResting";
+import { useWhen } from "@/lib/when";
 
 export interface RestingRowCancel {
   busy: boolean;
@@ -49,6 +49,7 @@ function statusWord(view: RestingOrderView): string {
  * Cancel while it is on the Book. Past its expiry the row says the stake is coming back rather than pretending to rest.
  */
 export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
+  const when = useWhen();
   const live = onBook(view);
   const contractsText = formatBaseUnits(view.contractsRaw, view.decimals, { minDp: 0 });
   return (
@@ -74,7 +75,7 @@ export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
       <span className="type-caption text-ink-secondary">
         {PREOPEN.rows.held} <Money value={view.escrowBase} decimals={view.decimals} symbol={symbol} />
       </span>
-      <span className="type-caption text-ink-secondary">{live ? `${PREOPEN.rows.fillsBy} ${etWhen(view.expireSec)} ET` : PREOPEN.rows.expiredWhy}</span>
+      <span className="type-caption text-ink-secondary">{live ? `${PREOPEN.rows.fillsBy} ${when(view.expireSec)} ET` : PREOPEN.rows.expiredWhy}</span>
       {live && cancel && (
         <button type="button" className="type-caption text-accent underline" disabled={cancel.busy} onClick={cancel.onCancel} data-cursor="hover">
           {cancel.busy ? PREOPEN.rows.cancelling : PREOPEN.rows.cancel}

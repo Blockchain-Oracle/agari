@@ -10,8 +10,11 @@ import { AssetDisc } from "../hero/asset-mark";
 import { usdLine } from "../hero/units";
 import type { ChartPoint } from "../hero/useChartSeries";
 import { CardSpark } from "./CardSpark";
-import { etWeekday, etWhen, laneAssetLabel, laneCadenceLabel } from "./lane-view";
+import { etWeekday, laneAssetLabel, laneCadenceLabel } from "./lane-view";
 import { ListedCard } from "./ListedCard";
+import { useWhen, type WhenOptions } from "@/lib/when";
+
+type When = (sec: number, options?: WhenOptions) => string;
 
 /** What the card reads: the chart series and the top of the book, from the live hooks or a `/dev` fixture. */
 export interface MarketCardData {
@@ -38,13 +41,13 @@ const price = (value: number | null, hydrating: boolean): string =>
   value === null ? (hydrating ? LANE_CARD.priceLoading : HERO_HEAD.noPrice) : `${value}¢`;
 
 /** The strip when the Window no longer takes calls: Masayume's closing line, or the Gap's own locked and settled words. */
-function closedStrip(market: EventMarket, current: MarketPhase): string {
+function closedStrip(market: EventMarket, current: MarketPhase, when: When): string {
   if (market.lane !== "gap") return LANE_CARD.closing;
   // A Gap's Friday print may post until the lock (ADMIT_UNTIL_LOCK), so this wait can be long enough to name.
   if (current === "pendingOpeningPrint") return LANE_STATE.gap.pendingOpen;
   if (current === "voided") return LANE_STATE.gap.settled.void;
   if (current === "settledUnclaimed" || current === "finalized") return market.winningOutcome === 1 ? LANE_STATE.gap.settled.down : LANE_STATE.gap.settled.up;
-  return LANE_STATE.gap.locked(etWhen(market.expirySec, true));
+  return LANE_STATE.gap.locked(when(market.expirySec, { seconds: true }));
 }
 
 /**
@@ -52,11 +55,12 @@ function closedStrip(market: EventMarket, current: MarketPhase): string {
  * → the lock countdown → "Settles Mon 09:30 ET" → the settle countdown. A settled Gap says so.
  */
 function GapClock({ market, nowMs, current }: { market: EventMarket; nowMs: number; current: MarketPhase | null }) {
+  const when = useWhen();
   if (current === "settledUnclaimed" || current === "finalized" || current === "voided") return <span>{LANE_STATE.gap.settledClock}</span>;
   const nowSec = Math.floor(nowMs / 1000);
   const target = nowSec < market.lockAtSec ? market.lockAtSec : market.expirySec;
   if (nowMs === 0 || target - nowSec > GAP_COUNTDOWN_FROM_SEC) {
-    return <span>{target === market.lockAtSec ? LANE_STATE.gap.locks(etWhen(market.lockAtSec)) : LANE_STATE.gap.settles(etWhen(market.expirySec))}</span>;
+    return <span>{target === market.lockAtSec ? LANE_STATE.gap.locks(when(market.lockAtSec)) : LANE_STATE.gap.settles(when(market.expirySec))}</span>;
   }
   return <Countdown expirySec={target} intervalSec={GAP_COUNTDOWN_FROM_SEC} nowMs={nowMs} />;
 }
@@ -78,6 +82,7 @@ function GapClock({ market, nowMs, current }: { market: EventMarket; nowMs: numb
  * unread book shows as an even market; here an unread side shows nothing.
  */
 export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, points, latestRaw, upCents, downCents, hydrating }: MarketCardViewProps) {
+  const when = useWhen();
   const betAgainst = useBetAgainst();
   const current = nowMs > 0 ? phase(market, nowMs) : null;
   if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
@@ -157,7 +162,7 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
 
         <div className="mc-strip">
           {closing ? (
-            <span>{closedStrip(market, current)}</span>
+            <span>{closedStrip(market, current, when)}</span>
           ) : (
             <>
               <span>{upCents === null ? LANE_CARD.oddsLoading : LANE_CARD.oddsLive}</span>

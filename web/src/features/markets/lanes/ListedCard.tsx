@@ -3,7 +3,8 @@
 import type { EventMarket, MarketId } from "@agari/core/types";
 import { LANE_STATE, PREOPEN } from "@/lib/copy";
 import { AssetDisc } from "../hero/asset-mark";
-import { etWhen, laneAssetLabel, laneCadenceLabel } from "./lane-view";
+import { laneAssetLabel, laneCadenceLabel } from "./lane-view";
+import { useWhen } from "@/lib/when";
 
 interface ListedCardProps {
   market: EventMarket;
@@ -19,9 +20,10 @@ interface ListedCardProps {
  * card has.
  */
 export function ListedCard({ market, selected, onSelect }: ListedCardProps) {
+  const when = useWhen();
   const gap = market.lane === "gap";
   const asset = laneAssetLabel(market.asset, market.lane);
-  const opens = etWhen(market.tradingStartSec);
+  const opens = when(market.tradingStartSec);
   const open = () => onSelect(market.marketId);
   return (
     <article
@@ -55,7 +57,7 @@ export function ListedCard({ market, selected, onSelect }: ListedCardProps) {
       <div className="mc-pending">
         <span className="mc-pending-dot" aria-hidden />
         <p className="mc-pending-copy">
-          <strong>{gap ? LANE_STATE.gap.listed(opens) : PREOPEN.card.headline(opens)}.</strong> {gap ? LANE_STATE.gap.listedWhy(etWhen(market.lockAtSec), etWhen(market.expirySec, true)) : PREOPEN.card.why}
+          <strong>{gap ? LANE_STATE.gap.listed(opens) : PREOPEN.card.headline(opens)}.</strong> {gap ? LANE_STATE.gap.listedWhy(when(market.lockAtSec), when(market.expirySec, { seconds: true })) : PREOPEN.card.why}
         </p>
       </div>
       <button

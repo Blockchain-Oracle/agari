@@ -1,19 +1,19 @@
 "use client";
 
 import { formatCadence, formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import { formatEtClock, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
 import { HERO_HEAD, PREOPEN } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { cn } from "@/lib/utils";
 import { formatDayChange, type DayChange } from "../asset-history/day-change";
 import type { HistoryRange } from "../asset-history/range";
-import { etWhen } from "../lanes/lane-view";
 import type { MarketSession } from "../session";
 import { MarketSessionChipView } from "../session/MarketSessionChip";
 import { AssetDisc } from "./asset-mark";
 import { HistoryRangeTabs } from "./HistoryRangeTabs";
 import { usdLine } from "./units";
+import { useWhen } from "@/lib/when";
 
 export interface HeroAssetHeadProps {
   asset: TickerSymbol;
@@ -44,6 +44,7 @@ function priceWord(session: MarketSession, live: boolean): string {
  * "Settles in" slot. Aged readings are labelled, never ticked (D-086).
  */
 export function HeroAssetHead({ asset, session, nowSec, price, live, change, range, onRange, window = null }: HeroAssetHeadProps) {
+  const when = useWhen();
   const countdown = sessionCountdown(session.status, nowSec);
   const move = change ? formatDayChange(change) : null;
   // A selected listed Window is the thing that opens: its clock, not the session's (the 60m lane opens at 10:00).
@@ -62,10 +63,10 @@ export function HeroAssetHead({ asset, session, nowSec, price, live, change, ran
         <h2 className="mh-question">{price ? <span className="mh-question-line">{usdLine(price.raw)}</span> : HERO_HEAD.pair(asset)}</h2>
         {price && (
           <span className="pair-meta">
-            {priceWord(session, live)} <span className="meta-soft">· {SESSION_COPY.hero.asOf(formatEtClock(price.sec))}</span>
+            {priceWord(session, live)} <span className="meta-soft">· {SESSION_COPY.hero.asOf(when(price.sec, { clock: true }))}</span>
           </span>
         )}
-        {window && <span className="pair-meta mh-window-line">{PREOPEN.hero.listedWindow(formatCadence(window.intervalSec), etWhen(window.tradingStartSec))}</span>}
+        {window && <span className="pair-meta mh-window-line">{PREOPEN.hero.listedWindow(formatCadence(window.intervalSec), when(window.tradingStartSec))}</span>}
         <div className="mh-distance">
           {move && change ? (
             <>

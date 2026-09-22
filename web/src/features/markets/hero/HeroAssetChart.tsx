@@ -1,7 +1,7 @@
 "use client";
 
 import { sessionPhrase } from "@agari/core/copy";
-import { formatEtClock, type TickerSymbol } from "@agari/core/market";
+import { type TickerSymbol } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
 import type { EventMarket, MarketId } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
@@ -18,6 +18,7 @@ import { PriceChart } from "./PriceChart";
 import { ScheduleCallButton } from "./ScheduleCallButton";
 import { usdLine } from "./units";
 import "./asset-hero.css";
+import { useWhen } from "@/lib/when";
 
 /** The head's countdown and phrase move by the minute; one shared 30 s beat serves both. */
 const CLOCK_TICK_MS = 30_000;
@@ -46,11 +47,12 @@ export interface HeroAssetChartViewProps {
  * close and where the prints come from, and carries the schedule seam where the live hero keeps the Room (D-088).
  */
 export function HeroAssetChartView({ asset, tickers, onPickAsset, session, history, nowSec, range, onRange, onSelect, window = null }: HeroAssetChartViewProps) {
+  const when = useWhen();
   const h = history?.ok ? history.value : null;
   const latest = h?.latest ?? null;
   const live = h !== null && h.liveSec !== null;
   const change = h ? historyDayChange(h) : null;
-  const closeLine = h?.lastClose ? SESSION_COPY.next.lastClose(usdLine(h.lastClose.priceRaw), formatEtClock(h.lastClose.sec)) : null;
+  const closeLine = h?.lastClose ? SESSION_COPY.next.lastClose(usdLine(h.lastClose.priceRaw), when(h.lastClose.sec, { clock: true })) : null;
   return (
     <div className="hero-chart" data-asset={asset}>
       <HeroAssetHead

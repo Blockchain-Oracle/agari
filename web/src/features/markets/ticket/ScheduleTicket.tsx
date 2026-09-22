@@ -8,7 +8,6 @@ import { BlockedButton } from "@/components/states";
 import { Switch } from "@/components/ui/switch";
 import { RegionNote } from "@/features/region/RegionNote";
 import { PREOPEN, TICKET } from "@/lib/copy";
-import { etWhen } from "../lanes/lane-view";
 import { SIDE_WORD } from "../side-styles";
 import { AccountGate } from "./AccountGate";
 import { AmountBlock } from "./AmountBlock";
@@ -24,6 +23,7 @@ import { TicketMiniChart } from "./TicketMiniChart";
 import type { TicketSelection } from "./types";
 import { useScheduleTicket } from "./useScheduleTicket";
 import "./preopen.css";
+import { useWhen } from "@/lib/when";
 
 interface ScheduleTicketProps {
   selection: TicketSelection;
@@ -38,6 +38,7 @@ interface ScheduleTicketProps {
  * Once the call rests, the body is the receipt with its Cancel.
  */
 export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
+  const when = useWhen();
   const s = useScheduleTicket(selection);
   const { t, symbol, quote } = s;
   const { market, side, stakeBase, phase } = t;
@@ -67,7 +68,7 @@ export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
       ) : (
         <>
           <p className="tk-caption">
-            <span>{PREOPEN.ticket.listed(etWhen(market.tradingStartSec))}</span>
+            <span>{PREOPEN.ticket.listed(when(market.tradingStartSec))}</span>
           </p>
           <SideSegments side={side} onSelect={t.selectSide} />
           {/* A-1a: a Listed Window is where a bearish caller rests a price, so the mode is offered here too. */}
