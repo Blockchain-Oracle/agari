@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { clientIp } from "@/lib/client-ip.server";
 
 /** proof-analytics.md §2.6 quotas: ≤ 20 posts an hour across the deployment, ≤ 3 per IP, never below 0.02 SOL. */
 export const REPLAY_QUOTA = {
@@ -19,7 +20,7 @@ export function refusal(code: ReplayRefusalCode, status: number, error: string):
  * development, and nothing elsewhere (an untrusted forwarded header must not buy a fresh quota). Stored only hashed.
  */
 export function callerKey(request: Request): string | null {
-  const ip = process.env.VERCEL === "1" ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() : process.env.NODE_ENV !== "production" ? "local-development" : null;
+  const ip = clientIp(request);
   return ip ? createHash("sha256").update(`agari-proof-replay:${ip}`).digest("hex") : null;
 }
 

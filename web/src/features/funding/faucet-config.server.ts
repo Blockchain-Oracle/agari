@@ -3,6 +3,7 @@ import { FaucetError, SOL_FAUCET_POLICY, unavailableTusdcStatus, type FaucetStat
 import { isDbConfigured } from "@agari/db";
 import { createFaucetChain, faucetRoleSecret, type FaucetChain } from "@agari/markets/faucet";
 import { createFaucetService } from "./faucet-service.server";
+import { clientIp } from "@/lib/client-ip.server";
 
 let loaded: { keys: { key: string; chain: FaucetChain } | null } | null = null;
 
@@ -30,8 +31,8 @@ export function faucetForRequest(request: Request) {
   if (suppliedOrigin && suppliedOrigin !== origin) throw new FaucetError("origin-invalid", "Open the faucet from Agari.", 403);
   const config = faucetConfig();
   if (!config?.enabled) throw new FaucetError("unavailable", "In-app test funds are unavailable. Please use an external SOL faucet.", 503);
-  // Vercel overwrites x-forwarded-for at the trusted edge. Production outside Vercel requires an explicit trusted proxy.
-  const ip = process.env.VERCEL === "1" ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() : process.env.NODE_ENV !== "production" ? "local-development" : null;
+  // The proxy named by TRUSTED_PROXY vouches for the IP (client-ip.server.ts); with none named, production refuses.
+  const ip = clientIp(request);
   if (!ip) throw new FaucetError("connection-unverified", "The faucet could not verify this connection.", 503);
   const ipHash = createHmac("sha256", config.key).update(`agari-faucet-ip:${ip}`).digest("hex");
   return { service: createFaucetService(config.chain), ipHash, origin };
