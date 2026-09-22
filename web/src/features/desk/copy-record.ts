@@ -158,6 +158,16 @@ export const RECORD = {
     foot: "Test nothing: this is your real desk on Solana mainnet.",
     practiceFoot: "Practice: nothing moved.",
   },
+  og: {
+    alt: "A shared Agari desk: its mode, how many checks are on its record, and its last check.",
+    eyebrow: "A shared desk",
+    title: "Someone's desk",
+    checks: (n: number) => `${n} ${n === 1 ? "check" : "checks"} on the record`,
+    lastCheck: (ago: string) => `Last check ${ago}`,
+    noCheck: "No check yet",
+    live: "Solana mainnet",
+    practice: "Practice",
+  },
   hooks: {
     stocks: { inWallet: (tokens: string) => `In your wallet ${tokens}`, inDesk: (tokens: string) => `In your desk ${tokens}`, hold: "Let a desk hold this basket", holdWhy: "A desk holds the basket for you with real money on Solana mainnet, inside your limits." },
     agents: { body: "Strategies bet test money on Windows for you. Your desk holds real PreStocks tokens for you.", cta: "Open your desk →" },
