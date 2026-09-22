@@ -5,17 +5,18 @@
  * posts a fresh reference when the on-chain one is older than five minutes, sends the buy or sell with the record's
  * hash as `decision_hash`, and trusts its own record only once `chainHead(prev, seq, hash)` equals the sealed head.
  */
-import { buildDecisionBody, chainHead, deskCopy, GENESIS_SLOT, hashRecord, MAX_ROUTE_ACCOUNTS, netOfFee, PAPER_FEE_BPS, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@agari/core/desk";
+import { buildDecisionBody, chainHead, deskCopy, GENESIS_SLOT, hashRecord, MAX_ROUTE_ACCOUNTS, nameOf, netOfFee, paperFeeBpsFor, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@agari/core/desk";
 import { CLUSTER_ID } from "@agari/core/constants";
 import type { Hash32 } from "@agari/core/types";
 import { buy, DeskSendError, DeskSendUnknownError, postReference, sell, swapAccountsOf, swapInstructions } from "@agari/markets/desk";
 import { errorText } from "../../runtime/env";
 import { APPROVAL_TTL_SEC, DEADLINE_SEC, type Considered } from "./consider";
+import { REFERENCE_REFRESH_SEC } from "./market";
 import { loadPaper, paperFill, savePaper } from "./paper";
 import type { RunnerContext, WakeFrame, WakeRecord } from "./types";
+import { multiplierOf } from "./value";
 
-/** A reference older than this is re-posted before an action, so the program never sees one near its 900 s limit. */
-export const REFERENCE_REFRESH_SEC = 300;
+export { REFERENCE_REFRESH_SEC };
 const DEFERRAL_REVISIT_SEC = 24 * 3600;
 
 const iso = (sec: number) => new Date(sec * 1000).toISOString();
@@ -77,7 +78,8 @@ export async function commit(ctx: RunnerContext, frame: WakeFrame, k: Considered
   const c = k.need.candidate;
   const practiceFill = frame.standing.kind === "practice" && k.outcome === "WOULD_HAVE_ACTED" && k.preview && k.quote;
   const ledgerBefore = frame.standing.kind === "practice" ? await loadPaper(ctx.q, desk.id) : null;
-  const ledgerAfter = practiceFill && ledgerBefore && k.preview ? paperFill(ledgerBefore, { side: c.side, symbol: c.symbol, amountIn: k.preview.amountIn, quoteOut: k.preview.expectedOut }) : ledgerBefore;
+  const routeLabels = k.quote?.routeLabels ?? [];
+  const ledgerAfter = practiceFill && ledgerBefore && k.preview ? paperFill(ledgerBefore, { side: c.side, symbol: c.symbol, amountIn: k.preview.amountIn, quoteOut: k.preview.expectedOut }, routeLabels) : ledgerBefore;
   const expiresAtSec = frame.scheduledForSec + APPROVAL_TTL_SEC;
 
   const saved = await ctx.q.appendRecord({
@@ -98,7 +100,7 @@ export async function commit(ctx: RunnerContext, frame: WakeFrame, k: Considered
       if (k.ask && k.preview) await ctx.q.createApproval({ deskId: desk.id, recordSeq: seq, symbol: c.symbol, side: c.side, askedBecause: k.ask, amountIn: k.preview.amountIn.toString(), expectedOut: k.preview.expectedOut.toString(), summary: k.summary, askedAtSec: frame.nowSec, expiresAtSec }, tx);
       if (practiceFill && ledgerAfter && k.preview) {
         await savePaper(ctx.q, desk.id, ledgerAfter, frame.nowSec, tx);
-        await ctx.q.insertAction({ deskId: desk.id, recordSeq: seq, kind: c.side, state: "confirmed", signature: null, symbol: c.symbol, amountIn: k.preview.amountIn.toString(), expectedOut: k.preview.expectedOut.toString(), minOut: k.gate.minOut.toString(), amountOut: netOfFee(k.preview.expectedOut, PAPER_FEE_BPS).toString(), countedE6: k.gate.countedE6.toString(), deadlineSec: null, sentAtSec: frame.nowSec }, tx);
+        await ctx.q.insertAction({ deskId: desk.id, recordSeq: seq, kind: c.side, state: "confirmed", signature: null, symbol: c.symbol, amountIn: k.preview.amountIn.toString(), expectedOut: k.preview.expectedOut.toString(), minOut: k.gate.minOut.toString(), amountOut: netOfFee(k.preview.expectedOut, paperFeeBpsFor(routeLabels)).toString(), countedE6: k.gate.countedE6.toString(), deadlineSec: null, sentAtSec: frame.nowSec }, tx);
       }
     },
   });
@@ -123,17 +125,20 @@ async function sendLive(ctx: RunnerContext, frame: WakeFrame, k: Considered, bas
     return { ...base, moved: false, note: `FAILED: ${why}` };
   };
   try {
-    // The reference the program measures against, refreshed when the posted one is getting old.
-    const ref = k.reference;
-    if (ref && frame.nowSec - ref.fetchedAtSec > REFERENCE_REFRESH_SEC) {
+    // The reference the program measures against: the on-chain one, re-posted from the feed's latest read (with the
+    // mint's own multiplier) when it was never posted or is getting old. Without an attestor there is nothing to
+    // measure against, and the action is refused here rather than by the chain.
+    const chainRef = chain.refs[c.mint] ?? null;
+    if (!chainRef || chainRef.fetchedAtSec <= 0 || frame.nowSec - chainRef.fetchedAtSec > REFERENCE_REFRESH_SEC) {
       const latest = ctx.feed.history(c.symbol).at(-1);
-      if (ctx.attestor && latest) {
-        const posted = await postReference(client, { attestor: ctx.attestor, mint: c.mint as never, tokenPriceE8: latest.tokenPriceE8, markPriceE8: latest.markPriceE8, multiplierE12: ref.multiplierE12, fetchedAtSec: latest.fetchedAtSec });
-        await ctx.q.insertAction({ deskId: desk.id, recordSeq: base.seq, kind: "post_ref", state: "confirmed", signature: posted.signature, symbol: c.symbol, amountIn: null, expectedOut: null, minOut: null, countedE6: null, deadlineSec: null, sentAtSec: frame.nowSec });
-      }
+      const multiplierE12 = multiplierOf(ctx.mints, c.symbol);
+      if (!ctx.attestor || !latest || multiplierE12 === null || multiplierE12 <= 0n) return failed("refused", null, deskCopy.blocker.referenceUnavailable(nameOf(c.symbol)));
+      const posted = await postReference(client, { attestor: ctx.attestor, mint: c.mint as never, tokenPriceE8: latest.tokenPriceE8, markPriceE8: latest.markPriceE8, multiplierE12, fetchedAtSec: latest.fetchedAtSec });
+      await ctx.q.insertAction({ deskId: desk.id, recordSeq: base.seq, kind: "post_ref", state: "confirmed", signature: posted.signature, symbol: c.symbol, amountIn: null, expectedOut: null, minOut: null, countedE6: null, deadlineSec: null, sentAtSec: frame.nowSec });
+      frame.say(`  reference for ${c.symbol} posted in ${posted.signature}`);
     }
     const accounts = await swapAccountsOf(chain.address, c.mint as never);
-    const route = await swapInstructions({ quote: k.quote, desk: chain.address, destinationTokenAccount: c.side === "buy" ? accounts.deskToken : accounts.deskUsdc, ...(ctx.env.jupiterApiKey ? { apiKey: ctx.env.jupiterApiKey } : {}) });
+    const route = await swapInstructions({ quote: k.quote, desk: chain.address, destinationTokenAccount: c.side === "buy" ? accounts.deskToken : accounts.deskUsdc, payer: client.address, ...(ctx.env.jupiterApiKey ? { apiKey: ctx.env.jupiterApiKey } : {}) });
     if (route.accountCount > MAX_ROUTE_ACCOUNTS) return failed("refused", null, deskCopy.blocker.routeTooLarge(c.symbol, route.accountCount, MAX_ROUTE_ACCOUNTS));
     const action = { owner: desk.owner as never, mint: c.mint as never, amountIn: k.preview.amountIn, minOut: k.gate.minOut, deadlineSec: k.preview.deadlineSec ?? frame.nowSec + DEADLINE_SEC, decisionHash: base.hash, route };
     const sent = c.side === "buy" ? await buy(client, action) : await sell(client, action);

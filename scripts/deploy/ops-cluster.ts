@@ -36,21 +36,27 @@ export const rolePubkey = (role: string) => ensureRole(role).pubkey as string;
 
 type AddressesFile = { cluster: string; programs: Record<string, unknown>; venue: VenueRecord };
 
+/** The clusters an addresses record exists for: devnet (the venue), mainnet-beta (the desk, S21), localnet (a fork). */
+export type AddressesCluster = Cluster | "mainnet-beta";
+
 /**
  * The addresses record for a cluster. A localnet fork without its own record starts from a copy of devnet's, because
  * the fork reads devnet's config, Series and Books (D-027); it is written to the gitignored addresses.localnet.json.
+ * Mainnet's record is `addresses.mainnet.json` (S21: the desk only); it never starts from devnet's. `path` overrides
+ * where a localnet record is read and written (a mainnet fork's record lives outside the repo and is never committed).
  */
-export function addressesFor(cluster: Cluster): { path: string; file: AddressesFile; save: () => void } {
+export function addressesFor(cluster: AddressesCluster, path?: string): { path: string; file: AddressesFile; save: () => void } {
   const devnetPath = join("scripts/deploy", "addresses.devnet.json");
-  const path = join("scripts/deploy", `addresses.${cluster}.json`);
+  const filePath = path ?? join("scripts/deploy", cluster === "mainnet-beta" ? "addresses.mainnet.json" : `addresses.${cluster}.json`);
   let file: AddressesFile;
   try {
-    file = readJson<AddressesFile>(path);
+    file = readJson<AddressesFile>(filePath);
   } catch {
-    file = { ...structuredClone(readJson<AddressesFile>(devnetPath)), cluster };
+    if (cluster === "mainnet-beta") throw new Error(`${filePath} is missing: the mainnet record is checked in, never regenerated`);
+    file = cluster === "localnet" && path ? { cluster, programs: {}, venue: {} } : { ...structuredClone(readJson<AddressesFile>(devnetPath)), cluster };
   }
   file.venue ??= {};
-  return { path, file, save: () => writeFileSync(path, `${JSON.stringify(file, null, 2)}\n`) };
+  return { path: filePath, file, save: () => writeFileSync(filePath, `${JSON.stringify(file, null, 2)}\n`) };
 }
 
 /** Lamports as an exact decimal SOL string. */

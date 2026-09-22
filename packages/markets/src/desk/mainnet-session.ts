@@ -25,12 +25,13 @@ import {
   type Instruction,
   type TransactionSigner,
 } from "@solana/kit";
+import { getCreateAssociatedTokenIdempotentInstructionAsync } from "@solana-program/token";
 import { signWrite } from "../sessions/wallet-signer";
 import { chainFailure } from "../submitter/chain-failure";
 import { confirmStep, type Landing } from "../submitter/steps/confirm";
 import type { WriteRpc } from "../submitter/steps/message";
 import { sendStep } from "../submitter/steps/send";
-import { USDC_MAINNET } from "./deployment";
+import { tokenProgramOf, USDC_MAINNET } from "./deployment";
 import { allowTokenIx, depositIx, disallowTokenIx, openDeskIx, pauseIx, revokeOperatorIx, setLimitsIx, setModeIx, setOperatorIx, unpauseIx, withdrawIx, WHOLE_BALANCE } from "./instructions";
 import { DeskSendError } from "./operator-client";
 import { readDeskState, type DeskState } from "./reads";
@@ -111,7 +112,13 @@ export function createDeskMainnetSession(config: DeskMainnetSessionConfig): Desk
     },
     disallowToken: async (mint) => send([await disallowTokenIx(signer, mint)]),
     deposit: async (i) => send([await depositIx(signer, i.mint, i.ownerToken, i.amount, usdcMint)]),
-    withdraw: async (i) => send([await withdrawIx(signer, i.mint, i.amount ?? WHOLE_BALANCE, usdcMint)]),
+    // The program pays only the owner's associated account and never creates it (a name the owner never held has
+    // none yet), so the same transaction creates it idempotently first, owner paying.
+    withdraw: async (i) =>
+      send([
+        await getCreateAssociatedTokenIdempotentInstructionAsync({ payer: signer, owner, mint: i.mint, tokenProgram: tokenProgramOf(i.mint, usdcMint) }),
+        await withdrawIx(signer, i.mint, i.amount ?? WHOLE_BALANCE, usdcMint),
+      ]),
     setLimits: async (i) => send([await setLimitsIx(signer, i.perActionCapE6, i.dailyCapE6, i.maxPremiumBps, i.requirePythIndex)]),
     setMode: async (mode) => send([await setModeIx(signer, mode)]),
     setOperator: async (operator) => send([await setOperatorIx(signer, operator)]),

@@ -63,7 +63,7 @@ describe("the pre-gate names its rules", () => {
   });
 
   it("every rule can fire, each once, in the program's order", () => {
-    const all = pregate(input(market({ referenceAgeSec: 901, quoteOut: null, movingBps: 150, mintPaused: null, accountFrozen: null, routeAccounts: 21 }), { deskActive: false, deskStateText: "paused by you", onChain: { configured: false, enabled: false }, beyondBand: true, repeatedWithinMinutes: true }));
+    const all = pregate(input(market({ referenceAgeSec: 901, quoteOut: null, movingBps: 150, mintPaused: null, accountFrozen: null, routeAccounts: 41 }), { deskActive: false, deskStateText: "paused by you", onChain: { configured: false, enabled: false }, beyondBand: true, repeatedWithinMinutes: true }));
     expect(all.map((b) => b.rule)).toEqual(["DESK_NOT_ACTIVE", "TOKEN_NOT_ALLOWED", "REFERENCE_UNAVAILABLE", "PREMIUM_TOO_HIGH", "QUOTE_UNAVAILABLE", "BEYOND_PRICE_BAND", "PRICE_MOVING_FAST", "MINT_PAUSED", "ACCOUNT_FROZEN", "ROUTE_TOO_LARGE", "DID_THIS_MINUTES_AGO"]);
     expect(BLOCKER_RULES).toHaveLength(11);
   });

@@ -13,6 +13,20 @@ import { multiplierOf, pausedOf, priceView } from "./value";
 
 const KEYLESS_GAP_MS = 2_100;
 const KEYED_GAP_MS = 250;
+/**
+ * A posted reference older than this is re-posted before an action, so the program never sees one near its 900 s
+ * limit; and a live desk whose reference the runner CAN refresh is read against the feed's latest values, because
+ * that is what will be on chain when the action is sent (a never-posted `DeskRef` is all zeros: the gate would deny
+ * every trade of a fresh desk otherwise, and nothing would ever post the first reference).
+ */
+export const REFERENCE_REFRESH_SEC = 300;
+/**
+ * The slippage every quote is asked for and every send carries as its own floor (the program's 8 % band floor is
+ * the outer one, the gate's `MAX_COST_BPS` 250 bounds the whole cost). Measured on the C6 fork: OpenAI's route is
+ * a thin Manifest book (169–203 bps of price impact on $100–$400), and at 50 bps Jupiter itself refused the fill
+ * (6001, slippage) while 200 bps filled; Anthropic's Meteora route filled at 50.
+ */
+export const SLIPPAGE_BPS = 200;
 let lastQuoteMs = 0;
 let queue: Promise<unknown> = Promise.resolve();
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,7 +40,7 @@ export function pacedQuote(ctx: RunnerContext, side: "buy" | "sell", symbol: Pre
     lastQuoteMs = Date.now();
     const mint = DESK_MINTS[symbol];
     try {
-      return await quoteSwap({ inputMint: side === "buy" ? USDC_MAINNET : mint, outputMint: side === "buy" ? mint : USDC_MAINNET, amount: amountIn, ...(ctx.env.jupiterApiKey ? { apiKey: ctx.env.jupiterApiKey } : {}) });
+      return await quoteSwap({ inputMint: side === "buy" ? USDC_MAINNET : mint, outputMint: side === "buy" ? mint : USDC_MAINNET, amount: amountIn, slippageBps: SLIPPAGE_BPS, ...(ctx.env.jupiterApiKey ? { apiKey: ctx.env.jupiterApiKey } : {}) });
     } catch (error) {
       ctx.log(`quote ${side} ${symbol} failed: ${errorText(error)}`);
       return null;
@@ -51,8 +65,12 @@ export async function readMarket(ctx: RunnerContext, standing: DeskStanding, can
   const multiplierE12 = multiplierOf(ctx.mints, symbol);
   const mint = DESK_MINTS[symbol] as string;
   const chainRef = standing.kind === "live" ? standing.chain.refs[mint] ?? null : null;
-  // A live desk is measured against the posted reference; the runner refreshes it before acting when it is older than five minutes.
-  const reference = chainRef
+  // A live desk is measured against the posted reference while it is fresh; when the runner can refresh it (an
+  // operator and an attestor key, not a dry run) the feed's latest values stand in, because `commit` posts exactly
+  // those before the action is sent. Without the keys, the chain's own reference, stale or unposted, is the truth.
+  const canRefresh = standing.kind === "live" && ctx.operator !== null && ctx.attestor !== null;
+  const chainFresh = chainRef !== null && chainRef.fetchedAtSec > 0 && nowSec - chainRef.fetchedAtSec <= REFERENCE_REFRESH_SEC;
+  const reference = chainRef && (chainFresh || !canRefresh)
     ? { tokenPriceE8: chainRef.tokenPriceE8, markPriceE8: chainRef.markPriceE8, multiplierE12: chainRef.multiplierE12, fetchedAtSec: chainRef.fetchedAtSec }
     : view && multiplierE12 !== null
       ? { tokenPriceE8: view.spotE8, markPriceE8: view.markE8, multiplierE12, fetchedAtSec: view.fetchedAtSec }

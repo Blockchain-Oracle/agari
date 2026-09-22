@@ -68,8 +68,8 @@ export interface QuoteInput {
 }
 
 export class JupiterError extends Error {
-  constructor(message: string, readonly status: number | null = null) {
-    super(message);
+  constructor(message: string, readonly status: number | null = null, readonly body: string | null = null) {
+    super(body ? `${message}: ${body.slice(0, 240)}` : message);
     this.name = "JupiterError";
   }
 }
@@ -94,7 +94,7 @@ async function call(url: string, init: RequestInit, apiKey?: string, signal?: Ab
   } catch (error) {
     throw new JupiterError(`Jupiter ${error instanceof Error && error.name === "TimeoutError" ? "timed out" : "unreachable"}`);
   }
-  if (!response.ok) throw new JupiterError(`Jupiter HTTP ${response.status}`, response.status);
+  if (!response.ok) throw new JupiterError(`Jupiter HTTP ${response.status}`, response.status, await response.text().catch(() => null));
   return response.json();
 }
 
@@ -110,7 +110,10 @@ export async function quoteSwap(i: QuoteInput): Promise<JupiterQuote> {
     onlyDirectRoutes: String(i.onlyDirectRoutes ?? false),
   });
   if (i.dexes && i.dexes.length > 0) params.set("dexes", i.dexes.join(","));
-  const body = quoteSchema.parse(await call(`${baseUrl(i.apiKey)}/quote?${params}`, { method: "GET" }, i.apiKey, i.signal));
+  // The answer is validated, never trimmed: `/swap-instructions` needs every field of the quote back (the route
+  // plan's mints and amounts, the platform fee), and zod strips what the schema does not name. `raw` is the wire object.
+  const raw = await call(`${baseUrl(i.apiKey)}/quote?${params}`, { method: "GET" }, i.apiKey, i.signal);
+  const body = quoteSchema.parse(raw);
   return {
     inputMint: body.inputMint as Address,
     outputMint: body.outputMint as Address,
@@ -121,7 +124,7 @@ export async function quoteSwap(i: QuoteInput): Promise<JupiterQuote> {
     priceImpactBps: impactPctToBps(body.priceImpactPct),
     routeLabels: body.routePlan.map((r) => r.swapInfo.label ?? "?"),
     contextSlot: body.contextSlot ?? null,
-    raw: body,
+    raw,
   };
 }
 
@@ -132,6 +135,11 @@ export interface JupiterRoute {
   route: AccountMeta[];
   accountCount: number;
   lookupTables: Address[];
+  /**
+   * Jupiter's idempotent creation of the desk's own associated account, re-pointed to pay from `payer`: sent
+   * before the desk instruction, a no-op when the account exists (it does: the owner created it at allow time).
+   */
+  setupInstructions: Instruction[];
   /** Jupiter's own compute-budget instructions, for reference; the desk sets its own limit from a simulation. */
   computeBudgetInstructions: Instruction[];
 }
@@ -142,8 +150,27 @@ export interface SwapInstructionsInput {
   desk: Address;
   /** The desk's associated account of the output mint. */
   destinationTokenAccount: Address;
+  /**
+   * Who pays for a setup instruction Jupiter adds (the operator). Jupiter cannot see the desk's accounts when it
+   * skips its RPC checks, so it adds an idempotent create for the desk's ATA with the desk as payer; a PDA cannot
+   * sign that, so the payer is re-pointed here. Without a payer any setup instruction refuses the route.
+   */
+  payer?: Address;
   apiKey?: string;
   signal?: AbortSignal;
+}
+
+const ASSOCIATED_TOKEN_PROGRAM = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+/** `CreateIdempotent`: `[payer S W, ata W, owner, mint, system, token program]`, data `[1]`. */
+const CREATE_IDEMPOTENT = 1;
+
+/** The setup instruction re-pointed to `payer` when it is exactly an idempotent creation of one of the desk's own ATAs; null otherwise. */
+function repointSetup(w: z.infer<typeof wireInstruction>, desk: Address, payer: Address): Instruction | null {
+  const data = new Uint8Array(getBase64Encoder().encode(w.data));
+  const ownerOk = w.accounts[2]?.pubkey === (desk as string) && w.accounts[0]?.pubkey === (desk as string);
+  if (w.programId !== ASSOCIATED_TOKEN_PROGRAM || w.accounts.length !== 6 || data.length !== 1 || data[0] !== CREATE_IDEMPOTENT || !ownerOk) return null;
+  const ix = decodeInstruction(w);
+  return { ...ix, accounts: [{ address: payer, role: AccountRole.WRITABLE_SIGNER }, ...(ix.accounts ?? []).slice(1)] };
 }
 
 function decodeInstruction(w: z.infer<typeof wireInstruction>): Instruction {
@@ -166,7 +193,12 @@ export async function swapInstructions(i: SwapInstructionsInput): Promise<Jupite
     dynamicComputeUnitLimit: false,
   };
   const body = swapSchema.parse(await call(`${baseUrl(i.apiKey)}/swap-instructions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request) }, i.apiKey, i.signal));
-  if (body.setupInstructions.length > 0) throw new JupiterError(`the route needs ${body.setupInstructions.length} setup instruction(s) the desk cannot sign`);
+  const setupInstructions: Instruction[] = [];
+  for (const w of body.setupInstructions) {
+    const repointed = i.payer ? repointSetup(w, i.desk, i.payer) : null;
+    if (!repointed) throw new JupiterError(`the route needs a setup instruction the desk cannot sign (${w.programId}, ${w.accounts.length} accounts)`);
+    setupInstructions.push(repointed);
+  }
   if (body.cleanupInstruction) throw new JupiterError("the route wants a cleanup instruction the desk cannot sign");
   if (body.otherInstructions.length > 0) throw new JupiterError(`the route carries ${body.otherInstructions.length} extra instruction(s)`);
   if (body.swapInstruction.programId !== (JUPITER_V6 as string)) throw new JupiterError(`the swap is not Jupiter v6 (${body.swapInstruction.programId})`);
@@ -178,6 +210,7 @@ export async function swapInstructions(i: SwapInstructionsInput): Promise<Jupite
     route,
     accountCount: route.length,
     lookupTables: body.addressLookupTableAddresses.map((a) => a as Address),
+    setupInstructions,
     computeBudgetInstructions: body.computeBudgetInstructions.map(decodeInstruction),
   };
 }

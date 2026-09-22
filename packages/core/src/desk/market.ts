@@ -20,8 +20,13 @@ export const IN_LINE_BPS = 50;
 export const MOVING_FAST_BPS = 100;
 /** The program refuses a reference older than this (desk.md §4.5 step 7). */
 export const REFERENCE_MAX_AGE_SEC = 900;
-/** The most accounts a Jupiter route may carry inside the desk's transaction (plan §8 C3: `maxAccounts 20`). */
-export const MAX_ROUTE_ACCOUNTS = 20;
+/**
+ * The most accounts a Jupiter swap instruction may carry inside the desk's transaction. The quote is asked for
+ * `maxAccounts 20` (plan §8 C3), which bounds the ROUTE; the instruction Jupiter then builds adds its own wrapper
+ * accounts (the user, both token accounts, the programs, the shared accounts): 29–33 for a one-hop route on the
+ * C6 fork rehearsal. The transaction size and the simulation are the hard limits; this is the early refusal.
+ */
+export const MAX_ROUTE_ACCOUNTS = 40;
 
 export interface DeskMarketRead {
   atSec: number;
