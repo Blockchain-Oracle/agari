@@ -1,6 +1,6 @@
 import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, ET_WEEKDAY_SHORT, isBasketCoverable, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
 import type { EarningsEvent } from "@/lib/finnhub.server";
-import type { SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
+import type { SenseiDesk, SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { centsText } from "./units";
 
 /**
@@ -81,6 +81,19 @@ export function basketCoverLine(holdings: readonly SenseiHolding[]): string {
   if (coverable.length === 0) return "";
   const parts = coverable.map((b) => `${b.symbol} (${b.name}: they hold ${basketMembersHeld(b, held).length} of its ${b.members.length} members)`);
   return ` A DOWN Window on a basket covers the members they hold together: ${parts.join("; ")}.`;
+}
+
+const DESK_MODE = { practice: "in practice, spending nothing", ask_first: "live, asking before every action", on_its_own: "live, acting inside its limits" } as const;
+
+/**
+ * S21 (plan §5.2): the reader's desk as a fact and its one allowed use: Sensei explains from the record and points to
+ * the control that changes things; it never acts, and every change is a card the owner confirms on /desk.
+ */
+export function deskLine(desk: SenseiDesk): string {
+  const worth = desk.valueCents === null ? "not valued yet" : `worth ${centsText(desk.valueCents)}`;
+  const last = desk.lastDecision === null ? "no decision yet" : `last decision ${desk.lastDecisionAgoMin === null ? "" : `${desk.lastDecisionAgoMin} min ago: `}"${desk.lastDecision}"`;
+  const waiting = desk.waiting === null ? "Nothing is waiting for their answer." : `Waiting for their answer: "${desk.waiting}".`;
+  return `Their desk (real PreStocks tokens on Solana mainnet, ${DESK_MODE[desk.mode]}, ${desk.state}, ${desk.practiceChecks} practice checks): ${worth}; ${last}. ${waiting} Explain the desk only from that record; you cannot act on it, and any change is a card they confirm themselves on the desk page.`;
 }
 
 function reportDay(dateEt: string): string {

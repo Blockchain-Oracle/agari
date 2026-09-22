@@ -40,7 +40,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     title: "Your wallet signs",
     description:
-      "Set the wallet to Solana Devnet first — in Phantom: Settings → Developer Settings → Testnet Mode, then Solana Devnet; on mainnet it refuses every devnet transaction as a network mismatch. Connect any Solana wallet and choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself. If that wallet holds a stock token — TSLAx, or OpenAI PreStocks — Agari reads it (only reads it) and offers a Down bet as cover.",
+      "Set the wallet to Solana Devnet first — in Phantom: Settings → Developer Settings → Testnet Mode, then Solana Devnet; on mainnet it refuses every devnet transaction as a network mismatch. Connect any Solana wallet and choose Get test funds. Eligible wallets receive devnet SOL for fees before you confirm the test tUSDC mint. Nothing here holds your funds and nothing signs on your behalf — every order is a transaction you approve yourself. If that wallet holds a stock token — TSLAx, or OpenAI PreStocks — Agari reads it (only reads it) and offers a Down bet as cover. A desk can also hold a basket of PreStocks for you, with real money, inside your limits.",
   },
   {
     title: "Where your money sits",

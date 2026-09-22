@@ -1,0 +1,102 @@
+/**
+ * The controls, the money sheets and Go live (plan §5.5, §5.7 item 9). Each control shows a card first: what changes,
+ * Now → After, who signs, when it expires; nothing happens until it is confirmed. The network is named on every card
+ * that can move money. Banned-word checked with the rest (`copy.test.ts`).
+ */
+export const CONTROLS = {
+  title: "Controls",
+  intro: "Each one shows you a card first. Nothing happens until you confirm it.",
+  actions: {
+    addMoney: "Add money",
+    withdraw: "Withdraw",
+    sellAll: "Sell everything",
+    pause: "Pause",
+    resume: "Resume",
+    mode: "Mode",
+    checkNow: "Check now",
+    share: "Share",
+    close: "Close the desk",
+  },
+  card: {
+    who: { wallet: "Your wallet signs one Solana mainnet transaction", message: "Your wallet signs one message; nothing moves", request: "Your wallet signs one message; the desk carries it out at its next check" },
+    now: "Now",
+    after: "After",
+    expires: (when: string) => `This card expires ${when}.`,
+    confirm: "Confirm",
+    notNow: "Not now",
+    confirming: "Confirm in your wallet…",
+    sending: "Sent. Waiting for Solana mainnet…",
+    done: "Done.",
+    doneTx: "Done. See the transaction ↗",
+    failed: (why: string) => `Not done: ${why}`,
+    left: "Left alone. Nothing changed.",
+    expired: "This card expired. Open it again.",
+    unsupported: "This request is not carried by the desk index yet. Nothing changed.",
+  },
+  pause: { title: "Stop the desk acting", body: "Nothing is sold. It stops until you resume it, and waiting requests are cancelled. Your withdrawals still work while it is paused.", now: (state: string) => `Desk ${state}`, after: "Desk paused by you" },
+  resume: { title: "Let the desk carry on", body: "It carries on from its next check. If it was stopped by your loss limit, the limit counts from what the desk is worth now.", after: "Desk active" },
+  mode: { title: "How much the desk does on its own", body: "The mode is written into your account on Solana, so the program refuses what the mode forbids.", now: (mode: string) => `Mode: ${mode}`, after: (mode: string) => `Mode: ${mode}`, practiceLocked: "A practice desk has one mode. Go live to choose Ask me first or On its own." },
+  checkNow: { title: "Look at everything now", body: "The desk checks now and decides as it always does. It may still choose to wait. Once every ten minutes.", after: "A check within the minute", throttled: (until: string) => `It checked a moment ago. It can look again at ${until}.` },
+  share: { title: "A read-only link", body: "Anyone with the link sees the desk's holdings and record, never your notes. Turn it off at any time.", on: "Sharing is on", off: "Sharing is off", link: "Copy the link", copied: "Copied" },
+  sellAll: { title: "Turn every holding into cash", body: "Every PreStocks token the desk holds is sold to USDC inside the desk at its next check, PreStocks' 1% fee included. Nothing leaves your account.", after: "Every holding sold to USDC at the next check" },
+  close: { title: "Close this desk for good", body: "The desk sells every holding, sends everything to your own wallet and stops the checks. The record stays readable. Two signatures: the request, then the operator is revoked from your account.", after: "Desk closed; everything on its way to your wallet" },
+  editMandate: { title: "Change the mandate", body: "A new version, signed by you. Waiting approvals are cancelled and the change applies from the next check." },
+} as const;
+
+export const MONEY = {
+  sheetTitle: "Put money in",
+  eyebrow: "SOLANA MAINNET · REAL MONEY",
+  intro: "Money goes straight to the desk's own account, never through Agari. Only you can take it out.",
+  network: "Phantom will show a Solana mainnet transaction.",
+  usdc: { title: "USDC from this wallet", amount: "Amount in USDC", have: (amount: string) => `You hold ${amount} USDC on Solana mainnet.`, none: "This wallet holds no USDC on Solana mainnet." },
+  tokens: { title: "Move PreStocks tokens you already hold", none: "This wallet holds none of the basket's companies.", row: (tokens: string, name: string) => `${tokens} ${name}`, all: "all" },
+  receipt: { send: "You send", receive: "Your desk receives", fee: "PreStocks' 1% transfer fee", networkFee: "Network fee", networkFeeValue: "under 0.001 SOL", takes: "Takes", seconds: "seconds", leaves: (amount: string, symbol: string) => `${amount} ${symbol} leaves`, arrives: (amount: string, symbol: string) => `${amount} ${symbol} arrives` },
+  tooSmall: (min: string) => `Under ${min} is too small: the fixed fees of each trade take too large a share.`,
+  noSol: { line: "This wallet has no SOL on mainnet for fees. Opening a desk costs about 0.02 SOL; each action less than 0.001.", link: "Buy SOL in Phantom ↗" },
+  send: "Confirm in your wallet",
+  sending: "Confirm in your wallet…",
+  reading: "Reading your wallet on Solana mainnet…",
+  unreadable: "Your wallet could not be read on mainnet just now.",
+  withdraw: {
+    title: "Take money out",
+    body: "It goes to your own wallet, and nowhere else. That address is fixed by your account and cannot be changed here.",
+    to: "To",
+    some: "Some",
+    all: "Everything",
+    amount: "Amount in USDC",
+    asCash: "As cash: the desk sells first, then you withdraw",
+    asTokens: "As tokens: each holding goes to your wallet as it is",
+    usdcInDesk: (amount: string) => `${amount} USDC is in the desk now.`,
+    cashNote: "Selling first is a request to the desk; the cash is then yours to withdraw with one confirmation per holding.",
+    perMint: (n: number) => `${n} confirmation${n === 1 ? "" : "s"}, one per holding`,
+    button: "Withdraw",
+  },
+  deposited: (amount: string, symbol: string) => `${amount} ${symbol} is in your desk. It is put to work at the next check.`,
+  withdrawn: (symbol: string) => `${symbol} is back in your wallet.`,
+} as const;
+
+export const GO_LIVE = {
+  title: "Go live",
+  eyebrow: "SOLANA MAINNET · REAL MONEY",
+  body: "Four steps, each one confirmation in your wallet on Solana mainnet. Every step can be resumed if you close the page.",
+  steps: {
+    open: { title: "Open the desk on Solana", body: (perAction: string, daily: string, premium: string) => `Creates your account with the program's limits: ${perAction} per action, ${daily} a day, buys at most ${premium} above the mark.`, button: "Open on Solana mainnet" },
+    allow: { title: "Allow the basket's companies", body: (names: string) => `Tells the program which tokens the desk may hold: ${names}.`, button: "Allow the companies" },
+    attach: { title: "Link the desk to its record", body: "One signed message, no transaction: your practice record continues as the live desk's.", button: "Sign the link" },
+    deposit: { title: "Put money in", body: "USDC from this wallet, or PreStocks tokens you already hold.", button: "Open the money sheet" },
+  },
+  mode: "It goes live in",
+  resume: (step: string) => `Resuming at: ${step}`,
+  done: "Your desk is live on Solana mainnet.",
+  noOperator: "This deployment has no desk operator configured, so a desk cannot be opened here yet.",
+  unsupported: (why: string) => why,
+  fees: "Needs a little mainnet SOL: about 0.02 SOL to open, less than 0.001 per action. The operator pays its own fees.",
+} as const;
+
+export const DESK_ERRORS_UI = {
+  notConfigured: "The desk index is not configured on this deployment. Practice desks and the record need it.",
+  noWallet: "Connect a wallet first.",
+  signCancelled: "You cancelled in your wallet. Nothing changed.",
+  refused: (status: number, why: string) => `${why} (${status})`,
+  unknown: "Something did not go through. Nothing was sent twice.",
+} as const;

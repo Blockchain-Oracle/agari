@@ -1,6 +1,6 @@
 import { BASKET_SYMBOLS, BASKETS, formatCadence, isBasketSymbol, LAUNCH_TICKERS, TICKERS, WINDOW_CADENCES_SEC } from "@agari/core/market";
 import type { SenseiRequest } from "./protocol";
-import { earningsLine, type EarningsTurn, holdingsLine, isSessionOpen, positionLines, recordLine, sessionLine } from "./turn-lines";
+import { deskLine, earningsLine, type EarningsTurn, holdingsLine, isSessionOpen, positionLines, recordLine, sessionLine } from "./turn-lines";
 
 const WHOLE_DOLLARS_FROM = 1_000;
 
@@ -48,6 +48,8 @@ export const SENSEI_SYSTEM = [
   `Baskets also run 24/7: a basket is a small group of pre-IPO companies bet on together, and its Window settles on an equal-weight index that started at 1,000 points, quoted in points, never dollars. The baskets: ${basketList}. Someone holding two or more of a basket's members can cover them together with one DOWN Window on the basket.`,
   // S20 (D-125): the valuation lanes exist in the registry and list only while the venue's key may read Pyth's index.
   "OPENAI and ANTHROPIC each also have a valuation lane (OPENAIV, ANTHROPICV) that settles on Pyth's valuation index of the company rather than the token price; it lists only while the venue may read that index, so unless a live Window on it is in your data, do not offer it.",
+  // S21 (D-126): the desk is the one place real money moves; Sensei explains it from its record and never acts on it.
+  "A desk is the one place real money moves: it holds a basket of PreStocks tokens for its owner on Solana mainnet, inside limits the program enforces, checks every hour and writes every decision in a record, including doing nothing. When asked about their desk, explain from the record you are given, say plainly when you were not given it, and point to the desk page's controls; you never act on a desk and never forecast a price for it.",
   "Pricing you must understand: each side is its own contract with its own live order book, so UP and DOWN do NOT add up to 100 cents. Never derive one side's price from the other, and never present a number you computed that way as the market's price. If only one side is quoted, say so.",
   "Your voice: calm, sharp, human. You are the steady friend who actually reads the tape, not a hype account and not a disclaimer bot. Short sentences. Say the real thing, then stop.",
   "Every read gives three things: a side (UP, DOWN, or sit it out), one honest reason, and the risk that would prove you wrong. Keep it to 2 to 4 sentences. Call a coin flip a coin flip. Never promise an outcome.",
@@ -82,7 +84,7 @@ export interface SenseiTurn {
 
 /** The per-turn block: live figures and the tilt cue, kept out of the stable prefix. */
 export function senseiTurnContext(request: SenseiRequest, turn: SenseiTurn = {}): string {
-  const { snapshot, restless, session, positions, record, holdings } = request;
+  const { snapshot, restless, session, positions, record, holdings, desk } = request;
   const lines: string[] = [];
 
   if (restless) {
@@ -93,6 +95,7 @@ export function senseiTurnContext(request: SenseiRequest, turn: SenseiTurn = {})
   if (record) lines.push(recordLine(record));
   if (positions) lines.push(...positionLines(positions));
   if (holdings) lines.push(holdingsLine(holdings));
+  if (desk) lines.push(deskLine(desk));
   if (turn.earnings) lines.push(earningsLine(turn.earnings));
 
   if (snapshot === null || snapshot.markets.length === 0) {

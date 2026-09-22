@@ -24,6 +24,7 @@
     "@solana/kit": "^8.3.0",
     "@solana/kit-plugin-wallet": "0.20.0",
     "@solana/react": "^8.3.0",
+    "@solana/wallet-account-signer": "8.3.0",
     "@tanstack/react-query": "catalog:",
     "ai": "^7.0.87",
     "class-variance-authority": "^0.7.1",

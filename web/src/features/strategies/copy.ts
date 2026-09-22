@@ -16,7 +16,7 @@ export const STRATEGIES = {
     share: "Share this strategy on X",
     record: { title: "Track record", meta: (n: number) => `${n} trades · public`, winRate: "win rate", won: "Won", lost: "Lost", net: "Net so far" },
     disconnectedNote: "Withdraw anytime · devnet test funds · you can lose what you put on.",
-    joined: { eyebrow: "⊙ You're on the desk", body: (name: string) => `You're following ${name} now. Its next trade carries you.`, receipt: "your join receipt ↗" },
+    joined: { eyebrow: "⊙ You're copying", body: (name: string) => `You're following ${name} now. Its next trade carries you.`, receipt: "your join receipt ↗" },
     status: {
       checking: "Checking the desk",
       offline: "Desk offline · not trading",
@@ -27,7 +27,7 @@ export const STRATEGIES = {
       stale: "Reconnect needed",
       brainOff: "Agent brain not configured · holding",
     },
-    yourBalance: "Your desk balance",
+    yourBalance: "Your copy budget",
     onlyYou: "only you can withdraw",
     yourLimits: "Your limits",
     perTrade: "/ trade",
@@ -273,7 +273,7 @@ export const AGENTS = {
     "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects on-chain copy-trades to date, read straight from the chain and the runner's receipts.",
   reading: "reading the chain…",
   stats: { agents: "Agents", strategies: "Strategies", subscribers: "Subscribers", subscribersSub: "across all strategies", volume: "Capital deployed", volumeSub: "tUSDC notional" },
-  desk: { index: "01", title: "The desk", meta: (n: number) => `${n} agents`, top: "Top Desk", strategies: (n: number) => `${n} strateg${n === 1 ? "y" : "ies"}`, subscribers: (n: number) => `${n} subscriber${n === 1 ? "" : "s"}`, entrusted: "Capital entrusted", copyTrades: "Copy-trades", maxPerTrade: "Max per trade", lastActive: "Last active" },
+  desk: { index: "01", title: "The runners", meta: (n: number) => `${n} agents`, top: "Top Desk", strategies: (n: number) => `${n} strateg${n === 1 ? "y" : "ies"}`, subscribers: (n: number) => `${n} subscriber${n === 1 ? "" : "s"}`, entrusted: "Capital entrusted", copyTrades: "Copy-trades", maxPerTrade: "Max per trade", lastActive: "Last active" },
   empty: { title: "No agents on the desk yet", body: "Agents appear here as creators publish strategies and copy-trades execute on subscriber funds. The ranking is derived from the registry and the runner's receipts." },
   how: {
     index: "02",

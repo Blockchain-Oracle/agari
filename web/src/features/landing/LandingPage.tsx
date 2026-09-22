@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AgariMark, SectionHead } from "@/components/shell";
 import { LandingCover } from "./LandingCover";
+import { LandingDesk } from "./LandingDesk";
 import { BRAND } from "@/lib/copy";
 import { MARKETS_PATH } from "@/lib/routes";
 import { LANDING } from "./copy";
@@ -17,10 +18,10 @@ import "./landing.css";
  * `/` (L-11, D-093): a server-rendered shell in Masayume's tokens with three client islands — the dial, the lanes and
  * the settled Windows (plus the install page's own stateful button). Every figure comes from a read the markets page
  * already makes; the shell adds no data path. Order: hero, three steps, three lanes, cover what you hold (plan Step 6),
- * proof, install, honesty footer.
+ * let a desk hold it (S21), proof, install, honesty footer.
  */
 export function LandingPage() {
-  const { hero, steps, lanes, cover, proof } = LANDING;
+  const { hero, steps, lanes, cover, desk, proof } = LANDING;
   return (
     <div className="lp">
       <section className="page-hero lp-hero">
@@ -76,6 +77,13 @@ export function LandingPage() {
         <div className="container">
           <SectionHead number={cover.section.index} title={cover.section.title} desc={cover.section.desc} />
           <LandingCover />
+        </div>
+      </section>
+
+      <section className="lp-section" aria-label={desk.section.title}>
+        <div className="container">
+          <SectionHead number={desk.section.index} title={desk.section.title} desc={desk.section.desc} />
+          <LandingDesk />
         </div>
       </section>
 

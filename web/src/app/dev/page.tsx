@@ -27,6 +27,7 @@ const FIXTURES = [
   { href: "/dev/hedge", label: "Hedge card", note: "the holdings-aware hedge for a Gap, a session Window and the 24/7 token lane, then live for your wallet" },
   { href: "/dev/basket", label: "Baskets", note: "the composed mark at three sizes, a basket Window card trading and paused, the hero question in points, the hub holding none and two members, the /baskets card" },
   { href: "/dev/pyth-index", label: "Pyth valuation index", note: "the pre-IPO hub's figure bar without the index (today) and with it (an entitled key)" },
+  { href: "/dev/desk", label: "The desk", note: "the studio at each step, the desk page in practice and live, paused, stopped, has not checked in, a frozen name, approvals waiting and expired, the record with a folded quiet run, a decision of each outcome, Check it passing and failing, the money sheet, the shared read-only view" },
 ] as const;
 
 export default function DevIndexPage() {

@@ -1,0 +1,10 @@
+export { DESK, DESK_ADVICE } from "./copy";
+export { CONTROLS, GO_LIVE, MONEY } from "./copy-controls";
+export { RECORD } from "./copy-record";
+export { DeskPage, type DeskPageProps } from "./DeskPage";
+export { DeskScreen } from "./DeskScreen";
+export { DeskStudio, type DeskStudioProps } from "./DeskStudio";
+export { deskView, type DeskView, type HoldingRow } from "./view";
+export { useDeskView, useInvalidateDesk } from "./useDesk";
+export { useDeskWrites, type DeskActions, type StudioActions } from "./useDeskWrites";
+export type { DeskViewWire, RecordSummaryWire } from "./protocol";

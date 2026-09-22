@@ -23,6 +23,7 @@ export {
   tokenProgramOf,
   USDC_MAINNET,
 } from "./deployment";
+export { createDeskRpc, readOwnerDeskBalances, readSealsOf, type OwnerDeskBalances, type OwnerNameBalance } from "./browser-reads";
 export { decodeDeskEventPayload, decodeDeskEvents, readDeskEventsOf, readDeskHistory, sealedActionsOf, type DeskEvent, type DeskEventName, type DeskHistoryEntry, type LocatedDeskEvent, type SealedAction } from "./history";
 export {
   allowTokenIx,

@@ -71,6 +71,20 @@ export const senseiHoldingSchema = z.object({
   valueCents: z.number().int().min(0).max(1e12).nullable(),
 });
 
+/**
+ * The reader's desk (S21, plan §5.2): its mode, worth, last decision and anything waiting, so Sensei can answer
+ * "why did my desk wait?" from the record. It still cannot act; every change is a card the owner confirms on /desk.
+ */
+export const senseiDeskSchema = z.object({
+  mode: z.enum(["practice", "ask_first", "on_its_own"]),
+  state: z.string().max(40),
+  valueCents: z.number().int().min(0).max(1e13).nullable(),
+  lastDecision: z.string().max(300).nullable(),
+  lastDecisionAgoMin: z.number().int().min(0).max(1e6).nullable(),
+  waiting: z.string().max(300).nullable(),
+  practiceChecks: z.number().int().min(0).max(1e6),
+});
+
 export const senseiRequestSchema = z.object({
   messages: z
     .array(
@@ -91,6 +105,8 @@ export const senseiRequestSchema = z.object({
   record: senseiRecordSchema.optional(),
   /** The wallet's stock tokens, read only while the drawer is open and a wallet is connected; absent means unknown. */
   holdings: z.array(senseiHoldingSchema).max(4).optional(),
+  /** The wallet's desk, read only while the drawer is open; absent means unknown or none. */
+  desk: senseiDeskSchema.optional(),
 });
 
 export type SenseiMarket = z.infer<typeof senseiMarketSchema>;
@@ -99,6 +115,7 @@ export type SenseiSession = z.infer<typeof senseiSessionSchema>;
 export type SenseiPosition = z.infer<typeof senseiPositionSchema>;
 export type SenseiRecord = z.infer<typeof senseiRecordSchema>;
 export type SenseiHolding = z.infer<typeof senseiHoldingSchema>;
+export type SenseiDesk = z.infer<typeof senseiDeskSchema>;
 export type SenseiRequest = z.infer<typeof senseiRequestSchema>;
 
 export interface SenseiMessage {

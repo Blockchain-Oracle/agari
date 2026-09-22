@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, BookOpen, Bot, Boxes, ChartCandlestick, ChartLine, ChartNoAxesCombined,
+  Activity, BarChart3, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartLine, ChartNoAxesCombined,
   CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
   Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, ScanSearch,
   TrendingDown, Trophy, WalletCards, X as XLogo, type LucideIcon,
@@ -129,6 +129,13 @@ export const NAV_ITEMS = {
     beta: true,
   },
   agents: { id: "agents", name: "Agents", href: "/agents", description: "Manage automated market agents.", icon: Bot },
+  desk: {
+    id: "desk",
+    name: "Desk",
+    href: "/desk",
+    description: "Hold a basket of pre-IPO names under your rules",
+    icon: Briefcase,
+  },
   xTrade: {
     id: "x-trade",
     name: "X-trade",
@@ -260,7 +267,7 @@ const BUILD_SECTIONS: readonly NavSection[] = [
     id: "automate",
     name: "Automate",
     description: "Playbooks and agents",
-    items: [NAV_ITEMS.strategies, NAV_ITEMS.agents, NAV_ITEMS.xTrade],
+    items: [NAV_ITEMS.strategies, NAV_ITEMS.agents, NAV_ITEMS.desk, NAV_ITEMS.xTrade],
   },
 ];
 
@@ -326,7 +333,7 @@ export const MOBILE_OVERFLOW: readonly NavItem[] = MOBILE_DRAWER_SECTIONS.flatMa
 
 /** Every real, user-facing page that must retain an explicit navigation home. */
 export const NAVIGABLE_ROUTE_PATHS = [
-  "/activity", "/agents", "/baskets", "/claim", "/demo",
+  "/activity", "/agents", "/baskets", "/claim", "/demo", "/desk",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/reels", "/short", "/stats",

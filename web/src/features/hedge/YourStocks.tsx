@@ -1,12 +1,15 @@
 "use client";
 
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
 import type { LaneSet } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
 import { basketHolding, heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
+import { RECORD } from "@/features/desk/copy-record";
+import { tokens as deskTokens } from "@/features/desk/format";
+import { useDeskView } from "@/features/desk/useDesk";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { useLanesState } from "@/features/markets/lanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
@@ -48,6 +51,10 @@ const tokensText = (list: HoldingView[]) => list.map((h) => `${formatBaseUnits(h
  * it with Down, add to it with Up — on the Window the cover card would pick, or an honest "no open market" line.
  * Presentational, so `/dev/hedge` renders it from canned holdings; `YourStocks` below reads the hooks.
  */
+/** S21 (plan §5.2): what the wallet's desk holds of each pre-IPO name, raw 9 dp; absent = no desk or not read. */
+export type DeskHeld = Partial<Record<PreIpoSymbol, bigint>>;
+const isPreIpo = (symbol: string): symbol is PreIpoSymbol => (PRE_IPO_SYMBOLS as readonly string[]).includes(symbol);
+
 export interface YourStocksListProps {
   holdings: readonly HoldingView[];
   laneSet: LaneSet | null;
@@ -55,9 +62,19 @@ export interface YourStocksListProps {
   index: string;
   /** Each pre-IPO name's measured move (plan §2); absent = not read, so nothing is called calm. */
   movement?: Record<string, PreIpoMove | null | undefined>;
+  desk?: DeskHeld;
 }
 
-export function YourStocksList({ holdings, laneSet, nowMs, index, movement }: YourStocksListProps) {
+/** "In your wallet 4.2 · In your desk 0.34": the two purses as separate lines, never one figure (plan §5.3). */
+function purseLine(group: Group, desk: DeskHeld | undefined): string | null {
+  if (!desk || !isPreIpo(group.underlying)) return null;
+  const inDesk = desk[group.underlying];
+  if (inDesk === undefined) return null;
+  const S = RECORD.hooks.stocks;
+  return `${S.inWallet(tokensText(group.holdings))} · ${S.inDesk(deskTokens(inDesk))}`;
+}
+
+export function YourStocksList({ holdings, laneSet, nowMs, index, movement, desk }: YourStocksListProps) {
   const groups = groupHoldings(holdings);
   return (
     <section className="flex flex-col gap-4" aria-label={HEDGE.stocks.title}>
@@ -78,6 +95,7 @@ export function YourStocksList({ holdings, laneSet, nowMs, index, movement }: Yo
                 <div className="ys-text">
                   <span className="ys-name">{TICKERS[g.underlying].name}</span>
                   <span className="ys-line">{value === null ? tokensText(g.holdings) : `${tokensText(g.holdings)} ≈ ${value}`}</span>
+                  {purseLine(g, desk) && <span className="ys-line">{purseLine(g, desk)}</span>}
                   {move && !calm && <span className="ys-move">{HEDGE.stocks.moved(bpsPct(move.rangeBps), windowText(move.windowSec))}</span>}
                   <DropBellToggle asset={g.underlying} />
                 </div>
@@ -103,6 +121,7 @@ export function YourStocksList({ holdings, laneSet, nowMs, index, movement }: Yo
       {groups.length > 0 && <p className="hg-banner-foot ys-foot">{HEDGE.bell.foot}</p>}
       <p className="hg-banner-foot ys-foot">{HEDGE.stocks.foot}</p>
       <YourBaskets holdings={holdings} laneSet={laneSet} nowMs={nowMs} movement={movement} />
+      <DeskHold holdings={holdings} />
     </section>
   );
 }
@@ -161,6 +180,31 @@ function YourBaskets({ holdings, laneSet, nowMs, movement }: Omit<YourStocksList
   );
 }
 
+/** S21 (plan §5.2): "Let a desk hold this basket" for every basket the wallet holds one or more members of. */
+function DeskHold({ holdings }: { holdings: readonly HoldingView[] }) {
+  const held = heldSymbols(holdings);
+  const baskets = BASKET_SYMBOLS.map((s) => BASKETS[s]).filter((b) => basketMembersHeld(b, held).length >= 1);
+  if (baskets.length === 0) return null;
+  const S = RECORD.hooks.stocks;
+  return (
+    <div className="ys-actions" aria-label={S.hold}>
+      {baskets.map((basket) => (
+        <Link key={basket.symbol} href={`/desk/new?basket=${basket.symbol}`} className="ys-action" title={S.holdWhy} data-cursor="hover">
+          {S.hold} · {basket.name}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function deskHeldOf(view: { snapshot: { holdings: Array<{ symbol: PreIpoSymbol; raw: string }> } | null; paper: { positions: Record<string, string> } | null; chain: { tokens: Array<{ symbol: PreIpoSymbol | null; raw: string }> } | null }): DeskHeld {
+  const out: DeskHeld = {};
+  if (view.snapshot) for (const h of view.snapshot.holdings) out[h.symbol] = BigInt(h.raw);
+  else if (view.chain) for (const t of view.chain.tokens) if (t.symbol) out[t.symbol] = BigInt(t.raw);
+  else if (view.paper) for (const [s, raw] of Object.entries(view.paper.positions)) out[s as PreIpoSymbol] = BigInt(raw);
+  return out;
+}
+
 /** The live section for the connected wallet; renders nothing until the first read answers (the page's own gate handles no wallet). */
 export function YourStocks({ index }: { index: string }) {
   const { address } = useWalletSession();
@@ -169,7 +213,10 @@ export function YourStocks({ index }: { index: string }) {
   const lanes = useLanesState(venue.venueId);
   const nowMs = useChainNowMs();
   const facts = usePreIpoFactsAll(holdings?.ok === true && holdsPreIpo(holdings.value));
+  // The desk's own page read (one TanStack key): what it holds of each name, read-only, as its own line.
+  const deskRead = useDeskView(address, address, address !== null);
   if (!holdings?.ok) return null;
   const movement = facts?.ok ? Object.fromEntries(Object.entries(facts.value).map(([symbol, row]) => [symbol, row.move ?? null])) : undefined;
-  return <YourStocksList holdings={holdings.value} laneSet={lanes.laneSet} nowMs={nowMs} index={index} movement={movement} />;
+  const desk: DeskHeld | undefined = deskRead?.ok && deskRead.value.desk ? deskHeldOf(deskRead.value) : undefined;
+  return <YourStocksList holdings={holdings.value} laneSet={lanes.laneSet} nowMs={nowMs} index={index} movement={movement} desk={desk} />;
 }
