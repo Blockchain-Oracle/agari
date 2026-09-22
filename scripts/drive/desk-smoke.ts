@@ -4,10 +4,12 @@
 // tick and the first decision lands. Then the desk view is polled until a record appears.
 //
 //   pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/desk-smoke.ts [--site https://useagari.xyz] [--as drive-owner] [--preset ailabs] [--cash 1000] [--wait 600]
+//   pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/desk-smoke.ts --share on|off [--site …] [--as …]   share the desk read-only (the studio's own signed request)
 //
 // Nothing here touches a chain: a practice desk is a paper ledger. Secrets are never printed.
 import { createPrivateKey, sign as edSign } from "node:crypto";
 import { deskMandateText, mandateFingerprint, mandateToWire, presetMandate } from "@agari/core/desk";
+import { networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
 import { encodeBase58 } from "@agari/core/types";
 import { roleSecret } from "../deploy/ops-cluster";
 
@@ -28,13 +30,6 @@ const presetId = arg("--preset") ?? "ailabs";
 const cashE6 = BigInt(Math.round(Number(arg("--cash") ?? "1000") * 1_000_000));
 const waitSec = Number(arg("--wait") ?? "600");
 
-const secret = roleSecret(role);
-const owner = encodeBase58(secret.slice(32, 64));
-const mandate = presetMandate(presetId);
-if (!mandate) throw new Error(`no preset ${presetId}`);
-const fingerprint = mandateFingerprint(mandate);
-const signedAtIso = new Date().toISOString();
-
 /** The site sits behind a CDN that refuses a bare client, so every request carries a browser-like agent; a non-JSON answer is reported, never parsed. */
 const HEADERS = { accept: "application/json", "user-agent": "Mozilla/5.0 (Macintosh) agari-desk-smoke/1" };
 async function readJson(res: Response): Promise<Record<string, unknown>> {
@@ -45,12 +40,44 @@ async function readJson(res: Response): Promise<Record<string, unknown>> {
     return { error: `non-JSON ${res.status}: ${text.slice(0, 160).replace(/\s+/g, " ")}`, status: res.status };
   }
 }
+const secret = roleSecret(role);
+const owner = encodeBase58(secret.slice(32, 64));
+const mandate = presetMandate(presetId);
+if (!mandate) throw new Error(`no preset ${presetId}`);
+const fingerprint = mandateFingerprint(mandate);
+const signedAtIso = new Date().toISOString();
+
 const view = async (): Promise<Record<string, unknown> | null> => {
   const res = await fetch(`${site}/api/desk/${owner}?viewer=${owner}`, { headers: HEADERS });
   if (res.status === 404) return null;
   const body = await readJson(res);
   return res.ok ? body : { error: body, status: res.status };
 };
+
+/** The share text as `web/src/features/desk/protocol.ts` `deskShareText` builds it (kept in step by hand: a drift is a 401 here, never a silent mismatch). */
+function shareText(i: { owner: string; on: boolean; signedAtIso: string }): string {
+  return [
+    `${SIGNED_MESSAGE_BRAND} desk sharing`,
+    "",
+    i.on ? "Anyone with the link may read my desk's holdings and record. Never my notes. This moves no money." : "Only I may read my desk from now on. This moves no money.",
+    "",
+    `Owner: ${i.owner}`,
+    `Signed at: ${i.signedAtIso}`,
+    networkLine("mainnet-beta"),
+  ].join("\n");
+}
+
+const share = arg("--share");
+if (share === "on" || share === "off") {
+  const on = share === "on";
+  const res = await fetch(`${site}/api/desk/${owner}/share`, {
+    method: "POST",
+    headers: { ...HEADERS, "content-type": "application/json" },
+    body: JSON.stringify({ owner, signature: signText(secret, shareText({ owner, on, signedAtIso })), signedAtIso, on }),
+  });
+  console.log(`desk-smoke: share ${share} for ${owner} → ${res.status}`, JSON.stringify(await readJson(res)).slice(0, 300));
+  process.exit(res.ok ? 0 : 1);
+}
 
 console.log(`desk-smoke: site ${site}, owner ${owner} (${role}), preset ${presetId}, cash $${Number(cashE6) / 1e6}, fingerprint ${fingerprint}`);
 const existing = await view();
