@@ -43,7 +43,7 @@ export async function POST(req: Request, context: { params: Promise<{ owner: str
   let deskId: string;
   let created = false;
   if (!loaded.desk) {
-    const desk = await loaded.store.createPracticeDesk({ owner, cluster: DESK_CLUSTER, mandateBody: mandate, fingerprint, signer: owner, signature, ...(practiceCashE6 ? { cashE6: BigInt(practiceCashE6) } : {}) });
+    const desk = await loaded.store.createPracticeDesk({ owner, cluster: DESK_CLUSTER, mandateBody: mandate, fingerprint, signer: owner, signature, ...(practiceCashE6 ? { cashE6: practiceCashE6 } : {}) });
     deskId = desk.id;
     created = true;
   } else {

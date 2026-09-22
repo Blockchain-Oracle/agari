@@ -35,10 +35,20 @@ if (!mandate) throw new Error(`no preset ${presetId}`);
 const fingerprint = mandateFingerprint(mandate);
 const signedAtIso = new Date().toISOString();
 
+/** The site sits behind a CDN that refuses a bare client, so every request carries a browser-like agent; a non-JSON answer is reported, never parsed. */
+const HEADERS = { accept: "application/json", "user-agent": "Mozilla/5.0 (Macintosh) agari-desk-smoke/1" };
+async function readJson(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return { error: `non-JSON ${res.status}: ${text.slice(0, 160).replace(/\s+/g, " ")}`, status: res.status };
+  }
+}
 const view = async (): Promise<Record<string, unknown> | null> => {
-  const res = await fetch(`${site}/api/desk/${owner}?viewer=${owner}`, { headers: { accept: "application/json" } });
+  const res = await fetch(`${site}/api/desk/${owner}?viewer=${owner}`, { headers: HEADERS });
   if (res.status === 404) return null;
-  const body = (await res.json()) as Record<string, unknown>;
+  const body = await readJson(res);
   return res.ok ? body : { error: body, status: res.status };
 };
 
@@ -50,10 +60,10 @@ const text = deskMandateText({ owner: owner as never, cluster: "mainnet-beta", v
 const signature = signText(secret, text);
 const res = await fetch(`${site}/api/desk/${owner}/mandate`, {
   method: "POST",
-  headers: { "content-type": "application/json", accept: "application/json" },
+  headers: { ...HEADERS, "content-type": "application/json" },
   body: JSON.stringify({ owner, signature, signedAtIso, mandate: mandateToWire(mandate), version, trigger: "test_read", practiceCashE6: cashE6.toString() }),
 });
-const answer = (await res.json()) as Record<string, unknown>;
+const answer = await readJson(res);
 console.log(`  POST /api/desk/${owner}/mandate → ${res.status}`, JSON.stringify(answer).slice(0, 400));
 if (!res.ok) process.exit(1);
 

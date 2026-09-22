@@ -198,8 +198,10 @@ export function deskCoreQueries(db: Db) {
         if (!desk) throw new Error("the desk was not inserted");
         await tx`INSERT INTO desk_mandates (desk_id, version, body, fingerprint, signer, signature, applied_at_sec)
           VALUES (${desk.id}::uuid, 1, ${tx.json(i.mandateBody as never)}, ${storageKey(i.fingerprint)}, ${storageKey(i.signer)}, ${i.signature}, ${nowSec})`;
-        await tx`INSERT INTO desk_paper (desk_id, cash_e6, positions, updated_at_sec) VALUES (${desk.id}::uuid, ${i.cashE6 ?? "1000000000"}, ${tx.json({})}, ${nowSec})`;
-        await tx`INSERT INTO desk_events (desk_id, kind, actor, detail, at_sec) VALUES (${desk.id}::uuid, 'created', 'owner', ${tx.json({ mode: "practice", cashE6: i.cashE6 ?? "1000000000" })}, ${nowSec})`;
+        // Money is a decimal string on the wire and in JSON; a caller's bigint is coerced here so no JSON column ever meets one.
+        const cashE6 = String(i.cashE6 ?? "1000000000");
+        await tx`INSERT INTO desk_paper (desk_id, cash_e6, positions, updated_at_sec) VALUES (${desk.id}::uuid, ${cashE6}, ${tx.json({})}, ${nowSec})`;
+        await tx`INSERT INTO desk_events (desk_id, kind, actor, detail, at_sec) VALUES (${desk.id}::uuid, 'created', 'owner', ${tx.json({ mode: "practice", cashE6 })}, ${nowSec})`;
         return toDesk(desk);
       });
     },

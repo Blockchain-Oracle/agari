@@ -13,7 +13,7 @@ import type { ApprovalWire, ChainStateWire, DeskRowWire, DeskViewWire, GradeWire
 export interface DeskQueries {
   getDeskByOwner(cluster: string, owner: string): Promise<DbDesk | null>;
   getDeskById(id: string): Promise<DbDesk | null>;
-  createPracticeDesk(i: { owner: string; cluster: string; mandateBody: DeskMandateWire; fingerprint: Hash32; signer: string; signature: string; cashE6?: bigint }): Promise<DbDesk>;
+  createPracticeDesk(i: { owner: string; cluster: string; mandateBody: DeskMandateWire; fingerprint: Hash32; signer: string; signature: string; cashE6?: string }): Promise<DbDesk>;
   attachLiveDesk(i: { deskId: string; address: string; operator: string; mode: DeskMode }): Promise<void>;
   setDeskMode(i: { deskId: string; mode: DeskMode }): Promise<void>;
   setSharePublic(i: { deskId: string; on: boolean }): Promise<void>;
