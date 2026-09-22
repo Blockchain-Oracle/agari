@@ -1278,6 +1278,14 @@ Public devnet (`api.devnet.solana.com`) is one shared, rate-limited endpoint for
 **Decision:** `clientIp()` in `web/src/lib/client-ip.server.ts` is the one reader, and the operator states the proxy: `cloudflare` → `cf-connecting-ip` (set and overwritten by Cloudflare on every forwarded request); `forwarded` → the first `x-forwarded-for`, for a proxy that owns that header; `vercel` or the platform's own `VERCEL=1` → as before. With nothing named, production trusts no header and the surface says it cannot verify the connection — the honest failure, and loud enough that nobody ships without setting it. `useagari.xyz` runs `cloudflare`. Known limit: the origin IP is reachable directly through the unproxied wildcard subdomains, so a caller who bypasses Cloudflare can forge the header; on a devnet faucet with a per-IP budget that is a rate-limit bypass, not a theft, and the fix if it ever matters is Traefik's trusted-IP list, not code.
 
 
+### D-123 — On devnet the seed maker quotes six figures a side, and the faucet taps 100,000
+
+**Settled 2026-09-22.** Stage 03 put the seed maker on a diet (`MM_QUOTE_LOTS=5000`, 50 tUSDC a Window) for a shared RPC budget that no longer exists; 14:05Z raised it to 30 contracts a side, and the user still met "No liquidity at this size" and "Above what the book can fill — up to 23" on a 1,000 tUSDC stake. Devnet money costs nothing and the venue's engine, index and web carry lots as `u64`/`NUMERIC`/`bigint`, so nothing but the maker's wallet and its knobs set the ceiling.
+
+**Decision:** the maker wallet is minted working capital from the venue's own mint authority (50,000,000 tUSDC on 09-22) and quotes `MM_QUOTE_LOTS=200000000` — 200,000 contracts a side, about 100,000 tUSDC a side at even odds and 188,000 tUSDC of escrow per Window — under `MM_MAX_CASH_PER_WINDOW=250000` (the Gap and token caps the same). The faucet taps 100,000 tUSDC a wallet a day (`FAUCET_UNITS`), 20,000,000 a day in all, so a wallet can reach what the book can fill. A stake past a side's depth still gets the honest "up to X". On mainnet the maker's size is a treasury decision, not this one.
+
+**What stays honest:** a Window has no quotes until its opening print lands and the maker's pass reaches it; the ticket now names that wait on a Window under three minutes old instead of calling it missing liquidity.
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
