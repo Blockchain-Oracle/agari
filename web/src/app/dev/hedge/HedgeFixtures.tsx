@@ -12,7 +12,7 @@ import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
 import { CLOCK } from "../session/market-session-fixtures";
 import { Fixture } from "../states/_sections/Fixture";
-import { BALANCE_BASE, CALM_LEAD, HEDGE_FIXTURES, NO_CARD, STOCKS_FIXTURE } from "./fixtures";
+import { BALANCE_BASE, BASKETS_FIXTURE, CALM_LEAD, HEDGE_FIXTURES, NO_CARD, STOCKS_FIXTURE } from "./fixtures";
 
 const DECIMALS = 6;
 const SYMBOL = "tUSDC";
@@ -47,6 +47,7 @@ export function HedgeFixtures() {
         <Canned label={HEDGE.dev.token} pick={HEDGE_FIXTURES.token} onSelect={open} />
         <Canned label={HEDGE.dev.noPrice} pick={HEDGE_FIXTURES.noPrice} onSelect={open} />
         <Canned label={HEDGE.dev.preIpo} pick={HEDGE_FIXTURES.preIpo} onSelect={open} />
+        <Canned label={HEDGE.dev.basket} pick={HEDGE_FIXTURES.basket} onSelect={open} />
         <Fixture label={HEDGE.dev.none}>
           <p className="type-caption text-ink-muted">
             empty → {String(NO_CARD.empty)} · SPYx with no Window → {String(NO_CARD.noWindow)}
@@ -65,6 +66,10 @@ export function HedgeFixtures() {
         </Fixture>
         <Fixture label={HEDGE.dev.stocks}>
           <YourStocksList holdings={EXAMPLE_HOLDINGS} laneSet={exampleLaneSet(Math.floor((nowMs || Date.now()) / 1000))} nowMs={nowMs || Date.now()} index="01" />
+        </Fixture>
+        <Fixture label={HEDGE.dev.baskets}>
+          <YourStocksList holdings={BASKETS_FIXTURE.both.holdings} laneSet={BASKETS_FIXTURE.both.laneSet} nowMs={CLOCK.weekendSat * 1000} index="03" />
+          <YourStocksList holdings={BASKETS_FIXTURE.one.holdings} laneSet={BASKETS_FIXTURE.one.laneSet} nowMs={CLOCK.weekendSat * 1000} index="04" />
         </Fixture>
         <Fixture label={HEDGE.dev.calm}>
           <YourStocksList holdings={STOCKS_FIXTURE.holdings} laneSet={STOCKS_FIXTURE.laneSet} nowMs={CLOCK.weekendSat * 1000} index="02" movement={STOCKS_FIXTURE.movement} />

@@ -299,3 +299,11 @@
   color: var(--gray-400);
 }
 
+
+/* "Your baskets" (S19 A6): the same rows as "Your stocks", under their own small head. */
+.ys-baskets {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}

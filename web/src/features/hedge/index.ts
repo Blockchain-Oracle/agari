@@ -2,6 +2,8 @@ export { HEDGE } from "./copy";
 export { HedgeCard, holdingTokens, type HedgeCardProps } from "./HedgeCard";
 export { HEDGE_BPS, hedgeStakeBase, usdE6ToBase } from "./hedge-size";
 export { hedgeTarget, pickAllHedges, pickHedge, type HedgeHorizon, type HedgePick, type HedgeTarget } from "./hedge-target";
+export { pickBasketHedges } from "./basket-cover";
+export { tokenHorizon } from "./hedge-horizon";
 export { bpsPct, calmSet, holdsPreIpo, isCalm, windowText } from "./calm";
 export { DropBellToggle } from "./DropBellToggle";
 export { DropBellWatcher } from "./DropBellWatcher";

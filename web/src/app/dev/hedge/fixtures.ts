@@ -2,7 +2,7 @@
  * Canned holdings and Windows for `/dev/hedge` (session-lanes.md §4): the card's three targets (a trading Gap, a Regular
  * Window in session, a weekend token Window), a holding with no fresh spot, and the cases where no card shows.
  */
-import { isTickerSymbol } from "@agari/core/market";
+import { BASKET_INDEX_BASE_E8, isTickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet } from "@agari/core/types";
 import { type HedgePick, pickHedge, type HoldingView } from "@/features/hedge";
 import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
@@ -32,6 +32,11 @@ const OPENAI_PRE = holding("OPENAI", "OPENAI", 420_000_000n, 112_738_000_000n);
 /** The 24/7 OPENAI Window the cover card offers; a pre-IPO name has no other lane (D-103). */
 const OPENAI_WINDOW = fixtureWindow({ marketId: fixtureMarketId(0x56_0091), asset: "OPENAI", lane: "token", intervalSec: 3_600, expirySec: CLOCK.weekendSat + 3_600, decimals: 6, openingPriceRaw: 112_738_000_000n });
 
+/** 2 ANTHROPIC PreStocks at $1,031.20: with OPENAI above, both members of AI Labs (S19 A6). */
+const ANTHROPIC_PRE = holding("ANTHROPIC", "ANTHROPIC", 2n * E8, 103_120_000_000n);
+/** The 24/7 AI Labs Window (Series 920): opened at 1,000.00 pts. */
+const AILABS_WINDOW = fixtureWindow({ marketId: fixtureMarketId(0x56_0920), asset: "AILABS", lane: "token", intervalSec: 3_600, expirySec: CLOCK.weekendSat + 3_600, decimals: 6, openingPriceRaw: BASKET_INDEX_BASE_E8, printSource: "attested" });
+
 /** 12.5 TSLAx at $359.795 → $4,497 (the spec's own example line). */
 const TSLAX = holding("TSLAx", "TSLA", 1_250_000_000n, 35_979_500_000n);
 const TSLAON = holding("TSLAon", "TSLA", 3n * E8, 35_979_500_000n);
@@ -52,6 +57,14 @@ export const HEDGE_FIXTURES = {
   token: must(pickHedge([NVDAX, TSLAX], laneSet(TOKEN_WINDOW), CLOCK.weekendSat * 1000)),
   noPrice: must(pickHedge([holding("TSLAx", "TSLA", 1_250_000_000n, null)], laneSet(GAP_CARDS[1]!.market), CLOCK.weekendSat * 1000)),
   preIpo: must(pickHedge([OPENAI_PRE, TSLAX], laneSet(OPENAI_WINDOW), CLOCK.weekendSat * 1000)),
+  /** Both AI Labs members held and only the basket's Window trading: the pick is the basket, sized on both (S19 A6). */
+  basket: must(pickHedge([OPENAI_PRE, ANTHROPIC_PRE, TSLAX], laneSet(AILABS_WINDOW), CLOCK.weekendSat * 1000)),
+} as const;
+
+/** "Your baskets": a wallet holding both members, and one holding one (covered on its own name instead). */
+export const BASKETS_FIXTURE = {
+  both: { holdings: [OPENAI_PRE, ANTHROPIC_PRE], laneSet: laneSet(AILABS_WINDOW, OPENAI_WINDOW) },
+  one: { holdings: [OPENAI_PRE], laneSet: laneSet(OPENAI_WINDOW) },
 } as const;
 
 /** 300 SPACEX at $121.32 → $36,396: the calm case (plan §2). SpaceX traded $8,708 in a day and did not move at all. */
