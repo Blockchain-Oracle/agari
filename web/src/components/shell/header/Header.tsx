@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AddFunds, CreditWelcome, OPEN_FUNDS_EVENT } from "@/features/funding";
-import { MarketSessionChip } from "@/features/markets/session";
 import AgariMark from "../AgariMark";
 import ThemeToggle from "../ThemeToggle";
 import { DesktopNavMenu } from "./DesktopNavMenu";
@@ -78,8 +77,6 @@ export default function Header() {
           </div>
 
           <div className="header-right">
-            {/* The NYSE state, from the desktop breakpoint up (D-087, `.header-session`); the marquee carries it below that. */}
-            <MarketSessionChip className="header-session" />
             <ThemeToggle />
             <HeaderMoneyPill onOpen={() => setShowFunds(true)} />
             <HeaderAccount onOpenMenu={() => setOpenGroup(null)} />

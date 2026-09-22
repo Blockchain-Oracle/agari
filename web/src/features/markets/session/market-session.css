@@ -66,17 +66,6 @@
   letter-spacing: 0.14em;
 }
 
-/* The global header carries the chip from 1024px up (D-087, amended on the 18a pass: at 768 the desktop nav already
-   fills the bar and the chip pushed Connect off the edge); below that the marquee's session cell says it. */
-.header-session {
-  display: none;
-}
-@media (min-width: 1024px) {
-  .header-right .header-session {
-    display: inline-flex;
-  }
-}
-
 /* A phone keeps Masayume's hero head as it was: the chip stays in the lanes header below, and there
    the dot carries the state, so the phrase fits beside "Live windows" (the aria-label keeps the word). */
 @media (max-width: 639px) {
