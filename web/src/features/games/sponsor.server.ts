@@ -4,6 +4,8 @@ import { ensureMarkets } from "@agari/markets";
 import { getArenaMatch, readArenaAgent, resolveArenaDeployment } from "@agari/markets/games";
 import { gate, marketsEnvFromProcess, sponsorConfig, type SponsorConfig } from "@/features/session/sponsor.server";
 import { sponsorDefaultCapLamports } from "./duel/gas";
+import { createSponsorRpc, type SponsorRpc } from "@agari/markets/sponsor";
+import { DEVNET_DEFAULTS } from "@agari/markets/env";
 
 /**
  * The games' sponsor — server only. Nothing here may be imported by a component.
@@ -50,8 +52,18 @@ async function boot(): Promise<{ config: SponsorConfig | null; deployment: Await
 }
 
 /** The sponsor's SOL balance: a read the Solana adapter serves (S4). Unreadable until then, so no status claims ready. */
-async function sponsorBalanceLamports(_config: SponsorConfig | null): Promise<bigint | null> {
-  return null;
+/**
+ * The sponsor key's SOL, read over the sponsor's own RPC (`SPONSOR_RPC_URL`, else public devnet, D-034). This was a
+ * stub that returned null, so `ready` could never be true: every duel entry funded its own seat key and /status called a
+ * 0.5 SOL sponsor unreadable. A failed read is still null — an outage the status names, never a zero.
+ */
+async function sponsorBalanceLamports(config: SponsorConfig | null): Promise<bigint | null> {
+  if (!config) return null;
+  try {
+    return await createSponsorRpc(process.env.SPONSOR_RPC_URL || DEVNET_DEFAULTS.rpcHttpUrls[0]).getBalance(config.sponsor as unknown as Parameters<SponsorRpc["getBalance"]>[0]);
+  } catch {
+    return null;
+  }
 }
 
 export async function gameSponsorStatus(): Promise<GameSponsorStatusWire> {
