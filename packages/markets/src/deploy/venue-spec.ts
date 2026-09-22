@@ -6,7 +6,7 @@ import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstruc
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@solana/kit";
 import { preStocksFeedHex } from "../prices/prestocks";
-import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
+import { asciiFeedId, I64_MAX, policyVersions, pythIndexPolicyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
 
 export const DEFAULT_ADDRESS = "11111111111111111111111111111111" as Address;
 export const COLLATERAL_DECIMALS = 6;
@@ -142,6 +142,29 @@ export function preStocksSeries(
     basis,
     params: LAUNCH_GRID,
     versions: [{ validFromTs: 0n, validUntilTs: I64_MAX, primary, check: ZERO_POLICY, maxDivergenceBps: 0, checkAdmissionSec: 0 }],
+    books,
+  };
+}
+
+/**
+ * A valuation lane's Series (S20, D-125): the pre-IPO name's own Series id from the registry (`OPENAIV` 930, never the
+ * token lane's 910, because the PDA is `(ticker, cadence, basis)`), basis token so it rolls 24/7 like the index, Pyth
+ * primary on the valuation index with no check, two 256-node Books. The same print path as TSLA (the receiver post and
+ * `public_record_print_pyth`), so no program change. Registered only by `init-valuation-series.ts`, which probes the
+ * feed first and refuses while the key is not entitled: a Series here with a denied feed would list nothing but read as
+ * a lane, and no dead lane is ever shown.
+ */
+export function pythValuationSeries(symbol: TickerSymbol, sources: PriceSources, cadenceSec = 3_600, books: NonNullable<SeriesSpec["books"]> = { count: 2, capacity: 256 }): SeriesSpec {
+  const ticker = TICKERS[symbol];
+  if (ticker.kind !== "valuation") throw new Error(`${symbol} is not a valuation lane`);
+  return {
+    key: `${symbol}-${cadenceSec / 60}m`,
+    symbol,
+    ticker: ticker.seriesId,
+    cadenceSec,
+    basis: BASIS.token,
+    params: LAUNCH_GRID,
+    versions: pythIndexPolicyVersions(symbol, sources),
     books,
   };
 }

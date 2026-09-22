@@ -3,6 +3,7 @@
  * Pure: the script reads the file, this maps it, and `versionDiff` compares against a Series read back from chain.
  */
 import type { PolicyVersion, PrintPolicy, PrintPolicyInput } from "@agari/clients/agari-events";
+import { pythIndexFeedOf, TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { LaneBasis } from "@agari/core/types";
 import { tokenPolicyFor, tokenPolicyVersions } from "./policies-token";
 
@@ -17,6 +18,13 @@ export type PriceSources = {
   };
   redstone: Record<string, unknown>;
   tickers: Record<string, TickerSources>;
+  /** S20 (D-125): the valuation lanes on Pyth's `Equity.Index` feeds; feed ids come from the registry, never from here. */
+  pythIndex?: PythIndexSources;
+};
+
+export type PythIndexSources = {
+  defaults: { graceSec: number; maxConfBps: number; admissionSec: number };
+  tickers: Record<string, { versions: TickerSources["versions"] }>;
 };
 
 export type TickerSources = {
@@ -117,6 +125,37 @@ export function policyVersions(symbol: string, sources: PriceSources, basis: Lan
         check: v.check === null ? ZERO_POLICY : policyFor(v.check, ticker, sources, true),
         maxDivergenceBps: v.check === null ? 0 : crossCheck.maxDivergenceBps,
         checkAdmissionSec: v.check === null ? 0 : crossCheck.checkAdmissionSec,
+      };
+    });
+}
+
+/**
+ * A valuation lane's versions (S20, D-125): Pyth primary on the registry's `pythIndexFeedId` for the lane's
+ * `valuationOf` name, no check (the index is the one independent source of a private valuation), the `pythIndex`
+ * defaults for grace, confidence and admission. Throws for anything that is not a valuation lane, a name Pyth publishes
+ * no index for, or a version naming another source or a check: nothing here can be registered by accident.
+ */
+export function pythIndexPolicyVersions(symbol: string, sources: PriceSources): PolicyVersionArgs[] {
+  const ticker = TICKERS[symbol as TickerSymbol];
+  if (!ticker || ticker.kind !== "valuation" || !ticker.valuationOf) throw new Error(`${symbol} is not a valuation lane`);
+  const feed = pythIndexFeedOf(symbol as TickerSymbol);
+  if (!feed) throw new Error(`Pyth publishes no valuation index for ${ticker.valuationOf}`);
+  const block = sources.pythIndex;
+  const entry = block?.tickers[symbol];
+  if (!block || !entry) throw new Error(`price-sources.json: pythIndex.tickers has no ${symbol}`);
+  const { graceSec, maxConfBps, admissionSec } = block.defaults;
+  return [...entry.versions]
+    .sort((a, b) => a.version - b.version)
+    .map((v, i) => {
+      if (v.version !== i + 1) throw new Error(`${symbol}: pythIndex versions must be 1..n without gaps`);
+      if (v.primary !== "pyth" || v.check !== null) throw new Error(`${symbol}: a valuation lane settles on Pyth alone`);
+      return {
+        validFromTs: unixSec(v.validFrom),
+        validUntilTs: v.validUntil === null ? I64_MAX : unixSec(v.validUntil),
+        primary: { ...ZERO_POLICY, source: SOURCE.pyth, feedId: hexBytes(feed, 32), graceSec, maxConfBps, openAdmissionSec: admissionSec, closeAdmissionSec: admissionSec },
+        check: ZERO_POLICY,
+        maxDivergenceBps: 0,
+        checkAdmissionSec: 0,
       };
     });
 }

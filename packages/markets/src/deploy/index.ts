@@ -13,7 +13,7 @@ import { s2Authorities, s2Series, type AuthorityKeys } from "./venue-spec";
 
 export { createDeployClient, keypairSigner, type DeployClient, type DeployClientConfig } from "./client";
 export { describeSendError, DriftError, type SendContext, type SeriesRecord, type StepLog, type VenueRecord } from "./send";
-export { ADMIT_UNTIL_LOCK, policyVersions, type PriceSources } from "./policies";
+export { ADMIT_UNTIL_LOCK, policyVersions, pythIndexPolicyVersions, type PriceSources, type PythIndexSources } from "./policies";
 // S6 lanes (session-lanes.md §6): 6a the Gap Series, 6b the token Series.
 export * from "./series-gap";
 export * from "./series-token";
@@ -24,6 +24,8 @@ export { chainNowSec, readSeats, windowAddresses, type Seat } from "./cycle/acco
 export { DRIVE_TEST_TICKER } from "./venue-spec";
 // S18 (D-100): the PreStocks Pre-IPO lane.
 export { BASIS, PRESTOCKS_TICKER_BASE, preStocksFeedId, preStocksSeries } from "./venue-spec";
+// S20 (D-125): the valuation lanes on Pyth's Equity.Index feeds.
+export { pythValuationSeries } from "./venue-spec";
 export { profileOnSurfpool, type TransactionProfile } from "./cycle/profile";
 export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, placeOrderInstruction, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
 export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
