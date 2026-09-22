@@ -1,23 +1,26 @@
 # The web deploy uploads the workspace, so everything the build does not read stays out of it.
 # Without this the upload is ~13 GB: anchor/ alone is 6.5 GB of Rust build output and web/.next
-# is another 5 GB of a local production build Vercel rebuilds from source anyway.
-# Nothing under web/src, packages/*/src or services/ops/src imports anchor/, so it goes whole.
-anchor
-web/.next
-data
-live
-docs
-context
-reference
-reference-sources
-refs
-.claude
-.review
-.21st
-.codex
-.agents
-.cursor
-.windsurf
-.surfpool
-_bmad
-_bmad-output
+# another 5 GB of a local production build Vercel rebuilds from source anyway.
+#
+# EVERY PATTERN IS ANCHORED WITH A LEADING SLASH. These match like .gitignore patterns, so a bare
+# `data` excludes *any* directory named data at any depth — including web/src/components/data,
+# which is exactly what broke the first production build (Can't resolve '@/components/data').
+/anchor
+/web/.next
+/data
+/live
+/docs
+/context
+/reference
+/reference-sources
+/refs
+/.claude
+/.review
+/.21st
+/.codex
+/.agents
+/.cursor
+/.windsurf
+/.surfpool
+/_bmad
+/_bmad-output
