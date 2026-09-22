@@ -21,3 +21,17 @@ export function clientIp(request: Request): string | null {
   if (proxy === "forwarded" || proxy === "vercel") return first("x-forwarded-for");
   return process.env.NODE_ENV !== "production" ? "local-development" : null;
 }
+
+/**
+ * The origin a browser sees for this request. Behind a proxy that ends TLS, `request.url` is the scheme the server
+ * itself spoke — `http://useagari.xyz` inside the container — while the browser sent `Origin: https://useagari.xyz`,
+ * and a same-origin check against `request.url` refused every claim with "Open the faucet from Agari." When a
+ * proxy is named (`TRUSTED_PROXY`), its `x-forwarded-proto` is the scheme; otherwise the request's own.
+ */
+export function publicOrigin(request: Request): string {
+  const url = new URL(request.url);
+  const proxy = (process.env.TRUSTED_PROXY ?? (process.env.VERCEL === "1" ? "vercel" : "")).trim();
+  const proto = proxy ? request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() : null;
+  const host = (proxy ? request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() : null) || url.host;
+  return `${proto || url.protocol.replace(":", "")}://${host}`;
+}

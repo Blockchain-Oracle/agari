@@ -3,7 +3,7 @@ import { FaucetError, SOL_FAUCET_POLICY, unavailableTusdcStatus, type FaucetStat
 import { isDbConfigured } from "@agari/db";
 import { createFaucetChain, faucetRoleSecret, type FaucetChain } from "@agari/markets/faucet";
 import { createFaucetService } from "./faucet-service.server";
-import { clientIp } from "@/lib/client-ip.server";
+import { clientIp, publicOrigin } from "@/lib/client-ip.server";
 
 let loaded: { keys: { key: string; chain: FaucetChain } | null } | null = null;
 
@@ -26,7 +26,7 @@ export function unavailableFaucetStatus(address: string | null, message = "In-ap
   return { configured: false, ready: false, address, fundingBalanceLamports: null, walletBalanceLamports: null, dailyRemainingLamports: null, targetLamports: SOL_FAUCET_POLICY.targetLamports.toString(), thresholdLamports: SOL_FAUCET_POLICY.thresholdLamports.toString(), claim: null, tusdc: unavailableTusdcStatus(), message };
 }
 export function faucetForRequest(request: Request) {
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
   const suppliedOrigin = request.headers.get("origin");
   if (suppliedOrigin && suppliedOrigin !== origin) throw new FaucetError("origin-invalid", "Open the faucet from Agari.", 403);
   const config = faucetConfig();

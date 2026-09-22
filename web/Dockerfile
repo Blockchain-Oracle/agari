@@ -12,7 +12,10 @@ ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
     CI=1 \
     NEXT_TELEMETRY_DISABLED=1
-RUN corepack enable && corepack prepare pnpm@11.24.0 --activate
+# curl is what Coolify's container health check runs (`curl`/`wget`); node:22-slim ships neither, and without
+# it a green build is rolled back as "unhealthy" before it ever serves a request.
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/* \
+    && corepack enable && corepack prepare pnpm@11.24.0 --activate
 WORKDIR /app
 
 # Every workspace member's manifest, so the lockfile's importer set matches and this layer is cached until a

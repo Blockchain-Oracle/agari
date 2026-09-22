@@ -6,6 +6,7 @@ import { ensureMarkets, marketsProvider } from "@agari/markets";
 import { buildWindowActionTransaction } from "@agari/markets/x";
 import { webEnv } from "@/lib/env";
 import { regionRestricted } from "@/lib/region.server";
+import { publicOrigin } from "@/lib/client-ip.server";
 
 /**
  * `GET|POST /api/actions/w/<marketId>` — one Window as a Solana Action (S11, `00-plan.md` §S11).
@@ -25,7 +26,7 @@ const cluster = (): ActionCluster => actionClusterOf(webEnv.markets.cluster);
 /** The host actually serving this Action, so a preview deployment and the real domain both render their own icon. */
 function origin(request: Request): string {
   if (process.env.NEXT_PUBLIC_APP_ORIGIN) return webEnv.appOrigin.replace(/\/$/, "");
-  return new URL(request.url).origin;
+  return publicOrigin(request);
 }
 
 const headers = () => actionHeaders(cluster());

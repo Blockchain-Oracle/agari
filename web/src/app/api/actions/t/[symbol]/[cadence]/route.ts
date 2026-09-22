@@ -5,6 +5,7 @@ import {
 } from "@agari/core/x";
 import { ensureMarkets, marketsProvider } from "@agari/markets";
 import { webEnv } from "@/lib/env";
+import { publicOrigin } from "@/lib/client-ip.server";
 
 /**
  * `GET /api/actions/t/<symbol>/<cadence>` — a Blink that outlives its Window (S11).
@@ -30,7 +31,7 @@ export function OPTIONS() {
 
 function origin(request: Request): string {
   if (process.env.NEXT_PUBLIC_APP_ORIGIN) return webEnv.appOrigin.replace(/\/$/, "");
-  return new URL(request.url).origin;
+  return publicOrigin(request);
 }
 
 /** A symbol with no Window at all still renders: the card says which asset and why, never a 404 in a timeline. */

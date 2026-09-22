@@ -19,7 +19,7 @@ import {
   address as kitAddress,
   appendTransactionMessageInstructions,
   createKeyPairSignerFromBytes,
-  createSolanaRpc,
+  createSolanaRpcFromTransport,
   createTransactionMessage,
   getBase64EncodedWireTransaction,
   getBase64Encoder,
@@ -37,6 +37,7 @@ import {
 } from "@solana/kit";
 import { keypairAddress } from "../sessions/keypair";
 import { landedAsJournaled, type MintTarget } from "./landed";
+import { retryingRpcTransport } from "../deploy/rpc-transport";
 
 export interface FaucetKeys {
   /** `sol-faucet`: the SOL source, the fee payer of both claim kinds and the ATA rent payer. */
@@ -53,7 +54,9 @@ const bounded = () => ({ abortSignal: AbortSignal.timeout(RPC_TIMEOUT_MS) });
 const unavailable = (code: string, message: string) => new FaucetError(code, message, 503);
 
 export function createSolanaFaucetChain(keys: FaucetKeys, rpcUrl: string) {
-  const rpc = createSolanaRpc(rpcUrl);
+  // The venue's transport (D-030): paced, and a 429 or a dropped socket is retried with backoff rather than surfaced
+  // as "Balances could not be checked" — which is what one shared provider key was doing to every third status read.
+  const rpc = createSolanaRpcFromTransport(retryingRpcTransport(rpcUrl));
   const address = kitAddress(keypairAddress(keys.funder));
   const mintAuthority = keys.mintAuthority ? kitAddress(keypairAddress(keys.mintAuthority)) : null;
   const once = <T>(make: () => Promise<T>) => {

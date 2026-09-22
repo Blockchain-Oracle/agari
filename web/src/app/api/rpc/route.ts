@@ -19,6 +19,24 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const NO_STORE = { "cache-control": "private, no-store" };
+/**
+ * One key serves ops (paced at `RPC_MAX_RPS`, D-030) and every browser through this route, and the provider answers
+ * the sum with 429s: measured at the bell, four of eight `getSlot` calls through here were refused. So this process
+ * takes a fixed slice — `PACE_RPS` a second, a short queue — and a caller past the queue gets a 429 of its own, which
+ * the browser transport already retries with backoff. Ops keeps its share; the venue's sends come first.
+ */
+const PACE_RPS = 4;
+const MAX_WAIT_MS = 1_500;
+let nextSlotMs = 0;
+
+/** Resolves when this call may go, or rejects at once when the queue is already longer than a browser should wait. */
+function paced(): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, nextSlotMs);
+  if (at - now > MAX_WAIT_MS) return Promise.reject(new Error("paced"));
+  nextSlotMs = at + 1_000 / PACE_RPS;
+  return at === now ? Promise.resolve() : new Promise((resolve) => setTimeout(resolve, at - now));
+}
 /** A `getMultipleAccounts` of a hundred addresses is a few KB; a transaction is under 2. This is room to spare. */
 const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 20_000;
@@ -90,6 +108,12 @@ export async function POST(request: Request) {
   const refused = methods.find((name) => !ALLOWED.has(name));
   // Naming the method is safe — it came from the caller — and it is the only thing they can act on.
   if (refused) return NextResponse.json({ error: `method not served here: ${refused}` }, { status: 403, headers: NO_STORE });
+
+  try {
+    await paced();
+  } catch {
+    return NextResponse.json({ error: "too many requests" }, { status: 429, headers: { ...NO_STORE, "retry-after": "1" } });
+  }
 
   try {
     const response = await fetch(upstream(), {
