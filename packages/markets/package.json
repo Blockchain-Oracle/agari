@@ -29,7 +29,8 @@
     "./prices/legacy": "./src/prices/legacy/index.ts",
     "./ops": "./src/ops/index.ts",
     "./ops/*": "./src/ops/*/index.ts",
-    "./proof": "./src/proof/index.ts"
+    "./proof": "./src/proof/index.ts",
+    "./desk": "./src/desk/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

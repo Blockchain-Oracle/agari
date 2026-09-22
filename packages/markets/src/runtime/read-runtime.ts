@@ -35,6 +35,8 @@ export interface ReadClient {
   arenaProgramId: Address | null;
   strategyProgramId: Address | null;
   makerProgramId: Address | null;
+  /** The agari-desk program id override (S21); the desk reads mainnet through its own RPC, so this only pins the id. */
+  deskProgramId: Address | null;
   /** `/api/index` base (absolute); null = no indexer, lists read `indexer-down`. */
   indexerUrl: string | null;
   /** The ops HTTP base serving `/prices/latest` and `/prices/stream`; null = no spot. */
@@ -71,6 +73,7 @@ export function configureMarkets(env: MarketsEnv): void {
     arenaProgramId: env.arenaProgramId ?? null,
     strategyProgramId: env.strategyProgramId ?? null,
     makerProgramId: env.makerProgramId ?? null,
+    deskProgramId: env.deskProgramId ?? null,
     indexerUrl: env.indexerUrl ?? null,
     priceFeedUrl: env.priceFeedUrl ?? null,
   };
