@@ -122,7 +122,8 @@ export async function readDeskRefs(rpc: DeskRpc, mints: readonly Address[]): Pro
   return out;
 }
 
-const scaledSchema = z.object({ multiplier: z.string(), newMultiplier: z.string(), newMultiplierEffectiveTimestamp: z.number().int() });
+// Kit's JSON parser hands a large integer back as a bigint: the switch-over second is one, so both shapes are accepted.
+const scaledSchema = z.object({ multiplier: z.string(), newMultiplier: z.string(), newMultiplierEffectiveTimestamp: z.union([z.number().int(), z.bigint()]).transform(Number) });
 const pausableSchema = z.object({ paused: z.boolean() });
 const mintsSchema = z.object({
   value: z.array(

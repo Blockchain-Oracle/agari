@@ -69,3 +69,4 @@ export { createDeskMainnetSession, type DeskMainnetSession, type DeskMainnetSess
 export { createDeskOperatorClient, DeskSendError, DeskSendUnknownError, type DeskOperatorClient, type DeskOperatorClientConfig, type DeskSendOptions, type DeskSendResult } from "./operator-client";
 export { readDeskConfig, readDeskMints, readDeskRefs, readDeskState, type DeskAllowedToken, type DeskConfigState, type DeskMintState, type DeskRefState, type DeskRpc, type DeskState, type DeskTokenAccountState } from "./reads";
 export { DESK_REF_MESSAGE_BYTES, deskReferenceMessage, postReferenceInstructions, type DeskReferenceFields, type PostReferenceInput } from "./reference";
+export { chainNowSec, createDeskRpc, listDesksByOperator, signatureOutcome, type DiscoveredDesk, type SignatureOutcome } from "./rpc";

@@ -8,6 +8,7 @@
  * the programs they drive. DRY_RUN stays on unless `DRY_RUN=0` (nothing signs by default).
  */
 import { startDuelProjector } from "./actors/duel-projector";
+import { startDeskRunner } from "./actors/desk-runner";
 import { startDuelSettler } from "./actors/duel-settler";
 import { startGameRoom } from "./actors/game-room";
 import { startHaltWatch } from "./actors/halt-watch";
@@ -35,6 +36,8 @@ const HEARTBEAT_MS = 30_000;
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
 const VENUE_ACTORS = ["relay", "roller", "settler", "maker", "indexer", "http", "halts", "earnings"] as const;
 const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler"] as const;
+/** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126). */
+const OPT_IN_ACTORS = ["desk-runner"] as const;
 
 function whyString(actor: string, why: string): string {
   return JSON.stringify({ tsMs: Date.now(), actor, why: redact(why) });
@@ -86,7 +89,7 @@ const spot = relay?.spot ?? null;
 let marketSpot: SpotFeed | null = spot;
 let prestocksSpot: PreStocksSpotHandle | null = null;
 let pythIndexSpot: PythIndexSpotHandle | null = null;
-if (actors.has("maker") || actors.has("http")) {
+if (actors.has("maker") || actors.has("http") || actors.has("desk-runner")) {
   if (!process.env.JUPITER_API_KEY) log("xstock-spot")("JUPITER_API_KEY not set: polling keyless lite-api.jup.ag; the token maker pulls while Jupiter fails");
   const xstockSpot = createXStockSpotFeed({ log: log("xstock-spot"), apiKey: process.env.JUPITER_API_KEY || undefined });
   xstockSpot.start();
@@ -110,6 +113,8 @@ if (actors.has("maker")) {
   else void boot("seed-maker", () => startSeedMaker(deps("seed-maker", marketSpot)));
 }
 
+// S21 (D-126): the desk reads the in-process PreStocks feed, so it starts after the feed; its RPC is its own (mainnet).
+if (actors.has("desk-runner")) void boot(OPT_IN_ACTORS[0], () => startDeskRunner({ log: log("desk-runner"), prestocks: prestocksSpot }));
 if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"));
 if (actors.has("x-relay")) void startXRelay(log("x-relay"));
 if (actors.has("leverage-keeper")) void startLeverageKeeper(log("leverage-keeper"));

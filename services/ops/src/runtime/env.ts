@@ -35,7 +35,7 @@ export function readOpsEnv(env: NodeJS.ProcessEnv = process.env): OpsEnv {
   };
 }
 
-const SECRET_ENV = ["HELIUS_API_KEY", "PYTH_API_KEY", "ALPACA_KEY_ID", "ALPACA_SECRET_KEY", "FINNHUB_API_KEY", "JUPITER_API_KEY", "STORK_API_KEY"];
+const SECRET_ENV = ["HELIUS_API_KEY", "PYTH_API_KEY", "ALPACA_KEY_ID", "ALPACA_SECRET_KEY", "FINNHUB_API_KEY", "JUPITER_API_KEY", "STORK_API_KEY", "DESK_RPC_URL", "DESK_RUNNER_PRIVATE_KEY"];
 
 /** Replaces every configured provider secret in `text` with `<NAME>`. */
 export function redact(text: string, env: NodeJS.ProcessEnv = process.env): string {
