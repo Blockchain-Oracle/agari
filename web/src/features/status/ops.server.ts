@@ -8,6 +8,7 @@ import { z } from "zod";
 const OPS_TIMEOUT_MS = 5_000;
 
 const tradingSessionSchema = z.object({ date: z.string(), openSec: z.number(), closeSec: z.number(), earlyClose: z.boolean() });
+const pythIndexEntitlementSchema = z.object({ state: z.enum(["entitled", "denied", "unknown"]), status: z.number().nullable(), checkedAtSec: z.number().nullable(), reason: z.string().nullable() });
 
 const sessionBodySchema = z.object({
   nowSec: z.number(),
@@ -18,7 +19,13 @@ const sessionBodySchema = z.object({
     .passthrough()
     .nullable(),
   lanes: z.record(z.string(), z.string()),
-  sources: z.object({ pythTrialLastCloseSec: z.number().nullable() }).default({ pythTrialLastCloseSec: null }),
+  sources: z
+    .object({
+      pythTrialLastCloseSec: z.number().nullable(),
+      /** S20 (D-125): per pre-IPO name, whether the key may read Pyth's valuation index, from ops' live store. */
+      pythIndex: z.record(z.string(), pythIndexEntitlementSchema).default({}),
+    })
+    .default({ pythTrialLastCloseSec: null, pythIndex: {} }),
 });
 
 const heartbeatSchema = z.object({
@@ -34,6 +41,7 @@ const heartbeatSchema = z.object({
 const healthBodySchema = z.object({ ok: z.boolean(), nowMs: z.number(), actors: z.array(heartbeatSchema) });
 
 export type OpsSession = z.infer<typeof sessionBodySchema>;
+export type OpsPythIndexEntitlement = z.infer<typeof pythIndexEntitlementSchema>;
 export type OpsHealth = z.infer<typeof healthBodySchema>;
 export type OpsHeartbeat = z.infer<typeof heartbeatSchema>;
 export type TradingSessionWire = z.infer<typeof tradingSessionSchema>;

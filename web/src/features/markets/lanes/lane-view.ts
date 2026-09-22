@@ -63,6 +63,7 @@ export const etWeekday = (sec: number): string => ET_WEEKDAY_SHORT[weekdayOfDate
 /** The hero's settlement basis note (M `PriceSourceNote`): what decides this Window, in one line. */
 export function priceSourceLine(market: Pick<EventMarket, "asset" | "lane" | "tradingStartSec" | "expirySec">): string {
   if (market.lane === "gap") return LANE_STATE.source.gap(etWhen(market.tradingStartSec, true), etWhen(market.expirySec, true));
+  if (market.lane === "token" && TICKERS[market.asset].kind === "valuation") return LANE_STATE.source.valuation(TICKERS[TICKERS[market.asset].valuationOf!].name);
   if (market.lane === "token") return LANE_STATE.source.token(laneAssetLabel(market.asset, "token"));
   return HERO.source;
 }

@@ -28,6 +28,7 @@ export const STATUS = {
     relay: { pyth: "Price relay · Pyth freshness", redstone: "Price relay · RedStone freshness" },
     mix: (cadence: string) => `Print sources · ${cadence} Windows`,
     pythTrial: "Pyth trial · sessions left",
+    pythIndex: "Pyth valuation index · entitlement",
     redstone: "RedStone gateway · latency, signers",
     switchboard: "Switchboard · quote success",
     crossCheck: "Cross-check · agreement",
@@ -89,6 +90,13 @@ export const STATUS = {
     trialEnded: "ended: TSLA on RedStone, QQQ/VOO paused",
     trialLeft: (left: number, capped: boolean, lastClose: string) => `${n(left)}${capped ? "+" : ""} ${left === 1 && !capped ? "session" : "sessions"} left · last covered close ${lastClose} ET`,
     trialUnknown: "ops does not name the trial's last covered close",
+
+    /** S20: "OPENAI, ANTHROPIC: not entitled (403 pyth-indices) · probed 18:31 UTC"; the valuation lanes list only once this reads entitled. */
+    pythIndexNone: "ops does not report the valuation indices",
+    pythIndexEntitled: (names: string) => `${names}: entitled`,
+    pythIndexDenied: (names: string, reason: string | null) => `${names}: not entitled${reason ? ` (${reason})` : ""}`,
+    pythIndexProbed: (clock: string) => `probed ${clock}`,
+    pythIndexUnprobed: "not probed yet",
 
     archive: (feeds: number, fetchSec: number, minSigners: number, late: number) =>
       `${plural(feeds, "feed")} · slowest fetch ${fetchSec}s · min ${plural(minSigners, "signer")} · ${n(late)} late`,

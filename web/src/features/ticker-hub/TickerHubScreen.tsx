@@ -15,7 +15,9 @@ import { articleSymbols, Cashtags, MarkCluster, NewsRow } from "@/features/news/
 import type { Article } from "@/features/news/protocol";
 import { TickerRoomButton } from "@/features/room/TickerRoom";
 import { TICKER_HUB } from "./copy";
+import { PreIpoStats } from "./PreIpoStats";
 import { usePreIpoFacts } from "./usePreIpoFacts";
+import { pythIndexRowOf, usePythIndex } from "./usePythIndex";
 import { useNextEarnings, useTickerNews } from "./useTickerNews";
 import "@/features/profile/profile.css";
 import "./ticker-hub.css";
@@ -71,6 +73,8 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const earnings = useNextEarnings(symbol);
   const preIpo = ticker.kind === "preIpo";
   const facts = usePreIpoFacts(preIpo ? symbol : null);
+  // S20: Pyth's valuation index rides beside the PreStocks facts where the venue's key may read it; absent, its rows are omitted.
+  const index = pythIndexRowOf(usePythIndex(preIpo && ticker.pythIndexFeedId !== null), symbol);
 
   const spot = price?.ok && price.value ? usdLine(feedRawToOracleRaw(basisRaw(price.value), price.value.decimals)) : TICKER_HUB.dash;
   const report = earnings.event ? reportDay(earnings.event.dateEt, earnings.event.hour) : earnings.known ? TICKER_HUB.earningsNone : TICKER_HUB.earningsUnknown;
@@ -92,37 +96,23 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
         <div className="page-title-jp" lang="ja">
           {TICKER_HUB.headingJp}
         </div>
-        <p className="news-intro">{preIpo ? TICKER_HUB.preIpo.intro(ticker.name) : TICKER_HUB.intro(ticker.name)}</p>
+        <p className="news-intro">{preIpo ? (index ? TICKER_HUB.preIpo.introBoth(ticker.name) : TICKER_HUB.preIpo.intro(ticker.name)) : TICKER_HUB.intro(ticker.name)}</p>
 
         <div className="prf-bar">
-          <dl className="prf-stats">
-            <div className="prf-stat">
-              <dt>{price?.ok && price.stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot}</dt>
-              <dd className="big numbers">{spot}</dd>
-            </div>
-            {preIpo ? (
-              <>
-                <div className="prf-stat">
-                  <dt title={TICKER_HUB.preIpo.markHint}>{TICKER_HUB.preIpo.mark}</dt>
-                  <dd className="big numbers">{facts?.ok && facts.value.markPriceE8 !== undefined ? usdLine(facts.value.markPriceE8) : TICKER_HUB.dash}</dd>
-                </div>
-                <div className="prf-stat">
-                  <dt>{TICKER_HUB.preIpo.premium}</dt>
-                  <dd className="big numbers">{facts?.ok && typeof facts.value.premiumBps === "number" ? TICKER_HUB.preIpo.premiumLine(facts.value.premiumBps) : TICKER_HUB.dash}</dd>
-                </div>
-                <div className="prf-stat">
-                  <dt>{TICKER_HUB.preIpo.holders}</dt>
-                  <dd className="big numbers">{facts?.ok && facts.value.holders !== null ? TICKER_HUB.preIpo.holdersLine(facts.value.holders, facts.value.holdersMonthAgo) : TICKER_HUB.dash}</dd>
-                </div>
-              </>
-            ) : (
+          {preIpo ? (
+            <PreIpoStats spot={spot} spotStale={Boolean(price?.ok && price.stale)} facts={facts?.ok ? facts.value : null} index={index} />
+          ) : (
+            <dl className="prf-stats">
+              <div className="prf-stat">
+                <dt>{price?.ok && price.stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot}</dt>
+                <dd className="big numbers">{spot}</dd>
+              </div>
               <div className="prf-stat">
                 <dt>{TICKER_HUB.earnings}</dt>
                 <dd className="big">{report}</dd>
               </div>
-            )}
-          </dl>
-          {preIpo && <p className="type-caption text-ink-muted">{TICKER_HUB.preIpo.source}</p>}
+            </dl>
+          )}
           <div className="prf-actions">
             <TickerRoomButton symbol={symbol} />
             <Link href="/markets" className="asset-tab" data-cursor="hover">

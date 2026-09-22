@@ -1,7 +1,7 @@
 import { etDateOf, formatEtClock } from "@agari/core/market";
 import { STATUS } from "./copy";
 import { gradeHeartbeat, gradeIndexer, gradeLanes, gradeTrial, laneKind, trialSessionsLeft } from "./grade";
-import { detailNumber, detailString, heartbeatOf, type OpsHealth, type OpsRead, type OpsSession } from "./ops.server";
+import { detailNumber, detailString, heartbeatOf, type OpsHealth, type OpsPythIndexEntitlement, type OpsRead, type OpsSession } from "./ops.server";
 import { pipelineRow } from "./pipeline";
 import type { StatusPipeline } from "./protocol";
 
@@ -73,4 +73,27 @@ export function pythTrialRow({ session }: OpsRows): StatusPipeline {
   const trial = trialSessionsLeft(nowSec, lastCloseSec, calendar.upcoming);
   const detail = trial.ended ? STATUS.detail.trialEnded : STATUS.detail.trialLeft(trial.left, trial.capped, `${etDateOf(lastCloseSec)} ${formatEtClock(lastCloseSec)}`);
   return pipelineRow("pyth-trial", label, { verdict: gradeTrial(trial), detail });
+}
+
+const utcClock = (sec: number) => `${new Date(sec * 1000).toISOString().slice(11, 16)} UTC`;
+
+/**
+ * S20 (D-125): whether the venue's key may read Pyth's valuation indices, from ops' live probe. Good when every index
+ * is entitled; warn while any is denied or unknown ("OPENAI, ANTHROPIC: not entitled (403 pyth-indices)"), because the
+ * valuation lanes simply do not list; bad only when ops cannot be read. Not session-bound: the index is 24/7.
+ */
+export function pythIndexRow({ session }: OpsRows): StatusPipeline {
+  const label = STATUS.pipelines.pythIndex;
+  if (!session.ok) return pipelineRow("pyth-index", label, { verdict: "bad", detail: session.why, latencyMs: session.latencyMs });
+  const entries = Object.entries(session.value.sources.pythIndex);
+  if (entries.length === 0) return pipelineRow("pyth-index", label, { verdict: "warn", detail: STATUS.detail.pythIndexNone, latencyMs: session.latencyMs });
+  const entitled = entries.filter(([, e]) => e.state === "entitled").map(([name]) => name);
+  const other = entries.filter(([, e]) => e.state !== "entitled");
+  const reasonOf = (e: OpsPythIndexEntitlement) => (e.status || e.reason ? [e.status, e.reason].filter(Boolean).join(" ") : null);
+  const parts: string[] = [];
+  if (entitled.length) parts.push(STATUS.detail.pythIndexEntitled(entitled.join(", ")));
+  if (other.length) parts.push(STATUS.detail.pythIndexDenied(other.map(([name]) => name).join(", "), reasonOf(other[0]![1])));
+  const probedSec = Math.max(...entries.map(([, e]) => e.checkedAtSec ?? 0));
+  parts.push(probedSec > 0 ? STATUS.detail.pythIndexProbed(utcClock(probedSec)) : STATUS.detail.pythIndexUnprobed);
+  return pipelineRow("pyth-index", label, { verdict: other.length ? "warn" : "good", detail: parts.join(" · "), latencyMs: session.latencyMs });
 }

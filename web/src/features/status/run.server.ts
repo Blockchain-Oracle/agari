@@ -4,7 +4,7 @@ import type { MarketsEnv } from "@agari/markets";
 import { SESSION_OPEN_STATES } from "./grade";
 import { readOpsHealth, readOpsSession, type OpsRead, type OpsSession } from "./ops.server";
 import { probeIndex, relayCounters } from "./probes-index.server";
-import { heartbeatRows, indexerRow, lanesRow, pythTrialRow } from "./probes-ops.server";
+import { heartbeatRows, indexerRow, lanesRow, pythIndexRow, pythTrialRow } from "./probes-ops.server";
 import { PRICE_ASSETS_CAP, probeFaucet, probePrice, probeRpc, probeSensei, probeStore, sponsorRow, switchboardRow } from "./probes.server";
 import { countsTowardOverall, HEALTHY_LAG_SEC, type StatusPayload, type StatusPipeline } from "./protocol";
 import type { PrintScope } from "./rows-prints";
@@ -76,6 +76,7 @@ async function run(env: MarketsEnv): Promise<StatusPayload> {
     ...index.relays,
     ...index.mixes,
     pythTrialRow(ops),
+    pythIndexRow(ops),
     index.redstone,
     switchboardRow(),
     index.crossCheck,

@@ -49,6 +49,8 @@ function common(sessionOpen: boolean) {
     mix15: row("mix:15m", P.mix("15m"), session, last("Pyth 3 · RedStone 6")),
     mix60: row("mix:60m", P.mix("60m"), session, last("Pyth 3 · RedStone 6")),
     trial: row("pyth-trial", P.pythTrial, "good", STATUS.detail.trialLeft(5, true, "2026-09-25 16:00")),
+    // S20: the valuation indices as the venue's key finds them today (403 pyth-indices), a warn that never degrades the figure.
+    pythIndex: row("pyth-index", P.pythIndex, "warn", `${STATUS.detail.pythIndexDenied("OPENAI, ANTHROPIC", "403 pyth-indices")} · ${STATUS.detail.pythIndexProbed("13:31 UTC")}`, null, 7),
     archive: row("redstone", P.redstone, sessionOpen ? "warn" : "expected", last(STATUS.detail.archive(7, 13, 3, 0)), null, 24),
     switchboard: row("switchboard", P.switchboard, "optional", STATUS.detail.switchboard),
     crossCheck: row("cross-check", P.crossCheck, session, last(STATUS.detail.crossCheck("TSLA", 62, "2.46"))),
@@ -73,7 +75,7 @@ function prices(sessionOpen: boolean): StatusPipeline[] {
 function payload(sessionOpen: boolean, settler: StatusPipeline | null, overall: StatusPayload["overall"]): StatusPayload {
   const c = common(sessionOpen);
   const pipelines = [
-    c.rpc, c.slotLag, c.indexer, c.pyth, c.redstone, c.mix5, c.mix15, c.mix60, c.trial, c.archive, c.switchboard, c.crossCheck,
+    c.rpc, c.slotLag, c.indexer, c.pyth, c.redstone, c.mix5, c.mix15, c.mix60, c.trial, c.pythIndex, c.archive, c.switchboard, c.crossCheck,
     c.lanes, c.faucet, c.sponsor, c.store, ...heartbeats(settler, sessionOpen), ...prices(sessionOpen), c.sensei,
   ];
   const maxLag = sessionOpen ? { maxLagSec: 49, maxLagPipeline: P.relay.redstone } : { maxLagSec: 2, maxLagPipeline: P.rpc };
