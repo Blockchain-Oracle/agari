@@ -74,6 +74,7 @@ export const LANDING = {
     paragraphs: [
       "Tokenized stocks trade on Solana around the clock: Tesla and Nvidia as xStocks, and private companies like OpenAI, Anthropic and SpaceX as PreStocks. Until now, a holder who feared a drop had two choices: sell, or hope.",
       "Agari adds a third. Connect the wallet the tokens sit in and Agari reads it, only reads it, and offers a Down bet on that name as cover. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
+      "Hold two or more of the same basket, a small group of companies bet on together such as OpenAI and Anthropic, and one Down bet on the basket covers them at once.",
     ],
     story: "In May 2026 the OpenAI token fell 39% in a week after OpenAI and Anthropic disputed the tokens, and there was too little liquidity for everyone to sell. A holder with a Down bet would have been paid as it fell.",
     note: "On devnet with test money, so this shows how the cover works rather than protecting real money. Not investment advice. Every token you hold is listed on your",

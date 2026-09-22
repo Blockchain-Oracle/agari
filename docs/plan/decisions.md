@@ -1286,6 +1286,21 @@ Public devnet (`api.devnet.solana.com`) is one shared, rate-limited endpoint for
 
 **What stays honest:** a Window has no quotes until its opening print lands and the maker's pass reaches it; the ticket now names that wait on a Window under three minutes old instead of calling it missing liquidity.
 
+### D-124 — A basket is a registry ticker on the attested print path: an equal-weight index in points, frozen bases, one read of every member
+
+- **Date / owner:** 2026-09-22 · S19 owner, from the plan the user approved on 2026-09-22 (`~/.claude/plans/quizzical-booping-ocean.md` §§4–7).
+- **Evidence:** a holder of two pre-IPO names had two cover bets to place and no way to bet on the group; the venue already settles a pre-IPO name on the venue's own signature over one PreStocks read (D-100, D-101), and nothing on chain constrains what that signature is over beyond a non-zero feed id and a positive price: `policy_rules.rs:26–51` admits any non-zero 32-byte feed id with `bar_len ≥ 1`, `min_delay ≥ 1`; `attested.rs:104–133` checks `price > 0` and byte equality of the 158 B message; `normalize.rs` brings every print to expo −8, so an index at base 1,000 is `1e11`, eleven orders of magnitude under `i64::MAX`.
+- **Rule:**
+  - **A basket is a registry ticker** (`kind: "basket"`, series ids 920–924: AILABS, FRONTIER, PREDMKTS, DEFSPACE, PREALL), so lanes, the roller, the maker, the hub, the cover card and the nav key it by symbol like any name; it lists only on the 24/7 token lane (`isTokenOnlyKind`, the D-103 predicate widened).
+  - **The index** is equal-weight, price-return, base 1,000 at frozen base prices: `index_E8 = Σ floor(weightBps × price_E8 × 1e11 / (10,000 × basePrice_E8))`, bigint throughout (`packages/core/src/market/baskets.ts`). At the base prices every basket reads exactly `1e11`; a pair up 10 % and down 10 % reads 1,000 again. The unit is **points**, never dollars, on every surface (`assetPriceLine`).
+  - **One read of every member.** The feed keeps every PreStocks read whole (`PreStocksSnapshot`); the index is computed only from a read that priced every member, so a Window can never settle on a mixture of two fetches or a partial sum. The relay signs the first complete read inside `[T+10 s, T+45 s]` and lets the Window void otherwise; the maker quotes from the same accessors, so its fair and the print agree.
+  - **Frozen bases and the feed version.** The base prices (`BASES`, read 2026-09-22 17:06:43Z) are pinned by a snapshot test and recorded beside the Series at registration (`basePrices`, `baseAtSec` in `addresses.devnet.json`, pinned by a second test). A base change is a new feed id (`prestocks-basket-v2:<SYM>`), a new policy version and a new Series, never an edit: a settled Window must stay recomputable. A re-issued member mint (the feed drops a row whose `contract_address` differs from the registry) makes every read incomplete, so its baskets void until the registry and the base are re-cut.
+  - **Cover** a basket only with two or more held members (`BASKET_COVER_MIN_MEMBERS`); one member is covered on its own name. The size is the ordinary 10 % of the summed exposure. The calm rule (D-105) applies to the index the same way a name's: a basket that has not moved is not offered as cover.
+  - **No program change**, for the three reasons in the evidence; the attested feed id and the bases are the whole novelty, and both live in configuration and core.
+- **Ordering hazard (the D-102 shape):** the feed pass that knows `prestocks-basket-v1:*` must be running in production ops before any basket Series is registered, or the roller lists it within five minutes and every Window voids. `init-basket-series.ts` says so in its header and refuses a null base.
+- **User-visible:** `/baskets`, `/tickers/<BASKET>`, basket Windows on the 24/7 tab (once registered), "Your baskets" and a basket cover card for a wallet holding two or more members, Sensei knowing the baskets.
+- **Approval:** user, 2026-09-22 (the approved plan).
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |

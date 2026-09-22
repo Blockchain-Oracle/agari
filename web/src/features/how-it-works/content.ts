@@ -48,7 +48,7 @@ export const STEPS: readonly Step[] = [
     number: 2,
     title: "Pick a Window",
     description:
-      "Each Window is a stock — TSLA, NVDA, AAPL and six more — on a cadence lane the venue lists: 5m, 15m and 1h through the session, the overnight Gap, and the 24/7 token lane. The line is the opening print, the signed price recorded at the open of the round.",
+      "Each Window is a stock — TSLA, NVDA, AAPL and six more — on a cadence lane the venue lists: 5m, 15m and 1h through the session, the overnight Gap, and the 24/7 token lane. A basket, a small group of pre-IPO companies bet on together, runs on that 24/7 lane too, scored as an index in points rather than a price. The line is the opening print, the signed price recorded at the open of the round.",
     icon: TargetIcon,
     tone: "blue",
   },
