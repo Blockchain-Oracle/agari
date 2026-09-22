@@ -1,3 +1,15 @@
+# STATUS — updated 2026-09-22 ~19:10 UTC by Claude (**S19 baskets · S20 Pyth index · S21 the desk: approved 09-22, building; A1 landed on w1**)
+
+## Session of 2026-09-22 16:50–19:10Z (research + plan + S19.1) — READ THIS FIRST
+
+**The user approved a three-lane plan on 2026-09-22 (`~/.claude/plans/quizzical-booping-ocean.md`; the UX is §§4–5, the engineering §§7–8).** Stage files: `docs/plan/stage-19-baskets.md`, `stage-20-pyth-index.md`, `stage-21-desk.md`. Lanes run in worktrees `../agari-wt/s19` (`slice/S19-baskets`), `s20` (`slice/S20-pyth-index`), `s21` (`slice/S21-desk`), merged back into `integration/w1` at each lane's gate. The user's earlier rule "agents do not trade real tokens" is **withdrawn by him**: S21 is an agent desk that holds and trades PreStocks tokens on **mainnet** under program-enforced limits (Shijima's design, `~/dev/hackathon/open-serv`), rehearsed first on a Surfpool mainnet fork; practice desks are paper ledgers with no transaction.
+
+- **Landed on w1:** `12c75f0` chore (the nav registry test counted 27 of 28 items since /short landed; the suite failed on HEAD), `e5518ac` **S19.1 core**: `packages/core/src/market/baskets.ts` (AILABS 920, FRONTIER 921, PREDMKTS 922, DEFSPACE 923, PREALL 924; equal-weight price-return index, base 1,000 = `1e11` at expo −8, bases frozen at the 2026-09-22 17:06:43Z catalogue read and pinned by a snapshot test), `premium.ts` (`referencePremiumBps`), registry rows `kind: "basket"`, `isTokenOnlyKind`, `BASKET_TICKERS`. Gate: typecheck ✓ invariants ✓ vitest 1,569 ✓.
+- **Verified facts (do not re-derive):** Pyth's `Equity.Index.OPENAI/USD` (`96d4bb23…c483`) and `ANTHROPIC` (`5da511a7…689d`) exist on Hermes but the trial key is **not entitled** (403 `pyth-indices`; TSLA → 200; every SpaceX feed → 403). PreStocks OPENAI mint: Token-2022, 9 dp, **100 bps transfer fee**, permanent delegate, freeze, pausable, `defaultAccountState: initialized`, ScaledUiAmount ×1.4861347. Jupiter lite-api quotes OPENAI keyless (Manifest + Meteora DLMM, $10k impact 0.04 %). SpaceX listed on Nasdaq as SPCX 2026-06-12. Deployer devnet 11.24 SOL. `surfpool 1.5.0`, `anchor 1.2.0`, `solana 3.1.10` installed.
+- **Next:** A2–A6 in s19, B1–B4 in s20, C0–C8 in s21 (see the stage files' first unchecked box). Only the user can: fund mainnet at C7 (≈ 3.5 SOL deployer + $50–100 USDC desk), apply Coolify env, decide whether to ask Pyth for `pyth-indices`.
+
+---
+
 # STATUS — updated 2026-09-22 ~16:40 UTC by Claude (**S16: the user's five complaints answered — six-figure books (D-123), the claim that read "The contract refused", the portfolio's first-call prompt, the fresh-Window wording, the dead leaderboard/traction routes; everything deployed by 16:50Z**)
 
 ## Session of 2026-09-22 16:20–16:40Z (the user's feedback pass) — READ THIS FIRST
