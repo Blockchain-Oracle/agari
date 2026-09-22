@@ -20,12 +20,13 @@ export const dynamic = "force-dynamic";
 
 const NO_STORE = { "cache-control": "private, no-store" };
 /**
- * One key serves ops (paced at `RPC_MAX_RPS`, D-030) and every browser through this route, and the provider answers
- * the sum with 429s: measured at the bell, four of eight `getSlot` calls through here were refused. So this process
- * takes a fixed slice — `PACE_RPS` a second, a short queue — and a caller past the queue gets a 429 of its own, which
- * the browser transport already retries with backoff. Ops keeps its share; the venue's sends come first.
+ * This key serves every browser through this route plus the server's own reads, and the provider answers the sum
+ * with 429s: measured at the bell, four of eight `getSlot` calls through here were refused while ops shared the key.
+ * Ops runs on its own key since 2026-09-22 14:52Z, so this process takes most of the allowance — `PACE_RPS` a second,
+ * a short queue — and a caller past the queue gets a 429 of its own, which the browser transport already retries with
+ * backoff. The rest is the server's: route handlers read the chain too.
  */
-const PACE_RPS = 4;
+const PACE_RPS = 8;
 const MAX_WAIT_MS = 1_500;
 let nextSlotMs = 0;
 
