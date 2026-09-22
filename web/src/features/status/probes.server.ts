@@ -145,8 +145,11 @@ export async function sponsorRow(): Promise<StatusPipeline> {
   try {
     const { value: status, elapsedMs } = await diagnose("sponsor", ({ step }) => step("Sponsor balance", () => gameSponsorStatus()));
     if (!status.configured) return notConfiguredRow("sponsor", label, STATUS.detail.sponsorOff);
-    const balance = formatBaseUnits(BigInt(status.balanceWei ?? "0"), LAMPORT_DECIMALS);
-    const envelope = formatBaseUnits(BigInt(status.deckEnvelopeWei), LAMPORT_DECIMALS);
+    // A balance that would not read is an outage, not an empty key: say so rather than print 0.00 (the D-098 lesson).
+    if (status.balanceWei === null) return down("sponsor", label, STATUS.detail.sponsorUnread, false, true, elapsedMs);
+    const balance = formatBaseUnits(BigInt(status.balanceWei), LAMPORT_DECIMALS);
+    // A deck's envelope is a few ten-thousandths of a SOL; two decimals would print it as nothing.
+    const envelope = formatBaseUnits(BigInt(status.deckEnvelopeWei), LAMPORT_DECIMALS, { maxDp: 5, minDp: 0 });
     const detail = STATUS.detail.sponsor(balance, envelope, status.ready);
     if (!status.ready) return down("sponsor", label, detail, false, true, elapsedMs);
     return pipelineRow("sponsor", label, { verdict: "good", detail, latencyMs: elapsedMs });

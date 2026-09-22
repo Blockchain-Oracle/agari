@@ -97,6 +97,7 @@ export const STATUS = {
 
     switchboard: "arrives with the token lane (S6)",
     sponsorOff: "no sponsor key on this deployment · seat keys pay their own fee",
+    sponsorUnread: "the sponsor's balance could not be read · seats fund themselves until it can",
     /** "0.29 SOL · a deck needs 0.02 SOL · ready" — the sponsor's balance against the widest deck's envelope. */
     sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} SOL · a deck needs ${envelope} SOL · ${ready ? "ready" : "below two decks, seats fund themselves"}`,
 
