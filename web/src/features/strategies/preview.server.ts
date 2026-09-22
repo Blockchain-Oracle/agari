@@ -53,7 +53,7 @@ export async function dryReadAgent(request: AgentPreviewRequest, nowMs: number):
   const spec: AgentSpec = { preset: "agent", persona: request.persona.trim(), posture: request.posture, cadences: [...new Set(request.cadences)].sort((a, b) => a - b) };
   if (!isSpec(spec)) return { ok: false, status: 400, error: DRY.badRequest };
 
-  const marketsEnv = parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_VENUE_ID });
+  const marketsEnv = parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_AGARI_VENUE_ID });
   ensureMarkets(marketsEnv);
   const venue = await resolveVenueId(marketsEnv.venueId);
   if (!isOk(venue) || !venue.value.venueId) return { ok: false, status: 502, error: DRY.unreadable };

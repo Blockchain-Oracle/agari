@@ -18,7 +18,7 @@ let cache: { payload: StrategiesPayload; atMs: number } | null = null;
 let inFlight: Promise<StrategiesPayload> | null = null;
 
 function boot(): void {
-  ensureMarkets(parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_VENUE_ID }));
+  ensureMarkets(parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_AGARI_VENUE_ID }));
 }
 
 function toFill(row: StrategyFillRecord): StrategyFill {
