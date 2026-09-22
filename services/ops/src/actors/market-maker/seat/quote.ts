@@ -66,11 +66,19 @@ export type MakerPhase = "quote" | "stop" | "pull";
 
 /**
  * `pull`: out of session, halted, stale spot, or within 120 s of the close: cancel everything.
- * `stop`: within 60 s of the Window's lock: cancel and quote no more. Otherwise `quote`.
+ * `stop`: within `STOP_BEFORE_LOCK_SEC` of the Window's lock: cancel and quote no more. Otherwise `quote`.
  */
 export function makerPhase(i: { nowSec: number; lockAtSec: number; inSession: boolean; closesAtSec: number | null; spotFresh: boolean }): MakerPhase {
   if (!i.inSession || !i.spotFresh) return "pull";
   if (i.closesAtSec !== null && i.nowSec >= i.closesAtSec - 120) return "pull";
-  if (i.nowSec >= i.lockAtSec - 60) return "stop";
+  if (i.nowSec >= i.lockAtSec - STOP_BEFORE_LOCK_SEC) return "stop";
   return "quote";
 }
+
+/**
+ * A quote expires at lock − 30 (`quoteExpirySec`, D-011), so one placed at lock − 60 lives 30 s on paper and less on
+ * chain: through the paced send lane after a boot, with 28 books re-quoting at once, the engine answered
+ * `OrderAlreadyExpired` (6107) for the 5m Windows' last placements on 2026-09-22 — a fee paid to rest nothing. Stopping
+ * at lock − 75 gives every quote at least 45 s to live; the last minute of a Window was never quoted anyway.
+ */
+export const STOP_BEFORE_LOCK_SEC = 75;
