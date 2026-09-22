@@ -2,8 +2,8 @@ import { DEFAULT_CLUSTER, type Cluster } from "@agari/core/constants";
 import { webEnv } from "@/lib/env";
 
 /**
- * Where the browser talks to Solana. The URLs are public devnet by default; the Helius key never reaches the browser
- * (S4 decides between `/api/rpc` and an allowlisted endpoint).
+ * Where the browser talks to Solana. The URLs are public devnet by default; the Helius key never reaches the browser.
+ * A hosted deployment sets `NEXT_PUBLIC_SOLANA_RPC_URL` to its own `/api/rpc`, which spends the server's key (D-035).
  */
 export const SOLANA_CLUSTER: Cluster = DEFAULT_CLUSTER;
 export const SOLANA_RPC_URL = webEnv.solanaRpcUrl;

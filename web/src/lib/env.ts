@@ -2,7 +2,7 @@ import { parseMarketsEnv, type MarketsEnv } from "@agari/markets/env";
 import { z } from "zod";
 
 const webOnlySchema = z.object({
-  /** Browser RPC. Never the Helius key: S4 decides between a proxy and an allowlisted endpoint. */
+  /** Browser RPC. Never the Helius key: a hosted deployment points this at the same-origin `/api/rpc` proxy (D-035, settled at S16). */
   solanaRpcUrl: z.url().default("https://api.devnet.solana.com"),
   solanaWsUrl: z.url().default("wss://api.devnet.solana.com"),
   appOrigin: z.url().default("http://localhost:3000"),

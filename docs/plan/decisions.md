@@ -1256,6 +1256,21 @@ The plan (`00-plan.md`) changes only through entries here. Format: `D-###`: date
 - **User-visible:** a player who names a key sees the deck's ceiling leave their wallet at entry and the unspent part come back as claimable credit after the picks, where the reference left it in the wallet throughout.
 - **Approval:** stage owner. A deviation from the reference's money flow, recorded for the user's override.
 
+### D-121 — The browser's Solana endpoint on a hosted deployment is the app's own `/api/rpc`
+
+**Settled 2026-09-22, closing what D-035 deferred: "browsers use `NEXT_PUBLIC_SOLANA_RPC_URL` … there is no `/api/rpc` proxy in S4; revisit at S16."**
+
+Public devnet (`api.devnet.solana.com`) is one shared, rate-limited endpoint for the whole internet. It is the right default for a checkout with no keys — the app boots and reads — but it is the wrong endpoint for a deployment with real visitors: every connected surface reads the chain on mount, and when those reads fail the surfaces say so honestly and look broken. On `useagari.xyz` this showed as **"X trading status unavailable · We could not verify your balance and trading permission"**, which is `useXGrant` reporting a vault snapshot it could not read.
+
+**Decision:** a hosted deployment points `NEXT_PUBLIC_SOLANA_RPC_URL` at its own origin's `/api/rpc`, which spends the server's `HELIUS_API_KEY` on the upstream call. The key never reaches the page, as with `/api/holdings` and the mainnet one.
+
+- **Allowlist, not deny-list.** The route is public; an open proxy to a paid provider is somebody else's budget. Twenty-three methods are served — the ones the browser lane calls, plus `sendTransaction` and `simulateTransaction`. Anything else is refused by name.
+- **The upstream answer rides through untouched**, status included, so a 429 still reads as a 429 to the browser transport's own retry.
+- **No error text is echoed.** The upstream URL carries the key and `fetch` failures quote the URL, so a failure is "the RPC endpoint did not answer".
+- **WebSockets are not proxied** — a Next route handler cannot. `NEXT_PUBLIC_SOLANA_WS_URL` stays on the public endpoint, which is what every operator client already does for subscriptions (D-030: "websockets on the public devnet endpoint when Helius websockets are refused"). Subscriptions are cheap; the reads were the problem.
+- **The alternative considered and not taken:** a Helius key restricted by allowed origin, shipped in the bundle. It needs no server hop, but it puts a live key in every page's source and depends on a dashboard setting no part of this repository can assert or check.
+
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
