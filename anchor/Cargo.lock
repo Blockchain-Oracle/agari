@@ -69,6 +69,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "agari-desk"
+version = "0.1.0"
+dependencies = [
+ "agari-common",
+ "anchor-lang",
+ "anchor-spl",
+ "bytemuck",
+ "pyth-solana-receiver-sdk",
+ "serde_json",
+ "solana-instructions-sysvar",
+ "solana-sha256-hasher",
+]
+
+[[package]]
 name = "agari-events"
 version = "0.1.0"
 dependencies = [
@@ -147,6 +161,14 @@ dependencies = [
  "anchor-spl",
  "bytemuck",
  "solana-sha256-hasher",
+]
+
+[[package]]
+name = "agari-swap-stub"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
 ]
 
 [[package]]

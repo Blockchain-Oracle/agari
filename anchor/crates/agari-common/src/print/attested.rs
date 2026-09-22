@@ -71,6 +71,12 @@ fn le16(data: &[u8], at: usize) -> usize {
 /// offset points into that same instruction (index `cur − 1` or `u16::MAX`: the known offsets attack), all ranges
 /// in bounds, and a 158 B message.
 pub fn parse_ed25519<'a>(program_id: &Pubkey, data: &'a [u8], current_index: u16) -> Result<Ed25519Signed<'a>, PrintError> {
+    parse_ed25519_len(program_id, data, current_index, ATTEST_MESSAGE_LEN)
+}
+
+/// `parse_ed25519` for any fixed message length: the desk's 114 B reference message (S21) shares the precompile
+/// rules with the 158 B print message; only the length the signer must have covered differs.
+pub fn parse_ed25519_len<'a>(program_id: &Pubkey, data: &'a [u8], current_index: u16, expected_len: usize) -> Result<Ed25519Signed<'a>, PrintError> {
     if *program_id != ED25519_PROGRAM_ID || current_index == 0 || data.len() < OFFSETS_END || data[0] != 1 {
         return Err(PrintError::BadAttestation);
     }
@@ -78,7 +84,7 @@ pub fn parse_ed25519<'a>(program_id: &Pubkey, data: &'a [u8], current_index: u16
     let (sig_off, sig_ix, key_off, key_ix, msg_off, msg_len, msg_ix) =
         (le16(data, 2), le16(data, 4), le16(data, 6), le16(data, 8), le16(data, 10), le16(data, 12), le16(data, 14));
     let points_here = |ix: usize| ix == own || ix == usize::from(u16::MAX);
-    if !(points_here(sig_ix) && points_here(key_ix) && points_here(msg_ix)) || msg_len != ATTEST_MESSAGE_LEN {
+    if !(points_here(sig_ix) && points_here(key_ix) && points_here(msg_ix)) || msg_len != expected_len {
         return Err(PrintError::BadAttestation);
     }
     let in_bounds = |off: usize, len: usize| off.checked_add(len).is_some_and(|end| end <= data.len());

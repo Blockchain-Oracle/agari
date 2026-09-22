@@ -51,6 +51,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "agari-desk"
+version = "0.1.0"
+dependencies = [
+ "agari-common",
+ "anchor-lang",
+ "anchor-spl",
+ "bytemuck",
+ "pyth-solana-receiver-sdk",
+ "solana-instructions-sysvar 3.0.1",
+ "solana-sha256-hasher",
+]
+
+[[package]]
 name = "agari-events"
 version = "0.1.0"
 dependencies = [
@@ -67,7 +80,9 @@ name = "agari-events-tests"
 version = "0.1.0"
 dependencies = [
  "agari-common",
+ "agari-desk",
  "agari-events",
+ "agari-swap-stub",
  "agari-vault",
  "anchor-lang",
  "anchor-spl",
@@ -77,6 +92,7 @@ dependencies = [
  "litesvm",
  "pyth-solana-receiver-sdk",
  "serde_json",
+ "sha2 0.10.9",
  "sha3",
  "solana-account",
  "solana-clock",
@@ -88,6 +104,15 @@ dependencies = [
  "solana-slot-hashes",
  "solana-transaction",
  "solana-transaction-error",
+ "spl-token-2022-interface",
+]
+
+[[package]]
+name = "agari-swap-stub"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
 ]
 
 [[package]]
