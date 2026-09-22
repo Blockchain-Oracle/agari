@@ -32,3 +32,10 @@ export * from "./proofs";
 export * from "./sponsor";
 export * from "./schema-sponsor";
 export * from "./follows";
+// S21 (D-126): the desk's records, paper ledger, approvals and grades.
+export * from "./schema-desk";
+export * from "./desk";
+export * from "./desk-records";
+export * from "./desk-approvals";
+export * from "./desk-grades";
+export * from "./desk-queries";
