@@ -1,0 +1,39 @@
+{
+  "note": "Shared vector for the desk's hash chain (desk.md §6): head = sha256(head ‖ seq LE u64 ‖ decision_hash) from a zero genesis. `hashing.test.ts` and `anchor/tests/desk_chain.rs` assert every step.",
+  "canonical": {
+    "body": {
+      "a": 1,
+      "b": "two",
+      "c": null,
+      "d": [
+        1,
+        2,
+        {
+          "e": true
+        }
+      ]
+    },
+    "json": "{\"a\":1,\"b\":\"two\",\"c\":null,\"d\":[1,2,{\"e\":true}]}",
+    "sha256": "0x8ab3f6a8a4f13c7b3ea7db52264653ad804e0c4066c112d3906f5e9cdeb6937c"
+  },
+  "steps": [
+    {
+      "seq": 1,
+      "decisionHash": "0x8ab3f6a8a4f13c7b3ea7db52264653ad804e0c4066c112d3906f5e9cdeb6937c",
+      "prevHead": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "head": "0x519ba41bdd24f6d76b6dc168999a021d4919a57189e4e402185242e27fb72e19"
+    },
+    {
+      "seq": 2,
+      "decisionHash": "0xc924b9a198f0b9a715f68008f43c5e0eecb7bf2afe2c8bd64df696b224c1b13f",
+      "prevHead": "0x519ba41bdd24f6d76b6dc168999a021d4919a57189e4e402185242e27fb72e19",
+      "head": "0xe601b0823cb458151521225318a3ef8c4893bc8ef508f8e1e44864bafbcaea44"
+    },
+    {
+      "seq": 3,
+      "decisionHash": "0x44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "prevHead": "0xe601b0823cb458151521225318a3ef8c4893bc8ef508f8e1e44864bafbcaea44",
+      "head": "0x4738348b008d484262d00281052fe9531f513fa5123d6a7742419c9f7533908a"
+    }
+  ]
+}
