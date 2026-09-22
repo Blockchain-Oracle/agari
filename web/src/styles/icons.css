@@ -27,6 +27,11 @@
   --brand-kalshi: #00C389;
   --brand-polymarket: #1652F0;
   --brand-figure: #F26522;
+  --brand-ailabs: #5B4BD6;
+  --brand-frontier: #0F766E;
+  --brand-predmkts: #B45309;
+  --brand-defspace: #1E3A5F;
+  --brand-preall: #4B5563;
 }
 .mark-tesla-disc { fill: var(--brand-tesla); }
 .mark-nvidia-disc { fill: var(--brand-nvidia); }
@@ -46,6 +51,11 @@
 .mark-kalshi-disc { fill: var(--brand-kalshi); }
 .mark-polymarket-disc { fill: var(--brand-polymarket); }
 .mark-figure-disc { fill: var(--brand-figure); }
+.mark-ailabs-disc { fill: var(--brand-ailabs); }
+.mark-frontier-disc { fill: var(--brand-frontier); }
+.mark-predmkts-disc { fill: var(--brand-predmkts); }
+.mark-defspace-disc { fill: var(--brand-defspace); }
+.mark-preall-disc { fill: var(--brand-preall); }
 /* The glyph and the typed monogram are white on the brand disc, as Bitcoin's ₿ is. */
 .mark-glyph { fill: #fff; }
 .mark-monogram { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 17px; text-anchor: middle; dominant-baseline: central; }

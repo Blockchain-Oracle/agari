@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { GAP_CADENCE_SEC, type LaneBasis } from "../types/market";
 import { toAddress, type Address, type Hash32 } from "../types/primitives";
+import { BASKET_SYMBOLS, BASKETS, type BasketSymbol } from "./baskets";
 
 /**
  * The equity universe Agari can list (plan §2.2, D-011).
@@ -15,7 +16,7 @@ import { toAddress, type Address, type Hash32 } from "../types/primitives";
 export const PRE_IPO_SYMBOLS = ["OPENAI", "ANTHROPIC", "SPACEX", "NEURALINK", "ANDURIL", "KALSHI", "POLYMARKET", "FIGUREAI"] as const;
 export type PreIpoSymbol = (typeof PRE_IPO_SYMBOLS)[number];
 
-export const TICKER_SYMBOLS = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "SPY", ...PRE_IPO_SYMBOLS] as const;
+export const TICKER_SYMBOLS = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "SPY", ...PRE_IPO_SYMBOLS, ...BASKET_SYMBOLS] as const;
 export type TickerSymbol = (typeof TICKER_SYMBOLS)[number];
 
 export const XSTOCK_SYMBOLS = ["TSLAx", "NVDAx", "SPYx", "QQQx"] as const;
@@ -57,6 +58,8 @@ export const BRAND_SLUGS = [
   "tesla", "nvidia", "apple", "microsoft", "meta", "amazon", "google", "invesco", "vanguard", "spdr",
   // Pre-IPO names (D-100): approximate brand colours, chosen for contrast under the typed monogram.
   "openai", "anthropic", "spacex", "neuralink", "anduril", "kalshi", "polymarket", "figure",
+  // Baskets (S19, D-124): composed marks over the member discs; the colour is the basket's own.
+  "ailabs", "frontier", "predmkts", "defspace", "preall",
 ] as const;
 export type BrandSlug = (typeof BRAND_SLUGS)[number];
 
@@ -79,7 +82,7 @@ export interface Ticker {
    */
   seriesId: number;
   name: string;
-  kind: "stock" | "etf" | "preIpo";
+  kind: "stock" | "etf" | "preIpo" | "basket";
   /** Alpaca calendar/bars symbol; null for a pre-IPO name, which no exchange lists. */
   alpacaSymbol: string | null;
   /** Pyth `Equity.US.<T>/USD` feed id (Hermes, fetched 2026-09-14). Only TSLA, QQQ and VOO are in the trial; null where Pyth has no feed. */
@@ -91,8 +94,10 @@ export interface Ticker {
   xstock: XStock | null;
   /** Mainnet mint verified 2026-09-15 (owner Token-2022, 9 dp, metadata symbol matches; C:01 §3.1). */
   ondo: OndoStock | null;
-  /** The PreStocks token for a pre-IPO name; null for every exchange-listed ticker. */
+  /** The PreStocks token for a pre-IPO name; null for every exchange-listed ticker and every basket. */
   preIpo: PreIpoToken | null;
+  /** The basket this row is (S19, D-124), whose members and index live in `baskets.ts`; null for every single name. */
+  basket: BasketSymbol | null;
   /** Typed on the asset disc when no glyph is drawn (the ETFs), and in the share text. */
   monogram: string;
   brand: Brand;
@@ -103,56 +108,72 @@ const ondo = (symbol: OndoSymbol, mint: string): OndoStock => ({ symbol, mint: t
 const brand = (slug: BrandSlug, hex: string): Brand => ({ slug, hex });
 const preIpo = (symbol: PreIpoSymbol, mint: string): PreIpoToken => ({ symbol, mint: toAddress(mint) });
 
+/**
+ * A basket row (S19, D-124): a registry ticker like any other so lanes, the roller, the maker, the hub and the cover
+ * card key it by symbol, with every single-name field null; its members, weights and index live in `baskets.ts`.
+ */
+const BASKET_ROWS: Readonly<Record<BasketSymbol, Ticker>> = Object.fromEntries(
+  BASKET_SYMBOLS.map((symbol) => {
+    const b = BASKETS[symbol];
+    const row: Ticker = {
+      symbol, seriesId: b.seriesId, name: b.name, kind: "basket", alpacaSymbol: null,
+      pythFeedId: null, redstoneFeedId: null, launch: false,
+      xstock: null, ondo: null, preIpo: null, basket: symbol, monogram: b.monogram, brand: b.brand,
+    };
+    return [symbol, row] as const;
+  }),
+) as Record<BasketSymbol, Ticker>;
+
 export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
   TSLA: {
     symbol: "TSLA", seriesId: 1, name: "Tesla", kind: "stock", alpacaSymbol: "TSLA",
     pythFeedId: "0x16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1", redstoneFeedId: "TSLA", launch: true,
-    xstock: xstock("TSLAx", "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "TSLAX/USD"), ondo: ondo("TSLAon", "KeGv7bsfR4MheC1CkmnAVceoApjrkvBhHYjWb67ondo"), preIpo: null, monogram: "T", brand: brand("tesla", "#CC0000"),
+    xstock: xstock("TSLAx", "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "TSLAX/USD"), ondo: ondo("TSLAon", "KeGv7bsfR4MheC1CkmnAVceoApjrkvBhHYjWb67ondo"), preIpo: null, basket: null, monogram: "T", brand: brand("tesla", "#CC0000"),
   },
   NVDA: {
     symbol: "NVDA", seriesId: 2, name: "NVIDIA", kind: "stock", alpacaSymbol: "NVDA",
     pythFeedId: "0xb1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593", redstoneFeedId: "NVDA", launch: true,
-    xstock: xstock("NVDAx", "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "NVDAX/USD"), ondo: ondo("NVDAon", "gEGtLTPNQ7jcg25zTetkbmF7teoDLcrfTnQfmn2ondo"), preIpo: null, monogram: "N", brand: brand("nvidia", "#76B900"),
+    xstock: xstock("NVDAx", "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "NVDAX/USD"), ondo: ondo("NVDAon", "gEGtLTPNQ7jcg25zTetkbmF7teoDLcrfTnQfmn2ondo"), preIpo: null, basket: null, monogram: "N", brand: brand("nvidia", "#76B900"),
   },
   AAPL: {
     symbol: "AAPL", seriesId: 3, name: "Apple", kind: "stock", alpacaSymbol: "AAPL",
     pythFeedId: "0x49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688", redstoneFeedId: "AAPL", launch: true,
-    xstock: null, ondo: null, preIpo: null, monogram: "A", brand: brand("apple", "#111111"),
+    xstock: null, ondo: null, preIpo: null, basket: null, monogram: "A", brand: brand("apple", "#111111"),
   },
   MSFT: {
     symbol: "MSFT", seriesId: 4, name: "Microsoft", kind: "stock", alpacaSymbol: "MSFT",
     pythFeedId: "0xd0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1", redstoneFeedId: "MSFT", launch: true,
-    xstock: null, ondo: null, preIpo: null, monogram: "M", brand: brand("microsoft", "#0078D4"),
+    xstock: null, ondo: null, preIpo: null, basket: null, monogram: "M", brand: brand("microsoft", "#0078D4"),
   },
   META: {
     symbol: "META", seriesId: 5, name: "Meta", kind: "stock", alpacaSymbol: "META",
     pythFeedId: "0x78a3e3b8e676a8f73c439f5d749737034b139bbbe899ba5775216fba596607fe", redstoneFeedId: "META", launch: true,
-    xstock: null, ondo: null, preIpo: null, monogram: "M", brand: brand("meta", "#0467DF"),
+    xstock: null, ondo: null, preIpo: null, basket: null, monogram: "M", brand: brand("meta", "#0467DF"),
   },
   AMZN: {
     symbol: "AMZN", seriesId: 6, name: "Amazon", kind: "stock", alpacaSymbol: "AMZN",
     pythFeedId: "0xb5d0e0fa58a1f8b81498ae670ce93c872d14434b72c364885d4fa1b257cbb07a", redstoneFeedId: "AMZN", launch: true,
-    xstock: null, ondo: null, preIpo: null, monogram: "A", brand: brand("amazon", "#FF9900"),
+    xstock: null, ondo: null, preIpo: null, basket: null, monogram: "A", brand: brand("amazon", "#FF9900"),
   },
   GOOGL: {
     symbol: "GOOGL", seriesId: 7, name: "Alphabet", kind: "stock", alpacaSymbol: "GOOGL",
     pythFeedId: "0x5a48c03e9b9cb337801073ed9d166817473697efff0d138874e0f6a33d6d5aa6", redstoneFeedId: "GOOGL", launch: true,
-    xstock: null, ondo: null, preIpo: null, monogram: "G", brand: brand("google", "#4285F4"),
+    xstock: null, ondo: null, preIpo: null, basket: null, monogram: "G", brand: brand("google", "#4285F4"),
   },
   QQQ: {
     symbol: "QQQ", seriesId: 8, name: "Invesco QQQ", kind: "etf", alpacaSymbol: "QQQ",
     pythFeedId: "0x9695e2b96ea7b3859da9ed25b7a46a920a776e2fdae19a7bcfdf2b219230452d", redstoneFeedId: null, launch: true,
-    xstock: xstock("QQQx", "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "QQQX/USD"), ondo: ondo("QQQon", "HrYNm6jTQ71LoFphjVKBTdAE4uja7WsmLG8VxB8ondo"), preIpo: null, monogram: "Q", brand: brand("invesco", "#0A2240"),
+    xstock: xstock("QQQx", "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "QQQX/USD"), ondo: ondo("QQQon", "HrYNm6jTQ71LoFphjVKBTdAE4uja7WsmLG8VxB8ondo"), preIpo: null, basket: null, monogram: "Q", brand: brand("invesco", "#0A2240"),
   },
   VOO: {
     symbol: "VOO", seriesId: 9, name: "Vanguard S&P 500", kind: "etf", alpacaSymbol: "VOO",
     pythFeedId: "0x236b30dd09a9c00dfeec156c7b1efd646c0f01825a1758e3e4a0679e3bdff179", redstoneFeedId: null, launch: true,
-    xstock: null, ondo: null, preIpo: null, monogram: "V", brand: brand("vanguard", "#96151D"),
+    xstock: null, ondo: null, preIpo: null, basket: null, monogram: "V", brand: brand("vanguard", "#96151D"),
   },
   SPY: {
     symbol: "SPY", seriesId: 10, name: "SPDR S&P 500", kind: "etf", alpacaSymbol: "SPY",
     pythFeedId: "0x19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5", redstoneFeedId: null, launch: false,
-    xstock: xstock("SPYx", "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "SPYX/USD"), ondo: ondo("SPYon", "k18WJUULWheRkSpSquYGdNNmtuE2Vbw1hpuUi92ondo"), preIpo: null, monogram: "S", brand: brand("spdr", "#1F3A5F"),
+    xstock: xstock("SPYx", "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "SPYX/USD"), ondo: ondo("SPYon", "k18WJUULWheRkSpSquYGdNNmtuE2Vbw1hpuUi92ondo"), preIpo: null, basket: null, monogram: "S", brand: brand("spdr", "#1F3A5F"),
   },
   /**
    * The first pre-IPO listing (D-100/D-101). Series id 910 matches `PRESTOCKS_TICKER_BASE`. No Alpaca symbol, no Pyth
@@ -162,51 +183,52 @@ export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
   OPENAI: {
     symbol: "OPENAI", seriesId: 910, name: "OpenAI", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("OPENAI", "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF"),
+    xstock: null, ondo: null, preIpo: preIpo("OPENAI", "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF"), basket: null,
     monogram: "O", brand: brand("openai", "#412991"),
   },
   ANTHROPIC: {
     symbol: "ANTHROPIC", seriesId: 911, name: "Anthropic", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("ANTHROPIC", "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw"),
+    xstock: null, ondo: null, preIpo: preIpo("ANTHROPIC", "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw"), basket: null,
     monogram: "A", brand: brand("anthropic", "#D97757"),
   },
   SPACEX: {
     symbol: "SPACEX", seriesId: 912, name: "SpaceX", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("SPACEX", "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh"),
+    xstock: null, ondo: null, preIpo: preIpo("SPACEX", "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh"), basket: null,
     monogram: "S", brand: brand("spacex", "#005288"),
   },
   NEURALINK: {
     symbol: "NEURALINK", seriesId: 913, name: "Neuralink", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("NEURALINK", "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S"),
+    xstock: null, ondo: null, preIpo: preIpo("NEURALINK", "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S"), basket: null,
     monogram: "N", brand: brand("neuralink", "#111111"),
   },
   ANDURIL: {
     symbol: "ANDURIL", seriesId: 914, name: "Anduril", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("ANDURIL", "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB"),
+    xstock: null, ondo: null, preIpo: preIpo("ANDURIL", "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB"), basket: null,
     monogram: "A", brand: brand("anduril", "#1F2A44"),
   },
   KALSHI: {
     symbol: "KALSHI", seriesId: 915, name: "Kalshi", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("KALSHI", "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua"),
+    xstock: null, ondo: null, preIpo: preIpo("KALSHI", "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua"), basket: null,
     monogram: "K", brand: brand("kalshi", "#00C389"),
   },
   POLYMARKET: {
     symbol: "POLYMARKET", seriesId: 916, name: "Polymarket", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("POLYMARKET", "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP"),
+    xstock: null, ondo: null, preIpo: preIpo("POLYMARKET", "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP"), basket: null,
     monogram: "P", brand: brand("polymarket", "#1652F0"),
   },
   FIGUREAI: {
     symbol: "FIGUREAI", seriesId: 917, name: "Figure AI", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
-    xstock: null, ondo: null, preIpo: preIpo("FIGUREAI", "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd"),
+    xstock: null, ondo: null, preIpo: preIpo("FIGUREAI", "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd"), basket: null,
     monogram: "F", brand: brand("figure", "#F26522"),
   },
+  ...BASKET_ROWS,
 };
 
 /** Series ids 11 (COIN) and 12 (MSTR) are reserved for the deferred tickers; they return with a signed source. */
@@ -216,6 +238,11 @@ export const LAUNCH_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((sy
 export const TOKEN_LANE_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].xstock !== null);
 /** Pre-IPO names: no exchange listing, so no NYSE clock and no signed equity source (D-100). */
 export const PRE_IPO_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].preIpo !== null);
+/** Baskets of pre-IPO names (S19): like a pre-IPO name they list only on the 24/7 lane, on an index the venue signs. */
+export const BASKET_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].basket !== null);
+
+/** A kind that has no exchange session and so lists only on the 24/7 token lane: a pre-IPO name or a basket of them. */
+export const isTokenOnlyKind = (kind: Ticker["kind"]): boolean => kind === "preIpo" || kind === "basket";
 
 /**
  * Tokenized shares of a launch ticker that no lane prices: a wallet holding one hedges the underlying's Regular or Gap
@@ -275,12 +302,12 @@ export const SHARE_TOKENS: readonly ShareToken[] = [
  * token lane exists for it: the roller, the maker and the lane keys all refuse it on Regular and Gap. The drive-only
  * Series 910 (OPENAI, basis Regular) is what this guards against — rolled on the NYSE clock it would void every Window.
  */
-export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => TICKERS[symbol].kind !== "preIpo" || basis === "token";
+export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => !isTokenOnlyKind(TICKERS[symbol].kind) || basis === "token";
 
-/** The asset a 24/7 Window prices (D-103): the xStock of a listed ticker, the PreStocks token of a pre-IPO name, else null. */
-export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | null {
+/** The asset a 24/7 Window prices (D-103): the xStock of a listed ticker, the PreStocks token of a pre-IPO name, the basket itself, else null. */
+export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | BasketSymbol | null {
   const t = TICKERS[symbol];
-  return t.xstock?.symbol ?? t.preIpo?.symbol ?? null;
+  return t.xstock?.symbol ?? t.preIpo?.symbol ?? t.basket ?? null;
 }
 
 export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: number): string {
@@ -308,8 +335,8 @@ export function parseLaneKey(key: string): LaneKeyParts | null {
   if (!minutes) return null;
   const cadenceSec = Number(minutes[1]) * 60;
   if (cadenceSec <= 0) return null;
-  // A bare pre-IPO symbol is its 24/7 lane (it has no other), a bare listed ticker is its Regular lane.
-  if (isTickerSymbol(asset)) return { symbol: asset, basis: TICKERS[asset].kind === "preIpo" ? "token" : "regular", cadenceSec };
+  // A bare pre-IPO or basket symbol is its 24/7 lane (it has no other), a bare listed ticker is its Regular lane.
+  if (isTickerSymbol(asset)) return { symbol: asset, basis: isTokenOnlyKind(TICKERS[asset].kind) ? "token" : "regular", cadenceSec };
   const underlying = TICKER_SYMBOLS.map((s) => TICKERS[s]).find((t) => t.xstock?.symbol === asset);
   return underlying ? { symbol: underlying.symbol, basis: "token", cadenceSec } : null;
 }

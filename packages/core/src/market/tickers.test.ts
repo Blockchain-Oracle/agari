@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isHash32 } from "../types/primitives";
-import { LAUNCH_TICKERS, PRE_IPO_SYMBOLS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock } from "./tickers";
+import { BASKET_SYMBOLS, BASKETS } from "./baskets";
+import { BASKET_TICKERS, isTokenOnlyKind, LAUNCH_TICKERS, PRE_IPO_SYMBOLS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock, tokenLaneAsset } from "./tickers";
 
 describe("ticker registry", () => {
   it("gives every ticker a distinct, u16, never-reserved series id (it is part of every Series address)", () => {
@@ -17,7 +18,7 @@ describe("ticker registry", () => {
     expect(LAUNCH_TICKERS).toEqual(["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO"]);
     expect(TOKEN_LANE_TICKERS).toEqual(["TSLA", "NVDA", "QQQ", "SPY"]);
     // Every exchange-listed ticker carries a well-formed Pyth feed id; a pre-IPO name has no listing, so it has none.
-    const listed = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].kind !== "preIpo");
+    const listed = TICKER_SYMBOLS.filter((symbol) => !isTokenOnlyKind(TICKERS[symbol].kind));
     expect(listed.every((symbol) => isHash32(TICKERS[symbol].pythFeedId))).toBe(true);
     expect(tickerOfXStock("SPYx").symbol).toBe("SPY");
   });
@@ -36,10 +37,32 @@ describe("ticker registry", () => {
       expect(t.preIpo?.symbol).toBe(symbol);
     }
     // Every exchange-listed ticker is the reverse: no PreStocks token, and an Alpaca symbol.
-    for (const symbol of TICKER_SYMBOLS.filter((s) => TICKERS[s].kind !== "preIpo")) {
+    for (const symbol of TICKER_SYMBOLS.filter((s) => !isTokenOnlyKind(TICKERS[s].kind))) {
       expect(TICKERS[symbol].preIpo).toBeNull();
+      expect(TICKERS[symbol].basket).toBeNull();
       expect(TICKERS[symbol].alpacaSymbol).not.toBeNull();
     }
+  });
+
+  it("models a basket as a token-only ticker with no feed of its own and no PreStocks token (S19, D-124)", () => {
+    expect(BASKET_TICKERS).toEqual([...BASKET_SYMBOLS]);
+    for (const symbol of BASKET_SYMBOLS) {
+      const t = TICKERS[symbol];
+      expect(t.kind).toBe("basket");
+      expect(t.seriesId).toBe(BASKETS[symbol].seriesId);
+      expect(t.alpacaSymbol).toBeNull();
+      expect(t.pythFeedId).toBeNull();
+      expect(t.redstoneFeedId).toBeNull();
+      expect(t.xstock).toBeNull();
+      expect(t.ondo).toBeNull();
+      expect(t.preIpo).toBeNull();
+      expect(t.launch).toBe(false);
+      expect(t.basket).toBe(symbol);
+      expect(tokenLaneAsset(symbol)).toBe(symbol);
+      // A basket has no wallet token of its own: the cover card reaches it through its held members.
+      expect(SHARE_TOKENS.some((token) => token.underlying === symbol)).toBe(false);
+    }
+    for (const symbol of PRE_IPO_TICKERS) expect(TICKERS[symbol].basket).toBeNull();
   });
 
   // Impostor "TSLAx" mints exist (C:13 §5), so the holdings reader keys by mint alone: a repeated or mistyped mint would
@@ -59,12 +82,12 @@ describe("ticker registry", () => {
 describe("parseLaneKey", () => {
   it("inverts laneKey for every basis", async () => {
     const { laneKey, parseLaneKey } = await import("./tickers");
-    for (const symbol of TICKER_SYMBOLS.filter((s) => TICKERS[s].kind !== "preIpo")) {
+    for (const symbol of TICKER_SYMBOLS.filter((s) => !isTokenOnlyKind(TICKERS[s].kind))) {
       for (const cadenceSec of [300, 900, 3600]) expect(parseLaneKey(laneKey(symbol, "regular", cadenceSec))).toEqual({ symbol, basis: "regular", cadenceSec });
       expect(parseLaneKey(laneKey(symbol, "gap", 604_800))).toEqual({ symbol, basis: "gap", cadenceSec: 604_800 });
     }
     // A pre-IPO name has only the 24/7 lane: its bare symbol parses as token, and its Regular/Gap keys name no lane (D-103).
-    for (const symbol of PRE_IPO_TICKERS) {
+    for (const symbol of [...PRE_IPO_TICKERS, ...BASKET_TICKERS]) {
       expect(parseLaneKey(laneKey(symbol, "token", 3600))).toEqual({ symbol, basis: "token", cadenceSec: 3600 });
       expect(laneKey(symbol, "regular", 300)).toBe(`#${symbol}-regular-300`);
       expect(parseLaneKey(laneKey(symbol, "regular", 300))).toBeNull();

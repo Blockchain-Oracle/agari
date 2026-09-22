@@ -1,5 +1,5 @@
 import { phase } from "../lifecycle";
-import { TICKERS, type TickerSymbol } from "../market/tickers";
+import { isTokenOnlyKind, TICKERS, type TickerSymbol } from "../market/tickers";
 import type { EventMarket, LaneBasis } from "../types";
 import type { XInstruction } from "./parse";
 
@@ -47,7 +47,7 @@ export function selectXWindow(markets: readonly EventMarket[], instruction: Pick
  * onto TSLAX.
  */
 export function actionLane(asset: TickerSymbol): LaneBasis {
-  return TICKERS[asset].kind === "preIpo" ? "token" : "regular";
+  return isTokenOnlyKind(TICKERS[asset].kind) ? "token" : "regular";
 }
 
 /**

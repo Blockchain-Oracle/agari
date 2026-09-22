@@ -1,7 +1,7 @@
-import { addDays, etDateOf, TICKER_SYMBOLS, TICKERS, tickerSymbolSchema } from "@agari/core/market";
+import { addDays, etDateOf, isTokenOnlyKind, TICKER_SYMBOLS, TICKERS, tickerSymbolSchema } from "@agari/core/market";
 
 /** A pre-IPO name has no exchange listing, so no company wire and no earnings date exist for it (D-100). */
-const LISTED = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].kind !== "preIpo");
+const LISTED = TICKER_SYMBOLS.filter((symbol) => !isTokenOnlyKind(TICKERS[symbol].kind));
 import { NextResponse, type NextRequest } from "next/server";
 import type { EarningsPayload } from "@/features/news/protocol";
 import { earningsWithin, finnhubConfigured } from "@/lib/finnhub.server";
