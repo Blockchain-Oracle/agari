@@ -16,6 +16,7 @@ import { startLeverageKeeper } from "./actors/leverage-keeper";
 import { startMarketMaker } from "./actors/market-maker";
 import { startSeedMaker } from "./actors/market-maker/seat";
 import { startPriceRelay } from "./actors/price-relay";
+import { startPythEntitlement } from "./actors/pyth-entitlement";
 import { startSettler } from "./actors/settler";
 import { startStrategyRunner } from "./actors/strategy-runner";
 import { startWindowRoller } from "./actors/window-roller";
@@ -26,7 +27,8 @@ import { startOpsHttp } from "./http/server";
 import type { SpotFeed } from "./prices/spot";
 import { createXStockSpotFeed, joinXStockSpot } from "./prices/xstock-spot";
 import { createPreStocksSpotFeed, joinPreStocksSpot, PRESTOCKS_SPOT_EVERY_MS, type PreStocksSpotHandle } from "./prices/prestocks-spot";
-import { createHaltBoard, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
+import { createPythIndexSpotFeed, joinPythIndexSpot, type PythIndexSpotHandle } from "./prices/pyth-index-spot";
+import { createHaltBoard, createPythEntitlementStore, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
 
 const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
@@ -71,7 +73,10 @@ const sessions = createSessionService();
 // S6 (session-lanes.md §3): halt-watch is the halt board's only writer; the events reader serves corporate actions and earnings.
 const halts = createHaltBoard();
 const events = createSessionEvents();
-const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot, halts, events });
+// S20 (D-125): one entitlement store per process; `pyth-entitlement` writes it, the relay, roller, maker and `/session` read it.
+const pythIndex = createPythEntitlementStore({ key: process.env.PYTH_API_KEY || undefined, log: log("pyth-entitlement") });
+const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot, halts, events, pythIndex });
+if (actors.has("relay") || actors.has("roller")) void boot("pyth-entitlement", () => startPythEntitlement(deps("pyth-entitlement")));
 
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.
 const relay = actors.has("relay") ? await boot("price-relay", () => startPriceRelay(deps("price-relay"))) : null;
@@ -80,6 +85,7 @@ const spot = relay?.spot ?? null;
 // symbols; halt-watch keeps the relay's own feed. Keyless lite-api (0.5 RPS) serves the 5 s poll when no key is set.
 let marketSpot: SpotFeed | null = spot;
 let prestocksSpot: PreStocksSpotHandle | null = null;
+let pythIndexSpot: PythIndexSpotHandle | null = null;
 if (actors.has("maker") || actors.has("http")) {
   if (!process.env.JUPITER_API_KEY) log("xstock-spot")("JUPITER_API_KEY not set: polling keyless lite-api.jup.ag; the token maker pulls while Jupiter fails");
   const xstockSpot = createXStockSpotFeed({ log: log("xstock-spot"), apiKey: process.env.JUPITER_API_KEY || undefined });
@@ -88,9 +94,12 @@ if (actors.has("maker") || actors.has("http")) {
   prestocksSpot = createPreStocksSpotFeed({ log: log("prestocks-spot") });
   prestocksSpot.start();
   log("prestocks-spot")(`polling the PreStocks catalogue every ${PRESTOCKS_SPOT_EVERY_MS / 1000} s for ${prestocksSpot.symbols().join(",")}`);
-  marketSpot = joinPreStocksSpot(joinXStockSpot(spot, xstockSpot), prestocksSpot);
+  // S20: the valuation indices, polled only while entitled, joined under the valuation lanes' symbols (OPENAIV, ANTHROPICV).
+  pythIndexSpot = createPythIndexSpotFeed({ store: pythIndex, key: process.env.PYTH_API_KEY || undefined, log: log("pyth-index-spot") });
+  pythIndexSpot.start();
+  marketSpot = joinPythIndexSpot(joinPreStocksSpot(joinXStockSpot(spot, xstockSpot), prestocksSpot), pythIndexSpot);
 }
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: marketSpot, prestocks: prestocksSpot, sessions, halts, events, env, log: log("http") }));
+if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: marketSpot, prestocks: prestocksSpot, pythIndex: { store: pythIndex, spot: pythIndexSpot }, sessions, halts, events, env, log: log("http") }));
 if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
 if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
 if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));

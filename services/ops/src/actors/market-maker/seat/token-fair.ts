@@ -12,6 +12,7 @@ import { currentPreStocksSpot, type PreStocksSpotFeed } from "../../../prices/pr
 import { currentXStockSpot, type XStockSpotFeed } from "../../../prices/xstock-spot";
 import { fairYesTicks, TRADING_YEAR_SEC } from "./fair";
 import type { LaneQuote, LaneQuoteInput } from "./lane-quote";
+import { valuationQuote } from "./valuation-fair";
 
 const CALENDAR_YEAR_SEC = 365 * 86_400;
 /** The spot at a Window's start may be sampled up to this long after T (the feed polls every 5 s). */
@@ -23,6 +24,7 @@ const PRE_IPO_START_WINDOW_SEC = 30;
 export const tradingSecondsOf = (sec: number) => Math.floor((Math.max(0, sec) * TRADING_YEAR_SEC) / CALENDAR_YEAR_SEC);
 
 export function tokenQuote(input: LaneQuoteInput, spotFeed: XStockSpotFeed | null = currentXStockSpot(), preFeed: PreStocksSpotFeed | null = currentPreStocksSpot()): LaneQuote {
+  if (TICKERS[input.symbol].kind === "valuation") return valuationQuote(input);
   if (TICKERS[input.symbol].preIpo) return preIpoQuote(input, preFeed);
   const cap = input.env.tokenMaxCashPerWindow;
   const pull = (why: string): LaneQuote => ({ phase: "pull", fairTicks: null, maxCashPerWindow: cap, why });

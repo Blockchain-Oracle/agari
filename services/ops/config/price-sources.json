@@ -37,6 +37,18 @@
     "lastCoveredClose": "2026-09-25T20:00:00Z",
     "trialEnds": "about 2026-09-27 (14 days from activation on 2026-09-13; exact time in Pyth Terminal)"
   },
+  "pythIndex": {
+    "_doc": [
+      "S20 (D-125): Pyth's 24/7 Equity.Index.<NAME>/USD valuation indices for the pre-IPO names, each on its own valuation lane (OPENAIV 930, ANTHROPICV 931; basis token, 60 m). Feed ids are NEVER written here: they come from the registry (packages/core/src/market/valuation.ts, Ticker.pythIndexFeedId) through pythIndexPolicyVersions() in @agari/markets/deploy, and never join tickers.<SYM>.pythFeedId above.",
+      "Entitlement is per key and per group (verified 2026-09-22: the trial key answers 403 `pyth-indices` for both indices, 200 for TSLA). ops' pyth-entitlement actor probes each feed hourly; the relay refuses an unentitled index before fetching, the roller lists a valuation lane only while entitled (`paused: no signed source (Pyth feed not entitled)` otherwise), and scripts/deploy/init-valuation-series.ts refuses to register while denied. Nothing here switches a lane on: a key with `pyth-indices` does, with no deploy.",
+      "defaults: graceSec 60 (the index publishes at its own cadence, unmeasured until entitled; tightened once measured), maxConfBps 200 (a valuation index is wider than an equity print), admissionSec 900. One open-ended version per lane."
+    ],
+    "defaults": { "graceSec": 60, "maxConfBps": 200, "admissionSec": 900 },
+    "tickers": {
+      "OPENAIV": { "versions": [{ "version": 1, "validFrom": "2026-09-22T00:00:00Z", "validUntil": null, "primary": "pyth", "check": null }] },
+      "ANTHROPICV": { "versions": [{ "version": 1, "validFrom": "2026-09-22T00:00:00Z", "validUntil": null, "primary": "pyth", "check": null }] }
+    }
+  },
   "tickers": {
     "TSLA": {
       "pythFeedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",

@@ -26,7 +26,7 @@ const gapSeries = (symbol: string, over: Partial<PlanSeries> = {}): PlanSeries =
   versions: policyVersions(symbol, SOURCES, "gap").map(versionWindow), freeBooks: ["GapBook"], ...over,
 });
 const clock = (at: string, over: Partial<PlanClock> = {}): PlanClock => ({
-  calendar: calendarAt(utc(at)), nowSec: utc(at), leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], ...over,
+  calendar: calendarAt(utc(at)), nowSec: utc(at), leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], pythUsable: () => true, ...over,
 });
 const spanOf = (plan: ReturnType<typeof planGapSeries>) => ("window" in plan ? [iso(plan.window.tradingStartSec), iso(plan.window.lockAtSec), iso(plan.window.expirySec)] : null);
 

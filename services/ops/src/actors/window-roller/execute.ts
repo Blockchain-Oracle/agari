@@ -219,6 +219,8 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
     minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(),
     multipliers: deps.events.multipliers(), halts: deps.halts.board(),
     prelist: state.settings.prelist, prelistCadencesSec: state.settings.prelistCadencesSec,
+    // S20: a Pyth version lists only on a feed the key may read; trial feeds always, a valuation index while entitled.
+    pythUsable: (feedIdHex) => deps.pythIndex.usable(feedIdHex),
   };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;

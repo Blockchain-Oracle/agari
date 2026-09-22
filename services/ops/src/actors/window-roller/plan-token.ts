@@ -6,11 +6,12 @@
  *
  * A token Window's opening print is copied from the previous close (`public_copy_open_from_prev`) or printed from a
  * Switchboard quote inside `[T + 10, T + 60]`, so a late open still has to leave the relay `PRINT_MARGIN_SEC` before
- * `open_deadline`; after downtime the next aligned Window is the candidate.
+ * `open_deadline`; after downtime the next aligned Window is the candidate. A valuation lane (S20) lists only while its
+ * Pyth index is entitled (`clock.pythUsable`); otherwise it reads `paused: no signed source (Pyth feed not entitled)`.
  */
 import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, tokenLaneAsset, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
-import { describeVersion, highestCoveringVersion, openPrintsAdmissible } from "./versions";
+import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, usableBy } from "./versions";
 
 /** The earliest Window at or after `lastExpirySec` that can still be opened and take its opening print. */
 export function nextTokenCandidate(series: PlanSeries, clock: PlanClock): ScheduledWindow {
@@ -19,7 +20,7 @@ export function nextTokenCandidate(series: PlanSeries, clock: PlanClock): Schedu
   const windows = tokenWindows(from, Math.max(from, clock.nowSec) + clock.leadSec + 2 * cadence, cadence);
   const ok = windows.find((w) => {
     if (w.tradingStartSec < series.lastExpirySec || w.lockAtSec - clock.nowSec < clock.minTradableSec) return false;
-    const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
+    const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
     return version === null || openPrintsAdmissible(series.versions[version]!, w, clock.nowSec, PRINT_MARGIN_SEC);
   });
   // `windows` always spans more than one cadence past the clock, so a later Window always qualifies.
@@ -44,8 +45,8 @@ export function planTokenSeries(series: PlanSeries, clock: PlanClock): SeriesPla
   const passSec = w.lockAtSec - clock.minTradableSec + 1;
   const paused = pauseReason(series, w, clock);
   if (paused) return { kind: "paused", window: w, wakeSec: passSec, state: paused };
-  const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
-  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: "paused: no signed source" };
+  const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
+  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock)) };
   const book = series.freeBooks[0];
   if (!book) return { kind: "blocked", window: w, state: "waiting: no free book" };
   return {

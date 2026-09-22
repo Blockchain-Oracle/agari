@@ -22,6 +22,7 @@ import { createSessionService } from "../../services/ops/src/calendar/session-se
 import { DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC, DEFAULT_PRELIST_CADENCES_SEC } from "../../services/ops/src/actors/window-roller/plan";
 import { planGapSeries } from "../../services/ops/src/actors/window-roller/plan-gap";
 import { versionWindow } from "../../services/ops/src/actors/window-roller/versions";
+import { isPythIndexFeed } from "../../services/ops/src/runtime/pyth-entitlement";
 import { addressesFor, arg, endpoints, readJson, redactKey, roleSecret, sol } from "../deploy/ops-cluster";
 import type { DriveEnv } from "./events-cycle";
 import { liveGapCycle } from "./gap-live";
@@ -107,7 +108,7 @@ async function plan() {
     key: spec.key, symbol: spec.symbol, cadenceSec: s.cadenceSec, maxLeadSec: s.maxLeadSec, nextIndex: s.nextIndex, lastExpirySec: Number(s.lastExpiry),
     versions: s.policyVersions.slice(0, s.versionCount).map(versionWindow), freeBooks: s.freeBooks.slice(0, s.freeBookCount),
   };
-  const clock = { calendar: sessions.calendar(), nowSec: clockSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC, minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: DEFAULT_PRELIST_CADENCES_SEC };
+  const clock = { calendar: sessions.calendar(), nowSec: clockSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC, minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: DEFAULT_PRELIST_CADENCES_SEC, pythUsable: (hex: string) => !isPythIndexFeed(hex) };
   const result = planGapSeries(planSeries, clock);
   console.log(`  roller plan @ ${iso(clockSec)}: ${result.state}`);
   return result;

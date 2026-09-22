@@ -35,12 +35,13 @@ export async function startPriceRelay(deps: VenueDeps): Promise<PriceRelayHandle
   const { env, log, sessions } = deps;
   const sources = loadRelaySources();
   const pythKey = process.env.PYTH_API_KEY || undefined;
-  const cache = new BoundaryCache(sources, pythKey);
+  // S20: the valuation indices' entitlement guards every index fetch; a 403 there is recorded, never latched.
+  const cache = new BoundaryCache(sources, pythKey, deps.pythIndex);
   const spot = createSpotFeed({ sources, pythKey, log: (why) => log(`[spot] ${why}`) });
   spot.start();
   const stops: Array<() => void> = [spot.stop];
 
-  const archive = { sources, cache, sessions, pythEnabled: Boolean(pythKey), unavailable: new Set<string>(), counters: { redstoneRows: 0, pythRows: 0, unavailable: 0 }, log };
+  const archive = { sources, cache, sessions, pythEnabled: Boolean(pythKey), entitlement: deps.pythIndex, unavailable: new Set<string>(), counters: { redstoneRows: 0, pythRows: 0, unavailable: 0 }, log };
   stops.push(runActor({ name: "price-archive", log: (why) => log(`[archive] ${why}`), dryRun: false, everyMs: 10_000, pass: () => archivePass(archive) }).stop);
 
   const secret = roleSecret("price-relay");

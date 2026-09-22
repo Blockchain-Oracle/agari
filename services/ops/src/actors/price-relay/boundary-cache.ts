@@ -4,6 +4,7 @@
  * lets a primary record before its strict window ends), then freezes; Pyth caches the first answer that carries
  * every requested feed.
  */
+import { isPythIndexFeed, type PythEntitlementStore } from "../../runtime/pyth-entitlement";
 import { fetchPythAt, type PythBoundary } from "./hermes-fetch";
 import { feedAt, fetchRedstoneAt, type GatewayResponse } from "./redstone-fetch";
 import type { RelaySources } from "./sources";
@@ -18,12 +19,12 @@ const PYTH_BACKOFF_MS = 5_000;
 const PYTH_BACKOFF_MAX_MS = 60_000;
 
 type RedstoneEntry = { response: GatewayResponse | null; lastTryMs: number; frozen: boolean; inflight: Promise<GatewayResponse | null> | null; error: string | null };
-type PythEntry = { boundary: PythBoundary | null; lastTryMs: number; status: number; inflight: Promise<PythBoundary | null> | null };
+type PythEntry = { boundary: PythBoundary | null; lastTryMs: number; status: number; inflight: Promise<PythBoundary | null> | null; refusal: string | null };
 
 export class BoundaryCache {
   private readonly redstoneByT = new Map<number, RedstoneEntry>();
   private readonly pythByKey = new Map<string, PythEntry>();
-  /** Set once Hermes refuses the key (the trial ended): Pyth fetches stop. */
+  /** Set once Hermes refuses the key on a trial feed (the trial ended): Pyth fetches stop. A valuation index never sets it (S20). */
   pythAuthFailed = false;
   /** Hermes REST pacing shared by recording and archiving: 1 s apart, backing off on HTTP 429. */
   private pythNotBeforeMs = 0;
@@ -32,7 +33,23 @@ export class BoundaryCache {
   constructor(
     private readonly sources: RelaySources,
     private readonly pythKey: string | undefined,
+    /** The valuation indices' entitlement (S20, D-125); null refuses every index feed, so nothing gated is ever fetched by accident. */
+    private readonly entitlement: PythEntitlementStore | null = null,
   ) {}
+
+  /**
+   * Why these feeds may not be asked of Hermes right now, or null (S20). A valuation index is fetched only while the
+   * store says `entitled`, and only in a request of its own: a 403 on a mixed request would read as the key dying.
+   */
+  indexRefusal(feedIds: readonly string[]): string | null {
+    const index = feedIds.filter(isPythIndexFeed);
+    if (index.length === 0) return null;
+    if (index.length !== feedIds.length) return "a valuation index is never fetched in the same request as a trial feed";
+    const denied = index.find((id) => this.entitlement?.state(id) !== "entitled");
+    if (denied === undefined) return null;
+    const feed = this.entitlement?.feed(denied);
+    return `${feed?.symbol ?? denied.slice(0, 8)} index not entitled${feed?.status ? ` (${feed.status}${feed.reason ? ` ${feed.reason}` : ""})` : ""}`;
+  }
 
   private complete(response: GatewayResponse, tSec: number): boolean {
     return this.sources.redstoneFeeds.every((f) => (feedAt(response.text, f.feed, tSec, this.sources.redstoneSigners)?.packages.length ?? 0) >= this.sources.redstoneSignerCount);
@@ -70,10 +87,14 @@ export class BoundaryCache {
     if (!this.pythKey || this.pythAuthFailed) return null;
     const ids = [...feedIds].sort();
     const key = `${tSec}:${ids.join(",")}`;
-    const entry = this.pythByKey.get(key) ?? { boundary: null, lastTryMs: 0, status: 0, inflight: null };
+    const entry = this.pythByKey.get(key) ?? { boundary: null, lastTryMs: 0, status: 0, inflight: null, refusal: null };
     this.pythByKey.set(key, entry);
     if (entry.boundary) return entry.boundary;
     if (entry.inflight) return entry.inflight;
+    // Refused before any request leaves: an unentitled index cannot answer 403 here, so `pythAuthFailed` cannot latch on it.
+    entry.refusal = this.indexRefusal(ids);
+    if (entry.refusal) return null;
+    const indexOnly = ids.every(isPythIndexFeed);
     if (Date.now() - entry.lastTryMs < 2_000 || Date.now() < this.pythNotBeforeMs) return null;
     entry.lastTryMs = Date.now();
     this.pythNotBeforeMs = Date.now() + PYTH_SPACING_MS;
@@ -81,7 +102,9 @@ export class BoundaryCache {
       .then((result) => {
         if (!result.ok) {
           entry.status = result.status;
-          if (result.authFailed) this.pythAuthFailed = true;
+          // A refusal on an index-only request is that feed's entitlement, recorded in the store; on a trial feed it is the key.
+          if (result.authFailed && indexOnly) for (const id of ids) this.entitlement?.markDenied(id, result.status);
+          else if (result.authFailed) this.pythAuthFailed = true;
           if (result.status === 429) {
             this.pythNotBeforeMs = Date.now() + this.pythBackoffMs;
             this.pythBackoffMs = Math.min(this.pythBackoffMs * 2, PYTH_BACKOFF_MAX_MS);
@@ -105,6 +128,11 @@ export class BoundaryCache {
 
   pythStatus(tSec: number, feedIds: readonly string[]): number {
     return this.pythByKey.get(`${tSec}:${[...feedIds].sort().join(",")}`)?.status ?? 0;
+  }
+
+  /** The reason the last `pyth()` for these feeds was refused before fetching (S20), or null. */
+  pythRefusal(tSec: number, feedIds: readonly string[]): string | null {
+    return this.pythByKey.get(`${tSec}:${[...feedIds].sort().join(",")}`)?.refusal ?? null;
   }
 
   /** Drops boundaries older than a day. */

@@ -17,6 +17,7 @@ import { planByBasis } from "../../services/ops/src/actors/window-roller/plan-ba
 import { gapSpanOf } from "../../services/ops/src/actors/window-roller/plan-gap";
 import { createSessionEvents } from "../../services/ops/src/runtime/session-events";
 import { versionWindow } from "../../services/ops/src/actors/window-roller/versions";
+import { isPythIndexFeed } from "../../services/ops/src/runtime/pyth-entitlement";
 import { arg, clusterArg, endpoints, readJson, redactKey, roleSecret } from "../deploy/ops-cluster";
 
 process.on("uncaughtException", (e) => {
@@ -39,11 +40,12 @@ console.log(`roller plan at ${new Date(atSec * 1000).toISOString()} on ${cluster
 const sources = readJson<PriceSources>("services/ops/config/price-sources.json");
 const onChain = new Map((await listSeries(client)).filter((s) => s.symbol && seriesBasis(s)).map((s) => [seriesLaneKey(s), s]));
 const events = createSessionEvents();
-// No halt-watch runs here: the printed plan assumes no asset is halted at `--at`.
+// No halt-watch and no entitlement probe run here: the printed plan assumes no asset is halted at `--at`, and a
+// valuation index (S20) counts as not entitled, so a valuation lane prints as paused rather than as a Window it might not settle.
 const clock = {
   calendar: sessions.calendar(), nowSec: atSec, leadSec: DEFAULT_LEAD_SEC, gapLeadSec: DEFAULT_GAP_LEAD_SEC,
   minTradableSec: DEFAULT_MIN_TRADABLE_SEC, skips: events.skips(), multipliers: events.multipliers(), halts: {},
-  prelist: DEFAULT_PRELIST, prelistCadencesSec: DEFAULT_PRELIST_CADENCES_SEC,
+  prelist: DEFAULT_PRELIST, prelistCadencesSec: DEFAULT_PRELIST_CADENCES_SEC, pythUsable: (hex: string) => !isPythIndexFeed(hex),
 };
 
 const launch = TICKER_SYMBOLS.filter((s) => TICKERS[s].launch);

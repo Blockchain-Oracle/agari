@@ -6,11 +6,11 @@ import { getDb, indexReader, indexWriter } from "@agari/db";
 import { createSessionService } from "../calendar/session-service";
 import { backfillOnce } from "../actors/indexer/backfill";
 import { createIndexer, startIndexer } from "../actors/indexer";
-import { createHaltBoard, createSessionEvents, readOpsEnv, redact } from "../runtime";
+import { createHaltBoard, createPythEntitlementStore, createSessionEvents, readOpsEnv, redact } from "../runtime";
 
 const env = readOpsEnv();
 const log = (why: string) => console.log(JSON.stringify({ tsMs: Date.now(), actor: "indexer", why: redact(why) }));
-const deps = { env, log, sessions: createSessionService(), spot: null, halts: createHaltBoard(), events: createSessionEvents() };
+const deps = { env, log, sessions: createSessionService(), spot: null, halts: createHaltBoard(), events: createSessionEvents(), pythIndex: createPythEntitlementStore({ key: process.env.PYTH_API_KEY || undefined, log }) };
 
 if (process.argv.includes("--rebuild")) {
   const db = getDb();

@@ -15,7 +15,7 @@ import {
   type TickerSymbol,
 } from "@agari/core/market";
 import type { CorporateSkip, HaltBoard, MultiplierChange } from "@agari/core/types";
-import { describeVersion, highestCoveringVersion, openPrintsAdmissible, type VersionWindow } from "./versions";
+import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, usableBy, type VersionWindow } from "./versions";
 
 /** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */
 export const BOUNDARY_KIND_U8: Record<BoundaryKind, number> = { Intraday: 0, SessionOpen: 1, SessionClose: 2 };
@@ -55,6 +55,8 @@ export interface PlanClock {
   multipliers: readonly MultiplierChange[];
   /** `deps.halts.board()` at plan time: keyed by ticker for Regular/Gap, by xStock for token (session-lanes.md §3.1). */
   halts: HaltBoard;
+  /** Whether a Pyth version naming this feed may list (S20): a trial feed always, a valuation index only while the key is entitled. */
+  pythUsable: (feedIdHex: string) => boolean;
 }
 
 export type SeriesPlan =
@@ -119,7 +121,7 @@ export function nextCandidate(series: PlanSeries, clock: PlanClock): ScheduledWi
     windows.find((w) => {
       if (w.tradingStartSec < series.lastExpirySec || w.lockAtSec - clock.nowSec < clock.minTradableSec) return false;
       // An uncovered Window stays the candidate so the lane reports "paused"; a covered one must still take its open prints.
-      const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
+      const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
       return version === null || openPrintsAdmissible(series.versions[version]!, w, clock.nowSec, PRINT_MARGIN_SEC);
     }) ?? null
   );
@@ -143,8 +145,8 @@ export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
   if (halt) return { kind: "paused", window: w, wakeSec: passSec, state: haltPausedState(halt) };
   const action = corporateActionFor({ symbol: series.symbol as TickerSymbol, lane: "regular", window: w }, clock.skips);
   if (action) return { kind: "paused", window: w, wakeSec: passSec, state: corporatePausedState(action.why) };
-  const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec);
-  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: "paused: no signed source" };
+  const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
+  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock)) };
   const book = series.freeBooks[0];
   if (!book) return { kind: "blocked", window: w, state: "waiting: no free book" };
   return {

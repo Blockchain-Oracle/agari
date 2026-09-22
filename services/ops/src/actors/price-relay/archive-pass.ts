@@ -6,8 +6,10 @@
 import { archivedKeys, archivePrints, isDbConfigured } from "@agari/db";
 import type { SessionService } from "../../calendar/session-service";
 import type { PassResult } from "../../runtime/actor";
+import type { PythEntitlementStore } from "../../runtime/pyth-entitlement";
 import type { BoundaryCache } from "./boundary-cache";
 import { pythRows } from "./pyth-archive";
+import { archiveIndexFeeds } from "./pyth-index-archive";
 import { redstoneRows } from "./redstone-archive";
 import type { RelaySources } from "./sources";
 
@@ -23,9 +25,11 @@ export interface ArchiveContext {
   cache: BoundaryCache;
   sessions: SessionService;
   pythEnabled: boolean;
+  /** The valuation indices' entitlement (S20): only an entitled index is archived, around the clock, alone in its request. */
+  entitlement?: PythEntitlementStore | null;
   /** `"<source>:<feed>:<T>"` the source no longer has (fetched after T + 60 with nothing): not retried. */
   unavailable: Set<string>;
-  counters: { redstoneRows: number; pythRows: number; unavailable: number };
+  counters: { redstoneRows: number; pythRows: number; unavailable: number; pythIndexRows?: number };
   log: (why: string) => void;
 }
 
@@ -94,13 +98,18 @@ export async function archivePass(ctx: ArchiveContext): Promise<PassResult> {
     }
     pyNew += (await archivePrints(pythRows(boundary, pyHave))) ?? 0;
   }
+  // S20: the valuation indices, 24/7, only while entitled (nothing today), never in the trial feeds' request.
+  const index = pythOn ? await archiveIndexFeeds({ store: ctx.entitlement, cache: ctx.cache, fromSec: from, toSec: wall - FETCH_AFTER_SEC, unavailable: ctx.unavailable }) : { rows: 0, missing: 0, notes: [] };
+  notes.push(...index.notes);
   ctx.counters.redstoneRows += rsNew;
   ctx.counters.pythRows += pyNew;
-  const backlog = Math.max(0, rsMissing.length - REDSTONE_PER_PASS) + Math.max(0, pyMissing.length - PYTH_PER_PASS);
+  ctx.counters.pythIndexRows = (ctx.counters.pythIndexRows ?? 0) + index.rows;
+  const backlog = Math.max(0, rsMissing.length - REDSTONE_PER_PASS) + Math.max(0, pyMissing.length - PYTH_PER_PASS) + Math.max(0, index.missing - 1);
   const waiting = notes.some((n) => n.includes("waiting") || n.includes("not available") || n.includes("no response"));
+  const indexText = index.missing || index.rows ? `, Pyth index ${index.missing}` : "";
   return {
-    why: `archived ${rsNew} RedStone + ${pyNew} Pyth rows · ${times.length} boundaries in view · missing RedStone ${rsMissing.length}, Pyth ${pyMissing.length}${notes.length ? ` | ${notes.join(" | ")}` : ""}`,
-    detail: { ...ctx.counters, boundaries: times.length, redstoneMissing: rsMissing.length, pythMissing: pyMissing.length },
+    why: `archived ${rsNew} RedStone + ${pyNew} Pyth${index.rows ? ` + ${index.rows} Pyth index` : ""} rows · ${times.length} boundaries in view · missing RedStone ${rsMissing.length}, Pyth ${pyMissing.length}${indexText}${notes.length ? ` | ${notes.join(" | ")}` : ""}`,
+    detail: { ...ctx.counters, boundaries: times.length, redstoneMissing: rsMissing.length, pythMissing: pyMissing.length, pythIndexMissing: index.missing },
     nextDelayMs: backlog > 0 ? 1_500 : waiting ? 3_000 : idleDelay,
   };
 }

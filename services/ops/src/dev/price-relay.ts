@@ -13,7 +13,7 @@ import { createSessionService } from "../calendar/session-service";
 import { startOpsHttp } from "../http/server";
 import { errorText, readOpsEnv, redact } from "../runtime/env";
 import { roleSecret } from "../runtime/keys";
-import { createHaltBoard, createSessionEvents } from "../runtime";
+import { createHaltBoard, createPythEntitlementStore, createSessionEvents } from "../runtime";
 
 const arg = (name: string) => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : undefined);
 const env = readOpsEnv();
@@ -71,7 +71,7 @@ if (open) {
 
 const sessions = createSessionService();
 log("calendar")(await sessions.refresh());
-const relay = await startPriceRelay({ env, log: log("price-relay"), sessions, spot: null, halts: createHaltBoard(), events: createSessionEvents() });
+const relay = await startPriceRelay({ env, log: log("price-relay"), sessions, spot: null, halts: createHaltBoard(), events: createSessionEvents(), pythIndex: createPythEntitlementStore({ key: process.env.PYTH_API_KEY || undefined, log: log("pyth-entitlement") }) });
 const http = await startOpsHttp({ port: env.httpPort, spot: relay.spot, env, log: log("http") });
 process.on("SIGINT", () => {
   relay.stop();

@@ -7,6 +7,7 @@
 import { emptySlots, inBatches, recordPythBoundary, recordRedstoneSlot, type PrintSlot, type SlotOutcome } from "@agari/markets/ops/prints";
 import type { OpsClient } from "@agari/markets/ops";
 import type { PassResult } from "../../runtime/actor";
+import { isPythIndexFeed } from "../../runtime/pyth-entitlement";
 import { recordAttested, type AttestedContext } from "./attest-sign";
 import type { BoundaryCache } from "./boundary-cache";
 import { gapArchivePass } from "./gap-slots";
@@ -108,7 +109,8 @@ async function pythBoundary(ctx: RelayContext, tSec: number, slots: PrintSlot[])
   const boundary = await ctx.cache.pyth(tSec, feeds);
   if (!boundary) {
     const status = ctx.cache.pythStatus(tSec, feeds);
-    return `pyth T ${iso(tSec)}: ${ctx.cache.pythAuthFailed ? "Hermes refused the key (trial over?)" : `no update yet${status ? ` (HTTP ${status})` : ""}`}`;
+    const refusal = ctx.cache.pythRefusal(tSec, feeds);
+    return `pyth T ${iso(tSec)}: ${refusal ?? (ctx.cache.pythAuthFailed ? "Hermes refused the key (trial over?)" : `no update yet${status ? ` (HTTP ${status})` : ""}`)}`;
   }
   if (ctx.dryRun) return `DRY pyth T ${iso(tSec)}: would post ${feeds.length} feed(s) and record ${slots.map(short).join(", ")}`;
   try {
@@ -174,10 +176,12 @@ export async function relayPass(ctx: RelayContext): Promise<PassResult> {
   const regular = gap.taken.size ? due.filter((s) => !gap.taken.has(slotKey(s))) : due;
   const fetchable = (s: PrintSlot, after: number) => wall >= s.boundarySec + after;
   const redstone = groupByT(regular.filter((s) => s.source === "redstone" && fetchable(s, REDSTONE_FETCH_AFTER_SEC)));
-  const pyth = groupByT(regular.filter((s) => s.source === "pyth" && fetchable(s, PYTH_FETCH_AFTER_SEC)));
+  // A valuation index (S20) is grouped apart from the trial feeds: its request is its own, so a refusal on it never latches the key.
+  const pythDue = regular.filter((s) => s.source === "pyth" && fetchable(s, PYTH_FETCH_AFTER_SEC));
+  const pyth = new Map([...groupByT(pythDue.filter((s) => !isPythIndexFeed(s.feedIdHex))), ...[...groupByT(pythDue.filter((s) => isPythIndexFeed(s.feedIdHex)))].map(([t, slots]) => [-t, slots] as const)]);
   const attested = regular.filter((s) => s.source === "attested");
   for (const [tSec, slots] of redstone) lines.push(await redstoneBoundary(ctx, tSec, slots, chainNow));
-  for (const [tSec, slots] of pyth) lines.push(await pythBoundary(ctx, tSec, slots));
+  for (const [tSec, slots] of pyth) lines.push(await pythBoundary(ctx, Math.abs(tSec), slots));
   if (ctx.attested && attested.length) lines.push(await recordAttested(ctx, ctx.attested, attested, chainNow));
   ctx.cache.prune(wall);
   const waitingFetch = regular.length - [...redstone.values(), ...pyth.values()].flat().length - attested.length;

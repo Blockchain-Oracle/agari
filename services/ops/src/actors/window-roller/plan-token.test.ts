@@ -5,13 +5,13 @@ import type { VersionWindow } from "./versions";
 
 // Sat 2026-09-19 14:00:00Z: a weekend, when only the token lane trades.
 const SAT = 1_789_826_400;
-const V1: VersionWindow[] = [{ validFromSec: 1_789_430_400, validUntilSec: null, primarySource: 3, checkSource: 0, openAdmissionSec: 60, checkAdmissionSec: 0 }];
+const V1: VersionWindow[] = [{ validFromSec: 1_789_430_400, validUntilSec: null, primarySource: 3, checkSource: 0, openAdmissionSec: 60, checkAdmissionSec: 0, primaryFeedIdHex: "" }];
 
 const series = (over: Partial<PlanSeries> = {}): PlanSeries => ({
   key: "TSLAx-5m", symbol: "TSLA", cadenceSec: 300, maxLeadSec: 400_000, nextIndex: 4n, lastExpirySec: 0, versions: V1, freeBooks: ["BookA", "BookB"], ...over,
 });
 const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({
-  calendar: null, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], ...over,
+  calendar: null, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], pythUsable: () => true, ...over,
 });
 
 describe("window-roller token plan", () => {
@@ -56,7 +56,7 @@ describe("window-roller token plan", () => {
 });
 
 describe("window-roller token plan for a pre-IPO name (D-103)", () => {
-  const ATTESTED: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 4, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0 }];
+  const ATTESTED: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 4, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0, primaryFeedIdHex: "" }];
   it("rolls OPENAI-60m on its PreStocks token without an xStock, and pauses a listed ticker that has neither", () => {
     const openai = planTokenSeries(series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: ATTESTED, lastExpirySec: SAT }), clock(SAT - 60));
     expect(openai.kind).toBe("open");

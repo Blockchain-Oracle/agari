@@ -11,16 +11,16 @@ const WED = sessionAt("2026-09-30", 570, 960);
 const CALENDAR: SessionCalendar = { fromDate: "2026-09-21", toDate: "2026-10-09", sessions: [FRI, MON, TUE, WED], unknownDates: [] };
 const TRIAL_END = FRI.closeSec;
 const TSLA: VersionWindow[] = [
-  { validFromSec: FRI.openSec - 86_400 * 14, validUntilSec: TRIAL_END, primarySource: 1, checkSource: 2, openAdmissionSec: 900, checkAdmissionSec: 120 },
-  { validFromSec: TRIAL_END, validUntilSec: null, primarySource: 2, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0 },
+  { validFromSec: FRI.openSec - 86_400 * 14, validUntilSec: TRIAL_END, primarySource: 1, checkSource: 2, openAdmissionSec: 900, checkAdmissionSec: 120, primaryFeedIdHex: "" },
+  { validFromSec: TRIAL_END, validUntilSec: null, primarySource: 2, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0, primaryFeedIdHex: "" },
 ];
 const QQQ: VersionWindow[] = [TSLA[0]!];
-const NVDA: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 2, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0 }];
+const NVDA: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 2, checkSource: 0, openAdmissionSec: 900, checkAdmissionSec: 0, primaryFeedIdHex: "" }];
 
 const series = (over: Partial<PlanSeries> = {}): PlanSeries => ({
   key: "TSLA-5m", symbol: "TSLA", cadenceSec: 300, maxLeadSec: 400_000, nextIndex: 7n, lastExpirySec: 0, versions: TSLA, freeBooks: ["BookA", "BookB"], ...over,
 });
-const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({ calendar: CALENDAR, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], ...over });
+const clock = (nowSec: number, over: Partial<PlanClock> = {}): PlanClock => ({ calendar: CALENDAR, nowSec, leadSec: 120, gapLeadSec: 172_800, minTradableSec: 60, skips: [], multipliers: [], halts: {}, prelist: true, prelistCadencesSec: [300, 900, 3_600], pythUsable: () => true, ...over });
 
 describe("window-roller plan", () => {
   it("opens the session's first Window within the lead, as SessionOpen on the covering trial version", () => {
