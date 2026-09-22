@@ -102,3 +102,59 @@ describe("parseLaneKey", () => {
     for (const key of ["", "TSLA", "TSLA-", "-5m", "COIN-5m", "TSLA-1h", "TSLA-0m", "AAPLx-5m", "tsla-5m"]) expect(parseLaneKey(key)).toBeNull();
   });
 });
+
+describe("valuation lanes (S20, D-125)", () => {
+  it("models a valuation lane as its own token-only ticker on Pyth's index, with the pre-IPO name's own feed untouched", async () => {
+    const { VALUATION_TICKERS, pythIndexFeedOf, laneKey, parseLaneKey } = await import("./tickers");
+    const { PYTH_INDEX_FEEDS, VALUATION_SYMBOLS } = await import("./valuation");
+    expect(VALUATION_TICKERS).toEqual([...VALUATION_SYMBOLS]);
+    expect(VALUATION_TICKERS).toEqual(["OPENAIV", "ANTHROPICV"]);
+    const trialFeeds = new Set(TICKER_SYMBOLS.flatMap((s) => (TICKERS[s].pythFeedId ? [TICKERS[s].pythFeedId] : [])));
+    for (const symbol of VALUATION_TICKERS) {
+      const t = TICKERS[symbol];
+      expect(t.kind).toBe("valuation");
+      expect(t.valuationOf).not.toBeNull();
+      expect(t.seriesId).toBeGreaterThanOrEqual(930);
+      // Its own Series id, because the Series PDA is (ticker, cadence, basis) and the token lane holds 910/3600/token.
+      expect(t.seriesId).not.toBe(TICKERS[t.valuationOf!].seriesId);
+      // The index is well-formed, is the same id the pre-IPO name carries, and is never a trial feed.
+      expect(isHash32(t.pythIndexFeedId)).toBe(true);
+      expect(t.pythIndexFeedId).toBe(PYTH_INDEX_FEEDS[t.valuationOf!]);
+      expect(pythIndexFeedOf(symbol)).toBe(pythIndexFeedOf(t.valuationOf!));
+      expect(trialFeeds.has(t.pythIndexFeedId!)).toBe(false);
+      // Never `pythFeedId`: that field is what the trial feed list, the spot stream and `symbolOfPythFeed` key on.
+      expect(t.pythFeedId).toBeNull();
+      expect(t.alpacaSymbol).toBeNull();
+      expect(t.redstoneFeedId).toBeNull();
+      expect(t.xstock).toBeNull();
+      expect(t.ondo).toBeNull();
+      expect(t.preIpo).toBeNull();
+      expect(t.basket).toBeNull();
+      expect(t.launch).toBe(false);
+      expect(t.monogram).toBe("V");
+      expect(isTokenOnlyKind(t.kind)).toBe(true);
+      expect(tokenLaneAsset(symbol)).toBe(symbol);
+      expect(SHARE_TOKENS.some((token) => token.underlying === symbol)).toBe(false);
+      // Its lane key is its own, and parses back as the 24/7 lane.
+      expect(laneKey(symbol, "token", 3600)).toBe(`${symbol}-60m`);
+      expect(parseLaneKey(`${symbol}-60m`)).toEqual({ symbol, basis: "token", cadenceSec: 3600 });
+      expect(parseLaneKey(laneKey(symbol, "regular", 300))).toBeNull();
+    }
+    expect(parseLaneKey("OPENAIV-60m")).toEqual({ symbol: "OPENAIV", basis: "token", cadenceSec: 3600 });
+    // The two indices are distinct from each other and from every trial feed.
+    const indices = VALUATION_TICKERS.map((s) => TICKERS[s].pythIndexFeedId);
+    expect(new Set(indices).size).toBe(indices.length);
+    // A pre-IPO name carries its index (or null) and stays off Pyth's print path; nothing else carries one.
+    for (const symbol of PRE_IPO_TICKERS) {
+      expect(TICKERS[symbol].pythFeedId).toBeNull();
+      expect(TICKERS[symbol].valuationOf).toBeNull();
+      expect(TICKERS[symbol].pythIndexFeedId).toBe(PYTH_INDEX_FEEDS[symbol as keyof typeof PYTH_INDEX_FEEDS] ?? null);
+    }
+    expect(pythIndexFeedOf("OPENAI")).not.toBeNull();
+    expect(pythIndexFeedOf("SPACEX")).toBeNull();
+    for (const symbol of TICKER_SYMBOLS.filter((s) => !isTokenOnlyKind(TICKERS[s].kind) || TICKERS[s].basket)) {
+      expect(TICKERS[symbol].pythIndexFeedId).toBeNull();
+      expect(TICKERS[symbol].valuationOf).toBeNull();
+    }
+  });
+});

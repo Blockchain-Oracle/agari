@@ -3,7 +3,8 @@
  * `proof-replay`, read back, checked in integers against the print that settled the Window, and stored so the proof
  * page keeps the decode after the accounts close. No Market is touched.
  */
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, type Ticker, type TickerSymbol } from "@agari/core/market";
+import type { Hash32 } from "@agari/core/types";
 import { closePythUpdates, postPythUpdates, PYTH_RECEIVER_PROGRAM_ID, type PythPostResult } from "../prices/legacy";
 import { keypairAddress } from "../sessions/keypair";
 import { readPostedAccount, type PostedAccount } from "./chain";
@@ -37,16 +38,22 @@ export type ReplayOutcome =
 
 const bareHex = (id: string) => id.replace(/^0x/, "").toLowerCase();
 
-/** The registry ticker whose Pyth feed this is; the trial update carries TSLA, QQQ and VOO. A pre-IPO name has no feed. */
+/** The Pyth feed a ticker's prints carry: its trial feed, or for a valuation lane (S20) the valuation index it settles on. Null for a pre-IPO name. */
+const printFeedOf = (t: Ticker): Hash32 | null => t.pythFeedId ?? (t.kind === "valuation" ? t.pythIndexFeedId : null);
+
+/** The registry ticker whose Pyth feed this is; the trial update carries TSLA, QQQ and VOO, a valuation lane its index. A pre-IPO name has no feed. */
 export function symbolOfPythFeed(feedHex: string): TickerSymbol | null {
   const want = bareHex(feedHex);
-  const hit = Object.values(TICKERS).find((t) => t.pythFeedId !== null && bareHex(t.pythFeedId) === want);
+  const hit = Object.values(TICKERS).find((t) => {
+    const feed = printFeedOf(t);
+    return feed !== null && bareHex(feed) === want;
+  });
   return hit?.symbol ?? null;
 }
 
 export function pythFeedOf(symbol: string | null): string | null {
   if (!symbol || !(symbol in TICKERS)) return null;
-  const id = TICKERS[symbol as TickerSymbol].pythFeedId;
+  const id = printFeedOf(TICKERS[symbol as TickerSymbol]);
   return id === null ? null : bareHex(id);
 }
 

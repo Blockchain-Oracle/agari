@@ -3,9 +3,12 @@ import { addressSchema } from "@agari/core/types";
 import { proofRows } from "@agari/db";
 import { BadRequest, type IndexQuery } from "./queries";
 
-/** Ticker → Pyth feed hex (no `0x`), the `print_archive.feed` of a Pyth print; `@agari/db` does not import core. */
+/** Ticker → Pyth feed hex (no `0x`), the `print_archive.feed` of a Pyth print: the trial feed, or a valuation lane's index (S20); `@agari/db` does not import core. */
 const PYTH_FEEDS: Readonly<Record<string, string>> = Object.fromEntries(
-  Object.values(TICKERS).flatMap((t) => (t.pythFeedId ? [[t.symbol, t.pythFeedId.replace(/^0x/, "").toLowerCase()]] : [])),
+  Object.values(TICKERS).flatMap((t) => {
+    const feed = t.pythFeedId ?? (t.kind === "valuation" ? t.pythIndexFeedId : null);
+    return feed ? [[t.symbol, feed.replace(/^0x/, "").toLowerCase()]] : [];
+  }),
 );
 
 /** No print is admitted later than 900 s after its boundary (the missing-print void deadline); past it the set is final. */

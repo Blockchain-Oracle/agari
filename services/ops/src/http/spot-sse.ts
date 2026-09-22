@@ -49,13 +49,15 @@ const wire = (q: SpotQuote, nowSec: number) => toWire(q.symbol, q.priceE8.toStri
 
 /**
  * The archive keys a ticker's prints are stored under: RedStone by ticker, Pyth by lower-case feed id without `0x`.
- * Each only where the source exists — a pre-IPO name has neither, so it has no archive keys and no spot quote here.
+ * Each only where the source exists — a pre-IPO name has neither, so it has no archive keys and no spot quote here. A
+ * valuation lane (S20) archives under its Pyth index; the name it prices keeps reading PreStocks, never the index.
  */
 function archiveKeys(symbol: TickerSymbol): Array<{ source: PrintArchiveSource; feed: string }> {
   const t = TICKERS[symbol];
+  const pyth = t.pythFeedId ?? (t.kind === "valuation" ? t.pythIndexFeedId : null);
   return [
     ...(t.redstoneFeedId ? [{ source: "redstone" as const, feed: t.redstoneFeedId }] : []),
-    ...(t.pythFeedId ? [{ source: "pyth" as const, feed: t.pythFeedId.toLowerCase().replace(/^0x/, "") }] : []),
+    ...(pyth ? [{ source: "pyth" as const, feed: pyth.toLowerCase().replace(/^0x/, "") }] : []),
   ];
 }
 
