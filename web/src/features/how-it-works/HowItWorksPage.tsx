@@ -1,6 +1,7 @@
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { MARKETS_PATH } from "@/lib/routes";
+import { BasketsAndDesk } from "./BasketsAndDesk";
 import { HOW_IT_WORKS } from "./copy";
 import { Faq } from "./Faq";
 import { Mechanics } from "./Mechanics";
@@ -22,7 +23,8 @@ import { Steps } from "./Steps";
  * Two sections are ours (D-081, D-093): the reference's venue traded crypto, which never
  * closes, so it has nothing to say about a market clock, a lane, a halt or a void. Those
  * go in `SessionLanes` and `Asides`, drawn only with classes the reference's stylesheet
- * already defines, in the places the reading order wants them.
+ * already defines, in the places the reading order wants them. Two more, "Baskets" and
+ * "How the Desk Decides" (S19, S21), follow the money rules in `BasketsAndDesk`.
  *
  * The reference mounts its own Header and a `router.push` back button; the root
  * shell already carries the chrome, and the back control is a plain link.
@@ -52,6 +54,7 @@ export function HowItWorksPage() {
           <Mechanics />
           <Settlement />
           <Asides />
+          <BasketsAndDesk />
           <Faq />
 
           <section className="hiw-card hiw-card-mint hiw-cta hiw-rise" style={riseDelay(0, 700)} aria-label={HOW_IT_WORKS.cta.title}>

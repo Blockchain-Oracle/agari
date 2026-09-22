@@ -225,7 +225,8 @@ export const SLIDES_A: Slide[] = [
             <div className="pitch-proof-sub">{P.rightSub}</div>
           </Rise>
         </div>
-        <Rise i={5} className="pitch-provenance">
+        <SpecPanel i={5} title={P.rowsTitle} badge={P.rowsBadge} wide rows={[P.rows[0], [P.rows[1][0], P.rows[1][1], true], P.rows[2], [P.rows[3][0], P.rows[3][1], true]]} />
+        <Rise i={6} className="pitch-provenance">
           <Mono tone="mute">
             {P.provenance} {shortAddr(EVENTS_PROGRAM)}
           </Mono>

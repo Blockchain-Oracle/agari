@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLinkIcon } from "lucide-react";
+import { CodeIcon, ExternalLinkIcon } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePrefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -105,6 +105,26 @@ interface ProofLinkProps {
   label: string;
   /** The hash or address the link opens; its first characters are printed beside the label. */
   reference: string;
+}
+
+interface ProofCodeProps {
+  label: string;
+  /** The signature as the ledger recorded it; its first characters are printed beside the label. */
+  reference: string;
+  /** Where it ran, since there is no explorer page to open. */
+  note: string;
+}
+
+/** A proof with no explorer page (a fork of mainnet): the same row shape as `ProofLink`, printed rather than linked. */
+export function ProofCode({ label, reference, note }: ProofCodeProps) {
+  return (
+    <span className="demo-proof-link" data-network="fork">
+      <CodeIcon className="demo-proof-icon" aria-hidden />
+      <span>{label}</span>
+      <code className="demo-proof-hash numbers">{reference.slice(0, 8)}…</code>
+      <span className="demo-proof-hash">{note}</span>
+    </span>
+  );
 }
 
 /** `ScanLink` in the reference: an explorer link with the head of its hash beside the label. */

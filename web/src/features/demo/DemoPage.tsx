@@ -2,7 +2,7 @@ import { ArrowRightIcon, ChartCandlestickIcon, ChartColumnIcon, MessageSquareIco
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DEMO } from "./copy";
-import { Eyebrow, Frame, Kicker, ProofLink, Reveal, Serif } from "./DemoBlocks";
+import { Eyebrow, Frame, Kicker, ProofCode, ProofLink, Reveal, Serif } from "./DemoBlocks";
 import { DemoTraction } from "./DemoTraction";
 import { demoVideoAvailable, DemoVideo } from "./DemoVideo";
 import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProof, txProofHref, txProofLabel } from "./proofs";
@@ -180,7 +180,7 @@ export function DemoPage() {
                 <div className="demo-card-title">{card.title}</div>
                 <div className="demo-card-body">{card.body}</div>
                 <div className="demo-card-proof">
-                  <ProofLink href={txProofHref(proof)} label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} />
+                  <ProofLink href={txProofHref(proof) ?? ""} label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} />
                 </div>
               </div>
             </Reveal>
@@ -203,7 +203,11 @@ export function DemoPage() {
           {TX_PROOFS.map((proof) => (
             <Reveal key={proof.hash}>
               <div className="demo-proof-row">
-                <ProofLink href={txProofHref(proof)} label={txProofLabel(proof)} reference={proof.hash} />
+                {proof.network === "fork" ? (
+                  <ProofCode label={txProofLabel(proof)} reference={proof.hash} note={S.verify.fork} />
+                ) : (
+                  <ProofLink href={txProofHref(proof) ?? ""} label={txProofLabel(proof)} reference={proof.hash} />
+                )}
                 <p className="demo-proof-note">{proof.detail}</p>
               </div>
             </Reveal>

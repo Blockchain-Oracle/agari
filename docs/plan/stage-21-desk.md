@@ -18,7 +18,7 @@
 - [x] **C5 web** (`feat(S21.5/web)`): API routes (`/api/desk/[owner]`, records, mandate, approvals, check-now, `/api/rpc/mainnet`); `providers/wallet/mainnet-signer.ts`; `features/desk/*` (studio 01–04, desk page in the §5.7 order, money sheet with the 1 % fee receipt, record with quiet runs folded, the nine decision sections, Check it, Go live, `DeskWatcher`); routes; `/dev/desk`; nav (Build → Desk; Explore → Baskets); Portfolio/Agents/landing/tutorial/Sensei/Reels hooks; the three copy-trading strings renamed; `pnpm build`.
 - [x] **C6 rehearsal** (`feat(S21.6/drive)`): `scripts/drive/desk-rehearsal.ts` on the Surfpool mainnet fork (fund, init, open, mandate, one live cycle through Jupiter CPI, gross-vs-net fee measurement, prove-limits with the real operator key, evidence JSON + acceptance rows). 31/31 checks on 2026-09-22; `scripts/deploy/init-desk.ts`; the mainnet runbook is desk.md §10.
 - [ ] **C7 mainnet** (`feat(S21.7/mainnet)`, needs the user's funding): mainnet role keys, deploy, `init-desk`, Coolify env, the user's desk practice → Go live → first approved action → on its own; evidence rows; share link on.
-- [ ] **C8 docs** (`docs(S21.8)`): D-126 trust boundary, README "Hold a basket", submission claims, description, how-it-works "How the desk decides", pitch/demo rows; memory updates.
+- [x] **C8 docs** (`docs(S21.8)`): D-126 evidence paragraph, README "Baskets" and "Hold a basket: the desk" (+ the Pyth index leg, the trust boundary, the honest "not yet"), `docs/submission/tracks.md` (the judge-facing PreStocks and Pyth answer), submission checklist and description, how-it-works "Baskets" and "How the desk decides", pitch and demo proof rows (basket settlements, the fork rehearsal); memory updates.
 
 ## Handoff
 
