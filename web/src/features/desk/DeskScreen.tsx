@@ -4,7 +4,6 @@ import { isOk } from "@agari/core/schemas";
 import { useEffect, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/states";
 import { useChainNowMs } from "@/features/markets/useChainNow";
-import { ConnectButton } from "@/features/markets/wallet";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useViewerZone } from "@/lib/when";
 import { DESK } from "./copy";
@@ -50,16 +49,11 @@ export function DeskScreen({ id = null, studio = false }: DeskScreenProps) {
   }, []);
 
   if (key === null) {
+    // A remembered wallet is still restoring (at most 3 s): a skeleton, never the studio flashing before the page.
     if (isConnecting) return <LoadingState shape="plate" className="container py-8" />;
-    return (
-      <div className="dk-page container">
-        <div className="dk-panel">
-          <span className="dk-eyebrow">{DESK.eyebrow.studio}</span>
-          <p className="type-body text-ink-secondary">{DESK.studio.read.connect}</p>
-          <div><ConnectButton /></div>
-        </div>
-      </div>
-    );
+    // Drafting is open to anyone (Shijima's rule, the app's never-empty rule): steps 01 and 02 render and edit with no
+    // wallet, the draft kept in this browser; the test read and Create ask for the wallet inline where it is needed.
+    return <DeskStudio owner={null} view={null} writes={writes} initialBasket={params.basket} editing={false} onConnect={connect} zone={zone} nowSec={nowSec} />;
   }
   if (reading === null) return <LoadingState shape="plate" className="container py-8" />;
   if (!isOk(reading)) {
