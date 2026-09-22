@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { TICKERS } from "@agari/core/market";
+import { BASKET_INDEX_BASE_E8, BASKETS, TICKERS } from "@agari/core/market";
 import type { PreStocksRead } from "@agari/markets/ops/prints";
 
 // The feed only needs `fetchPreStocks` from the prints barrel, and every test injects its own `read`; the barrel's
 // Pyth/Switchboard re-exports are not loadable in this test environment, so the module is stubbed at the boundary.
 vi.mock("@agari/markets/ops/prints", () => ({ fetchPreStocks: vi.fn(async () => { throw new Error("not used in tests"); }) }));
 import type { SpotFeed, SpotQuote } from "./spot";
-import { createPreStocksSpotFeed, joinPreStocksSpot, samplesOf } from "./prestocks-spot";
+import { createPreStocksSpotFeed, joinPreStocksSpot, samplesOf, snapshotOf } from "./prestocks-spot";
 
 const OPENAI_MINT = String(TICKERS.OPENAI.preIpo!.mint);
 const NOW = 1_789_800_000;
@@ -66,6 +66,37 @@ describe("joinPreStocksSpot", () => {
     const joined = joinPreStocksSpot(base, feed);
     expect(joined.latest("OPENAI")).toBeNull();
     expect(feed.at("OPENAI", NOW)).toBeNull();
+  });
+});
+
+describe("baskets over snapshots (S19)", () => {
+  const ailabs = BASKETS.AILABS.members.map((m) => ({ symbol: m.symbol, mint: String(TICKERS[m.symbol].preIpo!.mint), token: m.basePriceE8! * 2n, mark: 1n }));
+
+  it("keeps every read whole and answers a basket symbol with its index in points from that one read", async () => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const feed = createPreStocksSpotFeed({ log: () => undefined, read: async () => readOf(ailabs, nowSec) });
+    const joined = joinPreStocksSpot(null, feed);
+    const seen: SpotQuote[] = [];
+    const off = joined.subscribe((q) => seen.push(q));
+    feed.start();
+    await new Promise((r) => setTimeout(r, 30));
+    feed.stop();
+    off();
+    const snapshot = feed.snapshots()[0]!;
+    expect(snapshot.fetchedAtSec).toBe(nowSec);
+    expect([...snapshot.samples.keys()].sort()).toEqual(["ANTHROPIC", "OPENAI"]);
+    expect(snapshot.missing).toContain("SPACEX");
+    // Both members doubled: 2,000 pts exactly. FRONTIER lacks FIGUREAI and NEURALINK in this read, so it has no quote.
+    expect(joined.latest("AILABS")).toEqual({ symbol: "AILABS", priceE8: BASKET_INDEX_BASE_E8 * 2n, publishTimeSec: nowSec, source: "prestocks" });
+    expect(joined.latest("FRONTIER")).toBeNull();
+    expect(seen.map((q) => q.symbol).sort()).toEqual(["AILABS", "ANTHROPIC", "OPENAI"]);
+  });
+
+  it("answers snapshotOf with the registry names a read did not price, dropped rows included", () => {
+    const { snapshot, dropped } = snapshotOf(readOf([{ symbol: "OPENAI", mint: "PreSomethingElse11111111111111111111111111", token: 1n, mark: 1n }]));
+    expect(dropped).toHaveLength(1);
+    expect(snapshot.samples.size).toBe(0);
+    expect(snapshot.missing).toContain("OPENAI");
   });
 });
 
