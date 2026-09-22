@@ -65,11 +65,14 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const queryClient = useQueryClient();
   const session = useMarketSession();
   const [tab, setTab] = useState<Tab>("open");
-  // An empty book never dead-ends (D-086): in session, make the first call; closed, see what lists next and when.
+  const settledCount = history.reading?.ok ? history.reading.value.rounds.length + boosts.done.length : null;
+  // An empty Open tab never dead-ends (D-086): in session, make a call; closed, see what lists next and when. A wallet
+  // whose History holds settled Windows has bet before, so its prompt is the next call, never the first (the user, 09-22).
+  const nothing = (settledCount ?? 0) > 0 ? PORTFOLIO.nothingOpen : PORTFOLIO.noBets;
   const empty =
     session && !session.open
-      ? { why: `${PORTFOLIO.noBets} ${SESSION_COPY.portfolio.closed(sessionPhrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
-      : { why: PORTFOLIO.noBets, nextAction: { label: PORTFOLIO.firstCall, href: "/markets" } };
+      ? { why: `${nothing} ${SESSION_COPY.portfolio.closed(sessionPhrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
+      : { why: nothing, nextAction: { label: (settledCount ?? 0) > 0 ? PORTFOLIO.nextCall : PORTFOLIO.firstCall, href: "/markets" } };
   const retry = () => {
     if (address) void queryClient.invalidateQueries({ queryKey: keys.positions(address) });
   };
@@ -79,7 +82,6 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const openItems = [...restingItems, ...positionItems, ...vaultItems, ...boosts.live];
   const pager = usePager(openItems, PAGE_SIZE);
   const openCount = reading && isOk(reading) ? openItems.length : null;
-  const settledCount = history.reading?.ok ? history.reading.value.rounds.length + boosts.done.length : null;
 
   return (
     <section className="flex flex-col gap-4" aria-label={PORTFOLIO.betsTitle}>

@@ -258,6 +258,9 @@ export const PORTFOLIO = {
   tabs: { open: "Open", history: "History" },
   noBets: "No bets yet.",
   firstCall: "make your first call",
+  /** A wallet with settled Windows behind it has bet before: its empty Open tab is not a first-call prompt. */
+  nothingOpen: "Nothing open right now.",
+  nextCall: "make your next call",
   live: "Live",
   settling: "Settling",
   left: "left",
