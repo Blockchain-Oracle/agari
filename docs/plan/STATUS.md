@@ -1,4 +1,4 @@
-# STATUS — updated 2026-09-22 ~16:40 UTC by Claude (**S16: the user's five complaints answered — six-figure books (D-123), the claim that read "The contract refused", the portfolio's first-call prompt, the fresh-Window wording, the dead leaderboard/traction routes; a web deploy of HEAD is owed**)
+# STATUS — updated 2026-09-22 ~16:40 UTC by Claude (**S16: the user's five complaints answered — six-figure books (D-123), the claim that read "The contract refused", the portfolio's first-call prompt, the fresh-Window wording, the dead leaderboard/traction routes; everything deployed by 16:50Z**)
 
 ## Session of 2026-09-22 16:20–16:40Z (the user's feedback pass) — READ THIS FIRST
 
@@ -12,7 +12,7 @@
 
 Also `ae2048d`: `/api/rpc` paces browsers at 8 RPS (was 4, sized while ops shared the Helius key; ops has been on Alchemy since 14:52Z).
 
-**Owed, in order:** (a) the two builds landing — then the four checks above; (b) **a web deploy of HEAD (`9578bc9`) so items 2, 3, 4, the faucet amount and the RPC pace go live** — not queued from this session (the Mac was at 13% on battery: commit and push only); `coolify --context agari deploy uuid kcwqrvdgskhyhlcly5tlhlzi` once on power; (c) after the ops build, the pre-IPO/token maker is flat until the next Window opens (known: an ops restart loses the Window start sample); (d) two concurrent builds on the 2-vCPU VPS — check disk (`docker system df`) once they finish; the Coolify "concurrent builds = 1" setting is still owed in the UI. **Note for every future session: `coolify app restart` is a deployment; when the app's last image is not at the branch head it rebuilds — restart only when an image at HEAD exists, or deploy on purpose.**
+**Owed, in order:** (a) the two builds landing — then the four checks above; (b) ~~a web deploy of HEAD~~ **done: deployment `pxlgj0gersjd0jvp8jvvqbst` at `6b23e2c`, queued 16:43:38Z, finished 16:50:21Z; the live faucet API reads `amountBase` 100,000,000,000 (100,000 tUSDC), leaderboard/traction/status 200 — items 2, 3, 4, the faucet amount and the RPC pace are live** (the user's correction, 16:44Z: a Coolify deploy is never held back for the Mac's battery — it runs on the VPS); (c) after the ops build, the pre-IPO/token maker is flat until the next Window opens (known: an ops restart loses the Window start sample); (d) two concurrent builds on the 2-vCPU VPS — check disk (`docker system df`) once they finish; the Coolify "concurrent builds = 1" setting is still owed in the UI. **Note for every future session: `coolify app restart` is a deployment; when the app's last image is not at the branch head it rebuilds — restart only when an image at HEAD exists, or deploy on purpose.**
 
 ## Session of 2026-09-22 (S16 deploy train, hosted on Coolify) — READ THIS FIRST
 
