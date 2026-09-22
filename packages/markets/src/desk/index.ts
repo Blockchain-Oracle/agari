@@ -65,6 +65,7 @@ export {
   type QuoteInput,
   type SwapInstructionsInput,
 } from "./jupiter-swap";
+export { ensureDeskConfig, ensureDeskReference, initDesk, programUpgradeAuthority, readDeskInitPlan, type DeskInitPlan, type DeskInitRecord, type DeskInitWant } from "./init";
 export { fetchLookupTables, withLookupTables } from "./lookup-tables";
 export { createDeskMainnetSession, type DeskMainnetSession, type DeskMainnetSessionConfig, type DeskWriteResult } from "./mainnet-session";
 export { createDeskOperatorClient, DeskSendError, DeskSendUnknownError, type DeskOperatorClient, type DeskOperatorClientConfig, type DeskSendOptions, type DeskSendResult } from "./operator-client";

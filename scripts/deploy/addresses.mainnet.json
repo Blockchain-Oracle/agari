@@ -1,0 +1,6 @@
+{
+  "_doc": "Mainnet addresses (S21, D-126): only the desk lives here. Ensure-style: init-desk.ts reads this file, creates only what is missing and fails loudly on drift. Never regenerate a keypair. The deployer is the upgrade authority and the config admin (~/.config/agari/mainnet/deployer.json).",
+  "cluster": "mainnet-beta",
+  "programs": {},
+  "venue": {}
+}

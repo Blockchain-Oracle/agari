@@ -30,6 +30,8 @@
     "drive:verify-index": "tsx --env-file-if-exists=.env.local scripts/drive/verify-index.ts",
     "ops:start": "pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/main.ts",
     "deploy:init-vault": "tsx --env-file-if-exists=.env.local scripts/deploy/init-vault.ts",
+    "deploy:init-desk": "tsx --env-file-if-exists=.env.local scripts/deploy/init-desk.ts",
+    "drive:desk-rehearsal": "tsx --env-file-if-exists=.env.local scripts/drive/desk-rehearsal.ts",
     "deploy:set-authorities": "tsx --env-file-if-exists=.env.local scripts/deploy/set-authorities.ts",
     "deploy:init-gap-series": "tsx --env-file-if-exists=.env.local scripts/deploy/init-gap-series.ts",
     "drive:gap-cycle": "tsx --env-file-if-exists=.env.local scripts/drive/gap-cycle.ts",
