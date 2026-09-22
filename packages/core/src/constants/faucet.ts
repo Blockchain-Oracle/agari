@@ -1,5 +1,5 @@
 /** The venue's per-call cap on the tUSDC faucet, in whole units. */
-export const FAUCET_UNITS = 10_000n;
+export const FAUCET_UNITS = 100_000n;
 
 /** Where to send a wallet with no devnet SOL for fees, in preference order. */
 export const SOL_FAUCETS = [

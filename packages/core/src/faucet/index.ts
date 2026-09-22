@@ -21,7 +21,7 @@ export const SOL_FAUCET_POLICY = {
  */
 export const TUSDC_FAUCET_POLICY = {
   amountUnits: FAUCET_UNITS,
-  dailyUnits: 2_000_000n,
+  dailyUnits: 20_000_000n,
   cooldownMs: 86_400_000,
   maxPerIpPerDay: 10,
   /** Rent-exempt minimum of a 165-byte SPL token account, paid when the wallet has no tUSDC account yet. */

@@ -196,7 +196,7 @@ describe("server-sent tUSDC claims (D-034)", () => {
   };
   it("one challenge signature pays the SOL top-up and mints tUSDC once each", async () => {
     const h = harness(); const { c, sol, tusdc } = await claimBoth(h);
-    expect(c.message).toContain("10,000 test tUSDC");
+    expect(c.message).toContain("100,000 test tUSDC");
     expect(sol).toMatchObject({ asset: "sol", status: "confirmed" }); expect(tusdc).toMatchObject({ asset: "tusdc", amountBase: AMOUNT.toString(), status: "confirmed" });
     await Promise.all(Array.from({ length: 8 }, () => h.service.claim(c.id, SIG, "ip-a", "tusdc")));
     expect(h.chain.prepareMint).toHaveBeenCalledTimes(1); expect(h.tokens.get(W)).toBe(AMOUNT); expect(h.mints.size).toBe(1);
