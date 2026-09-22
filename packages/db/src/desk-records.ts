@@ -43,8 +43,15 @@ export interface ActionRow {
   id: string;
   deskId: string;
   recordSeq: number;
+  /** Its place among the record's actions (a reference post comes before the trade). */
+  leg: number;
   kind: ActionKind;
   state: ActionState;
+  /** The same fields under the names C5 reads: `status`/`state`, `actualOut`/`amountOut`, `failureCode`+`failureDetail`/`error`. */
+  status: ActionState;
+  actualOut: string | null;
+  failureCode: string | null;
+  failureDetail: string | null;
   signature: string | null;
   chainSeq: number | null;
   symbol: string | null;
@@ -61,6 +68,8 @@ export interface ActionRow {
 
 export interface GradeRow {
   recordSeq: number;
+  /** The same record, as C5 names it. */
+  seq: number;
   gradedAtSec: number;
   verdict: "better" | "worse" | "no_real_difference" | "ungradable";
   differenceBps: number | null;
@@ -130,7 +139,11 @@ interface RawAction {
 const num = (v: string | null): number | null => (v === null ? null : Number(v));
 const toListRow = (r: RawRecord): RecordListRow => ({ seq: Number(r.seq), prevHash: r.prev_hash, recordHash: r.record_hash, outcome: r.outcome, summary: r.summary, mode: r.mode, symbol: r.symbol, side: r.side, decidedAtSec: Number(r.decided_at_sec), sealedBySig: r.sealed_by_sig, sealedSeq: num(r.sealed_seq) });
 const toRecord = (r: RawRecord): RecordRow => ({ ...toListRow(r), deskId: r.desk_id, body: r.body, wakeId: r.wake_id });
-const toAction = (r: RawAction): ActionRow => ({ id: r.id, deskId: r.desk_id, recordSeq: Number(r.record_seq), kind: r.kind, state: r.state, signature: r.signature, chainSeq: num(r.chain_seq), symbol: r.symbol, amountIn: r.amount_in, expectedOut: r.expected_out, minOut: r.min_out, amountOut: r.amount_out, countedE6: r.counted_e6, deadlineSec: num(r.deadline_sec), sentAtSec: Number(r.sent_at_sec), confirmedAtSec: num(r.confirmed_at_sec), error: r.error });
+const toAction = (r: RawAction, leg = 0): ActionRow => ({
+  id: r.id, deskId: r.desk_id, recordSeq: Number(r.record_seq), leg, kind: r.kind, state: r.state, status: r.state, signature: r.signature, chainSeq: num(r.chain_seq), symbol: r.symbol, amountIn: r.amount_in, expectedOut: r.expected_out, minOut: r.min_out,
+  amountOut: r.amount_out, actualOut: r.amount_out, countedE6: r.counted_e6, deadlineSec: num(r.deadline_sec), sentAtSec: Number(r.sent_at_sec), confirmedAtSec: num(r.confirmed_at_sec), error: r.error,
+  failureCode: r.state === "confirmed" || r.state === "attempting" ? null : r.state, failureDetail: r.error,
+});
 
 
 export interface AppendRecordInput {
@@ -192,15 +205,15 @@ export function deskRecordQueries(db: Db) {
       const g = grades[0];
       return {
         record: toRecord(raw),
-        actions: actions.map(toAction),
-        grade: g ? { recordSeq: Number(g.record_seq), gradedAtSec: Number(g.graded_at_sec), verdict: g.verdict, differenceBps: g.difference_bps, priceThenE8: g.price_then_e8, priceLaterE8: g.price_later_e8, chosen: g.chosen, alternative: g.alternative, why: g.why, countsForTiming: g.counts_for_timing } : null,
+        actions: actions.map((a, leg) => toAction(a, leg)),
+        grade: g ? { recordSeq: Number(g.record_seq), seq: Number(g.record_seq), gradedAtSec: Number(g.graded_at_sec), verdict: g.verdict, differenceBps: g.difference_bps, priceThenE8: g.price_then_e8, priceLaterE8: g.price_later_e8, chosen: g.chosen, alternative: g.alternative, why: g.why, countsForTiming: g.counts_for_timing } : null,
       };
     },
     /** The records that ring the owner (plan §5.8) after `sinceSeq`, oldest first; a quiet check never appears. */
-    async deskFeedSince(i: { deskId: string; sinceSeq: number; limit?: number }): Promise<RecordListRow[]> {
+    async deskFeedSince(i: { deskId: string; sinceSeq: number; limit?: number }): Promise<(RecordListRow & { kind: "record"; atSec: number })[]> {
       await ready();
       const rows = await db<RawRecord[]>`SELECT ${listColumns()} FROM desk_records WHERE desk_id = ${i.deskId}::uuid AND seq > ${i.sinceSeq} AND outcome IN ${db(NOTIFIED)} ORDER BY seq ASC LIMIT ${i.limit ?? 50}`;
-      return rows.map(toListRow);
+      return rows.map((r) => ({ ...toListRow(r), kind: "record" as const, atSec: Number(r.decided_at_sec) }));
     },
     async lastRecordSeq(deskId: string): Promise<number> {
       await ready();
@@ -223,11 +236,18 @@ export function deskRecordQueries(db: Db) {
       await ready();
       await db`UPDATE desk_records SET sealed_by_sig = ${storageKey(i.signature)}, sealed_seq = ${i.chainSeq} WHERE desk_id = ${i.deskId}::uuid AND seq = ${i.seq}`;
     },
-    async insertAction(a: Omit<ActionRow, "id" | "confirmedAtSec" | "error" | "chainSeq" | "amountOut"> & { chainSeq?: number | null }, tx: Db = db): Promise<string> {
+    async insertAction(a: Omit<ActionRow, "id" | "leg" | "status" | "actualOut" | "failureCode" | "failureDetail" | "confirmedAtSec" | "error" | "chainSeq" | "amountOut"> & { chainSeq?: number | null; amountOut?: string | null }, tx: Db = db): Promise<string> {
       await ready();
-      const rows = await tx<{ id: string }[]>`INSERT INTO desk_actions (desk_id, record_seq, kind, state, signature, chain_seq, symbol, amount_in, expected_out, min_out, counted_e6, deadline_sec, sent_at_sec)
-        VALUES (${a.deskId}::uuid, ${a.recordSeq}, ${a.kind}, ${a.state}, ${a.signature}, ${a.chainSeq ?? null}, ${a.symbol}, ${a.amountIn}, ${a.expectedOut}, ${a.minOut}, ${a.countedE6}, ${a.deadlineSec}, ${a.sentAtSec}) RETURNING id`;
+      const confirmedAtSec = a.state === "confirmed" ? a.sentAtSec : null;
+      const rows = await tx<{ id: string }[]>`INSERT INTO desk_actions (desk_id, record_seq, kind, state, signature, chain_seq, symbol, amount_in, expected_out, min_out, amount_out, counted_e6, deadline_sec, sent_at_sec, confirmed_at_sec)
+        VALUES (${a.deskId}::uuid, ${a.recordSeq}, ${a.kind}, ${a.state}, ${a.signature}, ${a.chainSeq ?? null}, ${a.symbol}, ${a.amountIn}, ${a.expectedOut}, ${a.minOut}, ${a.amountOut ?? null}, ${a.countedE6}, ${a.deadlineSec}, ${a.sentAtSec}, ${confirmedAtSec}) RETURNING id`;
       return rows[0]?.id ?? "";
+    },
+    /** The record a sealed on-chain action names, by its fingerprint; null when this desk never wrote it. */
+    async recordSeqByHash(i: { deskId: string; hash: string }): Promise<number | null> {
+      await ready();
+      const rows = await db<{ seq: string }[]>`SELECT seq FROM desk_records WHERE desk_id = ${i.deskId}::uuid AND lower(record_hash) = ${i.hash.toLowerCase()}`;
+      return rows[0] ? Number(rows[0].seq) : null;
     },
     async resolveAction(i: { id: string; state: ActionState; signature?: string | null; chainSeq?: number | null; amountOut?: string | null; error?: string | null; nowSec: number }): Promise<void> {
       await ready();

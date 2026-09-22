@@ -32,7 +32,7 @@ export function deskGradeQueries(db: Db) {
         ORDER BY r.seq ASC LIMIT ${i.limit ?? 20}`;
       return rows.map((r) => ({ seq: Number(r.seq), outcome: r.outcome, symbol: r.symbol, side: r.side, decidedAtSec: Number(r.decided_at_sec), body: r.body }));
     },
-    async saveGrade(i: { deskId: string } & GradeRow): Promise<void> {
+    async saveGrade(i: { deskId: string } & Omit<GradeRow, "seq">): Promise<void> {
       await ready();
       await db`INSERT INTO desk_grades (desk_id, record_seq, graded_at_sec, verdict, difference_bps, price_then_e8, price_later_e8, chosen, alternative, why, counts_for_timing)
         VALUES (${i.deskId}::uuid, ${i.recordSeq}, ${i.gradedAtSec}, ${i.verdict}, ${i.differenceBps}, ${i.priceThenE8}, ${i.priceLaterE8}, ${i.chosen}, ${i.alternative}, ${i.why}, ${i.countsForTiming})
@@ -42,7 +42,7 @@ export function deskGradeQueries(db: Db) {
       await ready();
       const rows = await db<{ record_seq: string; graded_at_sec: string; verdict: GradeRow["verdict"]; difference_bps: number | null; price_then_e8: string | null; price_later_e8: string | null; chosen: string; alternative: string; why: string; counts_for_timing: boolean }[]>`
         SELECT * FROM desk_grades WHERE desk_id = ${i.deskId}::uuid ORDER BY record_seq DESC LIMIT ${i.limit}`;
-      return rows.map((g) => ({ recordSeq: Number(g.record_seq), gradedAtSec: Number(g.graded_at_sec), verdict: g.verdict, differenceBps: g.difference_bps, priceThenE8: g.price_then_e8, priceLaterE8: g.price_later_e8, chosen: g.chosen, alternative: g.alternative, why: g.why, countsForTiming: g.counts_for_timing }));
+      return rows.map((g) => ({ recordSeq: Number(g.record_seq), seq: Number(g.record_seq), gradedAtSec: Number(g.graded_at_sec), verdict: g.verdict, differenceBps: g.difference_bps, priceThenE8: g.price_then_e8, priceLaterE8: g.price_later_e8, chosen: g.chosen, alternative: g.alternative, why: g.why, countsForTiming: g.counts_for_timing }));
     },
   };
 }

@@ -10,7 +10,7 @@ import { ensureSchema } from "./migrate";
 export type DeskCluster = "mainnet-beta" | "devnet" | "localnet";
 export type DeskModeName = "practice" | "ask_first" | "on_its_own";
 export type DeskStateName = "active" | "paused" | "stopped_by_loss" | "needs_attention" | "closed";
-export type WakeTrigger = "hour" | "deposit" | "move" | "check_now" | "test_read" | "checkpoint";
+export type WakeTrigger = "hour" | "deposit" | "move" | "check_now" | "test_read" | "checkpoint" | "owner_request";
 export type WakeStatus = "requested" | "running" | "completed" | "failed" | "skipped";
 
 export interface DeskRow {
@@ -58,14 +58,37 @@ export interface SnapshotHolding {
   raw: string;
   priceE8: string;
   valueE6: string;
+  weightBps: number;
+  targetBps: number;
+  driftBps: number;
+  premiumBps: number | null;
+  /** How old the price was when the snapshot was taken. */
+  priceAgeSec: number | null;
+  paused: boolean;
+  frozen: boolean;
 }
 
 export interface SnapshotRow {
+  /** `atSec` and `takenAtSec` are the same second; `cashE6` and `usdcE6` the same cash (C5 reads the first of each pair). */
+  atSec: number;
   takenAtSec: number;
   totalE6: string;
+  cashE6: string;
   usdcE6: string;
+  /** The loss-limit baseline as the desk row carries it now; null until the first fully priced valuation. */
+  baselineE6: string | null;
   holdings: SnapshotHolding[];
   unpriced: { symbol: string; mint: string; raw: string; why: string }[];
+}
+
+export interface OwnerRequestRow {
+  id: string;
+  deskId: string;
+  kind: "sell_all" | "close";
+  signer: string;
+  requestedAtSec: number;
+  finishedAtSec: number | null;
+  note: string | null;
 }
 
 export interface PaperRow {
@@ -143,9 +166,6 @@ const toWake = (r: { id: string; desk_id: string; scheduled_for_sec: string; tri
 
 export function deskCoreQueries(db: Db) {
   const ready = () => ensureSchema();
-  const touch = async (deskId: string, nowSec: number) => {
-    await db`UPDATE desks SET updated_at_sec = ${nowSec} WHERE id = ${deskId}`;
-  };
   const addEvent = async (e: { deskId: string; kind: string; actor: string; detail?: Record<string, unknown> | null; atSec: number }) => {
     await ready();
     await db`INSERT INTO desk_events (desk_id, kind, actor, detail, at_sec) VALUES (${e.deskId}, ${e.kind}, ${e.actor}, ${db.json((e.detail ?? null) as never)}, ${e.atSec})`;
@@ -293,23 +313,65 @@ export function deskCoreQueries(db: Db) {
       const r = rows[0];
       return r ? { cashE6: r.cash_e6, positions: r.positions, updatedAtSec: Number(r.updated_at_sec) } : null;
     },
-    async savePaper(i: { deskId: string; cashE6: string; positions: Record<string, string>; nowSec: number }): Promise<void> {
+    async savePaper(i: { deskId: string; cashE6: string; positions: Record<string, string>; nowSec: number }, tx: Db = db): Promise<void> {
       await ready();
-      await db`INSERT INTO desk_paper (desk_id, cash_e6, positions, updated_at_sec) VALUES (${i.deskId}::uuid, ${i.cashE6}, ${db.json(i.positions)}, ${i.nowSec})
+      await tx`INSERT INTO desk_paper (desk_id, cash_e6, positions, updated_at_sec) VALUES (${i.deskId}::uuid, ${i.cashE6}, ${tx.json(i.positions)}, ${i.nowSec})
         ON CONFLICT (desk_id) DO UPDATE SET cash_e6 = EXCLUDED.cash_e6, positions = EXCLUDED.positions, updated_at_sec = EXCLUDED.updated_at_sec`;
-      await touch(i.deskId, i.nowSec);
+      await tx`UPDATE desks SET updated_at_sec = ${i.nowSec} WHERE id = ${i.deskId}::uuid`;
     },
-    async saveSnapshot(i: { deskId: string } & SnapshotRow): Promise<void> {
+    /** Model calls made across every desk since `sinceSec`, to warm the sliding-hour budget after a restart. */
+    async modelCallsSince(sinceSec: number): Promise<number[]> {
+      await ready();
+      const rows = await db<{ decided_at_sec: string }[]>`SELECT decided_at_sec FROM desk_records WHERE decided_at_sec >= ${sinceSec} AND body->'timing' IS NOT NULL AND body->'timing' <> 'null'::jsonb AND (body->'timing'->>'latencyMs')::bigint > 0`;
+      return rows.map((r) => Number(r.decided_at_sec));
+    },
+    /** A live desk the chain knows and the database does not (discovery): a row with no mandate yet, or the practice row it grows out of. */
+    async registerLiveDesk(i: { owner: string; cluster: DeskCluster; address: string; operator: string; mode: DeskModeName; nowSec: number }): Promise<DeskRow> {
+      await ready();
+      const owner = storageKey(i.owner);
+      const rows = await db<RawDesk[]>`INSERT INTO desks (address, owner, operator, cluster, mode, state, created_at_sec, updated_at_sec)
+        VALUES (${storageKey(i.address)}, ${owner}, ${storageKey(i.operator)}, ${i.cluster}, ${i.mode}, 'active', ${i.nowSec}, ${i.nowSec})
+        ON CONFLICT (cluster, owner) DO UPDATE SET address = EXCLUDED.address, operator = EXCLUDED.operator, mode = EXCLUDED.mode, updated_at_sec = EXCLUDED.updated_at_sec RETURNING *`;
+      const row = rows[0];
+      if (!row) throw new Error("the desk was not registered");
+      return toDesk(row);
+    },
+    async saveSnapshot(i: { deskId: string; takenAtSec: number; totalE6: string; usdcE6: string; holdings: SnapshotHolding[]; unpriced: SnapshotRow["unpriced"] }): Promise<void> {
       await ready();
       await db`INSERT INTO desk_snapshots (desk_id, taken_at_sec, total_e6, usdc_e6, holdings, unpriced)
         VALUES (${i.deskId}::uuid, ${i.takenAtSec}, ${i.totalE6}, ${i.usdcE6}, ${db.json(i.holdings as never)}, ${db.json(i.unpriced as never)})`;
     },
     async latestSnapshot(deskId: string): Promise<SnapshotRow | null> {
       await ready();
-      const rows = await db<{ taken_at_sec: string; total_e6: string; usdc_e6: string; holdings: SnapshotHolding[]; unpriced: SnapshotRow["unpriced"] }[]>`
-        SELECT taken_at_sec, total_e6, usdc_e6, holdings, unpriced FROM desk_snapshots WHERE desk_id = ${deskId}::uuid ORDER BY taken_at_sec DESC LIMIT 1`;
+      const rows = await db<{ taken_at_sec: string; total_e6: string; usdc_e6: string; holdings: SnapshotHolding[]; unpriced: SnapshotRow["unpriced"]; baseline: string | null }[]>`
+        SELECT s.taken_at_sec, s.total_e6, s.usdc_e6, s.holdings, s.unpriced, d.drawdown_baseline_e6 AS baseline FROM desk_snapshots s JOIN desks d ON d.id = s.desk_id
+        WHERE s.desk_id = ${deskId}::uuid ORDER BY s.taken_at_sec DESC LIMIT 1`;
       const r = rows[0];
-      return r ? { takenAtSec: Number(r.taken_at_sec), totalE6: r.total_e6, usdcE6: r.usdc_e6, holdings: r.holdings, unpriced: r.unpriced } : null;
+      return r ? { atSec: Number(r.taken_at_sec), takenAtSec: Number(r.taken_at_sec), totalE6: r.total_e6, cashE6: r.usdc_e6, usdcE6: r.usdc_e6, baselineE6: r.baseline, holdings: r.holdings, unpriced: r.unpriced } : null;
+    },
+    /** The owner's signed standing order (sell everything, or close): a row the runner sweeps, plus a wake so it runs within the minute. */
+    async requestOwnerAction(i: { deskId: string; kind: "sell_all" | "close"; signer: string; signature: string; nowSec: number }): Promise<{ ok: true; requestId: string } | { ok: false; reason: "pending" }> {
+      await ready();
+      return db.begin(async (tx) => {
+        await tx`SELECT pg_advisory_xact_lock(hashtext(${i.deskId}))`;
+        const open = await tx<{ id: string }[]>`SELECT id FROM desk_owner_requests WHERE desk_id = ${i.deskId}::uuid AND finished_at_sec IS NULL`;
+        if (open[0]) return { ok: false as const, reason: "pending" as const };
+        const [row] = await tx<{ id: string }[]>`INSERT INTO desk_owner_requests (desk_id, kind, signer, signature, requested_at_sec) VALUES (${i.deskId}::uuid, ${i.kind}, ${storageKey(i.signer)}, ${i.signature}, ${i.nowSec}) RETURNING id`;
+        await tx`INSERT INTO desk_wakes (desk_id, scheduled_for_sec, trigger, status, requested_by, signature) VALUES (${i.deskId}::uuid, ${i.nowSec}, 'owner_request', 'requested', ${storageKey(i.signer)}, ${i.signature}) ON CONFLICT DO NOTHING`;
+        await tx`INSERT INTO desk_events (desk_id, kind, actor, detail, at_sec) VALUES (${i.deskId}::uuid, 'owner_request', 'owner', ${tx.json({ kind: i.kind })}, ${i.nowSec})`;
+        return { ok: true as const, requestId: row?.id ?? "" };
+      });
+    },
+    async pendingOwnerRequest(deskId: string): Promise<OwnerRequestRow | null> {
+      await ready();
+      const rows = await db<{ id: string; desk_id: string; kind: "sell_all" | "close"; signer: string; requested_at_sec: string; finished_at_sec: string | null; note: string | null }[]>`
+        SELECT id, desk_id, kind, signer, requested_at_sec, finished_at_sec, note FROM desk_owner_requests WHERE desk_id = ${deskId}::uuid AND finished_at_sec IS NULL ORDER BY requested_at_sec ASC LIMIT 1`;
+      const r = rows[0];
+      return r ? { id: r.id, deskId: r.desk_id, kind: r.kind, signer: r.signer, requestedAtSec: Number(r.requested_at_sec), finishedAtSec: num(r.finished_at_sec), note: r.note } : null;
+    },
+    async finishOwnerRequest(i: { requestId: string; note: string; nowSec: number }): Promise<void> {
+      await ready();
+      await db`UPDATE desk_owner_requests SET finished_at_sec = ${i.nowSec}, note = ${i.note} WHERE id = ${i.requestId}::uuid`;
     },
     async upsertPriceMark(m: PriceMarkRow): Promise<void> {
       await ready();

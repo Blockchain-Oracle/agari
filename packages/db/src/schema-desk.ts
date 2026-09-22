@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS desk_wakes (
   id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   desk_id           UUID        NOT NULL REFERENCES desks (id),
   scheduled_for_sec BIGINT      NOT NULL,
-  trigger           TEXT        NOT NULL CHECK (trigger IN ('hour', 'deposit', 'move', 'check_now', 'test_read', 'checkpoint')),
+  trigger           TEXT        NOT NULL CHECK (trigger IN ('hour', 'deposit', 'move', 'check_now', 'test_read', 'checkpoint', 'owner_request')),
   status            TEXT        NOT NULL CHECK (status IN ('requested', 'running', 'completed', 'failed', 'skipped')),
   started_at_sec    BIGINT,
   finished_at_sec   BIGINT,
@@ -66,6 +66,24 @@ CREATE TABLE IF NOT EXISTS desk_wakes (
 );
 
 CREATE INDEX IF NOT EXISTS desk_wakes_open_idx ON desk_wakes (desk_id, status, scheduled_for_sec DESC);
+
+-- Upgrade a database that created desk_wakes before owner requests existed.
+ALTER TABLE desk_wakes DROP CONSTRAINT IF EXISTS desk_wakes_trigger_check;
+ALTER TABLE desk_wakes ADD CONSTRAINT desk_wakes_trigger_check CHECK (trigger IN ('hour', 'deposit', 'move', 'check_now', 'test_read', 'checkpoint', 'owner_request'));
+
+-- The owner's signed standing orders the runner carries out through operator sells: sell everything, or close.
+CREATE TABLE IF NOT EXISTS desk_owner_requests (
+  id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  desk_id           UUID        NOT NULL REFERENCES desks (id),
+  kind              TEXT        NOT NULL CHECK (kind IN ('sell_all', 'close')),
+  signer            TEXT        NOT NULL,
+  signature         TEXT        NOT NULL,
+  requested_at_sec  BIGINT      NOT NULL,
+  finished_at_sec   BIGINT,
+  note              TEXT
+);
+
+CREATE INDEX IF NOT EXISTS desk_owner_requests_open_idx ON desk_owner_requests (desk_id) WHERE finished_at_sec IS NULL;
 
 CREATE TABLE IF NOT EXISTS desk_records (
   desk_id         UUID        NOT NULL REFERENCES desks (id),

@@ -28,7 +28,7 @@ suite("desk records and check-now (real Postgres)", () => {
 
   afterAll(async () => {
     if (deskId) {
-      for (const table of ["desk_events", "desk_wakes", "desk_records", "desk_paper", "desk_mandates"]) await db.unsafe(`DELETE FROM ${table} WHERE desk_id = '${deskId}'`);
+      for (const table of ["desk_events", "desk_wakes", "desk_approvals", "desk_owner_requests", "desk_records", "desk_paper", "desk_mandates"]) await db.unsafe(`DELETE FROM ${table} WHERE desk_id = '${deskId}'`);
       await db`DELETE FROM desks WHERE id = ${deskId}::uuid`;
     }
     await db.end();
@@ -55,6 +55,25 @@ suite("desk records and check-now (real Postgres)", () => {
     // The feed rings only for what matters: the quiet check stays out.
     expect((await q.deskFeedSince({ deskId, sinceSeq: 0 })).map((r) => r.seq)).toEqual([2]);
     expect(await q.lastRecordOnSymbol({ deskId, symbol: "OPENAI" })).toMatchObject({ seq: 2, side: "buy" });
+  });
+
+  it("lists an approval with the fingerprint of the record that asked, answers it once, and keeps an owner request until the runner finishes it", async () => {
+    await q.createApproval({ deskId, recordSeq: 2, symbol: "OPENAI", side: "buy", askedBecause: "ask_first", amountIn: "50000000", expectedOut: "1000000000", summary: "buy $50 of OpenAI", askedAtSec: nowSec, expiresAtSec: nowSec + 6 * 3600 });
+    const [open] = await q.listApprovals({ deskId, open: true, nowSec: nowSec + 1 });
+    expect(open).toMatchObject({ decisionSeq: 2, reason: "ask_first", status: "open", executionSeq: null, turnedDown: [] });
+    expect(open?.decisionHash).toBe((await q.getRecord({ deskId, seq: 2 }))?.record.recordHash);
+    expect(await q.answerApproval({ deskId, approvalId: open!.id, answer: "approved", signer: owner, signature: "a1", nowSec: nowSec + 2 })).toEqual({ ok: true });
+    expect(await q.answerApproval({ deskId, approvalId: open!.id, answer: "declined", signer: owner, signature: "a2", nowSec: nowSec + 3 })).toEqual({ ok: false, reason: "already_answered" });
+    expect((await q.approvedRequests(deskId)).map((a) => a.recordSeq)).toEqual([2]);
+    expect((await q.listApprovals({ deskId, nowSec: nowSec + 4 }))[0]?.status).toBe("approved");
+
+    const requested = await q.requestOwnerAction({ deskId, kind: "sell_all", signer: owner, signature: "o1", nowSec: nowSec + 5 });
+    expect(requested.ok).toBe(true);
+    expect(await q.requestOwnerAction({ deskId, kind: "close", signer: owner, signature: "o2", nowSec: nowSec + 6 })).toEqual({ ok: false, reason: "pending" });
+    expect(await q.pendingOwnerRequest(deskId)).toMatchObject({ kind: "sell_all", signer: owner });
+    expect(await q.takeRequestedWake({ deskId, nowSec: nowSec + 7 })).toMatchObject({ trigger: "owner_request" });
+    if (requested.ok) await q.finishOwnerRequest({ requestId: requested.requestId, note: "done", nowSec: nowSec + 8 });
+    expect(await q.pendingOwnerRequest(deskId)).toBeNull();
   });
 
   it("throttles check-now to one per ten minutes and hands the runner one requested wake", async () => {
