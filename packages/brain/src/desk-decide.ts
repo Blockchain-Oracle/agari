@@ -11,10 +11,10 @@ import { modelLabel } from "./agent-read";
 import { missingCredentialHint, resolveModel, type ResolvedModel } from "./model";
 
 export const DEFAULT_DESK_TIMEOUT_MS = 45_000;
-/** The answer is a dozen short fields; the budget covers the model's reasoning on top. */
-const MAX_OUTPUT_TOKENS = 2048;
+/** The answer is a dozen short fields; the budget covers the model's reasoning on top. 2,048 was cut off ("finished: length") on production's gpt-5.4 at 22:31Z on 2026-09-22 and the desk recorded FAILED_NO_DECISION, the safe direction; the question is a timing call, so the effort is low as Shijima's was. */
+const MAX_OUTPUT_TOKENS = 8192;
 /** A timing call weighs seven evidence items against ten rules once an hour: worth more thought than a Window read, well inside 45 s. */
-const REASONING = "medium" as const;
+const REASONING = "low" as const;
 const MAX_RETRIES = 1;
 
 export type DeskReadFailure = "timeout" | "parse" | "refusal" | "upstream";
