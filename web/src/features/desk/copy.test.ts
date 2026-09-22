@@ -1,5 +1,7 @@
 import { findHardBannedWords } from "@agari/core/desk";
 import { describe, expect, it } from "vitest";
+import { BASKETS, DESK_NEVER, DESK_PROGRAM_ENFORCES, DESK_STEPS } from "../how-it-works/content";
+import { HOW_IT_WORKS } from "../how-it-works/copy";
 import { CONTROLS, DESK_ERRORS_UI, GO_LIVE, MONEY } from "./copy-controls";
 import { DESK, DESK_ADVICE } from "./copy";
 import { RECORD } from "./copy-record";
@@ -28,7 +30,8 @@ const SCREEN_BANNED: [RegExp, string][] = [
 describe("desk copy", () => {
   it("uses none of the hard banned words and none of the plan's screen words", () => {
     const offenders: string[] = [];
-    for (const table of [DESK, CONTROLS, MONEY, GO_LIVE, DESK_ERRORS_UI, RECORD, { advice: DESK_ADVICE }]) {
+    const howItWorks = { BASKETS, DESK_STEPS, DESK_PROGRAM_ENFORCES, DESK_NEVER, lead: HOW_IT_WORKS.deskLead, kinds: HOW_IT_WORKS.deskKinds, network: HOW_IT_WORKS.deskNetwork };
+    for (const table of [DESK, CONTROLS, MONEY, GO_LIVE, DESK_ERRORS_UI, RECORD, { advice: DESK_ADVICE }, howItWorks]) {
       for (const [path, text] of strings(table, "")) {
         for (const word of findHardBannedWords(text)) offenders.push(`${path}: ${word}`);
         for (const [pattern, name] of SCREEN_BANNED) if (pattern.test(text)) offenders.push(`${path}: ${name}`);

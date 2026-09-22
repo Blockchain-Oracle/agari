@@ -17,8 +17,21 @@ export const HOW_IT_WORKS = {
     settlement: "Settlement Process",
     asides: "Halts, Voids & Your Money",
     architecture: "On-Chain Architecture",
+    baskets: "Baskets",
+    desk: "How the Desk Decides",
     faq: "FAQ",
   },
+  /** S21 (D-126): the desk is the one place real money moves, so the page says how it decides, step by step. */
+  deskLead:
+    "A desk is an account on Solana that holds a basket of PreStocks tokens for you while an assistant looks after it. You decide what to own and sign every owner call with your wallet; the desk decides only when; the program enforces the money limits whatever it decides. Here is the order it works in, and which step is the one question a model answers.",
+  deskKinds: {
+    arithmetic: "Arithmetic",
+    ai: "The one AI question",
+    program: "The program on Solana",
+  } as const,
+  deskEnforcesTitle: "What the program enforces",
+  deskNeverTitle: "What the desk never does",
+  deskNetwork: "Practice moves no money. A live desk is real money on Solana mainnet, and every desk surface says so.",
   /** The lead of the Agari-only section: stocks have a clock, and the clock is the product. */
   sessionsLead:
     "A stock exchange keeps hours, so the venue does too. Windows are listed in three lanes on the NYSE clock, and which lanes are on the board right now depends on the hour you are reading this.",
