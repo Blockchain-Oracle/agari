@@ -698,6 +698,89 @@
         "books": [
           "5WHhAZCEKyaSHyi1Cb4rrmopWi3iMApUJk5zFPvH1h4y"
         ]
+      },
+      "AILABS-60m": {
+        "address": "ErcdJqDD2AZeqRsNTFbBBFqirqhNFiKZGhov6ohAVrrq",
+        "ticker": 920,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "GT4kpW7APoTfvB7h5AtPKd5wJ2RGtQTdWyhJ6npFi4A8",
+          "D2RJNM5BqgTwbsV1ZHmFzwikHNnnnM5ey4wK1hVoraA"
+        ],
+        "basePrices": {
+          "OPENAI": "115518656774",
+          "ANTHROPIC": "104642768409"
+        },
+        "baseAtSec": 1790096803
+      },
+      "PREALL-60m": {
+        "address": "8DeoK3xfo7RMgjgHGS8FDHujr9ZmnfKz3wnFZs6jEs6t",
+        "ticker": 924,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "CDkpWgjL16nHhDsfhGwy5DNkfa26Nk9UdjHCbUztbjXC",
+          "5SHc4bPWHv98gdLWGfbHUdbwJT1oiLczgsaL9r29iGvL"
+        ],
+        "basePrices": {
+          "OPENAI": "115518656774",
+          "ANTHROPIC": "104642768409",
+          "SPACEX": "11771844301",
+          "NEURALINK": "45534631469",
+          "ANDURIL": "15066033108",
+          "KALSHI": "86951379103",
+          "POLYMARKET": "14424495088",
+          "FIGUREAI": "17564014445"
+        },
+        "baseAtSec": 1790096803
+      },
+      "FRONTIER-60m": {
+        "address": "2GQ45MoqBey6T8yXyG1VTnqvXbjFqCWvWfFQ85HAjg4h",
+        "ticker": 921,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "BaAmbyGpGtVtjjsBzta65WRxYU8kPEZ6f5Yx6XZrYmm9",
+          "J6y9Udc5z1hmPz46dUMUWHpzCA3kHkX6ht6qscfvpzua"
+        ],
+        "basePrices": {
+          "OPENAI": "115518656774",
+          "ANTHROPIC": "104642768409",
+          "FIGUREAI": "17564014445",
+          "NEURALINK": "45534631469"
+        },
+        "baseAtSec": 1790096803
+      },
+      "PREDMKTS-60m": {
+        "address": "F7zYr5nR6VLueEBQdgtmNtJ1NtF5d5yYFC26522bxtQy",
+        "ticker": 922,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "kpxWfxANsC6Xu4Ertj2BHa7pSX7o7dSH63AS81CQ8iQ",
+          "95HAXmUVdRwPixAEqniMWCEhPW1iBFhd6XPywP641VrF"
+        ],
+        "basePrices": {
+          "KALSHI": "86951379103",
+          "POLYMARKET": "14424495088"
+        },
+        "baseAtSec": 1790096803
+      },
+      "DEFSPACE-60m": {
+        "address": "FQYnXDAs7q5AKi17ww6Ja9eTRBJ7t3gaKX3DapsZSvd",
+        "ticker": 923,
+        "cadenceSec": 3600,
+        "basis": 2,
+        "books": [
+          "62WN6aYPdXgwpacpNZTyL114gh8dBxLXQpCqkExb6W9s",
+          "CxxNDQEJgSEbLuoStTiPnYLsC7RnAbBkjT32aceRTRJe"
+        ],
+        "basePrices": {
+          "ANDURIL": "15066033108",
+          "SPACEX": "11771844301"
+        },
+        "baseAtSec": 1790096803
       }
     }
   }
