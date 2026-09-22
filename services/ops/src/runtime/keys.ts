@@ -3,8 +3,8 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { readSecretKey } from "../actors/secret-key";
 
-/** The S3 venue roles (scripts/deploy/roles.mjs). */
-export type OpsRole = "roller" | "price-relay" | "price-attestor" | "settler" | "maker" | "faucet-mint-authority";
+/** The S3 venue roles (scripts/deploy/roles.mjs); `desk-runner` is the desk's operator (S21). */
+export type OpsRole = "roller" | "price-relay" | "price-attestor" | "settler" | "maker" | "faucet-mint-authority" | "desk-runner";
 
 /** `price-relay` → `PRICE_RELAY_PRIVATE_KEY`. */
 export const roleEnvName = (role: OpsRole) => `${role.replaceAll("-", "_").toUpperCase()}_PRIVATE_KEY`;

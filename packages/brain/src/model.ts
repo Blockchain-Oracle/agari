@@ -68,12 +68,16 @@ function split(spec: string): { providerName: string; modelId: string } {
   return at === -1 ? { providerName: "", modelId: spec } : { providerName: spec.slice(0, at), modelId: spec.slice(at + 1) };
 }
 
-export function resolveModel(): ResolvedModel | null {
-  const spec = process.env.AI_MODEL?.trim() || DEFAULT_AI_MODEL;
+/**
+ * `override` names a model for one job ahead of `AI_MODEL` (the desk's `DESK_AI_MODEL`, S21); the credential route
+ * is chosen the same way whichever spec wins.
+ */
+export function resolveModel(override?: string, env: NodeJS.ProcessEnv = process.env): ResolvedModel | null {
+  const spec = override?.trim() || env.AI_MODEL?.trim() || DEFAULT_AI_MODEL;
   const { providerName, modelId } = split(spec);
 
-  const baseURL = process.env.AI_BASE_URL?.trim();
-  const customKey = process.env.AI_API_KEY?.trim();
+  const baseURL = env.AI_BASE_URL?.trim();
+  const customKey = env.AI_API_KEY?.trim();
   if (baseURL && customKey) {
     // Anything OpenAI-shaped. The model id is passed whole — these endpoints expect
     // their own naming, which is rarely `creator/model`.
@@ -81,12 +85,12 @@ export function resolveModel(): ResolvedModel | null {
   }
 
   const direct = DIRECT[providerName];
-  const directKey = direct ? process.env[direct.keyEnv]?.trim() : undefined;
+  const directKey = direct ? env[direct.keyEnv]?.trim() : undefined;
   if (direct && directKey) {
     return { model: direct.create(directKey)(modelId), via: "direct", providerName, modelId };
   }
 
-  if (process.env.AI_GATEWAY_API_KEY?.trim()) {
+  if (env.AI_GATEWAY_API_KEY?.trim()) {
     // A bare `creator/model` string is a valid LanguageModel: the SDK routes it
     // through the Gateway as the default global provider.
     return { model: spec, via: "gateway", providerName, modelId };
@@ -96,8 +100,8 @@ export function resolveModel(): ResolvedModel | null {
 }
 
 /** What is missing, said precisely enough to fix without reading the code. */
-export function missingCredentialHint(): string {
-  const spec = process.env.AI_MODEL?.trim() || DEFAULT_AI_MODEL;
+export function missingCredentialHint(override?: string, env: NodeJS.ProcessEnv = process.env): string {
+  const spec = override?.trim() || env.AI_MODEL?.trim() || DEFAULT_AI_MODEL;
   const { providerName } = split(spec);
   const direct = DIRECT[providerName];
   return direct ? `${direct.keyEnv} (for ${spec}), or AI_GATEWAY_API_KEY` : `AI_GATEWAY_API_KEY (for ${spec}), or AI_BASE_URL + AI_API_KEY`;

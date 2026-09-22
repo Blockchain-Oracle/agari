@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Ensures one devnet keypair per operator role in ~/.config/agari/devnet/<role>.json and prints public keys.
+// Ensures one keypair per operator role in ~/.config/agari/devnet/<role>.json (or `AGARI_KEYS_DIR`, so mainnet keys never
+// share a file with devnet: `AGARI_KEYS_DIR=~/.config/agari/mainnet pnpm roles`) and prints public keys.
 // Ensure-style: existing keypairs are never regenerated or overwritten. Secret keys are never printed.
 // Run: pnpm roles            (add --json for machine-readable output)
 // Keypair files use the Solana CLI format: a JSON array of 64 bytes (32-byte seed + 32-byte public key).
@@ -35,9 +36,10 @@ export const ROLES = {
   "drive-owner": "drive-only: the wallet that opens positions in a product drive, distinct from the provider",
   "drive-rival": "drive-only: the second player of a duel drive",
   "drive-key": "drive-only: a duel seat's browser key, the one that places picks without a wallet prompt",
+  "desk-runner": "desk-runner: the desk's operator on mainnet (S21, D-126); never the same file as a devnet key",
 };
 
-const DIR = join(homedir(), ".config", "agari", "devnet");
+const DIR = process.env.AGARI_KEYS_DIR || join(homedir(), ".config", "agari", "devnet");
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 function base58(bytes) {

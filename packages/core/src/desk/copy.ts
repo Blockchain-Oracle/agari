@@ -100,5 +100,8 @@ export const deskCopy = {
     failed: (why: string) => `I could not act: ${why}`,
     noDecision: (why: string) => `I could not decide: ${why}`,
     notExecuted: (why: string) => `You approved it, but I did not act: ${why}`,
+    checkpoint: "I sealed the day's record on chain. Nothing was traded.",
+    checkedUnpriced: (names: string) => `I checked. I could not price ${names}, so I did nothing.`,
+    stoppedByLoss: (why: string) => `I stopped. ${why} Only you can start me again.`,
   },
 } as const;
