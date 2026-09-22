@@ -9,10 +9,6 @@ export type XWindowSelection = { ok: true; market: EventMarket } | {
 };
 
 /**
- * Match the requested stock and duration exactly on the Regular lane; never substitute another trade. A token
- * lane Window with the same cadence prices the xStock token, not the stock, so it is never a match here.
- */
-/**
  * The soonest Window a caller may enter, or the nearest reason it may not — shared by the X grammar and by Blinks,
  * which ask the same question of different lane sets. Soonest-expiry first, then the phases in the order a reader
  * cares about: enterable, waiting on its open, closed, not started.
@@ -30,8 +26,16 @@ export function pickWindow(markets: readonly EventMarket[], nowMs: number): XWin
   return { ok: false, code: "no-window" };
 }
 
+/**
+ * Match the name and duration a mention asked for exactly, on the one lane that prices that name; never substitute
+ * another trade. This is the same question a Blink asks, so it is the same answer: see `selectActionWindow`.
+ *
+ * Until 2026-09-22 this filtered on `lane === "regular"` directly. No pre-IPO name is ever listed there (D-103
+ * lists them on the 24/7 token lane), so every `@agari OPENAI …` mention refused with `no-window` and the X rail
+ * could only trade while the NYSE was open. `actionLane` already drew the distinction the filter was reaching for.
+ */
 export function selectXWindow(markets: readonly EventMarket[], instruction: Pick<XInstruction, "asset" | "intervalSec">, nowMs: number): XWindowSelection {
-  return pickWindow(markets.filter(m => m.lane === "regular" && m.asset === instruction.asset && m.intervalSec === instruction.intervalSec), nowMs);
+  return selectActionWindow(markets, instruction, nowMs);
 }
 
 /**
