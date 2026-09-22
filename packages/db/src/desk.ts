@@ -97,13 +97,6 @@ export interface PaperRow {
   updatedAtSec: number;
 }
 
-export interface PriceMarkRow {
-  symbol: string;
-  atSec: number;
-  tokenE8: string;
-  markE8: string;
-}
-
 export class DeskAlreadyExistsError extends Error {
   constructor(readonly deskId: string) {
     super("this owner already has a desk on this network");
@@ -379,24 +372,6 @@ export function deskCoreQueries(db: Db) {
       const rows = await db<{ id: string; kind: string; actor: string; detail: Record<string, unknown> | null; at_sec: string }[]>`
         SELECT id, kind, actor, detail, at_sec FROM desk_events WHERE desk_id = ${i.deskId}::uuid AND at_sec >= ${i.sinceSec ?? 0} ORDER BY at_sec DESC, id DESC LIMIT ${i.limit ?? 50}`;
       return rows.map((r) => ({ id: Number(r.id), kind: r.kind, actor: r.actor, detail: r.detail, atSec: Number(r.at_sec) }));
-    },
-    async upsertPriceMark(m: PriceMarkRow): Promise<void> {
-      await ready();
-      await db`INSERT INTO desk_price_marks (symbol, at_sec, token_e8, mark_e8) VALUES (${m.symbol}, ${m.atSec}, ${m.tokenE8}, ${m.markE8}) ON CONFLICT (symbol, at_sec) DO NOTHING`;
-    },
-    async listPriceMarks(i: { symbol: string; fromSec: number; toSec: number }): Promise<PriceMarkRow[]> {
-      await ready();
-      const rows = await db<{ symbol: string; at_sec: string; token_e8: string; mark_e8: string }[]>`
-        SELECT symbol, at_sec, token_e8, mark_e8 FROM desk_price_marks WHERE symbol = ${i.symbol} AND at_sec >= ${i.fromSec} AND at_sec <= ${i.toSec} ORDER BY at_sec ASC`;
-      return rows.map((r) => ({ symbol: r.symbol, atSec: Number(r.at_sec), tokenE8: r.token_e8, markE8: r.mark_e8 }));
-    },
-    /** The first mark at or after `atSec` (the alternative's price, a day after a decision); null when none yet. */
-    async priceMarkAtOrAfter(i: { symbol: string; atSec: number }): Promise<PriceMarkRow | null> {
-      await ready();
-      const rows = await db<{ symbol: string; at_sec: string; token_e8: string; mark_e8: string }[]>`
-        SELECT symbol, at_sec, token_e8, mark_e8 FROM desk_price_marks WHERE symbol = ${i.symbol} AND at_sec >= ${i.atSec} ORDER BY at_sec ASC LIMIT 1`;
-      const r = rows[0];
-      return r ? { symbol: r.symbol, atSec: Number(r.at_sec), tokenE8: r.token_e8, markE8: r.mark_e8 } : null;
     },
   };
 }

@@ -38,4 +38,5 @@ export * from "./desk";
 export * from "./desk-records";
 export * from "./desk-approvals";
 export * from "./desk-grades";
+export * from "./desk-marks";
 export * from "./desk-queries";

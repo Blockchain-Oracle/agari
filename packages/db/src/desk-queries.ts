@@ -7,10 +7,11 @@ import type { Db } from "./client";
 import { deskCoreQueries } from "./desk";
 import { deskApprovalQueries } from "./desk-approvals";
 import { deskGradeQueries } from "./desk-grades";
+import { deskMarkQueries } from "./desk-marks";
 import { deskRecordQueries } from "./desk-records";
 
 export function deskQueries(db: Db) {
-  return { ...deskCoreQueries(db), ...deskRecordQueries(db), ...deskApprovalQueries(db), ...deskGradeQueries(db) };
+  return { ...deskCoreQueries(db), ...deskRecordQueries(db), ...deskApprovalQueries(db), ...deskGradeQueries(db), ...deskMarkQueries(db) };
 }
 
 export type DeskQueries = ReturnType<typeof deskQueries>;
