@@ -33,8 +33,32 @@ function undecided(ctx: RunnerContext, error: string): DeskTimingAnswer {
   return { promptVersion: DESK_TIMING_PROMPT_VERSION, model, latencyMs: 0, totalTokens: null, finishReason: null, error, problems: [], styleWords: [], raw: null, decision: undefined };
 }
 
+/** The name the record shows for a stubbed answer, so nobody mistakes it for a model's. */
+export const MODEL_STUB_NAME = "stub/DESK_MODEL_STUB";
+
+/**
+ * The fixed answer `DESK_MODEL_STUB` stands in with on localnet (the fork rehearsal, C6): shaped exactly like a
+ * model's, cites the first evidence id so core's checks pass, and names itself in every field a reader would look at.
+ */
+function stubbed(option: "ACT_NOW" | "WAIT" | "DECLINE", pack: DeskEvidencePack): DeskTimingAnswer {
+  const decision = {
+    option,
+    partPercent: null,
+    headline: `Rehearsal stub: ${option.toLowerCase().replace("_", " ")} (DESK_MODEL_STUB on localnet, not a model's answer).`,
+    confidencePercent: 100,
+    reasons: [{ text: "The fork rehearsal replaces the timing answer with a fixed one so the whole live path is exercised.", evidenceIds: pack.evidenceIds.slice(0, 1) }],
+    rejected: [],
+    premiumRead: "unknown" as const,
+    waitFor: option === "WAIT" ? "the rehearsal to say otherwise" : null,
+    warnings: ["DESK_MODEL_STUB override: no model was asked"],
+    ruleIds: [],
+  };
+  return { promptVersion: DESK_TIMING_PROMPT_VERSION, model: MODEL_STUB_NAME, latencyMs: 0, totalTokens: null, finishReason: "stub", error: null, problems: [], styleWords: [], raw: decision, decision };
+}
+
 /** The timing question for one candidate, or why it was not asked. */
 export async function askTiming(ctx: RunnerContext, pack: DeskEvidencePack, privateTexts: readonly string[], nowMs: number): Promise<DeskTimingAnswer> {
+  if (ctx.env.modelStub && ctx.env.cluster === "localnet") return stubbed(ctx.env.modelStub, pack);
   if (!ctx.brain) return undecided(ctx, `not configured: set ${ctx.brainMissing}`);
   if (!takeCall(ctx, nowMs)) return undecided(ctx, `call budget spent (${ctx.env.maxModelCallsPerHour} an hour); asking again next hour`);
   return decideDeskTiming({ model: ctx.brain.model, user: pack.userMessage, evidenceIds: pack.evidenceIds, ruleIds: pack.ruleIds, privateTexts, timeoutMs: ctx.env.modelTimeoutMs });

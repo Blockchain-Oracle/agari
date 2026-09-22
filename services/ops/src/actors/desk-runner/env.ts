@@ -20,7 +20,15 @@ export interface DeskRunnerEnv {
   aiModel: string | undefined;
   jupiterApiKey: string | undefined;
   dryRun: boolean;
+  /**
+   * `DESK_MODEL_STUB=ACT_NOW|WAIT|DECLINE` replaces the model's timing answer with a fixed one, honoured ONLY on
+   * localnet (the C6 fork rehearsal) and written into the record as an override. Never read on any other cluster.
+   */
+  modelStub?: DeskModelStub;
 }
+
+export type DeskModelStub = "ACT_NOW" | "WAIT" | "DECLINE";
+const MODEL_STUBS: readonly DeskModelStub[] = ["ACT_NOW", "WAIT", "DECLINE"];
 
 const DEFAULT_INTERVAL_MS = 60_000;
 const DEFAULT_MAX_CALLS_PER_HOUR = 12;
@@ -43,7 +51,10 @@ export function deskRpcUrl(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 export function readDeskRunnerEnv(env: NodeJS.ProcessEnv = process.env): DeskRunnerEnv {
+  const stub = env.DESK_MODEL_STUB?.trim();
+  const modelStub = clusterOf(env) === "localnet" && stub && (MODEL_STUBS as readonly string[]).includes(stub) ? (stub as DeskModelStub) : undefined;
   return {
+    ...(modelStub ? { modelStub } : {}),
     operatorSecret: roleSecret("desk-runner", env),
     attestorSecret: roleSecret("price-attestor", env),
     rpcUrl: deskRpcUrl(env),

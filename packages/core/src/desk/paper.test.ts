@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyPaperFill, DEFAULT_PRACTICE_CASH_E6, emptyPaperLedger, movePaperCash, netOfFee, PAPER_FEE_BPS, paperLedgerFromWire, PaperLedgerError, paperLedgerToWire } from "./paper";
+import { applyPaperFill, DEFAULT_PRACTICE_CASH_E6, emptyPaperLedger, movePaperCash, netOfFee, PAPER_FEE_BPS, paperFeeBpsFor, paperLedgerFromWire, PaperLedgerError, paperLedgerToWire } from "./paper";
 
 describe("the practice ledger", () => {
   it("starts with $1,000 and no positions", () => {
@@ -13,6 +13,13 @@ describe("the practice ledger", () => {
     expect(before.positions).toEqual({});
     expect(netOfFee(47_781_610n, 100)).toBe(47_303_793n);
     expect(netOfFee(47_781_610n, 0)).toBe(47_781_610n);
+  });
+
+  it("the fee comes off only when the route's venue was measured to quote gross (C6.E: Meteora DLMM nets it, Manifest does not)", () => {
+    expect(paperFeeBpsFor(["Meteora DLMM"])).toBe(0);
+    expect(paperFeeBpsFor(["Manifest"])).toBe(100);
+    expect(paperFeeBpsFor(["Meteora DLMM", "Manifest"])).toBe(100);
+    expect(paperFeeBpsFor([])).toBe(100);
   });
 
   it("a sell takes the gross tokens off the position and adds the quote net of the fee; an emptied position disappears", () => {

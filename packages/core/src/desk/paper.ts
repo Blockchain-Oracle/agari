@@ -12,7 +12,21 @@ import type { PreIpoSymbol } from "../market/tickers";
 import type { DeskSide } from "./needs";
 import { BPS } from "./units";
 
+/**
+ * PreStocks' 100 bps transfer fee, taken off a practice fill's received leg when the route's quote does not already
+ * net it. Measured at C6.E on the Surfpool mainnet fork (2026-09-22), and it depends on the venue: a Meteora DLMM
+ * route (Anthropic, $400) credited the desk exactly the quoted 0.378220907 raw with 0.003820414 withheld on top,
+ * so its quote NETS the fee; a Manifest route (OpenAI, $400) quoted 0.219387119 and credited 0.217193247 (99.0 %),
+ * so its quote is GROSS. `paperFeeBpsFor` reads the route's labels; an unknown venue is taken as gross.
+ */
 export const PAPER_FEE_BPS = 100;
+/** Jupiter route labels whose `outAmount` was measured to net the transfer fee already (C6.E). */
+export const FEE_NETTING_VENUES: readonly string[] = ["Meteora DLMM"];
+
+/** The fee a practice fill takes off the quote: 0 when every hop is a venue measured to net it, else the full fee. */
+export function paperFeeBpsFor(routeLabels: readonly string[]): number {
+  return routeLabels.length > 0 && routeLabels.every((label) => FEE_NETTING_VENUES.includes(label)) ? 0 : PAPER_FEE_BPS;
+}
 /** The practice balance the studio offers by default (plan §5.4): $1,000. */
 export const DEFAULT_PRACTICE_CASH_E6 = 1_000_000_000n;
 

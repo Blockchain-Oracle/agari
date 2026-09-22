@@ -27,8 +27,9 @@ import {
 } from "@solana/kit";
 import { keypairSigner } from "../deploy/client";
 import { retryingRpcTransport } from "../deploy/rpc-transport";
-import { chainFailure } from "../submitter/chain-failure";
+import { chainFailure, customCode } from "../submitter/chain-failure";
 import { describeChainFailure, SimulationFailedError, type ChainFailure } from "../submitter/errors";
+import { failingProgramId } from "../submitter/product-failure";
 import { confirmStep } from "../submitter/steps/confirm";
 import type { WriteRpc } from "../submitter/steps/message";
 import { sendStep } from "../submitter/steps/send";
@@ -57,14 +58,30 @@ export interface DeskSendResult {
   slot: bigint;
   computeUnitLimit: number;
   unitsConsumed: number;
+  /** The wire size of the transaction as simulated (the 1,232-byte limit is the route's real bound). */
+  bytes: number;
   events: DeskEvent[];
+}
+
+const DESK_CODES = { min: 7000, max: 7299 };
+
+/**
+ * The desk's own error code in a failure, or null. The desk numbers its errors 7000–7299 (desk.md §4.6), outside the
+ * engine's 6000–6399, so `ChainFailure.engineCode` (the events program's table) never carries one: the code is read
+ * from the raw `Custom(code)`, and only when the program the logs name as failing is the desk (or none is named).
+ */
+export function deskErrorCode(failure: ChainFailure): number | null {
+  const code = customCode(failure.err);
+  if (code === null || code < DESK_CODES.min || code > DESK_CODES.max) return null;
+  const program = failingProgramId(failure.logs);
+  return program === null || program === (AGARI_DESK_PROGRAM_ADDRESS as string) ? code : null;
 }
 
 /** The chain refused the transaction, in simulation or once landed. `deskCode` is the desk's own error, when it is one. */
 export class DeskSendError extends Error {
   readonly deskCode: number | null;
   constructor(readonly stage: "simulation" | "landed", readonly failure: ChainFailure, readonly signature: Signature | null) {
-    const code = failure.engineCode !== null && failure.engineCode >= 7000 && failure.engineCode <= 7299 ? failure.engineCode : null;
+    const code = deskErrorCode(failure);
     super(code !== null ? `agari-desk ${code}: ${getAgariDeskErrorMessage(code as never) ?? describeChainFailure(failure)}` : describeChainFailure(failure));
     this.name = "DeskSendError";
     this.deskCode = code;
@@ -146,7 +163,7 @@ export async function createDeskOperatorClient(config: DeskOperatorClientConfig)
         if (landing.kind === "unknown") throw new DeskSendUnknownError(signature, landing.reason);
         if (landing.kind === "landed-failed") throw new DeskSendError("landed", landing.failure, signature);
         const events = await readDeskEventsOf(client.rpc, signature as string as Parameters<typeof readDeskEventsOf>[1]);
-        return { signature, slot: landing.slot, computeUnitLimit, unitsConsumed: sim.unitsConsumed, events };
+        return { signature, slot: landing.slot, computeUnitLimit, unitsConsumed: sim.unitsConsumed, bytes: sim.bytes, events };
       };
       // `step` names the action in a failure ("buy: agari-desk 7208: …"), so a log line says what was being sent.
       const named = () =>

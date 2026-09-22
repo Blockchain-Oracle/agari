@@ -53,14 +53,15 @@ function sealedOf(result: DeskSendResult, kind: SealedAction["kind"]): SwapResul
   return { ...result, sealed };
 }
 
+/** The route's re-pointed setup instructions (an idempotent ATA create, paid by the operator) go before the desk's own. */
 export async function buy(client: DeskOperatorClient, a: SwapAction): Promise<SwapResult> {
   const ix = await buyIx({ operator: client.signer, owner: a.owner, tokenMint: a.mint, amountIn: a.amountIn, minOut: a.minOut, deadlineSec: a.deadlineSec, decisionHash: a.decisionHash, swapData: a.route.swapData, route: a.route.route, priceUpdate: a.priceUpdate, usdcMint: a.usdcMint, swapProgram: a.swapProgram });
-  return sealedOf(await client.send("buy", [ix], { lookupTables: a.route.lookupTables }), "Bought");
+  return sealedOf(await client.send("buy", [...a.route.setupInstructions, ix], { lookupTables: a.route.lookupTables }), "Bought");
 }
 
 export async function sell(client: DeskOperatorClient, a: SwapAction): Promise<SwapResult> {
   const ix = await sellIx({ operator: client.signer, owner: a.owner, tokenMint: a.mint, amountIn: a.amountIn, minOut: a.minOut, deadlineSec: a.deadlineSec, decisionHash: a.decisionHash, swapData: a.route.swapData, route: a.route.route, priceUpdate: a.priceUpdate, usdcMint: a.usdcMint, swapProgram: a.swapProgram });
-  return sealedOf(await client.send("sell", [ix], { lookupTables: a.route.lookupTables }), "Sold");
+  return sealedOf(await client.send("sell", [...a.route.setupInstructions, ix], { lookupTables: a.route.lookupTables }), "Sold");
 }
 
 export interface CheckpointAction {

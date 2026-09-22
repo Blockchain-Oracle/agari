@@ -15,11 +15,11 @@ import {
 import type { DeferralRow } from "@agari/db";
 import { DESK_MODE_CODE } from "@agari/core/desk";
 import type { JupiterQuote } from "@agari/markets/desk";
-import { askTiming } from "./decide";
-import { readMarket, type MarketRead } from "./market";
+import { askTiming, MODEL_STUB_NAME } from "./decide";
+import { readMarket, SLIPPAGE_BPS, type MarketRead } from "./market";
 import type { RunnerContext, WakeFrame } from "./types";
 
-export const SLIPPAGE_BPS = 50;
+export { SLIPPAGE_BPS };
 /** The program's deadline on a send: the operator's clock plus this. */
 export const DEADLINE_SEC = 120;
 /** The desk will not repeat the same trade on the same name inside this window. */
@@ -203,16 +203,18 @@ export async function considerCandidate(ctx: RunnerContext, frame: WakeFrame, i:
 
   const answer = await askTiming(ctx, pack, rules.map((r) => r.text), frame.nowSec * 1000);
   frame.say(`  model: ${answer.decision ? `${answer.decision.option} (${answer.decision.confidencePercent}%)` : answer.error ? `no decision, ${answer.error}` : `rejected: ${answer.problems.join("; ")}`}`);
-  const amountIn = sizedAmount(c.amountIn, answer.decision, null);
+  // A stubbed "act now" (localnet only) is an override, and the record says so; a stubbed wait or decline stands as the answer.
+  const override: Override | null = answer.model === MODEL_STUB_NAME && answer.decision?.option === "ACT_NOW" ? { by: "DESK_MODEL_STUB", reason: "the fork rehearsal replaced the model's timing answer with ACT_NOW on localnet" } : null;
+  const amountIn = sizedAmount(c.amountIn, answer.decision, override);
   const isPart = amountIn < c.amountIn;
   const partRead = isPart ? await readMarket(ctx, frame.standing, c, amountIn, frame.nowSec) : read;
   const finalGate = isPart ? gate(gateInputFor(frame, need, amountIn, partRead)) : fullGate;
-  const plan = planOutcome({ decision: answer.decision, gate: finalGate, override: null, isPart: isPart || need.limitedByPerAction, mode: frame.desk.mode, largeActionE6: frame.mandate.largeActionE6 });
+  const plan = planOutcome({ decision: answer.decision, gate: finalGate, override, isPart: isPart || need.limitedByPerAction, mode: frame.desk.mode, largeActionE6: frame.mandate.largeActionE6 });
   const wanted = plan.willAct || plan.outcome === "ASKED" || plan.outcome === "WOULD_HAVE_ACTED";
   const preview = wanted ? { amountIn, expectedOut: partRead.quote?.outAmount ?? 0n, slippageBps: SLIPPAGE_BPS, deadlineSec: plan.willAct ? frame.nowSec + DEADLINE_SEC : null } : null;
   const facts = { decidedAtSec: frame.nowSec, premiumBps: read.market.premiumBps, spotE8: read.market.spotE8.toString(), driftBps: need.driftBps, cashE6: frame.standing.cashE6.toString() };
   const considered: Considered = {
-    need, market: partRead.market, quote: partRead.quote, reference: partRead.reference, pack, gate: finalGate, blockers, answer, outcome: plan.outcome, ask: plan.ask, willAct: plan.willAct, override: null, summary: "", preview, deferral,
+    need, market: partRead.market, quote: partRead.quote, reference: partRead.reference, pack, gate: finalGate, blockers, answer, outcome: plan.outcome, ask: plan.ask, willAct: plan.willAct, override, summary: "", preview, deferral,
     newDeferralBaseline: plan.outcome === "WAITED" && answer.decision?.option === "WAIT" ? { kind: "wait", ...facts } : plan.outcome === "WOULD_HAVE_ACTED" ? { kind: "would_have", ...facts } : null,
   };
   return { ...considered, summary: summaryOf(considered, frame.nowSec) };
