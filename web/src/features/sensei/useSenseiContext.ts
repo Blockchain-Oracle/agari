@@ -7,9 +7,11 @@ import { formatBaseUnits } from "@agari/core/units";
 import { usePositions, useWalletHistory } from "@agari/markets/react";
 import { useMemo } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
+import { useDeskView } from "@/features/desk/useDesk";
+import { deskView } from "@/features/desk/view";
 import { useHoldings, type HoldingView } from "@/features/hedge";
 import { useMarketSession } from "../markets/session/useMarketSession";
-import type { SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
+import type { SenseiDesk, SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { baseToCents } from "./units";
 
 /** The request's ceiling (`protocol.ts`); the soonest to close are the ones a read is about. */
@@ -29,6 +31,7 @@ export interface SenseiContext {
   positions?: SenseiPosition[];
   record?: SenseiRecord;
   holdings?: SenseiHolding[];
+  desk?: SenseiDesk;
 }
 
 function sideOf(position: OpenPosition): SenseiPosition["side"] {
@@ -66,6 +69,21 @@ export function toHoldings(holdings: readonly HoldingView[]): SenseiHolding[] {
     }));
 }
 
+/** The wallet's desk for Sensei (S21): mode, worth, the last decision's line and its age, anything waiting. Nothing names the wallet. */
+export function toDesk(view: ReturnType<typeof deskView>, nowMs: number): SenseiDesk {
+  const latest = view.wire.latest;
+  const waiting = view.approvals.open[0] ?? null;
+  return {
+    mode: view.mode,
+    state: view.stateText,
+    valueCents: view.plate.totalE6 === null ? null : Number((view.plate.totalE6 + USD_E6_PER_CENT / 2n) / USD_E6_PER_CENT),
+    lastDecision: latest ? latest.summary.slice(0, 300) : null,
+    lastDecisionAgoMin: latest ? Math.max(0, Math.round((nowMs / 1000 - latest.decidedAtSec) / 60)) : null,
+    waiting: waiting ? waiting.summary.slice(0, 300) : null,
+    practiceChecks: view.practice.done,
+  };
+}
+
 /** Wins and losses as the Trader Edge counts them; the streak is the current run over decided rounds, signed. */
 export function toRecord(rounds: readonly SettledRound[]): SenseiRecord {
   const decided = rounds
@@ -92,6 +110,8 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
   const history = useWalletHistory(address, open);
   // The same query the cover card and "Your stocks" read (one TanStack key), so an open drawer adds no request of its own.
   const holdings = useHoldings(open ? address : null);
+  // The desk's own page read (one TanStack key), only while the drawer is open with a wallet connected.
+  const desk = useDeskView(open ? address : null, address, open && address !== null);
   const tick = Math.floor(nowMs / TICK_MS);
 
   const state = market?.status.state ?? null;
@@ -101,6 +121,7 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
   const positionRows = open && address !== null && positions?.ok ? positions.value : null;
   const rounds = open && address !== null && history?.ok ? history.value.rounds : null;
   const holdingRows = open && address !== null && holdings?.ok ? holdings.value : null;
+  const deskWire = open && address !== null && desk?.ok && desk.value.desk !== null ? desk.value : null;
 
   return useMemo<SenseiContext>(
     () => ({
@@ -108,7 +129,8 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
       ...(positionRows ? { positions: toPositions(positionRows, tick * TICK_MS) } : {}),
       ...(rounds ? { record: toRecord(rounds) } : {}),
       ...(holdingRows ? { holdings: toHoldings(holdingRows) } : {}),
+      ...(deskWire ? { desk: toDesk(deskView(deskWire), tick * TICK_MS) } : {}),
     }),
-    [session, positionRows, rounds, holdingRows, tick],
+    [session, positionRows, rounds, holdingRows, deskWire, tick],
   );
 }

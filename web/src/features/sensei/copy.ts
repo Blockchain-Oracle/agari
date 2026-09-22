@@ -15,7 +15,7 @@ export const SENSEI_INTRO: SenseiMessage = {
     "I'm Sensei. I read the live market with you and give you a straight call. UP, DOWN, or sit it out. Then act on it right here: pick a Window below and it opens in your ticket. Devnet, test funds only. I read and recommend, you place the trade.",
 };
 
-export const SENSEI_STARTERS = ["Read the current market", "Up or down on the next close?", "Is this a coin-flip?"] as const;
+export const SENSEI_STARTERS = ["Read the current market", "Up or down on the next close?", "Is this a coin-flip?", "Why did my desk wait?"] as const;
 
 /** Short rotating questions the dock pops to invite a tap. */
 export const SENSEI_TEASERS = ["Up or down?", "Coin-flip?", "Want a read?", "Which way?"] as const;

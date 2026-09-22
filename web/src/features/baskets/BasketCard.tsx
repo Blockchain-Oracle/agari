@@ -15,7 +15,8 @@ import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
 import { BASKETS_COPY } from "./copy";
 import "./baskets.css";
 
-const DESK_PATH = "/desk";
+/** Hold opens the studio on this basket (plan §5.2): `/desk/new?basket=<SYM>`. */
+const deskHref = (symbol: string) => `/desk/new?basket=${symbol}`;
 
 export interface BasketCardProps {
   basket: Basket;
@@ -101,7 +102,7 @@ export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCo
             {C.cover}
           </span>
         )}
-        <Link href={DESK_PATH} className="bk-action" data-kind="hold" data-cursor="hover" title={C.holdWhy}>
+        <Link href={deskHref(basket.symbol)} className="bk-action" data-kind="hold" data-cursor="hover" title={C.holdWhy}>
           {C.hold}
         </Link>
       </div>

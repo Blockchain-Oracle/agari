@@ -248,3 +248,8 @@
   .lp-cover { grid-template-columns: minmax(0, 1fr); }
 }
 
+
+/* S21: "Let a desk hold it", the promise as a numbered list in the cover card's column. */
+.lp-desk-promise { display: flex; flex-direction: column; gap: 12px; margin: 0 0 16px; padding: 20px; list-style: none; border: 1px solid var(--gray-800); border-radius: 12px; color: var(--gray-200); font-size: 15px; line-height: 1.55; }
+.lp-desk-promise li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+.lp-desk-n { font-family: var(--font-mono); font-size: 11px; color: var(--vermilion); padding-top: 4px; }

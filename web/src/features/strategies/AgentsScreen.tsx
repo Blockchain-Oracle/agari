@@ -6,6 +6,7 @@ import { addressUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { useMemo } from "react";
 import { CapabilityPending } from "@/components/shell";
+import { RECORD } from "@/features/desk/copy-record";
 import { ReadingBoundary } from "@/components/states";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { cn } from "@/lib/utils";
@@ -60,7 +61,12 @@ export function AgentsScreen() {
         <span className="text-ink">{AGENTS.crumb.here}</span>
       </div>
       <h1 className="agents-h1">{AGENTS.headline}</h1>
-      <p className="mb-10 max-w-2xl text-sm leading-relaxed text-ink-secondary">{AGENTS.intro}</p>
+      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-ink-secondary">{AGENTS.intro}</p>
+      {/* S21 (plan §5.2): the one card that keeps the two purses apart, test money here, real PreStocks tokens on the desk. */}
+      <div className="agents-panel mb-8 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm leading-relaxed text-ink">{RECORD.hooks.agents.body}</p>
+        <Link href="/desk" className="desk-pill desk-pill--on">{RECORD.hooks.agents.cta}</Link>
+      </div>
       <nav className="agent-entry" aria-label="Agent actions"><Link className="desk-pill" href="/strategies">Create an agent →</Link><Link className="desk-pill" href="/strategies?view=copy">Copy a strategy →</Link><Link className="desk-pill" href="/strategies?view=yours">Your strategies →</Link></nav>
       <ReadingBoundary reading={reading} shape="plate" retry={refresh}>
         {(payload) => (payload.deployed ? <Board payload={payload} nowMs={nowMs} /> : <CapabilityPending eyebrow={AGENTS.title} title={AGENTS.title} dependency={AGENTS.notDeployed.dependency}><p>{STRATEGIES.notDeployed.body}</p></CapabilityPending>)}

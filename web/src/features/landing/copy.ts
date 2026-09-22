@@ -81,8 +81,29 @@ export const LANDING = {
     portfolio: "Portfolio page →",
     cta: "See it on Markets",
   },
+  /** S21 (plan §5.2): the desk, the one place real money moves, in plain words beside its promise. */
+  desk: {
+    section: { index: "04", title: "Let a desk hold it", desc: "You decide what to own. The desk decides only when." },
+    paragraphs: [
+      "A basket is a small group of companies you follow together. Predict it with test money, cover the members you hold, or let a desk hold it for you with real money on Solana mainnet, inside limits you set.",
+      "The desk wakes every hour, on the hour, around the clock. It reads real PreStocks prices and real Jupiter quotes, asks one AI question about timing, and writes down what it did, including every time it did nothing. The program on Solana enforces the money limits whatever it decides.",
+      "It starts in practice: everything real except spending money. Six practice checks and the record opened, then Go live is one mainnet transaction, and money goes straight to an account only you can withdraw from.",
+    ],
+    story: "Every decision has a Check it button: your browser recomputes the record's fingerprint and compares it with the one Solana holds, in the same transaction as the trade.",
+    note: "Practice desks need no tokens, no mainnet and no eligibility.",
+    open: "Open your desk →",
+    fixtures: "Every state, from fixtures →",
+    promise: [
+      "It is your account: only you can withdraw, and only to your wallet.",
+      "It stays inside your limits, and the program itself enforces the money limits.",
+      "It always explains itself, including every time it does nothing.",
+      "The record cannot be quietly changed: its fingerprint is on Solana in the same transaction as the trade.",
+      "You can stop it at any moment: Pause, Withdraw, Close.",
+    ],
+    worstCase: "Worst case, in one sentence: if the desk's key were ever stolen, the thief could only make bad trades, at most your daily limit a day, until you pause.",
+  },
   proof: {
-    section: { index: "04", title: "Proof", desc: "Every address and every settled Window below opens on Solana Explorer." },
+    section: { index: "05", title: "Proof", desc: "Every address and every settled Window below opens on Solana Explorer." },
     program: "Program",
     venue: "Venue config",
     clusterLabel: "Cluster",

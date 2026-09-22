@@ -25,7 +25,7 @@ describe("navigation registry", () => {
 
   it("gives every drawer destination exactly one home", () => {
     const ids = MOBILE_DRAWER_SECTIONS.flatMap((section) => section.items.map((item) => item.id));
-    expect(ids).toHaveLength(29);
+    expect(ids).toHaveLength(30);
     expect(new Set(ids).size).toBe(ids.length);
   });
 

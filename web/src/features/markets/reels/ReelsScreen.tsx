@@ -2,6 +2,9 @@
 
 import { ChevronUpIcon, FeatherIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@agari/core/desk";
+import { DeskReelCard, type DeskReelDecision } from "@/features/desk/DeskReelCard";
+import { useDeskView } from "@/features/desk/useDesk";
 import { calmSet, holdsPreIpo, HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
 import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
@@ -24,6 +27,8 @@ import { isClosing, reelPhase, useReelRounds } from "./useReelRounds";
 const SCROLLED_PX = 60;
 /** A take's age prints at a minute's grain, so its card is handed the clock at that grain and re-renders once a minute. */
 const MINUTE_MS = 60_000;
+/** The desk decisions worth a card (plan §5.8): the ones that ring; a quiet check never reaches the reel. */
+const NOTABLE = new Set<string>([...NOTIFIED_OUTCOMES].map((o) => OUTCOME_COLUMN[o]));
 
 /**
  * The reel — a full-screen vertical snap feed of live Windows and community takes.
@@ -61,7 +66,14 @@ export function ReelsScreen() {
     () => (holdings?.ok ? pickAllHedges(holdings.value, lanes.laneSet, nowMs, calmSet(facts?.ok ? facts.value : null)) : []),
     [holdings, lanes.laneSet, nowMs, facts],
   );
-  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks), [rounds, feed, holdingPicks]);
+  // S21 (plan §5.2): your own desk's latest notable decision, occasionally, from its record.
+  const desk = useDeskView(address, address, address !== null);
+  const deskDecision = useMemo<DeskReelDecision | null>(() => {
+    if (!desk?.ok || !desk.value.desk) return null;
+    const notable = desk.value.recent.find((r) => NOTABLE.has(r.outcome));
+    return notable ? { deskId: desk.value.desk.id, record: notable, isLive: desk.value.desk.address !== null } : null;
+  }, [desk]);
+  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks, deskDecision), [rounds, feed, holdingPicks, deskDecision]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.
   const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(sessionPhrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
@@ -101,9 +113,13 @@ export function ReelsScreen() {
                 <section key={`take-${item.take.id}`} ref={register(index)} className="feed-card reel-slot">
                   <TakeReelCard take={item.take} nowMs={minuteMs} />
                 </section>
-              ) : (
+              ) : item.kind === "holding" ? (
                 <section key={`hold-${item.pick.underlying}-${index}`} ref={register(index)} className="feed-card reel-slot">
                   <HoldingReelCard pick={item.pick} />
+                </section>
+              ) : (
+                <section key={`desk-${item.decision.record.seq}`} ref={register(index)} className="feed-card reel-slot">
+                  <DeskReelCard decision={item.decision} nowSec={Math.floor(minuteMs / 1000)} />
                 </section>
               ),
             )}
