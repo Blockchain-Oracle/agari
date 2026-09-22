@@ -42,8 +42,7 @@ function mmss(totalSec: number): string {
  * across a night, weekend or holiday, `CLOSES IN · 2H 05M` in session; a halt, or a calendar with no next open,
  * says `NYSE · <word>`.
  */
-function sessionCell(session: MarketSession, nowSec: number): MarqueeItem {
-  const when = useWhen();
+function sessionCell(session: MarketSession, nowSec: number, when: ReturnType<typeof useWhen>): MarqueeItem {
   const countdown = session.status.state === "halted" ? null : sessionCountdown(session.status, nowSec);
   if (!countdown) return { label: SESSION_COPY.marquee.nyse, value: session.label.toUpperCase() };
   if (countdown.kind === "closes") return { label: SESSION_COPY.marquee.closesIn, value: formatSessionSpan(countdown.remainingSec).toUpperCase() };
@@ -67,6 +66,10 @@ export default function Marquee() {
   const session = useMarketSession();
   const sentiment = useSentiment();
   const nowMs = useNowMs();
+  // Called on every render, never inside the closed-market branch below: a hook that appears only once the session
+  // has loaded and the market is shut changes the hook count between renders, which took the whole site down
+  // after the 20:00Z close on 2026-09-22 (React error 310).
+  const when = useWhen();
   const closed = session !== null && !session.open;
 
   // Live-lane tickers first, then the registry's launch order, so off-hours the strip still carries the last prices.
@@ -108,7 +111,7 @@ export default function Marquee() {
   }
 
   // In session (or while the session is unknown) the next close; outside it, when the market next opens.
-  if (session && !session.open) items.push(sessionCell(session, Math.floor((nowMs > 0 ? nowMs : Date.now()) / 1000)));
+  if (session && !session.open) items.push(sessionCell(session, Math.floor((nowMs > 0 ? nowMs : Date.now()) / 1000), when));
   else if (nextExpirySec !== null && nowMs > 0) {
     items.push({ label: "NEXT CLOSE", value: mmss(remainingSec(nowMs, nextExpirySec)), direction: "" });
   }
