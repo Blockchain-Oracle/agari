@@ -21,14 +21,18 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY web/package.json ./web/
 COPY scripts/package.json ./scripts/
 COPY packages/brain/package.json ./packages/brain/
+COPY packages/clients/package.json ./packages/clients/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
 RUN pnpm install --frozen-lockfile --filter "@agari/ops..."
 
-# The sources the service actually runs: its own, and the four packages it imports.
+# The sources the service actually runs: its own, and the five packages it imports. `clients` is the
+# generated Codama client; packages/markets imports it, and leaving it out builds an image that dies on
+# boot with ERR_MODULE_NOT_FOUND @agari/clients. The reference had no such package, so the port lost it.
 COPY packages/brain ./packages/brain
+COPY packages/clients ./packages/clients
 COPY packages/core ./packages/core
 COPY packages/db ./packages/db
 COPY packages/markets ./packages/markets
