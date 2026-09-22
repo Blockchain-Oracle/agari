@@ -58,7 +58,6 @@ export const RECORD = {
       premium: (pct: string) => `${pct} above its mark`,
       discount: (pct: string) => `${pct} below its mark`,
       index: "Pyth's valuation index",
-      noIndex: "Pyth's index: not entitled yet",
       mean: "Half-hour average",
       gap: (pct: string) => `spot ${pct} from its average`,
       inLine: "in line with its average",

@@ -13,6 +13,8 @@ export const DESK = {
     studio: "DESK STUDIO · PRACTICE FIRST",
   },
   title: "Your desk",
+  /** The same page read by someone who is not the owner. */
+  visitorTitle: "A desk",
   titleJp: "机に任せる。",
   visitor: "Someone else's desk. You are reading it; nothing here can be changed from this page.",
   network: { live: "Phantom will show a Solana mainnet transaction.", practice: "No transaction. Practice moves no money." },

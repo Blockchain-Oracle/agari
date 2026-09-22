@@ -23,7 +23,8 @@ export function WhatItSaw({ body }: { body: Body }) {
   if (price) {
     rows.push([`${S.price} · ${name}`, `${usdText(price.spot)} · ${price.referenceAgeSec === null ? S.ageUnknown : S.ageSec(price.referenceAgeSec)}`]);
     if (price.mark !== null) rows.push([S.mark, `${usdText(price.mark)}${price.premiumBps === null ? "" : ` · ${price.premiumBps >= 0 ? S.premium(pct(price.premiumBps)) : S.discount(pct(price.premiumBps))}`}`]);
-    rows.push([S.index, price.index === null ? S.noIndex : `${usdText(price.index)}${price.indexPremiumBps === null ? "" : ` · ${pct(price.indexPremiumBps)}`}`]);
+    // A feed the venue may not read has no row: nothing on screen explains a licence (the owner's rule).
+    if (price.index !== null) rows.push([S.index, `${usdText(price.index)}${price.indexPremiumBps === null ? "" : ` · ${pct(price.indexPremiumBps)}`}`]);
     rows.push([S.mean, `${usdText(price.mean30m)} · ${price.inLine ? S.inLine : S.gap(pct(price.gapBps))}`]);
   }
   if (position) rows.push([name, S.drift(pct(position.weightBps), pct(position.targetBps), pct(position.thresholdBps))]);

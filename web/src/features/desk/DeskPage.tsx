@@ -39,7 +39,7 @@ export function DeskPage({ view, actions, zone, nowSec, initialControl = null }:
       <header className="dk-hero">
         <span className="dk-eyebrow" data-live={view.isLive ? "" : undefined}>{view.eyebrow}</span>
         <div className="dk-title-row">
-          <h1 className="dk-title">{DESK.title}</h1>
+          <h1 className="dk-title">{view.isOwner ? DESK.title : DESK.visitorTitle}</h1>
           <span className="dk-title-jp" lang="ja">{DESK.titleJp}</span>
           <span className="dk-chip" data-mode={view.mode}>{DESK.modes[view.mode]}</span>
           {view.state !== "active" && view.state !== "practice" && <span className="dk-chip" data-state={view.state}>{view.stateText}</span>}
