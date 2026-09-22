@@ -4,7 +4,7 @@ import { webEnv } from "@/lib/env";
 /**
  * `GET /actions.json` — the file that makes Agari's links blinkable (S11, `00-plan.md` §S11).
  *
- * A blink client that meets `agari.xyz/markets/<id>` looks here to learn which of our URLs it may `GET` as an Action.
+ * A blink client that meets `useagari.xyz/markets/<id>` looks here to learn which of our URLs it may `GET` as an Action.
  * The spec requires it at the domain root with `Access-Control-Allow-Origin: *`, which is why it is a route handler
  * rather than a file in `public/`: the headers are part of the contract, not a deployment setting someone has to
  * remember. A shared market link and its Action stay one URL apart, so nothing has to be re-shared to become a Blink.

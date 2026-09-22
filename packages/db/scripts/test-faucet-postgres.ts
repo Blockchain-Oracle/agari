@@ -68,20 +68,20 @@ async function main() {
   } satisfies FaucetChain;
   const deps = { verify: async () => true };
   let service = createFaucetService(chain, deps);
-  const request = async (n: number, ip = `ip-${n}`) => { const c = await service.challenge(wallet(n), ip, "https://agari.xyz"); return service.claim(c.id, SIG, ip); };
+  const request = async (n: number, ip = `ip-${n}`) => { const c = await service.challenge(wallet(n), ip, "https://useagari.xyz"); return service.claim(c.id, SIG, ip); };
   async function check(label: string, run: () => Promise<void>) {
     await sql`TRUNCATE sol_faucet_claims, tusdc_faucet_claims, faucet_challenges`;
     balances.clear(); tokens.clear(); landed.clear(); prepared = 0; sends = 0; interrupt = false;
     await run(); passed++; console.log(`PASS ${label}`);
   }
   await check("32 requests across service instances reserve and pay exactly once", async () => {
-    const c = await service.challenge(wallet(1), "ip-1", "https://agari.xyz");
+    const c = await service.challenge(wallet(1), "ip-1", "https://useagari.xyz");
     const all = await Promise.all(Array.from({ length: 32 }, () => createFaucetService(chain, deps).claim(c.id, SIG, "ip-1")));
     assert.equal(new Set(all.map((r) => r.txHash)).size, 1); assert.equal(sends, 1);
     assert.equal(Number((await sql`SELECT count(*) AS count FROM sol_faucet_claims`)[0]!.count), 1);
   });
   await check("competing challenges cannot bypass one-wallet cooldown", async () => {
-    const challenges = await Promise.all([service.challenge(wallet(2), "ip-2", "https://agari.xyz"), service.challenge(wallet(2), "ip-2", "https://agari.xyz")]);
+    const challenges = await Promise.all([service.challenge(wallet(2), "ip-2", "https://useagari.xyz"), service.challenge(wallet(2), "ip-2", "https://useagari.xyz")]);
     const results = await Promise.allSettled(challenges.map((c) => service.claim(c.id, SIG, "ip-2")));
     assert.equal(results.filter((r) => r.status === "fulfilled").length, 1); assert.equal(sends, 1);
   });
@@ -108,14 +108,14 @@ async function main() {
     await sql.unsafe(SCHEMA_SQL); assert.equal((await sql`SELECT id FROM sol_faucet_claims`).length, 1);
   });
   await check("one challenge mints tUSDC once across instances; the same id also pays SOL once", async () => {
-    const c = await service.challenge(wallet(3), "ip-3", "https://agari.xyz");
+    const c = await service.challenge(wallet(3), "ip-3", "https://useagari.xyz");
     const mints = await Promise.all(Array.from({ length: 16 }, () => createFaucetService(chain, deps).claim(c.id, SIG, "ip-3", "tusdc")));
     assert.equal(new Set(mints.map((r) => r.txHash)).size, 1);
     await service.claim(c.id, SIG, "ip-3", "sol");
     assert.equal(sends, 2); assert.equal(tokens.get(wallet(3)), TUSDC.amountUnits * 1_000_000n);
     const used = await (await readFaucetStore()).tusdc.used(Date.now() - TUSDC.cooldownMs, "ip-3");
     assert.equal(used.amount, TUSDC.amountUnits * 1_000_000n); assert.equal(used.ip, 1);
-    const again = await service.challenge(wallet(3), "ip-3", "https://agari.xyz");
+    const again = await service.challenge(wallet(3), "ip-3", "https://useagari.xyz");
     await assert.rejects(service.claim(again.id, SIG, "ip-3", "tusdc"), (e: unknown) => (e as { code: string }).code === "cooldown");
   });
   console.log(`${passed} real Postgres checks passed. No chain transactions sent.`);

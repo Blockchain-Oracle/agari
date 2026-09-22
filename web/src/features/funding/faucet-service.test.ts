@@ -83,7 +83,7 @@ function harness({ mintAuthority = true } = {}) {
   const verify = vi.fn(async (_wallet: string, _message: string, _signature: string) => true);
   const deps = { read: async () => store, lock, now: () => nowMs, id: () => `00000000-0000-4000-8000-${String(++id).padStart(12, "0")}`, verify };
   const service = createFaucetService(chain, deps);
-  const request = async (w = W, ip = "ip-a") => { const c = await service.challenge(w, ip, "https://agari.xyz"); return service.claim(c.id, SIG, ip); };
+  const request = async (w = W, ip = "ip-a") => { const c = await service.challenge(w, ip, "https://useagari.xyz"); return service.claim(c.id, SIG, ip); };
   return { service, chain, store, deps, verify, claims, mints: tusdc.claims, challenges, balances, tokens, landed, request, advance: (ms: number) => { nowMs += ms; } };
 }
 
@@ -94,8 +94,8 @@ describe("devnet SOL faucet policy", () => {
     expect(faucetTopUpLamports(POLICY.thresholdLamports)).toBe(0n);
   });
   it("binds the signature to domain, wallet, network, nonce and expiry", async () => {
-    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
-    for (const part of ["https://agari.xyz", W, "Solana devnet", c.id, "gives no permission"]) expect(c.message).toContain(part);
+    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
+    for (const part of ["https://useagari.xyz", W, "Solana devnet", c.id, "gives no permission"]) expect(c.message).toContain(part);
   });
   it("refuses a malformed wallet or signature before any crypto runs", async () => {
     expect(await verifyChallengeSignature("0x1234", "message", SIG)).toBe(false);
@@ -107,7 +107,7 @@ describe("devnet SOL faucet policy", () => {
     expect(h.claims.size).toBe(0); expect(h.chain.broadcast).not.toHaveBeenCalled();
   });
   it("refuses expired and changed-connection requests before funding", async () => {
-    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
     await expect(h.service.claim(c.id, SIG, "ip-b")).rejects.toMatchObject({ code: "request-changed" });
     h.advance(POLICY.challengeTtlMs);
     await expect(h.service.claim(c.id, SIG, "ip-a")).rejects.toMatchObject({ code: "challenge-expired" });
@@ -137,7 +137,7 @@ describe("devnet SOL faucet policy", () => {
     expect(h.chain.broadcast).not.toHaveBeenCalled();
   });
   it("concurrent retries produce one signed transaction and one payment", async () => {
-    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
     await Promise.all(Array.from({ length: 16 }, () => h.service.claim(c.id, SIG, "ip-a")));
     expect(h.claims.size).toBe(1); expect(h.chain.prepare).toHaveBeenCalledTimes(1); expect(h.landed.size).toBe(1);
     expect(h.balances.get(W)).toBe(POLICY.targetLamports);
@@ -176,8 +176,8 @@ describe("devnet SOL faucet policy", () => {
     expect(h.chain.prepare).toHaveBeenCalledTimes(1);
   });
   it("limits challenge spam and repeated claims from one connection", async () => {
-    const h = harness(); for (let n = 0; n < 6; n++) await h.service.challenge(W, "ip-a", "https://agari.xyz");
-    await expect(h.service.challenge(W, "ip-a", "https://agari.xyz")).rejects.toMatchObject({ code: "rate-limited" });
+    const h = harness(); for (let n = 0; n < 6; n++) await h.service.challenge(W, "ip-a", "https://useagari.xyz");
+    await expect(h.service.challenge(W, "ip-a", "https://useagari.xyz")).rejects.toMatchObject({ code: "rate-limited" });
     const other = harness(); vi.mocked(other.store.sol.used).mockResolvedValue({ amount: POLICY.targetLamports, ip: 10 });
     await expect(other.request()).rejects.toMatchObject({ code: "rate-limited" });
   });
@@ -191,7 +191,7 @@ describe("devnet SOL faucet policy", () => {
 describe("server-sent tUSDC claims (D-034)", () => {
   const AMOUNT = TUSDC.amountUnits * 1_000_000n;
   const claimBoth = async (h: ReturnType<typeof harness>, w = W, ip = "ip-a") => {
-    const c = await h.service.challenge(w, ip, "https://agari.xyz");
+    const c = await h.service.challenge(w, ip, "https://useagari.xyz");
     return { c, sol: await h.service.claim(c.id, SIG, ip, "sol"), tusdc: await h.service.claim(c.id, SIG, ip, "tusdc") };
   };
   it("one challenge signature pays the SOL top-up and mints tUSDC once each", async () => {
@@ -204,20 +204,20 @@ describe("server-sent tUSDC claims (D-034)", () => {
   });
   it("needs no wallet SOL and does not count against the SOL allocation", async () => {
     const h = harness(); h.balances.set(W, POLICY.thresholdLamports);
-    const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
     await expect(h.service.claim(c.id, SIG, "ip-a", "tusdc")).resolves.toMatchObject({ status: "confirmed" });
     expect((await h.store.sol.used(0, "ip-a")).amount).toBe(0n);
   });
   it("refuses a second claim in 24 hours, the daily allocation, the IP limit and a funder below its floor", async () => {
     const cooled = harness(); await claimBoth(cooled);
-    const again = await cooled.service.challenge(W, "ip-b", "https://agari.xyz");
+    const again = await cooled.service.challenge(W, "ip-b", "https://useagari.xyz");
     await expect(cooled.service.claim(again.id, SIG, "ip-b", "tusdc")).rejects.toMatchObject({ code: "cooldown" });
     const budget = harness(); vi.mocked(budget.store.tusdc.used).mockResolvedValue({ amount: TUSDC.dailyUnits * 1_000_000n - AMOUNT + 1n, ip: 0 });
     const ip = harness(); vi.mocked(ip.store.tusdc.used).mockResolvedValue({ amount: 0n, ip: TUSDC.maxPerIpPerDay });
     const floor = harness(); floor.balances.set(FUNDER, TUSDC_FUNDING_FLOOR_LAMPORTS - 1n);
     expect(TUSDC_FUNDING_FLOOR_LAMPORTS).toBe(2_002_049_280n);
     for (const [h, code] of [[budget, "daily-limit"], [ip, "rate-limited"], [floor, "refill-needed"]] as const) {
-      const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+      const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
       await expect(h.service.claim(c.id, SIG, "ip-a", "tusdc")).rejects.toMatchObject({ code });
       expect(h.chain.prepareMint).not.toHaveBeenCalled();
     }
@@ -225,7 +225,7 @@ describe("server-sent tUSDC claims (D-034)", () => {
   });
   it("recovers an interrupted mint with its saved bytes after the challenge expires", async () => {
     const h = harness(); vi.mocked(h.chain.broadcast).mockRejectedValueOnce(new Error("process interrupted"));
-    const c = await h.service.challenge(W, "ip-a", "https://agari.xyz");
+    const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
     expect(await h.service.claim(c.id, SIG, "ip-a", "tusdc")).toMatchObject({ status: "prepared" });
     expect((await h.service.status(W)).tusdc.message).toContain("confirming");
     h.advance(POLICY.challengeTtlMs + 1);

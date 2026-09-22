@@ -6,7 +6,7 @@
 # One machine is a rule, not a saving: every actor is a single writer over its own key (AD-4), and a
 # second machine would race the first's nonces. The volume holds the deck journal — the second copy of
 # every sealed deck's reveal material, written before the commitment is published.
-app = "masayume-ops"
+app = "agari-ops"
 primary_region = "iad"
 
 [build]
@@ -21,7 +21,7 @@ primary_region = "iad"
   source = "ops_data"
   destination = "/data"
 
-# The duel room's WebSocket, and its /health and /occupancy reads, behind Fly's TLS: wss://masayume-ops.fly.dev.
+# The duel room's WebSocket, and its /health and /occupancy reads, behind Fly's TLS: wss://agari-ops.fly.dev.
 [http_service]
   internal_port = 8787
   force_https = true
