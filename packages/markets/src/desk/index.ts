@@ -65,10 +65,12 @@ export {
   type QuoteInput,
   type SwapInstructionsInput,
 } from "./jupiter-swap";
+export { forkAirdrop, forkClockSec, forkSetTokenAccount, forkTimeTravel, prewarmRoute, refreshRoute, surfnetCall, tokenBalance, type Prewarmed } from "./fork";
 export { ensureDeskConfig, ensureDeskReference, initDesk, programUpgradeAuthority, readDeskInitPlan, type DeskInitPlan, type DeskInitRecord, type DeskInitWant } from "./init";
+export { NotRefusedError, sendForRefusal, withdrawAsStrangerIx, type Refusal, type RefusalOptions, type RefusalStage } from "./prove";
 export { fetchLookupTables, withLookupTables } from "./lookup-tables";
 export { createDeskMainnetSession, type DeskMainnetSession, type DeskMainnetSessionConfig, type DeskWriteResult } from "./mainnet-session";
-export { createDeskOperatorClient, DeskSendError, DeskSendUnknownError, type DeskOperatorClient, type DeskOperatorClientConfig, type DeskSendOptions, type DeskSendResult } from "./operator-client";
+export { createDeskOperatorClient, deskErrorCode, DeskSendError, DeskSendUnknownError, type DeskOperatorClient, type DeskOperatorClientConfig, type DeskSendOptions, type DeskSendResult } from "./operator-client";
 export { readDeskConfig, readDeskMints, readDeskRefs, readDeskState, type DeskAllowedToken, type DeskConfigState, type DeskMintState, type DeskRefState, type DeskRpc, type DeskState, type DeskTokenAccountState } from "./reads";
 export { DESK_REF_MESSAGE_BYTES, deskReferenceMessage, postReferenceInstructions, type DeskReferenceFields, type PostReferenceInput } from "./reference";
 export { chainNowSec, createDeskRpc, listDesksByOperator, signatureOutcome, type DiscoveredDesk, type SignatureOutcome } from "./rpc";
