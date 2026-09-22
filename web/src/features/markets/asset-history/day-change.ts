@@ -1,4 +1,4 @@
-import { usdLine } from "../hero/units";
+import { assetPriceLine } from "../hero/units";
 import type { Close, DailyCloses } from "./useDailyCloses";
 
 export interface DayChange {
@@ -37,13 +37,14 @@ export interface DayChangeText {
   direction: "up" | "down" | "flat";
 }
 
-export function formatDayChange(change: DayChange): DayChangeText {
+/** `asset` picks the unit (S19): a basket's move is in points, never dollars. */
+export function formatDayChange(change: DayChange, asset = ""): DayChangeText {
   const direction = change.deltaRaw > 0n ? "up" : change.deltaRaw < 0n ? "down" : "flat";
   const sign = direction === "up" ? "+" : direction === "down" ? "−" : "";
   const magnitude = change.deltaRaw < 0n ? -change.deltaRaw : change.deltaRaw;
   const absBps = Math.abs(change.bps);
   return {
-    dollars: `${sign}${usdLine(magnitude, change.referenceRaw)}`,
+    dollars: `${sign}${assetPriceLine(asset, magnitude, change.referenceRaw)}`,
     percent: `${sign}${Math.floor(absBps / 100)}.${String(absBps % 100).padStart(2, "0")}%`,
     direction,
   };

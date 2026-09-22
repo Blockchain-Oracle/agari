@@ -7,7 +7,7 @@ import { SectionHeader } from "@/components/chrome";
 import { LiveHedgeCard } from "@/features/hedge";
 import { MarketRoom } from "@/features/room";
 import { HERO_HEAD, SECTIONS } from "@/lib/copy";
-import { usdLine } from "./hero/units";
+import { assetPriceLine } from "./hero/units";
 import { CadenceLanes, useLanesState } from "./lanes";
 import { MarketsHero } from "./MarketsHero";
 import { MarketSessionChip } from "./session";
@@ -21,7 +21,7 @@ import { WordMarketBoard } from "./word-board";
 function roomCallLabel(market: EventMarket): string {
   const cadence = formatCadence(market.intervalSec);
   if (market.openingPriceRaw === null) return `${market.asset} · ${cadence}`;
-  return `${HERO_HEAD.holdsAbove(market.asset)} ${usdLine(market.openingPriceRaw)}? · ${cadence}`;
+  return `${HERO_HEAD.holdsAbove(market.asset)} ${assetPriceLine(market.asset, market.openingPriceRaw)}? · ${cadence}`;
 }
 
 export interface MarketsScreenProps {

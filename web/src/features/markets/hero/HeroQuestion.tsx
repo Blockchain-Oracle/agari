@@ -1,7 +1,7 @@
 import { neededMove } from "@agari/core/market";
 import { HERO, HERO_HEAD } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { usdLine } from "./units";
+import { assetPairUnit, assetPriceLine } from "./units";
 
 interface HeroQuestionProps {
   asset: string;
@@ -19,14 +19,14 @@ interface HeroQuestionProps {
  * rule for whether UP is already winning lives in core, and a copy of it is how a
  * fix lands in only one of them.
  */
-function HeroDistance({ openingRaw, currentRaw }: { openingRaw: bigint; currentRaw: bigint }) {
+function HeroDistance({ asset, openingRaw, currentRaw }: { asset: string; openingRaw: bigint; currentRaw: bigint }) {
   const move = neededMove(currentRaw, openingRaw);
   const winning = move.upNeedsRaw === 0n;
   const magnitude = winning ? currentRaw - openingRaw : move.upNeedsRaw;
   return (
     <div className="mh-distance">
       <span className={cn("mh-distance-value", winning ? "above" : "below")}>
-        {winning ? `${usdLine(magnitude, openingRaw)} ${HERO_HEAD.aboveLine}` : `${HERO_HEAD.needs} +${usdLine(magnitude, openingRaw)} ${HERO_HEAD.needsForUp}`}
+        {winning ? `${assetPriceLine(asset, magnitude, openingRaw)} ${HERO_HEAD.aboveLine}` : `${HERO_HEAD.needs} +${assetPriceLine(asset, magnitude, openingRaw)} ${HERO_HEAD.needsForUp}`}
       </span>
     </div>
   );
@@ -44,10 +44,10 @@ export function HeroQuestion({ asset, ask, openingRaw, currentRaw }: HeroQuestio
     <>
       <h2 className="mh-question">
         {openingRaw === null ? (
-          HERO_HEAD.pair(asset)
+          HERO_HEAD.pair(asset, assetPairUnit(asset))
         ) : (
           <>
-            {ask ?? HERO_HEAD.holdsAbove(asset)} <span className="mh-question-line">{usdLine(openingRaw)}</span>?
+            {ask ?? HERO_HEAD.holdsAbove(asset)} <span className="mh-question-line">{assetPriceLine(asset, openingRaw)}</span>?
           </>
         )}
       </h2>
@@ -60,7 +60,7 @@ export function HeroQuestion({ asset, ask, openingRaw, currentRaw }: HeroQuestio
           <span className="mh-distance-pending">{HERO.noLivePrice}</span>
         </div>
       ) : (
-        <HeroDistance openingRaw={openingRaw} currentRaw={currentRaw} />
+        <HeroDistance asset={asset} openingRaw={openingRaw} currentRaw={currentRaw} />
       )}
     </>
   );

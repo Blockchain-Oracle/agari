@@ -25,6 +25,7 @@ const FIXTURES = [
   { href: "/dev/private", label: "Private", note: "the route control, the budget line, the desk's quote rows, the claims list with real signatures, then the live panel" },
   { href: "/dev/surface", label: "Surface", note: "the book tiles, the depth chart, the slippage ladder and the term structure from canned books; live on /surface" },
   { href: "/dev/hedge", label: "Hedge card", note: "the holdings-aware hedge for a Gap, a session Window and the 24/7 token lane, then live for your wallet" },
+  { href: "/dev/basket", label: "Baskets", note: "the composed mark at three sizes, a basket Window card trading and paused, the hero question in points, the hub holding none and two members, the /baskets card" },
 ] as const;
 
 export default function DevIndexPage() {

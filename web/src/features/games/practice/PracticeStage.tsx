@@ -5,7 +5,7 @@ import type { DeckCard } from "@agari/core/games";
 import { secToMs } from "@agari/core/units";
 import { useCallback } from "react";
 import { StaleTick } from "@/components/states";
-import { feedRawToOracleRaw, usdLine } from "@/features/markets/hero/units";
+import { feedRawToOracleRaw, assetPriceLine } from "@/features/markets/hero/units";
 import { booleanCodec, usePersistedState } from "@/lib/persisted";
 import { GAMES } from "../copy";
 import { StageFace } from "../stage/StageFace";
@@ -53,7 +53,7 @@ export function PracticeStage() {
               label: PRACTICE.card.live,
               value: price ? (
                 <>
-                  {usdLine(feedRawToOracleRaw(price.priceRaw, price.decimals))}
+                  {assetPriceLine(card.asset, feedRawToOracleRaw(price.priceRaw, price.decimals))}
                   {aged && <StaleTick asOfMs={secToMs(price.publishTimeSec)} reason="aged" compact />}
                 </>
               ) : (

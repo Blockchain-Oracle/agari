@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, BookOpen, Bot, ChartCandlestick, ChartLine, ChartNoAxesCombined,
+  Activity, BarChart3, BookOpen, Bot, Boxes, ChartCandlestick, ChartLine, ChartNoAxesCombined,
   CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
   Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, ScanSearch,
   TrendingDown, Trophy, WalletCards, X as XLogo, type LucideIcon,
@@ -137,6 +137,13 @@ export const NAV_ITEMS = {
     icon: XLogo,
   },
   earn: { id: "earn", name: "Earn", href: "/earn", description: "Put capital into earning opportunities.", icon: Coins },
+  baskets: {
+    id: "baskets",
+    name: "Baskets",
+    href: "/baskets",
+    description: "Bet on a small group of pre-IPO companies together.",
+    icon: Boxes,
+  },
   short: {
     id: "short",
     name: "Short",
@@ -273,7 +280,7 @@ export const EXPLORE_GROUP: NavGroup = {
       id: "trade",
       name: "Trade",
       description: "More ways to make a call",
-      items: [NAV_ITEMS.short, NAV_ITEMS.earn, NAV_ITEMS.parlay, NAV_ITEMS.sensei],
+      items: [NAV_ITEMS.baskets, NAV_ITEMS.short, NAV_ITEMS.earn, NAV_ITEMS.parlay, NAV_ITEMS.sensei],
     },
     {
       id: "proof",
@@ -319,7 +326,7 @@ export const MOBILE_OVERFLOW: readonly NavItem[] = MOBILE_DRAWER_SECTIONS.flatMa
 
 /** Every real, user-facing page that must retain an explicit navigation home. */
 export const NAVIGABLE_ROUTE_PATHS = [
-  "/activity", "/agents", "/claim", "/demo",
+  "/activity", "/agents", "/baskets", "/claim", "/demo",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/reels", "/short", "/stats",

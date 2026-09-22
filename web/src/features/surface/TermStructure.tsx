@@ -32,7 +32,7 @@ function Row({ point, decimals, nowMs, focal, onPick }: { point: TermPoint; deci
       <span className="sf-row-num">
         <Countdown expirySec={point.expirySec} intervalSec={point.intervalSec} nowMs={nowMs} />
       </span>
-      <span className="sf-row-num">{oraclePriceText(point.openingPriceRaw)}</span>
+      <span className="sf-row-num">{oraclePriceText(point.openingPriceRaw, point.asset)}</span>
       <span className="sf-row-num sf-trow-up">{s ? price(s.upAskBps) : "…"}</span>
       <span className="sf-row-num">{s ? price(s.downAskBps) : "…"}</span>
       <span className="sf-row-num">{!s ? "…" : s.crossed ? <span className="sf-trow-crossed">{copy.crossed}</span> : s.spreadBps === null ? "—" : centsText(s.spreadBps)}</span>

@@ -1,4 +1,4 @@
-import { ET_WEEKDAY_SHORT, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, ET_WEEKDAY_SHORT, isBasketCoverable, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
 import type { EarningsEvent } from "@/lib/finnhub.server";
 import type { SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { centsText } from "./units";
@@ -68,7 +68,19 @@ const ISSUER = { xstocks: "xStocks", ondo: "Ondo", prestocks: "PreStocks" } as c
 export function holdingsLine(holdings: readonly SenseiHolding[]): string {
   if (holdings.length === 0) return "Their wallet holds no stock tokens (real tokens, read-only).";
   const rows = holdings.map((h) => `${h.tokens} ${h.symbol} (${h.name}, ${ISSUER[h.issuer]})${h.valueCents === null ? "" : ` about ${centsText(h.valueCents)}`}`);
-  return `Their wallet holds, real tokens read-only, not test funds: ${rows.join("; ")}. A DOWN Window on that name is cover with test funds; UP adds to it. Never advise on the tokens themselves.`;
+  return `Their wallet holds, real tokens read-only, not test funds: ${rows.join("; ")}. A DOWN Window on that name is cover with test funds; UP adds to it.${basketCoverLine(holdings)} Never advise on the tokens themselves.`;
+}
+
+/**
+ * S19: two or more held members of one basket can be covered together. A PreStocks holding's symbol is the member's
+ * ticker itself, so the registry answers which baskets the wallet could cover; nothing else is inferred.
+ */
+export function basketCoverLine(holdings: readonly SenseiHolding[]): string {
+  const held = new Set(holdings.filter((h) => h.issuer === "prestocks").map((h) => h.symbol));
+  const coverable = BASKET_SYMBOLS.map((s) => BASKETS[s]).filter((b) => isBasketCoverable(b, held));
+  if (coverable.length === 0) return "";
+  const parts = coverable.map((b) => `${b.symbol} (${b.name}: they hold ${basketMembersHeld(b, held).length} of its ${b.members.length} members)`);
+  return ` A DOWN Window on a basket covers the members they hold together: ${parts.join("; ")}.`;
 }
 
 function reportDay(dateEt: string): string {

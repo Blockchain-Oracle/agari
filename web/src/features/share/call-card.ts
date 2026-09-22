@@ -2,7 +2,7 @@ import { estPayoutBase } from "@agari/core/claims";
 import { formatCadence } from "@agari/core/copy";
 import type { Side, Signature } from "@agari/core/types";
 import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
-import { usdLine } from "@/features/markets/hero/units";
+import { assetPriceLine } from "@/features/markets/hero/units";
 import { CARD_MARGIN, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawSpark, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
 import { CARD_MARK, CARD_MARK_GAP, drawAssetMark } from "./marks";
@@ -66,7 +66,7 @@ export function callMultiple(card: CallCard): number {
 /** "BTC OVER $64,316" / "BTC UNDER $64,316" / "BTC VS THE OPENING PRINT". */
 export function callBandLabel(card: CallCard): string {
   if (card.lineRaw === null) return SHARE.call.noLine(card.asset);
-  return card.side === "up" ? SHARE.call.over(card.asset, usdLine(card.lineRaw)) : SHARE.call.under(card.asset, usdLine(card.lineRaw));
+  return card.side === "up" ? SHARE.call.over(card.asset, assetPriceLine(card.asset, card.lineRaw)) : SHARE.call.under(card.asset, assetPriceLine(card.asset, card.lineRaw));
 }
 
 export function callDirLabel(card: CallCard): string {

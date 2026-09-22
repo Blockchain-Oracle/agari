@@ -111,7 +111,7 @@ export function LegRow({ index, leg, market, windows, legProbBps, thin, decimals
             <div className="pl-line">
               <span className="pl-line-label">{builder.line}</span>
               {market?.openingPriceRaw != null ? (
-                <span className="pl-picker-label pl-picker-label--bold">{formatLine(market.openingPriceRaw)}</span>
+                <span className="pl-picker-label pl-picker-label--bold">{formatLine(market.openingPriceRaw, market.asset)}</span>
               ) : (
                 <span className="pl-line-pending">{market ? builder.linePending : "···"}</span>
               )}

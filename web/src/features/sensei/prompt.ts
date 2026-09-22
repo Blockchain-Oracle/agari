@@ -1,4 +1,4 @@
-import { formatCadence, LAUNCH_TICKERS, TICKERS, WINDOW_CADENCES_SEC } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, formatCadence, isBasketSymbol, LAUNCH_TICKERS, TICKERS, WINDOW_CADENCES_SEC } from "@agari/core/market";
 import type { SenseiRequest } from "./protocol";
 import { earningsLine, type EarningsTurn, holdingsLine, isSessionOpen, positionLines, recordLine, sessionLine } from "./turn-lines";
 
@@ -9,6 +9,14 @@ function usdText(usd: number): string {
   const digits = usd < WHOLE_DOLLARS_FROM ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 };
   return `$${usd.toLocaleString("en-US", digits)}`;
 }
+
+/** A basket's figure is its index in points (S19), never dollars: "1,004.20 pts". */
+function priceText(asset: string, value: number): string {
+  return isBasketSymbol(asset) ? `${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pts` : usdText(value);
+}
+
+/** "AILABS (AI Labs: OpenAI, Anthropic)", for the prefix. */
+const basketList = BASKET_SYMBOLS.map((symbol) => `${symbol} (${BASKETS[symbol].name}: ${BASKETS[symbol].members.map((m) => TICKERS[m.symbol].name).join(", ")})`).join("; ");
 
 /**
  * Sensei's voice and rules — ported from `reference/yosuku/app/api/sensei/route.ts` L42–58.
@@ -36,6 +44,8 @@ export const SENSEI_SYSTEM = [
   // The 24/7 lanes (tokenised stock, D-103; the pre-IPO name, D-101) came after this line was first written, and
   // "Windows list only in the NYSE session" then contradicted a live OPENAI Window in the same turn's data.
   "Stocks and ETFs list Windows only in the NYSE session (09:30 to 16:00 ET, 13:00 on early closes). Outside it, say the stock market is closed and when it opens. A few lanes never close: tokenised stock, and the pre-IPO name OPENAI. A live Window in the data you are given outside the session is one of those, and you may read it.",
+  // S19 (D-124): a basket is a small group of pre-IPO companies bet on together; its Window settles on an index.
+  `Baskets also run 24/7: a basket is a small group of pre-IPO companies bet on together, and its Window settles on an equal-weight index that started at 1,000 points, quoted in points, never dollars. The baskets: ${basketList}. Someone holding two or more of a basket's members can cover them together with one DOWN Window on the basket.`,
   "Pricing you must understand: each side is its own contract with its own live order book, so UP and DOWN do NOT add up to 100 cents. Never derive one side's price from the other, and never present a number you computed that way as the market's price. If only one side is quoted, say so.",
   "Your voice: calm, sharp, human. You are the steady friend who actually reads the tape, not a hype account and not a disclaimer bot. Short sentences. Say the real thing, then stop.",
   "Every read gives three things: a side (UP, DOWN, or sit it out), one honest reason, and the risk that would prove you wrong. Keep it to 2 to 4 sentences. Call a coin flip a coin flip. Never promise an outcome.",
@@ -95,12 +105,12 @@ export function senseiTurnContext(request: SenseiRequest, turn: SenseiTurn = {})
   }
 
   const prices = Object.entries(snapshot.priceUsd)
-    .map(([asset, price]) => `${asset} ${usdText(price)}`)
+    .map(([asset, price]) => `${asset} ${priceText(asset, price)}`)
     .join(", ");
   lines.push(`Live prices, just read: ${prices || "none available"}.`);
   lines.push("Live Windows, just read:");
   for (const market of snapshot.markets) {
-    const line = market.lineUsd === null ? "no opening print yet" : `line ${usdText(market.lineUsd)}`;
+    const line = market.lineUsd === null ? "no opening print yet" : `line ${priceText(market.asset, market.lineUsd)}`;
     const up = market.upCents === null ? "UP unquoted" : `UP ${market.upCents}c`;
     const down = market.downCents === null ? "DOWN unquoted" : `DOWN ${market.downCents}c`;
     lines.push(`- ${market.asset} ${market.cadence}, closes in ${market.minsToClose} min, ${line}, ${up}, ${down}`);

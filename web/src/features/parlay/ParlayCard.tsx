@@ -39,7 +39,7 @@ function LegRow({ leg, idx, nowMs, busyHere, isNext, onSettle }: { leg: ParlayLe
         <div className="pl-cleg-name">
           {leg.asset ?? "…"} {leg.intervalSec !== null && formatCadence(leg.intervalSec)}{" "}
           <span className={leg.side === "up" ? "pl-cleg-side--up" : "pl-cleg-side--down"}>{leg.side === "up" ? "UP" : "DOWN"}</span>
-          {leg.openingPriceRaw !== null && <span className="pl-cleg-line"> · {formatLineShort(leg.openingPriceRaw)}</span>}
+          {leg.openingPriceRaw !== null && <span className="pl-cleg-line"> · {formatLineShort(leg.openingPriceRaw, leg.asset ?? "")}</span>}
         </div>
       </div>
       <span className={cn("pl-cleg-state", `pl-cleg-state--${leg.status === "won" ? "won" : leg.status === "pending" ? "pending" : "lost"}`)}>

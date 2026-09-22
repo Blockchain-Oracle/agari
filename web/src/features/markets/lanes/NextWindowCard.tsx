@@ -10,7 +10,7 @@ import { formatDayChange } from "../asset-history/day-change";
 import { historyDayChange, useAssetHistory, type AssetHistory } from "../asset-history/useAssetHistory";
 import { AssetDisc } from "../hero/asset-mark";
 import { ScheduleCallButton } from "../hero/ScheduleCallButton";
-import { usdLine } from "../hero/units";
+import { assetPriceLine } from "../hero/units";
 import type { MarketSession } from "../session";
 import { CardSpark } from "./CardSpark";
 import { laneCadenceLabel } from "./lane-view";
@@ -43,7 +43,7 @@ export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec,
   const opensSec = firstWindowStartSec(session, intervalSec);
   const latest = history?.latest ?? null;
   const change = history ? historyDayChange(history) : null;
-  const move = change ? formatDayChange(change) : null;
+  const move = change ? formatDayChange(change, asset) : null;
   return (
     <div className="market-card market-card-pending" data-lane={basis} data-next="">
       <div className="mc-head">
@@ -60,7 +60,7 @@ export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec,
       <div className="mc-body">
         <div className="mc-pricebar">
           <div className="px">
-            <span className="big">{latest ? usdLine(latest.valueRaw) : HERO_HEAD.noPrice}</span>
+            <span className="big">{latest ? assetPriceLine(asset, latest.valueRaw) : HERO_HEAD.noPrice}</span>
             {move && (
               <span className={cn("chg", move.direction === "down" ? "down" : "up")}>
                 {move.dollars} · {move.percent}
@@ -76,7 +76,7 @@ export function NextWindowCardView({ asset, basis, intervalSec, session, nowSec,
         <span className="mc-pending-dot" aria-hidden />
         <p className="mc-pending-copy">
           {opensSec !== null && <strong>{SESSION_COPY.next.first(cadence, when(opensSec))}.</strong>}
-          {history?.lastClose ? ` ${SESSION_COPY.next.lastClose(usdLine(history.lastClose.priceRaw), when(history.lastClose.sec, { clock: true }))}.` : null}
+          {history?.lastClose ? ` ${SESSION_COPY.next.lastClose(assetPriceLine(asset, history.lastClose.priceRaw), when(history.lastClose.sec, { clock: true }))}.` : null}
         </p>
       </div>
       {onSelect && <ScheduleCallButton asset={asset} session={session} nowSec={nowSec} onSelect={onSelect} variant="strip" intervalSec={intervalSec} opensSec={opensSec} />}

@@ -123,7 +123,7 @@ export function ParlayTicket(props: ParlayTicketProps) {
                       <div key={leg.key} className="pl-bd-row">
                         <span className="pl-bd-what">
                           <span className={cn(leg.side === "up" ? "pl-bd-side--up" : "pl-bd-side--down")}>{leg.side === "up" ? "UP" : "DOWN"}</span>{" "}
-                          {m?.openingPriceRaw != null ? formatLine(m.openingPriceRaw) : "···"}
+                          {m?.openingPriceRaw != null ? formatLine(m.openingPriceRaw, m.asset) : "···"}
                           {m && (
                             <span className="pl-bd-when">
                               {" "}

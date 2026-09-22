@@ -7,7 +7,7 @@ import { HERO_HEAD, LANE_CARD, LANE_STATE, MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { sidesInOrder, useBetAgainst } from "../bet-against";
 import { AssetDisc } from "../hero/asset-mark";
-import { usdLine } from "../hero/units";
+import { assetPriceLine } from "../hero/units";
 import type { ChartPoint } from "../hero/useChartSeries";
 import { CardSpark } from "./CardSpark";
 import { etWeekday, laneAssetLabel, laneCadenceLabel } from "./lane-view";
@@ -137,20 +137,20 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
             </>
           ) : (
             <>
-              {ask} {usdLine(openingRaw)}?<span className="strike-dot" aria-hidden />
+              {ask} {assetPriceLine(asset, openingRaw)}?<span className="strike-dot" aria-hidden />
             </>
           )}
         </div>
 
         <div className="mc-pricebar">
           <div className="px">
-            <span className="big">{latestRaw === null ? HERO_HEAD.noPrice : usdLine(latestRaw)}</span>
+            <span className="big">{latestRaw === null ? HERO_HEAD.noPrice : assetPriceLine(asset, latestRaw)}</span>
             {/* Against the line this Window settles on, not a 24h figure: it is the
                 only comparison that decides anything here. */}
             {openingRaw !== null && latestRaw !== null && (
               <span className={cn("chg", latestRaw >= openingRaw ? "up" : "down")}>
                 {latestRaw >= openingRaw ? "+" : "−"}
-                {usdLine(latestRaw >= openingRaw ? latestRaw - openingRaw : openingRaw - latestRaw, openingRaw)}
+                {assetPriceLine(asset, latestRaw >= openingRaw ? latestRaw - openingRaw : openingRaw - latestRaw, openingRaw)}
               </span>
             )}
           </div>

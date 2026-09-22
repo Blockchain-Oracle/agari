@@ -3,7 +3,7 @@
 import { BellIcon, PlusIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFloatingMenus } from "@/components/shell/header/useFloatingMenus";
-import { ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
+import { ORACLE_SCALE, assetPriceLine } from "@/features/markets/hero/units";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { cn } from "@/lib/utils";
 import "./alerts-basis.css";
@@ -17,9 +17,9 @@ interface PriceAlertsButtonProps {
   currentRaw: bigint | null;
 }
 
-/** The live price at the headline's scale (`usdLine`: cents below $1,000), as a `type="number"` input wants it. */
-function defaultTarget(raw: bigint): string {
-  return usdLine(raw).replace(/[$,]/g, "");
+/** The live price at the headline's scale (`assetPriceLine`: cents below $1,000), as a `type="number"` input wants it. */
+function defaultTarget(asset: string, raw: bigint): string {
+  return assetPriceLine(asset, raw).replace(/[$,]/g, "").replace(/ pts$/, "");
 }
 
 /**
@@ -32,7 +32,7 @@ function defaultTarget(raw: bigint): string {
  * off. And the foot line says where an alert fires — in the pinned source `checkAlerts`
  * has no caller, so the reference could not say.
  *
- * S13 (spec §1.5): targets are cents, shown with `usdLine`; a basis row above Above/Below
+ * S13 (spec §1.5): targets are cents, shown with `assetPriceLine`; a basis row above Above/Below
  * names the spot a rule watches, with the 24/7 token basis disabled until S6; and outside
  * the NYSE session the foot says the rule waits for the open.
  */
@@ -55,7 +55,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
   }, []);
 
   useEffect(() => {
-    if (currentRaw !== null && !targetPrice) setTargetPrice(defaultTarget(currentRaw));
+    if (currentRaw !== null && !targetPrice) setTargetPrice(defaultTarget(asset, currentRaw));
   }, [currentRaw, targetPrice]);
 
   const close = useCallback(() => setOpen(false), []);
@@ -137,7 +137,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
                 <li key={alert.id} className="alerts-row">
                   <span className="alerts-row-label">
                     <span className={alert.direction === "above" ? "alerts-up" : "alerts-down"}>{alert.direction === "above" ? "↑" : "↓"}</span>{" "}
-                    {usdLine(centsToRaw(alert.targetCents, ORACLE_SCALE))}
+                    {assetPriceLine(asset, centsToRaw(alert.targetCents, ORACLE_SCALE))}
                   </span>
                   <button type="button" onClick={() => removeAlert(alert.id)} className="alerts-remove" aria-label={ALERTS.remove} data-cursor="hover">
                     <XIcon className="alerts-icon-xxs" aria-hidden />

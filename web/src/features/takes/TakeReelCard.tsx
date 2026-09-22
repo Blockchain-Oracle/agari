@@ -7,7 +7,7 @@ import { addressUrl, marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
 import { memo, type CSSProperties } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
-import { usdLine } from "@/features/markets/hero/units";
+import { assetPriceLine } from "@/features/markets/hero/units";
 import { timeAgo } from "@/features/markets/history/time-ago";
 import { addressHue } from "@/lib/address-hue";
 import { captionParts, profileHref, tickerHref } from "./cashtags";
@@ -22,7 +22,7 @@ const shortAddress = (address: string): string => (address.length > 10 ? `${addr
  * cut off its front so the chip can set it as a cashtag (D-082); the words after it are the reference's own.
  */
 function callParts(take: FeedTake): { glyph: string; dir: string; tail: string } {
-  const line = take.lineRaw === null ? null : usdLine(BigInt(take.lineRaw));
+  const line = take.lineRaw === null ? null : assetPriceLine(take.asset, BigInt(take.lineRaw));
   const band = line === null ? TAKES.noLine(take.asset) : take.side === "up" ? TAKES.over(take.asset, line) : TAKES.under(take.asset, line);
   const tail = band.startsWith(take.asset) ? band.slice(take.asset.length) : ` ${band}`;
   return take.side === "up" ? { glyph: "▲", dir: "UP", tail } : { glyph: "▼", dir: "DOWN", tail };

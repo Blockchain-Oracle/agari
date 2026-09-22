@@ -4,7 +4,7 @@ import { isTickerSymbol } from "@agari/core/market";
 import { marketsProvider } from "@agari/markets";
 import { useAssetPrice } from "@agari/markets/react";
 import { useEffect, useState } from "react";
-import { basisRaw, feedRawToOracleRaw, ORACLE_SCALE, usdLine } from "@/features/markets/hero/units";
+import { basisRaw, feedRawToOracleRaw, ORACLE_SCALE, assetPriceLine } from "@/features/markets/hero/units";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { notify } from "@/lib/toast";
 import { ALERTS } from "./copy";
@@ -33,8 +33,8 @@ function AssetWatch({ asset, closesAtSec }: { asset: string; closesAtSec: number
     if (nowSec >= closesAtSec || nowSec - publishTimeSec > FRESH_TICK_SEC) return;
     const fired = checkAlerts(asset, "regular", raw, ORACLE_SCALE);
     for (const alert of fired) {
-      const title = ALERTS.fired.title(asset, alert.direction, usdLine(centsToRaw(alert.targetCents, ORACLE_SCALE)));
-      const body = ALERTS.fired.body(usdLine(raw));
+      const title = ALERTS.fired.title(asset, alert.direction, assetPriceLine(asset, centsToRaw(alert.targetCents, ORACLE_SCALE)));
+      const body = ALERTS.fired.body(assetPriceLine(asset, raw));
       sendNotification(title, body);
       notify.neutral(title, body);
     }

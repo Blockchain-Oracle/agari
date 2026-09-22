@@ -8,7 +8,7 @@ import { PRICE_BASIS } from "@agari/markets/identity";
 import { useAssetPrice } from "@agari/markets/react";
 import { useRef } from "react";
 import { useDailyCloses } from "@/features/markets/asset-history";
-import { usdLine } from "@/features/markets/hero/units";
+import { assetPriceLine, assetSpotLine, feedRawToOracleRaw } from "@/features/markets/hero/units";
 import type { MarketSession } from "@/features/markets/session";
 import type { TickerDirection, TickerEntry } from "./TickerItem";
 
@@ -41,7 +41,7 @@ function useAssetSlot(asset: string | null, { pollMs, session }: TickerPricesOpt
 
   if (asset === null || reading === null || !isOk(reading) || reading.value === null) {
     if (asset === null || !closes?.last) return null;
-    return { asset, priceText: usdLine(closes.last.priceRaw), direction: "flat", closeAsOfSec: closes.last.sec };
+    return { asset, priceText: assetPriceLine(asset, closes.last.priceRaw), direction: "flat", closeAsOfSec: closes.last.sec };
   }
   const raw = basisRaw(reading.value);
   if (last.current === null || last.current.asset !== asset) last.current = { asset, raw, direction: "flat" };
@@ -49,7 +49,7 @@ function useAssetSlot(asset: string | null, { pollMs, session }: TickerPricesOpt
 
   return {
     asset,
-    priceText: `$${formatBaseUnits(raw, reading.value.decimals, { maxDp: PRICE_DP, minDp: PRICE_DP })}`,
+    priceText: assetSpotLine(asset, feedRawToOracleRaw(raw, reading.value.decimals)),
     direction: last.current.direction,
     ...(reading.stale ? { staleAsOfMs: reading.asOfMs } : {}),
   };

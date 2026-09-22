@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Countdown } from "@/components/data";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { HERO_HEAD, MARKETS } from "@/lib/copy";
-import { usdLine } from "../markets/hero/units";
+import { assetPriceLine } from "../markets/hero/units";
 import { SENSEI_UI } from "./copy";
 import type { SenseiMarket } from "./protocol";
 
@@ -19,8 +19,8 @@ interface SenseiTradeCardsProps {
   onAct: () => void;
 }
 
-/** Whole dollars from $1,000 up, cents below (the markets headline rule). */
-const usd = (raw: bigint | null): string => (raw === null ? HERO_HEAD.noPrice : usdLine(raw));
+/** The markets headline rule: dollars, or points for a basket (S19). */
+const priceOf = (asset: string, raw: bigint | null): string => (raw === null ? HERO_HEAD.noPrice : assetPriceLine(asset, raw));
 const cents = (value: number | null): string => (value === null ? MARKETS.noBook : `${value}¢`);
 
 /**
@@ -68,7 +68,7 @@ export function SenseiTradeCards({ markets, snapshotMarkets, nowMs, onAct }: Sen
                   {market.asset} <b>{formatCadence(market.intervalSec)}</b>
                 </span>
                 <span className="st-meta">
-                  {usd(market.openingPriceRaw)} ·{" "}
+                  {priceOf(market.asset, market.openingPriceRaw)} ·{" "}
                   <Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />
                 </span>
               </div>
