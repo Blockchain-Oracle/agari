@@ -3,7 +3,7 @@
  * Values mirror the LiteSVM fixtures (`anchor/tests/src/fixtures.rs`), which the engine tests run against.
  */
 import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstructionDataArgs } from "@agari/clients/agari-events";
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, type Basket, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@solana/kit";
 import { preStocksBasketFeedHex, preStocksFeedHex } from "../prices/prestocks";
 import { asciiFeedId, I64_MAX, policyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
@@ -143,6 +143,38 @@ export function preStocksSeries(
     ticker,
     cadenceSec,
     basis,
+    params: LAUNCH_GRID,
+    versions: [{ validFromTs: 0n, validUntilTs: I64_MAX, primary, check: ZERO_POLICY, maxDivergenceBps: 0, checkAdmissionSec: 0 }],
+    books,
+  };
+}
+
+/**
+ * A basket's 24/7 Series (S19, D-124): the same attested, single-source policy as a pre-IPO name (`preStocksSeries`),
+ * on the basket's own ticker id and its `prestocks-basket-v1:<SYM>` feed, keyed like every token Series (`AILABS-60m`).
+ * Two 256-node Books so a back-to-back lane always has a Book to open into. The bases the feed version stands on are
+ * frozen in core (`baskets.ts`) and recorded beside the Series at registration; a re-base is a new feed version and a
+ * new policy version, never an edit of this one.
+ */
+export function preStocksBasketSeries(basket: Basket, cadenceSec = 3_600, books: NonNullable<SeriesSpec["books"]> = { count: 2, capacity: 256 }): SeriesSpec {
+  // A feed version with no base has nothing to compute an index from: it cannot be registered at all.
+  const unbased = basket.members.filter((m) => m.basePriceE8 === null || m.basePriceE8 <= 0n).map((m) => m.symbol);
+  if (unbased.length || basket.baseAtSec === null) throw new Error(`${basket.symbol} has no base${unbased.length ? ` for ${unbased.join(", ")}` : ""}: run init-basket-series.ts --capture-base, paste it into baskets.ts, commit, then register`);
+  const primary = {
+    ...ZERO_POLICY,
+    source: SOURCE.attested,
+    feedId: preStocksBasketFeedId(basket.symbol),
+    minDelaySec: 10,
+    barLenSec: 60,
+    openAdmissionSec: 900,
+    closeAdmissionSec: 900,
+  };
+  return {
+    key: `${basket.symbol}-${cadenceSec / 60}m`,
+    symbol: basket.symbol,
+    ticker: basket.seriesId,
+    cadenceSec,
+    basis: BASIS.token,
     params: LAUNCH_GRID,
     versions: [{ validFromTs: 0n, validUntilTs: I64_MAX, primary, check: ZERO_POLICY, maxDivergenceBps: 0, checkAdmissionSec: 0 }],
     books,

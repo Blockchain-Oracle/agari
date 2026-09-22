@@ -23,7 +23,7 @@ export { ensureBooks, ensureSeries } from "./ensure-series";
 export { chainNowSec, readSeats, windowAddresses, type Seat } from "./cycle/accounts";
 export { DRIVE_TEST_TICKER } from "./venue-spec";
 // S18 (D-100): the PreStocks Pre-IPO lane.
-export { BASIS, PRESTOCKS_TICKER_BASE, preStocksBasketFeedId, preStocksFeedId, preStocksSeries } from "./venue-spec";
+export { BASIS, PRESTOCKS_TICKER_BASE, preStocksBasketFeedId, preStocksBasketSeries, preStocksFeedId, preStocksSeries } from "./venue-spec";
 export { profileOnSurfpool, type TransactionProfile } from "./cycle/profile";
 export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, placeOrderInstruction, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
 export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
