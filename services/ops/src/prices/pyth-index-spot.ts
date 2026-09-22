@@ -8,7 +8,7 @@
  * Nothing is asked while no feed is entitled, and a 401/403 met here is recorded in the store as denied, never latched:
  * this poll can never stop the trial feeds. Display and quoting only: the Window settles on the receiver's post.
  */
-import { TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, VALUATION_TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
 import { HERMES, parsePythEntries } from "../actors/price-relay/hermes-fetch";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
@@ -158,6 +158,9 @@ export const valuationNameOf = (symbol: string): PreIpoSymbol | null => {
   return t && t.kind === "valuation" ? t.valuationOf : null;
 };
 
+/** The valuation lane that prices a pre-IPO name (`OPENAI` → `OPENAIV`), from the registry, or null. */
+export const valuationLaneOf = (name: PreIpoSymbol): TickerSymbol | null => VALUATION_TICKERS.find((s) => TICKERS[s].valuationOf === name) ?? null;
+
 const asSpot = (lane: TickerSymbol, s: PythIndexSample): SpotQuote => ({ symbol: lane, priceE8: s.indexE8, publishTimeSec: s.publishTimeSec, source: "pyth" });
 
 /** One `SpotFeed` over both: a valuation lane's symbol reads its index, every other symbol reads `base`. */
@@ -172,8 +175,8 @@ export function joinPythIndexSpot(base: SpotFeed | null, index: PythIndexSpotFee
     subscribe(listener) {
       const offBase = base?.subscribe(listener);
       const offIndex = index.subscribe((s) => {
-        const lane = TICKERS[`${s.symbol}V` as TickerSymbol];
-        if (lane?.kind === "valuation" && lane.valuationOf === s.symbol) listener(asSpot(lane.symbol, s));
+        const lane = valuationLaneOf(s.symbol);
+        if (lane) listener(asSpot(lane, s));
       });
       return () => {
         offBase?.();
