@@ -28,6 +28,8 @@ function fromOutcome(outcome: TxOutcome): StepResult {
     case "unknown":
       return { patch: { status: "unknown", txHash: outcome.txHash ?? null, diagnosis: outcome.diagnosis }, stop: true };
     case "refused":
+      // The auto-payout got here first (D-032): the wallet has the money, so the item is settled and the batch goes on.
+      if (outcome.diagnosis.kind === "already-claimed") return { patch: { status: "paid", txHash: null, diagnosis: null }, stop: false };
       return stopWith(outcome.diagnosis);
   }
 }
@@ -85,7 +87,7 @@ export function useClaimAll() {
         patchItem(item.key, { status: "claiming" });
         const result = await redeemOne(submitter, item);
         patchItem(item.key, result.patch);
-        if (result.patch.status === "confirmed") await invalidateAfterWrite(queryClient, { wallet: address, marketId: item.marketId });
+        if (result.patch.status === "confirmed" || result.patch.status === "paid") await invalidateAfterWrite(queryClient, { wallet: address, marketId: item.marketId });
         if (result.stop) {
           setRun((current) => ({ ...current, diagnosis: result.patch.diagnosis ?? null }));
           break;

@@ -99,6 +99,9 @@ export async function submitRedeem(ctx: WriteContext, intent: RedeemIntent, onPh
   if (settled.kind === "not-sent") {
     onPhase?.("composing");
     const { error } = settled;
+    // The preflight is the first simulation of the signed bytes. The settler's crank (D-032) can pay the seat between
+    // the build and the wallet's signature, and its SeatMismatch means "paid already", never a refusal of this wallet.
+    if (error instanceof SimulationFailedError && error.failure.engineCode === ENGINE_CODE.seatMismatch) return alreadyPaid(ctx, intent.marketId);
     return refused(error instanceof SimulationFailedError ? failureDiagnosis(error.failure) : diagnose(error));
   }
   const txHash = settled.signature;

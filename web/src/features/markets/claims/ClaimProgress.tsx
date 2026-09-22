@@ -31,7 +31,7 @@ function ItemLine({ item }: { item: ClaimItem }) {
         <Money value={item.payoutBase} decimals={item.decimals} className="text-ink" />
       </span>
       <span className="flex items-baseline gap-2">
-        <span className={cn(item.status === "claiming" && "text-accent", item.status === "confirmed" && "text-ink")}>{CLAIM.status[item.status]}</span>
+        <span className={cn(item.status === "claiming" && "text-accent", (item.status === "confirmed" || item.status === "paid") && "text-ink")}>{CLAIM.status[item.status]}</span>
         {item.txHash && <Hash value={item.txHash} href={txUrl(item.txHash, webEnv.markets.cluster)} className="text-ink" />}
         {failure && <span className="text-warning">{failure}</span>}
       </span>

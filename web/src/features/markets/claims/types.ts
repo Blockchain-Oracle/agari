@@ -5,7 +5,14 @@ import type { Address, ClaimKind, ClaimLeg, Diagnosis, MarketId, OutcomeIdx, Sig
  * PROGRAM-only, engine §8.4), so a void Window's two legs settle in the same transaction and are one item
  * (first-call.md §6); Masayume redeemed per outcome token, one item per leg.
  */
-export type ClaimItemStatus = "pending" | "claiming" | "confirmed" | "reverted" | "unknown";
+export type ClaimItemStatus =
+  | "pending"
+  | "claiming"
+  | "confirmed"
+  /** The venue's crank (D-032) paid this seat before the wallet's own redeem could: the money is in the wallet, unsigned by it. */
+  | "paid"
+  | "reverted"
+  | "unknown";
 
 export interface ClaimItem {
   key: string;

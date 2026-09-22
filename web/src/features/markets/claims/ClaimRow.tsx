@@ -38,7 +38,7 @@ function LegLine({ row, leg, item }: { row: ClaimableRow; leg: ClaimLeg; item: C
         <Money value={leg.payoutBase} decimals={row.decimals} className="text-ink" />
       </span>
       <span className="flex items-baseline gap-2">
-        <span className={cn(status === "confirmed" && "text-ink")}>{item ? CLAIM.status[status] : CLAIM.status.pending}</span>
+        <span className={cn((status === "confirmed" || status === "paid") && "text-ink")}>{item ? CLAIM.status[status] : CLAIM.status.pending}</span>
         {item?.txHash && <Hash value={item.txHash} href={txUrl(item.txHash, webEnv.markets.cluster)} className="text-ink" />}
         {failure && <span className="text-warning">{failure}</span>}
       </span>

@@ -76,6 +76,7 @@ export const CLAIM = {
     pending: "waiting",
     claiming: "claiming…",
     confirmed: "claimed",
+    paid: "paid to your wallet already",
     reverted: "reverted — nothing moved",
     unknown: "unknown — check the explorer",
   },

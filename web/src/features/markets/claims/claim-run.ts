@@ -30,8 +30,9 @@ export function itemsFromRows(rows: readonly ClaimableRow[]): ClaimItem[] {
     }));
 }
 
+/** Every item whose money reached the wallet: this run's own redeems and the seats the crank had paid already. */
 export function confirmedItems(items: readonly ClaimItem[]): ClaimItem[] {
-  return items.filter((item) => item.status === "confirmed");
+  return items.filter((item) => item.status === "confirmed" || item.status === "paid");
 }
 
 export function paidTotal(items: readonly ClaimItem[]): bigint {
