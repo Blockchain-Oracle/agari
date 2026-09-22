@@ -32,3 +32,9 @@ Nothing in the build reads them, so removal cannot break a page.
   `github.com/Blockchain-Oracle/agari`, so one does.
 - The hourly health-check recipe names `s6/data/soak/ops-2026-09-15.log`, frozen since 09-19. The
   live log is `live/data/soak/ops-live.log`.
+
+## Dead copy from the fixed-strike filter (found 2026-09-22)
+
+`MARKETS.fixedStrikeHidden` in `web/src/lib/copy.ts` is the reference's `StrikeDisclosure` line. Agari's
+venue has no fixed-strike Windows — `EventMarket` has no `isUpDown`, `groupIntoLanes` filters nothing — so
+the component was rightly never ported and this string has no reader. Drop it at cleanup.

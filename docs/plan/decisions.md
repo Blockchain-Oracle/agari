@@ -1271,6 +1271,13 @@ Public devnet (`api.devnet.solana.com`) is one shared, rate-limited endpoint for
 - **The alternative considered and not taken:** a Helius key restricted by allowed origin, shipped in the bundle. It needs no server hop, but it puts a live key in every page's source and depends on a dashboard setting no part of this repository can assert or check.
 
 
+### D-122 — `TRUSTED_PROXY` names the edge an IP-metered surface may believe; unnamed, production refuses
+
+**Settled 2026-09-22.** The faucet and the proof replay meter by client IP. Their one rule — believe `x-forwarded-for` when `VERCEL=1`, invent an IP in development, otherwise null — named the only platform the reference ever ran on, so a deployment anywhere else refused every visitor ("The faucet could not verify this connection") with the keys set and the budget funded.
+
+**Decision:** `clientIp()` in `web/src/lib/client-ip.server.ts` is the one reader, and the operator states the proxy: `cloudflare` → `cf-connecting-ip` (set and overwritten by Cloudflare on every forwarded request); `forwarded` → the first `x-forwarded-for`, for a proxy that owns that header; `vercel` or the platform's own `VERCEL=1` → as before. With nothing named, production trusts no header and the surface says it cannot verify the connection — the honest failure, and loud enough that nobody ships without setting it. `useagari.xyz` runs `cloudflare`. Known limit: the origin IP is reachable directly through the unproxied wildcard subdomains, so a caller who bypasses Cloudflare can forge the header; on a devnet faucet with a per-IP budget that is a rate-limit bypass, not a theft, and the fix if it ever matters is Traefik's trusted-IP list, not code.
+
+
 ## Open questions
 
 | Q | Question | Status / default | Blocks |
