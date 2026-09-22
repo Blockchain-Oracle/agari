@@ -1,0 +1,17 @@
+# What a Docker build context never needs: installs are rebuilt inside the image from the lockfile, and the
+# reference, the chain artefacts and local data are not part of either service.
+**/node_modules
+**/.next
+**/.turbo
+.git
+data
+reference
+context
+anchor/target
+anchor/.anchor
+.surfpool
+**/*.log
+.env
+.env.*
+!.env.example
+.vercel
