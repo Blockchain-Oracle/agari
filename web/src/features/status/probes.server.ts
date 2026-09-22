@@ -11,6 +11,7 @@ import { createDiagnosticRunner, DiagnosticFailure } from "./diagnostic-runner";
 import { gradeFaucet } from "./grade";
 import { errorText, notConfiguredRow, pipelineRow } from "./pipeline";
 import type { StatusPipeline } from "./protocol";
+import { gameSponsorStatus } from "@/features/games/sponsor.server";
 
 /**
  * The probes behind `/api/status` — server only.
@@ -134,4 +135,22 @@ export function probeFaucet(nowMs = Date.now()): Promise<StatusPipeline> {
 
 /** Capabilities that arrive in later stages, shown as the reference shows an unconfigured option. */
 export const switchboardRow = () => notConfiguredRow("switchboard", STATUS.pipelines.switchboard, STATUS.detail.switchboard);
-export const sponsorRow = () => notConfiguredRow("sponsor", STATUS.pipelines.sponsor, STATUS.detail.sponsor);
+/**
+ * The game sponsor's budget: the key's SOL against the widest deck's envelope, from the same read `/api/games/sponsor`
+ * serves. This row was a stub that said "arrives in S7" long after S7 shipped the sponsor, so /status called a funded,
+ * co-signing sponsor "no sponsor on this deployment yet".
+ */
+export async function sponsorRow(): Promise<StatusPipeline> {
+  const label = STATUS.pipelines.sponsor;
+  try {
+    const { value: status, elapsedMs } = await diagnose("sponsor", ({ step }) => step("Sponsor balance", () => gameSponsorStatus()));
+    if (!status.configured) return notConfiguredRow("sponsor", label, STATUS.detail.sponsorOff);
+    const balance = formatBaseUnits(BigInt(status.balanceWei ?? "0"), LAMPORT_DECIMALS);
+    const envelope = formatBaseUnits(BigInt(status.deckEnvelopeWei), LAMPORT_DECIMALS);
+    const detail = STATUS.detail.sponsor(balance, envelope, status.ready);
+    if (!status.ready) return down("sponsor", label, detail, false, true, elapsedMs);
+    return pipelineRow("sponsor", label, { verdict: "good", detail, latencyMs: elapsedMs });
+  } catch (error) {
+    return down("sponsor", label, errorText(error), false, true, elapsed(error));
+  }
+}

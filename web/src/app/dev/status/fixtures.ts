@@ -54,7 +54,7 @@ function common(sessionOpen: boolean) {
     crossCheck: row("cross-check", P.crossCheck, session, last(STATUS.detail.crossCheck("TSLA", 62, "2.46"))),
     lanes: row("paused", P.paused, session, STATUS.detail.lanes(27, sessionOpen ? "27 open" : "27 closed: no session"), null, 7),
     faucet: row("faucet", P.faucet, "good", STATUS.detail.faucet("4.97", "0.98", "1,990,000"), null, 830),
-    sponsor: row("sponsor", P.sponsor, "optional", STATUS.detail.sponsor),
+    sponsor: row("sponsor", P.sponsor, "good", STATUS.detail.sponsor("0.29", "0.02", true), null, 210),
     store: row("store", P.store, "good", STATUS.detail.storeOk, null, 13),
     sensei: { ...row("sensei", P.sensei, "good", STATUS.detail.senseiOk("openai", "gpt-5.4", "direct")), optional: true, grade: null },
   };

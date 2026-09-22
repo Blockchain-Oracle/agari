@@ -60,10 +60,11 @@ async function run(env: MarketsEnv): Promise<StatusPayload> {
     : null;
   const scopeWhy = session.ok ? "ops /session lists no session that has opened" : session.why;
 
-  const [rpc, store, faucet, prices] = await Promise.all([
+  const [rpc, store, faucet, sponsor, prices] = await Promise.all([
     rpcRun,
     probeStore(),
     probeFaucet(checkedAtMs),
+    sponsorRow(),
     Promise.all(priceAssets(session).map((asset) => probePrice(asset, checkedAtMs, view.inSession))),
   ]);
   const index = await probeIndex({ db, rpcSlot: rpc.slot, health, scope, scopeWhy });
@@ -80,7 +81,7 @@ async function run(env: MarketsEnv): Promise<StatusPayload> {
     index.crossCheck,
     lanesRow(ops),
     faucet,
-    sponsorRow(),
+    sponsor,
     store,
     ...heartbeatRows(ops),
     ...prices,
