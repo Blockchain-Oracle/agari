@@ -1296,6 +1296,8 @@ What the reference's banner was *for* — telling someone why they cannot sign �
 
 **Decision:** L-10 is **Adapted / Done**: the guard is the port, and the banner stays in `/dev/states` as the reference artifact it is, unreachable by design rather than by omission. If a future deployment ever lets the wallet choose a cluster, this reverses and the banner has a home.
 
+**Amended 2026-09-22 (the user, on the live site):** the banner still cannot fire, but the wallet's own sheet does — Phantom on its mainnet setting answers a devnet transaction with "Network mismatch", and the person cancels it and reads "You cancelled in your wallet" with no way forward. Context7 (Phantom docs): `switchNetwork('devnet')` exists only in the embedded-wallet SDK; the injected extension's network is the user's setting, *Settings → Developer Settings → Testnet Mode*. So the guidance is copy, in the two places the person actually is: the "user-rejected" diagnosis names the mismatch and the switch, and the onboarding's "Your wallet signs" step says it before the first signature (`DEVNET_WALLET_STEP` in core strings, one sentence, both places).
+
 ### D-119
 
 **The range and moonshot tickets build their band from the live spot; the reserve prices it from a mark that goes stale. Resolved 2026-09-21; the on-chain half is D-109.**

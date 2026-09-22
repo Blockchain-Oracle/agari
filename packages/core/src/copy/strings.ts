@@ -48,3 +48,11 @@ export const STALE_REASON_LABEL = {
 export function staleLine(timeText: string, reasonLabel: string): string {
   return `as of ${timeText} — ${reasonLabel}`;
 }
+
+/**
+ * How a wallet gets onto devnet, said once. A Wallet Standard wallet signs whatever it is handed and offers no switch
+ * (D-120), but Phantom keeps a network setting of its own and answers a devnet transaction on mainnet with its
+ * "Network mismatch" sheet; the dapp cannot flip that setting for the injected extension (Phantom's docs:
+ * Settings → Developer Settings → Testnet Mode), so the app has to say where the switch is.
+ */
+export const DEVNET_WALLET_STEP = "Switch the wallet to Solana Devnet (Phantom: Settings → Developer Settings → Testnet Mode, then Solana Devnet).";

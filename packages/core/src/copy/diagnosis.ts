@@ -1,5 +1,5 @@
 import type { DiagnosisKind } from "../types/diagnosis";
-import { OUT_OF_GAS } from "./strings";
+import { DEVNET_WALLET_STEP, OUT_OF_GAS } from "./strings";
 
 export interface DiagnosisCopy {
   headline: string;
@@ -8,8 +8,8 @@ export interface DiagnosisCopy {
 
 const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "signer-required": { headline: "Connect a wallet first", body: "Reading works without one; writing needs your signature." },
-  "wrong-chain": { headline: "Wrong network", body: "This app runs on Solana devnet. Switch your wallet's network and try again." },
-  "user-rejected": { headline: "You cancelled in your wallet", body: "Nothing was sent. Try again when you're ready." },
+  "wrong-chain": { headline: "Wrong network", body: `This app runs on Solana devnet. ${DEVNET_WALLET_STEP} Then try again.` },
+  "user-rejected": { headline: "You cancelled in your wallet", body: `Nothing was sent. If your wallet said "Network mismatch", it is on mainnet: ${DEVNET_WALLET_STEP} Then try again.` },
   "out-of-gas": { headline: "Out of SOL for fees", body: OUT_OF_GAS },
   "insufficient-collateral": { headline: "Not enough tUSDC", body: "Your stake exceeds what your wallet holds. Mint from the faucet or lower the stake." },
   "market-not-trading": { headline: "The Window closed under you", body: "Your stake was never taken. The next Window is pre-armed." },
