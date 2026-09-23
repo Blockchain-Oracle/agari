@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "xyz.useagari.app",
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/agari.icon",
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
@@ -38,11 +38,12 @@
         {
           "backgroundColor": "#050505",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 62
         }
       ],
       "expo-secure-store",
-      "react-native-quick-crypto"
+      "react-native-quick-crypto",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
