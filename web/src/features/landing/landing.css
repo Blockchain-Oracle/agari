@@ -1,57 +1,6 @@
-/* `/` — the landing (L-11, D-093). Agari's own layout in Masayume's tokens: every colour, face and ease is a Yosuku
-   variable (part-01, flipped by part-13's cream theme) and every hairline is the gray ramp, so both themes follow for
-   free. The hero panel, section heads, buttons and eyebrow are Masayume's own classes; only the arrangement is here. */
+/* Landing sections below the editorial hero. Section colours and hairlines follow the app theme. */
 
-/* ── Hero ─────────────────────────────────────────────────────────────── */
-.lp-hero { padding-bottom: 72px; }
-.lp-hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: 56px;
-  align-items: center;
-}
-.lp-hero-copy { min-width: 0; }
-.lp-eyebrow { margin-bottom: 28px; }
-
-.lp-wordmark { display: flex; align-items: center; gap: 14px; color: var(--white); }
-.lp-wordmark-mark { display: inline-flex; width: 30px; height: 36px; flex-shrink: 0; }
-.lp-wordmark-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.lp-wordmark-name {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase;
-}
-
-.lp-title {
-  margin: 28px 0 0;
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(2.2rem, 6vw, 5.2rem); line-height: 0.94; letter-spacing: -0.035em;
-  color: var(--white);
-}
-.lp-title em {
-  display: block;
-  font-family: var(--font-serif, var(--font-display)); font-style: italic; font-weight: 500;
-  color: var(--vermilion);
-}
-.lp-line {
-  margin: 24px 0 0; max-width: 46ch;
-  font-size: clamp(1rem, 1.5vw, 1.12rem); line-height: 1.65;
-  color: var(--gray-400);
-}
-.lp-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-.lp-cta { padding: 14px 26px; font-size: 14px; }
-/* S25: the docs sit beside the two buttons as a quiet link, on the buttons' centre line. */
-.lp-docs { align-self: center; margin-left: 8px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
-/* part-03's outline is a white hairline, which the cream theme never flips: the gray ramp does. */
-.lp-cta.btn-outline { border-color: var(--gray-700); }
-.lp-cta.btn-outline:hover { border-color: var(--gray-500); }
-.lp-cta:focus-visible,
-.lp-link:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 3px; }
-
-/* The dial is `/markets`' asset hero panel, sized for a column instead of the markets grid. */
-.lp-hero-dial { min-width: 0; }
-.lp-hero-dial .hero-chart { aspect-ratio: auto; min-height: 460px; }
-.lp-hero-dial .hero-chart-canvas { min-height: 220px; }
-.lp-dial-wait { justify-content: center; padding: 24px; }
+/* Hero styles live in landing-hero.css. */
 
 /* ── Sections ─────────────────────────────────────────────────────────── */
 .lp-section { padding: 88px 0; border-bottom: 1px solid var(--gray-800); }
@@ -204,7 +153,6 @@
 
 /* ── Widths ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .lp-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .lp-lanes { grid-template-columns: minmax(0, 1fr); }
   .lp-lane { min-height: 0; }
   .lp-proof { grid-template-columns: minmax(0, 1fr); gap: 32px; }
@@ -218,8 +166,6 @@
   .lp-install { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 480px) {
-  .lp-hero { padding-bottom: 40px; }
-  .lp-hero-dial .hero-chart { min-height: 400px; }
   .lp-step-num { font-size: 44px; }
   .lp-proof-cell { flex-direction: column; gap: 4px; }
   .lp-proof-value { text-align: left; }

@@ -1,24 +1,27 @@
 import { ADVICE_COPY } from "@agari/core/copy";
 
 /**
- * `/` — the landing's words (L-11, D-093). Masayume never finished a landing page, so the layout is Agari's own; the
- * voice is Masayume's: short, declarative, no hype, and nothing claimed that the chain cannot show. Session words and
- * lane words come from core and `copy-session.ts`; this file only adds the sentences around them.
+ * `/` — the landing's words. Session words and lane words come from core and
+ * `copy-session.ts`; this file adds the sentences around them.
  */
 export const LANDING = {
   meta: {
-    title: "Agari · Up or Down on US stocks",
-    description: "Call whether a US stock closes a Window higher or lower. Settled on Solana from the signed price print.",
+    title: "Agari · Own the stock. Call the move.",
+    description: "Trade Up or Down Windows on US stocks, cover PreStocks you hold, and inspect the signed price print behind every settlement on Solana.",
   },
   hero: {
-    eyebrow: "上がり · Stock Windows on Solana",
-    titleLead: "Up or down.",
-    titleEm: "Call the close.",
-    line: "Pick a stock and a Window. Call Up or Down. It settles on the signed price print at the close, and only you can cash out.",
+    eyebrow: "Solana stock markets",
+    titleLead: "Own the stock.",
+    titleEm: "Call the move.",
+    line: "Trade an Up or Down Window, cover a stock you hold, and inspect the price print that settled it.",
     primary: "Open markets",
     secondary: "How it works",
     docs: "Read the docs →",
-    dialLabel: (asset: string) => `${asset}, the last session and the live price`,
+    paths: "Predict  ·  Cover  ·  Hold",
+    previewLabel: "Agari basket and settlement proof previews",
+    captureNote: "Product captures · 23 Sep 2026",
+    folioLeft: "Agari / Prediction exchange",
+    folioRight: "Solana stock markets",
   },
   /** S25: the band under the hero, naming the two data sources the venue settles on, each with its own count and proof. */
   builtOn: {
