@@ -5,6 +5,7 @@ import type { Diagnosis, Signature } from "@agari/core/types";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
+import { useGasRecheck } from "./useGasRecheck";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import { VAULT } from "./copy";
@@ -77,6 +78,9 @@ export function useVaultWrite() {
     },
     [address, queryClient, submitter],
   );
+
+  const clearGas = useCallback(() => setState((s) => (s.gasShort ? { ...s, gasShort: false, diagnosis: null } : s)), []);
+  useGasRecheck(state.gasShort, "vault", clearGas);
 
   return { state, run, hasSigner, address };
 }

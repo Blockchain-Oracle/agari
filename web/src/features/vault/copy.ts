@@ -37,6 +37,13 @@ export const VAULT = {
   /** Truth-corrected: the reference said "Your new bets do not use this" because its bets ran on the manager account. Here the vault route bets from it. */
   note: "Bets placed from it and the grants you allow spend from here. Move it to your wallet whenever you want.",
   amountLabel: "Trading Balance amount",
+  /** The amount field's Max and its one reason (S23). */
+  amount: {
+    max: "Max",
+    notANumber: "Enter an amount like 12.50",
+    overWallet: (held: string) => `Your wallet holds ${held}`,
+    walletHolds: (held: string) => `Wallet: ${held}`,
+  },
   deposit: "Deposit",
   depositing: "Depositing",
   withdraw: "Withdraw",

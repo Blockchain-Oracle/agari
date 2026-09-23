@@ -19,7 +19,9 @@
   gap: 16px;
 }
 @media (min-width: 1024px) {
-  .vault-head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+  .vault-head { flex-direction: row; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; }
+  /* S23: the note keeps a readable measure; the wider amount row wraps under it rather than squeezing it to a word. */
+  .vault-head > :first-child { flex: 1 1 280px; min-width: 260px; }
 }
 
 /* font-mono text-[8px] tracking-[0.14em] uppercase, color #6B6353 */
@@ -91,16 +93,28 @@
   cursor: pointer;
   transition: background-color 180ms var(--ease), color 180ms var(--ease), opacity 180ms var(--ease);
 }
-.vault-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.vault-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 /* bg-black text-white hover:bg-black/85 — ink on ground, so the button stays the dark one on both themes */
 .vault-btn-primary { background: var(--color-ink); color: var(--bg); border: 0; }
 .vault-btn-primary:hover:not(:disabled) { opacity: 0.85; }
-/* border border-black/10 text-black hover:bg-black/5 */
-.vault-btn-outline { background: transparent; color: var(--color-ink); border: 1px solid var(--color-hairline); }
-.vault-btn-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--color-ink) 5%, transparent); }
+/* S23: the reference's 10% hairline vanished on the dark ground; Withdraw now carries the same weight as Deposit —
+   a filled surface and an ink border you can see in both themes. */
+.vault-btn-outline { background: var(--color-surface-2); color: var(--color-ink); border: 1.5px solid color-mix(in srgb, var(--color-ink) 55%, transparent); }
+.vault-btn-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--color-ink) 12%, var(--color-surface-2)); border-color: var(--color-ink); }
 /* border-emerald-700/20 text-emerald-700 hover:bg-emerald-500/10 — the reference's own green for the private route */
-.vault-btn-private { background: transparent; color: var(--color-profit); border: 1px solid color-mix(in srgb, var(--color-profit) 20%, transparent); }
-.vault-btn-private:hover:not(:disabled) { background: color-mix(in srgb, var(--color-profit) 10%, transparent); }
+.vault-btn-private { background: var(--color-profit-wash); color: var(--color-profit); border: 1.5px solid color-mix(in srgb, var(--color-profit) 60%, transparent); }
+.vault-btn-private:hover:not(:disabled) { background: color-mix(in srgb, var(--color-profit) 20%, transparent); border-color: var(--color-profit); }
+
+/* The amount field (S23): a Max inside the row, a red reason under it when the wallet cannot cover it. */
+.vault-amount { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.vault-amount-row { position: relative; display: flex; align-items: center; }
+.vault-amount-row .vault-input { padding-right: 56px; }
+.vault-amount[data-invalid] .vault-input { border-color: var(--color-loss); box-shadow: 0 0 0 3px var(--color-loss-wash); }
+.vault-max { position: absolute; right: 6px; height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-ink) 30%, transparent); background: var(--color-surface-2); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink); cursor: pointer; }
+.vault-max:hover:not(:disabled) { border-color: var(--color-ink); }
+.vault-max:disabled { opacity: 0.4; cursor: not-allowed; }
+.vault-amount-problem { font-size: 12px; color: var(--color-loss); }
+.vault-amount-hint { font-size: 12px; color: var(--color-ink-muted); }
 
 /* grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-x-4 gap-y-3.5 pt-4, borderTop rgba(201,191,166,0.3) — five cells here, so five columns at the widest */
 .vault-cells {
@@ -168,3 +182,7 @@ details[open] > .vault-row-summary .vault-row-chevron { transform: rotate(90deg)
 [data-theme="light"] .vault-idle-body, [data-theme="light"] .vault-idle-rows dt { color: rgba(20, 18, 16, 0.6); }
 [data-theme="light"] .vault-idle-rows dd { color: rgba(20, 18, 16, 0.8); }
 [data-theme="light"] .vault-idle-link:hover { color: rgba(20, 18, 16, 0.95); }
+@media (min-width: 640px) {
+  .vault-amount-row .vault-input { width: 176px; }
+  .vault-controls:has(.vault-amount) { align-items: flex-start; }
+}

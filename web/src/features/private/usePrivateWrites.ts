@@ -6,6 +6,7 @@ import type { Diagnosis, Signature } from "@agari/core/types";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
+import { useGasRecheck } from "../vault/useGasRecheck";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import { PRIVATE } from "./copy";
@@ -68,6 +69,9 @@ export function usePrivateWrites() {
     },
     [address, queryClient, submitter],
   );
+
+  const clearGas = useCallback(() => setState((s) => (s.gasShort ? { ...s, gasShort: false, diagnosis: null } : s)), []);
+  useGasRecheck(state.gasShort, "private", clearGas);
 
   return { state, run, hasSigner, address };
 }

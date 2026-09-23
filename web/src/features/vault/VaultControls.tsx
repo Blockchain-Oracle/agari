@@ -1,14 +1,16 @@
 "use client";
 
 import type { BlockerKind } from "@agari/core/copy";
-import { parseDecimalToBaseUnits } from "@agari/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useState } from "react";
 import { blockerLabel } from "@/lib/copy";
+import { AmountField } from "./AmountField";
 import { VAULT } from "./copy";
 import type { VaultWriteKind } from "./useVaultWrite";
 
 export interface VaultControlsProps {
   decimals: number;
+  symbol?: string;
   availableBase: bigint;
   privateAvailableBase: bigint;
   /** null until the wallet's sheet answers; a deposit cannot be sized against an unknown wallet. */
@@ -30,8 +32,11 @@ const DEFAULT_AMOUNT = "1";
  * exactly as the reference disables: while a write is in flight, on a zero amount, or when the
  * wallet cannot cover the deposit.
  */
-export function VaultControls({ decimals, availableBase, privateAvailableBase, walletSpendableBase, needsApproval, blocker, busy, onDeposit, onWithdraw, onWithdrawPrivate }: VaultControlsProps) {
-  const [amount, setAmount] = useState(DEFAULT_AMOUNT);
+export function VaultControls({ decimals, symbol = "tUSDC", availableBase, privateAvailableBase, walletSpendableBase, needsApproval, blocker, busy, onDeposit, onWithdraw, onWithdrawPrivate }: VaultControlsProps) {
+  const [typed, setTyped] = useState<string | null>(null);
+  // Untouched, the default never asks for more than the wallet holds: a wallet with less starts at what it has.
+  const amount = typed ?? (walletSpendableBase !== null && walletSpendableBase > 0n && (parseDecimalToBaseUnits(DEFAULT_AMOUNT, decimals) ?? 0n) > walletSpendableBase ? formatBaseUnits(walletSpendableBase, decimals, { minDp: 0 }).replace(/,/g, "") : DEFAULT_AMOUNT);
+  const setAmount = setTyped;
   const amountBase = parseDecimalToBaseUnits(amount, decimals) ?? 0n;
   const blocked = blocker !== null || busy !== null;
   const depositDisabled = blocked || amountBase <= 0n || walletSpendableBase === null || walletSpendableBase < amountBase;
@@ -40,16 +45,7 @@ export function VaultControls({ decimals, availableBase, privateAvailableBase, w
   return (
     <div className="flex flex-col gap-2">
       <div className="vault-controls">
-        <input
-          type="number"
-          min="0"
-          step="0.1"
-          inputMode="decimal"
-          value={amount}
-          onChange={(event) => setAmount(event.target.value)}
-          className="vault-input"
-          aria-label={VAULT.amountLabel}
-        />
+        <AmountField value={amount} onChange={setAmount} decimals={decimals} symbol={symbol} maxBase={walletSpendableBase} label={VAULT.amountLabel} />
         <div className="vault-buttons">
           <button type="button" onClick={() => onDeposit(amountBase)} disabled={depositDisabled} className="vault-btn vault-btn-primary" data-cursor="hover">
             {busy === "vault-deposit" ? VAULT.depositing : VAULT.deposit}
