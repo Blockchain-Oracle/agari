@@ -1416,3 +1416,16 @@ The residual the 2σ bound admits is visible in that second figure: the reserve'
 | Q-S6-8 | Hedge placement and size | Default: under the `/markets` hero, 10% of exposure, devnet tUSDC only (D-058) | — |
 | Q-S6-9 | Halt wording without a licensed halt feed | Default: "Trading halted" only for `pyth-wide` / `issuer-halt`, else "Signed price stale" (D-057) | — |
 | Q-S15-1 | Deploy `agari-docs` as its own Vercel project alongside the web app? | ✅ Answered (user, 2026-09-15): yes, its own project on the app's docs subdomain, as Masayume ran `docs.masayume.app`; the exact domain comes from the user at S16 (D-094) | Docs URL in README |
+
+### D-128 — Agari ships as a native app: Expo SDK 57 in `mobile/`, Phantom/Solflare deeplinks on iOS, Mobile Wallet Adapter on Android, TestFlight and an APK
+
+**Settled 2026-09-23 (the user's approval of plan `agari-mobile-s26`).** The user asked for a real iOS app on TestFlight (paid Apple Developer account, **Individual**) and an Android APK, designed natively.
+- **Stack:** Expo SDK 57 (RN 0.86.3, React 19.2.3 pinned in `mobile/` while web stays on 19.2.8), expo-router NativeTabs (Liquid Glass), `@expo/ui`, Reanimated 4, Skia charts, EAS Build/Submit/Update. `ios/` and `android/` are generated (CNG), never committed.
+- **Reuse, not rewrite:** the app imports `@agari/core`, `@agari/clients` and the portable subpaths of `@agari/markets` (Kit 8). Metro pins React/React Native/React Query to the app's copies. `react-native-quick-crypto` supplies WebCrypto Ed25519 in Hermes. Absolute URLs replace web's same-origin paths (`mobile/src/lib/env.ts`).
+- **Boundaries hold:** the invariants now scan `mobile/`; the app never imports `@solana/*`. The iOS deeplink signer and the Android MWA signer live in `packages/markets/src/sessions/mobile/` as pure TS behind injected platform ports.
+- **Wallets:**
+  - **iOS:** Phantom and Solflare deeplinks (`cluster=devnet`, x25519/NaCl hand-off). MWA is Android-only per Solana Mobile's docs; Backpack's links have no devnet.
+  - **Android:** MWA through our own wrapper over the protocol package (`@wallet-ui/react-native-kit` pins Kit 7).
+  - **Rejected:** Phantom's RN SDK (embedded wallets only) and Reown (web3.js 1).
+  - **Practice wallet:** devnet only. It stays off externally reviewed builds while the Apple account is Individual (guideline 3.1.5(i)).
+- **Open for S26.2:** web's session key is a non-extractable WebCrypto key in IndexedDB (D-066). A phone cannot persist such a key across launches, so the mobile equivalent keeps its seed in the iOS Keychain / Android Keystore via `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), loaded only to sign. The rule's intent (no key bytes in app storage or backups) holds; the wording gets a mobile clause when S26.2 lands.

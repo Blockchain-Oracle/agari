@@ -12,7 +12,7 @@ import { finding } from "./report.mjs";
 import { codeLines, readText, walkFiles } from "./walk.mjs";
 
 const SOURCE_EXTS = [".ts", ".tsx", ".mts", ".mjs", ".js"];
-const WORKSPACE = ["web", "packages", "services", "scripts"];
+const WORKSPACE = ["web", "mobile", "packages", "services", "scripts"];
 const EXCLUDE = ["scripts/invariants", "reference"];
 
 const readJson = (abs) => JSON.parse(readFileSync(abs, "utf8"));
@@ -58,7 +58,7 @@ export function noEvm(rule, ctx) {
 
 const CHAIN_MODULES = /@solana\/|@solana-program\/|@agari\/clients|@pythnetwork\/|@switchboard-xyz\//;
 const WEB3_V1_MODULES = /@solana\/web3\.js|@pythnetwork\/pyth-solana-receiver|@switchboard-xyz\/on-demand/;
-const OUTSIDE_MARKETS = ["web", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
+const OUTSIDE_MARKETS = ["web", "mobile", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 
 export function kitImportBoundary(rule, ctx) {
   const findings = [];
