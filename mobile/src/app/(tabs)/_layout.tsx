@@ -1,5 +1,5 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
-import { FONT, useTheme } from "@/theme";
+import { FONT, useTheme } from "~/theme";
 
 /** Web's phone nav (components/shell/header/nav-items.ts MOBILE_NAV + the More drawer): Android's five-tab maximum. */
 export default function TabsLayout() {

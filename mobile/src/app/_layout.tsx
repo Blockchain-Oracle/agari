@@ -4,9 +4,9 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { marketsEnv } from "@/lib/env";
-import { ThemeProvider, useTheme } from "@/theme";
-import { useAppFonts } from "@/theme/fonts";
+import { marketsEnv } from "~/lib/env";
+import { ThemeProvider, useTheme } from "~/theme";
+import { useAppFonts } from "~/theme/fonts";
 
 SplashScreen.preventAutoHideAsync();
 

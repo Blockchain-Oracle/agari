@@ -1,5 +1,5 @@
 import Svg, { Circle, Path } from "react-native-svg";
-import { useTheme } from "@/theme";
+import { useTheme } from "~/theme";
 
 /** web/src/components/shell/AgariMark.tsx: the crescent (figure, follows the theme) and one vermilion point. */
 export function AgariMark({ width = 15, height = 18, figure }: { width?: number; height?: number; figure?: string }) {

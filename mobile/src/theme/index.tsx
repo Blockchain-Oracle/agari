@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
 import { useMMKVString } from "react-native-mmkv";
-import { storage } from "@/lib/storage";
+import { storage } from "~/lib/storage";
 import { DARK, LIGHT, type Palette } from "./palette";
 
 export { FONT, RADIUS, SPACE, TYPE } from "./type";

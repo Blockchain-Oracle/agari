@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { SPACE, TYPE, useTheme } from "@/theme";
+import { SPACE, TYPE, useTheme } from "~/theme";
 
 /** A tab's heading and web's one-line purpose for it (nav-items.ts), above its content. */
 export function TabIntro({ title, line }: { title: string; line: string }) {

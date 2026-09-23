@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { FONT, useTheme } from "@/theme";
+import { FONT, useTheme } from "~/theme";
 import { AgariMark } from "./AgariMark";
 
 /** The header logo at web's phone size (navigation.css: mark 15×18, AGARI 14 / 800 / 0.12em). */

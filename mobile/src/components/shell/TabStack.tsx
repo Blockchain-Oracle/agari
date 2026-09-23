@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { useTheme } from "@/theme";
+import { useTheme } from "~/theme";
 import { BrandTitle } from "./BrandTitle";
 
 /** Each tab's native stack: the brand at the leading edge (as web's phone header), detail screens push inside the tab. */

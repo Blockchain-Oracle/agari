@@ -1429,3 +1429,14 @@ The residual the 2σ bound admits is visible in that second figure: the reserve'
   - **Rejected:** Phantom's RN SDK (embedded wallets only) and Reown (web3.js 1).
   - **Practice wallet:** devnet only. It stays off externally reviewed builds while the Apple account is Individual (guideline 3.1.5(i)).
 - **Open for S26.2:** web's session key is a non-extractable WebCrypto key in IndexedDB (D-066). A phone cannot persist such a key across launches, so the mobile equivalent keeps its seed in the iOS Keychain / Android Keystore via `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), loaded only to sign. The rule's intent (no key bytes in app storage or backups) holds; the wording gets a mobile clause when S26.2 lands.
+
+### D-129 — The app imports web's own hooks and copy; the few browser-bound web files have native stand-ins
+
+**Settled 2026-09-23 (S26.1, within D-128's "reuse, not rewrite").** Most of web's non-visual logic lives in `web/src` (session, prices, sentiment, the marquee's cells, copy), not in the packages. Hand-porting it would copy hundreds of files and let the app drift.
+- **Aliases:** in `mobile/`, `@/` means `web/src` (tsconfig paths, which Metro honours), so a web file resolves its own imports unchanged; the app's code uses `~/`.
+- **Stand-ins:** Metro swaps a web file for `mobile/src/web-shims/*` by resolved path, whoever imports it:
+  - `lib/env.ts` → absolute production URLs
+  - `lib/visibility.ts` → `AppState`
+  More join the map as the port reaches them.
+- **Web changes stay behaviour-neutral splits:** logic moves into a hook both renderers call (first: `components/shell/useMarqueeItems.ts` out of `Marquee.tsx`). Web never imports from `mobile/`.
+- **Stock marks:** the app draws them from web's `paths.ts` glyphs and core's brand colours.

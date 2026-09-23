@@ -1,7 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { NavItem } from "@/nav/items";
-import { RADIUS, TYPE, useTheme } from "@/theme";
+import type { NavItem } from "~/nav/items";
+import { RADIUS, TYPE, useTheme } from "~/theme";
 
 /** One drawer row: tinted icon tile, name, web's one-line description, chevron. */
 export function NavRow({ item, onPress, last }: { item: NavItem; onPress: () => void; last: boolean }) {
