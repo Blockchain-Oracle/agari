@@ -6,6 +6,42 @@ The venue is Agari's own Anchor order book (`agari-events`, a from-scratch rebui
 
 **Status: live on devnet at [useagari.xyz](https://useagari.xyz), mid-build.** Bets, cover and the Trading Balance use test money on devnet. The stages this file once listed as deferred (Earn, agents, specialist tickets, X trading, the games, yield) were built after all (`D-113`) and each has its own devnet rows in the ledger. The one surface designed for real money, the [desk](#hold-a-basket-the-desk), is rehearsed on a fork of Solana mainnet and waits on its mainnet deploy. See [Honest limitations](#honest-limitations) below.
 
+**Stocklana tracks: Main · Best Use of PreStocks · Best use of Pyth market data.** Live app: [useagari.xyz](https://useagari.xyz) · Docs: [docs.useagari.xyz](https://docs.useagari.xyz) · Evidence ledger: [`docs/plan/acceptance.md`](docs/plan/acceptance.md) · Track notes: [`docs/submission/tracks.md`](docs/submission/tracks.md)
+
+## Try it in 60 seconds
+
+1. Open [useagari.xyz/markets](https://useagari.xyz/markets). No wallet is needed to browse. The OpenAI lane and the five PreStocks baskets trade 24/7; stock Windows trade during US market hours.
+2. Connect Phantom, Solflare or Backpack on **devnet**, then take free test money from the in-app faucet.
+3. Call Up or Down on any Window. When it settles, open [/proof](https://useagari.xyz/proof) to see the print it settled on, with its source.
+
+## Sponsor integrations
+
+### PreStocks: the only pre-IPO source
+
+Agari reads [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks) and nothing else for pre-IPO prices. No other pre-IPO token or issuer is integrated anywhere in the code, which keeps it inside the bounty's eligibility rule.
+
+| What PreStocks does in Agari | Code | Live | On-chain proof |
+| --- | --- | --- | --- |
+| **A 24/7 OpenAI market.** `OPENAI-60m` is a one-hour Up/Down Window on the PreStocks OpenAI price. It opens, prints, settles and rolls every hour with no one at a keyboard. | [`packages/markets/src/prices/prestocks.ts`](packages/markets/src/prices/prestocks.ts), [`scripts/deploy/init-prestocks-series.ts`](scripts/deploy/init-prestocks-series.ts) | [/markets](https://useagari.xyz/markets) | [open](https://explorer.solana.com/tx/2PTZDJ5yY9oEmJKCQUcdNrweZj5qPnx3veo2BvBrsbSnMjxkntwh21rP5S4o3fUpjZCV3sKHVzN6AA9AKr3so1dH?cluster=devnet) · [opening print](https://explorer.solana.com/tx/4TJTb2gTRkpg6p3HHG7WDKRYcTdzLxyz3zC23dLNF3zLUZksP12DB3B2yiixYq96WZTHHmmfGEfsAUN3j5yCXwPT?cluster=devnet) |
+| **Cover what you hold.** Agari reads a connected wallet's PreStocks tokens by mint (read-only, mainnet) and offers a Down bet as insurance on each one. | [`web/src/features/hedge`](web/src/features/hedge), [`scripts/drive/cover-call.ts`](scripts/drive/cover-call.ts) | [/portfolio](https://useagari.xyz/portfolio) | cover fill, 2026-09-19 11:31Z ([ledger](docs/plan/acceptance.md)) |
+| **Five baskets.** AI Labs, Frontier AI, Prediction Markets, Defense & Space and All PreStocks. Each is an equal-weight index of PreStocks prices in points, read from the catalogue in one pass. If any member is missing, the Window voids instead of settling on partial data. | [`packages/core/src/market/baskets.ts`](packages/core/src/market/baskets.ts) | [/baskets](https://useagari.xyz/baskets) | [AI Labs settle](https://explorer.solana.com/tx/5xkJKmS47fZBYRNyeJ83iffHTxzpE2vMr9SGBMvKb3eeN6wNh1xC3WeWYpknWAynR1mAjmKF2ZpVEWwRU3RuZm3f?cluster=devnet) · [Defense & Space settle](https://explorer.solana.com/tx/YnwMzy8g1Fp6KkRrFTF3XHTEWhF7JgK4Y3FGAidnzR2B2uzYwgpe8SmPPafQqNcqUgvp9yjf721qghLrsznBdP4?cluster=devnet) |
+| **The desk.** An `agari-desk` PDA holds a basket of PreStocks tokens for its owner and buys through Jupiter. The program refuses a buy priced above a ceiling measured against the PreStocks mark. | [`anchor/programs/agari-desk`](anchor/programs/agari-desk), [`docs/plan/specs/desk.md`](docs/plan/specs/desk.md) | [/desk](https://useagari.xyz/desk) (paper practice) | 31/31 checks on a mainnet fork ([ledger](docs/plan/acceptance.md), 2026-09-22 23:49Z) |
+| **Pre-IPO facts on every pre-IPO page.** The SPV mark price, the token's premium or discount to it, and the holder count. | [`web/src/features/ticker-hub/PreIpoStats.tsx`](web/src/features/ticker-hub/PreIpoStats.tsx) | [/api/prestocks](https://useagari.xyz/api/prestocks) | — |
+
+### Pyth: settlement, not a display feed
+
+A TSLA, QQQ or VOO Window settles only after the program itself verifies a Pyth pull-oracle update for the exact boundary second. The app never settles on a "latest" read.
+
+| What Pyth does in Agari | Code | Live | On-chain proof |
+| --- | --- | --- | --- |
+| **Prints verified on chain.** `public_record_print_pyth` checks the `PriceUpdateV2` for the Window's boundary timestamp before it records the price. | [`anchor/programs/agari-events/src/instructions/record_print_sources.rs`](anchor/programs/agari-events/src/instructions/record_print_sources.rs) | [TSLA/USD on Pyth](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD) | [TSLA settle, Pyth 358.20432 → 358.75](https://explorer.solana.com/tx/xjKyBjRk51GitA35CZoP6fKd9huZ15EMH5RPmv8Lkj6XCKYn71zUDFfJaQPHyyresAX4Es13UCFGs4GSogvmzwt?cluster=devnet) |
+| **Cross-checked, void on divergence.** RedStone checks TSLA's Pyth prints. If the two differ by more than 25 bps, the Window voids and no one is paid. | same file | — | [`CrossCheckDivergence` void](https://explorer.solana.com/tx/24R75m6PE6NohCTE1Z6t3oQvReGP628DVdUsEMM3kKs7gHFWmhTeA32QUKvJEWeWeUW8VzN8VSdQo2rrkCebHYaj?cluster=devnet) |
+| **Ops runs on Pyth.** The price relay fetches boundary updates from Hermes, the halt watch reads each feed's price, confidence and publish time every pass in regular hours, and the trading calendar follows Pyth's schedule. | [`hermes-fetch.ts`](services/ops/src/actors/price-relay/hermes-fetch.ts), [`halt-watch/signals.ts`](services/ops/src/actors/halt-watch/signals.ts), [`pyth-schedule.ts`](packages/core/src/market/pyth-schedule.ts) | [/status](https://useagari.xyz/status) | — |
+| **Anyone can re-verify.** `/proof` lists every print with its source, and "Re-verify on devnet" posts the archived Pyth update again from the reader's browser. | [`web/src/features/proof`](web/src/features/proof) | [/proof](https://useagari.xyz/proof) | replay payer [funded](https://explorer.solana.com/tx/5LyDHno6qXYhrCXyBj8eL3YFiaw7d3aSeutzGLReRB2rkam8uyF5Pk4f1Dsc6m9CaBL9Jn4qJFfZHT2CdghV6CF4?cluster=devnet) |
+| **Pre-IPO valuation indices, wired and gated.** `OPENAIV-60m` and `ANTHROPICV-60m` settle on [`Equity.Index.OPENAI/USD`](https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD) and `Equity.Index.ANTHROPIC/USD`. The desk can require the index as its premium reference (`require_pyth_index`). Both switch on at the next hourly probe once the key is entitled to `pyth-indices`. | [`pyth-entitlement.ts`](services/ops/src/runtime/pyth-entitlement.ts), [`agari-desk`](anchor/programs/agari-desk/src/lib.rs) | — | the trial key is refused with a 403 today, so nothing lists ([D-125](docs/plan/decisions.md)) |
+
+The full account, with every claim tied to a ledger row or a commit, is in [`docs/submission/tracks.md`](docs/submission/tracks.md) and on [docs.useagari.xyz](https://docs.useagari.xyz). PreStocks tokens are not affiliated with, endorsed by or issued by the companies they reference, and are not available in the U.S.
+
 ## Find your way
 
 | What you want to do | Start here |
@@ -17,7 +53,7 @@ The venue is Agari's own Anchor order book (`agari-events`, a from-scratch rebui
 | Install the PWA | [`/download`](web/src/app/download) |
 | Check service health | [`/status`](web/src/app/status) |
 | Read the on-chain proof feed | [`/proof`](web/src/app/proof) |
-| Step-by-step documentation | `agari-docs`, deployed at S16 on the app's docs subdomain (`Q-S15-1`); the exact domain is pending |
+| Step-by-step documentation | [docs.useagari.xyz](https://docs.useagari.xyz) (source in [`docs-site/`](docs-site)) |
 
 The app is deployed at [useagari.xyz](https://useagari.xyz) (web and ops on Coolify, S16); every route above also runs at `pnpm dev` on `localhost:3000`. Two more routes belong to this week's work: [`/baskets`](web/src/app/baskets) (the five baskets) and [`/desk`](web/src/app/desk) (your desk, or the studio that makes one).
 
