@@ -28,6 +28,11 @@ export function deliverWalletReturn(path: string): boolean {
   return true;
 }
 
+/** The person gave up waiting for the wallet (the sheet's Cancel): the pending hand-off fails as cancelled. */
+export function cancelWalletRequest(): void {
+  pending?.reject(new Error("Cancelled. Nothing was connected."));
+}
+
 export const linkPort: LinkPort = {
   redirectFor: (method) => `${RETURN_PREFIX}${method}`,
   roundTrip(url, method) {
