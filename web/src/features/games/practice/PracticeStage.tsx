@@ -6,6 +6,7 @@ import { secToMs } from "@agari/core/units";
 import { useCallback } from "react";
 import { StaleTick } from "@/components/states";
 import { feedRawToOracleRaw, assetPriceLine } from "@/features/markets/hero/units";
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { booleanCodec, usePersistedState } from "@/lib/persisted";
 import { GAMES } from "../copy";
 import { StageFace } from "../stage/StageFace";
@@ -33,6 +34,7 @@ const TUTORIAL_KEY = "agari.games.practiceSeen";
 
 export function PracticeStage() {
   const session = usePracticeRound();
+  const market = useMarketSession();
   const [seen, setSeen, hydrated] = usePersistedState(TUTORIAL_KEY, false, booleanCodec);
   const { readiness, round, score } = session;
 
@@ -101,7 +103,7 @@ export function PracticeStage() {
               />
             )
           ) : (
-            <Plate readiness={readiness.kind} />
+            <Plate readiness={readiness.kind} closedLabel={market && !market.open ? market.label : null} />
           )}
         </div>
 
@@ -146,7 +148,7 @@ export function PracticeStage() {
 }
 
 /** Dealing, nothing dealable, or the venue unreadable — three different sentences, never merged. */
-function Plate({ readiness }: { readiness: "dealing" | "no-deck" | "unreadable" }) {
+function Plate({ readiness, closedLabel }: { readiness: "dealing" | "no-deck" | "unreadable"; closedLabel: string | null }) {
   if (readiness === "dealing") {
     return (
       <div className="gm-plate">
@@ -158,7 +160,7 @@ function Plate({ readiness }: { readiness: "dealing" | "no-deck" | "unreadable" 
   return (
     <div className="gm-plate">
       <p className="gm-plate-title">{copy.title}</p>
-      <p className="gm-plate-body">{copy.body}</p>
+      <p className="gm-plate-body">{readiness === "no-deck" && closedLabel !== null ? PRACTICE.deal.none.closedBody(closedLabel) : copy.body}</p>
       <p className="gm-plate-meta">{GAMES.card.waitingOn("the venue's live Window list")}</p>
     </div>
   );

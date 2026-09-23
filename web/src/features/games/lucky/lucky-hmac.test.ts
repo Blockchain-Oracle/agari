@@ -1,4 +1,4 @@
-import { LUCKY_ASSETS, LUCKY_MULTIPLIERS, LUCKY_POLICY_VERSION, mapLuckyDraw } from "@agari/core/games";
+import { LUCKY_ASSETS_V2, LUCKY_MULTIPLIERS, LUCKY_POLICY_V2, mapLuckyDraw } from "@agari/core/games";
 import { encodeBase58, toAddress, type Hash32 } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { luckyDigest } from "./lucky-digest.server";
@@ -15,14 +15,14 @@ const toHex = (bytes: Uint8Array) => `0x${[...bytes].map((b) => b.toString(16).p
 
 describe("the server's HMAC", () => {
   it("lands on the golden digest, and the draw core pins to it", () => {
-    const digest = luckyDigest(SERVER_SEED, { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_VERSION });
+    const digest = luckyDigest(SERVER_SEED, { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_V2 });
     expect(toHex(digest)).toBe(GOLDEN_DIGEST);
-    expect(mapLuckyDraw(digest, { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS })).toEqual({ asset: "META", side: "up", multiplier: 10 });
+    expect(mapLuckyDraw(digest, { assets: LUCKY_ASSETS_V2, multipliers: LUCKY_MULTIPLIERS })).toEqual({ asset: "META", side: "up", multiplier: 10 });
   });
 
   it("agrees with WebCrypto, which is what the browser's check runs", async () => {
     const { luckyDrawMessage } = await import("@agari/core/games");
-    const input = { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_VERSION };
+    const input = { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_V2 };
     const hexBytes = (hex: string) => Uint8Array.from((hex.slice(2).match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16)));
     const key = await globalThis.crypto.subtle.importKey("raw", hexBytes(SERVER_SEED), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
     const signed = new Uint8Array(await globalThis.crypto.subtle.sign("HMAC", key, hexBytes(luckyDrawMessage(input))));
@@ -30,7 +30,7 @@ describe("the server's HMAC", () => {
   });
 
   it("changes the whole draw when the nonce or the client seed changes", () => {
-    const base = { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_VERSION };
+    const base = { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_V2 };
     expect(toHex(luckyDigest(SERVER_SEED, { ...base, nonce: 8 }))).not.toBe(GOLDEN_DIGEST);
     expect(toHex(luckyDigest(SERVER_SEED, { ...base, clientSeed: `0x${"34".repeat(32)}` as Hash32 }))).not.toBe(GOLDEN_DIGEST);
     expect(toHex(luckyDigest(`0x${"23".repeat(32)}` as Hash32, base))).not.toBe(GOLDEN_DIGEST);

@@ -62,6 +62,13 @@ export interface DeckCandidate {
   /** Top-of-book spread and resting depth, per whole unit — the deckmaster refuses an unfillable card. */
   spreadRaw: bigint;
   depthRaw: bigint;
+  /**
+   * When the series stops rolling (S23): a Regular series ends at the session's close, so no successor Window
+   * opens after it; a Gap Window has no successor at all. Undefined for a 24/7 series.
+   */
+  seriesEndSec?: number;
+  /** When a listed-but-upcoming Window starts trading, so the projection counts it from then and not before. */
+  tradingStartSec?: number;
 }
 
 export interface DeckPolicy {
@@ -138,7 +145,9 @@ export function nextDealableSec(candidates: readonly DeckCandidate[], policy: De
       // The successor Window of the same series, once this one has expired.
       let expirySec = candidate.expirySec;
       while (expirySec <= at) expirySec += candidate.intervalSec;
-      return isEligible({ ...candidate, expirySec, trading: true }, policy, at);
+      // A successor that would end after its series stops rolling never opens: no promise of a deck after the close.
+      if (expirySec !== candidate.expirySec && candidate.seriesEndSec !== undefined && expirySec > candidate.seriesEndSec) return false;
+      return isEligible({ ...candidate, expirySec, trading: expirySec !== candidate.expirySec || candidate.trading || (candidate.tradingStartSec !== undefined && at >= candidate.tradingStartSec) }, policy, at);
     });
     if (distinctWindows(eligible).length >= DECK_MIN) return ahead;
   }

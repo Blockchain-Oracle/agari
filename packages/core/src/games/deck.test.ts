@@ -110,6 +110,15 @@ describe("deck selection", () => {
     expect(nextDealableSec(stale, POLICY, NOW)).toBe(100);
   });
 
+  it("never promises a deck from Windows that open after their series closes (S23)", () => {
+    // Two 15m Regular Windows expiring at the 16:00 close: their successors would never open.
+    const atClose = [candidate(1, { expirySec: NOW + 100, seriesEndSec: NOW + 100 }), candidate(2, { expirySec: NOW + 100, seriesEndSec: NOW + 100 })];
+    expect(nextDealableSec(atClose, POLICY, NOW)).toBeNull();
+    // A 24/7 series keeps rolling.
+    const allDay = [candidate(1, { expirySec: NOW + 100 }), candidate(2, { expirySec: NOW + 100 })];
+    expect(nextDealableSec(allDay, POLICY, NOW)).toBe(100);
+  });
+
   it("returns null rather than a guess when nothing is dealable inside the projection", () => {
     const never = [candidate(1, { asset: "SOL" }), candidate(2, { asset: "SOL" })];
     expect(nextDealableSec(never, POLICY, NOW, 300)).toBeNull();

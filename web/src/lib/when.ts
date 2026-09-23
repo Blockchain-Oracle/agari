@@ -61,6 +61,17 @@ function localParts(sec: number, tz: string, seconds: boolean): { time: string; 
   return { time, day, date };
 }
 
+/** Twelve hours: past this, a time without its weekday is read as the wrong day (S23). */
+const SOON_SEC = 12 * 3_600;
+
+/**
+ * A time may drop its weekday only when it is within twelve hours, on the viewer's date and on the same ET date as
+ * now. At 22:04 ET a Wednesday 09:30 open is "Wed 14:30 (09:30 ET)" for a reader in UTC+1, never "14:30 (09:30 ET)".
+ */
+export function soonSameDay(sec: number, nowSec: number, tz: string, localDate: string): boolean {
+  return Math.abs(sec - nowSec) <= SOON_SEC && localParts(nowSec, tz, false).date === localDate && etDateOf(nowSec) === etDateOf(sec);
+}
+
 /** The formatter for `tz` (null = ET text), a pure function of its inputs; `useWhen` binds it to the viewer. */
 export function whenFor(tz: string | null): (sec: number, options?: WhenOptions) => string {
   return (sec, options = {}) => {
@@ -72,10 +83,9 @@ export function whenFor(tz: string | null): (sec: number, options?: WhenOptions)
     // The same wall clock in both zones is the same zone for this purpose: say it once.
     if (`${local.time} ET` === et && local.date === etDateOf(sec)) return etText(sec, seconds, clock);
     const nowSec = options.nowSec ?? Math.floor(marketsProvider.nowMs() / 1000);
-    const today = localParts(nowSec, tz, false).date === local.date;
     const etDay = ET_WEEKDAY_SHORT[weekdayOfDate(etDateOf(sec))];
     const etSide = etDay === local.day ? et : `${etDay} ${et}`;
-    return `${clock || today ? "" : `${local.day} `}${local.time} (${etSide})`;
+    return `${clock || soonSameDay(sec, nowSec, tz, local.date) ? "" : `${local.day} `}${local.time} (${etSide})`;
   };
 }
 

@@ -35,7 +35,7 @@ export const LUCKY = {
     noStore: "This deployment has no games store, so a draw has nowhere to keep its seed.",
     failed: (why: string) => `The spin did not deal: ${why}`,
     /** `label` is the session chip's own words ("Opens Mon 09:30 ET"); `live` names what still trades. */
-    closed: (label: string, live: string) => `The stock market is closed.${/^closed$/i.test(label) ? "" : ` ${label}.`} Only ${live} trades right now, so a spin that draws any other stock deals nothing.`,
+    closed: (label: string, live: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`}. Spins draw from the 24/7 names: ${live}.`,
   },
 
   reels: {

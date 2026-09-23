@@ -1,7 +1,7 @@
 "use client";
 
 import type { BlockerContext } from "@agari/core/copy";
-import { etDateOf, haltLabel } from "@agari/core/market";
+import { haltLabel } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
 import { earningsWarning, laneAssetLabel } from "../lanes/lane-view";
 import { laneState, useMarketSession, type MarketSession } from "../session";
@@ -22,14 +22,13 @@ export function laneGuardOf(market: EventMarket, session: MarketSession | null):
   const halt = session?.halt ?? null;
   const nextOpenSec = session?.status.nextOpenSec ?? null;
   const opensSec = market.lane === "gap" ? market.tradingStartSec : nextOpenSec;
-  // As core `sessionLabel` says it: "09:30 ET" later today, "Mon 09:30 ET" on another day; a Gap always names its Friday.
-  const sameDay = market.lane !== "gap" && opensSec !== null && session !== null && etDateOf(opensSec) === session.status.date;
+  // The weekday rule is `whenFor`'s (S23): dropped only within twelve hours on the same date; a Gap names its Friday.
   return {
     lane: session
       ? { basis: market.lane, sessionOpen: session.open, halt, laneState: laneState(session, market.asset, market.lane, market.intervalSec) }
       : null,
     ctx: {
-      opensText: opensSec === null ? undefined : when(opensSec, { clock: sameDay }),
+      opensText: opensSec === null ? undefined : when(opensSec),
       haltStale: halt ? haltLabel(halt.reason) === "Signed price stale" : undefined,
     },
     earnings: session ? earningsWarning(market, session.earnings) : null,

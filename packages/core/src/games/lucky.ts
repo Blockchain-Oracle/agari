@@ -1,3 +1,4 @@
+import { BASKET_SYMBOLS } from "../market/baskets";
 import { LAUNCH_TICKERS } from "../market/tickers";
 import type { MarketId, Side } from "../types/market";
 import type { Hex } from "../types/primitives";
@@ -16,23 +17,38 @@ import { INTERVAL_5M_SEC } from "./deck";
  */
 
 /**
- * Version 2 (2026-09-19): the draw is over what this venue lists. Version 1 carried the reference's BTC and ETH,
- * which Agari never listed, so no v1 spin could ever be dealt a Window. The rest of the policy is unchanged: the
- * owner's 2/3/5/10/25 reach ladder, no 5m Windows, and two minutes of headroom so a signature never lands on a
- * Window that has already closed to entry.
+ * The policies a draw can be sealed under. The asset list is part of each one — the draw is an index into it, so a
+ * verifier replays the same list — and a name is only ever added under a new version.
+ *
+ * - **2** (2026-09-19, retired for new draws): the nine launch tickers' Regular lanes, then OPENAI's 24/7 lane.
+ * - **3** (S23, 2026-09-23): while any stock Window trades — the launch tickers, then every 24/7 lane the venue
+ *   registered (OPENAI's and the five baskets').
+ * - **4** (S23): while no stock Window trades — the 24/7 lanes alone, so a spin out of hours never draws a stock
+ *   with nothing to deal. Before S23 the closed-market spin drew a stock nine times in ten and dealt nothing.
+ *
+ * The server picks 3 or 4 from what the venue is trading when the seed is sealed (`luckyPolicyFor`); the version
+ * rides in the HMAC message and the proof, so a draw can never claim the other list.
  */
-export const LUCKY_POLICY_VERSION = 2;
-/**
- * The asset universe the draw is over, pinned by the policy so a verifier replays the same list: the nine
- * launch tickers' Regular lanes, then the one pre-IPO name with a live 24/7 lane. Order is part of the policy —
- * the draw is an index into this list — so a name is only ever appended, under a new version.
- */
-export const LUCKY_LIVE_PRE_IPO: readonly string[] = ["OPENAI"];
-export const LUCKY_ASSETS: readonly string[] = [...LAUNCH_TICKERS, ...LUCKY_LIVE_PRE_IPO];
+export const LUCKY_POLICY_V2 = 2;
+export const LUCKY_POLICY_VERSION = 3;
+export const LUCKY_ALLDAY_POLICY_VERSION = 4;
+export const LUCKY_ASSETS_V2: readonly string[] = [...LAUNCH_TICKERS, "OPENAI"];
+/** The 24/7 lanes the venue registered (`init-*-series`): OPENAI-60m and the five basket lanes. Appended only. */
+export const LUCKY_ALLDAY_ASSETS: readonly string[] = ["OPENAI", ...BASKET_SYMBOLS];
+export const LUCKY_ASSETS: readonly string[] = [...LAUNCH_TICKERS, ...LUCKY_ALLDAY_ASSETS];
+
 /** The list a verifier must replay a draw against, or null for a version this build does not know. */
 export function luckyPolicyAssets(policyVersion: number): readonly string[] | null {
-  return policyVersion === LUCKY_POLICY_VERSION ? LUCKY_ASSETS : null;
+  if (policyVersion === LUCKY_POLICY_VERSION) return LUCKY_ASSETS;
+  if (policyVersion === LUCKY_ALLDAY_POLICY_VERSION) return LUCKY_ALLDAY_ASSETS;
+  if (policyVersion === LUCKY_POLICY_V2) return LUCKY_ASSETS_V2;
+  return null;
 }
+
+/** The policy a new seed is sealed under: the full list while stock Windows trade, the 24/7 lanes otherwise. */
+export const luckyPolicyFor = (stocksTrading: boolean): number => (stocksTrading ? LUCKY_POLICY_VERSION : LUCKY_ALLDAY_POLICY_VERSION);
+/** Versions a new reveal may still be dealt under (2 is kept only so old draws verify). */
+export const isLiveLuckyPolicy = (policyVersion: number): boolean => policyVersion === LUCKY_POLICY_VERSION || policyVersion === LUCKY_ALLDAY_POLICY_VERSION;
 export const LUCKY_MULTIPLIERS: readonly number[] = [2, 3, 5, 10, 25];
 /** Headroom for a human signature between the deal and the fill. */
 export const LUCKY_MIN_HEADROOM_SEC = 120;

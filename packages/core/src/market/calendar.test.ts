@@ -66,6 +66,11 @@ describe("session status", () => {
     expect(sessionLabel(status)).toBe("Opens Fri 09:30 ET");
   });
 
+  it("names the weekday even when the open is later the same ET day (S23)", () => {
+    // 03:00 ET on Friday the 27th, before the 09:30 bell: "Opens 09:30 ET" was read as the wrong day.
+    expect(sessionLabel(sessionStatus(utc("2026-11-27T08:00:00Z"), calendar)!)).toBe("Opens Fri 09:30 ET");
+  });
+
   it("walks the early-close day from pre to closed", () => {
     const at = (iso: string) => sessionStatus(utc(iso), calendar)!;
     expect([at("2026-11-27T08:59:00Z").state, at("2026-11-27T09:00:00Z").state]).toEqual(["closed", "pre"]);

@@ -72,8 +72,9 @@ function daysApart(fromDate: string, toDate: string): number {
 
 /**
  * The honest one-line label: "Closes 16:00 ET", "Closes 13:00 ET today", "Trading halted",
- * "Opens 09:30 ET", "Opens Mon 09:30 ET", "Opens Tue 12-01 09:30 ET" (a week or more away), or "Closed"
- * when the next open isn't known.
+ * "Opens Wed 09:30 ET", "Opens Tue 12-01 09:30 ET" (a week or more away), or "Closed" when the next open isn't
+ * known. An open always names its weekday (S23): "Opens 09:30 ET" read at 22:00 ET, or by a reader past midnight
+ * in another zone, was taken for today.
  */
 export function sessionLabel(status: SessionStatus): string {
   const { state, closesAtSec } = status;
@@ -84,7 +85,6 @@ export function sessionLabel(status: SessionStatus): string {
   if (status.nextOpenSec === null) return "Closed";
   const openDate = etDateOf(status.nextOpenSec);
   const clock = formatEtClock(status.nextOpenSec);
-  if (openDate === status.date) return `Opens ${clock} ET`;
   const weekday = ET_WEEKDAY_SHORT[weekdayOfDate(openDate)];
   return daysApart(status.date, openDate) < 7 ? `Opens ${weekday} ${clock} ET` : `Opens ${weekday} ${openDate.slice(5)} ${clock} ET`;
 }
