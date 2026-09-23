@@ -21,6 +21,7 @@ import { AmountBlock } from "./AmountBlock";
 import { PriceControl } from "./PriceControl";
 import { ScheduledReceipt } from "./ScheduledReceipt";
 import { TicketHead } from "./TicketHead";
+import { useClampedScroll } from "./useClampedScroll";
 import { BetAgainstToggle } from "./Toggles";
 
 /**
@@ -33,6 +34,7 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
   const { color } = useTheme();
   const when = useWhen();
   const s = useScheduleTicket(selection);
+  const scroll = useClampedScroll();
   const { t, symbol, quote } = s;
   const { market, side, stakeBase } = t;
   const decimals = market.decimals;
@@ -67,8 +69,9 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
   const label = side && quote ? `${PREOPEN.ticket.cta(SIDE_WORD[side])} ${money(quote.maxCostBase)}` : PREOPEN.ticket.ctaPlain;
 
   return (
-    <View style={[styles.fill, { backgroundColor: color.ground }]}>
-      <ScrollView contentContainerStyle={styles.body}>
+    // The sheet lays out a ScrollView beside at most one sibling (react-native-screens): both stay real views.
+    <View collapsable={false} style={[styles.fill, { backgroundColor: color.ground }]}>
+      <ScrollView {...scroll} contentContainerStyle={styles.body}>
         <TicketHead market={market} phase={t.phase} nowMs={t.nowMs} chart={false} />
         <Text style={[TYPE.labelMicro, { color: color.accent }]}>{PREOPEN.ticket.listed(when(market.tradingStartSec))}</Text>
         <SideToggle side={side} onSelect={t.selectSide} />
@@ -106,7 +109,7 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
           {s.session.isConnected && s.depositBase > 0n ? ` ${TICKET.seatDeposit(money(s.depositBase))}` : ""}
         </Text>
       </ScrollView>
-      <View style={[styles.dock, { borderTopColor: color.hairline }]}>
+      <View collapsable={false} style={[styles.dock, { borderTopColor: color.hairline }]}>
         {reviewing && side && quote ? (
           <>
             <SignReview

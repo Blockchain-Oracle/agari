@@ -31,7 +31,7 @@ export default function TicketSheet() {
   const market = read ?? held.current;
   if (!market) {
     return (
-      <View style={[styles.holding, { backgroundColor: color.ground }]}>
+      <View collapsable={false} style={[styles.holding, { backgroundColor: color.ground }]}>
         {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={NATIVE_MARKETS.windowGone} action={{ label: NATIVE_MARKETS.backToMarkets, onPress: () => router.navigate("/markets") }} />}
       </View>
     );

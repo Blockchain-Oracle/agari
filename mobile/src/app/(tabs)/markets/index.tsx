@@ -8,6 +8,7 @@ import { useVenue } from "@/features/markets/useVenue";
 import { SECTIONS } from "@/lib/copy";
 import { Button, haptic, Hero, SectionHeader } from "~/components/kit";
 import { TabScreen } from "~/components/shell/TabScreen";
+import { LiveHedgeCard } from "~/features/hedge/LiveHedgeCard";
 import { LaneBoard } from "~/features/markets/board/LaneBoard";
 import { WordBoard } from "~/features/markets/board/WordBoard";
 import { NATIVE_MARKETS } from "~/features/markets/copy";
@@ -56,6 +57,7 @@ export default function MarketsScreen() {
           <Button label={NATIVE_MARKETS.links.senseiBoard} variant="outline" size="sm" icon={{ ios: "sparkles", android: "auto_awesome" }} onPress={() => router.push("/sensei" as never)} />
         </Hero>
 
+        <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} />
         <SectionHeader index={SECTIONS.lanes.index} title={SECTIONS.lanes.title} />
         <SessionChip />
         <LaneBoard state={lanes} nowMs={nowMs} />

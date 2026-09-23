@@ -63,6 +63,8 @@ export function ticketReview(c: TicketComposer): TicketReview | null {
         { label: Q.avgPrice, value: cents(priceRawToBps(q.priceRaw, decimals)) },
         { label: Q.expected, value: money(q.costBase) },
         { label: Q.payout, value: money(q.quantityRaw), tone: "profit" },
+        // The one action also tops the private balance up first: moved, not spent — it stays withdrawable by this wallet.
+        ...(c.priv.depositShortBase > 0n ? [{ label: Q.topUp, value: money(c.priv.topUpBase), tone: "muted" as const, hint: "moved to your private balance first" }] : []),
       ],
       maxLoss: money(q.costBase),
       confirmLabel: `Slide to buy ${word} privately`,

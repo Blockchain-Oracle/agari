@@ -24,6 +24,7 @@ import { PrivateNote, privateCtaLabel } from "./PrivateParts";
 import { RangeBand, rangeCtaLabel, RangePlacedCard, rangeReview } from "./RangeParts";
 import { ticketReview } from "./review";
 import { TicketHead } from "./TicketHead";
+import { useClampedScroll } from "./useClampedScroll";
 import { BetAgainstToggle, BetModes, PublicPrivate, RouteChoice } from "./Toggles";
 
 /**
@@ -35,12 +36,13 @@ import { BetAgainstToggle, BetModes, PublicPrivate, RouteChoice } from "./Toggle
 export function TakerTicket({ selection }: { selection: TicketSelection }) {
   const { color } = useTheme();
   const c = useTicketComposer(selection);
+  const scroll = useClampedScroll();
   const [reviewing, setReviewing] = useState(false);
   const review = c.isRange ? rangeReview(c) : ticketReview(c);
   // Signed and landed but not yet read back (the lane refreshes the wallet before it reports): still in flight, so no
   // second slide is offered while the outcome is on its way.
   const confirming = c.bet.state.outcome === null && (c.bet.state.phase === "confirming" || c.bet.state.phase === "confirmed");
-  const placing = c.bet.placing || confirming || c.priv.busy === "open" || c.range.blocker === "placing";
+  const placing = c.bet.placing || confirming || c.blocker === "placing" || c.priv.busy !== null || c.range.blocker === "placing";
 
   // A new outcome that is not a fill (a requote, a refusal, nothing filled) returns to the composer to say so.
   const outcome = c.bet.state.outcome;
@@ -75,8 +77,9 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
   const note = [c.boosted ? LEVERAGE.strip.knockout(c.multiple) : null, c.laneGuard.earnings].filter(Boolean).join(" ") || null;
 
   return (
-    <View style={[styles.fill, { backgroundColor: color.ground }]}>
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+    // The sheet lays out a ScrollView beside at most one sibling (react-native-screens): both stay real views.
+    <View collapsable={false} style={[styles.fill, { backgroundColor: color.ground }]}>
+      <ScrollView {...scroll} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <TicketHead market={c.market} phase={c.phase} nowMs={c.t.nowMs} />
         <NextWindowOffer market={c.market} phase={c.phase} />
         <BetModes mode={c.mode} onChange={c.setMode} rangeAvailable={c.rangeReserve !== null} />
@@ -144,7 +147,7 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
           {c.session.isConnected && c.depositBase > 0n ? ` ${TICKET.seatDeposit(`${formatBaseUnits(c.depositBase, c.decimals)} ${c.symbol}`)}` : ""}
         </Text>
       </ScrollView>
-      <View style={[styles.dock, { borderTopColor: color.hairline, backgroundColor: color.ground }]}>
+      <View collapsable={false} style={[styles.dock, { borderTopColor: color.hairline, backgroundColor: color.ground }]}>
         {reviewing && review ? (
           <>
             <SignReview

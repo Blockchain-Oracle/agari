@@ -18,6 +18,7 @@ import { NATIVE_MARKETS } from "~/features/markets/copy";
 import { LiveVerdict } from "~/features/markets/verdict/LiveVerdict";
 import { DepthBook } from "~/features/markets/window/DepthBook";
 import { ListedWindow } from "~/features/markets/window/ListedWindow";
+import { WindowFoot } from "~/features/markets/window/WindowFoot";
 import { WindowHero, UpRamp } from "~/features/markets/window/WindowHero";
 import { WindowLinks } from "~/features/markets/window/WindowLinks";
 import { WindowRules } from "~/features/markets/window/WindowRules";
@@ -67,6 +68,7 @@ export default function WindowScreen() {
     return (
       <Screen title={title} onRefresh={refresh}>
         <ListedWindow market={market} nowMs={nowMs} onPick={pick} />
+        <WindowFoot market={market} openingRaw={openingRaw} />
         <WindowLinks market={market} />
         <SectionHeader index={NATIVE_MARKETS.sections.rule.index} title={NATIVE_MARKETS.sections.rule.title} />
         <WindowRules market={market} openingRaw={openingRaw} currentRaw={currentRaw} phase={phase} />
@@ -82,6 +84,7 @@ export default function WindowScreen() {
         <UpRamp upCents={book.upCents} />
       </Card>
       {over ? null : <SideButtons upCents={book.upCents} downCents={book.downCents} hydrating={book.hydrating} onPick={pick} />}
+      <WindowFoot market={market} openingRaw={openingRaw} />
       <LiveVerdict marketId={market.marketId} />
       {over ? <Button label={NATIVE_MARKETS.backToMarkets} variant="secondary" onPress={() => router.navigate("/markets")} /> : null}
       <WindowLinks market={market} />

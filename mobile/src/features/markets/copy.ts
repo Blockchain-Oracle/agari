@@ -53,6 +53,7 @@ export const NATIVE_MARKETS = {
     fronted: "Reserve fronts",
     route: "Route",
     private: "Private desk",
+    topUp: "Adds to private balance",
   },
   share: "Share",
 } as const;
