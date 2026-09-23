@@ -54,7 +54,7 @@ export function PrintProofReceipt({ print }: { print: PrintProof }) {
   return (
     <Receipt
       title={PROOF.receiptTitle(PROOF.whichShort[print.which])}
-      figure={<span className="numbers">{oraclePriceText(print.priceE8)}</span>}
+      figure={<span className="numbers">{oraclePriceText(print.priceE8, print.symbol ?? "")}</span>}
       figureLabel={PROOF.figure(source)}
       settledAtMs={print.boundarySec * 1000}
       footer={PROOF.footer}

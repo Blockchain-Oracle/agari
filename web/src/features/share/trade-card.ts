@@ -1,8 +1,8 @@
 import { formatCadence } from "@agari/core/copy";
 import { formatEtClock } from "@agari/core/market";
 import type { PrintSource, Side, Signature, VoidReason } from "@agari/core/types";
-import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
-import { ORACLE_SCALE, assetPriceLine } from "@/features/markets/hero/units";
+import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
+import { assetPriceLine, assetSpotLine } from "@/features/markets/hero/units";
 import { printSourceName } from "@/features/markets/price-source/source-label";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
@@ -63,7 +63,6 @@ const HEAT_CX = (CARD_MARGIN + RECORD_RIGHT) / 2;
 const HEAT_CY = 470;
 
 const fmt = (value: bigint, decimals: number) => formatBaseUnits(value, decimals);
-const usd2 = (raw: bigint) => `$${formatOracleRaw(raw, ORACLE_SCALE, 2)}`;
 const shortHash = (hash: string): string => (hash.length > 12 ? `${hash.slice(0, 12)}…` : hash);
 
 /** "UP vs $64,316" / "UP + DOWN vs $64,316" / "UP vs the opening print". */
@@ -86,9 +85,9 @@ interface TradeLook {
 
 /** "PYTH PRINT $358.98 AT 16:00:00 ET", "REDSTONE PRINT $358.98 AT 16:00:00 ET · 5 SIGNERS · SINGLE SOURCE". */
 function printLine(card: TradeCard, closeRaw: bigint): string {
-  if (card.printSource === null) return SHARE.trade.oracleSettled(usd2(closeRaw), formatUtc(secToMs(card.expirySec), { withDate: true }));
+  if (card.printSource === null) return SHARE.trade.oracleSettled(assetSpotLine(card.asset, closeRaw), formatUtc(secToMs(card.expirySec), { withDate: true }));
   const signers = card.printSource === "redstone" && card.printSigners ? SHARE.trade.signers(card.printSigners) : "";
-  return `${SHARE.trade.printAt(printSourceName(card.printSource, card.asset), usd2(closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
+  return `${SHARE.trade.printAt(printSourceName(card.printSource, card.asset), assetSpotLine(card.asset, closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
 }
 
 function tradeLook(card: TradeCard): TradeLook {

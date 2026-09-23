@@ -38,7 +38,7 @@ export function ProofTable({ prints, singleSource }: { prints: readonly PrintPro
             <div key={`${print.which}:${print.recordSignature}`} className="status-row">
               <span className="status-dot" data-tone={tone} aria-hidden />
               <span className="status-row-label">{`${PROOF.which[print.which]} · ${print.source ? printSourceName(print.source, print.symbol) : PROOF.unknownSource}`}</span>
-              <span className="status-row-lag">{oraclePriceText(print.priceE8)}</span>
+              <span className="status-row-lag">{oraclePriceText(print.priceE8, print.symbol ?? "")}</span>
               <span className="status-row-detail" title={detail}>
                 {detail}
               </span>
