@@ -65,6 +65,8 @@ export function WordCard({ market, nowMs }: WordCardProps) {
 
       <p className={cn("wq-q", question.pending && "wq-q-pending")}>{question.text}</p>
 
+      {!unquoted && (
+        <>
       {/* No bar at all until both asks are known — an empty track reads as 0% lean. */}
       {share === null ? (
         <div className="wq-oddsbar wq-oddsbar-unknown" aria-hidden />
@@ -80,6 +82,9 @@ export function WordCard({ market, nowMs }: WordCardProps) {
           {share === null ? WORD_BOARD.noLean : <>{WORD_BOARD.implied(share)}</>}
         </span>
       </div>
+
+        </>
+      )}
 
       {unquoted ? (
         <div className="wq-unquoted">

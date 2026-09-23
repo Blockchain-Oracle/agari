@@ -63,7 +63,7 @@
 .wq-unquoted-open:hover { color: var(--color-ink); }
 .wq-listed-chip { margin-left: auto; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--color-hairline); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-muted); }
 .wq-listed-when { margin: -4px 0 0; font-size: 12.5px; color: var(--color-ink-secondary); }
-.wq-cadences { display: flex; flex-wrap: wrap; gap: 6px; }
+.wq-cadences { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
 .wq-cadence { min-width: 44px; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--color-hairline); background: transparent; font-family: var(--font-data); font-size: 12px; color: var(--color-ink-secondary); cursor: pointer; }
 .wq-cadence[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent-wash); color: var(--color-ink); }
 .wq-cadence:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

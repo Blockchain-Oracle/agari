@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { CLOSED } from "@/lib/copy-closed";
 import { PREOPEN } from "@/lib/copy-preopen";
-import { useWhen } from "@/lib/when";
 import { AssetDisc } from "../hero/asset-mark";
 
 /**
@@ -16,7 +15,6 @@ import { AssetDisc } from "../hero/asset-mark";
  * countdown to an expiry hours away and no Yes/No against a book that cannot exist yet.
  */
 export function WordListedCard({ markets }: { markets: readonly EventMarket[] }) {
-  const when = useWhen();
   const [picked, setPicked] = useState(0);
   const market = markets[Math.min(picked, markets.length - 1)];
   if (!market) return null;
@@ -29,7 +27,7 @@ export function WordListedCard({ markets }: { markets: readonly EventMarket[] })
         <span className="wq-listed-chip">{PREOPEN.card.clock}</span>
       </div>
       <p className="wq-q">{name}</p>
-      <p className="wq-listed-when">{PREOPEN.card.headline(when(market.tradingStartSec))}</p>
+      <p className="wq-listed-when">{PREOPEN.card.why}</p>
       {markets.length > 1 && (
         <div className="wq-cadences" role="group" aria-label={CLOSED.cadencesAria}>
           {markets.map((m, i) => (
