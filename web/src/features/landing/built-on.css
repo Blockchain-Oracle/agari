@@ -1,0 +1,40 @@
+/* S25: the "Built on" band under the hero. The landing's own grammar (the steps' hairline columns, the lanes' display
+   names, the eyebrow): no logo, no card, no colour but the gray ramp, so it reads as a colophon, not an advert. */
+.lp-built-band { padding: 40px 0; border-bottom: 1px solid var(--gray-800); }
+.lp-built {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 5fr) minmax(0, 5fr);
+  align-items: start;
+}
+.lp-built-label { margin: 6px 0 0; }
+.lp-built-col { display: flex; flex-direction: column; gap: 10px; padding: 0 32px; border-left: 1px solid var(--gray-800); min-width: 0; }
+.lp-built-col:last-child { padding-right: 0; }
+.lp-built-name {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.02em;
+  color: var(--white);
+}
+.lp-built-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0; }
+.lp-built-num {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2rem, 3.4vw, 2.8rem); line-height: 1; letter-spacing: -0.035em;
+  color: var(--white);
+}
+.lp-built-unit { font-size: 14px; line-height: 1.4; color: var(--gray-400); }
+.lp-built-since { color: var(--gray-500); white-space: nowrap; }
+.lp-built-what { margin: 0; max-width: 48ch; font-size: 14px; line-height: 1.6; color: var(--gray-500); }
+.lp-built-proof { align-self: flex-start; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
+
+@media (max-width: 900px) {
+  .lp-built { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 20px; }
+  .lp-built-label { grid-column: 1 / -1; margin: 0; }
+  .lp-built-col:nth-child(2) { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 600px) {
+  .lp-built-band { padding: 32px 0; }
+  .lp-built { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+  .lp-built-label { margin-bottom: 16px; }
+  .lp-built-col,
+  .lp-built-col:nth-child(2) { padding: 20px 0; border-left: 0; }
+  .lp-built-col + .lp-built-col { border-top: 1px solid var(--gray-800); }
+}

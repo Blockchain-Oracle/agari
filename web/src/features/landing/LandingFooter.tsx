@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DOCS_URL } from "@/lib/docs-url";
 import { MARKETS_PATH } from "@/lib/routes";
 import { INSTALL } from "../install/copy";
 import { LANDING, LANDING_ADVICE_SLOT } from "./copy";
@@ -6,7 +7,7 @@ import { DOWNLOAD_PATH, HOW_IT_WORKS_PATH } from "./paths";
 
 /**
  * The landing's last word before the shell footer: the devnet + tUSDC honesty line the download page already says
- * (`INSTALL.foot`), the "not investment advice" slot lane 15d fills at merge, and the three story links.
+ * (`INSTALL.foot`), the "not investment advice" slot lane 15d fills at merge, and the story links with the docs.
  */
 export function LandingFooter() {
   const { foot } = LANDING;
@@ -30,6 +31,9 @@ export function LandingFooter() {
         <Link href={DOWNLOAD_PATH} className="lp-link" data-cursor="hover">
           {foot.download}
         </Link>
+        <a href={DOCS_URL} className="lp-link" data-cursor="hover">
+          {foot.docs}
+        </a>
       </nav>
     </div>
   );
