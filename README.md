@@ -18,6 +18,8 @@ The venue is Agari's own Anchor order book (`agari-events`, a from-scratch rebui
 
 ### PreStocks: the only pre-IPO source
 
+<img src="web/public/brand/sponsors/prestocks-logo.svg" alt="PreStocks" height="28">
+
 Agari reads [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks) and nothing else for pre-IPO prices. No other pre-IPO token or issuer is integrated anywhere in the code, which keeps it inside the bounty's eligibility rule.
 
 | What PreStocks does in Agari | Code | Live | On-chain proof |
@@ -29,6 +31,8 @@ Agari reads [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks)
 | **Pre-IPO facts on every pre-IPO page.** The SPV mark price, the token's premium or discount to it, and the holder count. | [`web/src/features/ticker-hub/PreIpoStats.tsx`](web/src/features/ticker-hub/PreIpoStats.tsx) | [/api/prestocks](https://useagari.xyz/api/prestocks) | — |
 
 ### Pyth: settlement, not a display feed
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="web/public/brand/sponsors/pyth-wordmark-light.svg"><img src="web/public/brand/sponsors/pyth-wordmark-ink.svg" alt="Pyth" height="24"></picture>
 
 A TSLA, QQQ or VOO Window settles only after the program itself verifies a Pyth pull-oracle update for the exact boundary second. The app never settles on a "latest" read.
 

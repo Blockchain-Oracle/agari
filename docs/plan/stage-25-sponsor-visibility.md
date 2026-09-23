@@ -12,7 +12,7 @@
 - [x] **25.b Web** (`slice/S25b-sponsor-web`, `../agari-wt/s25b`): a source line beside each price read from the series policy, a "Built on" band under the landing hero, one footer credit line, a Docs link.
 - [x] **25.3 Merge and deploy.** Docs live (`docs.useagari.xyz`, GitHub link in the sidebar footer); web live with the source lines, the Built on band, the footer credit, Docs in the hero and Explore, PreStocks named on /proof, basket prints in points, and the new `/proof` feed (it was a 404 the README linked).
 - [ ] **25.5 Recapture the docs images and tour** (all eight predate S22/S23; captions say so meanwhile).
-- [ ] **25.4 Logo permission requests** to PreStocks and Pyth (drafted; the user sends).
+- [x] **25.4 Logos.** Both sponsors granted permission; the wordmarks lead the Built on band, a small mark leads each Pyth or PreStocks source line, and the README and the docs sponsor page carry both.
 
 ## Handoff
 

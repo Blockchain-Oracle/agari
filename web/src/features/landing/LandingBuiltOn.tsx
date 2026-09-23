@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { PreStocksLogo, PythLogo } from "@/components/brand/SponsorLogos";
 import { proofHref } from "@/lib/routes";
 import { namesLine, type SourceTally } from "./built-on";
 import { LANDING } from "./copy";
@@ -10,7 +12,8 @@ import "./built-on.css";
 const COUNT = new Intl.NumberFormat("en-US");
 
 interface ColumnProps {
-  name: string;
+  /** The sponsor's own wordmark; its alt text is the name. */
+  logo: ReactNode;
   figure: string;
   tally: SourceTally | null;
   what: string | null;
@@ -19,11 +22,11 @@ interface ColumnProps {
   pending: string;
 }
 
-function Column({ name, figure, tally, what, proof, pending }: ColumnProps) {
+function Column({ logo, figure, tally, what, proof, pending }: ColumnProps) {
   const { builtOn } = LANDING;
   return (
     <div className="lp-built-col">
-      <p className="lp-built-name">{name}</p>
+      <p className="lp-built-name">{logo}</p>
       <p className="lp-built-figure">
         <span className="lp-built-num numbers">{tally ? COUNT.format(tally.windows) : "—"}</span>
         <span className="lp-built-unit">
@@ -41,7 +44,7 @@ function Column({ name, figure, tally, what, proof, pending }: ColumnProps) {
 }
 
 /**
- * The band under the hero (S25): the two sources the venue's Windows settle on, named in plain text, each with the
+ * The band under the hero (S25): the two sources the venue's Windows settle on, by their own wordmarks, each with the
  * count of Windows its prints closed and a link to the newest one's print proof. The figures are the index's print mix
  * (`/status`'s read), so nothing here is written by hand.
  */
@@ -56,7 +59,7 @@ export function LandingBuiltOn() {
     <div className="lp-built">
       <p className="section-eyebrow lp-built-label">{builtOn.label}</p>
       <Column
-        name={builtOn.prestocks.name}
+        logo={<PreStocksLogo wordmark title={builtOn.prestocks.name} className="lp-built-logo is-prestocks" />}
         figure={builtOn.prestocks.figure}
         tally={pre}
         what={pre && pre.windows > 0 ? builtOn.prestocks.what(namesLine(pre.names), pre.baskets.length) : null}
@@ -64,7 +67,7 @@ export function LandingBuiltOn() {
         pending={pending}
       />
       <Column
-        name={builtOn.pyth.name}
+        logo={<PythLogo wordmark title={builtOn.pyth.name} className="lp-built-logo is-pyth" />}
         figure={builtOn.pyth.figure}
         tally={pyth}
         what={pyth && pyth.windows > 0 ? builtOn.pyth.what(namesLine(pyth.names)) : null}

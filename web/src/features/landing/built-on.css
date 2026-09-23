@@ -1,5 +1,5 @@
-/* S25: the "Built on" band under the hero. The landing's own grammar (the steps' hairline columns, the lanes' display
-   names, the eyebrow): no logo, no card, no colour but the gray ramp, so it reads as a colophon, not an advert. */
+/* S25: the "Built on" band under the hero. The landing's own grammar (the steps' hairline columns, the eyebrow): each
+   sponsor's own wordmark at cap height, no card, the gray ramp for everything else, so it reads as a colophon. */
 .lp-built-band { padding: 40px 0; border-bottom: 1px solid var(--gray-800); }
 .lp-built {
   display: grid;
@@ -14,6 +14,10 @@
   font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.02em;
   color: var(--white);
 }
+.lp-built-name { display: flex; align-items: center; min-height: 28px; }
+.lp-built-logo { display: block; width: auto; }
+.lp-built-logo.is-prestocks { height: 26px; }
+.lp-built-logo.is-pyth { height: 22px; color: var(--white); }
 .lp-built-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0; }
 .lp-built-num {
   font-family: var(--font-display); font-weight: 800;

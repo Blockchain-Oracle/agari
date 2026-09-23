@@ -10,3 +10,4 @@
 .src-line-arrow { margin-left: 3px; font-size: 0.9em; }
 /* In the hero head the line sits under the question with `.mh-window-line`'s own spacing. */
 .hero-chart-head .src-line { display: block; margin-top: 4px; }
+.src-line-mark { display: inline-block; height: 1.05em; width: auto; margin-right: 5px; vertical-align: -0.18em; }
