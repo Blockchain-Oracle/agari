@@ -72,7 +72,7 @@ export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: W
       {closed && (
         <div className="words-closed" role="status">
           <span className="words-closed-dot" aria-hidden />
-          <strong>{CLOSED.strip(session.label)}</strong>
+          <strong>{CLOSED.strip(phrase(session.status, Math.floor(nowMs / 1000)))}</strong>
           <span>{CLOSED.stripTail}</span>
         </div>
       )}

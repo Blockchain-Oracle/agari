@@ -3,8 +3,8 @@
  * the 24/7 lanes trade. Plain facts only; no surface explains why.
  */
 export const CLOSED = {
-  /** The strip above a board while the stock market is shut: "Stock market closed · Opens Wed 09:30 ET". */
-  strip: (label: string) => `Stock market closed · ${label}`,
+  /** The strip above a board while the stock market is shut: "US stocks · Pre-market · opens 14:30 (09:30 ET), in 4h 04m". */
+  strip: (phrase: string) => `US stocks · ${phrase}`,
   stripTail: "Pre-IPO names and baskets trade around the clock.",
   /** The listed group's heading: "Schedule a call · opens Wed 09:30 ET". */
   listed: (opens: string) => `Schedule a call · opens ${opens}`,
