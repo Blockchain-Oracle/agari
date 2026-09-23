@@ -1,4 +1,5 @@
 import type { AndroidSymbol, SFSymbol } from "expo-symbols";
+import type { BrandLogo } from "~/components/logos/brand-logos";
 
 /**
  * Web's phone drawer (web/src/components/shell/header/nav-items.ts MOBILE_DRAWER_SECTIONS): the same sections, names,
@@ -10,6 +11,8 @@ export interface NavItem {
   description: string;
   icon: { ios: SFSymbol; android: AndroidSymbol };
   external?: boolean;
+  /** A named brand shows its own mark instead of the symbol. */
+  logo?: BrandLogo;
 }
 
 export interface NavSection {
@@ -19,8 +22,8 @@ export interface NavSection {
   items: readonly NavItem[];
 }
 
-const item = (name: string, href: string, description: string, ios: SFSymbol, android: AndroidSymbol, external?: boolean): NavItem =>
-  ({ name, href, description, icon: { ios, android }, external });
+const item = (name: string, href: string, description: string, ios: SFSymbol, android: AndroidSymbol, external?: boolean, logo?: BrandLogo): NavItem =>
+  ({ name, href, description, icon: { ios, android }, external, logo });
 
 export const DRAWER_SECTIONS: readonly NavSection[] = [
   { id: "games-start", name: "Start", description: "Choose or learn", items: [
@@ -41,7 +44,7 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
     item("Strategies", "/strategies", "Explore repeatable trading approaches.", "brain.head.profile", "psychology"),
     item("Agents", "/agents", "Manage automated market agents.", "cpu", "smart_toy"),
     item("Desk", "/desk", "Hold a basket of pre-IPO names under your rules", "briefcase.fill", "work"),
-    item("X-trade", "/trade-from-x", "Turn a post into a bounded trade.", "at", "alternate_email"),
+    item("X-trade", "/trade-from-x", "Turn a post into a bounded trade.", "at", "alternate_email", false, "x"),
   ] },
   { id: "trade", name: "Trade", description: "More ways to make a call", items: [
     item("Baskets", "/baskets", "Bet on a small group of pre-IPO companies together.", "square.stack.3d.up.fill", "stacks"),
@@ -68,6 +71,6 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
     item("Pitch", "/pitch", "Read the concise Agari thesis.", "rectangle.on.rectangle", "co_present"),
   ] },
   { id: "account", name: "Account", description: "Recovery", items: [
-    item("X recovery", "/claim", "Recover a trade created from X.", "key.fill", "key"),
+    item("X recovery", "/claim", "Recover a trade created from X.", "key.fill", "key", false, "x"),
   ] },
 ];

@@ -5,7 +5,7 @@
 ## Steps
 
 - [ ] **26.0 Foundations.** `mobile/` (Expo SDK 57) in the workspace; polyfills; Metro singleton pins; env with absolute URLs; invariants scan `mobile/`; on the iOS simulator the proof screen lists live Windows through `useLanes` and Ed25519 WebCrypto passes; EAS project and the first TestFlight build of the shell.
-- [ ] **26.1 Shell and design system.** Tokens → `theme.ts` (both themes), fonts, NativeTabs (Markets · Reels · Games · Portfolio · More), header, marquee, safe areas, app icon (Icon Composer `.icon`), splash, theme switch; a `mobile-design-literals` invariant.
+- [x] **26.1 Shell and design system.** Tokens → `theme.ts` (both themes), fonts, NativeTabs (Markets · Reels · Games · Portfolio · More), header, marquee, safe areas, app icon (Icon Composer `.icon`), splash, theme switch; a `mobile-design-literals` invariant.
 - [ ] **26.2 Wallets.** Practice wallet; Phantom/Solflare deeplink signer; MWA signer (Android); Connect sheet; faucet and Add funds; session-key tap trading (Keychain seed, D-128); sponsored fees via `/api/sponsor`.
 - [ ] **26.3 The core loop.** Markets → Window → Ticket (slide to confirm, haptics) → receipt → verdict → claim; share card.
 - [ ] **26.4 Portfolio, activity, alerts.** Portfolio and Edge; Activity inbox; Expo Push (token registration + ops sender); Live Activity and widget; Android ongoing notification.

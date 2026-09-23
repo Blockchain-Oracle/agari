@@ -1,5 +1,6 @@
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Logo } from "~/components/logos/Logo";
 import type { NavItem } from "~/nav/items";
 import { RADIUS, TYPE, useTheme } from "~/theme";
 
@@ -13,8 +14,8 @@ export function NavRow({ item, onPress, last }: { item: NavItem; onPress: () => 
       accessibilityHint={item.description}
       style={({ pressed }) => [styles.row, { backgroundColor: pressed ? color.surface2 : "transparent" }]}
     >
-      <View style={[styles.tile, { backgroundColor: color.accentWash }]}>
-        <SymbolView name={item.icon} size={17} tintColor={color.accent} />
+      <View style={[styles.tile, { backgroundColor: item.logo ? color.surface2 : color.accentWash }]}>
+        {item.logo ? <Logo brand={item.logo} size={15} /> : <SymbolView name={item.icon} size={17} tintColor={color.accent} />}
       </View>
       <View style={[styles.text, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.hairline }]}>
         <View style={styles.copy}>
