@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { AgariMark, SectionHead } from "@/components/shell";
 import { LandingCover } from "./LandingCover";
 import { LandingDesk } from "./LandingDesk";
@@ -31,7 +32,10 @@ export function LandingPage() {
         <div className="container lp-hero-container">
           <div className="lp-hero-grid">
             <div className="lp-hero-copy">
-              <p className="lp-eyebrow">{hero.eyebrow}</p>
+              <p className="lp-eyebrow">
+                <Image src="/brand/solana-logomark.svg" alt="" width={20} height={18} className="lp-solana-mark" />
+                {hero.eyebrow}
+              </p>
               <div className="lp-wordmark">
                 <span className="lp-wordmark-mark"><AgariMark /></span>
                 <span className="lp-wordmark-name">{BRAND.name}</span>
