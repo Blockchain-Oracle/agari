@@ -15,21 +15,21 @@ The desk studio is the **Hold** path from [Baskets](/trading/baskets). You choos
 
 Open <AppLink href="/desk/new">New desk</AppLink>, or choose **Hold** on a basket card. **The basket** step shows the five baskets as cards with their members and a seven-day line, plus **Build your own** from any of the eight PreStocks companies. Adjust each weight and the cash share with sliders; **Even split** and **Reset to basket** undo your edits, and the weights and cash must add up to 100%. Anyone can draft without a wallet. The draft stays in this browser.
 
-<GuideCapture name="studio" caption="AI Labs starts at 40% OpenAI, 40% Anthropic and 20% cash in this capture; these are editable draft values." />
+<GuideCapture name="studio" caption="AI Labs starts at 40% OpenAI, 40% Anthropic and 20% cash; these are editable draft values. This capture shows the studio before its redesign later on 23 September; the step and its values are the same." />
 </Step>
 <Step>
 ### Set limits
 
 **How strict** starts from **Careful**, **Balanced** or **Loose** (or **Custom**) and puts every limit on a slider: allowed drift, the largest share one company may take, the loss stop, the premium ceiling above the PreStocks mark, the per-action and daily spend caps, and the size above which it asks first. Each limit says who enforces it: the per-action and daily caps, the premium ceiling and the allowed companies are **enforced on-chain**; drift, the largest share and the loss stop are **enforced by the desk**'s own code. The defaults are Balanced: 5% drift, 50% largest share, a 15% loss stop, a 10% premium ceiling, $50 per action, $150 a day and ask first above $100.
 
-<GuideCapture name="limits" caption="The labels distinguish checks enforced by the program from checks the desk's own code runs." />
+<GuideCapture name="limits" caption="The labels distinguish checks enforced by the program from checks the desk's own code runs. Captured before the sliders and strictness presets were added." />
 </Step>
 <Step>
 ### Ask for a test read
 
 **Test read** runs one real check and shows it as it happens: sign the mandate, read PreStocks prices for every company, quote each trade on Jupiter at your size with PreStocks' 1% fee counted, ask the one timing question, then write the decision down and fingerprint it. This asks you to connect a wallet and sign a message; it does **not** move money. A bad or stale quote leads to a recorded refusal, not a trade. You can also continue without a test read.
 
-<GuideCapture name="testRead" caption="The signed-out screen stops at Connect. The paper amount shown is not a wallet balance." />
+<GuideCapture name="testRead" caption="The signed-out screen stops at Connect. The paper amount shown is not a wallet balance. Captured before the test read became a step-by-step stream." />
 </Step>
 <Step>
 ### Create the practice desk

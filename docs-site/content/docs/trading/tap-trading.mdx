@@ -13,7 +13,7 @@ A single wallet signature does three things at once: opens your Trading Balance 
 
 Further orders are signed by the session key, not your wallet, so there's no popup per trade. A `sponsor` role — a server-held key, never one that can move your funds — co-signs each transaction as **fee payer only**, against an exact allowlist of instructions, after simulating the transaction first. It can never be a transfer source, never the payer of a new account, and never sign as anything but the fee payer.
 
-That sponsor role is capped in several independent ways at once (names only — see `web/.env.example` in the main Agari tree for the exact defaults): a per-address hourly limit, a per-device hourly limit, per-minute attempt limits before a transaction is even simulated, a per-device daily lamport budget, and a global daily lamport budget with its own circuit breaker. <AppLink href="/status">Status</AppLink> shows the sponsor's remaining budget.
+That sponsor role is capped in several independent ways at once (names only — see `web/.env.example` in the repository for the exact defaults): a per-address hourly limit, a per-device hourly limit, per-minute attempt limits before a transaction is even simulated, a per-device daily lamport budget, and a global daily lamport budget with its own circuit breaker. <AppLink href="/status">Status</AppLink> shows the sponsor's remaining budget.
 
 ## What this doesn't change
 

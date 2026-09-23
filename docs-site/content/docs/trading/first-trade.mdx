@@ -37,7 +37,7 @@ Once the Window's close time arrives, the venue needs a verified price print for
 - **Voids `MissingPrint`** if a required print never showed up in time — everyone gets 0.5 back per lot (their stake, not a loss) plus their seat bond. A real devnet drive produced this too: an NVDA Window with no price posted voided honestly rather than settling on a guess.
 - **Voids `CrossCheckDivergence`** if a ticker has two price sources and they disagree past the allowed tolerance — same 0.5-back treatment. A real devnet drive produced this for a test ticker whose attested price landed about 1% away from its RedStone check.
 
-See [Halts and voids](/trading/halts-and-voids) for the honest labels the app uses for each of these, and every one of these transactions with its explorer link in the main Agari tree's `docs/plan/acceptance.md`.
+See [Halts and voids](/trading/halts-and-voids) for the honest labels the app uses for each of these, and every one of these transactions with its explorer link in the repository's `docs/plan/acceptance.md`.
 
 ## Claim your result
 
