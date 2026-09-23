@@ -13,6 +13,7 @@
     "@solana-mobile/mobile-wallet-adapter-protocol": "2.3.0",
     "@tanstack/react-query": "catalog:",
     "expo": "~57.0.24",
+    "expo-audio": "~57.0.5",
     "expo-clipboard": "~57.0.2",
     "expo-constants": "~57.0.19",
     "expo-dev-client": "~57.0.19",

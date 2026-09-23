@@ -11,7 +11,7 @@ import { RADIUS, SPACE, TYPE, useTheme } from "~/theme";
 export default function MoreScreen() {
   const { color } = useTheme();
   const open = (item: NavItem) => {
-    if (item.href === "/games" || item.href === "/games/practice" || item.href === "/markets" || item.href === "/reels" || item.href === "/portfolio" || item.href === "/proof") return router.navigate(item.href);
+    if (item.href === "/games" || item.href === "/games/practice" || item.href === "/markets" || item.href === "/reels" || item.href === "/portfolio" || item.href === "/proof" || item.href === "/baskets" || item.href === "/short" || item.href === "/parlay" || item.href === "/leaderboard") return router.navigate(item.href);
     return WebBrowser.openBrowserAsync(item.external ? item.href : new URL(item.href, SITE_URL).toString());
   };
   return (

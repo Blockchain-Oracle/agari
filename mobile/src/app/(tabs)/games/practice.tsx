@@ -1,20 +1,28 @@
 import { PRICE_STALE_AFTER_MS } from "@agari/core/constants";
 import { formatBaseUnits } from "@agari/core/units";
-import * as Haptics from "expo-haptics";
 import { Stack } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { useEffect, useRef } from "react";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { PriceProbe, usePractice } from "~/games/usePractice";
+import { useNativeFeedback } from "~/games/useNativeFeedback";
 import { FONT, RADIUS, SPACE, TYPE, useTheme } from "~/theme";
 
 /** No-stake native game, scored on the live public feed after a short watch. */
 export default function PracticeScreen() {
   const { color } = useTheme();
   const game = usePractice();
+  const feedback = useNativeFeedback();
+  const soundedRound = useRef<unknown>(null);
   const { round, active, score } = game;
   const price = active ? game.priceOf(active.asset) : null;
   const stale = price ? Date.now() - price.publishTimeSec * 1000 > PRICE_STALE_AFTER_MS : false;
-  const play = (side: "up" | "down") => { if (!active || !price || stale) return; void Haptics.selectionAsync(); game.pick(active, side); };
+  const play = (side: "up" | "down") => { if (!active || !price || stale) return; feedback.cue(side); game.pick(active, side); };
+  useEffect(() => {
+    if (!score || soundedRound.current === score) return;
+    soundedRound.current = score;
+    feedback.cue(score.winner === "you" ? "win" : "loss");
+  }, [score]);
   return <>
     <Stack.Screen options={{ title: "Practice", headerTitle: "Practice", unstable_headerLeftItems: undefined, unstable_headerRightItems: undefined }} />
     {game.assets.map((asset) => <PriceProbe key={asset} asset={asset} onPrice={game.reportPrice} />)}
@@ -22,6 +30,8 @@ export default function PracticeScreen() {
       <Text style={[styles.kicker, { color: color.accent }]}>MARKET-POWERED GAME · NO STAKES</Text>
       <Text style={[styles.title, { color: color.ink }]}>Practice the call.</Text>
       <Text style={[TYPE.body, { color: color.inkSecondary }]}>Choose a side on each real Window. After your last pick, we watch the public price feed for 30 seconds. This is a practice score, not the Window's settlement or a payout.</Text>
+      <View style={[styles.feedbackRow, { borderColor: color.hairline }]}><Text style={[TYPE.caption, { color: color.ink }]}>Sound · follows headphones</Text><Switch value={feedback.sound} onValueChange={feedback.setSound} accessibilityLabel="Game sound" trackColor={{ true: color.accent }} /></View>
+      <View style={[styles.feedbackRow, { borderColor: color.hairline }]}><Text style={[TYPE.caption, { color: color.ink }]}>Haptics</Text><Switch value={feedback.haptics} onValueChange={feedback.setHaptics} accessibilityLabel="Game haptics" trackColor={{ true: color.accent }} /></View>
       {game.readiness !== "ready" ? <Panel title={game.readiness === "loading" ? "Dealing from the venue…" : game.readiness === "offline" ? "Market feed unavailable" : "Between playable Windows"} line={game.readiness === "between" ? "A new deck appears when live Windows have enough time left for the round." : "The deck needs live Windows and their public prices."} /> : score ? <>
         <View style={[styles.score, { backgroundColor: color.cream, borderColor: color.creamHairline }]}><Text style={[styles.kicker, { color: color.accent }]}>ROUND COMPLETE</Text><Text style={[styles.scoreNumber, { color: color.creamInk }]}>{score.youWon} : {score.botWon}</Text><Text style={[TYPE.body, { color: color.creamInk }]}>{score.winner === "you" ? "You won this round." : score.winner === "bot" ? "The coin-flip opponent won." : "It's a tie."}</Text></View>
         {score.cards.map((card) => <View key={card.card.index} style={[styles.resultRow, { borderColor: color.hairline, backgroundColor: color.surface1 }]}><AssetDisc asset={card.card.asset} size={30} /><View style={{ flex: 1 }}><Text style={[TYPE.bodyStrong, { color: color.ink }]}>{card.card.asset} · {card.side.toUpperCase()}</Text><Text style={[TYPE.caption, { color: color.inkMuted }]}>{card.move === "flat" ? "Price stayed flat" : `Price moved ${card.move}`}</Text></View><Text style={[TYPE.bodyStrong, { color: card.you === "won" ? color.profit : color.loss }]}>{card.you.toUpperCase()}</Text></View>)}
@@ -47,4 +57,5 @@ const styles = StyleSheet.create({
   priceBox: { borderRadius: RADIUS.md, padding: 16, gap: 7 }, sides: { flexDirection: "row", gap: 10 }, side: { flex: 1, height: 54, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center" },
   score: { borderWidth: 1, borderRadius: RADIUS.lg, padding: 24, gap: 10, marginTop: 18 }, scoreNumber: { fontFamily: FONT.dataStrong, fontSize: 52, lineHeight: 58 }, resultRow: { borderWidth: 1, borderRadius: RADIUS.md, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 },
   action: { height: 52, paddingHorizontal: 17, borderRadius: RADIUS.md, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  feedbackRow: { minHeight: 44, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
 });
