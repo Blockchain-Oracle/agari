@@ -77,7 +77,7 @@
 .dkit-logos { --dkit-logo: 28px; display: inline-flex; align-items: center; }
 .dkit-logos[data-size="sm"] { --dkit-logo: 20px; }
 .dkit-logos[data-size="lg"] { --dkit-logo: 36px; }
-.dkit-logo { position: relative; display: grid; place-items: center; width: var(--dkit-logo); height: var(--dkit-logo); margin-left: calc(var(--dkit-logo) * -0.3); border-radius: 9999px; box-shadow: 0 0 0 2px var(--market-card-surface, var(--color-bg)); background: var(--color-surface-2); transition: transform 160ms ease; }
+.dkit-logo { position: relative; display: grid; place-items: center; width: var(--dkit-logo); height: var(--dkit-logo); margin-left: calc(var(--dkit-logo) * -0.3); border-radius: 9999px; box-shadow: 0 0 0 2px var(--market-card-surface, var(--color-surface-1)); background: var(--color-surface-2); transition: transform 160ms ease; }
 .dkit-logo:first-child { margin-left: 0; }
 .dkit-logo:hover { transform: translateY(-2px); }
 .dkit-logo-disc { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 9999px; overflow: hidden; font-size: var(--dkit-logo); }
@@ -109,7 +109,7 @@
 .dkit-steps li:last-child button { align-items: flex-end; }
 .dkit-steps li[data-state="done"] button { cursor: pointer; color: var(--color-ink-secondary); }
 .dkit-steps li[data-state="current"] button { color: var(--color-ink); }
-.dkit-step-badge { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9999px; border: 1.5px solid var(--color-hairline); background: var(--color-bg, var(--color-surface-1)); font-family: var(--font-data); font-size: 13px; font-weight: 600; transition: all 200ms ease; }
+.dkit-step-badge { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9999px; border: 1.5px solid var(--color-hairline); background: var(--market-card-surface, var(--color-surface-1)); font-family: var(--font-data); font-size: 13px; font-weight: 600; transition: all 200ms ease; }
 .dkit-steps li[data-state="done"] .dkit-step-badge { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-accent-foreground, #fff); }
 .dkit-steps li[data-state="current"] .dkit-step-badge { border-color: var(--color-accent); color: var(--color-accent); box-shadow: 0 0 0 4px var(--color-accent-wash); }
 .dkit-step-text { display: flex; flex-direction: column; gap: 2px; }
