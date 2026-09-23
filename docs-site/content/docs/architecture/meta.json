@@ -1,4 +1,4 @@
 {
   "title": "How it works",
-  "pages": ["overview", "programs", "ops-and-indexer", "price-sources", "desk"]
+  "pages": ["overview", "programs", "ops-and-indexer", "price-sources", "prestocks-and-pyth", "desk"]
 }
