@@ -10,7 +10,7 @@ Agari is a source-led Solana port of Masayume's Up/Down journey. Its core venue 
 | Web app | Shows markets, baskets, tickets, desk decisions and receipts. It does not hold a user's private key. |
 | `packages/core` | Pure registry, market and desk rules; integer money arithmetic. |
 | `packages/markets` | Only Solana integration and transaction boundary. It builds instructions and reads the chain. |
-| Anchor programs | `agari-events` and `agari-vault` on devnet; `agari-desk` rehearsed on a mainnet fork, pending mainnet deploy. |
+| Anchor programs | Nine devnet programs cover the venue, vault, reserves, strategies, Private and Duel; `agari-desk` was rehearsed on a mainnet fork and awaits its mainnet deploy. See [the program map](/architecture/programs). |
 | Ops and indexer | Roll Windows, relay prices, settle, quote, run paper desks and serve reads. These role keys do not replace the owner's wallet. |
 
 ## Two money paths
