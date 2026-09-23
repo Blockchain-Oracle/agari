@@ -8,6 +8,13 @@
 - **Traps met:** `grep failed` on a deploy log matches words in the log — read `coolify app deployments list` row 1; `next dev` breaks client-side (undici `node:net`) — review with build + start; fresh worktrees need `web/.next/cache` copied or the font fetch fails the build; Next 16 writes `web/AGENTS.md`/`CLAUDE.md` on dev — `agentRules: false` in `next.config.ts`.
 - **Deployed and verified 03:15Z:** ops `97a9b7c` then `769e2d5`, web `816adbc`. The seed maker quotes all six 24/7 60m Windows after a mid-Window restart (it quoted 0 of 49 before the fix). The strategy runner had skipped every Window as "no fresh price" because ops had no `NEXT_PUBLIC_PRICE_FEED_URL`: `opsMarketsEnv` now defaults it to the process's own `/prices/latest`, and the runner filled its first copy overnight ("6 past the trigger; 1 filled"). Live `/markets` shows the closed strip, 24/7 cards with real quotes, and Schedule a call for every stock. **Watch:** right after the restart, one TSLA xStock 24/7 card showed "waiting for the opening print · No quotes yet". Halts were empty a minute later, so recheck it before hiding such cards.
 - **03:33Z, maker two-sided (`9e083ae`, `4dc1e0c`):** `quotePair` used to drop a side past 2¢/98¢, so a lopsided 24/7 Window (fair 20–50) had no No book overnight. The side is now pinned to the edge, and at fair on the edge it quotes at fair. Verified live: all six 24/7 60m books two-sided (e.g. OPENAI 20/50, PREALL 465/525). The TSLA xStock card was a pre-halt leftover and is gone.
+- **S24 (the user's follow-up, 04:00–05:40Z), live:**
+  - The balance controls read in dark mode (`vault.css`: raised field, accent Max, Deposit in the accent, ink-outline Withdraw, dashed when disabled).
+  - `/short` is compact: phone swipe rows, a desktop grid five across, "Trading now" first; 390 px height 3,774 → 2,580.
+  - The strategy runner trades stock Windows only and **rests while none trades** (`stock-hours.ts`: a check every 5 min, no model call, heartbeat "resting: …", web label "Resting"). Verified live.
+  - `isStalledOpening` (core) drops a Window whose opening print is over 2 min late from the board and the shorts picker (the voided SPY xStock at 00:05 ET).
+  - The studio's market-scope copy now matches.
+  - The desk-runner (PreStocks, hourly, ≤ 12 model calls/h) still runs 24/7 by design: its tokens trade 24/7.
 - **Owed:** live capture of /markets, /short, /baskets, games, /strategies after the web deploy; again after the 13:30Z open and the 20:00Z close. C7 (mainnet funding) and the Pyth ask are still the user's.
 
 # STATUS — updated 2026-09-22 ~19:10 UTC by Claude (**S19 baskets · S20 Pyth index · S21 the desk: approved 09-22, building; A1 landed on w1**)
