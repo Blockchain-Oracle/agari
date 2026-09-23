@@ -12,6 +12,7 @@ import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
 import { Toaster } from "~/components/toast/Toaster";
 import { DeskWatcher } from "~/features/desk/DeskWatcher";
+import { DropBellWatcher } from "~/features/hedge/DropBell";
 import { WriteRecovery } from "~/features/recovery/WriteRecovery";
 import { WalletProvider } from "~/wallet/WalletProvider";
 import { trackPath } from "~/web-shims/url-state";
@@ -63,6 +64,8 @@ function RootStack() {
       </Stack>
       <Toaster />
       <DeskWatcher />
+      {/* web mounts the drop alert's watcher app-wide (AppProviders), so an armed bell fires on any screen. */}
+      <DropBellWatcher />
       <WriteRecovery />
     </>
   );
