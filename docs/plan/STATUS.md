@@ -1,17 +1,27 @@
-# STATUS — updated 2026-09-23 ~14:55 UTC by Claude (**S26 the native app: approved, building on `stage/S26-mobile`**)
+# STATUS — updated 2026-09-23 ~15:50 UTC by Claude (**S26 the native app: S26.1 done, S26.2 wallets + funding live on the simulator**)
 
-## Session of 2026-09-23 12:00–14:55Z — S26 mobile (READ THIS FIRST)
+## Session of 2026-09-23 12:00–15:50Z — S26 mobile (READ THIS FIRST)
 
-- **Approved** (D-128, plan `~/.claude/plans/agari-mobile-s26.md`, stage file `stage-26-mobile.md`): Expo SDK 57 app in `mobile/`, iOS Phantom/Solflare deeplinks + Android MWA + devnet practice wallet, TestFlight and an APK. Apple Developer account is **Individual** (practice wallet stays off externally reviewed builds).
-- **Worktree** `agari-wt/s26` on `stage/S26-mobile` (from `integration/w1` @ `258c857`); `w1` holds another session's uncommitted docs-site work — untouched.
-- **Built:**
-  - S26.0: the app runs on the iOS 26.5 simulator. Live Windows come from production through `useLanes`, and Ed25519 WebCrypto works in Hermes (quick-crypto).
-  - Metro pins React, React Native and React Query to single copies, and stubs `undici`.
-  - The invariants scan `mobile/`.
-  - S26.1 shell: glass NativeTabs, the brand header, fonts (Noto Serif JP subset), the More list, the icon (`.icon` layers) and both themes.
-- **Run:** `cd mobile && pnpm expo run:ios --device "iPhone 17 Pro"`; after JS-only edits, relaunch with `xcrun simctl terminate/launch booted xyz.useagari.app`.
-- **Blocked on the user:** `! pnpm dlx eas-cli@latest login` (Expo account), then `pnpm dlx testflight` from `mobile/` (Apple ID + 2FA) for the first TestFlight build (last S26.0 box).
-- **Next:** S26.1 remainder (marquee, theme switch in settings, a mobile design-literals invariant), then S26.2 wallets.
+- **Approved** (D-128, plan `~/.claude/plans/agari-mobile-s26.md`, stage file `stage-26-mobile.md`): Expo SDK 57 app in `mobile/`, iOS Phantom/Solflare deeplinks + Android MWA + devnet practice wallet, TestFlight and an APK. Apple Developer account is **Individual**.
+- **Reuse rule (D-129):** in `mobile/`, `@/` = `web/src` (web's own hooks and copy), app code is `~/`; Metro swaps browser-bound files for `mobile/src/web-shims/*`:
+  - `lib/env`, `lib/visibility`, `lib/toast`
+  - `features/funding/credited`
+  - markets' `runtime/page`
+  Web-side changes are behaviour-neutral splits: `useMarqueeItems`, `useFundingProgress`.
+- **User feedback 09-23 (standing):** search 21st for every UI piece; real brand logos wherever a brand is named (`21st logo`, svgl; wallets from `web/public/wallet`); connected state = avatar + dropdown. Applied: X rows, the wallet sheet, the avatar menu.
+- **Built and verified on the iOS 26.5 simulator (`idb` taps):**
+  - The shell: glass tabs, brand header, marquee, fonts, the `.icon`, both themes, the More list.
+  - Connect sheet → Phantom "is not installed" / INSTALL, practice wallet connects → avatar → native menu (balances, Add funds, Copy, Portfolio, Disconnect).
+  - Add funds → a real devnet claim (acceptance row 14:44).
+  - The Phantom/Solflare link signer is covered by a protocol test (`packages/markets/src/sessions/mobile/link-wallet.test.ts`); it has not been run against a real Phantom yet (needs the user's iPhone).
+- **Run:**
+  - `cd mobile && pnpm expo run:ios --device "iPhone 17 Pro"` (native changes).
+  - JS only: `pnpm expo start --dev-client`, then `xcrun simctl terminate/launch booted xyz.useagari.app`.
+  - `idb ui tap --udid 47C904A4-88B2-497C-8DFD-954BD9A9C20D x y` (points = screenshot px / 3).
+- **Blocked on the user:** `! pnpm dlx eas-cli@latest login`, then `pnpm dlx testflight` from `mobile/` (the last S26.0 box).
+- **Next:**
+  - S26.3: the core loop (Window screen, Ticket, receipt, verdict, claim) with the practice wallet.
+  - Then S26.2's rest: session-key tap trading (Keychain seed, D-128 note), sponsored fees, the Android MWA signer (EAS cloud build; no Android SDK on this Mac).
 
 # STATUS — updated 2026-09-23 ~11:10 UTC by Claude (**S25 sponsor visibility live · docs.useagari.xyz live**)
 
