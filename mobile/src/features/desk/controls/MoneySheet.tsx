@@ -52,7 +52,7 @@ export function MoneySheet({ view, actions, kind, onClose }: Props) {
   if (balances === null || !balances.ok) {
     const line = balances === null ? MONEY.reading : MONEY.unreadable;
     return (
-      <ReviewSheet {...sheet} title={kind === "deposit" ? MONEY.sheetTitle : MONEY.withdraw.title} body={MONEY.intro} review={{ title: line, lines: [], maxLoss: "—", confirmLabel: MONEY.send, blocker: line }} onConfirm={() => undefined}>
+      <ReviewSheet {...sheet} title={kind === "deposit" ? MONEY.sheetTitle : MONEY.withdraw.title} body={MONEY.intro} review={{ title: line, lines: [], maxLoss: "—", confirmLabel: MONEY.send, sendingLabel: "Sending to Solana mainnet…", blocker: line }} onConfirm={() => undefined}>
         {balances === null ? <LoadingState shape="row" /> : null}
       </ReviewSheet>
     );
@@ -96,7 +96,7 @@ export function MoneySheet({ view, actions, kind, onClose }: Props) {
         {...sheet}
         title={MONEY.sheetTitle}
         body={MONEY.intro}
-        review={{ title: MONEY.sheetTitle, lines, maxLoss, confirmLabel: MONEY.send, blocker: blocker ?? noSol ?? (way === "usdc" ? usdcProblem : tokenProblem), tone: "accent" }}
+        review={{ title: MONEY.sheetTitle, lines, maxLoss, confirmLabel: MONEY.send, sendingLabel: "Sending to Solana mainnet…", blocker: blocker ?? noSol ?? (way === "usdc" ? usdcProblem : tokenProblem), tone: "accent" }}
         onConfirm={() => void confirm()}
       >
         <Segmented label={MONEY.sheetTitle} value={way} onChange={setWay} options={[{ value: "usdc", label: "USDC" }, { value: "tokens", label: "PreStocks tokens" }]} />
@@ -154,7 +154,7 @@ export function MoneySheet({ view, actions, kind, onClose }: Props) {
         title: MONEY.withdraw.title,
         lines: [said(MONEY.withdraw.to, "Your wallet", actions.owner ?? "—"), { label: "In the desk", value: `${usd(cashE6)} USDC` }, said("After", "", after), { label: R.networkFee, value: R.networkFeeValue }],
         maxLoss: asCash ? "1% of each sale" : "$0.00",
-        confirmLabel: MONEY.withdraw.button,
+        confirmLabel: MONEY.withdraw.button, sendingLabel: "Sending to Solana mainnet…",
         blocker: (asCash ? null : blocker) ?? (ready ? null : MONEY.withdraw.amount),
       }}
       onConfirm={() => void confirmWithdraw()}

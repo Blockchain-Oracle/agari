@@ -17,6 +17,8 @@ export interface Review {
   confirmLabel: string;
   blocker?: string | null;
   tone?: "profit" | "loss" | "accent";
+  /** What the busy line says once signed: a desk message goes to Agari, a transaction to Solana mainnet. */
+  sendingLabel?: string;
 }
 
 interface Props {
@@ -81,6 +83,7 @@ export function ReviewSheet({ visible, onClose, title, body, eyebrow, children, 
               phase={PHASE[phase]}
               blocker={review.blocker}
               tone={review.tone}
+              sendingLabel={review.sendingLabel ?? "Sending to Agari…"}
             />
           )}
           {phase === "failed" && problem ? (

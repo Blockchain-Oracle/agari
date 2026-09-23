@@ -71,7 +71,7 @@ export function ControlDialog({ view, actions, kind, zone, nowSec, onClose }: Pr
           title: copy.title,
           lines: lines([CONTROLS.pause.now(view.stateText)], [copy.after], "wallet"),
           maxLoss: NOTHING,
-          confirmLabel: pause ? "Slide to pause" : "Slide to resume",
+          confirmLabel: pause ? "Slide to pause" : "Slide to resume", sendingLabel: "Sending to Solana mainnet…",
           blocker: block(mainnetBlocker(actions)),
         }}
         onConfirm={() => void actions.tx(pause ? "pause" : "unpause", (s) => (pause ? s.pause() : s.unpause()))}
@@ -94,7 +94,7 @@ export function ControlDialog({ view, actions, kind, zone, nowSec, onClose }: Pr
           title: CONTROLS.mode.title,
           lines: lines([CONTROLS.mode.now(DESK.modes[view.mode])], [CONTROLS.mode.after(DESK.modes[view.isLive ? mode : view.mode])], "wallet"),
           maxLoss: NOTHING,
-          confirmLabel: "Slide to change the mode",
+          confirmLabel: "Slide to change the mode", sendingLabel: "Sending to Solana mainnet…",
           blocker: block(locked ?? mainnetBlocker(actions)),
         }}
         onConfirm={() => void confirm()}
@@ -189,7 +189,7 @@ export function ControlDialog({ view, actions, kind, zone, nowSec, onClose }: Pr
       eyebrow={MONEY.eyebrow}
       title={CONTROLS.close.title}
       body={CONTROLS.close.body}
-      review={{ title: CONTROLS.close.title, lines: lines([`Desk ${view.stateText}`], [CONTROLS.close.after], "wallet", true), maxLoss: FEE, confirmLabel: "Slide to close the desk", blocker: block(mainnetBlocker(actions)), tone: "loss" }}
+      review={{ title: CONTROLS.close.title, lines: lines([`Desk ${view.stateText}`], [CONTROLS.close.after], "wallet", true), maxLoss: FEE, confirmLabel: "Slide to close the desk", sendingLabel: "Sending to Solana mainnet…", blocker: block(mainnetBlocker(actions)), tone: "loss" }}
       onConfirm={() => void close()}
     />
   );

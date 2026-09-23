@@ -131,7 +131,7 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
               { label: "Network fee", value: stage === "open-pending" ? "≈ 0.02 SOL" : stage === "mandate-pending" ? "None" : "< 0.001 SOL" },
             ],
             maxLoss: stage === "open-pending" ? "≈ 0.02 SOL" : "$0.00",
-            confirmLabel: STEP_COPY[stage].button,
+            confirmLabel: STEP_COPY[stage].button, sendingLabel: "Sending to Solana mainnet…",
             blocker,
           }}
           onConfirm={() => void run()}
