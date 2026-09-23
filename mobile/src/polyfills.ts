@@ -84,3 +84,13 @@ if (typeof (globalThis as { CustomEvent?: unknown }).CustomEvent !== "function")
     }
   };
 }
+
+/**
+ * Dev only: React 19.2's development renderer logs changed props for its performance tracks with JSON.stringify,
+ * which throws on a bigint and wedges the renderer ("Should not already be working"). Money here is bigint by rule, so
+ * a prop like a quote's bigint[] would freeze dev builds. Release builds never run that logging; this keeps dev the same.
+ */
+if (__DEV__) {
+  const proto = BigInt.prototype as unknown as { toJSON?: () => string };
+  if (typeof proto.toJSON !== "function") proto.toJSON = function toJSON(this: bigint) { return this.toString(); };
+}
