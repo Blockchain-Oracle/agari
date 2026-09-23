@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Verify the docs' local contract and the reviewed Agari source revision. */
+/** Verify the docs' local contract and the Agari source revision they were reviewed against. */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,10 +7,14 @@ import { execFileSync } from 'node:child_process';
 import { legacyRedirects } from '../lib/legacy-redirects.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const source = resolve(process.env.AGARI_SOURCE_DIR || resolve(root, '../agari-wt/w1'));
+// The docs live in the app's own repository at docs-site/, so the app source is the parent directory.
+const source = resolve(process.env.AGARI_SOURCE_DIR || resolve(root, '..'));
 const content = resolve(root, 'content/docs');
-const expected = 'c412501';
+// One pin: `site.revision` in lib/site.ts is the app commit every page was last checked against.
+const pinned = readFileSync(resolve(root, 'lib/site.ts'), 'utf8').match(/revision:\s*'([0-9a-f]{7,40})'/)?.[1] ?? null;
+const appPaths = ['web', 'packages', 'services', 'anchor'];
 const failures = [];
+const warnings = [];
 let pages = 0, links = 0, media = 0, appRoutes = 0;
 
 function fail(message) { failures.push(message); }
@@ -26,19 +30,29 @@ function docRoute(path) {
   if (route === '/') return resolve(content, 'index.mdx');
   return resolve(content, `${route.slice(1)}.mdx`);
 }
-function appRoute(path) {
-  return resolve(source, 'web/src/app', path.slice(1), 'page.tsx');
+/** An app route exists when each segment matches a folder, a literal one first, else a `[param]` one. */
+function appRouteExists(path) {
+  let dir = resolve(source, 'web/src/app');
+  for (const segment of path.split(/[?#]/)[0].split('/').filter(Boolean)) {
+    if (existsSync(resolve(dir, segment))) { dir = resolve(dir, segment); continue; }
+    const param = readdirSync(dir, { withFileTypes: true }).find(entry => entry.isDirectory() && /^\[[^.\]]+\]$/.test(entry.name));
+    if (!param) return false;
+    dir = resolve(dir, param.name);
+  }
+  return existsSync(resolve(dir, 'page.tsx'));
 }
 
-if (!existsSync(source)) fail(`Agari checkout missing: ${source}`);
+if (!pinned) fail('lib/site.ts has no revision to check against');
+else if (!existsSync(resolve(source, 'web/src/app'))) fail(`Agari source missing: ${source}`);
+else if (git('cat-file', '-e', `${pinned}^{commit}`) === null) fail(`Pinned revision ${pinned} is not in ${source}'s history`);
+else if (git('merge-base', '--is-ancestor', pinned, 'HEAD') === null) fail(`Pinned revision ${pinned} is not an ancestor of HEAD: the docs were reviewed against a different line of history`);
 else {
-  const branch = git('branch', '--show-current');
-  const head = git('rev-parse', '--short=7', 'HEAD');
-  if (branch !== 'integration/w1') fail(`Expected integration/w1, got ${branch ?? 'unknown'}`);
-  if (head !== expected) fail(`Source moved: expected ${expected}, found ${head ?? 'unknown'}. Review changes and update the docs before changing this pin.`);
-  for (const path of ['packages/core/src/market/baskets.ts', 'packages/core/src/desk/gate.ts', 'anchor/programs/agari-desk/src/lib.rs', 'docs/plan/acceptance.md']) {
+  for (const path of ['packages/core/src/market/baskets.ts', 'packages/core/src/desk/gate.ts', 'anchor/programs/agari-desk/src/lib.rs', 'docs/plan/acceptance.md', 'services/ops/config/price-sources.json']) {
     if (!existsSync(resolve(source, path))) fail(`Source path missing: ${path}`);
   }
+  // App changes since the review are a reason to re-read the guides, not a broken build.
+  const since = git('log', '--format=%h %s', `${pinned}..HEAD`, '--', ...appPaths)?.split('\n').filter(Boolean) ?? [];
+  if (since.length) warnings.push(`${since.length} app commit(s) since the reviewed revision ${pinned}; review them, update the guides, then advance site.revision:`, ...since.slice(0, 15).map(line => `  ${line.slice(0, 120)}`), ...(since.length > 15 ? [`  … and ${since.length - 15} more`] : []));
 }
 
 const mdx = files(content).filter(path => path.endsWith('.mdx'));
@@ -63,7 +77,7 @@ for (const path of mdx) {
   }
   for (const [, route] of body.matchAll(/<AppLink\s+href="(\/[^"]+)"/g)) {
     appRoutes++;
-    if (!existsSync(appRoute(route))) fail(`${label}: missing app route ${route}`);
+    if (!appRouteExists(route)) fail(`${label}: missing app route ${route}`);
   }
   for (const [, name] of body.matchAll(/<GuideCapture\s+name="([^"]+)"/g)) {
     media++;
@@ -94,5 +108,6 @@ for (const path of [captures.video.file, captures.video.captions]) {
 }
 
 console.log(`Content: ${pages} pages, ${links} docs links, ${appRoutes} app links, ${media} media references, ${legacyRedirects.length} redirects`);
+for (const item of warnings) console.warn(item.startsWith('  ') ? item : `! ${item}`);
 if (failures.length) { for (const item of failures) console.error(`✗ ${item}`); process.exitCode = 1; }
-else console.log(`✓ source ${expected}, navigation, links and media`);
+else console.log(`✓ source ${pinned}, navigation, links and media`);
