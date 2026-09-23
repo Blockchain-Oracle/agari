@@ -6,7 +6,7 @@
 - **Docs are in this repo** at `docs-site/` (git subtree of the old `agari-docs`, history kept) and **live at https://docs.useagari.xyz** — Coolify app `agari-docs` `jpmw4nk5g05dhaiinsbvx4ga`, base dir `/docs-site`, branch `integration/w1`, same deploy key as web; web's image ignores `docs-site/`. DNS needed nothing (wildcard `*.useagari.xyz`, DNS-only; Wrangler's OAuth has no DNS scope). `pnpm check` in `docs-site/` is the docs gate; the source pin is `revision` in `docs-site/lib/site.ts`.
 - **Web live at `459e27a`:** a source line beside every price read from the Window's policy (`web/src/features/markets/price-source/`), the landing "Built on" band, the footer credit, "Read the docs" in the hero and Explore → Docs to the docs site, PreStocks prints named on /proof, verdict and share card, basket prints in points, and the new `/proof` feed.
 - **README top:** tracks line, 60-second path, sponsor-integrations tables; Pyth policies end 09-25 20:00Z (TSLA → RedStone v2, registered on chain 09-14; QQQ/VOO pause).
-- **Open:** recapture the docs images and tour (S25.5); the user sends the logo-permission requests (drafts in the session scratchpad, text in the stage file's step 25.4); the repo is still private, so the docs' GitHub link works only for collaborators.
+- **Open:** recapture the docs images and tour (S25.5); the user sends the logo-permission requests (`docs/submission/sponsor-requests.md`); the repo is still private, so the docs' GitHub link works only for collaborators.
 
 ## Session of 2026-09-23 00:40–03:10Z — READ THIS FIRST
 
