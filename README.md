@@ -1,110 +1,100 @@
 # Agari · 上がり
 
-[![Agari — own the stock, call the move](docs/assets/readme/hero.svg)](https://useagari.xyz)
+[![Agari: Own the stock. Call the move. A basket screen beside the settlement proof feed.](docs/assets/readme/hero.png)](https://useagari.xyz)
 
-**Own the stock. Call the move.** Agari lets people make short Up or Down calls on stock prices, cover a tokenized holding without selling it, and inspect the price print that decided the result. It runs on Solana. The prediction venue uses **devnet test money (tUSDC)**; the separate PreStocks desk is available in paper practice and has been rehearsed on a mainnet fork.
+**Agari is an on-chain stock prediction exchange (DEX) on Solana.** Make an Up or Down call on a short price window, cover a tokenized stock you already hold, and inspect the price prints that settled the result. PreStocks powers an around-the-clock pre-IPO lane, five baskets, and a separate portfolio desk you can try with paper money.
 
-[Open the app](https://useagari.xyz) · [Read the guides](https://docs.useagari.xyz) · [See settled proof](https://useagari.xyz/proof) · [Check status](https://useagari.xyz/status)
+[**Open Agari**](https://useagari.xyz) · [**Watch the product**](#watch-the-product) · [**See settlement proof**](https://useagari.xyz/proof) · [**Read the guides**](https://docs.useagari.xyz)
 
-**Stocklana entries:** [Main track, Best Use of PreStocks, and Best use of Pyth market data](https://hackathons.solana.com/hackathons/stocklana). The main track asks for a real user, a working end-to-end demo, a reason to use Solana, and execution quality. Agari focuses on a holder who wants to express a short view or protect a position while keeping the underlying token.
+**Stocklana tracks:** [Main, Best Use of PreStocks, Best use of Pyth market data](https://hackathons.solana.com/hackathons/stocklana).
 
-## Try Agari
+## The idea
 
-1. Open [Markets](https://useagari.xyz/markets) or [Baskets](https://useagari.xyz/baskets). Browsing needs no wallet. US stock Windows follow exchange hours; the OpenAI PreStocks lane and five PreStocks baskets run around the clock when their price source is available.
-2. Connect a devnet wallet and use **Get test funds**. A Window is one timed Up or Down round. Read its price source and available book before placing a call.
-3. After a Window resolves, open [Proof](https://useagari.xyz/proof). The result links to recorded opening and closing prices, their source, and the Solana transactions.
+Holding a stock and having a view on its next move are different decisions. Agari lets a holder keep the underlying token while making a short Down call as cover. Someone without a holding can make the same Up or Down call on a listed stock, a PreStocks name, or a basket. Every Window has a defined opening price, closing price, and settlement rule; [Proof](https://useagari.xyz/proof) makes the result inspectable.
 
-A holder can also open [Portfolio](https://useagari.xyz/portfolio) for a Down cover suggestion based on connected PreStocks tokens. The [desk](https://useagari.xyz/desk) lets a user draft a basket mandate and see paper decisions; it does not move mainnet funds today.
+Three ways in:
 
-## Watch the walkthrough
-
-[![Watch an Agari connected walkthrough](docs/assets/readme/watch.svg)](https://docs.useagari.xyz/trading/baskets)
-
-[Watch the basket walkthrough](https://docs.useagari.xyz/trading/baskets) · [Portfolio walkthrough](https://docs.useagari.xyz/trading/portfolio) · [Desk walkthrough](https://docs.useagari.xyz/agents/desk) · [App demo and transaction table](https://useagari.xyz/demo)
-
-These dated recordings show connected product screens and stop before a signed Buy. A full owner-run transaction video is still pending. The app's demo page keeps transaction evidence available in the meantime.
-
-## Why these tracks fit
-
-| Track | What the integration does | Follow it |
+| Choose | What you do | Open it |
 | --- | --- | --- |
-| **Main** | An on-chain order book matches calls; Solana programs hold collateral, verify prints, settle or void, and pay claims. Wallet signatures and bounded grants control spending. | [Venue diagram](#how-agari-works), [first trade guide](https://docs.useagari.xyz/trading/first-trade), [devnet receipts](docs/evidence/acceptance.md) |
-| **PreStocks** | Agari reads the [PreStocks catalogue](https://prestocks.com/api/prestocks) for the OpenAI 24/7 token-price lane, holder cover suggestions, five basket indices, pre-IPO facts and the desk's price ceiling. Each boundary read is signed by Agari's attestor; the catalogue itself is unsigned. No other pre-IPO issuer is integrated. | [Integration guide](https://docs.useagari.xyz/architecture/prestocks-and-pyth), [source adapter](packages/markets/src/prices/prestocks.ts), [basket rules](packages/core/src/market/baskets.ts), [AI Labs settlement](https://explorer.solana.com/tx/5xkJKmS47fZBYRNyeJ83iffHTxzpE2vMr9SGBMvKb3eeN6wNh1xC3WeWYpknWAynR1mAjmKF2ZpVEWwRU3RuZm3f?cluster=devnet) |
-| **Pyth** | A TSLA, QQQ or VOO Window can settle only after the [Pyth pull update](https://docs.pyth.network/price-feeds/core/pull-updates) for its exact boundary passes the event program's checks. TSLA also cross-checks RedStone and voids on excessive divergence. The relay obtains updates from Hermes; [Proof](https://useagari.xyz/proof) exposes the recorded source. | [Verifier](anchor/programs/agari-events/src/instructions/record_print_sources.rs), [relay](services/ops/src/actors/price-relay/hermes-fetch.ts), [TSLA settlement](https://explorer.solana.com/tx/xjKyBjRk51GitA35CZoP6fKd9huZ15EMH5RPmv8Lkj6XCKYn71zUDFfJaQPHyyresAX4Es13UCFGs4GSogvmzwt?cluster=devnet), [divergence void](https://explorer.solana.com/tx/24R75m6PE6NohCTE1Z6t3oQvReGP628DVdUsEMM3kKs7gHFWmhTeA32QUKvJEWeWeUW8VzN8VSdQo2rrkCebHYaj?cluster=devnet) |
+| **Predict** | Trade an Up or Down contract in Agari's order-book venue. A correct call pays from the collateral locked in the Window. | [Markets](https://useagari.xyz/markets), [24/7 PreStocks baskets](https://useagari.xyz/baskets) |
+| **Cover** | Connect a wallet holding a supported PreStocks token and see a Down call against that exposure. The holding stays in your wallet. | [Portfolio](https://useagari.xyz/portfolio), [portfolio guide](https://docs.useagari.xyz/trading/portfolio) |
+| **Hold** | Choose PreStocks names, weights and spending limits; watch an hourly portfolio desk make recorded paper decisions against live prices and quotes. | [Desk](https://useagari.xyz/desk), [desk guide](https://docs.useagari.xyz/agents/desk) |
 
-**Pyth access boundary:** The OpenAI and Anthropic valuation-index paths are implemented but their feeds return a 403 for the current trial key, so those valuation Windows are not listed. The existing Pyth trial policies for TSLA, QQQ and VOO end at the 25 September 2026 market close; [Status](https://useagari.xyz/status) is the live availability check. [Track evidence](docs/submission/tracks.md) explains the implementation and open gates in more detail.
+[Games](https://useagari.xyz/games) offer practice and arcade routes into the same market ideas. The exchange and desk are product paths in their own right.
 
-### A few receipts
+**Networks at a glance:** Up/Down trading uses Solana **devnet tUSDC**, which has no real-money value. The portfolio desk runs in **paper practice**; its on-chain program and Jupiter trade path have been rehearsed on a Surfpool mainnet fork. [Availability](https://docs.useagari.xyz/help/availability) and [live status](https://useagari.xyz/status) show which paths can be used now.
 
-| Action | Result |
-| --- | --- |
-| [Open an OpenAI Window](https://explorer.solana.com/tx/2PTZDJ5yY9oEmJKCQUcdNrweZj5qPnx3veo2BvBrsbSnMjxkntwh21rP5S4o3fUpjZCV3sKHVzN6AA9AKr3so1dH?cluster=devnet) and [record its opening print](https://explorer.solana.com/tx/4TJTb2gTRkpg6p3HHG7WDKRYcTdzLxyz3zC23dLNF3zLUZksP12DB3B2yiixYq96WZTHHmmfGEfsAUN3j5yCXwPT?cluster=devnet) | PreStocks lane operated on devnet |
-| [Settle a TSLA Window](https://explorer.solana.com/tx/xjKyBjRk51GitA35CZoP6fKd9huZ15EMH5RPmv8Lkj6XCKYn71zUDFfJaQPHyyresAX4Es13UCFGs4GSogvmzwt?cluster=devnet) | Pyth boundary prints and RedStone cross-check determined Up |
-| [Void a divergent TSLA Window](https://explorer.solana.com/tx/24R75m6PE6NohCTE1Z6t3oQvReGP628DVdUsEMM3kKs7gHFWmhTeA32QUKvJEWeWeUW8VzN8VSdQo2rrkCebHYaj?cluster=devnet) | The program refused to pick a winner from conflicting prices |
-| [Redeem a settled call](https://explorer.solana.com/tx/3VFzTVV7FJkaksFDrQtsuJFfaT437SKBx6Gwd93fPLnken3Fuv7tDjpYNq3rA5nQtTKppincNuwWWoDhcJR1SURg?cluster=devnet) | The on-chain seat paid its recorded entitlement |
+## Try one Window
 
-The [public evidence ledger](docs/evidence/acceptance.md) contains the dated transaction history, including failed attempts and the 31-check desk rehearsal on a **Surfpool mainnet fork**. A fork receipt is not a mainnet transaction.
+1. Browse [Markets](https://useagari.xyz/markets) or [Baskets](https://useagari.xyz/baskets) without a wallet. US-listed stock Windows follow exchange hours; PreStocks and basket Windows run around the clock when their price source is available.
+2. For an order, connect a **Solana devnet** wallet, choose **Get test funds**, then read the Window's source, live quote, cost and maximum loss before choosing Up or Down. [First trade guide](https://docs.useagari.xyz/trading/first-trade).
+3. After it closes, open [Proof](https://useagari.xyz/proof) to inspect the opening and closing prints, result, source and transaction links.
 
-## How Agari works
+## Watch the product
 
-The diagrams below are rendered SVGs from [Agari's architecture map](docs-site/lib/architecture.json). The [interactive documentation](https://docs.useagari.xyz/architecture/overview) adds the authority and trust details behind each step.
+[![Watch Agari's connected AI Labs basket ticket walkthrough](docs/assets/readme/watch.png)](docs-site/public/videos/connected-basket-ticket-2026-09-23.mp4)
 
-[![A devnet prediction Window: owner action, venue operation, and proof reads](docs-site/public/diagrams/venue.svg)](https://docs.useagari.xyz/architecture/overview)
+[Play the connected basket ticket](docs-site/public/videos/connected-basket-ticket-2026-09-23.mp4) · [See a portfolio walkthrough](docs-site/public/videos/connected-portfolio-2026-09-23.mp4) · [See a practice desk walkthrough](docs-site/public/videos/connected-practice-desk-2026-09-23.mp4) · [Open the app's demo and transaction table](https://useagari.xyz/demo)
+
+These short screen recordings show the connected app through a quote preview or paper-desk read; they do not show a newly signed Buy. The banner and cover are editorial compositions based on these dated app screens. The [capture provenance](docs-site/public/captures/provenance-connected-2026-09-23.json) names the routes and states. On-chain transactions are linked below and in the [evidence ledger](docs/evidence/acceptance.md).
+
+## Why the integrations matter
+
+| Track | What a user sees | What the integration actually does | Verify it |
+| --- | --- | --- | --- |
+| **Main** | A live Up/Down exchange, wallet-controlled orders, result and claim pages. | Solana programs hold test collateral, match calls, admit price prints, settle or void Windows, and pay claims. Operators can submit evidence but cannot choose a winner outside the registered rule. | [First trade](https://docs.useagari.xyz/trading/first-trade) · [event program](anchor/programs/agari-events) · [settled claim](https://explorer.solana.com/tx/3VFzTVV7FJkaksFDrQtsuJFfaT437SKBx6Gwd93fPLnken3Fuv7tDjpYNq3rA5nQtTKppincNuwWWoDhcJR1SURg?cluster=devnet) |
+| **PreStocks** | An OpenAI 24/7 Window, five equal-weight baskets, a holder cover, pre-IPO facts, and a practice desk. | Agari reads PreStocks token prices and marks from its catalogue. Its own attestor signs the boundary read used for pre-IPO settlement. The desk checks a buy against the PreStocks mark and the owner's price ceiling. Every pre-IPO asset integrated here comes from PreStocks. | [Integration guide](https://docs.useagari.xyz/architecture/prestocks-and-pyth) · [price adapter](packages/markets/src/prices/prestocks.ts) · [AI Labs basket settlement](https://explorer.solana.com/tx/5xkJKmS47fZBYRNyeJ83iffHTxzpE2vMr9SGBMvKb3eeN6wNh1xC3WeWYpknWAynR1mAjmKF2ZpVEWwRU3RuZm3f?cluster=devnet) |
+| **Pyth** | TSLA, QQQ and VOO Windows whose settlement is tied to a verifiable market price. | The relay gets a Pyth pull update for the Window boundary. The program checks its feed, verification level, time and confidence on chain. TSLA also cross-checks RedStone; an excessive disagreement voids the Window. | [Price-source guide](https://docs.useagari.xyz/architecture/price-sources) · [on-chain verifier](anchor/programs/agari-events/src/instructions/record_print_sources.rs) · [TSLA settlement](https://explorer.solana.com/tx/xjKyBjRk51GitA35CZoP6fKd9huZ15EMH5RPmv8Lkj6XCKYn71zUDFfJaQPHyyresAX4Es13UCFGs4GSogvmzwt?cluster=devnet) · [divergence void](https://explorer.solana.com/tx/24R75m6PE6NohCTE1Z6t3oQvReGP628DVdUsEMM3kKs7gHFWmhTeA32QUKvJEWeWeUW8VzN8VSdQo2rrkCebHYaj?cluster=devnet) |
+
+PreStocks catalogue prices are **venue-attested**, while the Pyth path verifies a **Pyth update on chain**. They are different trust paths. The [track notes](docs/submission/tracks.md) explain each one with more code and transaction links. [Status](https://useagari.xyz/status) reports source availability at the time you visit.
+
+## Follow the result
+
+[![A Window flows from an owner order through an on-chain venue to a claim and proof read](docs-site/public/diagrams/venue.svg)](https://docs.useagari.xyz/architecture/overview)
+
+The [architecture guide](https://docs.useagari.xyz/architecture/overview) explains the actors and authority boundaries. These diagrams are generated from [architecture.json](docs-site/lib/architecture.json).
 
 <details>
-<summary>Where the price print comes from</summary>
+<summary>See where the price prints come from</summary>
 
-[![Oracle-verified and PreStocks-attested print paths into a settled Window](docs-site/public/diagrams/prints.svg)](https://docs.useagari.xyz/architecture/price-sources)
-
-Pyth, RedStone and Switchboard use their own verification rules. PreStocks token and basket prices are catalogue reads signed by Agari's attestor. A missing or invalid required print can void a Window.
+[![Pyth verified updates and PreStocks attested reads flow into an Agari Window](docs-site/public/diagrams/prints.svg)](https://docs.useagari.xyz/architecture/price-sources)
 
 </details>
 
 <details>
-<summary>How the separate desk is bounded</summary>
+<summary>See how the portfolio desk is bounded</summary>
 
-[![Desk owner, practice runner, program checks, and decision record](docs-site/public/diagrams/desk.svg)](https://docs.useagari.xyz/architecture/desk)
-
-The owner chooses assets and limits. A runner can propose actions; the desk program checks allowed names, caps, price reference and output before a swap. The owner alone may withdraw. The program has passed a fork rehearsal, and mainnet deployment is pending.
+[![Owner limits, runner decisions and program checks in the PreStocks desk](docs-site/public/diagrams/desk.svg)](https://docs.useagari.xyz/architecture/desk)
 
 </details>
 
-The web app reads public markets without a wallet. Orders use a wallet signature or a user-authorized [Trading Balance grant](https://docs.useagari.xyz/trading/tap-trading). Off-chain operators keep Windows, prices and quotes moving; they do not own the user's private key. The chain holds the market result and money rules.
+For a concrete result, follow the [first AI Labs basket settlement](https://explorer.solana.com/tx/5xkJKmS47fZBYRNyeJ83iffHTxzpE2vMr9SGBMvKb3eeN6wNh1xC3WeWYpknWAynR1mAjmKF2ZpVEWwRU3RuZm3f?cluster=devnet), the [TSLA Pyth settlement](https://explorer.solana.com/tx/xjKyBjRk51GitA35CZoP6fKd9huZ15EMH5RPmv8Lkj6XCKYn71zUDFfJaQPHyyresAX4Es13UCFGs4GSogvmzwt?cluster=devnet), or a [TSLA Window voided on price disagreement](https://explorer.solana.com/tx/24R75m6PE6NohCTE1Z6t3oQvReGP628DVdUsEMM3kKs7gHFWmhTeA32QUKvJEWeWeUW8VzN8VSdQo2rrkCebHYaj?cluster=devnet). The [selected evidence ledger](docs/evidence/acceptance.md) dates these devnet receipts and separates them from the 31-check desk rehearsal on a mainnet fork.
 
-## Run locally
+## Run it locally
 
 Use **Node.js 22+** and **pnpm 11.24.0**.
 
-~~~sh
-pnpm install --frozen-lockfile
-pnpm dev
-~~~
+    pnpm install --frozen-lockfile
+    pnpm dev
 
-Open [localhost:3000](http://localhost:3000). The public app shell and market reads start without a local environment file. Funded actions, AI, social routes, and always-on actors need provider and role configuration from [.env.example](.env.example), [web/.env.example](web/.env.example), and the [local setup guide](https://docs.useagari.xyz/builders/local-setup). Keep filled environment files and role keys outside Git.
+Open [localhost:3000](http://localhost:3000). Public market reads and the app shell start without a local environment file. Wallet-funded actions and always-on services need the provider and role configuration described in [.env.example](.env.example), [web/.env.example](web/.env.example) and the [local setup guide](https://docs.useagari.xyz/builders/local-setup). Do not commit filled environment files or role keys.
 
-~~~sh
-pnpm typecheck
-pnpm invariants
-pnpm test
-pnpm build
-~~~
+    pnpm typecheck
+    pnpm invariants
+    pnpm test
+    pnpm build
 
-The docs site is in [docs-site](docs-site). To run it, install its dependencies there and run its own dev script on [localhost:3153](http://localhost:3153). Its content check, typecheck and build are grouped as `pnpm check` from that directory.
+The documentation is a separate app in [docs-site](docs-site): run the install and dev commands there for [localhost:3153](http://localhost:3153), or run its content, type and build checks with pnpm check.
 
-## Repository map
+## Find the code and documentation
 
-| Path | Purpose |
+| Looking for | Start here |
 | --- | --- |
-| [anchor/programs](anchor/programs) | Solana programs for the event venue, vault, reserves, strategies, games and desk |
-| [packages/core](packages/core) | Market rules, calendars, basket arithmetic and types |
-| [packages/markets](packages/markets) | Solana transaction and price-source integration |
-| [services/ops](services/ops) | Roller, price relay, maker, settler, indexer and other operators |
-| [web](web) | App, market screens and proof pages |
-| [docs-site](docs-site) | Public guides, diagrams, captures and walkthroughs |
-| [docs/evidence](docs/evidence) | Dated transaction evidence |
+| User journeys, source definitions and trust boundaries | [Documentation](https://docs.useagari.xyz), [builder source map](https://docs.useagari.xyz/builders/source-map), [price sources](https://docs.useagari.xyz/architecture/price-sources) |
+| The exchange and desk programs | [Anchor programs](anchor/programs) |
+| Price adapters, market rules and basket calculation | [Market package](packages/markets), [core package](packages/core) |
+| Rollers, price relay, settler, indexer and desk runner | [Operations service](services/ops) |
+| App screens and proof UI | [Web app](web) |
+| A text index for automated readers | [llms.txt](https://docs.useagari.xyz/llms.txt), [full guide text](https://docs.useagari.xyz/llms-full.txt) |
 
-## Current limits
-
-Agari's prediction collateral is **devnet tUSDC**, with no real-money value. The PreStocks desk's paper flow is usable; its program has been exercised only on a mainnet fork, and no real-money desk is deployed. The programs have no external security audit. Source availability and quote depth can change; check [Status](https://useagari.xyz/status) before using a lane. The [availability guide](https://docs.useagari.xyz/help/availability) separates deployed, gated and paper-only paths.
-
-Agari is maintained by **Abubakr Jimoh**. The code is [MIT licensed](LICENSE); [third-party notices](THIRD_PARTY_NOTICES.md) describe material with its own terms.
+Agari is maintained by **Abubakr Jimoh** and [MIT licensed](LICENSE). [Third-party notices](THIRD_PARTY_NOTICES.md) cover material with separate terms.
