@@ -1,8 +1,7 @@
 /** The share cards' words — ported from the reference's two card renderers and `BetPlacedCard.tsx`. */
-import type { PrintSource, VoidReason } from "@agari/core/types";
+import type { VoidReason } from "@agari/core/types";
 
 /** The signed source and void reason as the settled card prints them (proof-analytics.md §2.8). */
-const PRINT_SOURCE_WORD: Record<PrintSource, string> = { pyth: "PYTH", redstone: "REDSTONE", switchboard: "SWITCHBOARD", attested: "ATTESTED DEMO" };
 const VOID_WORD: Record<VoidReason, string> = { "missing-print": "VOID · MISSING PRINT", "cross-check-divergence": "VOID · CROSS-CHECK DIVERGENCE" };
 
 /**
@@ -66,7 +65,8 @@ export const SHARE = {
     paidOut: (symbol: string) => `PAID OUT · ${symbol}`,
     oracleSettled: (print: string, utc: string) => `ORACLE-SETTLED ${print} AT ${utc}`,
     /** Every settled card names the signed source of its closing print (PD-1, D-003); boundaries fall on whole minutes. */
-    printAt: (source: PrintSource, print: string, etClock: string) => `${PRINT_SOURCE_WORD[source]} PRINT ${print} AT ${etClock}:00 ET`,
+    /** `source` is the print's name on every surface (`printSourceName`): "Pyth", "PreStocks", "Attested demo". */
+    printAt: (source: string, print: string, etClock: string) => `${source.toUpperCase()} PRINT ${print} AT ${etClock}:00 ET`,
     signers: (n: number) => ` · ${n} SIGNER${n === 1 ? "" : "S"}`,
     singleSource: " · SINGLE SOURCE",
     settledAt: (utc: string) => `SETTLED · ${utc}`,

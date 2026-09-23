@@ -58,8 +58,8 @@ export interface EventMarket {
   nonce: bigint | null;
   /** The frozen price-policy version both prints must come from (PD-1). */
   policyVersion: number;
-  /** The policy's primary source, known at listing. */
-  printSource: PrintSource;
+  /** The policy's primary source, known at listing; null when neither the opening print nor the Series policy was read. */
+  printSource: PrintSource | null;
   collateral: Address;
   decimals: number;
   status: IndexedStatus;

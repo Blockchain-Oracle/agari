@@ -1,6 +1,6 @@
 import type { EventMarket, LaneSet } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
-import { assetSourceLabel, windowSourceLabel } from "./source-label";
+import { assetSourceLabel, printSourceName, windowSourceLabel } from "./source-label";
 
 type W = Pick<EventMarket, "asset" | "lane" | "printSource" | "tradingStartSec">;
 const w = (asset: W["asset"], lane: W["lane"], printSource: W["printSource"], tradingStartSec = 1_790_000_000): W => ({ asset, lane, printSource, tradingStartSec });
@@ -21,6 +21,8 @@ describe("windowSourceLabel (S25: the line follows the Window's policy source)",
     expect(windowSourceLabel(w("TSLA", "regular", "switchboard"))).toBeNull();
     expect(windowSourceLabel(w("TSLA", "token", "pyth"))).toBeNull();
     expect(windowSourceLabel(w("TSLA", "regular", "attested"))).toBeNull();
+    // A Series whose policy was not read claims nothing (the provider no longer defaults to Pyth).
+    expect(windowSourceLabel(w("TSLA", "regular", null))).toBeNull();
   });
 
   it("gives the xStock token lane Switchboard, a pre-IPO name its PreStocks mint on mainnet, a basket its member count", () => {
@@ -47,5 +49,16 @@ describe("assetSourceLabel (no Window in view)", () => {
   it("gives a pre-IPO name and a basket their line with no lane read", () => {
     expect(assetSourceLabel("ANTHROPIC", null)?.provider).toBe("prestocks");
     expect(assetSourceLabel("DEFSPACE", null)?.text).toBe("Index of 2 PreStocks prices");
+  });
+});
+
+describe("printSourceName (one name per recorded print on every surface)", () => {
+  it("calls an attested print PreStocks on a pre-IPO name or basket, and demo data only elsewhere", () => {
+    expect(printSourceName("attested", "OPENAI")).toBe("PreStocks");
+    expect(printSourceName("attested", "AILABS")).toBe("PreStocks");
+    expect(printSourceName("attested", "TSLA")).toBe("Attested demo");
+    expect(printSourceName("attested", null)).toBe("Attested demo");
+    expect(printSourceName("pyth", "TSLA")).toBe("Pyth");
+    expect(printSourceName("redstone", null)).toBe("RedStone");
   });
 });

@@ -1,4 +1,3 @@
-import type { PrintSource } from "@agari/core/types";
 import type { PrintWhich, ReplayState } from "@agari/markets";
 
 /**
@@ -18,7 +17,6 @@ export const PROOF = {
   tableTitle: (n: number) => `${n} print${n === 1 ? "" : "s"}`,
   which: { 0: "Opening print", 1: "Closing print", 2: "Check · opening", 3: "Check · closing" } satisfies Record<PrintWhich, string>,
   whichShort: { 0: "OPEN", 1: "CLOSE", 2: "CHECK OPEN", 3: "CHECK CLOSE" } satisfies Record<PrintWhich, string>,
-  source: { pyth: "Pyth", redstone: "RedStone", switchboard: "Switchboard", attested: "Attested demo" } satisfies Record<PrintSource, string>,
   unknownSource: "Unknown source",
   rows: {
     source: "Source",
@@ -49,6 +47,8 @@ export const PROOF = {
   signerCount: (n: number) => `${n} signer${n === 1 ? "" : "s"}`,
   noArchive: "no archived bytes for this boundary",
   attested: "demo data: an operator-attested print, not a market source",
+  /** An attested print on a pre-IPO name or basket (D-100, D-101, D-124): PreStocks' price under the venue's attestor key. */
+  attestedPreStocks: "PreStocks catalogue price, signed by Agari's attestor · signature verified in-program at record",
   redstoneVerified: "in-program, at record",
   switchboard: "verified in-program at record",
   full: "Full (every guardian signature)",

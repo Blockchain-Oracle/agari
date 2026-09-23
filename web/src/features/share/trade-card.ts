@@ -3,6 +3,7 @@ import { formatEtClock } from "@agari/core/market";
 import type { PrintSource, Side, Signature, VoidReason } from "@agari/core/types";
 import { formatBaseUnits, formatOracleRaw, formatUtc, secToMs } from "@agari/core/units";
 import { ORACLE_SCALE, assetPriceLine } from "@/features/markets/hero/units";
+import { printSourceName } from "@/features/markets/price-source/source-label";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";
 import { CARD_MARK, CARD_MARK_GAP, drawAssetMark } from "./marks";
@@ -87,7 +88,7 @@ interface TradeLook {
 function printLine(card: TradeCard, closeRaw: bigint): string {
   if (card.printSource === null) return SHARE.trade.oracleSettled(usd2(closeRaw), formatUtc(secToMs(card.expirySec), { withDate: true }));
   const signers = card.printSource === "redstone" && card.printSigners ? SHARE.trade.signers(card.printSigners) : "";
-  return `${SHARE.trade.printAt(card.printSource, usd2(closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
+  return `${SHARE.trade.printAt(printSourceName(card.printSource, card.asset), usd2(closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
 }
 
 function tradeLook(card: TradeCard): TradeLook {

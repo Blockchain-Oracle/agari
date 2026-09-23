@@ -1,5 +1,6 @@
 import type { PrintProof } from "@agari/markets";
 import { oraclePriceText } from "@/features/markets/hero";
+import { isPreStocksAsset, printSourceName } from "@/features/markets/price-source/source-label";
 import { PROOF } from "./copy";
 import { crossCheckBpsText, crossCheckPair, replayDiff } from "./format";
 
@@ -17,7 +18,7 @@ function rowOf(print: PrintProof): { tone: Tone; detail: string } {
   if (print.source === "redstone") {
     return { tone: print.archive ? "good" : "off", detail: `${PROOF.signerCount(print.signers)} · ${print.archive ? PROOF.redstoneVerified : PROOF.noArchive}` };
   }
-  if (print.source === "attested") return { tone: "off", detail: PROOF.attested };
+  if (print.source === "attested") return isPreStocksAsset(print.symbol) ? { tone: "good", detail: PROOF.attestedPreStocks } : { tone: "off", detail: PROOF.attested };
   return { tone: print.archive ? "good" : "off", detail: PROOF.switchboard };
 }
 
@@ -36,7 +37,7 @@ export function ProofTable({ prints, singleSource }: { prints: readonly PrintPro
           return (
             <div key={`${print.which}:${print.recordSignature}`} className="status-row">
               <span className="status-dot" data-tone={tone} aria-hidden />
-              <span className="status-row-label">{`${PROOF.which[print.which]} · ${print.source ? PROOF.source[print.source] : PROOF.unknownSource}`}</span>
+              <span className="status-row-label">{`${PROOF.which[print.which]} · ${print.source ? printSourceName(print.source, print.symbol) : PROOF.unknownSource}`}</span>
               <span className="status-row-lag">{oraclePriceText(print.priceE8)}</span>
               <span className="status-row-detail" title={detail}>
                 {detail}

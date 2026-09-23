@@ -35,7 +35,8 @@ export function toEventMarket(row: MarketRow, venue: VenueFacts, series: SeriesF
   const expirySec = sec(row.expiry_sec);
   const open = row.prints?.[PRINT.open] ?? null;
   const policy = row.policy_version ?? 0;
-  const primary = sourceName(open?.source) ?? sourceName(series?.policySources[policy]?.primary) ?? "pyth";
+  // Never a guess: a Series whose policy could not be read names no source until it can.
+  const primary = sourceName(open?.source) ?? sourceName(series?.policySources[policy]?.primary);
   const asset = row.symbol as TickerSymbol;
   const cashUnit = big(row.cash_unit);
   return {

@@ -6,8 +6,8 @@
  * The source is read, never assumed. A Window carries its Series policy's primary source (`EventMarket.printSource`, the
  * opening print's source once recorded), so when a policy version changes source the next Window's line follows it with
  * no edit here. A pre-IPO name and a basket are PreStocks by construction (D-100, D-124), so their line is the registry's.
- * A source that the ticker cannot have (Pyth on a name with no Pyth feed, Switchboard off the token lane) yields no line
- * rather than a wrong one.
+ * A source that the ticker cannot have (Pyth on a name with no Pyth feed, Switchboard off the token lane), or no source at
+ * all (a Series whose policy was not read), yields no line rather than a wrong one.
  */
 import { SOLANA_EXPLORER_URL } from "@agari/core/constants";
 import { basketOf, TICKERS, type TickerSymbol } from "@agari/core/market";
@@ -54,7 +54,8 @@ function kindLabel(asset: TickerSymbol): SourceLabel | null {
 }
 
 /** An exchange-listed name's line for one signed source, or null when the ticker has no feed on it. */
-function listedLabel(asset: TickerSymbol, source: PrintSource, lane: EventMarket["lane"]): SourceLabel | null {
+function listedLabel(asset: TickerSymbol, source: PrintSource | null, lane: EventMarket["lane"]): SourceLabel | null {
+  if (source === null) return null;
   const ticker = TICKERS[asset];
   const pair = `${asset}/USD`;
   // The token lane prices the xStock; the Regular and Gap lanes price the stock's own print.
@@ -87,4 +88,23 @@ export function assetSourceLabel(asset: TickerSymbol, laneSet: Pick<LaneSet, "la
     }
   }
   return newest ? windowSourceLabel(newest) : null;
+}
+
+/** A pre-IPO name or a basket: priced from the PreStocks catalogue and attested by the venue (D-100, D-124). */
+export function isPreStocksAsset(asset: string | null): boolean {
+  if (asset === null || !(asset in TICKERS)) return false;
+  const kind = TICKERS[asset as TickerSymbol].kind;
+  return kind === "preIpo" || kind === "basket";
+}
+
+const PRINT_SOURCE_NAME: Record<Exclude<PrintSource, "attested">, string> = { pyth: "Pyth", redstone: "RedStone", switchboard: "Switchboard" };
+
+/**
+ * The name a recorded print's source goes by on every surface (the proof page, the verdict, the share card): an attested
+ * print on a PreStocks asset is PreStocks' price under Agari's signature; only an attested print on anything else is the
+ * opt-in demo-data path (D-056).
+ */
+export function printSourceName(source: PrintSource, asset: string | null): string {
+  if (source !== "attested") return PRINT_SOURCE_NAME[source];
+  return isPreStocksAsset(asset) ? "PreStocks" : "Attested demo";
 }
