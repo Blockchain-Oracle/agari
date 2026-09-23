@@ -22,6 +22,7 @@ const DEV = {
   stopped: "Desk page — stopped by the loss limit",
   late: "Desk page — has not checked in for three hours",
   frozen: "Desk page — a frozen account, a stale price and a name above the premium ceiling",
+  fresh: "Desk page — created a minute ago: no check yet, nothing valued, an empty record",
   record: "The whole record — 12 checks, two quiet runs folded",
   money: "The money sheet — USDC from this wallet, PreStocks tokens with the 1% fee, then Withdraw",
   shared: "Someone else's desk — the same page read-only, the notes stripped",
@@ -50,15 +51,16 @@ export function DeskFixtures() {
 
       {(
         [
-          ["02", DEV.practice, VIEWS.practice],
-          ["03", DEV.live, VIEWS.live],
-          ["04", DEV.paused, VIEWS.paused],
-          ["05", DEV.stopped, VIEWS.stopped],
-          ["06", DEV.late, VIEWS.late],
-          ["07", DEV.frozen, VIEWS.frozen],
+          ["02", DEV.practice, VIEWS.practice, "practice"],
+          ["03", DEV.live, VIEWS.live, "live"],
+          ["04", DEV.paused, VIEWS.paused, "paused"],
+          ["05", DEV.stopped, VIEWS.stopped, "stopped"],
+          ["06", DEV.late, VIEWS.late, "late"],
+          ["07", DEV.frozen, VIEWS.frozen, "frozen"],
+          ["07b", DEV.fresh, VIEWS.fresh, "fresh"],
         ] as const
-      ).map(([index, label, wire]) => (
-        <section key={index} className="flex flex-col gap-4">
+      ).map(([index, label, wire, key]) => (
+        <section key={index} className="flex flex-col gap-4" data-fixture={key}>
           <SectionHeader index={index} title={label} />
           <DeskPage view={deskView(wire)} actions={actions} zone={zone} nowSec={NOW_SEC} />
         </section>
@@ -83,7 +85,7 @@ export function DeskFixtures() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-4" data-fixture="shared">
         <SectionHeader index="12" title={DEV.shared} />
         <DeskPage view={deskView(VIEWS.shared)} actions={null} zone={zone} nowSec={NOW_SEC} />
       </section>
