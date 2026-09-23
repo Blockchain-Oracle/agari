@@ -1,8 +1,10 @@
 "use client";
 
 import { isOk } from "@agari/core/schemas";
-import { useEffect, useState } from "react";
-import { ErrorState, LoadingState } from "@/components/states";
+import { Lock, ServerOff } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { ErrorState } from "@/components/states";
+import { EmptyState } from "@/components/ui/desk-kit";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useViewerZone } from "@/lib/when";
@@ -10,6 +12,9 @@ import { DESK } from "./copy";
 import { DESK_ERRORS_UI } from "./copy-controls";
 import { DeskPage } from "./DeskPage";
 import { DeskStudio } from "./DeskStudio";
+import { ENTRY } from "./entry/copy-entry";
+import { DeskEntry } from "./entry/DeskEntry";
+import { DeskSkeleton } from "./entry/DeskSkeleton";
 import { DESK_NOT_CONFIGURED, DESK_NOT_SHARED, useDeskView } from "./useDesk";
 import { useDeskWrites } from "./useDeskWrites";
 import { deskView } from "./view";
@@ -22,17 +27,19 @@ export interface DeskScreenProps {
   studio?: boolean;
 }
 
-function Notice({ children }: { children: string }) {
+function Notice({ icon, title, children }: { icon: ReactNode; title: string; children: string }) {
   return (
-    <div className="dk-page container">
-      <div className="dk-panel">
-        <p className="type-body text-ink-secondary">{children}</p>
-      </div>
+    <div className="dk-page container en-notice">
+      <EmptyState icon={icon} title={title} body={children} />
     </div>
   );
 }
 
-/** `/desk`, `/desk/new` and `/desk/[id]`: the studio when the wallet has no desk, the page when it has, read-only for anyone else's. */
+/**
+ * `/desk`, `/desk/new` and `/desk/[id]`. `/desk` with no desk yet (no wallet, or a wallet without one) is the entry:
+ * what a desk does and a live shared desk, with the way into the studio. `/desk/new` (and `/desk?basket=`) is the
+ * studio. A wallet with a desk lands on it; anyone else's is read-only.
+ */
 export function DeskScreen({ id = null, studio = false }: DeskScreenProps) {
   const { address, isConnected, isConnecting, connect } = useWalletSession();
   const zone = useViewerZone();
@@ -48,17 +55,19 @@ export function DeskScreen({ id = null, studio = false }: DeskScreenProps) {
     setParams({ basket: search.get("basket"), edit: search.get("edit") !== null });
   }, []);
 
+  const entry = !studio && params.basket === null;
   if (key === null) {
-    // A remembered wallet is still restoring (at most 3 s): a skeleton, never the studio flashing before the page.
-    if (isConnecting) return <LoadingState shape="plate" className="container py-8" />;
+    // A remembered wallet is still restoring (at most 3 s): a skeleton, never the entry flashing before the page.
+    if (isConnecting) return <DeskSkeleton />;
+    if (entry) return <DeskEntry />;
     // Drafting is open to anyone (Shijima's rule, the app's never-empty rule): steps 01 and 02 render and edit with no
     // wallet, the draft kept in this browser; the test read and Create ask for the wallet inline where it is needed.
     return <DeskStudio owner={null} view={null} writes={writes} initialBasket={params.basket} editing={false} onConnect={connect} zone={zone} nowSec={nowSec} />;
   }
-  if (reading === null) return <LoadingState shape="plate" className="container py-8" />;
+  if (reading === null) return <DeskSkeleton />;
   if (!isOk(reading)) {
-    if (reading.error.technical === DESK_NOT_CONFIGURED) return <Notice>{DESK_ERRORS_UI.notConfigured}</Notice>;
-    if (reading.error.technical === DESK_NOT_SHARED) return <Notice>{DESK.visitor}</Notice>;
+    if (reading.error.technical === DESK_NOT_CONFIGURED) return <Notice icon={<ServerOff />} title={ENTRY.notConfiguredTitle}>{DESK_ERRORS_UI.notConfigured}</Notice>;
+    if (reading.error.technical === DESK_NOT_SHARED) return <Notice icon={<Lock />} title={ENTRY.notSharedTitle}>{DESK.visitor}</Notice>;
     return (
       <div className="container py-8">
         <ErrorState diagnosis={reading.error} />
@@ -67,6 +76,7 @@ export function DeskScreen({ id = null, studio = false }: DeskScreenProps) {
   }
   const view = deskView(reading.value);
   const own = view.isOwner && isConnected;
+  if (!view.exists && id === null && entry) return <DeskEntry />;
   if (!view.exists || (studio && own)) {
     return <DeskStudio owner={own || !view.exists ? address : null} view={view.exists ? view : null} writes={writes} initialBasket={params.basket} editing={studio && view.exists && params.edit} onConnect={connect} zone={zone} nowSec={nowSec} />;
   }

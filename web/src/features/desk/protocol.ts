@@ -76,6 +76,10 @@ export const snapshotSchema = z.object({
   holdings: z.array(snapshotHoldingSchema),
 });
 export type SnapshotWire = z.infer<typeof snapshotSchema>;
+
+/** One snapshot on the value chart (S22): the total and each held name's token price, oldest first. */
+export const seriesPointSchema = z.object({ atSec: z.number().int(), totalE6: digits, prices: z.record(z.string(), digits) });
+export type SeriesPointWire = z.infer<typeof seriesPointSchema>;
 export type SnapshotHoldingWire = z.infer<typeof snapshotHoldingSchema>;
 
 export const paperSchema = z.object({ cashE6: digits, positions: z.record(z.string(), digits) });
@@ -141,6 +145,7 @@ export const deskViewSchema = z.object({
   desk: deskRowSchema.nullable(),
   mandate: mandateVersionSchema.nullable(),
   snapshot: snapshotSchema.nullable(),
+  series: z.array(seriesPointSchema).default([]),
   paper: paperSchema.nullable(),
   approvals: z.array(approvalSchema),
   latest: recordSummarySchema.nullable(),

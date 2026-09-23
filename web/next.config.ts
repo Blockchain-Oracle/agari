@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
     { source: "/docs/:path*", destination: docsUrl(":path*"), permanent: false },
   ],
   transpilePackages: ["@agari/brain", "@agari/core", "@agari/markets"],
+  // Next 16 writes AGENTS.md and CLAUDE.md on `next dev`; this repository carries no AI-tool files.
+  agentRules: false,
 };
 
 export default nextConfig;

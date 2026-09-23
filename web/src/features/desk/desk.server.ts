@@ -29,6 +29,8 @@ export interface DeskQueries {
   deskFeedSince(i: { deskId: string; sinceSeq: number }): Promise<DbFeedItem[]>;
   getPaper(deskId: string): Promise<DbPaper | null>;
   latestSnapshot(deskId: string): Promise<DbSnapshot | null>;
+  /** S22: the value chart; optional so a store without it answers an empty series. */
+  snapshotSeries?(deskId: string, limit?: number): Promise<Array<{ atSec: Num; totalE6: Num; prices: Record<string, Num> }>>;
   listGrades(i: { deskId: string; limit: number }): Promise<DbGrade[]>;
   /** Beyond the C4 contract (flagged in the C5 report): the owner's two requests the operator must carry out. */
   requestOwnerAction?(i: { deskId: string; kind: "sell_all" | "close"; signer: string; signature: string; nowSec: number }): Promise<void>;
@@ -132,11 +134,12 @@ export interface ViewInput {
 /** Everything the desk page shows, in one answer (plan §5.7); a visitor gets the same minus the notes. */
 export async function assembleView(i: ViewInput): Promise<DeskViewWire> {
   const base = { configured: true as const, viewer: i.viewer, chain: i.chain.state, chainError: i.chain.error, operator: i.operator, nowSec: i.nowSec };
-  if (!i.desk) return { ...base, desk: null, mandate: null, snapshot: null, paper: null, approvals: [], latest: null, recent: [], timing: { bps: 0, graded: 0 } };
+  if (!i.desk) return { ...base, desk: null, mandate: null, snapshot: null, series: [], paper: null, approvals: [], latest: null, recent: [], timing: { bps: 0, graded: 0 } };
   const deskId = i.desk.id;
-  const [mandate, snapshot, paper, approvals, recent, grades] = await Promise.all([
+  const [mandate, snapshot, series, paper, approvals, recent, grades] = await Promise.all([
     i.store.currentMandate(deskId),
     i.store.latestSnapshot(deskId),
+    i.store.snapshotSeries ? i.store.snapshotSeries(deskId, 720) : Promise.resolve([]),
     i.store.getPaper(deskId),
     approvalsFor(i.store, deskId, i.nowSec),
     i.store.listRecords({ deskId, limit: 12 }),
@@ -148,6 +151,7 @@ export async function assembleView(i: ViewInput): Promise<DeskViewWire> {
     desk: toDeskRow(i.desk),
     mandate: mandate ? toMandate(mandate, i.viewer) : null,
     snapshot: snapshot ? toSnapshot(snapshot) : null,
+    series: series.map((p) => ({ atSec: int(p.atSec), totalE6: digits(p.totalE6), prices: Object.fromEntries(Object.entries(p.prices).map(([s, v]) => [s, digits(v)])) })),
     paper: paper ? { cashE6: digits(paper.cashE6), positions: Object.fromEntries(Object.entries(paper.positions).map(([s, v]) => [s, digits(v)])) } : null,
     approvals,
     latest: records[0] ?? null,

@@ -21,6 +21,27 @@ export interface HoldingRow {
   /** "in line" · "3.1% over" · "1.4% under". */
   standing: string;
   flags: string[];
+  /** The token price at every snapshot (S22 sparkline), oldest first; empty before two checks. */
+  priceHistoryE8: bigint[];
+}
+
+export interface SeriesPoint {
+  atSec: number;
+  totalE6: bigint;
+}
+
+export type ChartRange = "1d" | "1w" | "all";
+export const RANGE_SEC: Record<ChartRange, number | null> = { "1d": 86_400, "1w": 7 * 86_400, all: null };
+
+/** The points inside a range and the move across it, in integer money; null move with fewer than two points. */
+export function seriesInRange(series: readonly SeriesPoint[], range: ChartRange, nowSec: number): { points: SeriesPoint[]; deltaE6: bigint | null; bps: number | null } {
+  const span = RANGE_SEC[range];
+  const points = span === null ? [...series] : series.filter((p) => p.atSec >= nowSec - span);
+  const first = points[0];
+  const last = points.at(-1);
+  if (!first || !last || points.length < 2) return { points, deltaE6: null, bps: null };
+  const deltaE6 = last.totalE6 - first.totalE6;
+  return { points, deltaE6, bps: first.totalE6 === 0n ? null : Number((deltaE6 * 10_000n) / first.totalE6) };
 }
 
 export interface DeskView {
@@ -37,6 +58,7 @@ export interface DeskView {
   nextCheck: { atSec: number; fraction: number; lastAtSec: number | null; late: boolean };
   practice: { done: number; needed: number; opened: boolean; ready: boolean };
   holdings: HoldingRow[];
+  series: SeriesPoint[];
   limits: { spentTodayE6: bigint; dailyCapE6: bigint; perActionE6: bigint; maxPremiumBps: number; lossStopBps: number; largeActionE6: bigint };
   approvals: { open: ApprovalWire[]; expired: ApprovalWire[] };
 }
@@ -45,7 +67,9 @@ const big = (s: string | null | undefined): bigint | null => (s === null || s ==
 /** A price older than this is stale for the flags; the program refuses older than 15 minutes. */
 const STALE_AFTER_SEC = 900;
 
-function holdingRow(h: SnapshotHoldingWire, mandate: DeskMandate | null): HoldingRow {
+const historyOf = (w: DeskViewWire, symbol: string): bigint[] => w.series.flatMap((p) => (p.prices[symbol] ? [BigInt(p.prices[symbol])] : []));
+
+function holdingRow(h: SnapshotHoldingWire, mandate: DeskMandate | null, w: DeskViewWire): HoldingRow {
   const F = DESK.page.holdings;
   const flags: string[] = [];
   if (h.paused) flags.push(F.flags.paused);
@@ -54,7 +78,7 @@ function holdingRow(h: SnapshotHoldingWire, mandate: DeskMandate | null): Holdin
   if (mandate && h.premiumBps !== null && h.premiumBps > mandate.maxPremiumBps) flags.push(F.flags.premium(pct(h.premiumBps), pct(mandate.maxPremiumBps)));
   const threshold = mandate ? thresholdBps(mandate) : 0;
   const standing = Math.abs(h.driftBps) <= Math.max(threshold, 50) / 5 ? F.inLine : h.driftBps > 0 ? F.over(pct(h.driftBps)) : F.under(pct(h.driftBps));
-  return { symbol: h.symbol, name: nameOf(h.symbol), raw: BigInt(h.raw), valueE6: big(h.valueE6), weightBps: h.weightBps, targetBps: h.targetBps, driftBps: h.driftBps, premiumBps: h.premiumBps, standing, flags };
+  return { symbol: h.symbol, name: nameOf(h.symbol), raw: BigInt(h.raw), valueE6: big(h.valueE6), weightBps: h.weightBps, targetBps: h.targetBps, driftBps: h.driftBps, premiumBps: h.premiumBps, standing, flags, priceHistoryE8: historyOf(w, h.symbol) };
 }
 
 /** Holdings when no snapshot exists yet: the paper ledger's positions (practice) or the chain's balances (live), unvalued. */
@@ -63,7 +87,7 @@ function unvaluedRows(w: DeskViewWire, mandate: DeskMandate | null): HoldingRow[
   const entries: Array<[PreIpoSymbol, bigint]> = w.chain
     ? w.chain.tokens.flatMap((t) => (t.symbol && BigInt(t.raw) > 0n ? [[t.symbol, BigInt(t.raw)] as [PreIpoSymbol, bigint]] : []))
     : Object.entries(w.paper?.positions ?? {}).map(([s, raw]) => [s as PreIpoSymbol, BigInt(raw)]);
-  return entries.map(([symbol, raw]) => ({ symbol, name: nameOf(symbol), raw, valueE6: null, weightBps: 0, targetBps: targets.get(symbol) ?? 0, driftBps: 0, premiumBps: null, standing: DESK.page.holdings.inLine, flags: [] }));
+  return entries.map(([symbol, raw]) => ({ symbol, name: nameOf(symbol), raw, valueE6: null, weightBps: 0, targetBps: targets.get(symbol) ?? 0, driftBps: 0, premiumBps: null, standing: DESK.page.holdings.inLine, flags: [], priceHistoryE8: historyOf(w, symbol) }));
 }
 
 export function deskView(w: DeskViewWire): DeskView {
@@ -102,7 +126,8 @@ export function deskView(w: DeskViewWire): DeskView {
     plate: { totalE6, sinceE6: totalE6 !== null && baseline !== null ? totalE6 - baseline : null, cashE6, valuedAtSec: snapshot?.atSec ?? null, timing: w.timing },
     nextCheck: { atSec, fraction: Math.max(0, Math.min(1, (atSec - nowSec) / CHECK_EVERY_SEC)), lastAtSec, late: state === "active" && lastAtSec !== null && nowSec - lastAtSec > LATE_AFTER_SEC },
     practice: { done, needed: GO_LIVE_CHECKS, opened, ready: done >= GO_LIVE_CHECKS && opened },
-    holdings: snapshot ? snapshot.holdings.map((h) => holdingRow(h, mandate)) : unvaluedRows(w, mandate),
+    holdings: snapshot ? snapshot.holdings.map((h) => holdingRow(h, mandate, w)) : unvaluedRows(w, mandate),
+    series: w.series.map((p) => ({ atSec: p.atSec, totalE6: BigInt(p.totalE6) })),
     limits: {
       spentTodayE6: w.chain ? BigInt(w.chain.spentInWindowE6) : 0n,
       dailyCapE6: w.chain ? BigInt(w.chain.dailyCapE6) : (mandate?.dailyCapE6 ?? 0n),

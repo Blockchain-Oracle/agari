@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Menu } from "@base-ui/react/menu";
+import { ArrowDownToLine, Coins, Ellipsis, LogOut, Pause, Play, Plus, RefreshCw, Share2, SlidersHorizontal } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { notify } from "@/lib/toast";
 import { ControlCard } from "./ControlCard";
 import { DESK } from "./copy";
 import { CONTROLS } from "./copy-controls";
-import { Panel } from "./DeskPanels";
+import { COCKPIT } from "./cockpit/copy-cockpit";
 import { clock } from "./format";
 import { ModePicker, type LiveMode } from "./ModePicker";
 import { MoneySheet } from "./MoneySheet";
@@ -90,32 +92,82 @@ function ControlDialog({ view, actions, kind, zone, nowSec, onClose }: DialogPro
   return <ControlCard {...common} title={CONTROLS.close.title} body={CONTROLS.close.body} now={[`Desk ${view.stateText}`]} after={[CONTROLS.close.after]} who="wallet" money done={note} onConfirm={() => void close()} />;
 }
 
-/** Item 9 (plan §5.7): the buttons. Each opens one card; nothing happens until it is confirmed. */
-export function DeskControls({ view, actions, zone, nowSec, open, setOpen }: { view: DeskView; actions: DeskActions | null; zone: string | null; nowSec: number; open: ControlKind | null; setOpen: (kind: ControlKind | null) => void }) {
+export interface ControlButton {
+  kind: ControlKind;
+  label: string;
+  tone?: "primary" | "danger";
+  icon: ReactNode;
+  /** Shown in the toolbar; the rest fold into More. */
+  pinned: boolean;
+}
+
+/** The owner's controls in the order the page offers them (plan §5.7 item 9); empty for a visitor or a closed desk. */
+export function controlButtons(view: DeskView): ControlButton[] {
   const A = CONTROLS.actions;
+  if (!view.isOwner || view.state === "closed") return [];
   const paused = view.state === "paused_by_owner" || view.state === "stopped_by_loss_limit";
-  const buttons: Array<[ControlKind, string, string | undefined]> = view.isLive
-    ? [["addMoney", A.addMoney, "primary"], ["withdraw", A.withdraw, undefined], ["sellAll", A.sellAll, undefined], paused ? ["resume", A.resume, undefined] : ["pause", A.pause, undefined], ["mode", A.mode, undefined], ["checkNow", A.checkNow, undefined], ["share", A.share, undefined], ["close", A.close, "danger"]]
-    : [["checkNow", A.checkNow, "primary"], ["share", A.share, undefined], ["mode", A.mode, undefined]];
-  if (!view.isOwner || view.state === "closed") return null;
+  if (!view.isLive) {
+    return [
+      { kind: "checkNow", label: A.checkNow, tone: "primary", icon: <RefreshCw />, pinned: true },
+      { kind: "share", label: A.share, icon: <Share2 />, pinned: true },
+      { kind: "mode", label: A.mode, icon: <SlidersHorizontal />, pinned: false },
+    ];
+  }
+  return [
+    { kind: "addMoney", label: A.addMoney, tone: "primary", icon: <Plus />, pinned: true },
+    { kind: "withdraw", label: A.withdraw, icon: <ArrowDownToLine />, pinned: true },
+    paused ? { kind: "resume", label: A.resume, icon: <Play />, pinned: true } : { kind: "pause", label: A.pause, icon: <Pause />, pinned: true },
+    { kind: "checkNow", label: A.checkNow, icon: <RefreshCw />, pinned: true },
+    { kind: "sellAll", label: A.sellAll, icon: <Coins />, pinned: false },
+    { kind: "mode", label: A.mode, icon: <SlidersHorizontal />, pinned: false },
+    { kind: "share", label: A.share, icon: <Share2 />, pinned: false },
+    { kind: "close", label: A.close, tone: "danger", icon: <LogOut />, pinned: false },
+  ];
+}
+
+/**
+ * Item 9 (plan §5.7): the controls as the cockpit's toolbar. Pinned buttons sit in the header, the rest in More; on a
+ * phone everything but the first folds into More. Each opens one card; nothing happens until it is confirmed.
+ */
+export function DeskControls({ view, actions, zone, nowSec, open, setOpen }: { view: DeskView; actions: DeskActions | null; zone: string | null; nowSec: number; open: ControlKind | null; setOpen: (kind: ControlKind | null) => void }) {
+  const buttons = controlButtons(view);
+  if (buttons.length === 0) return null;
   const close = () => {
     actions?.reset();
     setOpen(null);
   };
   return (
-    <Panel title={CONTROLS.title}>
-      <p className="type-caption text-ink-muted">{CONTROLS.intro}</p>
-      <div className="dk-controls">
-        {buttons.map(([kind, label, tone]) => (
-          <button key={kind} type="button" className="dk-control" data-tone={tone} onClick={() => setOpen(kind)} disabled={!actions} data-cursor="hover">{label}</button>
-        ))}
-      </div>
+    <div className="cp-actions" role="toolbar" aria-label={COCKPIT.actionsAria}>
+      {buttons.map((b, i) => (
+        <button key={b.kind} type="button" className="cp-action" data-tone={b.tone} data-pinned={b.pinned ? "" : undefined} data-first={i === 0 ? "" : undefined} onClick={() => setOpen(b.kind)} disabled={!actions} data-cursor="hover">
+          {b.icon}
+          <span>{b.label}</span>
+        </button>
+      ))}
+      <Menu.Root>
+        <Menu.Trigger className="cp-action cp-more" disabled={!actions} aria-label={COCKPIT.more}>
+          <Ellipsis />
+          <span>{COCKPIT.more}</span>
+        </Menu.Trigger>
+        <Menu.Portal>
+          <Menu.Positioner sideOffset={8} align="end" className="cp-menu-positioner">
+            <Menu.Popup className="cp-menu">
+              {buttons.map((b, i) => (
+                <Menu.Item key={b.kind} className="cp-menu-item" data-tone={b.tone} data-pinned={b.pinned ? "" : undefined} data-first={i === 0 ? "" : undefined} onClick={() => setOpen(b.kind)}>
+                  {b.icon}
+                  {b.label}
+                </Menu.Item>
+              ))}
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
       <Sheet open={open !== null} onOpenChange={(next) => !next && close()}>
         <SheetContent side="bottom" className="dk-sheet">
-          <SheetTitle className="sr-only">{open ? A[open] : CONTROLS.title}</SheetTitle>
+          <SheetTitle className="sr-only">{open ? CONTROLS.actions[open] : CONTROLS.title}</SheetTitle>
           {open && actions && <ControlDialog key={open} view={view} actions={actions} kind={open} zone={zone} nowSec={nowSec} onClose={close} />}
         </SheetContent>
       </Sheet>
-    </Panel>
+    </div>
   );
 }

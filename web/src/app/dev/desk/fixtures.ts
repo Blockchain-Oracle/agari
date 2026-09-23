@@ -31,12 +31,24 @@ const SNAPSHOT: SnapshotWire = {
   ],
 };
 
+/** Two days of hourly checks drifting from $1,000 to the snapshot's $1,004.20; deterministic, so screenshots compare. */
+const seriesTo = (endE6: number, hours = 48): DeskViewWire["series"] =>
+  Array.from({ length: hours }, (_, i) => {
+    const t = i / (hours - 1);
+    const wiggle = Math.round(Math.sin(i * 0.9) * 3_100_000 + Math.sin(i * 0.23) * 5_400_000);
+    const total = Math.round(1_000_000_000 + (endE6 - 1_000_000_000) * t + (i === hours - 1 ? 0 : wiggle));
+    const openai = Math.round(11_551_865_677 * (0.97 + 0.03 * t) + Math.sin(i * 0.7) * 90_000_000);
+    const anthropic = Math.round(10_464_276_840 * (1.02 - 0.02 * t) + Math.sin(i * 0.5) * 70_000_000);
+    return { atSec: NOW_SEC - 1_400 - (hours - 1 - i) * 3_600, totalE6: String(total), prices: { OPENAI: String(openai), ANTHROPIC: String(anthropic) } };
+  });
+const SERIES = seriesTo(1_004_200_000);
+
 const OPEN_APPROVAL: ApprovalWire = { id: "apr-open", decisionSeq: 12, decisionHash: RECORDS[0]!.summary.recordHash, summary: "buy $50 of Anthropic", reason: "ask_first", side: "buy", symbol: "ANTHROPIC", amountIn: "50", expectedOut: "0.4718", confidencePercent: 71, costBps: 130, turnedDown: "Wait: nothing measurable is expected to change before the next check.", expiresAtSec: NOW_SEC + 2_200, status: "open", answeredAtSec: null, executionSeq: null };
 const EXPIRED_APPROVAL: ApprovalWire = { ...OPEN_APPROVAL, id: "apr-expired", decisionSeq: 9, summary: "buy $140 of OpenAI", symbol: "OPENAI", amountIn: "140", expectedOut: "1.2119", reason: "large_action", expiresAtSec: NOW_SEC - 7_200, status: "expired" };
 
 const base = (over: Partial<DeskViewWire> = {}): DeskViewWire => ({
   configured: true, viewer: "owner", desk: row(), mandate: { version: 1, body: mandateToWire(MANDATE), fingerprint: MANDATE_FINGERPRINT, appliedAtSec: NOW_SEC - 86_400 * 2 },
-  snapshot: SNAPSHOT, paper: { cashE6: "212400000", positions: { OPENAI: "2826000000", ANTHROPIC: "2930000000" } }, approvals: [], latest: RECORDS[0]!.summary, recent: RECORDS.map((r) => r.summary),
+  snapshot: SNAPSHOT, series: SERIES, paper: { cashE6: "212400000", positions: { OPENAI: "2826000000", ANTHROPIC: "2930000000" } }, approvals: [], latest: RECORDS[0]!.summary, recent: RECORDS.map((r) => r.summary),
   timing: { bps: 140, graded: 3 }, chain: null, chainError: null, operator: OPERATOR, nowSec: NOW_SEC, ...over,
 });
 
@@ -55,13 +67,15 @@ export const VIEWS = {
   /** Live on mainnet, asking first, with a waiting approval and one that expired unanswered. */
   live: base({ desk: LIVE_ROW, chain: CHAIN, approvals: [OPEN_APPROVAL, EXPIRED_APPROVAL], latest: liveRecords[0]!, recent: liveRecords, paper: null }),
   paused: base({ desk: { ...LIVE_ROW, state: "paused_by_owner" }, chain: { ...CHAIN, paused: true }, latest: liveRecords[0]!, recent: liveRecords, paper: null }),
-  stopped: base({ desk: { ...LIVE_ROW, state: "stopped_by_loss_limit", stateReason: "The desk is worth $846.10, which is 15.4% below its baseline of $1,000.00. Your loss limit is 15.0%." }, chain: { ...CHAIN, paused: true }, snapshot: { ...SNAPSHOT, totalE6: "846100000" }, latest: liveRecords[0]!, recent: liveRecords, paper: null }),
+  stopped: base({ desk: { ...LIVE_ROW, state: "stopped_by_loss_limit", stateReason: "The desk is worth $846.10, which is 15.4% below its baseline of $1,000.00. Your loss limit is 15.0%." }, chain: { ...CHAIN, paused: true }, snapshot: { ...SNAPSHOT, totalE6: "846100000" }, series: seriesTo(846_100_000), latest: liveRecords[0]!, recent: liveRecords, paper: null }),
   late: base({ desk: LIVE_ROW, chain: CHAIN, latest: { ...liveRecords[0]!, decidedAtSec: NOW_SEC - 3 * 3_600 - 900 }, recent: liveRecords, paper: null }),
   /** A frozen name: the issuer froze the desk's Anthropic account, and OpenAI sits above the premium ceiling. */
   frozen: base({
     desk: LIVE_ROW, chain: { ...CHAIN, tokens: CHAIN.tokens.map((t) => (t.symbol === "ANTHROPIC" ? { ...t, frozen: true } : t)) },
     snapshot: { ...SNAPSHOT, holdings: SNAPSHOT.holdings.map((h) => (h.symbol === "ANTHROPIC" ? { ...h, frozen: true } : { ...h, priceAgeSec: 1_300 })) }, latest: liveRecords[0]!, recent: liveRecords, paper: null,
   }),
+  /** A desk created a minute ago: no check yet, nothing valued, an empty record. */
+  fresh: base({ desk: row({ practiceChecks: 0 }), snapshot: null, series: [], paper: { cashE6: "1000000000", positions: {} }, latest: null, recent: [], timing: { bps: 0, graded: 0 } }),
   /** Someone else's desk, shared: the same page read-only, notes stripped. */
   shared: base({ viewer: "visitor", desk: LIVE_ROW, chain: CHAIN, mandate: { version: 1, body: { ...mandateToWire(MANDATE), notes: "" }, fingerprint: MANDATE_FINGERPRINT, appliedAtSec: NOW_SEC - 86_400 * 2 }, latest: liveRecords[0]!, recent: liveRecords, paper: null, operator: null }),
 } as const;

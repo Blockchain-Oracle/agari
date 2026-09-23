@@ -1331,6 +1331,15 @@ Public devnet (`api.devnet.solana.com`) is one shared, rate-limited endpoint for
 
 | Q | Question | Status / default | Blocks |
 |---|---|---|---|
+### D-127 — The desk's UX is built from 21st catalogue components: a cockpit with a value chart and tabs, a visual studio, an activity timeline
+
+**Settled 2026-09-23 (the user's approval of plan `vectorized-dazzling-fairy`).** The user judged the S21 desk surfaces mediocre: text-only basket cards with no logos, nine raw number boxes for the weights, no tabs, no chart, and a record that was a wall of grey text. 21st's AI generation is off for the account, so every new piece is a real catalogue component (search, get, adapt), restyled into Masayume's tokens under D-081 (the desk is a surface Masayume never had).
+
+- **The kit** (`web/src/components/ui/desk-kit/`): Number Ticker #21513 (`@number-flow/react`), Underline Tabs #24956 (Base UI's own indicator), Slider #10339, Icon Card Radio Group #28351, Status Dot #24882, Donut #29204 (redrawn in SVG, so no second chart library), Partition Bar #26545, Progress radial #3424, Mini Chart #9613 (as a line), Avatar Stack #28355 (the registry's company marks, not photos), Interactive Timeline #28276 + Agent Activity #29318, Onboarding Steps #29458, Empty State #1435, and Portfolio Chart #29532's layout drawn with the lightweight-charts the hero already ships.
+- **Data:** `desk_snapshots` becomes a series (`snapshotSeries`, oldest first, each held name's price per snapshot), and `/api/desk/marks` serves seven days of the hourly PreStocks marks the runner already writes, cached five minutes at the edge. The basket lines use `basketIndexE8`, the arithmetic the venue signs. The money stays integer until the canvas.
+- **Out of scope here:** the Telegram bot and its connect flow, the strategies cards, OpenSea and OpenServ publishing belong to other lanes.
+- **Approval:** the user, 2026-09-23.
+
 ### D-120
 
 **The wrong-network banner cannot fire on Solana, so it is not mounted. L-10 is the per-control refusal instead.**
