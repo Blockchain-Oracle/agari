@@ -8,9 +8,10 @@
 
 - [x] **25.1 Docs site in the repo and on Coolify.** `agari-docs` imported with its history at `docs-site/` (git subtree), a Dockerfile, the public origin `https://docs.useagari.xyz`; Coolify app `agari-docs` `jpmw4nk5g05dhaiinsbvx4ga` in project `agari`, base directory `/docs-site`, branch `integration/w1`, deploy key shared with the app. DNS: the wildcard `*.useagari.xyz` (DNS-only) already points at the VPS; Wrangler's OAuth token has no DNS scope and none was needed.
 - [x] **25.2 README.** The tracks, a 60-second path, a sponsor-integrations table (code, live page, transaction) at the top.
-- [ ] **25.a Docs refresh** (`slice/S25a-docs`, `../agari-wt/s25a`): S22–S24 facts, an in-repo source pin, a sponsor page for judges and AI readers.
-- [ ] **25.b Web** (`slice/S25b-sponsor-web`, `../agari-wt/s25b`): a source line beside each price read from the series policy, a "Built on" band under the landing hero, one footer credit line, a Docs link.
-- [ ] **25.3 Merge, deploy web and docs, capture the live pages.**
+- [x] **25.a Docs refresh** (`slice/S25a-docs`, `../agari-wt/s25a`): S22–S24 facts, an in-repo source pin, a sponsor page for judges and AI readers.
+- [x] **25.b Web** (`slice/S25b-sponsor-web`, `../agari-wt/s25b`): a source line beside each price read from the series policy, a "Built on" band under the landing hero, one footer credit line, a Docs link.
+- [x] **25.3 Merge and deploy.** Docs live (`docs.useagari.xyz`, GitHub link in the sidebar footer); web live with the source lines, the Built on band, the footer credit, Docs in the hero and Explore, PreStocks named on /proof, basket prints in points, and the new `/proof` feed (it was a 404 the README linked).
+- [ ] **25.5 Recapture the docs images and tour** (all eight predate S22/S23; captions say so meanwhile).
 - [ ] **25.4 Logo permission requests** to PreStocks and Pyth (drafted; the user sends).
 
 ## Handoff

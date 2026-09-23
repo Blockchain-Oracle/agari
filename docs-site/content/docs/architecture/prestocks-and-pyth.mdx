@@ -35,7 +35,7 @@ The app never settles on a "latest" read. Feeds: [TSLA/USD](https://app.pyth.com
 
 **Cross-check and void.** TSLA's Pyth policy names RedStone as its check source. Both boundaries are compared, and a gap wider than 25 bps voids the Window (`CrossCheckDivergence`) instead of paying anyone; a missing print voids it as `MissingPrint`. Devnet evidence from 14 September 2026 includes a TSLA Window settled Up on Pyth 358.20432 → 358.75 with RedStone agreeing, a divergence void, and a missing-print void. See [Halts and voids](/trading/halts-and-voids).
 
-**Proof replay.** A settled Window's receipt links to its proof page, which lists each print with its source and signer count. **Re-verify on devnet** posts the archived Pyth update again from a funded `proof-replay` role, so a reader can watch the same bytes verify on chain. Replays are limited to 20 an hour across the deployment and 3 an hour per IP address.
+**Proof replay.** <AppLink href="/proof">Proof</AppLink> lists every settled Window, newest first, with its opening and closing print and the source that signed them; filter it to Pyth to see only Pyth-settled Windows. Each row, and each settled Window's receipt, opens that Window's proof page, which lists each print with its source and signer count. **Re-verify on devnet** posts the archived Pyth update again from a funded `proof-replay` role, so a reader can watch the same bytes verify on chain. Replays are limited to 20 an hour across the deployment and 3 an hour per IP address.
 
 The same Pyth access also feeds the price relay, the halt watch and the market calendar.
 
