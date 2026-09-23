@@ -1,7 +1,9 @@
+import { ERROR_BOUNDARY } from "@agari/core/copy";
 import type { LaneSet, Side } from "@agari/core/types";
 import { useOpeningPrice } from "@agari/markets/react";
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { assetPriceLine, assetPriceParts } from "@/features/markets/hero/units";
@@ -9,11 +11,12 @@ import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { TAKES } from "@/features/takes/copy";
 import { normalizeCaption, TAKE_MAX_CAPTION } from "@/features/takes/protocol";
 import { useComposerMarket } from "@/features/takes/useComposerMarket";
-import { usePostTake } from "@/features/takes/useTakes";
+import { takesKey, usePostTake } from "@/features/takes/useTakes";
 import { useWalletSession } from "@/lib/wallet-session";
 import { Button, EmptyState, haptic } from "~/components/kit";
 import { pushToast } from "~/components/toast/store";
 import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { findPostedTake } from "./confirmPosted";
 import { HorizonRow, SidePicker, TakePreview } from "./TakeParts";
 
 const C = TAKES.composer;
@@ -38,6 +41,7 @@ export function TakeComposerSheet({ visible, laneSet, nowMs, configured, onClose
   const { address } = useWalletSession();
   const horizon = useComposerMarket(laneSet, nowMs);
   const { post, busy, error } = usePostTake();
+  const queryClient = useQueryClient();
   const [side, setSide] = useState<Side>("down");
   const [caption, setCaption] = useState("");
 
@@ -45,17 +49,41 @@ export function TakeComposerSheet({ visible, laneSet, nowMs, configured, onClose
   const opening = useOpeningPrice(visible ? (market?.marketId ?? null) : null);
   const lineRaw = opening?.ok ? opening.value : (market?.openingPriceRaw ?? null);
   const spotRaw = useOracleSpot(visible ? (market?.asset ?? null) : null);
-  const canPost = configured === true && !!address && market !== null && !busy;
+  const [checking, setChecking] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const working = busy || checking;
+  const canPost = configured === true && !!address && market !== null && !working;
 
+  const landed = () => {
+    haptic.success();
+    pushToast({ title: C.posted, tone: "neutral" });
+    setCaption("");
+    setFailed(false);
+    onClose();
+  };
+
+  // A post whose answer was lost on the way back (a slow or dropped connection) may still have been stored: before
+  // calling it a failure, read the author's takes, and only if this one is not there offer the error with Retry.
   const submit = async () => {
-    if (!canPost || !market) return;
-    const posted = await post({ marketId: market.marketId, side, caption: normalizeCaption(caption) });
+    if (!canPost || !market || !address) return;
+    setFailed(false);
+    const sinceMs = Date.now();
+    const words = normalizeCaption(caption);
+    const posted = await post({ marketId: market.marketId, side, caption: words });
     if (posted) {
-      haptic.success();
-      pushToast({ title: C.posted, tone: "neutral" });
-      setCaption("");
-      onClose();
+      landed();
+      return;
     }
+    setChecking(true);
+    const stored = await findPostedTake({ address, marketId: market.marketId, side, caption: words, sinceMs });
+    setChecking(false);
+    if (stored) {
+      void queryClient.invalidateQueries({ queryKey: takesKey() });
+      landed();
+      return;
+    }
+    setFailed(true);
+    haptic.error();
   };
 
   const lineParts = market !== null && lineRaw !== null ? assetPriceParts(market.asset, lineRaw) : null;
@@ -121,7 +149,7 @@ export function TakeComposerSheet({ visible, laneSet, nowMs, configured, onClose
 
             <TakePreview market={market} side={side} lineRaw={lineRaw} />
 
-            {error ? (
+            {error && failed ? (
               <Text style={[TYPE.caption, { color: color.loss }]} accessibilityRole="alert">
                 {error}
               </Text>
@@ -137,8 +165,8 @@ export function TakeComposerSheet({ visible, laneSet, nowMs, configured, onClose
               />
             ) : (
               <Button
-                label={busy ? C.posting : market === null ? C.noLiveMarket : C.post}
-                loading={busy}
+                label={working ? C.posting : market === null ? C.noLiveMarket : failed ? ERROR_BOUNDARY.retry : C.post}
+                loading={working}
                 disabled={!canPost}
                 size="lg"
                 icon={{ ios: "signature", android: "draw" }}
