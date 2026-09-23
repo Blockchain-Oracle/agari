@@ -49,18 +49,16 @@
 [data-theme="light"] .pc-when { color: rgba(26, 22, 19, 0.4); }
 [data-theme="light"] .pc-warn { color: #9F1239; border-color: rgba(159, 18, 57, 0.2); background: rgba(159, 18, 57, 0.06); }
 
-/* Inside the portfolio plate's cream `.plate-rows` the card must read in cream ink whatever the theme — the plate never flips. */
-.plate-rows .pc, .plate-rows .pc-empty { border-color: rgba(20, 18, 16, 0.1); background: rgba(255, 255, 255, 0.75); }
-.plate-rows .pc-title, .plate-rows .pc-empty-title, .plate-rows .pc-strike { color: #1A1613; }
-.plate-rows .pc-sub, .plate-rows .pc-empty-sub { color: rgba(26, 22, 19, 0.62); }
-.plate-rows .pc-btn { color: rgba(26, 22, 19, 0.75); border-color: rgba(20, 18, 16, 0.16); }
-.plate-rows .pc-btn:hover { background: rgba(20, 18, 16, 0.05); color: #1A1613; }
-.plate-rows .pc-note { color: rgba(26, 22, 19, 0.72); }
-.plate-rows .pc-row { border-color: rgba(20, 18, 16, 0.1); }
-.plate-rows .pc-stake { color: rgba(26, 22, 19, 0.6); }
-.plate-rows .pc-status { color: rgba(26, 22, 19, 0.5); }
-.plate-rows .pc-check.is-checking { color: rgba(26, 22, 19, 0.4); }
-.plate-rows .pc-cash { color: #fff; background: #1A1613; }
-.plate-rows .pc-foot { color: rgba(26, 22, 19, 0.5); }
-.plate-rows .pc-when { color: rgba(26, 22, 19, 0.4); }
-.plate-rows .pc-warn { color: #9F1239; border-color: rgba(159, 18, 57, 0.2); background: rgba(159, 18, 57, 0.06); }
+/* Inside the portfolio's `.plate-rows` the card reads the plate's own tokens (ledger-plate.css): cream in light, the
+   theme's surface in dark (owner, 2026-09-05). S24: these rules used to pin cream inks in both themes. */
+.plate-rows .pc, .plate-rows .pc-empty { border-color: var(--lp-line); background: var(--lp-paper-raised); }
+.plate-rows .pc-title, .plate-rows .pc-empty-title, .plate-rows .pc-strike { color: var(--lp-ink); }
+.plate-rows .pc-sub, .plate-rows .pc-empty-sub, .plate-rows .pc-stake, .plate-rows .pc-foot { color: var(--lp-mute); }
+.plate-rows .pc-btn { color: var(--lp-ink); border-color: color-mix(in srgb, var(--lp-ink) 22%, transparent); }
+.plate-rows .pc-btn:hover { background: color-mix(in srgb, var(--lp-ink) 6%, transparent); color: var(--lp-ink); }
+.plate-rows .pc-note { color: color-mix(in srgb, var(--lp-ink) 78%, transparent); }
+.plate-rows .pc-row { border-color: var(--lp-line); }
+.plate-rows .pc-status, .plate-rows .pc-when { color: color-mix(in srgb, var(--lp-ink) 50%, transparent); }
+.plate-rows .pc-check.is-checking { color: color-mix(in srgb, var(--lp-ink) 40%, transparent); }
+.plate-rows .pc-cash { color: var(--lp-paper); background: var(--lp-ink); }
+.plate-rows .pc-warn { color: var(--color-loss); border-color: color-mix(in srgb, var(--color-loss) 30%, transparent); background: var(--color-loss-wash); }
