@@ -1,8 +1,6 @@
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { TabScreen } from "~/components/shell/TabScreen";
-import { SITE_URL } from "~/lib/env";
 import { FONT, RADIUS, SPACE, TYPE, useTheme } from "~/theme";
 
 const MODES = [
@@ -27,7 +25,7 @@ export default function GamesScreen() {
       <View style={[styles.featureButton, { backgroundColor: color.accent }]}><Text style={[TYPE.bodyStrong, { color: color.onAccent }]}>Play practice</Text><Text style={[TYPE.bodyStrong, { color: color.onAccent }]}>→</Text></View>
     </Pressable>
     <View style={[styles.sectionHead, { borderTopColor: color.hairline }]}><Text style={[styles.kicker, { color: color.accent }]}>02</Text><Text style={[TYPE.title, { color: color.ink }]}>More ways to play</Text></View>
-    {MODES.map((mode) => <Pressable key={mode.path} onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}${mode.path}`)} accessibilityRole="link" style={({ pressed }) => [styles.mode, { backgroundColor: color.surface1, borderColor: color.hairline, opacity: pressed ? 0.8 : 1 }]}><View style={[styles.icon, { backgroundColor: color.accentWash }]}><Text style={[styles.iconText, { color: color.accent }]}>{mode.icon}</Text></View><View style={styles.modeText}><Text style={[TYPE.bodyStrong, { color: color.ink }]}>{mode.title}</Text><Text style={[TYPE.caption, { color: color.inkSecondary }]}>{mode.line}</Text></View><Text style={[TYPE.caption, { color: color.accent }]}>↗</Text></Pressable>)}
+    {MODES.map((mode) => <Pressable key={mode.path} onPress={() => router.push(mode.path as never)} accessibilityRole="link" style={({ pressed }) => [styles.mode, { backgroundColor: color.surface1, borderColor: color.hairline, opacity: pressed ? 0.8 : 1 }]}><View style={[styles.icon, { backgroundColor: color.accentWash }]}><Text style={[styles.iconText, { color: color.accent }]}>{mode.icon}</Text></View><View style={styles.modeText}><Text style={[TYPE.bodyStrong, { color: color.ink }]}>{mode.title}</Text><Text style={[TYPE.caption, { color: color.inkSecondary }]}>{mode.line}</Text></View><Text style={[TYPE.caption, { color: color.accent }]}>↗</Text></Pressable>)}
     <Text style={[TYPE.caption, { color: color.inkMuted }]}>More modes open the web version. Practice is native and uses the same game rules as web.</Text>
   </ScrollView></TabScreen>;
 }

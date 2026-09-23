@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
+import { openExternal } from "~/lib/external";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { WALLET_MODAL } from "@/providers/wallet/copy";
@@ -57,7 +57,7 @@ export default function ConnectSheet() {
       {failure ? <Text style={[TYPE.caption, styles.center, { color: color.loss }]}>{failure}</Text> : null}
       <View style={[styles.foot, { borderTopColor: color.hairline }]}>
         <Text style={[TYPE.caption, { color: color.inkMuted }]}>{WALLET_MODAL.newTo}</Text>
-        <Pressable onPress={() => WebBrowser.openBrowserAsync(WALLET_MODAL.learnMoreUrl)} accessibilityRole="link" hitSlop={8}>
+        <Pressable onPress={() => openExternal(WALLET_MODAL.learnMoreUrl)} accessibilityRole="link" hitSlop={8}>
           <Text style={[TYPE.bodyStrong, { color: color.accent }]}>{WALLET_MODAL.learnMore}</Text>
         </Pressable>
       </View>

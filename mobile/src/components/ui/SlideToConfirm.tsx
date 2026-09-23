@@ -1,9 +1,9 @@
-import * as Haptics from "expo-haptics";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { interpolate, runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import { haptic } from "~/components/kit/haptics";
 import { FONT, RADIUS, useTheme } from "~/theme";
 
 const THUMB = 52;
@@ -31,10 +31,10 @@ export function SlideToConfirm({ label, onConfirm, disabled, tone }: Props) {
   const tick = useSharedValue(0);
 
   const commit = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    haptic.success();
     onConfirm();
   };
-  const tickHaptic = () => Haptics.selectionAsync();
+  const tickHaptic = () => haptic.select();
 
   const pan = Gesture.Pan()
     .enabled(!disabled)

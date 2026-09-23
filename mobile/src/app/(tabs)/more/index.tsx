@@ -1,25 +1,22 @@
 import { TabScreen } from "~/components/shell/TabScreen";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { NavRow } from "~/components/ui/NavRow";
 import { DRAWER_SECTIONS, type NavItem } from "~/nav/items";
-import { SITE_URL } from "~/lib/env";
+import { openExternal } from "~/lib/external";
 import { RADIUS, SPACE, TYPE, useTheme } from "~/theme";
 
-/** The smaller native app opens web-only product paths in an in-app browser. */
+/** web's phone drawer as the More tab: every section and destination, each one a native screen. */
 export default function MoreScreen() {
   const { color } = useTheme();
-  const open = (item: NavItem) => {
-    if (item.href === "/games" || item.href === "/games/practice" || item.href === "/markets" || item.href === "/reels" || item.href === "/portfolio" || item.href === "/proof" || item.href === "/baskets" || item.href === "/short" || item.href === "/parlay" || item.href === "/leaderboard") return router.navigate(item.href);
-    return WebBrowser.openBrowserAsync(item.external ? item.href : new URL(item.href, SITE_URL).toString());
-  };
+  // Every Agari product path is a native screen; only the docs site lives outside the app.
+  const open = (item: NavItem) => (item.external ? void openExternal(item.href) : router.push(item.href as never));
   return (
     <TabScreen>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.body}>
         <View style={styles.section}>
           <Text style={[TYPE.headline, { color: color.ink }]}>Explore Agari</Text>
-          <Text style={[TYPE.body, { color: color.inkSecondary }]}>More tools, records and guides. Web-only paths open here without leaving the app.</Text>
+          <Text style={[TYPE.body, { color: color.inkSecondary }]}>Games, trading tools, records and guides.</Text>
         </View>
         {DRAWER_SECTIONS.map((section) => (
           <View key={section.id} style={styles.section}>

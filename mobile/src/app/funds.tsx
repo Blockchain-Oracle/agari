@@ -3,7 +3,7 @@ import { collateralOrNull } from "@agari/markets";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
+import { openExternal } from "~/lib/external";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FUNDING } from "@/features/funding/copy";
@@ -64,7 +64,7 @@ export default function FundsSheet() {
           <View style={styles.gap}>
             {faucet.state.gasShort ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{FUNDING.modal.gasFirst}</Text> : null}
             {SOL_FAUCETS.slice(0, faucet.state.gasShort ? SOL_FAUCETS.length : 1).map((f) => (
-              <Link key={f.url} label={faucet.state.gasShort ? `${f.name} ↗` : FUNDING.modal.needMore} onPress={() => WebBrowser.openBrowserAsync(f.url)} />
+              <Link key={f.url} label={faucet.state.gasShort ? `${f.name} ↗` : FUNDING.modal.needMore} onPress={() => openExternal(f.url)} />
             ))}
           </View>
         </>

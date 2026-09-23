@@ -4,7 +4,7 @@ import { formatBaseUnits } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { useOpeningPrice } from "@agari/markets/react";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
+import { openExternal } from "~/lib/external";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { ZoomIn } from "react-native-reanimated";
@@ -40,7 +40,7 @@ export function CallReceipt({ booked, market, decimals, symbol, onAnother }: { b
         <Figure label={SHARE.call.youStake} value={`${formatBaseUnits(booked.costBase, decimals)} ${symbol}`} ink={ink} />
         <Figure label={SHARE.call.winIfLands} value={`${formatBaseUnits(callWinBase(card), decimals)} ${symbol}`} ink={sideInk} note={SHARE.call.afterFee} />
       </View>
-      <Pressable onPress={() => WebBrowser.openBrowserAsync(txUrl(booked.txHash, marketsEnv.cluster))} accessibilityRole="link">
+      <Pressable onPress={() => openExternal(txUrl(booked.txHash, marketsEnv.cluster))} accessibilityRole="link">
         <Text style={[TYPE.data, { color: ink, opacity: 0.7 }]}>#{shortCallId(card)} ↗</Text>
       </Pressable>
       <View style={styles.actions}>

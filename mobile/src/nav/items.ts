@@ -51,7 +51,7 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
     item("Short", "/short", "Sell a stock's fall, and manage the position.", "chart.line.downtrend.xyaxis", "trending_down"),
     item("Earn", "/earn", "Put capital into earning opportunities.", "dollarsign.circle.fill", "paid"),
     item("Parlay", "/parlay", "Combine several market outcomes.", "link", "link"),
-    item("Sensei", "/markets?sensei=1", "Ask the market assistant.", "bubble.left.and.bubble.right.fill", "forum"),
+    item("Sensei", "/sensei", "Ask the market assistant.", "bubble.left.and.bubble.right.fill", "forum"),
   ] },
   { id: "proof", name: "Proof", description: "Records and market evidence", items: [
     item("Print proof", "/proof", "Every settled Window and the signed prints that decided it.", "checkmark.seal.fill", "verified"),

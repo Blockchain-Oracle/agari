@@ -87,6 +87,14 @@ export const rules = [
     pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
   },
   {
+    id: "mobile-no-web-handoff",
+    description: "the app never hands a product route to a browser or web view; only mobile/src/lib/external.ts opens outside links (S26)",
+    scopes: ["mobile/src"],
+    exts: TS,
+    exclude: ["mobile/src/lib/external.ts"],
+    pattern: /(expo-web-browser|openBrowserAsync|react-native-webview|<WebView\b)/,
+  },
+  {
     id: "time-suffix",
     description: "time-shaped fields carry their unit suffix (Ms | Sec | Ns)",
     scopes: ["packages/core", "packages/markets", "services"],

@@ -2,6 +2,7 @@ import { connectLinkWallet, linkWalletSession, practiceWalletSession, type LinkW
 import { router } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Platform } from "react-native";
+import { useMMKVString } from "react-native-mmkv";
 import { WalletShellContext, type WalletShell, type WalletShellState } from "@/providers/wallet/wallet-shell-context";
 import { marketsEnv, SITE_URL } from "~/lib/env";
 import { storage } from "~/lib/storage";
@@ -25,6 +26,12 @@ export class WalletNotInstalledError extends Error {
 
 /** Web's remembered-wallet key (providers/wallet/kit-wallet.ts storageKey). */
 const REMEMBERED = "agari.wallet";
+
+/** Which wallet the connected session belongs to (the remembered kind), or null when none is connected. */
+export function useWalletKind(): WalletKind | null {
+  const [kind] = useMMKVString(REMEMBERED, storage);
+  return (kind as WalletKind | undefined) ?? null;
+}
 
 /** The app-only half of the shell: connect a specific wallet (the connect sheet's rows call it). */
 const ConnectContext = createContext<(kind: WalletKind) => Promise<void>>(async () => undefined);

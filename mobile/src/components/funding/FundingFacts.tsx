@@ -1,5 +1,5 @@
 import type { Address } from "@agari/core/types";
-import * as WebBrowser from "expo-web-browser";
+import { openExternal } from "~/lib/external";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFundingProgress, type FundingLink } from "@/features/funding/useFundingProgress";
 import type { useFaucet } from "@/features/markets/faucet/useFaucet";
@@ -45,7 +45,7 @@ function Receipt({ link }: { link: FundingLink | null }) {
   const { color } = useTheme();
   if (!link) return null;
   return (
-    <Pressable onPress={() => WebBrowser.openBrowserAsync(link.href)} accessibilityRole="link">
+    <Pressable onPress={() => openExternal(link.href)} accessibilityRole="link">
       <Text style={[TYPE.caption, { color: color.accent }]}>{link.label}</Text>
     </Pressable>
   );
