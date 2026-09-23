@@ -1,7 +1,7 @@
 import { formatCadence } from "@agari/core/market";
-import { RANGE_STAKE_HEADROOM_BPS, type RangeQuote, type RangeReserveState, type RangeSide } from "@agari/core/range";
+import { type RangeQuote, type RangeReserveState, type RangeSide } from "@agari/core/range";
 import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { RANGE } from "@/features/range/copy";
 import { formatMultiplierTenths, formatProbE6, usdBand, usdOnGrid, utilizationPct } from "@/features/range/format";
@@ -10,7 +10,7 @@ import { diagnosisCopy } from "@/lib/copy";
 import { Button, Card, Row, Rows, SignReview, type QuoteLine } from "~/components/kit";
 import { TYPE, useTheme } from "~/theme";
 import { Clock } from "./WindowPicker";
-import { PlaceError, Placed, Pays, Solver, type PlaceStep } from "./TicketParts";
+import { PlaceError, Placed, Pays, Solver, sentStakeCapBase, type PlaceStep } from "./TicketParts";
 
 export interface RangeTicketProps {
   window: EventMarket | null;
@@ -71,7 +71,7 @@ export function RangeTicket(props: RangeTicketProps) {
   }
 
   const sideProbE6 = quote ? (side === "inside" ? quote.insideProbE6 : 1_000_000n - quote.insideProbE6) : null;
-  const maxStakeBase = quote ? mulBpsCeil(quote.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS) : null;
+  const maxStakeBase = quote ? sentStakeCapBase(quote.stakeBase) : null;
   const hasEnough = walletSpendableBase !== null && maxStakeBase !== null && walletSpendableBase >= maxStakeBase;
   const blocker = reserve.paused
     ? ticket.reservePaused
@@ -91,8 +91,9 @@ export function RangeTicket(props: RangeTicketProps) {
         { label: "Band", value: bandText },
         { label: "Window", value: `${w.asset} ${formatCadence(w.intervalSec)}` },
         { label: ticket.pays, value: formatMultiplierTenths(quote.multiplierMilli), tone: "accent" },
-        { label: ticket.youPay, value: money(quote.stakeBase) },
-        { label: ticket.youWin, value: money(quote.maxPayoutBase), tone: "profit" },
+        { label: "Payout if it lands", value: money(quote.maxPayoutBase), tone: "profit", hint: "Sent exactly: the round pays this or nothing" },
+        { label: "Priced now", value: money(quote.stakeBase), hint: "The chain prices the band again as it lands and charges that price" },
+        { label: "Most it can charge", value: money(sentStakeCapBase(quote.stakeBase)), hint: "Sent exactly: a higher price is refused, not charged" },
       ]
     : [];
 
@@ -150,8 +151,7 @@ export function RangeTicket(props: RangeTicketProps) {
         phase={step === "placing" ? "signing" : "review"}
         blocker={step === "placing" ? null : blocker}
       />
-      {maxStakeBase !== null ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{ticket.upTo(formatBaseUnits(maxStakeBase, decimals), symbol)}</Text> : null}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>
+            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
         {ticket.footnote}
         {"\n"}
         {reserve.paused ? ticket.reservePaused : ticket.reserve(formatBaseUnits(reserve.liquidBase, decimals), symbol, utilizationPct(reserve.utilizationBps))}

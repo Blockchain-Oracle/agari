@@ -1,7 +1,7 @@
 import { formatCadence } from "@agari/core/market";
-import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@agari/core/range";
+import { type MoonshotCall, type RangeReserveState } from "@agari/core/range";
 import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import type { MoonshotQuote, RangeCapacity } from "@agari/markets/range";
 import { StyleSheet, Text, View } from "react-native";
 import { MOONSHOT } from "@/features/games/moonshot/copy";
@@ -10,7 +10,7 @@ import type { SolveMode } from "@/features/range/RangeTicket";
 import { diagnosisCopy } from "@/lib/copy";
 import { Button, Card, Row, Rows, SignReview, type QuoteLine } from "~/components/kit";
 import { TYPE, useTheme } from "~/theme";
-import { PlaceError, Placed, Pays, Solver, type PlaceStep } from "../range/TicketParts";
+import { PlaceError, Placed, Pays, Solver, sentStakeCapBase, type PlaceStep } from "../range/TicketParts";
 import { Clock } from "../range/WindowPicker";
 
 export interface MoonshotTicketProps {
@@ -83,7 +83,7 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
   const distance = quote ? distancePct(quote.band.strikePrint, quote.openingPrint) : null;
   const room = capacity ? (params.maxExpiryLockedBase > capacity.lockedByExpiryBase ? params.maxExpiryLockedBase - capacity.lockedByExpiryBase : 0n) : null;
   const cappedStake = solveMode === "fixStake" && quote !== null && quote.quote.maxPayoutBase === capBase && quote.quote.stakeBase < stakeBase;
-  const maxStakeBase = quote ? mulBpsCeil(quote.quote.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS) : null;
+  const maxStakeBase = quote ? sentStakeCapBase(quote.quote.stakeBase) : null;
   const hasEnough = walletSpendableBase !== null && maxStakeBase !== null && walletSpendableBase >= maxStakeBase;
   const blocker = reserve.paused
     ? ticket.reservePaused
@@ -105,8 +105,9 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
         { label: "Target", value: target },
         { label: "Window", value: `${w.asset} ${formatCadence(w.intervalSec)}` },
         { label: ticket.pays, value: formatMultiplierTenths(quote.quote.multiplierMilli), tone: "accent" },
-        { label: ticket.youPay, value: money(quote.quote.stakeBase) },
-        { label: ticket.youWin, value: money(quote.quote.maxPayoutBase), tone: "profit" },
+        { label: "Payout if it lands", value: money(quote.quote.maxPayoutBase), tone: "profit", hint: "Sent exactly: the round pays this or nothing" },
+        { label: "Priced now", value: money(quote.quote.stakeBase), hint: "The chain prices the call again as it lands and charges that price" },
+        { label: "Most it can charge", value: money(sentStakeCapBase(quote.quote.stakeBase)), hint: "Sent exactly: a higher price is refused, not charged" },
       ]
     : [];
 
@@ -179,8 +180,7 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
         blocker={step === "placing" ? null : blocker}
         tone={call.direction === "long" ? "profit" : "loss"}
       />
-      {maxStakeBase !== null ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{ticket.upTo(formatBaseUnits(maxStakeBase, decimals), symbol)}</Text> : null}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>
+            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
         {ticket.footnote}
         {"\n"}
         {reserve.paused ? ticket.reservePaused : ticket.reserve(formatBaseUnits(reserve.liquidBase, decimals), symbol, utilizationPct(reserve.utilizationBps))}

@@ -12,6 +12,7 @@ import {
   type PracticeRound,
   type PracticeScore,
 } from "@agari/core/games";
+import { PRICE_STALE_AFTER_MS } from "@agari/core/constants";
 import { isOk } from "@agari/core/schemas";
 import type { AssetPrice } from "@agari/core/types";
 import { useLanes } from "@agari/markets/react";
@@ -30,7 +31,18 @@ import { useVenue } from "@/features/markets/useVenue";
  * the watch ends. Both are real readings. If a reading is missing at either moment the card is not
  * scored rather than being given a made-up number, which is why `practiceScore` tolerates a missing
  * close in the first place.
+ *
+ * One phone-side difference from web: the deck is dealt only from Windows whose asset has a fresh live
+ * price (the same staleness line the card face uses), so an asset the feed is not publishing is simply not
+ * dealt, rather than dealt as a card that can never be played. Every candidate asset is probed for that.
  */
+
+/** How long the probes get to report before "nothing priceable" is said instead of "dealing". */
+const PRICE_GRACE_MS = 8_000;
+
+function isFresh(price: AssetPrice | undefined, nowMs: number): boolean {
+  return price !== undefined && nowMs - price.publishTimeSec * 1_000 <= PRICE_STALE_AFTER_MS;
+}
 
 export type PracticeReadiness =
   | { kind: "dealing" }
@@ -98,11 +110,16 @@ export function usePracticeRound(): PracticeSession {
   useEffect(() => {
     if (dealtFor.current === dealNonce && round.cards.length > 0) return;
     if (!candidates || nowMs === 0) return;
-    const cards = selectPracticeDeck(candidates, Math.floor(nowMs / 1_000));
+    const priced = candidates.filter((c) => isFresh(prices.get(c.asset), nowMs));
+    const cards = selectPracticeDeck(priced, Math.floor(nowMs / 1_000));
     if (cards.length === 0) return;
     dealtFor.current = dealNonce;
     dispatch({ kind: "deal", seed: freshSeed(), cards });
-  }, [dealNonce, candidates, nowMs, round.cards.length]);
+  }, [dealNonce, candidates, nowMs, round.cards.length, prices]);
+
+  /** When the venue's candidates first arrived, so the probes get a grace period to report. */
+  const candidatesAtMs = useRef(0);
+  if (candidates && nowMs > 0 && candidatesAtMs.current === 0) candidatesAtMs.current = nowMs;
 
   const deal = useCallback(() => setDealNonce((n) => n + 1), []);
 
@@ -146,12 +163,17 @@ export function usePracticeRound(): PracticeSession {
 
   const playedSide = useCallback((cardIndex: number) => round.picks.find((p) => p.cardIndex === cardIndex)?.side ?? null, [round.picks]);
 
-  const assets = useMemo(() => [...new Set(round.cards.map((card) => card.asset))], [round.cards]);
+  // Every candidate's asset is probed (the deal needs to know which are priced), plus the dealt deck's.
+  const assets = useMemo(
+    () => [...new Set([...(candidates ?? []).map((c) => c.asset), ...round.cards.map((card) => card.asset)])],
+    [candidates, round.cards],
+  );
 
   const readiness = useMemo<PracticeReadiness>(() => {
     if (round.cards.length > 0) return { kind: "ready" };
     if (lanes && !isOk(lanes)) return { kind: "unreadable" };
     if (candidates === null || nowMs === 0) return { kind: "dealing" };
+    if (nowMs - candidatesAtMs.current < PRICE_GRACE_MS) return { kind: "dealing" };
     return { kind: "no-deck" };
   }, [round.cards.length, lanes, candidates, nowMs]);
 

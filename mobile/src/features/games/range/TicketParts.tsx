@@ -1,5 +1,6 @@
+import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import type { Signature } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
+import { mulBpsCeil, shortHex } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import { StyleSheet, Text, View } from "react-native";
 import type { SolveMode } from "@/features/range/RangeTicket";
@@ -9,6 +10,17 @@ import { FONT, TYPE, useTheme } from "~/theme";
 
 /** web's parlay `TicketParts` step ladder, as the reserve tickets use it. */
 export type PlaceStep = "idle" | "placing" | "success" | "error";
+
+/**
+ * The stake cap a reserve open actually carries to the program. web's builder raises the quoted stake by
+ * RANGE_STAKE_HEADROOM_BPS (ceil) into the intent's `maxStakeBase`, and `packages/markets/src/range/writes.ts` raises
+ * that by the same headroom again (floor) before it is sent. The program re-prices as it lands and may charge up to
+ * this figure, so this — both headrooms, the same bigint arithmetic — is the most the round can cost.
+ */
+export function sentStakeCapBase(quotedStakeBase: bigint): bigint {
+  const intentCap = mulBpsCeil(quotedStakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS);
+  return (intentCap * BigInt(10_000 + RANGE_STAKE_HEADROOM_BPS)) / 10_000n;
+}
 
 /** A decimal typed into a money field: digits and one point. */
 export function sanitizeAmount(text: string): string {

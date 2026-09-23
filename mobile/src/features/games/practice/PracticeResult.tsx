@@ -25,7 +25,6 @@ export function PracticeResult({ round, score, onAgain }: { round: PracticeRound
   }, []);
 
   const verdict = score.winner === "you" ? PRACTICE.result.won : score.winner === "bot" ? PRACTICE.result.lost : PRACTICE.result.tied;
-  const verdictInk = score.winner === "you" ? color.profit : score.winner === "bot" ? color.loss : color.creamInk;
 
   return (
     <View style={styles.root} accessibilityLabel={PRACTICE.result.title}>
@@ -36,7 +35,7 @@ export function PracticeResult({ round, score, onAgain }: { round: PracticeRound
           <Text style={[styles.dash, { color: color.creamInk }]}>–</Text>
           <Tally label={PRACTICE.result.bot} value={score.botWon} />
         </View>
-        <Text style={[TYPE.stamp, styles.verdict, { color: verdictInk }]}>{verdict}</Text>
+        <Text style={[TYPE.stamp, styles.verdict, { color: color.creamInk }]}>{verdict}</Text>
       </View>
 
       {score.cards.map((c) => (
