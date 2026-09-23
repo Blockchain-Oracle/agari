@@ -32,6 +32,8 @@ Agari reads [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks)
 
 A TSLA, QQQ or VOO Window settles only after the program itself verifies a Pyth pull-oracle update for the exact boundary second. The app never settles on a "latest" read.
 
+These Pyth policies run on a trial key and cover Windows through the NYSE close on 25 September 2026 (20:00Z), as written in [`price-sources.json`](services/ops/config/price-sources.json). After that TSLA settles on RedStone (policy version 2), and QQQ and VOO pause until a Pyth Pro key replaces the trial. Policy versions are immutable, so a new key means appending a version, not changing code.
+
 | What Pyth does in Agari | Code | Live | On-chain proof |
 | --- | --- | --- | --- |
 | **Prints verified on chain.** `public_record_print_pyth` checks the `PriceUpdateV2` for the Window's boundary timestamp before it records the price. | [`anchor/programs/agari-events/src/instructions/record_print_sources.rs`](anchor/programs/agari-events/src/instructions/record_print_sources.rs) | [TSLA/USD on Pyth](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD) | [TSLA settle, Pyth 358.20432 → 358.75](https://explorer.solana.com/tx/xjKyBjRk51GitA35CZoP6fKd9huZ15EMH5RPmv8Lkj6XCKYn71zUDFfJaQPHyyresAX4Es13UCFGs4GSogvmzwt?cluster=devnet) |
