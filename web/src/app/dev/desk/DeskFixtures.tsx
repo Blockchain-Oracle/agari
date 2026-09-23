@@ -9,6 +9,7 @@ import { deskView } from "@/features/desk/view";
 import { useViewerZone } from "@/lib/when";
 import { Fixture } from "../states/_sections/Fixture";
 import { DecisionFixtures } from "./DecisionFixtures";
+import { EntryFixtures } from "./EntryFixtures";
 import { BALANCES, fixtureActions, NOW_SEC, OWNER, VIEWS } from "./fixtures";
 import { DESK_ID, RECORDS } from "./fixtures-records";
 
@@ -87,6 +88,7 @@ export function DeskFixtures() {
         <SectionHeader index="12" title={DEV.shared} />
         <DeskPage view={deskView(VIEWS.shared)} actions={null} zone={zone} nowSec={NOW_SEC} />
       </section>
+      <EntryFixtures />
     </div>
   );
 }
