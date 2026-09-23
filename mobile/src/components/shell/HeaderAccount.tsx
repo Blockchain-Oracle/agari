@@ -43,6 +43,7 @@ function AccountMenu({ address, disconnect }: { address: string; disconnect: () 
         <Section title={`${address.slice(0, 4)}…${address.slice(-4)}`}>
           {balances.map((row) => <Button key={row.label} label={`${row.label}   ${row.amount}`} />)}
         </Section>
+        <Button label="Add funds" systemImage="plus.circle" onPress={() => router.push("/funds")} />
         <Button label={WALLET_MODAL.profile.copy} systemImage="doc.on.doc" onPress={() => { Clipboard.setStringAsync(address); Haptics.selectionAsync(); }} />
         <Button label={ACCOUNT_MENU.portfolio} systemImage="wallet.bifold" onPress={() => router.navigate("/portfolio")} />
         <Divider />

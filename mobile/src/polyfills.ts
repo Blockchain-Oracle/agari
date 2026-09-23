@@ -1,4 +1,5 @@
 import { install } from "react-native-quick-crypto";
+import { SITE_URL } from "./lib/env";
 import { storage } from "./lib/storage";
 
 // Patches global.crypto (getRandomValues + subtle with Ed25519) and global.Buffer.
@@ -23,3 +24,11 @@ if (typeof globalThis.localStorage === "undefined") {
   };
   Object.defineProperty(globalThis, "localStorage", { value: local, configurable: true });
 }
+
+/**
+ * Web's hooks call their own API by path (`/api/faucet`, `/api/index/...`): a page resolves that against its origin,
+ * a phone has none, so a path resolves against the production web app (EXPO_PUBLIC_SITE_URL in development).
+ */
+const nativeFetch = globalThis.fetch;
+globalThis.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
+  nativeFetch(typeof input === "string" && input.startsWith("/") ? `${SITE_URL}${input}` : input, init);

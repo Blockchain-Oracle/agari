@@ -16,6 +16,8 @@ const shims = path.join(__dirname, "src/web-shims");
 const WEB_SHIMS = new Map([
   [path.join(webSrc, "lib/env.ts"), path.join(shims, "env.ts")],
   [path.join(webSrc, "lib/visibility.ts"), path.join(shims, "visibility.ts")],
+  [path.join(webSrc, "lib/toast.ts"), path.join(shims, "toast.ts")],
+  [path.join(webSrc, "features/funding/credited.ts"), path.join(shims, "credited.ts")],
   [path.resolve(__dirname, "../packages/markets/src/runtime/page.ts"), path.join(shims, "page.ts")],
 ]);
 

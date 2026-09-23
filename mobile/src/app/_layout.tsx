@@ -8,6 +8,7 @@ import { UserSessionProvider } from "@/providers/UserSessionProvider";
 import { marketsEnv } from "~/lib/env";
 import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
+import { Toaster } from "~/components/toast/Toaster";
 import { WalletProvider } from "~/wallet/WalletProvider";
 
 SplashScreen.preventAutoHideAsync();
@@ -43,8 +44,10 @@ function RootStack() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="connect" options={{ presentation: "formSheet", sheetAllowedDetents: [0.55, 0.9], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
+        <Stack.Screen name="funds" options={{ presentation: "formSheet", sheetAllowedDetents: [0.75, 1], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
         <Stack.Screen name="account" options={{ presentation: "formSheet", sheetAllowedDetents: [0.5], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
       </Stack>
+      <Toaster />
     </>
   );
 }

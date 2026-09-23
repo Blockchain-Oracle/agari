@@ -49,6 +49,7 @@ function roles(ramp: typeof DARK_RAMP, dark: boolean) {
     // web's styles/icons.css: the white glyph on a brand disc, and the hairline ring on a near-black disc.
     markGlyph: "#FFFFFF",
     markRing: "rgba(255, 255, 255, 0.22)",
+    markUsdc: "#2775CA",
     warning: "#F2994A",
     info: "#60A5FA",
   };
