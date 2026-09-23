@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { UserSessionProvider } from "@/providers/UserSessionProvider";
 import { marketsEnv } from "~/lib/env";
 import { ThemeProvider, useTheme } from "~/theme";
@@ -22,6 +23,7 @@ export default function RootLayout() {
   }, [fontsReady]);
   if (!fontsReady) return null;
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <QueryClientProvider client={client}>
       <MarketsProvider env={marketsEnv}>
         <ThemeProvider>
@@ -33,6 +35,7 @@ export default function RootLayout() {
         </ThemeProvider>
       </MarketsProvider>
     </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 
