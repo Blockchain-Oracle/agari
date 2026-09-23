@@ -32,7 +32,7 @@ export default function FoundationsProbe() {
           <Text style={styles.line}>lanes: FAILED {lanes.error.kind}</Text>
         ) : (
           lanes.value.lanes.map((lane) => (
-            <View key={lane.label} style={styles.lane}>
+            <View key={`${lane.basis}:${lane.intervalSec}`} style={styles.lane}>
               <Text style={styles.laneTitle}>{lane.label} · {lane.markets.length} live</Text>
               {lane.markets.slice(0, 6).map((m) => (
                 <Text key={m.marketId} style={styles.line}>{m.asset} · {m.question}</Text>
