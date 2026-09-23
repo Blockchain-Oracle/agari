@@ -110,7 +110,7 @@
 .dkit-steps li[data-state="done"] button { cursor: pointer; color: var(--color-ink-secondary); }
 .dkit-steps li[data-state="current"] button { color: var(--color-ink); }
 .dkit-step-badge { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9999px; border: 1.5px solid var(--color-hairline); background: var(--market-card-surface, var(--color-surface-1)); font-family: var(--font-data); font-size: 13px; font-weight: 600; transition: all 200ms ease; }
-.dkit-steps li[data-state="done"] .dkit-step-badge { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-accent-foreground, #fff); }
+.dkit-steps li[data-state="done"] .dkit-step-badge { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-accent-foreground); }
 .dkit-steps li[data-state="current"] .dkit-step-badge { border-color: var(--color-accent); color: var(--color-accent); box-shadow: 0 0 0 4px var(--color-accent-wash); }
 .dkit-step-text { display: flex; flex-direction: column; gap: 2px; }
 .dkit-steps li:not(:first-child):not(:last-child) .dkit-step-text { align-items: center; text-align: center; }
