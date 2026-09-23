@@ -1,10 +1,11 @@
 import type { LinkPort } from "@agari/markets/sessions/mobile";
 import * as Linking from "expo-linking";
-import { AppState } from "react-native";
+import { AppState, Platform } from "react-native";
 
 const RETURN_PREFIX = "agari://wallet/";
 /** How long after the app comes back to wait for the wallet's reply link before calling the hand-off cancelled. */
 const RETURN_GRACE_MS = 1_500;
+const RETURN_TIMEOUT_MS = 45_000;
 
 type Pending = { method: string; resolve: (params: URLSearchParams) => void; reject: (error: Error) => void };
 let pending: Pending | null = null;
@@ -33,6 +34,17 @@ export const linkPort: LinkPort = {
     pending?.reject(new Error("Replaced by a newer wallet request."));
     return new Promise<URLSearchParams>((resolve, reject) => {
       let left = false;
+      let settled = false;
+      const finish = (error?: Error, params?: URLSearchParams) => {
+        if (settled) return;
+        settled = true;
+        if (pending?.method === method) pending = null;
+        sub.remove();
+        linkSub.remove();
+        clearTimeout(timeout);
+        if (error) reject(error);
+        else resolve(params!);
+      };
       const sub = AppState.addEventListener("change", (state) => {
         if (state !== "active") {
           left = true;
@@ -41,26 +53,20 @@ export const linkPort: LinkPort = {
         if (!left) return;
         setTimeout(() => {
           if (pending?.method !== method) return;
-          pending = null;
-          sub.remove();
-          reject(new Error("User rejected the request."));
+          finish(new Error("The wallet did not return to Agari. Check the wallet app or try again."));
         }, RETURN_GRACE_MS);
       });
+      const linkSub = Linking.addEventListener("url", (event) => { deliverWalletReturn(event.url); });
+      const timeout = setTimeout(() => finish(new Error("The wallet did not return to Agari. Check that it is installed and try again.")), RETURN_TIMEOUT_MS);
       pending = {
         method,
-        resolve: (params) => {
-          sub.remove();
-          resolve(params);
-        },
-        reject: (error) => {
-          sub.remove();
-          reject(error);
-        },
+        resolve: (params) => finish(undefined, params),
+        reject: (error) => finish(error),
       };
-      Linking.openURL(url).catch((error: unknown) => pending?.reject(error instanceof Error ? error : new Error(String(error))));
+      Linking.openURL(url).catch((error: unknown) => finish(error instanceof Error ? error : new Error(String(error))));
     });
   },
 };
 
 /** Whether the wallet app is on this phone (its scheme is declared in LSApplicationQueriesSchemes). */
-export const isWalletInstalled = (scheme: "phantom" | "solflare") => Linking.canOpenURL(`${scheme}://`);
+export const isWalletInstalled = (scheme: "phantom" | "solflare") => Platform.OS === "android" ? Promise.resolve(true) : Linking.canOpenURL(`${scheme}://`);

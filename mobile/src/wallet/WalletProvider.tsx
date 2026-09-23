@@ -1,6 +1,7 @@
 import { connectLinkWallet, linkWalletSession, practiceWalletSession, type LinkWalletState } from "@agari/markets/sessions/mobile";
 import { router } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Platform } from "react-native";
 import { WalletShellContext, type WalletShell, type WalletShellState } from "@/providers/wallet/wallet-shell-context";
 import { marketsEnv, SITE_URL } from "~/lib/env";
 import { storage } from "~/lib/storage";
@@ -8,8 +9,12 @@ import type { WalletKind } from "./choices";
 import { clearLinkState, loadLinkState, saveLinkState } from "./link-store";
 import { isWalletInstalled, linkPort } from "./link-port";
 import { practiceSeed } from "./practice-store";
+import { clearMwaState, connectMwaWallet, loadMwaState, mwaWalletSession } from "./mwa";
 
-const STORE_URL = { phantom: "https://apps.apple.com/app/phantom-crypto-wallet/id1598432977", solflare: "https://apps.apple.com/app/solflare-solana-wallet/id1580902717" } as const;
+const STORE_URL = Platform.select({
+  android: { phantom: "https://play.google.com/store/apps/details?id=app.phantom", solflare: "https://play.google.com/store/apps/details?id=com.solflare.mobile" },
+  default: { phantom: "https://apps.apple.com/app/phantom-crypto-wallet/id1598432977", solflare: "https://apps.apple.com/app/solflare-solana-wallet/id1580902717" },
+})!;
 
 /** Thrown when the chosen wallet app is not on this phone; the sheet offers its download. */
 export class WalletNotInstalledError extends Error {
@@ -34,7 +39,11 @@ const READY_EMPTY: WalletShellState = { status: "ready", connecting: false, addr
 /** A wallet's session: the practice key, or a link wallet (connecting it, or restoring its stored session silently). */
 async function openWallet(kind: WalletKind, restore: boolean) {
   if (kind === "practice") return practiceWalletSession(await practiceSeed(), marketsEnv);
-  if (kind === "backpack") throw new Error("Backpack connects through Mobile Wallet Adapter on Android.");
+  if (kind === "mwa") {
+    const state = restore ? await loadMwaState() : await connectMwaWallet();
+    if (!state) throw new Error("No Android wallet session is stored.");
+    return mwaWalletSession(state);
+  }
   let state: LinkWalletState | null = await loadLinkState();
   if (state?.wallet !== kind) {
     if (restore) throw new Error("no stored session");
@@ -81,6 +90,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       disconnect: async () => {
         storage.remove(REMEMBERED);
         await clearLinkState();
+        await clearMwaState();
         setState(READY_EMPTY);
       },
     }),

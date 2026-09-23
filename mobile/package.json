@@ -10,6 +10,7 @@
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo-google-fonts/sora": "^0.4.2",
     "@expo/ui": "~57.0.19",
+    "@solana-mobile/mobile-wallet-adapter-protocol": "2.3.0",
     "@tanstack/react-query": "catalog:",
     "expo": "~57.0.24",
     "expo-clipboard": "~57.0.2",

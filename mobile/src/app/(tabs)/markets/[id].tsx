@@ -2,7 +2,7 @@ import { isOk } from "@agari/core/schemas";
 import type { MarketId, Side } from "@agari/core/types";
 import { useMarket, useOpeningPrice } from "@agari/markets/react";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { assetPriceLine } from "@/features/markets/hero/units";
 import { useChartSeries } from "@/features/markets/hero/useChartSeries";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
@@ -28,7 +28,7 @@ export default function WindowScreen() {
   const series = useChartSeries(market);
   const book = useTopOfBook(market);
   const nowMs = useChainNowMs();
-  if (!market) return <View style={[styles.fill, { backgroundColor: color.ground }]} />;
+  if (!market) return <View style={[styles.fill, styles.holding, { backgroundColor: color.ground }]}><Text style={[TYPE.title, { color: color.ink }]}>{reading === null ? "Reading Window…" : reading.ok ? "Window not found" : "Window unavailable"}</Text><Text style={[TYPE.body, { color: color.inkSecondary }]}>Return to Markets to choose a live Window.</Text><Pressable onPress={() => router.back()} accessibilityRole="button"><Text style={[TYPE.bodyStrong, { color: color.accent }]}>Back to Markets →</Text></Pressable></View>;
 
   const nowSec = nowMs > 0 ? nowMs / 1000 : Date.now() / 1000;
   const remaining = Math.max(0, market.lockAtSec - nowSec);
@@ -49,6 +49,7 @@ export default function WindowScreen() {
         <WindowQuestion asset={market.asset} openingRaw={openingRaw} currentRaw={spot} />
         <WindowChart points={points} strikeRaw={openingRaw} />
         <SideButtons upCents={book.upCents} downCents={book.downCents} onPick={pick} disabled={remaining <= 0} />
+        {market.status === "Resolved" || market.status === "Voided" || market.status === "Finalized" ? <Pressable onPress={() => router.push({ pathname: "/proof/[id]", params: { id: market.marketId } })} accessibilityRole="link" style={[styles.proofLink, { borderColor: color.hairline }]}><Text style={[TYPE.bodyStrong, { color: color.accent }]}>See the settlement prints</Text><Text style={[TYPE.bodyStrong, { color: color.accent }]}>→</Text></Pressable> : null}
       </ScrollView>
     </>
   );
@@ -67,8 +68,10 @@ function WindowTitle({ asset, cadence }: { asset: string; cadence: string }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  holding: { justifyContent: "center", padding: SPACE.gutter, gap: 14 },
   body: { padding: SPACE.gutter, gap: 18, paddingBottom: 120 },
   headRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   price: { gap: 2 },
   title: { flexDirection: "row", alignItems: "center", gap: 8 },
+  proofLink: { borderWidth: 1, borderRadius: 12, height: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
 });
