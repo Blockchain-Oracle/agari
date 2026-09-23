@@ -39,7 +39,7 @@
 }
 .lp-solana-mark { display: block; width: 20px; height: auto; flex: none; }
 .lp-wordmark { display: flex; align-items: baseline; gap: 9px; color: var(--lp-ink); }
-.lp-wordmark-mark { display: inline-flex; width: clamp(22px, 2.1vw, 34px); height: clamp(28px, 2.6vw, 42px); flex-shrink: 0; }
+.lp-wordmark-mark { display: inline-flex; width: clamp(28px, 2.8vw, 44px); height: clamp(28px, 2.8vw, 44px); flex-shrink: 0; }
 .lp-wordmark-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .lp-wordmark-name {
   font-family: Georgia, "Times New Roman", serif;
@@ -140,7 +140,7 @@
 .lp-preview-basket-body, .lp-preview-proof-body { padding: 13px 17px 16px; }
 .lp-preview-rail { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--lp-rule); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
 .lp-preview-rail > span { display: inline-flex; align-items: center; gap: 6px; }
-.lp-preview-rail svg { width: 11px; height: 13px; }
+.lp-preview-rail svg { width: 13px; height: 13px; }
 .lp-preview-rail a { color: var(--lp-muted); text-decoration: none; }
 .lp-preview-rail a:hover { color: var(--vermilion); }
 .lp-preview-basket-head { display: flex; align-items: center; gap: 13px; margin-top: 15px; }

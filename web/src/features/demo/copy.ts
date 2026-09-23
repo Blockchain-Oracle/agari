@@ -103,7 +103,7 @@ export const DEMO = {
     footer: "Agari · stock prediction Windows on Solana, open after the bell.",
   },
   frame: {
-    caption: (date: string) => `captured from the running devnet product · ${date}`,
+    caption: (date: string) => `captured from the running devnet product · ${date} · before the identity refresh`,
     markets: "Agari's market board after the close: the last price, the next session on the clock, and the ticket beside it",
     reel: "The reel after the close: the next session on the clock, with the latest takes a swipe away",
     sensei: "Sensei open over the market, reading the same stream the page holds",

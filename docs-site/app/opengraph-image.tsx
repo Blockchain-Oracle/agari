@@ -11,9 +11,9 @@ export default function OpenGraphImage() {
       <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',width:'100%',paddingBottom:32,borderBottom:'1px solid #D6CBB7' }}>
         <span style={{ color:'#D93E1F',fontSize:18,letterSpacing:3 }}>THE AGARI HANDBOOK</span>
         <div style={{ display:'flex',alignItems:'center',gap:13 }}>
-          <svg width="37" height="45" viewBox="0 0 266 322" xmlns="http://www.w3.org/2000/svg">
-            <path d="M56 120 A 88 88 0 1 0 210 120" stroke="#141210" fill="none" strokeWidth="34" strokeLinecap="round" />
-            <circle cx="133" cy="62" r="30" fill="#D93E1F" />
+          <svg width="43" height="43" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0H151L183 32V61H139V44H44V176H176V82H220V220H0Z" fill="#141210" />
+            <path d="M173 0H220V47Z" fill="#D93E1F" />
           </svg>
           <span style={{ fontSize:30,fontWeight:700 }}>Agari</span>
         </div>

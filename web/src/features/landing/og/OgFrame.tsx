@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { BRAND } from "@/lib/copy";
 import { OG_COPY } from "./copy";
 import { OG, OG_PAD } from "./theme";
+import { AGARI_MARK_FIGURE, AGARI_MARK_OUTCOME } from "@/components/shell/AgariMark";
 
 const CROP = 28;
 const CROP_INSET = 32;
@@ -26,15 +27,14 @@ function Crop({ at }: { at: "tl" | "tr" | "bl" | "br" }) {
 }
 
 /**
- * The Agari mark at preview size. The drawing is `components/shell/AgariMark.tsx`'s (crescent path, the vermilion
- * point), restated with inline fills and a fixed size because that component sizes by class and paints by CSS.
+ * The Agari mark at preview size uses the same paths as the app component.
  */
 function Wordmark() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-      <svg width={40} height={48} viewBox="0 0 266 322" xmlns="http://www.w3.org/2000/svg">
-        <path d="M56 120 A 88 88 0 1 0 210 120" stroke={OG.ink} fill="none" strokeWidth="34" strokeLinecap="round" />
-        <circle cx="133" cy="62" r="30" fill={OG.vermilion} />
+      <svg width={43} height={43} viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+        <path d={AGARI_MARK_FIGURE} fill={OG.ink} />
+        <path d={AGARI_MARK_OUTCOME} fill={OG.vermilion} />
       </svg>
       <div style={{ display: "flex", fontSize: 30, letterSpacing: "0.22em", color: OG.ink }}>{BRAND.name.toUpperCase()}</div>
     </div>

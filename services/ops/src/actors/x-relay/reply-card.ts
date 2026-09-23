@@ -91,9 +91,9 @@ function text(value: string, x: number, baseline: number, size: number, fill: st
   return `<g role="img" aria-label="${escapeXml(value)}"><path d="${font.getPath(value, x, baseline, size, { kerning: true }).toPathData(2)}" fill="${fill}"/></g>`;
 }
 
-/** The Agari mark, path for path with `web/src/components/shell/AgariMark.tsx` (266×322), shared with the app and docs brand. */
+/** The Window Cut mark, path for path with `brand/agari-mark.svg` (220×220). */
 function mark(x: number, y: number, height: number, ink: string): string {
-  return `<g transform="translate(${x} ${y}) scale(${height / 322})" aria-hidden="true"><path d="M56 120 A 88 88 0 1 0 210 120" stroke="${ink}" fill="none" stroke-width="34" stroke-linecap="round"/><circle cx="133" cy="62" r="30" fill="${ORANGE}"/></g>`;
+  return `<g transform="translate(${x} ${y}) scale(${height / 220})" aria-hidden="true"><path d="M0 0H151L183 32V61H139V44H44V176H176V82H220V220H0Z" fill="${ink}"/><path d="M173 0H220V47Z" fill="${ORANGE}"/></g>`;
 }
 
 function receiptArt(status: XReceiptStatus): string {
