@@ -1,3 +1,18 @@
+# STATUS — updated 2026-09-23 ~14:55 UTC by Claude (**S26 the native app: approved, building on `stage/S26-mobile`**)
+
+## Session of 2026-09-23 12:00–14:55Z — S26 mobile (READ THIS FIRST)
+
+- **Approved** (D-128, plan `~/.claude/plans/agari-mobile-s26.md`, stage file `stage-26-mobile.md`): Expo SDK 57 app in `mobile/`, iOS Phantom/Solflare deeplinks + Android MWA + devnet practice wallet, TestFlight and an APK. Apple Developer account is **Individual** (practice wallet stays off externally reviewed builds).
+- **Worktree** `agari-wt/s26` on `stage/S26-mobile` (from `integration/w1` @ `258c857`); `w1` holds another session's uncommitted docs-site work — untouched.
+- **Built:**
+  - S26.0: the app runs on the iOS 26.5 simulator. Live Windows come from production through `useLanes`, and Ed25519 WebCrypto works in Hermes (quick-crypto).
+  - Metro pins React, React Native and React Query to single copies, and stubs `undici`.
+  - The invariants scan `mobile/`.
+  - S26.1 shell: glass NativeTabs, the brand header, fonts (Noto Serif JP subset), the More list, the icon (`.icon` layers) and both themes.
+- **Run:** `cd mobile && pnpm expo run:ios --device "iPhone 17 Pro"`; after JS-only edits, relaunch with `xcrun simctl terminate/launch booted xyz.useagari.app`.
+- **Blocked on the user:** `! pnpm dlx eas-cli@latest login` (Expo account), then `pnpm dlx testflight` from `mobile/` (Apple ID + 2FA) for the first TestFlight build (last S26.0 box).
+- **Next:** S26.1 remainder (marquee, theme switch in settings, a mobile design-literals invariant), then S26.2 wallets.
+
 # STATUS — updated 2026-09-23 ~11:10 UTC by Claude (**S25 sponsor visibility live · docs.useagari.xyz live**)
 
 
