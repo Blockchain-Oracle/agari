@@ -10,6 +10,11 @@ import { ConnectButton } from "@/features/markets/wallet";
 import { AgentMemory } from "./AgentMemory";
 import { AgentPortrait } from "./AgentPortrait";
 import { progressCaps } from "./copy-progress";
+import { useBalanceSheet } from "@agari/markets/react";
+import { isOk } from "@agari/core/schemas";
+import { checkCopyForm } from "./copy-form";
+import { COPY_FORM } from "./copy-form-copy";
+import { CopyFormFields } from "./CopyFormFields";
 import { capsFor, money, parseAmount } from "./format";
 import { strategyIdentity } from "./identity";
 import { STRATEGY_DIRECTION } from "./copy";
@@ -59,8 +64,15 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
   const caps = pending ? progressCaps(pending) : capsFor("balanced", ceilingBase, targetBase, decimals, envelope);
   const reusable = availableBase + (grant && !grant.revoked ? grant.budgetBase : 0n);
   const topUp = !pending && targetBase > reusable ? targetBase - reusable : 0n;
-  const valid = targetBase > 0n && ceilingBase > 0n && ceilingBase <= envelope.maxStakePerTradeBase && ceilingBase <= targetBase;
   const disabled = Boolean(writes.busy) || !writes.canSign || !readable || anotherPending;
+  const sheet = useBalanceSheet(writes.address);
+  const walletBase = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
+  const check = checkCopyForm({
+    budgetText: budget, perTradeText: perTrade, decimals, symbol, strategyMaxBase: envelope.maxStakePerTradeBase, walletBase, reusableBase: reusable,
+    feeBase: currentFee.fee, feeError: currentFee.error, busy: Boolean(writes.busy), canSign: writes.canSign, readable,
+    otherPendingId: anotherPending ? (writes.pending?.strategyId ?? null) : null, releasePending: Boolean(pending?.releasePending), resuming: Boolean(pending),
+  });
+  const valid = targetBase > 0n && ceilingBase > 0n && ceilingBase <= envelope.maxStakePerTradeBase && ceilingBase <= targetBase;
   const withdrawBase = parseAmount(withdrawAmount, decimals);
   const fundBase = parseAmount(fundAmount, decimals);
   const withdrawable = availableBase + (ownGrant?.budgetBase ?? 0n);
@@ -89,7 +101,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
     currentFee.refresh();
   };
   const confirm = () => {
-    if (!valid || currentFee.fee === null) return;
+    if (check.blockedBy !== null || !valid || currentFee.fee === null) return;
     void perform(() => writes.join({ strategyId: BigInt(card.strategyId), runner: card.runner as Address, depositBase: topUp, budgetBase: targetBase, caps, feeBase: currentFee.fee!, fade: copying }));
   };
   return <div className="strat-drawer-root">
@@ -99,7 +111,8 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
       <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on Solana ↗</a></div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>
       <RecordCard record={card.record} decimals={decimals} symbol={symbol} />
-      <div className="strat-drawer-rule mt-5"><p className="strat-meta mb-2 text-vermilion">{COPY_STATE_LABEL[state]}</p><p className="strat-drawer-body">{state === "copying" ? "Your permission is active. A trade still needs a signal and fresh risk checks." : state === "checking" ? "Checking your current vault permission and registry consent before making changes." : state === "inactive" ? "This strategy is not accepting new subscriptions. Existing consent can be paused." : "Review a new permission to start or resume. Publishing alone does not fund or activate a copy."}</p></div>
+      <div className="strat-drawer-rule mt-5" data-state={state}>{state === "copying" && <p className="copy-you" role="status"><span aria-hidden />{sub?.fade ? COPY_FORM.fading : COPY_FORM.copying}</p>}<p className="strat-meta mb-2 text-vermilion">{COPY_STATE_LABEL[state]}</p><p className="strat-drawer-body">{state === "copying" ? "Your permission is active. A trade still needs a signal and fresh risk checks." : state === "checking" ? "Checking your current vault permission and registry consent before making changes." : state === "inactive" ? "This strategy is not accepting new subscriptions. Existing consent can be paused." : "Review a new permission to start or resume. Publishing alone does not fund or activate a copy."}</p></div>
+      {state === "replaced" && grant && !grant.revoked && sub && grant.grantId !== sub.grantId && <p className="agent-builder-error mt-3">{COPY_FORM.replaced}</p>}
       <StrategyActivity state={state} grant={grant && sub?.grantId === grant.grantId ? grant : null} health={health ?? null} nowMs={nowMs} />
       {result && <div className={result.ok ? "copy-progress mb-5" : "agent-builder-error mb-5"} role="status"><p>{result.ok ? "Confirmed. Your balances and permissions are refreshing." : result.reason}</p>{result.txHash && <a href={txUrl(result.txHash)} target="_blank" rel="noreferrer">View transaction ↗</a>}</div>}
       {pending && <div className="copy-progress mb-5"><strong>{writes.busy ? "Copy setup in progress." : pending.stage === "subscribe-ready" ? "Permission saved. Subscription remains." : "An interrupted step needs checking."}</strong><p>{writes.busy ? "Waiting for wallet and chain confirmations. Your progress is saved." : "We will check this setup before continuing. The deposit will not be repeated."}</p>{pending.grantTx && <a className="block mt-2" href={txUrl(pending.grantTx)} target="_blank" rel="noreferrer">Permission transaction ↗</a>}{pending.subscribeTx && <a className="block mt-2" href={txUrl(pending.subscribeTx)} target="_blank" rel="noreferrer">Subscription transaction ↗</a>}<button className="desk-pill mt-3" disabled={disabled} onClick={() => void perform(writes.releasePending)}>{pending.releasePending ? "Check permission release" : "Release this permission"}</button></div>}
@@ -125,15 +138,13 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
             </div>
             <p className="strat-drawer-body mt-2">{directionLocked ? (copying ? STRATEGY_DIRECTION.lockedFade : STRATEGY_DIRECTION.lockedCopy) : copying ? STRATEGY_DIRECTION.fadeNote : STRATEGY_DIRECTION.copyNote}</p>
           </div>
-          <label className="desk-field-label block">Total budget · <span className="sym">{symbol}</span><input className="strat-input mt-2" inputMode="decimal" value={pending ? money(targetBase, decimals) : budget} disabled={Boolean(pending) || disabled} onChange={(e) => setBudget(e.target.value)} placeholder="0.00" /></label>
-          <label className="desk-field-label block">Most per trade · <span className="sym">{symbol}</span><input className="strat-input mt-2" inputMode="decimal" value={pending ? money(ceilingBase, decimals) : perTrade} disabled={Boolean(pending) || disabled} onChange={(e) => setPerTrade(e.target.value)} /></label>
+          <CopyFormFields check={check} budget={budget} perTrade={perTrade} setBudget={setBudget} setPerTrade={setPerTrade} fixed={pending ? { budget: money(targetBase, decimals), perTrade: money(ceilingBase, decimals) } : null} fieldsDisabled={Boolean(pending) || disabled} decimals={decimals} symbol={symbol} walletBase={walletBase} vaultAvailableBase={availableBase} feeBase={currentFee.fee} confirmBusy={writes.busy === "join"} onConfirm={confirm} confirmLabel={writes.busy === "join" ? "Checking wallet steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : copying ? "Fund permission and fade" : "Fund permission and copy"}>
           <p className="strat-drawer-body">Strategy maximum: {money(envelope.maxStakePerTradeBase, decimals, symbol)} per trade. Your limit must fit within your budget. This permission lasts 30 days.</p>
           {valid && <p className="strat-drawer-body">Your permission: {money(caps.maxStakePerTradeBase, decimals, symbol)} per trade, {money(caps.maxDailySpendBase, decimals, symbol)} per day, {caps.maxOpenPositions} open position{caps.maxOpenPositions === 1 ? "" : "s"}, {caps.maxPriceRaw === 0n ? "without an entry-price ceiling" : `with a maximum entry price of ${money(caps.maxPriceRaw, decimals, symbol)} per share`}.</p>}
           <div className="copy-progress"><p><strong>Subscription fee: {currentFee.fee === null ? "checking…" : money(currentFee.fee, decimals, symbol)}</strong></p><p>This fee is charged each time you subscribe, including a resume or a change to your limits. The vault budget is separate.</p>{currentFee.error && <p role="alert">{currentFee.error}</p>}<button type="button" className="desk-pill mt-2" disabled={Boolean(writes.busy)} onClick={currentFee.refresh}>Refresh fee</button></div>
-          {valid && <p className="strat-drawer-body">{pending ? "Existing permission budget" : "Additional wallet deposit"}: {money(pending ? targetBase : topUp, decimals, symbol)}.{currentFee.fee !== null && !pending && <> Wallet total for this setup: {money(topUp + currentFee.fee, decimals, symbol)}, plus network gas.</>}</p>}
           {grant && !grant.revoked && (!sub || sub.grantId !== grant.grantId) && <p className="agent-builder-error">This replaces your current strategy permission and stops its future copies. Its unspent budget becomes available for this setup.</p>}
           <p className="strat-drawer-body">The wallet requests permission first, then subscription consent. Token approval may add a wallet prompt. Losses are possible within your limits.</p>
-          <button type="button" className="desk-btn-primary w-full" disabled={disabled || !valid || currentFee.fee === null || Boolean(pending?.releasePending)} onClick={confirm}>{writes.busy === "join" ? "Checking wallet steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : copying ? "Fund permission and fade" : "Fund permission and copy"}</button>
+          </CopyFormFields>
         </div>}
         {sub?.active && <button className="strat-pause mt-5" disabled={disabled || Boolean(pending)} onClick={() => void perform(() => writes.pause(BigInt(card.strategyId), sub.grantId, sub.fade))}>{sub.fade ? "Pause this fade" : "Pause future copies"}</button>}
         {ownGrant && (state === "copying" || state === "unfunded") && <details className="mt-5"><summary className="strat-meta cursor-pointer">Add budget without changing limits</summary><p className="strat-drawer-body my-3">Move up to {money(availableBase, decimals, symbol)} of available Vault funds into this permission. One transaction; no subscription fee. Deposit more in your <a className="text-vermilion" href="/portfolio">Trading Balance</a> first if needed.</p><label className="desk-field-label block">Amount · {symbol}<input className="strat-input mt-2" inputMode="decimal" value={fundAmount} onChange={(e) => setFundAmount(e.target.value)} /></label><button className="desk-pill mt-3" disabled={disabled || Boolean(pending) || fundBase <= 0n || fundBase > availableBase} onClick={() => void perform(() => writes.fundBudget(ownGrant.grantId, fundBase))}>Move Vault funds into budget</button></details>}

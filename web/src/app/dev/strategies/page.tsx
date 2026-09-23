@@ -11,6 +11,7 @@ import { StudioAgentFields } from "@/features/strategies/StudioAgentFields";
 import { StudioMirrorFields } from "@/features/strategies/StudioMirrorFields";
 import type { StudioDraft } from "@/features/strategies/studio-draft";
 import { cn } from "@/lib/utils";
+import { CopyFormFixtures } from "./CopyFormFixtures";
 import { AGENT, DECIMALS, FIXTURE_NOW_MS, FILLS, HOUSE, PAYLOADS, SYMBOL, YOUNG, FRESH } from "./fixtures";
 
 const DEV = {
@@ -122,6 +123,7 @@ export default function DevStrategiesPage() {
           </CapabilityPending>
         )}
       </section>
+      <CopyFormFixtures />
     </div>
   );
 }

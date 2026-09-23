@@ -141,7 +141,9 @@ async function request<T>(url: string): Promise<T[]> {
   try {
     response = await fetch(url, { ...NO_STORE, headers: { accept: "application/json" } });
   } catch (error) {
-    throw indexerDown(`indexer unreachable: ${error instanceof Error ? error.message : String(error)}`);
+    // The host is named (S23): "fetch failed" alone hid that ops was calling a container name it cannot resolve.
+    const host = (() => { try { return new URL(url).host; } catch { return "?"; } })();
+    throw indexerDown(`indexer unreachable at ${host}: ${error instanceof Error ? error.message : String(error)}`);
   }
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as { error?: string } | null;

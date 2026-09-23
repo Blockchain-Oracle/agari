@@ -42,7 +42,11 @@ export function useDesk(payload: StrategiesPayload | null, wallet: Address | nul
   const vault = snapshot && isOk(snapshot) ? snapshot.value : null;
   const strategyGrant = vault?.grants.strategy ?? null;
 
-  const subscriptionOf = (strategyId: string) => subscriptions.find((s) => s.strategyId.toString() === strategyId) ?? null;
+  // A paused record stays on chain; the wallet's live consent (a copy or a fade) is the one that speaks for it (S23).
+  const subscriptionOf = (strategyId: string) => {
+    const mine = subscriptions.filter((s) => s.strategyId.toString() === strategyId);
+    return mine.find((s) => s.active) ?? mine[0] ?? null;
+  };
   const mine = featured ? subscriptionOf(featured.strategyId) : null;
   const grant = mine && strategyGrant && strategyGrant.grantId === mine.grantId ? strategyGrant : null;
   const readable = !wallet || Boolean((strategies.length === 0 || subsReading && isOk(subsReading) && !subsReading.stale) && snapshot && isOk(snapshot) && !snapshot.stale);

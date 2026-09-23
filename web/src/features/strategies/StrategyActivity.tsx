@@ -3,13 +3,15 @@ import type { VaultGrant } from "@agari/core/vault";
 import { strategyActivityOf } from "./activity";
 import type { CopyState } from "./lifecycle";
 import { ago } from "./names";
+import "./copy-form.css";
 
 /** A fresh wallet constraint and the strategy-wide report, alongside the separate consent label. */
 export function StrategyActivity({ state, grant, health, nowMs }: {
   state: CopyState; grant: VaultGrant | null; health: RunnerHealth | null; nowMs: number;
 }) {
   const activity = strategyActivityOf({ state, grant, health, nowMs });
-  return <div className="copy-progress mt-3" aria-label="Strategy operation">
+  return <div className="copy-runner mt-3" aria-label="Strategy operation">
+    <span className="copy-runner-eyebrow">The runner · across every subscriber</span>
     <strong>Operation · {activity.label}</strong>
     <p>{activity.detail}</p>
     {activity.positions && <p>{activity.positions}</p>}

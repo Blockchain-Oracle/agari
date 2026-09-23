@@ -1,0 +1,35 @@
+/** The copy drawer's validation lines and money strip (S23). */
+export const COPY_FORM = {
+  notANumber: "Enter an amount like 25 or 12.50",
+  aboveStrategy: (max: string) => `Above this strategy's ${max} per trade`,
+  aboveBudget: "More than your total budget",
+  walletShort: (held: string, needs: string) => `Your wallet holds ${held}; this setup needs ${needs}`,
+  blocked: {
+    busy: "Finish the wallet action in progress first.",
+    cannotSign: "Connect a wallet that can sign.",
+    checking: "Your current permission is still being checked.",
+    otherPending: (id: string) => `Finish or release the unfinished copy of strategy #${id} first.`,
+    releasePending: "A permission release is still being checked.",
+    noBudget: "Enter a total budget.",
+    noPerTrade: "Enter the most you allow per trade.",
+    feeLoading: "The subscription fee is still loading.",
+  },
+  max: "Max",
+  strip: {
+    wallet: "Wallet",
+    vault: "Trading Balance",
+    pulls: "This setup takes",
+    pullsDetail: (fee: string | null) => (fee ? `from your wallet, fee ${fee} included` : "from your wallet"),
+  },
+  addFunds: {
+    toggle: "Add tUSDC to your Trading Balance",
+    label: "Amount to deposit",
+    deposit: "Deposit",
+    depositing: "Depositing",
+    landed: "Deposited to your Trading Balance",
+  },
+  copying: "You are copying this strategy",
+  fading: "You are fading this strategy",
+  runner: "The runner",
+  replaced: "Copying another strategy replaced this one's permission. A wallet holds one strategy permission at a time.",
+} as const;
