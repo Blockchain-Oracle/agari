@@ -14,18 +14,6 @@ import { RADIUS, TYPE, useTheme } from "~/theme";
 import type { DraftLeg } from "./LegRow";
 
 export type SolveMode = "fixStake" | "fixPayout";
-
-/**
- * The quote without its per-leg price array: React 19.2's dev performance track JSON-stringifies primitive arrays in
- * changed props, and a `bigint[]` throws there ("Do not know how to serialize a BigInt"), which wedges the renderer.
- */
-export type TicketQuote = Omit<ParlayQuote, "legPricesRaw">;
-
-export function ticketQuote(quote: ParlayQuote | null): TicketQuote | null {
-  if (!quote) return null;
-  const { legPricesRaw: _prices, ...rest } = quote;
-  return rest;
-}
 const T = PARLAY.ticket;
 
 export interface ParlayTicketProps {
@@ -34,7 +22,7 @@ export interface ParlayTicketProps {
   reserve: ParlayReserveState;
   symbol: string;
   nowMs: number;
-  quote: TicketQuote | null;
+  quote: ParlayQuote | null;
   quoteLoading: boolean;
   quoteError: Diagnosis | null;
   onRetryQuote: () => void;

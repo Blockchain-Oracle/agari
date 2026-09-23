@@ -19,7 +19,7 @@ import { Button, ConnectGate, EmptyState, LoadingState } from "~/components/kit"
 import type { ReviewRequest } from "~/features/short/ReviewSheet";
 import { TYPE, useTheme } from "~/theme";
 import { LegRow, type DraftLeg } from "./LegRow";
-import { ParlayTicket, ticketQuote, type SolveMode } from "./ParlayTicket";
+import { ParlayTicket, type SolveMode } from "./ParlayTicket";
 
 let legSeq = 0;
 const newKey = () => `leg-${++legSeq}-${Date.now()}`;
@@ -97,7 +97,6 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
   const quoteState = useParlayQuote({ legs: legInputs, mode, params, enabled: legs.length >= 2 && !reserve.paused });
   const { quote } = quoteState;
   const thin = useMemo(() => parseThinBook(quoteState.error), [quoteState.error]);
-  const shownQuote = useMemo(() => ticketQuote(quote), [quote]);
   const marketOf = useCallback((leg: DraftLeg) => byId.get(leg.marketId) ?? null, [byId]);
 
   const place = async (frozen: ParlayQuote, frozenLegs: ParlayLegInput[], maxStakeBase: bigint): Promise<boolean> => {
@@ -185,7 +184,7 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
         reserve={reserve}
         symbol={symbol}
         nowMs={nowMs}
-        quote={shownQuote}
+        quote={quote}
         quoteLoading={quoteState.loading}
         quoteError={quoteState.error}
         onRetryQuote={quoteState.retry}

@@ -68,7 +68,6 @@ export function ReviewSheet({ request, onClose }: { request: ReviewRequest | nul
     >
       <View style={[styles.sheet, { backgroundColor: color.ground }]}>
         <View style={styles.head}>
-          <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Review before you sign</Text>
           <Pressable
             onPress={onClose}
             disabled={busy}
@@ -79,6 +78,7 @@ export function ReviewSheet({ request, onClose }: { request: ReviewRequest | nul
           >
             <Text style={[TYPE.bodyStrong, { color: busy ? color.inkDisabled : color.accent }]}>Cancel</Text>
           </Pressable>
+          <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Review before you sign</Text>
         </View>
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           {request ? (
