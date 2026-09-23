@@ -3,9 +3,14 @@ import { testAddressFromHex, testMarketIdFromHex } from "../testing/ids";
 import type { Hash32 } from "../types/primitives";
 import { luckyDrawMessage, mapLuckyDraw } from "./commitment";
 import {
+  LUCKY_ALLDAY_ASSETS,
+  LUCKY_ALLDAY_POLICY_VERSION,
   LUCKY_ASSETS,
+  LUCKY_ASSETS_V2,
   LUCKY_MULTIPLIERS,
+  LUCKY_POLICY_V2,
   LUCKY_POLICY_VERSION,
+  luckyPolicyFor,
   chooseLuckyWindow,
   eligibleLuckyWindows,
   impliedMultipleHundredths,
@@ -41,22 +46,31 @@ const GOLDEN_DIGEST = "0xaefedfee7e1dc28fd842709c3bb825283102a89ac7e82254ed81d49
 
 describe("the draw", () => {
   it("builds the canonical message the HMAC is keyed over", () => {
-    expect(luckyDrawMessage({ clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_VERSION })).toBe(GOLDEN_MESSAGE);
-    expect(luckyDrawMessage({ clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 8, policyVersion: LUCKY_POLICY_VERSION })).not.toBe(GOLDEN_MESSAGE);
+    expect(luckyDrawMessage({ clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_V2 })).toBe(GOLDEN_MESSAGE);
+    expect(luckyDrawMessage({ clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 8, policyVersion: LUCKY_POLICY_V2 })).not.toBe(GOLDEN_MESSAGE);
   });
 
   it("maps the golden digest to one draw under policy 2, the same way every time", () => {
-    const draw = mapLuckyDraw(hexBytes(GOLDEN_DIGEST), { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS });
+    const draw = mapLuckyDraw(hexBytes(GOLDEN_DIGEST), { assets: LUCKY_ASSETS_V2, multipliers: LUCKY_MULTIPLIERS });
     expect(draw).toEqual({ asset: "META", side: "up", multiplier: 10 });
-    expect(mapLuckyDraw(hexBytes(GOLDEN_DIGEST), { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS })).toEqual(draw);
+    expect(mapLuckyDraw(hexBytes(GOLDEN_DIGEST), { assets: LUCKY_ASSETS_V2, multipliers: LUCKY_MULTIPLIERS })).toEqual(draw);
   });
 });
 
 describe("the asset universe", () => {
   it("is what the venue lists, and never the reference's crypto pair", () => {
-    expect(LUCKY_ASSETS).toEqual(["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "OPENAI"]);
+    expect(LUCKY_ASSETS_V2).toEqual(["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "OPENAI"]);
+    expect(LUCKY_ASSETS).toEqual([...LUCKY_ASSETS_V2, "AILABS", "FRONTIER", "PREDMKTS", "DEFSPACE", "PREALL"]);
+    expect(luckyPolicyAssets(LUCKY_POLICY_V2)).toBe(LUCKY_ASSETS_V2);
     expect(luckyPolicyAssets(LUCKY_POLICY_VERSION)).toBe(LUCKY_ASSETS);
     expect(luckyPolicyAssets(1)).toBeNull();
+  });
+
+  it("draws only the 24/7 lanes while no stock Window trades (S23)", () => {
+    expect(luckyPolicyFor(true)).toBe(LUCKY_POLICY_VERSION);
+    expect(luckyPolicyFor(false)).toBe(LUCKY_ALLDAY_POLICY_VERSION);
+    expect(luckyPolicyAssets(LUCKY_ALLDAY_POLICY_VERSION)).toEqual(["OPENAI", "AILABS", "FRONTIER", "PREDMKTS", "DEFSPACE", "PREALL"]);
+    expect(LUCKY_ALLDAY_ASSETS.every((a) => LUCKY_ASSETS.includes(a))).toBe(true);
   });
 });
 

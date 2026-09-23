@@ -1,6 +1,8 @@
 import { randomBytes } from "node:crypto";
 import { deckCommitmentPreimage, nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@agari/core/games";
 import { phase } from "@agari/core/lifecycle";
+import { etDateOf, etWallToUtcSec, REGULAR_CLOSE_MINUTES } from "@agari/core/market";
+import type { EventMarket } from "@agari/core/types";
 import { isOk } from "@agari/core/schemas";
 import type { Address, Hash32, Hex, MarketId } from "@agari/core/types";
 import { putDeck } from "@agari/db";
@@ -26,8 +28,9 @@ import { opsMarketsEnv } from "../../runtime/markets-env";
  * cards, every eligible Window taken rather than one cadence preferred, and headroom sized against the
  * arena's own deadlines instead of a guessed margin.
  */
-/** 4 since 2026-09-04: the headroom holds the arena's card-life floor for the whole pick window (rule D). */
-export const DECK_POLICY_VERSION = 4;
+/** 4 since 2026-09-04: the headroom holds the arena's card-life floor for the whole pick window (rule D). 5 since
+ * 2026-09-23 (S23): a card comes only from a Book quoting both sides, and no series is projected past its close. */
+export const DECK_POLICY_VERSION = 5;
 
 /** A duel should finish inside an hour: every card must settle within it, or the match outlives its players. */
 const HORIZON_SEC = Number(process.env.GAME_DECK_HORIZON_SEC ?? 60 * 60);
@@ -86,19 +89,41 @@ async function candidates(): Promise<readonly DeckCandidate[] | null> {
   const lanes = await marketsProvider.listLiveLanes(venue.value.venueId);
   if (!isOk(lanes)) return null;
   const nowMs = marketsProvider.nowMs();
-  return lanes.value.lanes
-    .flatMap((lane) => lane.markets)
-    .map((market) => ({
-      marketId: market.marketId,
-      asset: market.asset,
-      intervalSec: market.intervalSec,
-      expirySec: market.expirySec,
-      trading: phase(market, nowMs) === "trading",
-      // The book filters are open until a measured spread and depth exist for a card's own stake; the
-      // per-card cap is small enough that the arena's own minQuantity guard is the binding protection.
-      spreadRaw: 0n,
-      depthRaw: 1n,
-    }));
+  const markets = lanes.value.lanes.flatMap((lane) => lane.markets);
+  const quoted = await twoSided(markets.filter((m) => phase(m, nowMs) === "trading"));
+  return markets.map((market) => ({
+    marketId: market.marketId,
+    asset: market.asset,
+    intervalSec: market.intervalSec,
+    expirySec: market.expirySec,
+    trading: phase(market, nowMs) === "trading",
+    tradingStartSec: market.tradingStartSec,
+    seriesEndSec: seriesEndSec(market),
+    // A card is dealt only from a Book that quotes both Up and Down (S23): out of hours the 24/7 pre-IPO and basket
+    // Books can sit empty, and a deck of them failed every pick with "did not fill before the deadline". An
+    // upcoming Window keeps depth 1 so the countdown can still project the open; it is checked again when dealt.
+    spreadRaw: 0n,
+    depthRaw: phase(market, nowMs) === "trading" ? (quoted.has(market.marketId) ? 1n : 0n) : 1n,
+  }));
+}
+
+/** A Regular series rolls only inside the session; a Gap Window has no successor; a 24/7 token series never stops. */
+function seriesEndSec(market: EventMarket): number | undefined {
+  if (market.lane === "token") return undefined;
+  if (market.lane === "gap") return market.expirySec;
+  // The day's regular close; an early-close day ends sooner, which the roller's own listing then reflects.
+  return etWallToUtcSec(etDateOf(market.expirySec - 1), REGULAR_CLOSE_MINUTES);
+}
+
+/** The trading Windows whose Book rests an ask on both Up and Down right now; a failed read counts as empty. */
+async function twoSided(markets: readonly EventMarket[]): Promise<Set<MarketId>> {
+  const reads = await Promise.all(
+    markets.map(async (m) => {
+      const depth = await marketsProvider.getBookDepth({ marketId: m.marketId, poolAddress: m.poolAddress, decimals: m.decimals }, 1);
+      return isOk(depth) && depth.value.upAsks.length > 0 && depth.value.downAsks.length > 0 ? m.marketId : null;
+    }),
+  );
+  return new Set(reads.filter((id): id is MarketId => id !== null));
 }
 
 /**
@@ -113,7 +138,7 @@ export async function deckSupply(params: DealInput["params"]): Promise<number | 
   const policy = {
     supportedAssets: [...new Set(pool.map((c) => c.asset))],
     maxSpreadRaw: 2n ** 128n,
-    minDepthRaw: 0n,
+    minDepthRaw: 1n,
     horizonSec: HORIZON_SEC,
     minHeadroomSec: headroomSec,
   };
@@ -168,7 +193,7 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
   const policy = {
     supportedAssets: [...new Set(pool.map((c) => c.asset))],
     maxSpreadRaw: 2n ** 128n,
-    minDepthRaw: 0n,
+    minDepthRaw: 1n,
     horizonSec: HORIZON_SEC,
     minHeadroomSec: headroomSec,
   };
