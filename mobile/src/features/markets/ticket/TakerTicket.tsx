@@ -19,6 +19,7 @@ import { SPACE, TYPE, useTheme } from "~/theme";
 import { NATIVE_MARKETS } from "../copy";
 import { AccountGate, OutcomeNote } from "./AccountGate";
 import { AmountBlock } from "./AmountBlock";
+import { NextWindowOffer } from "./NextWindowOffer";
 import { PrivateNote, privateCtaLabel } from "./PrivateParts";
 import { RangeBand, rangeCtaLabel, RangePlacedCard, rangeReview } from "./RangeParts";
 import { ticketReview } from "./review";
@@ -77,6 +78,7 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
     <View style={[styles.fill, { backgroundColor: color.ground }]}>
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <TicketHead market={c.market} phase={c.phase} nowMs={c.t.nowMs} />
+        <NextWindowOffer market={c.market} phase={c.phase} />
         <BetModes mode={c.mode} onChange={c.setMode} rangeAvailable={c.rangeReserve !== null} />
         {c.isRange ? (
           <RangeBand c={c} />

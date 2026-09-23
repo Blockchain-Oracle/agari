@@ -1,5 +1,6 @@
 import type { TickerSymbol } from "@agari/core/market";
 import type { Lane, LaneBasis } from "@agari/core/types";
+import { useRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { compareLaneTabKeys, laneAssetLabel, laneTabKey, laneTabLabel, laneTabParts, pausedCopy, type LaneTabKey } from "@/features/markets/lanes/lane-view";
 import { MARKETS } from "@/lib/copy";
@@ -37,8 +38,9 @@ export function LaneTabs({ lanes, activeKey, pinnedMissingKey, extraKeys, onPin 
 }) {
   const { color } = useTheme();
   const tabs = buildTabs(lanes, pinnedMissingKey, extraKeys);
+  const scroller = useRef<ScrollView>(null);
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} accessibilityRole="tablist" accessibilityLabel="Cadence">
+    <ScrollView ref={scroller} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} accessibilityRole="tablist" accessibilityLabel="Cadence">
       {tabs.map((tab) => {
         const on = tab.key === activeKey;
         return (
@@ -52,6 +54,8 @@ export function LaneTabs({ lanes, activeKey, pinnedMissingKey, extraKeys, onPin 
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={`${tab.label}, ${MARKETS.live(tab.count)}`}
+            // The pinned lane may sit past the edge (a 24/7 lane): bring it into view once laid out.
+            onLayout={on ? (event) => scroller.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 16), animated: false }) : undefined}
             style={[styles.tab, { borderBottomColor: on ? color.accent : "transparent" }]}
           >
             <Text style={[styles.label, { color: on ? color.ink : color.inkSecondary }]}>{tab.label}</Text>

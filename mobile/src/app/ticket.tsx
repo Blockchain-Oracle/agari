@@ -2,7 +2,7 @@ import { isRestable } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { useMarket } from "@agari/markets/react";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { defaultSide, useBetAgainst } from "@/features/markets/bet-against";
@@ -32,7 +32,7 @@ export default function TicketSheet() {
   if (!market) {
     return (
       <View style={[styles.holding, { backgroundColor: color.ground }]}>
-        {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={NATIVE_MARKETS.windowGone} />}
+        {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={NATIVE_MARKETS.windowGone} action={{ label: NATIVE_MARKETS.backToMarkets, onPress: () => router.navigate("/markets") }} />}
       </View>
     );
   }

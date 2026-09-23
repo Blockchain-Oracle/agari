@@ -55,5 +55,4 @@ export const NATIVE_MARKETS = {
     private: "Private desk",
   },
   share: "Share",
-  shareImageMissing: "Sharing as text: the image card needs the next app build.",
 } as const;

@@ -2,6 +2,7 @@ import { formatCadence } from "@agari/core/copy";
 import { OUTCOME_TO_SIDE, type EventMarket, type Resolution, type Verdict } from "@agari/core/types";
 import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
 import { router } from "expo-router";
+import { useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { oraclePriceText } from "../parts/format";
 import { printSourceText } from "@/features/markets/verdict/print-source";
@@ -35,6 +36,7 @@ export function VerdictCard({ verdict, market, resolution, symbol }: Props) {
   const source = printSourceText(resolution, market.expirySec, market.asset);
   const costKnown = verdict.costBasisBase !== null;
   const pnlInk = verdict.pnlBase > 0n ? color.profit : verdict.pnlBase < 0n ? color.loss : color.ink;
+  const paper = useRef<View>(null);
   const sides = verdict.legs.map((leg) => SIDE_WORD[OUTCOME_TO_SIDE[leg.outcomeIdx]]).join(" + ");
 
   return (
@@ -69,7 +71,7 @@ export function VerdictCard({ verdict, market, resolution, symbol }: Props) {
 
       <ClaimWinnings verdict={verdict} marketId={market.marketId} symbol={symbol} />
 
-      <View style={[styles.paper, { backgroundColor: color.cream, shadowColor: color.shadow }]}>
+      <View ref={paper} collapsable={false} style={[styles.paper, { backgroundColor: color.cream, shadowColor: color.shadow }]}>
         <View style={styles.paperHead}>
           <View>
             <Text style={[TYPE.labelMicro, { color: color.creamInk, opacity: 0.6 }]}>{VERDICT_UI.receiptTitle}</Text>
@@ -97,7 +99,7 @@ export function VerdictCard({ verdict, market, resolution, symbol }: Props) {
         <Text style={[TYPE.caption, { color: color.creamInk, opacity: 0.55 }]}>{new Date(settledAtMs).toUTCString()}</Text>
       </View>
 
-      <ShareButton text={buildTradeTweetText(toTradeCard(verdict, market, resolution, symbol, settledAtMs))} />
+      <ShareButton card={paper} text={buildTradeTweetText(toTradeCard(verdict, market, resolution, symbol, settledAtMs))} />
     </View>
   );
 }

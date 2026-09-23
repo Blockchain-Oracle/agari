@@ -4,7 +4,7 @@ import { formatBaseUnits } from "@agari/core/units";
 import { useOpeningPrice } from "@agari/markets/react";
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useReducedMotion, ZoomIn } from "react-native-reanimated";
 import { useChainNowMs } from "@/features/markets/useChainNow";
@@ -62,10 +62,11 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
   const sideInk = booked.side === "up" ? LIGHT.profit : LIGHT.loss;
   const pastBell = nowMs > 0 && nowMs >= placedIn.expirySec * 1000;
   const multiple = callMultiple(card);
+  const paper = useRef<View>(null);
 
   return (
     <View style={styles.stack}>
-      <Animated.View entering={reduce ? undefined : ZoomIn.springify().damping(16)} style={[styles.paper, { backgroundColor: color.cream, shadowColor: color.shadow }]}>
+      <Animated.View ref={paper} collapsable={false} entering={reduce ? undefined : ZoomIn.springify().damping(16)} style={[styles.paper, { backgroundColor: color.cream, shadowColor: color.shadow }]}>
         <View style={styles.top}>
           <Text style={[TYPE.labelMicro, { color: ink, opacity: 0.6 }]}>{SHARE.call.recordType}</Text>
           <Text style={[TYPE.labelMicro, { color: ink, opacity: 0.6 }]}>#{shortCallId(card)}</Text>
@@ -107,7 +108,7 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
           </Pressable>
         </View>
       </Animated.View>
-      <ShareButton text={buildCallTweetText(card)} label={SHARE.shareCall} />
+      <ShareButton text={buildCallTweetText(card)} card={paper} label={SHARE.shareCall} />
       {pastBell ? <LiveVerdict marketId={placedIn.marketId} /> : null}
     </View>
   );
