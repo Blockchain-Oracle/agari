@@ -97,12 +97,10 @@ export function CommentRoom({ callLabel, gate, comments, busy, error, onClose, o
             </span>
             <div className="min-w-0 flex-1">
               <Dialog.Title className="room-title">{callLabel}</Dialog.Title>
-              <div className="room-head-row">
-                <div className="room-badge">
-                  <LockIcon size={9} strokeWidth={2.4} /> {ROOM.qualifier}
-                </div>
-                {switcher}
+              <div className="room-badge">
+                <LockIcon size={9} strokeWidth={2.4} /> {ROOM.qualifier}
               </div>
+              {switcher}
             </div>
             <Dialog.Close className="room-close" aria-label={ROOM.close} data-cursor="hover">
               <XIcon size={16} />

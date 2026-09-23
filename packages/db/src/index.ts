@@ -41,3 +41,5 @@ export * from "./desk-grades";
 export * from "./desk-marks";
 export * from "./desk-series";
 export * from "./desk-queries";
+export * from "./take-tags";
+export * from "./idx/social-gate";

@@ -32,17 +32,38 @@ coverage/
 /reference/
 /data/
 
-# local AI authoring tools and prompts (CLAUDE.md and context/ ARE tracked)
+# Local agent instructions, research, plans, design drafts, and tool state.
 /.claude/
 /.codex/
 /.agents/
+/.agent/
 /.cursor/
 /.windsurf/
+/_bmad/
+/_bmad-output/
+/skills/
+/context/
+/docs/plan/
+/web/.21st/
+/docs-site/evidence/
+/docs/submission/description.md
+/docs/submission/public-release-audit.md
+/docs/submission/submission-checklist.md
+/docs/submission/sponsor-requests.md
+/docs/submission/demo-media-provenance.json
+/.mcp.json
 AGENTS.md
+CLAUDE.md
 GEMINI.md
 prompt.md
 PROMPT.md
 *.prompt.md
+PLD.md
+*.pld.md
+design.md
+DESIGN.md
+*.pom.md
+*.memlog.md
 
 # UI review screenshots (local)
 .review/

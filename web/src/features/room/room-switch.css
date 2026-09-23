@@ -3,31 +3,32 @@
  * (the badge's mono 9px caps, the rule and inset tokens, the vermilion of a member's own bubble),
  * so the sheet reads as one piece in both themes. */
 
-.room-head-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 8px;
-  margin-top: 6px;
-}
-
-.room-head-row .room-badge {
-  margin-top: 0;
-}
-
-/* rounded-full border border-white/[0.08] bg-white/[0.02] p-0.5 — the badge's pill, split in two */
+/* The badge's pill, split in two, at the badge's own 20px height, so the head keeps the reference's height. */
 .room-switch {
   display: inline-flex;
   align-items: center;
+  /* Beside the badge on its line, with the badge's own top margin. */
+  margin: 6px 0 0 8px;
+  vertical-align: top;
   border: 1px solid var(--room-rule);
   border-radius: 9999px;
   background: var(--room-inset);
-  padding: 2px;
+  padding: 1px;
+}
+
+/* Below the sheet's 440px width the badge and switch don't share a line: the switch takes its own,
+   aligned under the badge. */
+@media (max-width: 439.98px) {
+  .room-switch {
+    display: flex;
+    width: fit-content;
+    margin-left: 0;
+  }
 }
 
 .room-switch button {
   border-radius: 9999px;
-  padding: 2px 8px;
+  padding: 1px 8px;
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.12em;

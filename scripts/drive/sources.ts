@@ -53,13 +53,27 @@ export async function waitUntil(tSec: number, why: string) {
   await sleep(wait * 1000);
 }
 
+async function rpcCall<T>(rpcUrl: string, method: string, params: unknown[]): Promise<T> {
+  const res = await fetch(rpcUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+  const body = (await res.json()) as { result?: T; error?: { message: string } };
+  if (body.error) throw new Error(`${method}: ${body.error.message}`);
+  return body.result as T;
+}
+
 /** Surfpool only: moves the chain clock forward to `tSec` (no-op when it is already there). */
 export async function timeTravel(rpcUrl: string, tSec: number) {
-  const res = await fetch(rpcUrl, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "surfnet_timeTravel", params: [{ absoluteTimestamp: tSec * 1000 }] }),
-  });
-  const body = (await res.json()) as { error?: { message: string } };
-  if (body.error) throw new Error(`surfnet_timeTravel: ${body.error.message}`);
+  await rpcCall(rpcUrl, "surfnet_timeTravel", [{ absoluteTimestamp: tSec * 1000 }]);
+}
+
+/** Surfpool only: moves the chain slot forward to `slot`; the clock's timestamp is left where it is. */
+export async function slotTravel(rpcUrl: string, slot: bigint) {
+  await rpcCall(rpcUrl, "surfnet_timeTravel", [{ absoluteSlot: Number(slot) }]);
+}
+
+export const currentSlot = (rpcUrl: string) => rpcCall<number>(rpcUrl, "getSlot", []);
+
+/** `meta.computeUnitsConsumed` of a confirmed transaction, or null when the RPC has no record of it. */
+export async function computeUnits(rpcUrl: string, signature: string): Promise<number | null> {
+  const tx = await rpcCall<{ meta?: { computeUnitsConsumed?: number } } | null>(rpcUrl, "getTransaction", [signature, { encoding: "json", commitment: "confirmed", maxSupportedTransactionVersion: 0 }]);
+  return tx?.meta?.computeUnitsConsumed ?? null;
 }

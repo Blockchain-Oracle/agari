@@ -3,11 +3,11 @@ title: "Source map and evidence"
 description: "Where each documented behavior lives in the reviewed Agari checkout."
 ---
 
-**Reviewed application:** `integration/w1` at `86a37ee`, 23 September 2026. The docs live in the same repository at `docs-site/`, and the paths below are relative to its root. The GitHub repository is private for now.
+**Reviewed application:** `integration/w1` at `b98d1e40`, 23 September 2026. The docs live in the same repository at `docs-site/`, and the paths below are relative to its root. The GitHub repository is private for now.
 
 | Behavior | Source owner | Evidence boundary |
 | --- | --- | --- |
-| Registry, baskets and integer index | `packages/core/src/market/baskets.ts` | Frozen member bases and arithmetic; confirmed devnet basket prints and settlements in `docs/plan/acceptance.md` |
+| Registry, baskets and integer index | `packages/core/src/market/baskets.ts` | Frozen member bases and arithmetic; confirmed devnet basket prints and settlements in `docs/evidence/acceptance.md` |
 | Order book, Window settlement and claims | `anchor/programs/agari-events/`, `packages/markets/` | Devnet program and transaction ledger |
 | Trading Balance and bounded grants | `anchor/programs/agari-vault/`, `packages/markets/src/vault/` | Devnet program and grant drives |
 | Earn and market making | `anchor/programs/agari-maker/`, `web/src/features/earn/` | Devnet maker deploy and reserve transactions; present liquidity must be read live |
@@ -15,11 +15,11 @@ description: "Where each documented behavior lives in the reviewed Agari checkou
 | Strategy subscriptions and copy | `anchor/programs/agari-strategy/`, `web/src/features/strategies/`, `services/ops/src/actors/strategy-runner/` | Devnet grant and subscription receipts; a runner must be configured to act, and it rests while no stock Window trades |
 | Shorts | `web/src/features/short/` over `anchor/programs/agari-leverage/` | Uses the devnet Boost reserve; a Window must be trading and the book deep enough to take the position back |
 | Closed-market board and session lines | `web/src/features/markets/word-board/`, `packages/core/src/market/horizons.ts`, `packages/core/src/copy/session-words.ts` | Behaviour depends on the hour; read the live board |
-| Pyth pull-update verification | `anchor/crates/agari-common/src/print/pyth.rs`, `anchor/programs/agari-events/src/instructions/record_print_sources.rs`, `web/src/features/proof/` | Devnet settlement and void rows in `docs/plan/acceptance.md`; see [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) |
+| Pyth pull-update verification | `anchor/crates/agari-common/src/print/pyth.rs`, `anchor/programs/agari-events/src/instructions/record_print_sources.rs`, `web/src/features/proof/` | Devnet settlement and void rows in `docs/evidence/acceptance.md`; see [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) |
 | Games and scoring | `anchor/programs/agari-arena/`, `web/src/features/games/` | Duel on devnet; Practice and arcade scores are not on-chain |
 | Price policies, attested PreStocks prints, Pyth index entitlement | `services/ops/config/price-sources.json`, `services/ops/src/actors/`, `packages/markets/src/prices/` | Live source availability can change; `/status` and the ops entitlement probe show current state |
 | Basket and desk screens | `web/src/features/baskets/`, `web/src/features/desk/` (the entry, studio, cockpit, activity timeline and decision page in their own folders) | Production routes `/baskets`, `/desk`, `/desk/new`, `/desk/<id>`, `/desk/<id>/record` and `/desk/<id>/decision/<seq>` were present at review |
 | Desk rules and record | `packages/core/src/desk/`, `anchor/programs/agari-desk/` | Surfpool mainnet-fork rehearsal, 31/31 checks; **mainnet deployment still pending** |
 | Desk operator and runner | `packages/markets/src/desk/`, `services/ops/src/actors/desk-runner/` | Production paper practice; live program behavior only rehearsed on a fork |
 
-The application README links specific devnet transactions. `docs/plan/specs/desk.md` §10 is the live deploy runbook, while `docs/plan/stage-21-desk.md` leaves C7 unchecked. Do not turn those into a claim that real money has moved.
+The application README links specific devnet transactions. The desk has a recorded mainnet-fork rehearsal, while mainnet deployment and real-money operation remain pending.

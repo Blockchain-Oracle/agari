@@ -27,8 +27,10 @@ if (cluster !== "devnet" && cluster !== "localnet") throw new Error(`--cluster m
 
 // Devnet goes through Helius when HELIUS_API_KEY is set (the public endpoint rate-limits a 40-transaction drive).
 const helius = process.env.HELIUS_API_KEY;
-const rpcUrl = cluster === "localnet" ? "http://127.0.0.1:8899" : helius ? `https://devnet.helius-rpc.com/?api-key=${helius}` : "https://api.devnet.solana.com";
-const rpcSubscriptionsUrl = cluster === "localnet" ? "ws://127.0.0.1:8900" : helius ? `wss://devnet.helius-rpc.com/?api-key=${helius}` : "wss://api.devnet.solana.com";
+// A lane's Surfpool listens on its own ports (session-lanes.md §6), so localnet follows SURFPOOL_PORT like ops does.
+const local = { http: `http://127.0.0.1:${process.env.SURFPOOL_PORT ?? 8899}`, ws: `ws://127.0.0.1:${process.env.SURFPOOL_WS_PORT ?? 8900}` };
+const rpcUrl = cluster === "localnet" ? local.http : helius ? `https://devnet.helius-rpc.com/?api-key=${helius}` : "https://api.devnet.solana.com";
+const rpcSubscriptionsUrl = cluster === "localnet" ? local.ws : helius ? `wss://devnet.helius-rpc.com/?api-key=${helius}` : "wss://api.devnet.solana.com";
 // web3.js 1 fetch errors can carry the request URL: never let the key reach a log.
 const redact = (text: string) => (helius ? text.replaceAll(helius, "<HELIUS_API_KEY>") : text);
 process.on("uncaughtException", (error) => {

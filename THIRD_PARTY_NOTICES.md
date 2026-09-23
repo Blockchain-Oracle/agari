@@ -4,14 +4,14 @@ This file records the sources and attribution of material used by Agari, a sourc
 
 ## Yosuku product and presentation
 
-Masayume includes substantial source-led adaptations of Yosuku's interface, styles, interaction logic and product wording, with Somnia/DreamDEX implementations replacing its Sui/DeepBook substrate. Agari inherits that adaptation as a further port: its own Anchor programs (`agari-events`, `agari-vault`) replace Masayume's Somnia/DreamDEX substrate in turn (`docs/plan/00-plan.md` §3.0), so no Somnia, DreamDEX, Sui or DeepBook code, address or dependency ships in this tree; the notice below documents the interface and CSS lineage only.
+Masayume includes substantial source-led adaptations of Yosuku's interface, styles, interaction logic and product wording, with Somnia/DreamDEX implementations replacing its Sui/DeepBook substrate. Agari inherits that adaptation as a further port: its own Anchor programs (`agari-events`, `agari-vault`) replace Masayume's Somnia/DreamDEX substrate in turn, so no Somnia, DreamDEX, Sui or DeepBook code, address or dependency ships in this tree; the notice below documents the interface and CSS lineage only.
 
 - Source: [Cybire1/yosuku](https://github.com/Cybire1/yosuku), pinned reference commit `3c56ef52b78dae28cc198495f753480292f6a5ad`.
 - Source attribution: [`web/src/styles/yosuku/index.css`](web/src/styles/yosuku/index.css) and source comments throughout `web/src`.
-- The locally retained parity ledger records the owner's approval of Yosuku source, CSS, token and asset reuse on 1 September 2026, carried into this Agari port. This notice and the [public-release audit](docs/submission/public-release-audit.md) preserve that recorded authorization.
+- The locally retained parity ledger records the owner's approval of Yosuku source, CSS, token and asset reuse on 1 September 2026, carried into this Agari port. This notice records that provenance for the public tree.
 - The pinned README contains an MIT badge, but the inspected pinned tree does not contain the root license document to which that badge links. The records do not specify the copyright holder notice or terms for public redistribution of the derived source and assets. No repository-wide MIT grant is inferred from that badge or from this notice.
 
-The [public-release audit](docs/submission/public-release-audit.md) records the remaining public distribution questions without reopening the already approved implementation direction.
+The public distribution questions for that derived source and artwork remain unresolved by this notice.
 
 ## Game references
 
@@ -79,4 +79,4 @@ Agent portraits use **Notionists by Zoish**, remixed through DiceBear. [The desi
 
 Other packaged libraries retain their own notices. Examples verified in the installed dependencies include React, Next.js, Motion and Anchor's `anchor-lang`/`anchor-spl` under MIT/Apache-2.0; the Pyth Solana Receiver SDK, Switchboard On-Demand and RedStone's Rust SDK under their own upstream terms; Lucide and Rettiwt-API under ISC. This list is an attribution guide, not a replacement for the lockfile, a complete software bill of materials, or the full license texts distributed with each dependency.
 
-`agari-events` and `agari-vault` are Rust/Anchor programs written for this port; `docs/plan/00-plan.md` §3.0 records the license-clean patterns their design drew on (Phoenix v1's matching-loop shape, `lib-sokoban`'s slab allocator, Polymarket's `ctf-exchange` match-type split, BetDexLabs/Monaco's price-ladder idea), but a source check of `anchor/programs/agari-events/src` and `packages/core` at this stage (2026-09-15) found no code, comment or file lifted from those references or from `reference/phoenix-v1`/`reference/sokoban` — the engine's doc comments cite this repository's own specs (`events-engine.md`, `events-accounts.md`, `events-instructions.md`). No third-party program-code credit is asserted for the engine beyond the game-reference credit above; this line is re-checked if that changes.
+`agari-events` and `agari-vault` are Rust/Anchor programs written for this port. Their design drew on published patterns (Phoenix v1's matching-loop shape, `lib-sokoban`'s slab allocator, Polymarket's `ctf-exchange` match-type split, BetDexLabs/Monaco's price-ladder idea), but a source check of `anchor/programs/agari-events/src` and `packages/core` at this stage (2026-09-15) found no code, comment or file lifted from those references or from `reference/phoenix-v1`/`reference/sokoban`. No third-party program-code credit is asserted for the engine beyond the game-reference credit above; this line is re-checked if that changes.
