@@ -1,0 +1,12 @@
+/* S25: the price-source line. It inherits its container's face and colour (the hero's `.pair-meta`, a hub caption); the
+   link is only a hairline underline in the gray ramp, vermilion on hover, as the landing's `.lp-link`. */
+.src-line-link {
+  color: inherit;
+  text-decoration: underline; text-decoration-color: var(--gray-700); text-underline-offset: 3px;
+  transition: text-decoration-color 200ms var(--ease), color 200ms var(--ease);
+}
+.src-line-link:hover { color: var(--gray-300); text-decoration-color: var(--vermilion); }
+.src-line-link:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+.src-line-arrow { margin-left: 3px; font-size: 0.9em; }
+/* In the hero head the line sits under the question with `.mh-window-line`'s own spacing. */
+.hero-chart-head .src-line { display: block; margin-top: 4px; }

@@ -1,6 +1,8 @@
 "use client";
 
 import { usdLine } from "@/features/markets/hero/units";
+import { SourceLine } from "@/features/markets/price-source/SourceLine";
+import type { SourceLabel } from "@/features/markets/price-source/source-label";
 import { TICKER_HUB } from "./copy";
 import type { PreIpoFactsView } from "./usePreIpoFacts";
 import type { PythIndexRow } from "./usePythIndex";
@@ -12,6 +14,8 @@ export interface PreIpoStatsProps {
   facts: PreIpoFactsView | null;
   /** Pyth's valuation index for the name (S20); null omits its two rows, never shows a dash for a feed the venue may not read. */
   index: PythIndexRow | null;
+  /** The PreStocks source line (S25): the token's mint on Solana Explorer. */
+  source: SourceLabel | null;
 }
 
 /**
@@ -19,7 +23,7 @@ export interface PreIpoStatsProps {
  * mark · Token vs Pyth (only when present) · Holders, then the source line for what is on screen. A missing index
  * changes the bar's shape, not its words: nothing here explains why a row is absent.
  */
-export function PreIpoStats({ spot, spotStale, facts, index }: PreIpoStatsProps) {
+export function PreIpoStats({ spot, spotStale, facts, index, source }: PreIpoStatsProps) {
   const t = TICKER_HUB.preIpo;
   return (
     <>
@@ -53,7 +57,9 @@ export function PreIpoStats({ spot, spotStale, facts, index }: PreIpoStatsProps)
           <dd className="big numbers">{facts && facts.holders !== null ? t.holdersLine(facts.holders, facts.holdersMonthAgo) : TICKER_HUB.dash}</dd>
         </div>
       </dl>
-      <p className="type-caption text-ink-muted">{index ? t.sourceBoth : t.sourcePreStocksOnly}</p>
+      <p className="type-caption text-ink-muted">
+        <SourceLine label={source} /> · {index ? t.sourceBoth : t.sourcePreStocksOnly}
+      </p>
     </>
   );
 }

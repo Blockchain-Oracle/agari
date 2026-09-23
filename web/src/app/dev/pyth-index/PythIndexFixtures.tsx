@@ -4,6 +4,7 @@ import { TICKERS } from "@agari/core/market";
 import { SectionHeader } from "@/components/chrome";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { usdLine } from "@/features/markets/hero/units";
+import { assetSourceLabel } from "@/features/markets/price-source/source-label";
 import { TICKER_HUB } from "@/features/ticker-hub/copy";
 import { PreIpoStats, type PreIpoStatsProps } from "@/features/ticker-hub/PreIpoStats";
 import { Fixture } from "../states/_sections/Fixture";
@@ -39,15 +40,16 @@ function HubBar(props: PreIpoStatsProps) {
 
 export function PythIndexFixtures() {
   const spot = usdLine(OPENAI_SPOT_E8);
+  const source = assetSourceLabel(SYMBOL, null);
   return (
     <div className="mx-auto flex w-full max-w-(--content-wide) flex-col gap-6 px-gutter py-8">
       <SectionHeader index="S20" title={TICKER_HUB.dev.title} />
       <p className="type-body text-ink-secondary">{TICKER_HUB.dev.intro}</p>
       <Fixture label={TICKER_HUB.dev.withoutIndex}>
-        <HubBar spot={spot} spotStale={false} facts={OPENAI_FACTS} index={null} />
+        <HubBar spot={spot} spotStale={false} facts={OPENAI_FACTS} index={null} source={source} />
       </Fixture>
       <Fixture label={TICKER_HUB.dev.withIndex}>
-        <HubBar spot={spot} spotStale={false} facts={OPENAI_FACTS} index={OPENAI_INDEX} />
+        <HubBar spot={spot} spotStale={false} facts={OPENAI_FACTS} index={OPENAI_INDEX} source={source} />
       </Fixture>
     </div>
   );

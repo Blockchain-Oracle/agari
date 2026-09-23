@@ -8,6 +8,8 @@ import { HeroCadenceTabs } from "./HeroCadenceTabs";
 import { HeroQuestion } from "./HeroQuestion";
 import { HeroSettlesIn } from "./HeroSettlesIn";
 import { MarketSessionChip } from "../session";
+import { SourceLine } from "../price-source/SourceLine";
+import { windowSourceLabel } from "../price-source/source-label";
 
 export interface HeroChartHeadProps {
   market: EventMarket;
@@ -43,6 +45,7 @@ export function HeroChartHead({
           <MarketSessionChip asset={asset} />
         </div>
         <HeroQuestion asset={asset} ask={ask} openingRaw={openingRaw} currentRaw={currentRaw} />
+        <SourceLine label={windowSourceLabel(market)} className="pair-meta" />
       </div>
       <HeroSettlesIn expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />
     </div>

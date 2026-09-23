@@ -14,6 +14,8 @@ import { bpsPct, windowText } from "@/features/hedge/calm";
 import { useHoldings } from "@/features/hedge/useHoldings";
 import { basisRaw, feedRawToOracleRaw, pointsLine } from "@/features/markets/hero/units";
 import { MarketCard, useLanesState } from "@/features/markets/lanes";
+import { SourceLine } from "@/features/markets/price-source/SourceLine";
+import { assetSourceLabel } from "@/features/markets/price-source/source-label";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -67,7 +69,9 @@ export function BasketHubView({ basket, indexRaw, indexStale, facts, window, win
             <dd className="big numbers">{move ? B.movedLine(bpsPct(move.rangeBps), signedPct(move.changeBps)) : B.quiet}</dd>
           </div>
         </dl>
-        <p className="type-caption text-ink-muted">{B.source}</p>
+        <p className="type-caption text-ink-muted">
+          <SourceLine label={assetSourceLabel(basket.symbol, null)} /> · {B.source}
+        </p>
       </div>
 
       <section aria-label={B.table.title}>

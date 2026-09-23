@@ -10,6 +10,8 @@ import { formatDayChange, type DayChange } from "../asset-history/day-change";
 import type { HistoryRange } from "../asset-history/range";
 import type { MarketSession } from "../session";
 import { MarketSessionChipView } from "../session/MarketSessionChip";
+import { SourceLine } from "../price-source/SourceLine";
+import type { SourceLabel } from "../price-source/source-label";
 import { AssetDisc } from "./asset-mark";
 import { HistoryRangeTabs } from "./HistoryRangeTabs";
 import { assetPairUnit, assetPriceLine } from "./units";
@@ -28,6 +30,8 @@ export interface HeroAssetHeadProps {
   onRange: (range: HistoryRange) => void;
   /** The listed Window the page has selected (D-088): the head names it and counts to its own open, not the session's. */
   window?: Pick<EventMarket, "intervalSec" | "tradingStartSec"> | null;
+  /** Where the asset's price comes from (S25); null names nothing. */
+  source?: SourceLabel | null;
 }
 
 /** "Last close", or "Pre-market" / "After hours" / "Live" for a moved extended-hours tick. */
@@ -43,7 +47,7 @@ function priceWord(session: MarketSession, live: boolean): string {
  * under it ("Last close · as of 16:00 ET"), the day's move in the distance slot, and the countdown to the open in the
  * "Settles in" slot. Aged readings are labelled, never ticked (D-086).
  */
-export function HeroAssetHead({ asset, session, nowSec, price, live, change, range, onRange, window = null }: HeroAssetHeadProps) {
+export function HeroAssetHead({ asset, session, nowSec, price, live, change, range, onRange, window = null, source = null }: HeroAssetHeadProps) {
   const when = useWhen();
   const countdown = sessionCountdown(session.status, nowSec);
   const move = change ? formatDayChange(change, asset) : null;
@@ -67,6 +71,7 @@ export function HeroAssetHead({ asset, session, nowSec, price, live, change, ran
           </span>
         )}
         {window && <span className="pair-meta mh-window-line">{PREOPEN.hero.listedWindow(formatCadence(window.intervalSec), when(window.tradingStartSec))}</span>}
+        <SourceLine label={source} className="pair-meta" />
         <div className="mh-distance">
           {move && change ? (
             <>

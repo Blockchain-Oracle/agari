@@ -1,7 +1,7 @@
 "use client";
 
 import { basketOf, isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
-import { useAssetPrice } from "@agari/markets/react";
+import { useAssetPrice, useLanes } from "@agari/markets/react";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
 import { ActivityList } from "@/features/activity/ActivityList";
@@ -11,6 +11,9 @@ import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { assetPriceLine, basisRaw, feedRawToOracleRaw } from "@/features/markets/hero/units";
 import { StatusDot } from "@/components/ui/desk-kit";
 import { MarketSessionChip } from "@/features/markets/session";
+import { SourceLine } from "@/features/markets/price-source/SourceLine";
+import { assetSourceLabel } from "@/features/markets/price-source/source-label";
+import { useVenue } from "@/features/markets/useVenue";
 import { NEWS } from "@/features/news/copy";
 import { articleSymbols, Cashtags, MarkCluster, NewsRow } from "@/features/news/NewsRow";
 import type { Article } from "@/features/news/protocol";
@@ -66,23 +69,35 @@ function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: bo
   const price = useAssetPrice(symbol);
   const earnings = useNextEarnings(preIpo ? null : symbol);
   const facts = usePreIpoFacts(preIpo ? symbol : null);
+  // The markets page's own lane read (shared cache): a listed name's source is its newest Window's policy source. A
+  // pre-IPO name's is the registry's, so its hub leaves the read off.
+  const venue = useVenue();
+  const lanes = useLanes(preIpo ? null : venue.venueId);
+  const source = assetSourceLabel(symbol, lanes?.ok ? lanes.value : null);
   const spot = price?.ok && price.value ? assetPriceLine(symbol, feedRawToOracleRaw(basisRaw(price.value), price.value.decimals)) : TICKER_HUB.dash;
   const report = earnings.event ? reportDay(earnings.event.dateEt, earnings.event.hour) : earnings.known ? TICKER_HUB.earningsNone : TICKER_HUB.earningsUnknown;
   return (
     <div className="prf-bar">
       {preIpo ? (
-        <PreIpoStats spot={spot} spotStale={Boolean(price?.ok && price.stale)} facts={facts?.ok ? facts.value : null} index={index} />
+        <PreIpoStats spot={spot} spotStale={Boolean(price?.ok && price.stale)} facts={facts?.ok ? facts.value : null} index={index} source={source} />
       ) : (
-        <dl className="prf-stats">
-          <div className="prf-stat">
-            <dt>{price?.ok && price.stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot}</dt>
-            <dd className="big numbers">{spot}</dd>
-          </div>
-          <div className="prf-stat">
-            <dt>{TICKER_HUB.earnings}</dt>
-            <dd className="big">{report}</dd>
-          </div>
-        </dl>
+        <>
+          <dl className="prf-stats">
+            <div className="prf-stat">
+              <dt>{price?.ok && price.stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot}</dt>
+              <dd className="big numbers">{spot}</dd>
+            </div>
+            <div className="prf-stat">
+              <dt>{TICKER_HUB.earnings}</dt>
+              <dd className="big">{report}</dd>
+            </div>
+          </dl>
+          {source && (
+            <p className="type-caption text-ink-muted">
+              <SourceLine label={source} />
+            </p>
+          )}
+        </>
       )}
       <div className="prf-actions">
         <TickerRoomButton symbol={symbol} />
