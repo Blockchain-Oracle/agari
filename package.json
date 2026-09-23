@@ -37,7 +37,8 @@
     "drive:gap-cycle": "tsx --env-file-if-exists=.env.local scripts/drive/gap-cycle.ts",
     "drive:recount": "tsx --env-file-if-exists=.env.local scripts/drive/recount.ts",
     "drive:proof-replay": "tsx --env-file-if-exists=.env.local scripts/drive/proof-replay.ts",
-    "drive:traders": "tsx --env-file-if-exists=.env.local scripts/drive/traders.ts"
+    "drive:traders": "tsx --env-file-if-exists=.env.local scripts/drive/traders.ts",
+    "drive:token-cycle": "tsx --env-file-if-exists=.env.local scripts/drive/token-cycle.ts"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "1.5.5",
