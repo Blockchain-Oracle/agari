@@ -97,8 +97,12 @@ export function sampledQuote(input: LaneQuoteInput, source: SampledSource | null
   if (spotE8 === null) return pull(`${label} stale`);
   if (m.open.source === 0) return { phase: "quote", fairTicks: null, maxCashPerWindow: cap, why: "waiting for the open print" };
   const startSec = Number(m.tradingStart);
-  const openE8 = source.at(startSec + PRE_IPO_START_WINDOW_SEC, PRE_IPO_START_WINDOW_SEC + 5);
-  if (openE8 === null) return pull(`no ${label} sample near the Window's start`);
+  // The Window's own opening print is the same PreStocks number the venue signed at the start (the print source and
+  // the chart are one feed here), so when this process has no sample near the start — it restarted mid-Window — the
+  // print stands in for it. Before S23 the lane pulled until the next Window, and a restart left its books empty for
+  // up to an hour.
+  const sampled = source.at(startSec + PRE_IPO_START_WINDOW_SEC, PRE_IPO_START_WINDOW_SEC + 5);
+  const openE8 = sampled ?? m.open.price;
   const fairTicks = fairYesTicks({
     spotE8,
     openE8,
@@ -106,5 +110,5 @@ export function sampledQuote(input: LaneQuoteInput, source: SampledSource | null
     sigmaBps: input.env.sigmaBps(input.symbol),
     minTick: input.env.minTick,
   });
-  return { phase: "quote", fairTicks, maxCashPerWindow: cap, why: `${label} ${spotE8} vs start ${openE8}` };
+  return { phase: "quote", fairTicks, maxCashPerWindow: cap, why: `${label} ${spotE8} vs ${sampled === null ? "open print" : "start"} ${openE8}` };
 }

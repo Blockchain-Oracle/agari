@@ -51,13 +51,23 @@ function cssVar(el: HTMLElement, name: string): string {
   return getComputedStyle(el).getPropertyValue(name).trim() || "currentColor";
 }
 
+/** The canvas needs a resolved family list: `--font-data` is a `var()` chain the canvas cannot read, so it fell back to serif. */
+function resolvedFont(el: HTMLElement): string {
+  const probe = document.createElement("span");
+  probe.style.fontFamily = "var(--font-data)";
+  el.appendChild(probe);
+  const family = getComputedStyle(probe).fontFamily;
+  probe.remove();
+  return family || "ui-monospace, monospace";
+}
+
 function buildChart(container: HTMLDivElement): Built {
   const chart = createChart(container, {
     autoSize: true,
     layout: {
       background: { type: ColorType.Solid, color: "transparent" },
       textColor: cssVar(container, "--color-ink-muted"),
-      fontFamily: cssVar(container, "--font-data"),
+      fontFamily: resolvedFont(container),
       attributionLogo: false,
     },
     grid: { vertLines: { visible: false }, horzLines: { color: cssVar(container, "--color-hairline") } },

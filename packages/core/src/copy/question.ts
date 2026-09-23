@@ -1,3 +1,4 @@
+import { isBasketSymbol } from "../market/baskets";
 import { formatOracleRaw } from "../units/format";
 import { formatCadence } from "./between-rounds";
 
@@ -31,11 +32,17 @@ interface WordQuestionInput extends QuestionInput {
  * come from whatever the venue lists.
  */
 const WORD_TEMPLATES: readonly ((asset: string, level: string, clock: string) => string)[] = [
-  (asset, level, clock) => `Will ${asset} be above $${level} at ${clock}?`,
-  (asset, level, clock) => `${asset} still over $${level} when the clock hits ${clock}?`,
-  (asset, level, clock) => `Will ${asset} hold $${level} through ${clock}?`,
-  (asset, level, clock) => `${asset} above $${level} by ${clock}?`,
+  (asset, level, clock) => `Will ${asset} be above ${level} at ${clock}?`,
+  (asset, level, clock) => `${asset} still over ${level} when the clock hits ${clock}?`,
+  (asset, level, clock) => `Will ${asset} hold ${level} through ${clock}?`,
+  (asset, level, clock) => `${asset} above ${level} by ${clock}?`,
 ];
+
+/** A level in the asset's unit (S23): a basket is an index in points, never dollars (D-124). */
+function levelText(asset: string, raw: bigint, oracleScale: number): string {
+  const figure = formatOracleRaw(raw, oracleScale);
+  return isBasketSymbol(asset) ? `${figure} pts` : `$${figure}`;
+}
 
 /**
  * Which phrasing a market gets, fixed for its lifetime.
@@ -62,7 +69,7 @@ export function wordQuestion(market: WordQuestionInput, oracleScale: number, clo
   if (market.openingPriceRaw === null) {
     return { text: `Will ${market.asset} be above its opening print at ${closeClock}? (${PLAIN_WORDS.pendingPrint})`, pending: true };
   }
-  const level = formatOracleRaw(market.openingPriceRaw, oracleScale);
+  const level = levelText(market.asset, market.openingPriceRaw, oracleScale);
   const template = WORD_TEMPLATES[templateFor(market.marketId)] ?? WORD_TEMPLATES[0]!;
   return { text: template(market.asset, level, closeClock), pending: false };
 }
@@ -73,6 +80,6 @@ export function plainQuestion(market: QuestionInput, oracleScale: number): Plain
   if (market.openingPriceRaw === null) {
     return { text: `Will ${market.asset} close this ${cadence} Window at or above its opening print? (${PLAIN_WORDS.pendingPrint})`, pending: true };
   }
-  const level = formatOracleRaw(market.openingPriceRaw, oracleScale);
-  return { text: `Will ${market.asset} close this ${cadence} Window at or above $${level}?`, pending: false };
+  const level = levelText(market.asset, market.openingPriceRaw, oracleScale);
+  return { text: `Will ${market.asset} close this ${cadence} Window at or above ${level}?`, pending: false };
 }

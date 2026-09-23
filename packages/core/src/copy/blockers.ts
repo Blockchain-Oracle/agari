@@ -74,6 +74,10 @@ export interface BlockerContext {
   crossingText?: string;
   /** The Window opened moments ago: an empty book is quotes still arriving after the opening print, not an absent counterparty. */
   freshBook?: boolean;
+  /** A 24/7 Window nobody is quoting at all (S23): said as that, with when the next Window starts, not as a size problem. */
+  emptyBook?: boolean;
+  /** "23:00" · "Wed 00:00 (19:00 ET)": when the lane's next Window starts. */
+  nextWindowText?: string;
 }
 
 const DEFAULT_CHAIN = "Solana devnet";
@@ -125,6 +129,7 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "quoting":
       return "Quoting…";
     case "no-liquidity-at-size":
+      if (ctx.emptyBook) return `Nobody is quoting this Window right now${ctx.nextWindowText ? ` · next Window ${ctx.nextWindowText}` : ""}`;
       return ctx.freshBook
         ? "Quotes are still arriving on this Window — the maker posts within a minute or two of the opening print"
         : "No liquidity at this size — nobody is on the other side of this book";

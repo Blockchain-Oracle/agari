@@ -20,6 +20,7 @@ export const LANE_CARD = {
   openTicket: (asset: string) => `Open the ticket for this ${asset} Window`,
   oddsLive: "LIVE ODDS",
   oddsLoading: "READING THE BOOK…",
+  noQuotes: "NO QUOTES YET",
   closing: "CLOSING · NEXT ROUND SOON",
   priceLoading: "···",
   /** Labels the dashed rule on the card sparkline. */
@@ -33,6 +34,7 @@ export const WORD_BOARD = {
   /** The two asks are independent contracts, so the bar is a stated derivation, never "the odds". */
   implied: (share: number) => `${share}% implied on Yes`,
   noLean: "no book on both sides yet",
+  open: "Open",
 } as const;
 
 export const CONNECT = {

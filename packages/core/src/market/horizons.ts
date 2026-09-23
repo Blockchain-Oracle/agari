@@ -1,3 +1,4 @@
+import { phase } from "../lifecycle/phase";
 import type { EventMarket, LaneSet } from "../types/market";
 
 /**
@@ -14,7 +15,17 @@ export const HORIZONS = [
   { key: "later", label: "Later", withinMs: Number.POSITIVE_INFINITY },
 ] as const;
 
-export type HorizonKey = (typeof HORIZONS)[number]["key"];
+/**
+ * A stock Window listed before its bell (S23): it takes scheduled calls, not a buy against a book that cannot exist
+ * yet, so it never sits in a "closing" band with a countdown to an expiry hours away. Only 24/7 token lanes and
+ * Windows already trading are grouped by how soon they close.
+ */
+export const LISTED_HORIZON = { key: "listed", label: "Schedule a call" } as const;
+
+/** A stock Window before its bell: it takes a scheduled call and has no book to trade against yet (S23). */
+export const isListedWindow = (market: EventMarket, nowMs: number): boolean => market.lane !== "token" && phase(market, nowMs) === "upcoming";
+
+export type HorizonKey = (typeof HORIZONS)[number]["key"] | typeof LISTED_HORIZON.key;
 
 export interface HorizonGroup {
   key: HorizonKey;
@@ -32,6 +43,8 @@ export const WORD_BOARD_MIN_LEAD_MS = 20_000;
  * boundary lands in the tighter group and in exactly one group. An empty group is
  * dropped rather than rendered as a heading with nothing under it.
  *
+ * Listed stock Windows (before their bell) form their own last group, `listed`, whatever their expiry (S23).
+ *
  * Returns `[]` for an unread lane set or a clock that has not ticked, which is what
  * lets the board show "reading the board…" rather than "between rounds" — those are
  * different states and only one of them is a claim about the venue.
@@ -39,12 +52,14 @@ export const WORD_BOARD_MIN_LEAD_MS = 20_000;
 export function groupByHorizon(laneSet: LaneSet | null, nowMs: number): HorizonGroup[] {
   if (laneSet === null || nowMs === 0) return [];
 
-  const live = laneSet.lanes
+  const open = laneSet.lanes
     .flatMap((lane) => lane.markets)
-    .filter((market) => market.expirySec * 1000 - nowMs > WORD_BOARD_MIN_LEAD_MS)
-    .sort((a, b) => a.expirySec - b.expirySec);
+    .filter((market) => market.expirySec * 1000 - nowMs > WORD_BOARD_MIN_LEAD_MS);
+  const isListed = (market: EventMarket) => isListedWindow(market, nowMs);
+  const live = open.filter((market) => !isListed(market)).sort((a, b) => a.expirySec - b.expirySec);
+  const listed = open.filter(isListed).sort((a, b) => a.tradingStartSec - b.tradingStartSec || a.intervalSec - b.intervalSec);
 
-  return HORIZONS.map((horizon, index) => {
+  const timed: HorizonGroup[] = HORIZONS.map((horizon, index) => {
     const floorMs = index === 0 ? 0 : HORIZONS[index - 1]!.withinMs;
     return {
       key: horizon.key,
@@ -54,5 +69,6 @@ export function groupByHorizon(laneSet: LaneSet | null, nowMs: number): HorizonG
         return leftMs > floorMs && leftMs <= horizon.withinMs;
       }),
     };
-  }).filter((group) => group.markets.length > 0);
+  });
+  return [...timed, { key: LISTED_HORIZON.key, label: LISTED_HORIZON.label, markets: listed }].filter((group) => group.markets.length > 0);
 }

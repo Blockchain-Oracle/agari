@@ -52,4 +52,34 @@ describe("groupByHorizon", () => {
     // Only "soon" survives — the other two bands are dropped, not rendered empty.
     expect(ids(twoLanes)).toEqual([["soon", ["five", "hourly"]]]);
   });
+
+  describe("with the stock market closed (S23)", () => {
+    /** A Window with the fields `phase` reads: listed before its bell unless it has started. */
+    const win = (id: string, lane: EventMarket["lane"], startsIn: number, expiresIn: number, intervalSec = 300): EventMarket =>
+      ({ marketId: id, lane, intervalSec, tradingStartSec: NOW_SEC + startsIn, lockAtSec: NOW_SEC + expiresIn, expirySec: NOW_SEC + expiresIn, openingPriceRaw: startsIn > 0 ? null : 1n, status: "Open", voided: false, finalized: false }) as unknown as EventMarket;
+
+    it("moves a stock Window listed before its bell out of the closing bands, even when its expiry is near", () => {
+      // 09:25 ET: the 09:30–09:35 Window expires in ten minutes but cannot be bought yet.
+      expect(ids(laneSet(win("stock-at-bell", "regular", 300, 600), win("token-live", "token", -600, 1_800, 3_600)))).toEqual([
+        ["hour", ["token-live"]],
+        ["listed", ["stock-at-bell"]],
+      ]);
+    });
+
+    it("keeps only 24/7 lanes in the closing bands overnight, and lists the bell's Windows by open then cadence", () => {
+      const overnight = laneSet(
+        win("tsla-60m", "regular", 36_000, 39_600, 3_600),
+        win("tsla-5m", "regular", 36_000, 36_300, 300),
+        win("openai-60m", "token", -900, 2_700, 3_600),
+      );
+      expect(ids(overnight)).toEqual([
+        ["hour", ["openai-60m"]],
+        ["listed", ["tsla-5m", "tsla-60m"]],
+      ]);
+    });
+
+    it("never lists an upcoming token Window: a 24/7 lane is grouped by its close", () => {
+      expect(ids(laneSet(win("basket-next", "token", 600, 4_200, 3_600)))).toEqual([["later", ["basket-next"]]]);
+    });
+  });
 });

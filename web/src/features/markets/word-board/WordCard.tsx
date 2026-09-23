@@ -1,5 +1,6 @@
 "use client";
 
+import { isTickerSymbol, TICKERS } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
 import { formatWallClock } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
@@ -7,6 +8,7 @@ import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
 import Link from "next/link";
 import { Countdown } from "@/components/data";
 import { MARKETS, PLAIN_WORDS, WORD_BOARD, wordQuestion } from "@/lib/copy";
+import { CLOSED } from "@/lib/copy-closed";
 import { cn } from "@/lib/utils";
 import { AssetDisc } from "../hero/asset-mark";
 import { useTopOfBook } from "../hero/useTopOfBook";
@@ -48,17 +50,23 @@ export function WordCard({ market, nowMs }: WordCardProps) {
   const closeClock = formatWallClock(closeMs);
   const question = wordQuestion({ ...market, marketId: String(market.marketId) }, ORACLE_PRICE_SCALE, closeClock);
   const share = impliedUpShare(upCents, downCents);
+  // A 24/7 Window says what it is, and an empty book says so instead of offering two prices nobody is making (S23).
+  const kind = market.lane === "token" && isTickerSymbol(market.asset) ? CLOSED.kind[TICKERS[market.asset].kind] : null;
+  const unquoted = !hydrating && upCents === null && downCents === null;
 
   return (
     <div className="wq-card">
       <div className="wq-top">
         <AssetDisc asset={market.asset} className="wq-btc" />
         <span className="wq-meta">{market.asset}</span>
+        {kind && <span className="wq-kind">{kind}</span>}
         <Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} className="wq-clock" />
       </div>
 
       <p className={cn("wq-q", question.pending && "wq-q-pending")}>{question.text}</p>
 
+      {!unquoted && (
+        <>
       {/* No bar at all until both asks are known — an empty track reads as 0% lean. */}
       {share === null ? (
         <div className="wq-oddsbar wq-oddsbar-unknown" aria-hidden />
@@ -75,6 +83,16 @@ export function WordCard({ market, nowMs }: WordCardProps) {
         </span>
       </div>
 
+        </>
+      )}
+
+      {unquoted ? (
+        <div className="wq-unquoted">
+          <span className="wq-unquoted-dot" aria-hidden />
+          <span className="wq-unquoted-text">{CLOSED.noQuotes}</span>
+          <Link className="wq-unquoted-open" href={marketDeepLink({ marketId: market.marketId })}>{WORD_BOARD.open}</Link>
+        </div>
+      ) : (
       <div className="wq-actions">
         <Link className="wq-btn yes" href={marketDeepLink({ marketId: market.marketId, dir: "up" })} data-cursor="hover">
           <span className="wq-side">{PLAIN_WORDS.yes}</span>
@@ -85,6 +103,7 @@ export function WordCard({ market, nowMs }: WordCardProps) {
           <span className="wq-cents">{cents(downCents, hydrating)}</span>
         </Link>
       </div>
+      )}
     </div>
   );
 }

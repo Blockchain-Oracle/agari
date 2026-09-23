@@ -81,3 +81,6 @@
 .markets-grid-live {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
+
+/* S23: a 24/7 Window's kind chip beside its cadence ("24/7 · pre-IPO", "24/7 · basket"). */
+.mc-kind { margin-left: 6px; padding: 1px 7px; border-radius: 9999px; border: 1px solid var(--color-accent-dim); font-family: var(--font-data); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); white-space: nowrap; }

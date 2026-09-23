@@ -8,6 +8,7 @@
     { "file": "packages/core/src/x/parse.ts", "match": "UNLISTED_ASSET_RE", "why": "the X grammar names crypto tickers so it can refuse them in words" },
     { "file": "web/src/features/pitch/copy.ts", "match": "Built from Masayume's source", "why": "the pitch credits the reference it was ported from" },
     { "file": "web/src/features/pitch/copy.ts", "match": "source-led port of Masayume", "why": "the pitch credits the reference it was ported from" },
-    { "file": "web/src/features/markets/word-board/WordCard.tsx", "match": "wq-btc", "why": "a ported CSS class name; it never reaches a reader" }
+    { "file": "web/src/features/markets/word-board/WordCard.tsx", "match": "wq-btc", "why": "a ported CSS class name; it never reaches a reader" },
+    { "file": "web/src/features/markets/word-board/WordListedCard.tsx", "match": "wq-btc", "why": "the same ported CSS class on the listed card's disc; it never reaches a reader" }
   ]
 }
