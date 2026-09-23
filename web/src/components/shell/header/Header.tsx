@@ -41,7 +41,7 @@ export default function Header() {
   return (
     <>
       <header className="header">
-        <Link className="logo" href="/markets" aria-label="Agari markets" data-cursor="hover">
+        <Link className="logo" href="/" aria-label="Agari home" data-cursor="hover">
           <span className="logo-mark"><AgariMark /></span>
           <span>AGARI</span>
         </Link>

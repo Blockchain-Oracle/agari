@@ -1,6 +1,5 @@
 "use client";
 
-import { sessionPhrase } from "@agari/core/copy";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
@@ -16,6 +15,7 @@ import { configuredLaneKeys, configuredTickers } from "./next-window";
 import { NextWindowRail } from "./NextWindowRail";
 import { TickerLane } from "./TickerLane";
 import type { LanesState } from "./useLanes";
+import { useSessionPhrase } from "@/lib/when";
 
 interface CadenceLanesProps {
   state: LanesState;
@@ -40,11 +40,12 @@ function listsNext(session: MarketSession | null, key: LaneTabKey | null): sessi
 
 export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, onSelect, onOpenRoom }: CadenceLanesProps) {
   const session = useMarketSession();
+  const phrase = useSessionPhrase();
   // The lanes ops configures stand in for live Windows while none exist, so the tabs and the rail never empty.
   const configured = useMemo(() => configuredLaneKeys(session), [session]);
   const activeKey = state.activeKey ?? configured[0] ?? null;
   const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
-  const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(sessionPhrase(session.status, nowSec)), nextAction: { label: SESSION_COPY.ticket.readWire, href: "/news" } } : null;
+  const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(phrase(session.status, nowSec)), nextAction: { label: SESSION_COPY.ticket.readWire, href: "/news" } } : null;
   return (
     <ReadingBoundary
       reading={laneReading(state, boot)}

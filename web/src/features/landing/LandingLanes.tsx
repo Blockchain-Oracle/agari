@@ -1,13 +1,14 @@
 "use client";
 
-import { formatSessionSpan, sessionCountdown, sessionPhrase } from "@agari/core/copy";
+import { formatSessionSpan, sessionCountdown } from "@agari/core/copy";
 import type { TickerSymbol } from "@agari/core/market";
 import type { LaneBasis } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { useTick } from "@agari/markets/react";
 import { AssetDisc } from "../markets/hero/asset-mark";
-import { etWhen, laneAssetLabel } from "../markets/lanes/lane-view";
+import { laneAssetLabel } from "../markets/lanes/lane-view";
 import { useMarketSession, type MarketSession } from "../markets/session";
+import { useSessionPhrase, useWhen } from "@/lib/when";
 import { LANDING } from "./copy";
 import { laneBoard, type LaneBoard } from "./data";
 
@@ -37,14 +38,19 @@ function LaneMarks({ basis, tickers }: { basis: LaneBasis; tickers: readonly Tic
 }
 
 /** What the lane does next, in one line: the open countdown, each cadence's first Window, the next weekend, or 24/7. */
-function laneLine(basis: LaneBasis, board: LaneBoard, session: MarketSession, nowSec: number): string {
+interface LaneWords {
+  when: (sec: number) => string;
+  phrase: (status: MarketSession["status"], nowSec: number) => string;
+}
+
+function laneLine(basis: LaneBasis, board: LaneBoard, session: MarketSession, nowSec: number, { when, phrase }: LaneWords): string {
   if (board.tickers[basis].length === 0) return LANDING.lanes.notListed;
   if (basis === "token") return LANDING.lanes.token.open(board.tokenCadences.join(" · "));
-  if (basis === "gap") return board.weekend ? LANDING.lanes.gap.next(etWhen(board.weekend.closeSec), etWhen(board.weekend.openSec)) : sessionPhrase(session.status, nowSec);
+  if (basis === "gap") return board.weekend ? LANDING.lanes.gap.next(when(board.weekend.closeSec), when(board.weekend.openSec)) : phrase(session.status, nowSec);
   const countdown = sessionCountdown(session.status, nowSec);
   if (session.open && countdown?.kind === "closes") return LANDING.lanes.regular.open(formatSessionSpan(countdown.remainingSec));
-  const starts = board.regular.flatMap((c) => (c.startSec === null ? [] : [LANDING.lanes.regular.first(c.cadence, etWhen(c.startSec))]));
-  return starts.length > 0 ? starts.join(" · ") : sessionPhrase(session.status, nowSec);
+  const starts = board.regular.flatMap((c) => (c.startSec === null ? [] : [LANDING.lanes.regular.first(c.cadence, when(c.startSec))]));
+  return starts.length > 0 ? starts.join(" · ") : phrase(session.status, nowSec);
 }
 
 /**
@@ -54,6 +60,8 @@ function laneLine(basis: LaneBasis, board: LaneBoard, session: MarketSession, no
 export function LandingLanes() {
   const session = useMarketSession();
   useTick(CLOCK_TICK_MS);
+  const when = useWhen();
+  const phrase = useSessionPhrase();
   const nowSec = Math.floor(marketsProvider.nowMs() / 1000);
   const board = session ? laneBoard(session, nowSec) : null;
   return (
@@ -71,7 +79,7 @@ export function LandingLanes() {
             {board && <LaneMarks basis={basis} tickers={board.tickers[basis]} />}
             <p className="lp-lane-next" role="status">
               <span className="lp-lane-dot" aria-hidden />
-              {session && board ? laneLine(basis, board, session, nowSec) : LANDING.lanes.reading}
+              {session && board ? laneLine(basis, board, session, nowSec, { when: (sec) => when(sec, { nowSec }), phrase }) : LANDING.lanes.reading}
             </p>
           </article>
         );

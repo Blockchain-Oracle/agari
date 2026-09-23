@@ -1,6 +1,5 @@
 "use client";
 
-import { sessionPhrase } from "@agari/core/copy";
 import { type TickerSymbol } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
 import type { EventMarket, MarketId } from "@agari/core/types";
@@ -18,7 +17,7 @@ import { PriceChart } from "./PriceChart";
 import { ScheduleCallButton } from "./ScheduleCallButton";
 import { assetPriceLine } from "./units";
 import "./asset-hero.css";
-import { useWhen } from "@/lib/when";
+import { useSessionPhrase, useWhen } from "@/lib/when";
 
 /** The head's countdown and phrase move by the minute; one shared 30 s beat serves both. */
 const CLOCK_TICK_MS = 30_000;
@@ -48,6 +47,7 @@ export interface HeroAssetChartViewProps {
  */
 export function HeroAssetChartView({ asset, tickers, onPickAsset, session, history, nowSec, range, onRange, onSelect, window = null }: HeroAssetChartViewProps) {
   const when = useWhen();
+  const phrase = useSessionPhrase();
   const h = history?.ok ? history.value : null;
   const latest = h?.latest ?? null;
   const live = h !== null && h.liveSec !== null;
@@ -91,7 +91,7 @@ export function HeroAssetChartView({ asset, tickers, onPickAsset, session, histo
       <div className="hero-chart-foot">
         {/* A div, not a span: Masayume's `.hero-chart-foot > span:first-child` caps its own source note's width. */}
         <div className="mh-foot-line">
-          <span>{sessionPhrase(session.status, nowSec)}</span>
+          <span>{phrase(session.status, nowSec)}</span>
           {closeLine && <span className="mh-foot-soft">· {closeLine}</span>}
           <span className="mh-foot-soft mh-foot-source">· {SESSION_COPY.hero.source}</span>
         </div>

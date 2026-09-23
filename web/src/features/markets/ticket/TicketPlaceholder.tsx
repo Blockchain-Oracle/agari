@@ -1,6 +1,5 @@
 "use client";
 
-import { sessionPhrase } from "@agari/core/copy";
 import type { TickerSymbol } from "@agari/core/market";
 import type { MarketId } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
@@ -11,6 +10,7 @@ import { MARKETS, TICKET } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { ScheduleCallButton } from "../hero/ScheduleCallButton";
 import { useMarketSession, type MarketSession } from "../session";
+import { useSessionPhrase } from "@/lib/when";
 
 const PHRASE_TICK_MS = 30_000;
 
@@ -28,12 +28,13 @@ export interface TicketPlaceholderViewProps {
  * call on the asset's next listed Window, or the line that says when one lists.
  */
 export function TicketPlaceholderView({ asset, session, nowSec, onSelect }: TicketPlaceholderViewProps) {
+  const phrase = useSessionPhrase();
   return (
     <div className="mh-rail">
       <section aria-label={TICKET.title} className="tk-ticket tk-ticket--rail">
         <span className="tk-amount-label">{TICKET.title}</span>
         <p className="type-body text-ink">{MARKETS.ticketPlaceholder.why}</p>
-        {session && <p className="type-caption text-ink-secondary">{sessionPhrase(session.status, nowSec)}</p>}
+        {session && <p className="type-caption text-ink-secondary">{phrase(session.status, nowSec)}</p>}
         <p className="type-caption text-ink-muted">{SESSION_COPY.ticket.meanwhile}</p>
         {onSelect && <ScheduleCallButton asset={asset} session={session} nowSec={nowSec} onSelect={onSelect} variant="cta" opensSec={session?.status.nextOpenSec ?? null} />}
         <Button variant="secondary" size="sm" render={<Link href={SESSION_COPY.ticket.wireHref(asset)} />}>

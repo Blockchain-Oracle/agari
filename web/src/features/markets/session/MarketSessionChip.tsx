@@ -1,6 +1,6 @@
 "use client";
 
-import { sessionPhrase, sessionStateWord } from "@agari/core/copy";
+import { sessionStateWord } from "@agari/core/copy";
 import { haltLabel, isTickerSymbol } from "@agari/core/market";
 import { marketsProvider } from "@agari/markets";
 import { useTick } from "@agari/markets/react";
@@ -8,6 +8,7 @@ import { MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { useMarketSession, type MarketSession } from "./useMarketSession";
 import "./market-session.css";
+import { useSessionPhrase } from "@/lib/when";
 
 /** The countdown in the phrase moves by the minute; a 30 s beat keeps it honest without a render a second. */
 const PHRASE_TICK_MS = 30_000;
@@ -35,6 +36,7 @@ function haltShown(session: MarketSession, asset: string | undefined): boolean {
  */
 export function MarketSessionChipView({ session, asset, className, nowSec }: MarketSessionChipProps & { session: MarketSession; nowSec?: number }) {
   useTick(PHRASE_TICK_MS);
+  const sessionLine = useSessionPhrase();
   if (session.halt && haltShown(session, asset)) {
     const label = haltLabel(session.halt.reason);
     return (
@@ -48,7 +50,7 @@ export function MarketSessionChipView({ session, asset, className, nowSec }: Mar
   }
   const now = nowSec ?? Math.floor(marketsProvider.nowMs() / 1000);
   const word = sessionStateWord(session.status);
-  const phrase = sessionPhrase(session.status, now);
+  const phrase = sessionLine(session.status, now);
   // The phrase is "<word> · <tail>"; the tail alone follows the dot. Without a tail (no known open) the label stands in.
   const tail = phrase.startsWith(`${word} · `) ? phrase.slice(word.length + 3) : session.label;
   return (

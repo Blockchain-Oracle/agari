@@ -75,13 +75,20 @@ function reopensAt(status: Pick<SessionStatus, "date">, openSec: number): string
  * "Pre-market · opens in 1h 12m", "Open · closes in 2h 05m", "After hours · reopens Tue 09:30 ET",
  * "Weekend · reopens Mon 09:30 ET", "Holiday · reopens Fri 09:30 ET". A countdown only while the open is today;
  * a halt says its word alone (the halt reason is the chip's, Q-S6-9); an unknown next open says "Closed".
+ * `at` renders the boundary in the reader's zone ("Pre-market · opens 14:30 (09:30 ET), in 4h 19m"): a countdown
+ * alone read as "the market is shut" to a UTC+1 reader watching pre-market prices move at 10:00 local.
  */
-export function sessionPhrase(status: Pick<SessionStatus, "state" | "date" | "closesAtSec" | "nextOpenSec">, nowSec: number): string {
+export function sessionPhrase(
+  status: Pick<SessionStatus, "state" | "date" | "closesAtSec" | "nextOpenSec">,
+  nowSec: number,
+  at?: (sec: number) => string,
+): string {
   const word = sessionStateWord(status);
   if (status.state === "halted") return word;
   const countdown = sessionCountdown(status, nowSec);
   if (!countdown) return word;
-  if (countdown.kind === "closes") return `${word} · closes in ${formatSessionSpan(countdown.remainingSec)}`;
-  if (etDateOf(countdown.atSec) === status.date) return `${word} · opens in ${formatSessionSpan(countdown.remainingSec)}`;
-  return `${word} · reopens ${reopensAt(status, countdown.atSec)}`;
+  const span = formatSessionSpan(countdown.remainingSec);
+  if (countdown.kind === "closes") return at ? `${word} · closes ${at(countdown.atSec)}, in ${span}` : `${word} · closes in ${span}`;
+  if (etDateOf(countdown.atSec) === status.date) return at ? `${word} · opens ${at(countdown.atSec)}, in ${span}` : `${word} · opens in ${span}`;
+  return `${word} · reopens ${at ? at(countdown.atSec) : reopensAt(status, countdown.atSec)}`;
 }

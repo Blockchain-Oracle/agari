@@ -1,6 +1,7 @@
 "use client";
 
-import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate } from "@agari/core/market";
+import { sessionPhrase } from "@agari/core/copy";
+import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate, type SessionStatus } from "@agari/core/market";
 import { marketsProvider } from "@agari/markets";
 import { useSyncExternalStore } from "react";
 
@@ -92,4 +93,13 @@ export function whenFor(tz: string | null): (sec: number, options?: WhenOptions)
 /** `when(sec)` → "Wed 14:30 (09:30 ET)"; `when(sec, { clock: true })` → "14:30 (09:30 ET)"; ET text until hydrated. */
 export function useWhen(): (sec: number, options?: WhenOptions) => string {
   return whenFor(useViewerZone());
+}
+
+/**
+ * `sessionPhrase` with the boundary in the reader's zone: "Pre-market · opens 14:30 (09:30 ET), in 4h 19m". Call it
+ * at the top of a component, never inside a branch (the 09-22 outage was a hook reached only once the market shut).
+ */
+export function useSessionPhrase(): (status: Pick<SessionStatus, "state" | "date" | "closesAtSec" | "nextOpenSec">, nowSec: number) => string {
+  const when = useWhen();
+  return (status, nowSec) => sessionPhrase(status, nowSec, (sec) => when(sec, { nowSec }));
 }

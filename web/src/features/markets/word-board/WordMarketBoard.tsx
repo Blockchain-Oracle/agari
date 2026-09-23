@@ -1,14 +1,14 @@
 "use client";
 
 import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@agari/core/market";
-import { diagnosisCopy, sessionPhrase } from "@agari/core/copy";
+import { diagnosisCopy } from "@agari/core/copy";
 import type { Diagnosis, EventMarket, LaneSet } from "@agari/core/types";
 import { useMemo } from "react";
 import { EmptyState } from "@/components/states";
 import { WORD_BOARD } from "@/lib/copy";
 import { CLOSED } from "@/lib/copy-closed";
 import { SESSION_COPY } from "@/lib/copy-session";
-import { useWhen } from "@/lib/when";
+import { useSessionPhrase, useWhen } from "@/lib/when";
 import { useMarketSession } from "../session";
 import { WordCard } from "./WordCard";
 import { WordListedCard } from "./WordListedCard";
@@ -54,6 +54,7 @@ export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: W
   const laneSet = useMemo(() => forTicker(allLanes, ticker), [allLanes, ticker]);
   const session = useMarketSession();
   const when = useWhen();
+  const phrase = useSessionPhrase();
   const groups = groupByHorizon(laneSet, nowMs);
   const closed = session !== null && !session.open;
 
@@ -62,7 +63,7 @@ export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: W
   if (laneSet === null || nowMs === 0) return <div className="words-empty">{WORD_BOARD.reading}</div>;
   // Closed: the phrase says when the questions return, and the wire is the next thing to read (D-086).
   if (groups.length === 0 && session && !session.open) {
-    return <EmptyState why={SESSION_COPY.board.closed(sessionPhrase(session.status, Math.floor(nowMs / 1000)))} nextAction={{ label: SESSION_COPY.board.nextAction, href: "/news" }} />;
+    return <EmptyState why={SESSION_COPY.board.closed(phrase(session.status, Math.floor(nowMs / 1000)))} nextAction={{ label: SESSION_COPY.board.nextAction, href: "/news" }} />;
   }
   if (groups.length === 0) return <div className="words-empty">{WORD_BOARD.between}</div>;
 

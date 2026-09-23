@@ -53,13 +53,13 @@ export const LANDING = {
       clock: "5m · 15m · 1h on the NYSE clock",
       body: "Windows roll through the regular session, 09:30 to 16:00 ET, back to back.",
       open: (span: string) => `Open now · closes in ${span}`,
-      first: (cadence: string, when: string) => `${cadence} from ${when} ET`,
+      first: (cadence: string, when: string) => `${cadence} from ${when}`,
     },
     gap: {
       name: "Gap",
       clock: "Friday close → Monday open",
       body: "One Window across the weekend: does Monday open above Friday's close?",
-      next: (close: string, open: string) => `Next ${close} → ${open} ET`,
+      next: (close: string, open: string) => `Next ${close} → ${open}`,
     },
     token: {
       name: "Token",

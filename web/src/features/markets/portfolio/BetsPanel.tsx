@@ -1,6 +1,5 @@
 "use client";
 
-import { sessionPhrase } from "@agari/core/copy";
 import { isOk } from "@agari/core/schemas";
 import { marketsProvider } from "@agari/markets";
 import { keys, usePositions } from "@agari/markets/react";
@@ -21,6 +20,7 @@ import { useMarketSession } from "../session";
 import { useChainNowMs } from "../useChainNow";
 import { BetRow } from "./BetRow";
 import { useRestingItems } from "./RestingRows";
+import { useSessionPhrase } from "@/lib/when";
 
 const PAGE_SIZE = 8;
 type Tab = "open" | "history";
@@ -57,6 +57,7 @@ function TabButton({ tab, current, count, label, onPick }: { tab: Tab; current: 
 export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const { address } = useWalletSession();
   const nowMs = useChainNowMs();
+  const phrase = useSessionPhrase();
   const reading = usePositions(address);
   const vaultItems = useVaultBetItems(symbol);
   const boosts = useLeverageBetItems(symbol);
@@ -71,7 +72,7 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const nothing = (settledCount ?? 0) > 0 ? PORTFOLIO.nothingOpen : PORTFOLIO.noBets;
   const empty =
     session && !session.open
-      ? { why: `${nothing} ${SESSION_COPY.portfolio.closed(sessionPhrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
+      ? { why: `${nothing} ${SESSION_COPY.portfolio.closed(phrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
       : { why: nothing, nextAction: { label: (settledCount ?? 0) > 0 ? PORTFOLIO.nextCall : PORTFOLIO.firstCall, href: "/markets" } };
   const retry = () => {
     if (address) void queryClient.invalidateQueries({ queryKey: keys.positions(address) });

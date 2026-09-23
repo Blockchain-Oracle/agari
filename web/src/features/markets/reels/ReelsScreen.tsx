@@ -8,7 +8,6 @@ import { useDeskView } from "@/features/desk/useDesk";
 import { calmSet, holdsPreIpo, HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
 import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
-import { sessionPhrase } from "@agari/core/copy";
 import { marketsProvider } from "@agari/markets";
 import { REELS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
@@ -22,6 +21,7 @@ import { ReelHolding } from "./ReelHolding";
 import { useActiveReel } from "./useActiveReel";
 import { useReelPosition } from "./useReelPosition";
 import { isClosing, reelPhase, useReelRounds } from "./useReelRounds";
+import { useSessionPhrase } from "@/lib/when";
 
 /** A real move, not the first stray pixel of momentum — the reference's own correction. */
 const SCROLLED_PX = 60;
@@ -51,6 +51,7 @@ export function ReelsScreen() {
   const nowMs = useChainNowMs();
   const lanes = useLanesState(venue.venueId);
   const session = useMarketSession();
+  const phrase = useSessionPhrase();
   const rounds = useReelRounds(lanes.laneSet, nowMs);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -76,7 +77,7 @@ export function ReelsScreen() {
   const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks, deskDecision), [rounds, feed, holdingPicks, deskDecision]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.
-  const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(sessionPhrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
+  const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(phrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
   const leading = closedLine !== null && reel.length > 0 ? 1 : 0;
   const { register, isNear, activeIndex } = useActiveReel(scrollRef, reel.length);
   useReelPosition(scrollRef, reel, activeIndex, leading);

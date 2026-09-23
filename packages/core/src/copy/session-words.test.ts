@@ -46,6 +46,8 @@ describe("sessionStateWord", () => {
 describe("sessionPhrase", () => {
   it("counts down to today's open in pre-market and overnight", () => {
     expect(sessionPhrase(at(CLOCK.preTue), CLOCK.preTue)).toBe("Pre-market · opens in 1h 30m");
+    expect(sessionPhrase(at(CLOCK.preTue), CLOCK.preTue, () => "14:30 (09:30 ET)")).toBe("Pre-market · opens 14:30 (09:30 ET), in 1h 30m");
+    expect(sessionPhrase(at(CLOCK.postTue), CLOCK.postTue, () => "Wed 14:30 (09:30 ET)")).toBe("After hours · reopens Wed 14:30 (09:30 ET)");
     expect(sessionPhrase(at(CLOCK.overnightTue), CLOCK.overnightTue)).toBe("Closed · opens in 9h 30m");
   });
   it("counts down to the close while open, and names the early close", () => {
