@@ -18,8 +18,6 @@ export const LANDING = {
     secondary: "How it works",
     docs: "Read the docs →",
     paths: "Predict  ·  Cover  ·  Hold",
-    previewLabel: "Agari basket and settlement proof previews",
-    captureNote: "Product captures · 23 Sep 2026",
     folioLeft: "Agari / Prediction exchange",
     folioRight: "Solana stock markets",
   },

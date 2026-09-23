@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { AgariMark, SectionHead } from "@/components/shell";
 import { LandingCover } from "./LandingCover";
 import { LandingDesk } from "./LandingDesk";
@@ -10,6 +9,7 @@ import { LANDING } from "./copy";
 import { LandingBuiltOn } from "./LandingBuiltOn";
 import { LandingFooter } from "./LandingFooter";
 import { LandingInstall } from "./LandingInstall";
+import { LandingHeroShowcase } from "./LandingHeroShowcase";
 import { LandingLanes } from "./LandingLanes";
 import { LandingProof } from "./LandingProof";
 import { LandingSteps } from "./LandingSteps";
@@ -18,60 +18,48 @@ import "./landing.css";
 import "./landing-hero.css";
 
 /**
- * The landing hero is an editorial entry to the real basket and proof surfaces. The dated captures are visual previews;
- * live market data remains in the product routes. The rest of the page keeps its existing live reads and guides.
+ * The landing hero is an editorial entry to the real basket and proof surfaces. Its product previews are rendered
+ * components, while the rest of the page keeps its existing live reads and guides.
  */
 export function LandingPage() {
   const { hero, steps, lanes, cover, desk, proof } = LANDING;
   return (
     <div className="lp">
       <section className="page-hero lp-hero">
-        <div className="container">
-          <div className="lp-hero-edition">
-            <div className="lp-hero-grid">
-              <div className="lp-hero-copy">
-                <p className="lp-eyebrow">{hero.eyebrow}</p>
-                <div className="lp-wordmark">
-                  <span className="lp-wordmark-mark"><AgariMark /></span>
-                  <span className="lp-wordmark-name">{BRAND.name}</span>
-                </div>
-                <h1 className="lp-title">
-                  <span>{hero.titleLead}</span>
-                  <span>{hero.titleEm}</span>
-                </h1>
-                <span className="lp-title-rule" aria-hidden="true" />
-                <p className="lp-line">{hero.line}</p>
-                <div className="lp-ctas">
-                  <Link href={MARKETS_PATH} className="btn btn-primary lp-cta" data-cursor="hover">
-                    {hero.primary}
-                  </Link>
-                  <Link href={HOW_IT_WORKS_PATH} className="btn btn-outline lp-cta" data-cursor="hover">
-                    {hero.secondary}
-                  </Link>
-                  <a href={DOCS_URL} className="lp-docs" data-cursor="hover">
-                    {hero.docs}
-                  </a>
-                </div>
-                <p className="lp-hero-paths">{hero.paths}</p>
+        <span className="lp-hero-jp" lang="ja" aria-hidden="true">上がり</span>
+        <span className="lp-hero-vertical" aria-hidden="true" />
+        <div className="container lp-hero-container">
+          <div className="lp-hero-grid">
+            <div className="lp-hero-copy">
+              <p className="lp-eyebrow">{hero.eyebrow}</p>
+              <div className="lp-wordmark">
+                <span className="lp-wordmark-mark"><AgariMark /></span>
+                <span className="lp-wordmark-name">{BRAND.name}</span>
               </div>
-              <div className="lp-hero-art" aria-label={hero.previewLabel}>
-                <span className="lp-hero-jp" aria-hidden="true">上がり</span>
-                <span className="lp-hero-vertical" aria-hidden="true" />
-                <Link href="/proof" className="lp-screen lp-screen-proof" data-cursor="hover">
-                  <span className="lp-screen-chrome" aria-hidden="true"><i /><i /><i /></span>
-                  <Image src="/landing/proof-connected.jpg" alt="Agari Proof feed showing settled PreStocks Windows and their opening and closing prices" fill sizes="(max-width: 37.5rem) 65vw, (max-width: 64rem) 58vw, 32vw" />
+              <h1 className="lp-title">
+                <span>{hero.titleLead}</span>
+                <span>{hero.titleEm}</span>
+              </h1>
+              <span className="lp-title-rule" aria-hidden="true" />
+              <p className="lp-hero-paths">{hero.paths}</p>
+              <p className="lp-line">{hero.line}</p>
+              <div className="lp-ctas">
+                <Link href={MARKETS_PATH} className="btn btn-primary lp-cta" data-cursor="hover">
+                  {hero.primary}
                 </Link>
-                <Link href="/baskets" className="lp-screen lp-screen-baskets" data-cursor="hover">
-                  <span className="lp-screen-chrome" aria-hidden="true"><i /><i /><i /></span>
-                  <Image src="/landing/baskets-connected.jpg" alt="Agari AI Labs and Frontier AI PreStocks basket cards with Predict, Cover and Hold actions" fill sizes="(max-width: 37.5rem) 68vw, (max-width: 64rem) 60vw, 36vw" priority />
+                <Link href={HOW_IT_WORKS_PATH} className="btn btn-outline lp-cta" data-cursor="hover">
+                  {hero.secondary}
                 </Link>
-                <span className="lp-art-caption">{hero.captureNote}</span>
+                <a href={DOCS_URL} className="lp-docs" data-cursor="hover">
+                  {hero.docs}
+                </a>
               </div>
             </div>
-            <div className="lp-hero-folio">
-              <span>{hero.folioLeft}</span>
-              <span>{hero.folioRight}</span>
-            </div>
+            <LandingHeroShowcase />
+          </div>
+          <div className="lp-hero-folio">
+            <span>{hero.folioLeft}</span>
+            <span>{hero.folioRight}</span>
           </div>
         </div>
       </section>
