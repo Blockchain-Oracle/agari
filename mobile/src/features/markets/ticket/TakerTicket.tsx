@@ -36,7 +36,10 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
   const c = useTicketComposer(selection);
   const [reviewing, setReviewing] = useState(false);
   const review = c.isRange ? rangeReview(c) : ticketReview(c);
-  const placing = c.bet.placing || c.priv.busy === "open" || c.range.blocker === "placing";
+  // Signed and landed but not yet read back (the lane refreshes the wallet before it reports): still in flight, so no
+  // second slide is offered while the outcome is on its way.
+  const confirming = c.bet.state.outcome === null && (c.bet.state.phase === "confirming" || c.bet.state.phase === "confirmed");
+  const placing = c.bet.placing || confirming || c.priv.busy === "open" || c.range.blocker === "placing";
 
   // A new outcome that is not a fill (a requote, a refusal, nothing filled) returns to the composer to say so.
   const outcome = c.bet.state.outcome;
@@ -148,7 +151,7 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
               maxLoss={review.maxLoss}
               confirmLabel={review.confirmLabel}
               onConfirm={confirm}
-              phase={placing ? "signing" : "review"}
+              phase={confirming ? "sending" : placing ? "signing" : "review"}
               blocker={blocker && blocker !== "placing" ? blockerLabel(blocker, ctx) : null}
               tone={c.isRange ? "accent" : c.side === "down" ? "loss" : "profit"}
             />

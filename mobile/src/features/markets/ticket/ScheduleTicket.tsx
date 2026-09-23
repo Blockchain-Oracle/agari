@@ -38,6 +38,8 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
   const decimals = market.decimals;
   const [reviewing, setReviewing] = useState(false);
   const outcome = s.bet.state.outcome;
+  // Signed and landed but not yet read back: still in flight, so the slide is not offered again.
+  const confirming = outcome === null && (s.bet.state.phase === "confirming" || s.bet.state.phase === "confirmed");
   useEffect(() => {
     if (outcome && outcome.status !== "resting") setReviewing(false);
   }, [outcome]);
@@ -120,11 +122,11 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
               maxLoss={money(quote.maxCostBase)}
               confirmLabel={`Slide to schedule ${SIDE_WORD[side]}`}
               onConfirm={s.place}
-              phase={s.bet.placing ? "signing" : "review"}
+              phase={confirming ? "sending" : s.bet.placing ? "signing" : "review"}
               blocker={s.blocker && s.blocker !== "placing" ? blockerLabel(s.blocker, s.ctx) : null}
               tone={side === "down" ? "loss" : "profit"}
             />
-            {s.bet.placing ? null : <Button label={NATIVE_MARKETS.editCall} variant="ghost" size="sm" onPress={() => setReviewing(false)} />}
+            {s.bet.placing || confirming ? null : <Button label={NATIVE_MARKETS.editCall} variant="ghost" size="sm" onPress={() => setReviewing(false)} />}
           </>
         ) : (
           <TicketCta blocker={s.blocker} ctx={s.ctx} side={side} label={label} onReview={() => setReviewing(true)} />

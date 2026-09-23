@@ -3,7 +3,7 @@ import { useOpeningPrice } from "@agari/markets/react";
 import { StyleSheet, Text, View } from "react-native";
 import { useChartSeries } from "@/features/markets/hero/useChartSeries";
 import { laneAssetLabel } from "@/features/markets/lanes/lane-view";
-import { REELS } from "@/lib/copy";
+import { HERO, REELS } from "@/lib/copy";
 import { ErrorState, Skeleton } from "~/components/kit";
 import { LiveLine } from "~/features/markets/chart/LiveLine";
 import { TYPE, useTheme } from "~/theme";
@@ -28,7 +28,7 @@ export function WindowLine({ market, height = 220, bare = false }: { market: Eve
   if (series.value.points.length < 2) {
     return (
       <View style={[styles.holding, { height, borderColor: color.hairline }]}>
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{REELS.chartHolding}</Text>
+        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{series.value.latest === null ? HERO.noLivePrice : REELS.chartHolding}</Text>
       </View>
     );
   }

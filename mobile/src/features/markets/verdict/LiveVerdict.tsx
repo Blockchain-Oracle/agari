@@ -1,6 +1,7 @@
 import { SETTLING } from "@agari/core/copy";
 import type { MarketId } from "@agari/core/types";
 import { collateralOrNull } from "@agari/markets";
+import { useQueryClient } from "@tanstack/react-query";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useVerdict } from "@/features/markets/verdict/useVerdict";
 import { VERDICT_UI } from "@/lib/copy";
@@ -20,6 +21,9 @@ export function LiveVerdict({ marketId }: { marketId: MarketId }) {
   const { address } = useWalletSession();
   const state = useVerdict({ marketId, wallet: address });
   const symbol = collateralOrNull()?.symbol ?? FALLBACK_SYMBOL;
+  const queryClient = useQueryClient();
+  // A failed read (a rate-limited RPC) is asked again, not left standing: the holdings read does not poll on its own.
+  const retry = () => void queryClient.invalidateQueries();
 
   if (state.phase === "open") return null;
   if (!address) return <ConnectGate why={VERDICT_UI.connect.why} />;
@@ -34,12 +38,12 @@ export function LiveVerdict({ marketId }: { marketId: MarketId }) {
     );
   }
   return (
-    <ReadingView reading={state.market} loading="plate">
+    <ReadingView reading={state.market} loading="plate" retry={retry}>
       {(market) =>
         market === null ? (
           <EmptyState why={VERDICT_UI.notFound.why} />
         ) : (
-          <ReadingView reading={state.verdict} loading="plate">
+          <ReadingView reading={state.verdict} loading="plate" retry={retry}>
             {(verdict) =>
               verdict === null ? (
                 <EmptyState why={VERDICT_UI.noPosition.why} />

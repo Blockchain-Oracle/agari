@@ -41,6 +41,6 @@ function Dot({ on, reduce }: { on: boolean; reduce: boolean }) {
 const styles = StyleSheet.create({
   rail: { position: "absolute", right: 4, top: 0, bottom: 0, justifyContent: "center", gap: 5 },
   dot: { width: 4, borderRadius: 2 },
-  hint: { position: "absolute", alignSelf: "center", bottom: 16, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 30, borderRadius: RADIUS.full, borderWidth: StyleSheet.hairlineWidth },
+  hint: { position: "absolute", alignSelf: "center", top: 14, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 30, borderRadius: RADIUS.full, borderWidth: StyleSheet.hairlineWidth },
   hintText: { fontFamily: FONT.bodyStrong, fontSize: 12 },
 });

@@ -1,6 +1,6 @@
 import type { EventMarket } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, View, type LayoutChangeEvent, type ViewToken } from "react-native";
 import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { isClosing, reelPhase, useReelRounds } from "@/features/markets/reels/useReelRounds";
@@ -31,7 +31,9 @@ export default function ReelsScreen() {
   const lanes = useLanesState(venue.venueId);
   const session = useMarketSession();
   const phrase = useSessionPhrase();
-  const rounds = useReelRounds(lanes.laneSet, nowMs);
+  const reelRounds = useReelRounds(lanes.laneSet, nowMs);
+  // Same bell, same slot: a refetch that lists two Windows closing together in another order must not move the page.
+  const rounds = useMemo(() => [...reelRounds].sort((a, b) => a.expirySec - b.expirySec || a.asset.localeCompare(b.asset) || a.lane.localeCompare(b.lane)), [reelRounds]);
   const [height, setHeight] = useState(0);
   const [active, setActive] = useState(0);
   const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken<EventMarket>[] }) => {

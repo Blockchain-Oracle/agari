@@ -1,3 +1,4 @@
+import { SETTLING } from "@agari/core/copy";
 import type { MarketPhase } from "@agari/core/lifecycle";
 import { isTickerSymbol, TICKERS } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
@@ -58,10 +59,14 @@ export function WindowHero({ market, openingRaw, currentRaw, phase, nowMs }: Pro
             {currentRaw === null ? HERO_HEAD.noPrice : assetSpotLine(asset, currentRaw)}
           </Text>
         </View>
-        <View style={styles.clock}>
-          <CountdownRing remainingSec={remaining} totalSec={market.expirySec - market.tradingStartSec} size={84} />
-          <Text style={[TYPE.labelMicro, { color: remaining <= 30 && remaining > 0 ? color.accent : color.inkMuted }]}>{HERO_HEAD.settlesIn}</Text>
-        </View>
+        {remaining > 0 ? (
+          <View style={styles.clock}>
+            <CountdownRing remainingSec={remaining} totalSec={market.expirySec - market.tradingStartSec} size={84} />
+            <Text style={[TYPE.labelMicro, { color: remaining <= 30 ? color.accent : color.inkMuted }]}>{HERO_HEAD.settlesIn}</Text>
+          </View>
+        ) : (
+          <Text style={[TYPE.labelMicro, styles.over, { color: color.inkSecondary }]}>{phase ? HERO.phase[phase] : SETTLING}</Text>
+        )}
       </View>
     </View>
   );
@@ -88,6 +93,7 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12 },
   price: { flex: 1, gap: 4 },
   clock: { alignItems: "center", gap: 4 },
+  over: { maxWidth: 140, textAlign: "right" },
   ramp: { flexDirection: "row", alignItems: "center", gap: 10 },
   bar: { flex: 1, height: 6, borderRadius: 3, overflow: "hidden" },
   fill: { height: 6, borderRadius: 3 },
