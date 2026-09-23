@@ -16,6 +16,9 @@ import { readOpsEnv } from "./env";
  * the process spoke to the keyed one. The leverage keeper's first live cycles took 11 s to mark one position that
  * way, on a job where seconds are the point. An actor now reads through the endpoints the ops process itself uses
  * (`readOpsEnv`); the key stays in this server process, as it always has for the venue's own actors.
+ *
+ * The price feed is this process's own `/prices/latest`. With no `NEXT_PUBLIC_PRICE_FEED_URL` on the ops container
+ * every `getAssetPrice` answered null, so the strategy runner skipped every Window as "no fresh price" (S23).
  */
 export function opsMarketsEnv(venueId?: string): MarketsEnv {
   const input = marketsEnvInputFrom(process.env);
@@ -24,6 +27,7 @@ export function opsMarketsEnv(venueId?: string): MarketsEnv {
     ...input,
     rpcHttpUrls: input.rpcHttpUrls ?? ops.rpcUrl,
     rpcWsUrls: input.rpcWsUrls ?? ops.rpcSubscriptionsUrl,
+    priceFeedUrl: input.priceFeedUrl ?? `http://127.0.0.1:${ops.httpPort}`,
     ...(venueId ? { venueId } : {}),
   });
 }
