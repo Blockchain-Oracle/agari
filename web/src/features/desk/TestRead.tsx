@@ -2,8 +2,10 @@
 
 import { deskRecordSchema, type DeskMandate } from "@agari/core/desk";
 import type { Address } from "@agari/core/types";
+import { Check, CircleDashed, LoaderCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
+import { Timeline, TimelineNode } from "@/components/ui/desk-kit";
 import { DESK } from "./copy";
 import { draftKey, practiceCashE6, readBack, type StudioDraft } from "./draft";
 import { clock } from "./format";
@@ -11,8 +13,37 @@ import { Outcome } from "./Outcome";
 import { useDecision, useInvalidateDesk } from "./useDesk";
 import type { StudioActions } from "./useDeskWrites";
 import type { DeskView } from "./view";
+import { STUDIO } from "./studio/copy-studio";
 
 const R = DESK.studio.read;
+
+/**
+ * The read as an agent's activity stream (S22): the five things one check does. Signing lights the first; while the
+ * desk works the rest shimmer together (the runner reports only when it has finished); on arrival every one is done.
+ */
+function ReadStream({ status }: { status: ReadState["status"] }) {
+  const T = STUDIO.read;
+  const working = status === "signing" || status === "waiting";
+  return (
+    <section className="st-stream" data-state={status} aria-live="polite">
+      <div className="st-stream-head">
+        <Sparkles className="size-4" aria-hidden />
+        <span className={working ? "st-shimmer" : undefined}>{status === "done" ? T.done : working ? T.working : T.streamTitle}</span>
+      </div>
+      <Timeline label={T.streamTitle}>
+        {T.steps.map((line, i) => {
+          const done = status === "done" || (status === "waiting" && i === 0);
+          const active = (status === "signing" && i === 0) || (status === "waiting" && i > 0);
+          return (
+            <TimelineNode key={line} index={i} tone={done ? "acted" : "neutral"} icon={done ? <Check strokeWidth={2.75} /> : active ? <LoaderCircle className="st-spin" /> : <CircleDashed />}>
+              <p className="st-stream-line" data-state={done ? "done" : active ? "active" : "idle"}>{line}</p>
+            </TimelineNode>
+          );
+        })}
+      </Timeline>
+    </section>
+  );
+}
 /** While the first check runs, the desk view is refetched this often, for at most this long. */
 const POLL_MS = 5_000;
 const POLL_FOR_SEC = 180;
@@ -78,22 +109,23 @@ export function TestRead({ draft, setDraft, mandate, owner, view, writes, read, 
   return (
     <div className="flex flex-col gap-5">
       <p className="type-body text-ink-secondary">{R.body}</p>
+      <ReadStream status={read.status} />
       {exists && <p className="type-caption text-ink-muted">{R.exists}</p>}
       {!exists && (
-        <label className="dk-field">
-          <span>{R.practiceCash}</span>
-          <span className="flex items-center gap-1"><span className="text-ink-muted">$</span><input className="dk-input" inputMode="decimal" value={draft.practiceCash} onChange={(e) => setDraft((d) => ({ ...d, practiceCash: e.target.value }))} aria-label={R.practiceCash} /></span>
-          <span className="type-caption text-ink-muted normal-case tracking-normal">{R.practiceCashNote}</span>
+        <label className="st-block">
+          <span className="st-label">{R.practiceCash}</span>
+          <span className="st-money"><span aria-hidden>$</span><input className="dk-input" inputMode="decimal" value={draft.practiceCash} onChange={(e) => setDraft((d) => ({ ...d, practiceCash: e.target.value }))} aria-label={R.practiceCash} /></span>
+          <span className="st-hint">{R.practiceCashNote}</span>
         </label>
       )}
       {!owner ? (
         <div className="dk-card-actions">
           <p className="type-caption text-ink-secondary">{R.connect}</p>
-          <button type="button" className="dk-control" data-tone="primary" onClick={onConnect}>Connect</button>
+          <button type="button" className="st-btn" data-tone="primary" onClick={onConnect}>Connect</button>
         </div>
       ) : (
         <div className="dk-card-actions">
-          <button type="button" className="dk-control" data-tone="primary" onClick={() => void run()} disabled={!mandate || read.status === "signing" || (read.status === "waiting" && !stale)}>
+          <button type="button" className="st-btn" data-tone="primary" onClick={() => void run()} disabled={!mandate || read.status === "signing" || (read.status === "waiting" && !stale)}>
             {read.status === "signing" ? R.signing : read.status === "done" || stale ? R.again : R.run}
           </button>
           {read.status === "waiting" && <span className="type-caption text-ink-secondary">{read.throttledUntilSec ? R.throttled(clock(read.throttledUntilSec, zone)) : R.waiting}</span>}
@@ -101,7 +133,7 @@ export function TestRead({ draft, setDraft, mandate, owner, view, writes, read, 
         </div>
       )}
       {read.status === "done" && latest && (
-        <div className="dk-card">
+        <div className="dk-card st-first">
           <span className="dk-panel-title">{R.first}</span>
           <div className="dk-entry-head">
             <Outcome outcome={latest.outcome} practice={latest.mode === "practice"} />

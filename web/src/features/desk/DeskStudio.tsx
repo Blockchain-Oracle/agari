@@ -1,8 +1,10 @@
 "use client";
 
 import type { Address } from "@agari/core/types";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+import { StepProgress } from "@/components/ui/desk-kit";
 import { BasketPicker } from "./BasketPicker";
 import { DESK } from "./copy";
 import { CreateStep, FirstSteps } from "./CreateStep";
@@ -12,7 +14,9 @@ import { StudioSide } from "./StudioSide";
 import { READ_IDLE, TestRead, type ReadState } from "./TestRead";
 import type { StudioActions } from "./useDeskWrites";
 import type { DeskView } from "./view";
+import { STUDIO } from "./studio/copy-studio";
 import "./desk.css";
+import "./studio/studio.css";
 
 const S = DESK.studio;
 
@@ -42,6 +46,7 @@ export function DeskStudio({ owner, view, writes, initialBasket, editing, onConn
   const [problem, setProblem] = useState<string | null>(null);
   const [read, setRead] = useState<ReadState>(initialRead);
   const [created, setCreated] = useState(false);
+  const reduce = useReducedMotion();
   const storageKey = draftStorageKey(owner);
 
   // The saved draft returns after mount, so the server and the first client render agree; an edit starts from the mandate.
@@ -87,29 +92,28 @@ export function DeskStudio({ owner, view, writes, initialBasket, editing, onConn
         <h1 className="dk-title">{head.title}</h1>
         <p className="type-body text-ink-secondary">{head.body}</p>
       </header>
-      <ol className="dk-steps" aria-label={S.stepsAria}>
-        {S.steps.map((label, index) => (
-          <li key={label} aria-current={step === index + 1 ? "step" : undefined}>
-            <button type="button" disabled={index + 1 >= step} onClick={() => { setProblem(null); setStep(index + 1); }}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              {label}
-            </button>
-          </li>
-        ))}
-      </ol>
-      <div className="dk-studio">
-        <div className="flex min-w-0 flex-col gap-5">
-          <h2 className="dk-holding-name">{S.steps[step - 1]}</h2>
-          {step === 1 && <BasketPicker draft={draft} setDraft={setDraft} />}
-          {step === 2 && <LimitsForm draft={draft} setDraft={setDraft} mandate={mandate} />}
-          {step === 3 && <TestRead draft={draft} setDraft={setDraft} mandate={mandate} owner={owner} view={view} writes={writes} read={read} setRead={setRead} onConnect={onConnect} zone={zone} nowSec={nowSec} />}
-          {step === 4 && <CreateStep draft={draft} mandate={mandate} owner={owner} view={view} writes={writes} editing={editing} problems={result.ok ? [] : result.problems} onConnect={onConnect} onCreated={() => setCreated(true)} zone={zone} nowSec={nowSec} />}
+      <StepProgress steps={STUDIO.steps} current={step} onPick={(n) => { setProblem(null); setStep(n); }} label={S.stepsAria} />
+      <div className="dk-studio st-studio">
+        <div className="flex min-w-0 flex-col gap-6">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div key={step} className="flex min-w-0 flex-col gap-6" initial={reduce ? false : { opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? { opacity: 0 } : { opacity: 0, x: -16 }} transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}>
+              <h2 className="st-step-title"><span>{String(step).padStart(2, "0")}</span>{S.steps[step - 1]}</h2>
+              {step === 1 && <BasketPicker draft={draft} setDraft={setDraft} />}
+              {step === 2 && <LimitsForm draft={draft} setDraft={setDraft} mandate={mandate} />}
+              {step === 3 && <TestRead draft={draft} setDraft={setDraft} mandate={mandate} owner={owner} view={view} writes={writes} read={read} setRead={setRead} onConnect={onConnect} zone={zone} nowSec={nowSec} />}
+              {step === 4 && <CreateStep draft={draft} mandate={mandate} owner={owner} view={view} writes={writes} editing={editing} problems={result.ok ? [] : result.problems} onConnect={onConnect} onCreated={() => setCreated(true)} zone={zone} nowSec={nowSec} />}
+            </motion.div>
+          </AnimatePresence>
           {problem && <p className="type-caption dk-warn" role="alert">{problem}</p>}
-          <div className="dk-studio-actions">
-            {step > 1 ? <button type="button" className="dk-control" onClick={() => { setProblem(null); setStep((s) => s - 1); }}>{S.back}</button> : <span />}
+          <div className="st-actions">
+            {step > 1 ? (
+              <button type="button" className="st-btn" onClick={() => { setProblem(null); setStep((s) => s - 1); }}>
+                <ArrowLeft className="size-4" aria-hidden /> {STUDIO.nav.back}
+              </button>
+            ) : <span />}
             {step < 4 && (
-              <button type="button" className={cn("dk-control")} data-tone="primary" onClick={advance}>
-                {step === 3 && readStanding !== "done" ? S.nextWithoutRead : S.next}
+              <button type="button" className="st-btn" data-tone="primary" onClick={advance}>
+                {step === 3 && readStanding !== "done" ? STUDIO.nav.nextWithoutRead : STUDIO.nav.next} <ArrowRight className="size-4" aria-hidden />
               </button>
             )}
           </div>
