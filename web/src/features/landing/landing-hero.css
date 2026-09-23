@@ -82,6 +82,31 @@
   color: color-mix(in srgb, var(--vermilion) 15%, transparent);
   pointer-events: none;
 }
+.lp-hero-jp::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(to top,
+    transparent 0%,
+    transparent 41%,
+    color-mix(in srgb, var(--vermilion) 74%, transparent) 47%,
+    #fff1d6 50%,
+    color-mix(in srgb, var(--vermilion) 88%, transparent) 53%,
+    transparent 59%,
+    transparent 100%);
+  background-size: 100% 300%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--vermilion) 75%, transparent));
+  animation: lp-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
+}
+@keyframes lp-jp-neon-rise {
+  0%, 8% { background-position: 0 0; }
+  64%, 100% { background-position: 0 100%; }
+}
 .lp-hero-vertical { position: absolute; top: 14%; right: 4.4%; width: 1px; height: 72%; background: var(--vermilion); opacity: 0.8; pointer-events: none; }
 .lp-hero-folio { display: flex; justify-content: space-between; gap: 18px; padding-top: 14px; border-top: 1px solid var(--lp-rule); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.29em; text-transform: uppercase; }
 
@@ -193,6 +218,7 @@
   .lp-hero-folio { margin-top: 25px; font-size: 8px; letter-spacing: 0.09em; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .lp-hero-jp::after { animation: none; background-position: 0 50%; filter: none; }
   .lp-screen { transition: none; }
   .lp-screen:hover, .lp-screen:focus-within { transform: none; }
 }

@@ -27,7 +27,7 @@ export function LandingPage() {
   return (
     <div className="lp">
       <section className="page-hero lp-hero">
-        <span className="lp-hero-jp" lang="ja" aria-hidden="true">上がり</span>
+        <span className="lp-hero-jp" lang="ja" aria-hidden="true" data-text="上がり">上がり</span>
         <span className="lp-hero-vertical" aria-hidden="true" />
         <div className="container lp-hero-container">
           <div className="lp-hero-grid">
