@@ -8,6 +8,7 @@ import { useNextWindow, useOnchain, useOpeningPrice } from "@agari/markets/react
 import { useCallback, useEffect, useState } from "react";
 import { takeStakePreset } from "./stake-preset";
 import type { TicketSelection } from "./types";
+import { replaceUrl } from "@/lib/url-state";
 
 export interface TicketApi {
   market: EventMarket;
@@ -26,7 +27,7 @@ export interface TicketApi {
 
 /** Market and side live in the URL (a share link reproduces them); the App Router re-derives from replaceState. */
 function replaceSelection(marketId: MarketId, side: Side | null): void {
-  window.history.replaceState(null, "", marketDeepLink({ marketId, dir: side ?? undefined }));
+  replaceUrl(marketDeepLink({ marketId, dir: side ?? undefined }));
 }
 
 /**

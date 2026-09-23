@@ -1,6 +1,6 @@
 import { MarketsProvider } from "@agari/markets/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
 import { Toaster } from "~/components/toast/Toaster";
 import { WalletProvider } from "~/wallet/WalletProvider";
+import { trackPath } from "~/web-shims/url-state";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,12 +42,15 @@ export default function RootLayout() {
 
 function RootStack() {
   const { name, color } = useTheme();
+  const pathname = usePathname();
+  useEffect(() => trackPath(pathname), [pathname]);
   return (
     <>
       <StatusBar style={name === "dark" ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="connect" options={{ presentation: "formSheet", sheetAllowedDetents: [0.55, 0.9], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
+        <Stack.Screen name="ticket" options={{ presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
         <Stack.Screen name="funds" options={{ presentation: "formSheet", sheetAllowedDetents: [0.75, 1], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
         <Stack.Screen name="account" options={{ presentation: "formSheet", sheetAllowedDetents: [0.5], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
       </Stack>

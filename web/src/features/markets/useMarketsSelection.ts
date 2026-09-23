@@ -6,6 +6,7 @@ import { marketDeepLink } from "@agari/core/urls";
 import { useCallback, useState } from "react";
 import { findMarket, useResolveDeepLink } from "@/lib/deep-link";
 import { defaultSide, useBetAgainst } from "./bet-against";
+import { replaceUrl } from "@/lib/url-state";
 
 /** The reference's `lg:` — from here up the ticket is docked in the hero; below it, a drawer slides over the page. */
 export const TICKET_RAIL_MIN_WIDTH = 1024;
@@ -51,7 +52,7 @@ export function useMarketsSelection(lanes: LaneSet | null, activeLane: Lane | nu
     (marketId: MarketId, side?: Side) => {
       // An entry that names no side follows the page's mode: DOWN while "Betting against" is on (A-1a).
       const dir = side ?? resolved.side ?? defaultSide(betAgainst);
-      window.history.replaceState(null, "", marketDeepLink({ marketId, dir }));
+      replaceUrl(marketDeepLink({ marketId, dir }));
       setSessionId(Date.now());
       if (window.innerWidth >= TICKET_RAIL_MIN_WIDTH) window.scrollTo({ top: 0, behavior: "smooth" });
     },

@@ -46,6 +46,8 @@ function roles(ramp: typeof DARK_RAMP, dark: boolean) {
     creamInk: "#141210",
     creamHairline: "#D9CBB0",
     scrim: "rgba(4, 3, 2, 0.72)",
+    /** The receipt's drop shadow: the only shadow in Masayume (the paper card). */
+    shadow: "#000000",
     // web's styles/icons.css: the white glyph on a brand disc, and the hairline ring on a near-black disc.
     markGlyph: "#FFFFFF",
     markRing: "rgba(255, 255, 255, 0.22)",

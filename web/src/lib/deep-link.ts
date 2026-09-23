@@ -10,6 +10,7 @@ import { useEffect, useRef } from "react";
 import { formatCadence, MARKETS } from "@/lib/copy";
 import { NOTE_KIND, NOTE_PARAM } from "@/lib/routes";
 import { notify } from "@/lib/toast";
+import { replaceUrl } from "@/lib/url-state";
 
 export interface DeepLinkResolution {
   marketId: MarketId | null;
@@ -80,7 +81,7 @@ export function useResolveDeepLink(lanes: LaneSet | null, nowMs: number): DeepLi
   useNoteOnce(note?.key ?? null, note?.text ?? null);
 
   useEffect(() => {
-    if (successorMarket) window.history.replaceState(null, "", marketDeepLink({ marketId: successorMarket.marketId, dir: dir ?? undefined }));
+    if (successorMarket) replaceUrl(marketDeepLink({ marketId: successorMarket.marketId, dir: dir ?? undefined }));
   }, [successorMarket, dir]);
 
   if (live) return { marketId: live.marketId, side: dir, market: live, resolving: false };
