@@ -27,6 +27,8 @@ The engine matches on price and time, and every fill lands as one of four kinds,
 
 All four pay out by the identical rule at settlement — Up wins if the close is at or above the open, Down wins otherwise. The fill path only changes who ends up on the other side of the position, never what a winning or losing position is worth. A fill always executes at the resting order's price; if you paid more than that price as a taker, the difference is refunded.
 
+If your stake is more than the book can fill right now, the ticket says so and offers **Use …, all the book can fill** to resize the order to what is resting. A Window nobody is quoting reads **No quotes yet**.
+
 ## How a Window settles
 
 Once the Window's close time arrives, the venue needs a verified price print for both the open and the close before it can pay anyone out:

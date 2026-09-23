@@ -7,16 +7,17 @@ Nothing in `services/ops` holds a user's funds. Its actors operate the venue's c
 
 | Actor | What it does |
 | --- | --- |
-| Window-roller | Lists and rolls Windows on the calendar cadence (5m/15m/60m during NYSE hours, the Monday Gap, the 24/7 token lane). It pre-lists the first Window of the next session at the prior close, so a [pre-open call](/trading/pre-open-calls) has somewhere to rest overnight. |
+| Window-roller | Lists and rolls Windows on the calendar cadence (5m/15m/60m during NYSE hours, the Monday Gap, and the one-hour 24/7 lanes for xStocks, OpenAI's PreStocks token and the five baskets). It pre-lists the first Window of the next session at the prior close, so a [pre-open call](/trading/pre-open-calls) has somewhere to rest overnight. |
 | Price-relay | Posts boundary prints. The program checks signatures, timestamps and the configured policy. For PreStocks, the venue signs a value from the unsigned catalogue; that attests the venue's read, not an independent oracle. |
 | Settler / halt-watch | Cranks settlement and voids once a Window's conditions are met, and watches for a halt signal. Settlement and voiding are permissionless instructions in `agari-events` — anyone can call them once the on-chain conditions hold; the settler just does it promptly. |
-| Market-maker | Seeds both sides of a Window's order book with a small, capped quote, so a Window isn't empty the instant it opens. |
+| Market-maker | Seeds both sides of a Window's order book with a small, capped quote, so a Window isn't empty the instant it opens. When fair value sits near an edge, the far side is pinned at the edge of the price range rather than dropped, so a lopsided Window still offers both Up and Down. |
 | Indexer | Reads the chain and serves it back to the web app: prices, books, a wallet's positions, the proof feed. Read-only, no signing key. |
+| Strategy runner | Places copy and fade calls for [published strategies](/agents/copy-strategies) inside each copier's grant. It trades stock Windows only; while none is trading it rests, checking every five minutes with no model call. |
 | Desk runner | Runs practice checks and, after a separate mainnet deployment, would propose buys or sells inside an owner's on-chain limits. It has no withdrawal authority. |
 
 ## Always on, even when the market is closed
 
-When NYSE is closed, `/markets` still shows the last price, the last session's chart, the session state with a countdown to the next open, and what lists next per lane — never a blank screen or a stale "loading" label. This is deliberate (S18): a last known reading, correctly labeled with its age, is more honest than hiding the page.
+When NYSE is closed, `/markets` still shows the last price, the last session's chart, the session with the next open in the reader's clock, the 24/7 Windows still trading, and stock Windows to schedule a call on — never a blank screen or a stale "loading" label. A last known reading, correctly labeled with its age, is more honest than hiding the page. [Sessions and lanes](/trading/sessions-and-lanes) describes the closed board.
 
 ## What this buys you, and what it doesn't
 
