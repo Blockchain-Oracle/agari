@@ -19,6 +19,7 @@ export function NumberTicker({ value, format = "usd", decimals = 2, className }:
   const style = format === "usd" ? { style: "currency" as const, currency: "USD" } : format === "pct" ? { style: "percent" as const } : {};
   return (
     <NumberFlow
+      locales="en-US"
       value={format === "pct" ? value / 100 : value}
       format={{ ...style, minimumFractionDigits: decimals, maximumFractionDigits: decimals }}
       className={cn("dkit-ticker", className)}

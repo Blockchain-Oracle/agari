@@ -17,6 +17,16 @@ function cssVar(el: HTMLElement, name: string): string {
   return getComputedStyle(el).getPropertyValue(name).trim() || "currentColor";
 }
 
+/** The canvas needs a resolved family list: `--font-data` holds a `var()` chain the canvas cannot read. */
+function resolvedFont(el: HTMLElement, name: string): string {
+  const probe = document.createElement("span");
+  probe.style.fontFamily = `var(${name})`;
+  el.appendChild(probe);
+  const family = getComputedStyle(probe).fontFamily;
+  probe.remove();
+  return family || "ui-monospace, monospace";
+}
+
 /** `tone` picks the line: profit when the range ends above where it started, loss below, ink when flat. */
 export function AreaChartClient({ points, baseline, tone, className }: { points: readonly AreaPoint[]; baseline: number | null; tone: "up" | "down" | "flat"; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -27,7 +37,7 @@ export function AreaChartClient({ points, baseline, tone, className }: { points:
     if (!el) return;
     const chart = createChart(el, {
       autoSize: true,
-      layout: { background: { type: ColorType.Solid, color: "transparent" }, textColor: cssVar(el, "--color-ink-muted"), fontFamily: cssVar(el, "--font-data"), attributionLogo: false },
+      layout: { background: { type: ColorType.Solid, color: "transparent" }, textColor: cssVar(el, "--color-ink-muted"), fontFamily: resolvedFont(el, "--font-data"), attributionLogo: false },
       grid: { vertLines: { visible: false }, horzLines: { color: cssVar(el, "--color-hairline") } },
       rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.18, bottom: 0.08 } },
       timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false },
