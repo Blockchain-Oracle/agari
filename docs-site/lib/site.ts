@@ -11,7 +11,7 @@ export const site = {
   // The one repository for the app and these docs: the sidebar's GitHub link, llms.txt's README entry and per-page
   // source notes, all pinned to `revision`.
   source: "https://github.com/Blockchain-Oracle/agari" as string | null,
-  revision: '86a37ee',
+  revision: 'b98d1e40',
   reviewed: '2026-09-23',
 };
 export function appUrl(path = '/markets') { return new URL(path, site.app).toString(); }
