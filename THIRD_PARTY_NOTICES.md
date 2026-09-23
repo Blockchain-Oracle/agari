@@ -8,10 +8,10 @@ Masayume includes substantial source-led adaptations of Yosuku's interface, styl
 
 - Source: [Cybire1/yosuku](https://github.com/Cybire1/yosuku), pinned reference commit `3c56ef52b78dae28cc198495f753480292f6a5ad`.
 - Source attribution: [`web/src/styles/yosuku/index.css`](web/src/styles/yosuku/index.css) and source comments throughout `web/src`.
-- The locally retained parity ledger records the owner's approval of Yosuku source, CSS, token and asset reuse on 1 September 2026, carried into this Agari port. This notice and the [public-release audit](docs/submission/public-release-audit.md) preserve that recorded authorization.
+- The locally retained parity ledger records the owner's approval of Yosuku source, CSS, token and asset reuse on 1 September 2026, carried into this Agari port. This notice records that provenance for the public tree.
 - The pinned README contains an MIT badge, but the inspected pinned tree does not contain the root license document to which that badge links. The records do not specify the copyright holder notice or terms for public redistribution of the derived source and assets. No repository-wide MIT grant is inferred from that badge or from this notice.
 
-The [public-release audit](docs/submission/public-release-audit.md) records the remaining public distribution questions without reopening the already approved implementation direction.
+The public distribution questions for that derived source and artwork remain unresolved by this notice.
 
 ## Game references
 

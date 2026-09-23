@@ -13,7 +13,7 @@ const FILES = { root: ".env.local", web: "web/.env.local", ops: "services/ops/.e
 const GROUPS = {
   root: [
     ["PYTH_API_KEY", "S0"], ["ALPACA_ENDPOINT", "S0"], ["ALPACA_KEY_ID", "S0"], ["ALPACA_SECRET_KEY", "S0"],
-    ["FINNHUB_API_KEY", "S0"], ["HELIUS_API_KEY", "S0"], ["JUPITER_API_KEY", "S6", true], ["STORK_API_KEY", "—", true],
+    ["FINNHUB_API_KEY", "S0"], ["HELIUS_API_KEY", "S0"], ["JUPITER_API_KEY", "S6", true],
   ],
   web: [
     ["DATABASE_URL", "S1"],
@@ -31,7 +31,7 @@ const GROUPS = {
     ["OPENAI_API_KEY", "S9"], ["AI_MODEL", "S9"], ["LEVERAGE_KEEPER_PRIVATE_KEY", "S10c"],
     ["PRIVATE_DESK_PRIVATE_KEY", "S10d"], ["X_HANDLE", "S11"], ["X_RETTIWT_API_KEY", "S11"],
     ["X_EXECUTOR_PRIVATE_KEY", "S11"], ["GAME_DECK_KEY", "S12b"], ["ROOM_TOKEN_SECRET", "S12b"],
-    ["GAME_DECK_PRIVATE_KEY", "S12b"], ["GAME_SETTLER_PRIVATE_KEY", "S12b"], ["SEASON_ADMIN_PRIVATE_KEY", "S12b"],
+    ["GAME_SETTLER_PRIVATE_KEY", "S12b"],
     ["DESK_RUNNER_PRIVATE_KEY", "S21"], ["DESK_RPC_URL", "S21", true], ["DESK_AI_MODEL", "S21", true], ["DESK_MAX_MODEL_CALLS_PER_HOUR", "S21", true],
     ["DESK_MODEL_TIMEOUT_MS", "S21", true], ["DESK_INTERVAL_MS", "S21", true],
   ],
