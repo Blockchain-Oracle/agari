@@ -1,14 +1,24 @@
 "use client";
 
-import { groupByHorizon, type TickerSymbol } from "@agari/core/market";
+import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@agari/core/market";
 import { diagnosisCopy, sessionPhrase } from "@agari/core/copy";
-import type { Diagnosis, LaneSet } from "@agari/core/types";
+import type { Diagnosis, EventMarket, LaneSet } from "@agari/core/types";
 import { useMemo } from "react";
 import { EmptyState } from "@/components/states";
 import { WORD_BOARD } from "@/lib/copy";
+import { CLOSED } from "@/lib/copy-closed";
 import { SESSION_COPY } from "@/lib/copy-session";
+import { useWhen } from "@/lib/when";
 import { useMarketSession } from "../session";
 import { WordCard } from "./WordCard";
+import { WordListedCard } from "./WordListedCard";
+
+/** Listed Windows as one card per company, in the group's order (earliest open, shortest cadence first). */
+function byAsset(markets: readonly EventMarket[]): EventMarket[][] {
+  const rows = new Map<string, EventMarket[]>();
+  for (const m of markets) rows.set(m.asset, [...(rows.get(m.asset) ?? []), m]);
+  return [...rows.values()];
+}
 
 interface WordMarketBoardProps {
   /** The lane set the rail already holds — the board never opens a second market stream. */
@@ -43,7 +53,9 @@ function forTicker(laneSet: LaneSet | null, ticker: TickerSymbol | null): LaneSe
 export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: WordMarketBoardProps) {
   const laneSet = useMemo(() => forTicker(allLanes, ticker), [allLanes, ticker]);
   const session = useMarketSession();
+  const when = useWhen();
   const groups = groupByHorizon(laneSet, nowMs);
+  const closed = session !== null && !session.open;
 
   if (laneSet === null && failure) return <div className="words-empty">{diagnosisCopy(failure.kind).body}</div>;
 
@@ -56,19 +68,32 @@ export function WordMarketBoard({ laneSet: allLanes, failure, ticker, nowMs }: W
 
   return (
     <>
-      {groups.map((group) => (
-        <section key={group.key} className="words-section" aria-label={group.label}>
-          <div className="words-sechead">
-            <span className="words-sec-label">{group.label}</span>
-            <span className="words-sec-count">{group.markets.length}</span>
-          </div>
-          <div className="words-grid">
-            {group.markets.map((market) => (
-              <WordCard key={market.marketId} market={market} nowMs={nowMs} />
-            ))}
-          </div>
-        </section>
-      ))}
+      {closed && (
+        <div className="words-closed" role="status">
+          <span className="words-closed-dot" aria-hidden />
+          <strong>{CLOSED.strip(session.label)}</strong>
+          <span>{CLOSED.stripTail}</span>
+        </div>
+      )}
+      {groups.map((group) => {
+        const listed = group.key === LISTED_HORIZON.key;
+        const first = group.markets[0];
+        const label = listed && first ? CLOSED.listed(when(first.tradingStartSec)) : group.label;
+        const rows = listed ? byAsset(group.markets) : null;
+        return (
+          <section key={group.key} className="words-section" aria-label={label} data-group={group.key}>
+            <div className="words-sechead">
+              <span className="words-sec-label">{label}</span>
+              <span className="words-sec-count">{rows ? rows.length : group.markets.length}</span>
+            </div>
+            <div className="words-grid">
+              {rows
+                ? rows.map((markets) => <WordListedCard key={markets[0]!.asset} markets={markets} />)
+                : group.markets.map((market) => <WordCard key={market.marketId} market={market} nowMs={nowMs} />)}
+            </div>
+          </section>
+        );
+      })}
     </>
   );
 }

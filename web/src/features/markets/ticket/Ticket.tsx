@@ -18,6 +18,9 @@ import { RegionNote } from "@/features/region/RegionNote";
 import { useRegionRestricted } from "@/lib/region";
 import { useTicketRoute, type FundingSource } from "@/features/session";
 import { diagnosisCopy, TICKET } from "@/lib/copy";
+import { CLOSED } from "@/lib/copy-closed";
+import { useWhen } from "@/lib/when";
+import { useTopOfBook } from "../hero/useTopOfBook";
 import { notify } from "@/lib/toast";
 import { useWalletSession } from "@/lib/wallet-session";
 import { SIDE_WORD } from "../side-styles";
@@ -118,6 +121,11 @@ export function Ticket({ selection, drawer }: TicketProps) {
   const seatDeposit = useSeatDeposit(walletRoute ? address : null, onchain?.ok ? onchain.value : null);
   const depositBase = walletRoute && !boosted && !isRange ? seatDeposit : 0n;
   const laneGuard = useLaneGuard(market);
+  // A 24/7 Window nobody quotes (S23): the ticket says so and when the next Window starts, never "no liquidity at this size".
+  const top = useTopOfBook(market);
+  const when = useWhen();
+  const emptyBook = market.lane === "token" && phase === "trading" && !top.hydrating && top.upCents === null && top.downCents === null;
+  const nextWindowText = emptyBook ? when(market.expirySec, { clock: true }) : undefined;
   // The geofence (D-095): a held browser reads the Window and funds nothing on it.
   const regionHeld = useRegionRestricted();
 
@@ -164,6 +172,8 @@ export function Ticket({ selection, drawer }: TicketProps) {
     quotedCents: displayed?.oddsCents,
     fillableStakeText: displayed?.partial ? `${formatBaseUnits(displayed.fillableStakeBase, decimals)} ${symbol}` : undefined,
     freshBook: isFreshBook(market.tradingStartSec, t.nowMs),
+    emptyBook,
+    nextWindowText,
   };
   const showRoute = routing.deployed && ((routing.vaultAvailableBase ?? 0n) > 0n || routing.armed);
   const privateTitle = isRange ? PRIVATE.route.titleRange : priv.probing ? PRIVATE.route.titleProbing : !priv.ready ? PRIVATE.route.titleUnavailable(priv.reason ?? "not ready") : priv.overCap && priv.ctx.privateCapText ? PRIVATE.route.titleOverCap(priv.ctx.privateCapText) : PRIVATE.route.titleReady;
@@ -225,7 +235,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     }
     const q = displayed;
     const failed = quoteState.reading && !quoteState.reading.ok ? quoteState.reading.error : null;
-    const caption = failed ? TICKET.quoteFailed(diagnosisCopy(failed.kind).headline) : q ? (q.partial ? TICKET.partial(`${formatBaseUnits(q.fillableStakeBase, decimals)} ${symbol}`) : quoteState.stale || quoteState.pending ? TICKET.requoting : TICKET.liveOdds) : quoteState.pending ? TICKET.gettingQuote : ready && stakeBase > 0n && hasSigner ? TICKET.noLiquidity : TICKET.enterAmount;
+    const caption = failed ? TICKET.quoteFailed(diagnosisCopy(failed.kind).headline) : q ? (q.partial ? TICKET.partial(`${formatBaseUnits(q.fillableStakeBase, decimals)} ${symbol}`) : quoteState.stale || quoteState.pending ? TICKET.requoting : TICKET.liveOdds) : quoteState.pending ? TICKET.gettingQuote : emptyBook ? `${CLOSED.noQuotesLine} ${CLOSED.nextWindow(nextWindowText ?? "")}` : ready && stakeBase > 0n && hasSigner ? TICKET.noLiquidity : TICKET.enterAmount;
     return { cells: plainCells(q, decimals), live: q !== null, caption, chance: q ? TICKET.chance(Math.round(q.avgPriceBps / 100)) : null };
   })();
   const costForSr = isRange ? (range.quote?.stakeBase ?? null) : boosted ? (boost.quote?.stakeBase ?? null) : privateMode ? (priv.quote?.costBase ?? null) : (displayed?.expectedCostBase ?? null);
@@ -303,6 +313,11 @@ export function Ticket({ selection, drawer }: TicketProps) {
             leverage={isRange ? null : { value: multiple, onChange: setMultiple, available: leverageReserve !== null, maxMultiple: leverageReserve ? leverageReserve.params.maxLeverageBps / BPS_PER_X : 1, lockedReason: leverageLock }}
             costBase={costForSr}
           />
+          {!boosted && !privateMode && !isRange && displayed?.partial && displayed.fillableStakeBase > 0n && (
+            <button type="button" className="tk-use-depth" onClick={() => t.setStakeBase(displayed.fillableStakeBase)}>
+              {CLOSED.useDepth(`${formatBaseUnits(displayed.fillableStakeBase, decimals)} ${symbol}`)}
+            </button>
+          )}
           <ReadoutStrip cells={strip.cells} live={strip.live} caption={strip.caption} chance={strip.chance} note={[boosted ? LEVERAGE.strip.knockout(multiple) : null, laneGuard.earnings].filter(Boolean).join(" ") || null} />
           <AccountGate
             session={session}
