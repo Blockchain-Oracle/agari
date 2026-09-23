@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SessionKeyProvider } from "@/features/session/SessionKeyProvider";
 import { UserSessionProvider } from "@/providers/UserSessionProvider";
 import { marketsEnv } from "~/lib/env";
 import { ThemeProvider, useTheme } from "~/theme";
@@ -30,7 +31,9 @@ export default function RootLayout() {
         <ThemeProvider>
           <WalletProvider>
             <UserSessionProvider>
-              <RootStack />
+              <SessionKeyProvider>
+                <RootStack />
+              </SessionKeyProvider>
             </UserSessionProvider>
           </WalletProvider>
         </ThemeProvider>

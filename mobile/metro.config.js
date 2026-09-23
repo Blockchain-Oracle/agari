@@ -19,6 +19,7 @@ const WEB_SHIMS = new Map([
   [path.join(webSrc, "lib/toast.ts"), path.join(shims, "toast.ts")],
   [path.join(webSrc, "features/funding/credited.ts"), path.join(shims, "credited.ts")],
   [path.join(webSrc, "lib/url-state.ts"), path.join(shims, "url-state.ts")],
+  [path.join(webSrc, "features/session/SessionKeyProvider.tsx"), path.join(shims, "session-key-provider.tsx")],
   [path.resolve(__dirname, "../packages/markets/src/runtime/page.ts"), path.join(shims, "page.ts")],
 ]);
 
