@@ -17,6 +17,7 @@ export const LANDING = {
     line: "Pick a stock and a Window. Call Up or Down. It settles on the signed price print at the close, and only you can cash out.",
     primary: "Open markets",
     secondary: "How it works",
+    docs: "Read the docs →",
     dialLabel: (asset: string) => `${asset}, the last session and the live price`,
   },
   /** S25: the band under the hero, naming the two data sources the venue settles on, each with its own count and proof. */

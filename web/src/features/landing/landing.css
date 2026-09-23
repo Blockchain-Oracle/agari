@@ -39,6 +39,8 @@
 }
 .lp-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .lp-cta { padding: 14px 26px; font-size: 14px; }
+/* S25: the docs sit beside the two buttons as a quiet link, on the buttons' centre line. */
+.lp-docs { align-self: center; margin-left: 8px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
 /* part-03's outline is a white hairline, which the cream theme never flips: the gray ramp does. */
 .lp-cta.btn-outline { border-color: var(--gray-700); }
 .lp-cta.btn-outline:hover { border-color: var(--gray-500); }

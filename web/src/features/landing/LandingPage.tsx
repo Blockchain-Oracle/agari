@@ -3,6 +3,7 @@ import { AgariMark, SectionHead } from "@/components/shell";
 import { LandingCover } from "./LandingCover";
 import { LandingDesk } from "./LandingDesk";
 import { BRAND } from "@/lib/copy";
+import { DOCS_URL } from "@/lib/docs-url";
 import { MARKETS_PATH } from "@/lib/routes";
 import { LANDING } from "./copy";
 import { LandingBuiltOn } from "./LandingBuiltOn";
@@ -51,6 +52,9 @@ export function LandingPage() {
                 <Link href={HOW_IT_WORKS_PATH} className="btn btn-outline lp-cta" data-cursor="hover">
                   {hero.secondary}
                 </Link>
+                <a href={DOCS_URL} className="lp-link lp-docs" data-cursor="hover">
+                  {hero.docs}
+                </a>
               </div>
             </div>
             <div className="lp-hero-dial" role="group" aria-label={hero.dialLabel("TSLA")}>
