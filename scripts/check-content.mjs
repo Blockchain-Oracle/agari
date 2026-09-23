@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { legacyRedirects } from '../lib/legacy-redirects.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const source = resolve(process.env.AGARI_SOURCE_DIR || resolve(root, '../agari-wt/w1'));
@@ -41,6 +42,14 @@ else {
 }
 
 const mdx = files(content).filter(path => path.endsWith('.mdx'));
+const redirectSources = new Set();
+for (const [from, to] of legacyRedirects) {
+  if (redirectSources.has(from)) fail(`Duplicate redirect source: ${from}`);
+  redirectSources.add(from);
+  if (existsSync(docRoute(from))) fail(`Redirect shadows a docs page: ${from}`);
+  if (!existsSync(docRoute(to))) fail(`Redirect destination missing: ${from} → ${to}`);
+}
+for (const [, to] of legacyRedirects) if (redirectSources.has(to)) fail(`Redirect chain: ${to}`);
 for (const path of mdx) {
   pages++;
   const body = readFileSync(path, 'utf8');
@@ -84,6 +93,6 @@ for (const path of [captures.video.file, captures.video.captions]) {
   if (!existsSync(resolve(root, 'public/captures', path))) fail(`Missing tour asset ${path}`);
 }
 
-console.log(`Content: ${pages} pages, ${links} docs links, ${appRoutes} app links, ${media} media references`);
+console.log(`Content: ${pages} pages, ${links} docs links, ${appRoutes} app links, ${media} media references, ${legacyRedirects.length} redirects`);
 if (failures.length) { for (const item of failures) console.error(`✗ ${item}`); process.exitCode = 1; }
 else console.log(`✓ source ${expected}, navigation, links and media`);
