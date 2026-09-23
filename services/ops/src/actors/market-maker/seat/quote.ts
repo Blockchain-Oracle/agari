@@ -19,7 +19,10 @@ export interface PairInput {
 }
 
 /**
- * Bid `fair − half`, ask `fair + half`; out-of-range sides drop.
+ * Bid `fair − half`, ask `fair + half`. A side that would fall past the edge is pinned to the edge
+ * (`minTick` / `1000 − minTick`) while it stays on its own side of fair, so a lopsided Window still offers both Up and
+ * Down (S23: a 24/7 book at fair 20–50 showed "no book" on one side all night); it drops only when fair itself sits at
+ * the edge.
  * A PostOnly pair is pulled strictly inside the opposite best, because a crossing PostOnly order is refused. A limit
  * pair stays where fair says: it takes any resting order on its side, at that order's price, which is how a user's
  * pre-open call gets filled at the bell.
@@ -29,6 +32,8 @@ export function quotePair(i: PairInput): QuotePair {
   let ask = i.fairTicks + i.halfSpreadTicks;
   if (!i.crossing && i.bestAskTicks !== null && bid >= i.bestAskTicks) bid = i.bestAskTicks - 1;
   if (!i.crossing && i.bestBidTicks !== null && ask <= i.bestBidTicks) ask = i.bestBidTicks + 1;
+  if (bid < i.minTick && i.fairTicks > i.minTick) bid = i.minTick;
+  if (ask > 1000 - i.minTick && i.fairTicks < 1000 - i.minTick) ask = 1000 - i.minTick;
   const inRange = (t: number) => t >= i.minTick && t <= 1000 - i.minTick;
   const bidTicks = inRange(bid) ? bid : null;
   let askTicks = inRange(ask) ? ask : null;

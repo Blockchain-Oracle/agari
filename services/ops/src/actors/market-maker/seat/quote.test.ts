@@ -48,8 +48,8 @@ describe("quotePair and escrow", () => {
   it("keeps a limit pair at the fair, so it takes the resting orders inside it (D-090)", () => {
     // A user's pre-open call rests at 500 (and another at 580): the bell quote crosses both instead of hiding behind them.
     expect(quotePair({ fairTicks: 540, halfSpreadTicks: 30, minTick: 20, bestBidTicks: 580, bestAskTicks: 500, crossing: true })).toEqual({ bidTicks: 510, askTicks: 570 });
-    // The clamps still hold, and one-sided books behave as before.
-    expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: 940, crossing: true })).toEqual({ bidTicks: 945, askTicks: null });
+    // The edge still holds: a side past it is pinned to 1000 − minTick rather than dropped (S23).
+    expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: 940, crossing: true })).toEqual({ bidTicks: 945, askTicks: 980 });
   });
 
   it("defaults σ by kind (a basket 3,000, a pre-IPO name 4,500) and takes a per-symbol override", () => {
@@ -68,9 +68,11 @@ describe("quotePair and escrow", () => {
     expect(readSeatMakerEnv({ MM_ORDER_TYPE: "post-only" }).orderType).toBe("post-only");
   });
 
-  it("drops a side outside [minTick, 1000 − minTick]", () => {
-    expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 945, askTicks: null });
-    expect(quotePair({ fairTicks: 25, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: null, askTicks: 55 });
+  it("pins a side past the edge to [minTick, 1000 − minTick] and drops it only when fair sits at the edge", () => {
+    expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 945, askTicks: 980 });
+    expect(quotePair({ fairTicks: 25, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 20, askTicks: 55 });
+    expect(quotePair({ fairTicks: 20, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: null, askTicks: 50 });
+    expect(quotePair({ fairTicks: 980, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 950, askTicks: null });
   });
 
   it("escrows the YES price for a bid and the NO price (1000 − ask) for the NO-side ask", () => {
