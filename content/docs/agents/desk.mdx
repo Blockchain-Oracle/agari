@@ -1,0 +1,45 @@
+---
+title: "Build a desk"
+description: "Choose a PreStocks basket and limits, run a paper practice desk, then understand the separate mainnet flow."
+---
+
+The [desk studio](/agents/desk) is the **Hold** path from [Baskets](/trading/baskets). You choose which PreStocks names it may hold and how much cash to keep. The desk decides *when* to act, within your limits. A desk is different from an Up/Down call: it holds tokens rather than predicting a Window's close.
+
+<TourVideo />
+
+<Steps>
+<Step>
+### Choose the basket
+
+Open <AppLink href="/desk/new">New desk</AppLink>, or choose **Hold** on a basket card. Step 01 starts with a preset; adjust member weights and the cash sleeve. Anyone can draft without a wallet. The draft stays in this browser.
+
+<GuideCapture name="studio" caption="AI Labs starts at 40% OpenAI, 40% Anthropic and 20% cash in this capture; these are editable draft values." />
+</Step>
+<Step>
+### Set limits
+
+Step 02 sets allowed drift, maximum position, loss stop, maximum premium above the PreStocks mark, and per-action and daily spend caps. The side card repeats what the desk understood. These are the rules it must check before an action.
+
+<GuideCapture name="limits" caption="The labels distinguish checks enforced by the program from checks the desk's own code runs." />
+</Step>
+<Step>
+### Ask for a test read
+
+Step 03 can read current prices and a Jupiter quote. This asks you to connect a wallet and sign a message; it does **not** move money. A bad or stale quote leads to a recorded refusal, not a trade.
+
+<GuideCapture name="testRead" caption="The signed-out screen stops at Connect. The paper amount shown is not a wallet balance." />
+</Step>
+<Step>
+### Create the practice desk
+
+Step 04 creates a paper desk after a wallet message signature. Practice runs the same decision pipeline on real prices and quotes, with a paper cash ledger and **no on-chain transaction**. Read its decisions and use **Check it** to recompute a record's fingerprint. The app requires six practice checks and a visit to the full record before it offers Go live.
+</Step>
+</Steps>
+
+## Go live is a separate step
+
+**Go live** would open a desk on **Solana mainnet**, use real USDC and PreStocks tokens, and require mainnet wallet transactions and funding. The owner selects either **Ask first** or **On its own**. A live operator can buy or sell within the on-chain limits, but cannot withdraw; only the owner can withdraw. PreStocks tokens have a 1% transfer fee and token-level controls, which affect what arrives after a route.
+
+**As of 23 September 2026, this mainnet step has not been deployed.** The 31-check Surfpool mainnet-fork rehearsal included two Jupiter buys, a sell, a withdrawal and refusal cases. It proves the rehearsal behavior, not a mainnet transaction. Practice desks are available in the production app. Do not treat a paper balance as a wallet balance.
+
+The desk's [architecture and trust boundary](/architecture/desk) explains what the program checks and what the venue attests.

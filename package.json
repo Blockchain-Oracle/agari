@@ -10,7 +10,9 @@
     "dev": "next dev --port 3153",
     "build": "next build",
     "start": "next start --port 3153",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "check:content": "node scripts/check-content.mjs",
+    "check": "pnpm check:content && pnpm typecheck && pnpm build"
   },
   "dependencies": {
     "fumadocs-core": "16.15.4",

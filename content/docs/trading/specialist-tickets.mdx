@@ -1,0 +1,16 @@
+---
+title: "Other ways to trade"
+description: "Earn, Range, Boost, Parlay and Private use their own rules around Agari's devnet venue."
+---
+
+These are separate products in the Agari app, built after the first Up/Down venue. They use **Solana devnet** and test collateral. Their existence in source and the [devnet acceptance ledger](https://github.com/Blockchain-Oracle/agari/blob/integration/w1/docs/plan/acceptance.md) does not mean a particular route has liquidity or a runnable round right now; read its live state before signing.
+
+| Route | What changes from an ordinary call |
+| --- | --- |
+| <AppLink href="/earn">Earn</AppLink> | Supply to the maker reserve; its shares and withdrawals are distinct from an Up/Down bet. |
+| <AppLink href="/games/range">Range</AppLink> | Call whether a close lands inside or outside a stated price band. |
+| Boost in the <AppLink href="/markets">Markets ticket</AppLink> | A financed position with a knock-out rule; read the price, cost and loss case before signing. |
+| <AppLink href="/parlay">Parlay</AppLink> | Several Window legs become one ticket, subject to each leg's liquidity and settlement. |
+| Private in the <AppLink href="/markets">Markets ticket</AppLink> and <AppLink href="/portfolio">Portfolio</AppLink> | A separately funded position flow with its own recovery and claim steps. |
+
+These routes do not use the [mainnet desk](/agents/desk). For a first transaction, use the [ordinary call guide](/trading/first-trade), then read the actual ticket's review screen and receipt. If a route is paused or unavailable, [Status](/help/status) and [availability](/help/availability) explain the current prerequisites.

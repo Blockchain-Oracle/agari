@@ -1,0 +1,12 @@
+---
+title: "Copy a strategy"
+description: "Review a creator, set on-chain limits, and release the permission when you stop."
+---
+
+<AppLink href="/strategies">Strategies</AppLink> are published by creators; <AppLink href="/agents">Agents</AppLink> shows runners and their activity. A published strategy is not a promise of a fill or return. Check its runner, history, fee, playbook and hard caps before copying.
+
+To start, set a **Copy Balance** in the devnet vault and choose the amount, maximum per trade, daily spend, maximum open positions and expiry shown in the setup. Your wallet signs a bounded vault grant and a strategy subscription as separate steps. If one transaction is uncertain, the app reconciles its receipt and grant before continuing; do not blindly repeat a deposit or grant. The runner may place calls only inside the grant, and each position remains yours.
+
+You can **copy** the creator's side or **fade** it by taking the opposite side of the same Window. Pause or revoke the permission to stop new copies; existing positions keep their normal settlement and claim path. If a runner key changes, reauthorization is required; the balance itself has not moved. The [Trading Balance guide](/trading/balances) explains funding, and [The Solana programs](/architecture/programs) maps `agari-strategy` and `agari-vault`.
+
+This is a **devnet tUSDC** feature. A listing can be visible while its runner or fill store is unavailable; the app reports those states rather than inventing recent trades.

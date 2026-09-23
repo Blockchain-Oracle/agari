@@ -1,36 +1,29 @@
 ---
-title: "The programs"
-description: "agari-events and agari-vault: what each one owns and enforces."
+title: "The Solana programs"
+description: "What is deployed on devnet, what was rehearsed on a mainnet fork, and what each program enforces."
 ---
 
-Agari runs two Anchor programs on Solana devnet.
-
-| Program | Program id | Status |
+| Program | Address | Observed state at the 23 September 2026 review |
 | --- | --- | --- |
-| `agari-events` | `cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH` | Deployed (SBPF v0, sha256 `310e14d7…c44309`); IDL published |
-| `agari-vault` | `84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9` | Program id reserved; deploy is a pending devnet upgrade sequence as of this snapshot |
+| `agari-events` | `cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH` | Deployed on devnet, upgraded in place; on-chain IDL and confirmed order/settlement transactions. |
+| `agari-vault` | `84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9` | Deployed and initialized on devnet; Trading Balance and bounded grants have devnet evidence. |
+| `agari-maker` | `442oD4u4fHnAwPjSqdQvkgGeDaGVEZ9YHHaLny98nEaN` | Deployed on devnet; maker inventory and provider shares back [Earn](/trading/earn). |
+| `agari-range` | `GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha` | Deployed on devnet; prefunded Range and Moonshot outcomes. |
+| `agari-leverage` | `2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb` | Deployed on devnet; funded Boost positions and knock-out rules. |
+| `agari-parlay` | `H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC` | Deployed on devnet; multi-Window tickets and their reserve. |
+| `agari-private` | `6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j` | Deployed on devnet; separate Private balance and claim path. |
+| `agari-strategy` | `2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ` | Deployed on devnet; creator registry, subscriptions and bounded copy permissions. |
+| `agari-arena` | `CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3` | Deployed on devnet; Duel match and pot accounting. Arcade scores remain off-chain. |
+| `agari-desk` | `4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak` | Deployed and exercised **on a Surfpool fork of mainnet only**. Mainnet deploy awaits the owner-funded C7 step. |
 
-A verifiable build (matching the deployed bytes to this source) and an on-chain IDL for both programs are planned after that upgrade sequence; until then, take "deployed" as devnet fact and treat any build-hash claim as pending.
+The `agari-events` and `agari-vault` IDLs were published through Program Metadata. Their on-chain dumped bytes matched the local host builds recorded in the application README; a separate verifiable-image build produced different bytes because its toolchain differed. The other program deployments and transaction receipts are recorded separately in the [acceptance ledger](https://github.com/Blockchain-Oracle/agari/blob/integration/w1/docs/plan/acceptance.md). No external audit is claimed.
 
-## `agari-events` — the order book
+## Event book
 
-Every order carries one of four kinds: `BUY_YES`, `SELL_YES`, `BUY_NO`, `SELL_NO`. Price is always in YES ticks. A fill executes at the resting (maker) order's price, and lands one of four ways:
+Every order is `BUY_YES`, `SELL_YES`, `BUY_NO` or `SELL_NO`, priced in YES ticks. The book supports a direct Yes or No trade, minting a complete Yes/No pair when both sides buy, and burning a pair when both sell. PostOnly can rest before a Window opens; a taker cannot fill it until trading starts. IOC takes available size and cancels the rest; FOK requires a complete fill.
 
-| Cross | What happens |
-| --- | --- |
-| `BUY_YES` × `SELL_YES` | A direct Yes trade — Yes ownership moves from seller to buyer. |
-| `SELL_NO` × `BUY_NO` | A direct No trade. |
-| `BUY_YES` × `BUY_NO` | A complete Yes/No pair is minted; both buyers pay in. |
-| `SELL_NO` × `SELL_YES` | A complete pair is burned; both sellers are paid out. |
+A Window moves Listed → Trading → Locked → Resolved or Voided. The closing signed print at or above the opening print pays Up, including ties. A void returns the stake as credit rather than guessing an outcome. [First call](/trading/first-trade) covers the user journey.
 
-All four pay out exactly the same way at settlement — the fill path only changes who ends up on the other side of a trade, never the payout rule.
+## Trading Balance and desk
 
-**Order types:** Normal rests if it doesn't fully fill. IOC and FOK never rest — IOC takes what it can and cancels the rest, FOK reverts unless it fills completely. PostOnly never takes; it only rests, which is what makes a [pre-open call](/trading/pre-open-calls) possible before a Window is even open for trading.
-
-**A Window's lifecycle:** Listed → Trading → Locked → Resolved or Voided. Listed allows only PostOnly orders (a pre-open call can rest, but no one can take it yet). Locked allows cancels only. Resolved means a signed price settled it; Voided means it returned 0.5/0.5 as credit instead — see [halts and voids](/trading/halts-and-voids).
-
-**Settlement rule:** the closing print at or above the opening print pays Up; otherwise Down. Ties go to Up. A stock's price ticks to the cent, so an exact tie is more common than on a continuous asset — this is a deliberate, disclosed rule, not an edge case someone forgot.
-
-## `agari-vault` — Trading Balance and grants
-
-`agari-vault` holds a Trading Balance and issues bounded grants: a session key can be scoped to a spending cap per trade, a daily cap, and an open-position cap, so tap-trading (several orders with zero wallet popups after one setup signature) never exceeds what the user actually authorized. See [balances](/trading/balances) for what this looks like day to day, and [what's available](/help/availability) for whether it's live in your snapshot of the app.
+`agari-vault` holds devnet tUSDC and enforces a user's session grant with spending, daily and open-position limits. `agari-desk` is a different program: a mainnet desk PDA would hold USDC and PreStocks under allowed-name, cap, reference, premium, output-floor and withdrawal checks. Its [rehearsal and current limit](/architecture/desk) must not be confused with a live mainnet deployment.

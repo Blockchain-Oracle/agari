@@ -1,0 +1,28 @@
+---
+title: "Baskets"
+description: "Five PreStocks groups, one-hour Up/Down Windows, and three different actions."
+---
+
+<AppLink href="/baskets">Baskets</AppLink> groups the eight supported PreStocks names into five choices. Each basket is an **equal-weight price-return index**: it started at 1,000 points at a frozen set of base prices on 22 September 2026. The app reads all members in one PreStocks catalogue fetch; a missing member means no index print. The points are an index level, **not a dollar price or a token you buy**.
+
+| Basket | Members |
+| --- | --- |
+| AI Labs (`AILABS`) | OpenAI, Anthropic |
+| Frontier AI (`FRONTIER`) | OpenAI, Anthropic, Figure AI, Neuralink |
+| Prediction Markets (`PREDMKTS`) | Kalshi, Polymarket |
+| Defense & Space (`DEFSPACE`) | Anduril, SpaceX |
+| All PreStocks (`PREALL`) | All eight names |
+
+<GuideCapture name="baskets" caption="The public basket cards show the index in points and three actions. The number and Window state can change after this capture." />
+
+## Pick the action you mean
+
+| Action on the card | Where it goes | Money and network |
+| --- | --- | --- |
+| **Predict** | The basket's one-hour Up/Down Window, or its ticker page if none is trading | tUSDC test money on Solana devnet |
+| **Cover** | A Down call against a basket when the connected wallet holds at least two of its members; one member uses its own name | tUSDC test money on Solana devnet |
+| **Hold** | The [desk studio](/agents/desk) with that basket preselected | Starts as a paper practice desk; a later Go live flow would use real USDC and PreStocks on Solana mainnet |
+
+The basket Window settles on the change in **points** between two signed boundary prints. The venue's price attestor signs an index built from the one catalogue read. That is a venue-attested PreStocks value, not an independent Pyth check. Agari's first five basket Windows printed both boundaries and settled on devnet on 22 September 2026; the [source map](/builders/source-map) points to the implementation and evidence.
+
+If the card says **No Window trading right now**, you can still inspect its members and draft a desk. A Predict or Cover order needs a live Window and a quote.

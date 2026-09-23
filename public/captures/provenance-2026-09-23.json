@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-09-23",
+  "application": "https://useagari.xyz",
+  "applicationSource": "Blockchain-Oracle/agari integration/w1 c412501",
+  "networkState": "Signed out; public routes; no wallet signature or transaction",
+  "captures": [
+    { "file": "markets-desktop-2026-09-23.jpg", "route": "/markets", "state": "Signed out, after hours, TSLA ticket, 1440-pixel desktop viewport" },
+    { "file": "markets-phone-2026-09-23.jpg", "route": "/markets", "state": "Signed out, after hours, TSLA chart, 390-pixel phone viewport" },
+    { "file": "portfolio-desktop-2026-09-23.jpg", "route": "/portfolio", "state": "Signed out, Connect Wallet gate, 1440-pixel desktop viewport" },
+    { "file": "baskets-desktop-2026-09-23.jpg", "route": "/baskets", "state": "Basket cards and public index values" },
+    { "file": "desk-studio-2026-09-23.jpg", "route": "/desk/new?basket=AILABS", "state": "Step 01, AI Labs preset" },
+    { "file": "desk-limits-2026-09-23.jpg", "route": "/desk/new?basket=AILABS", "state": "Step 02, default limits" },
+    { "file": "desk-test-read-2026-09-23.jpg", "route": "/desk/new?basket=AILABS", "state": "Step 03, wallet gate; no test read signed" },
+    { "file": "desk-create-2026-09-23.jpg", "route": "/desk/new?basket=AILABS", "state": "Step 04, wallet gate; no practice desk created" }
+  ],
+  "video": {
+    "file": "../videos/baskets-to-practice-2026-09-23.mp4",
+    "captions": "../videos/baskets-to-practice-2026-09-23.vtt",
+    "method": "Silent 20-second tour edited from the basket capture and four desk captures above; four seconds per state. It is not a live transaction recording."
+  }
+}

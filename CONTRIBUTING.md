@@ -1,58 +1,32 @@
 # Contributing to Agari Docs
 
-This repository is the documentation site for Agari, a stock-price Up/Down prediction market on Solana devnet. It is a fresh fork of `masayume-docs` (`git init`, no shared history) being rewritten fact by fact — see the main Agari tree's `docs/plan/stage-15-public-story.md` (box 15c) for the rewrite priority order and what was left for later when time ran out.
+This is a separate Fumadocs repository. The application source reviewed for these pages is `/Users/abu/dev/hackathon/agari-wt/w1` on `integration/w1`. Do not use the older `stocklana/main` checkout as current behavior. Read the app's `docs/plan/STATUS.md`, current stage and decisions before changing product claims.
 
-## Run locally
+## Local work
 
-Use Node.js 22 or newer and `pnpm@11.24.0`.
+Use Node.js 22+ and pnpm 11.24:
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 pnpm dev
+pnpm check
 ```
 
-Open `http://localhost:3153`. This site runs independently: it does not need the Agari web app, a database, wallet keys, an AI provider or the ops service to render its pages.
+The docs app runs on port 3153. `NEXT_PUBLIC_DOCS_URL` sets canonical and sitemap URLs; use the local origin until the docs deployment is verified. `NEXT_PUBLIC_APP_URL` sets external app links and may point to the public app or a local dev server.
 
-Set these public origins in `.env.local`:
+`pnpm check` requires the sibling Agari checkout at the pinned revision. Set `AGARI_SOURCE_DIR` if it is elsewhere. If the app advances, fetch and read its new STATUS, diff, relevant consumers and acceptance evidence before changing the revision in `lib/site.ts`, `scripts/check-content.mjs`, the source-map page and README. Do not update a pin just to turn the check green.
 
-```dotenv
-NEXT_PUBLIC_DOCS_URL=http://localhost:3153
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
+## Update a guide
 
-`NEXT_PUBLIC_DOCS_URL` supplies canonical links and the sitemap. `NEXT_PUBLIC_APP_URL` supplies buttons that open the Agari app (`AppLink`). Neither has a real deployed value yet (`Q-S15-1` in the main tree's `docs/plan/decisions.md`); `lib/site.ts` falls back to `localhost` origins rather than inventing a domain.
+1. Edit `content/docs/**/*.mdx` and add new pages to their folder's `meta.json`.
+2. Trace behavior to the application code, decision and acceptance ledger. The [source map](content/docs/builders/source-map.mdx) is the starting inventory; verify the exact files for the page you change.
+3. Keep devnet calls, paper desk practice, mainnet-fork rehearsal and mainnet transactions distinct. A route or build is not proof of a live transaction.
+4. Link docs pages with `/section/page` paths and app routes with `<AppLink href="/route">`. Run `pnpm check`, then inspect changed pages at desktop and phone sizes.
+5. Record any new screenshot or video in `public/captures/provenance-YYYY-MM-DD.json`: route, date, viewport, wallet/network state and what was actually exercised. Never copy Masayume's media into Agari's pages.
 
-## Check the content
+The `GuideCapture` component expands an original capture and states its signed-out condition. `TourVideo` provides captions, chapters and a transcript. The current clip is a silent edit of actual public screenshots. A continuous recording of a connected-wallet trade still needs its own consent, capture and transaction proof; do not label this tour as one.
 
-```sh
-pnpm typecheck
-pnpm build
-```
+## Deployment
 
-Masayume's own content checker (`scripts/check-content.mjs`) required a sibling application checkout and `evidence/source-coverage.json`; both are removed from this fork, since they described Masayume's routes and revisions, not Agari's. There is no equivalent automated fact-checker here yet — every fact in a rewritten page should be checked by hand against the main Agari tree (`docs/plan/acceptance.md`, `docs/plan/decisions.md`, `scripts/deploy/addresses.devnet.json`) before it is written, the same way this fork's first rewrite pass was done.
-
-## Edit a guide
-
-1. Add or edit an MDX page in `content/docs`. Give it a clear `title` and a short `description`. The `sources` frontmatter field still exists in the page schema (`source.config.ts`) but nothing renders it in this fork — there is no public Agari repository yet to link to, so don't populate it until one exists.
-2. Add its slug to the folder's `meta.json`. Link documentation pages with normal Markdown links and Agari app destinations with `<AppLink href="/markets">Markets</AppLink>`.
-3. Every fact must trace to the main Agari tree: a confirmed row in `docs/plan/acceptance.md`, a dated `docs/plan/decisions.md` entry, or code you actually read. If a fact is unknown or pending, write "not yet" — do not invent a value, a screenshot state or a URL.
-4. Run the checks and open the page at desktop and phone sizes, in both themes.
-
-## What this fork removed
-
-Masayume's docs shipped three content-authoring subsystems this fork does not carry forward, because rebuilding them accurately for Agari's much smaller, still-shipping surface was not the priority for this pass:
-
-- **`Architecture` interactive diagrams** (`lib/diagrams.json`, `components/architecture.tsx`, `scripts/export-diagrams.mjs`, `public/diagrams/*.svg`) — removed. Architecture pages here use prose and tables instead.
-- **`GuideShot` annotated screenshots** (`lib/guides.ts`, `components/guide-shot.tsx`, `public/guides/*`) — removed, along with every Masayume screenshot it pointed at. Agari pages that show a screenshot use a plain image captured from the running Agari app and saved directly under `public/`, with a caption in the MDX prose instead of `x/y` annotation coordinates.
-- **`Walkthrough` video player** (`components/walkthrough.tsx`, `scripts/render-walkthroughs.mjs`, `public/videos/*`) — removed, along with Masayume's demo clips. No Agari walkthrough video exists yet.
-
-If a future pass wants any of these back, rebuild them against Agari's own captures rather than restoring the deleted Masayume data — the component code in Git history (this fork's first commit) still shows the mechanism.
-
-## Deploy to its own host
-
-Not yet done. No Vercel project, GitHub connection or production domain exists for this repository (`Q-S15-1`). When the user gives the go-ahead: create the project, connect this repository's `main` branch, set `NEXT_PUBLIC_DOCS_URL` to the real docs domain and `NEXT_PUBLIC_APP_URL` to the deployed Agari app's domain, then rebuild so canonical URLs match. After deployment, verify the root page, a nested guide, search, theme switching and the sitemap on the actual domain before calling it done.
-
-## Keep the README honest
-
-Keep `README.md` short: user-facing instructions belong in `content/docs`; maintainer procedures belong here. Do not add a hero banner or artwork URL pointing at a docs domain that isn't live — Masayume's own README did this by pointing image sources at its already-deployed docs host, which this fork cannot do honestly yet.
+This checkout had no Git remote and no verified docs URL at the 23 September review. The user previously approved a separate docs project on the app's docs subdomain; the exact domain and deployment are still separate steps. Before publishing, configure the real `NEXT_PUBLIC_DOCS_URL`, build, then verify the root, a nested guide, search, video/captions, theme and sitemap at the actual URL. Keep unpublished local origins out of public metadata.

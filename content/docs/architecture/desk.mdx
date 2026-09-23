@@ -1,0 +1,22 @@
+---
+title: "How the desk decides"
+description: "The owner, operator, attestor, Jupiter route and on-chain limits have distinct jobs."
+---
+
+The desk spans a browser, an off-chain runner and `agari-desk`, an Anchor program designed for Solana **mainnet**. The owner's wallet signs changes to the mandate and any live deposit or withdrawal. The runner reads prices and proposes a buy, sell or checkpoint. The program enforces the allowed names, spend caps, a fresh signed reference, the premium ceiling, an output floor, and checks that a Jupiter route did not send the desk's tokens elsewhere.
+
+| Part | Authority |
+| --- | --- |
+| Owner wallet | Picks the basket and limits; approves practice messages; signs live owner actions. Only it can withdraw. |
+| Desk runner | Chooses timing and sends allowed operator actions. It cannot change the owner's limits or withdraw. |
+| Price attestor | Signs a reference containing token price, PreStocks mark and conversion multiplier. The program verifies its signature and freshness. |
+| Jupiter route | Swaps the desk's USDC and PreStocks tokens; the program checks the resulting balances and minimum received. |
+| `agari-desk` | Holds assets in a desk PDA and enforces the limits even if the runner proposes a forbidden action. |
+
+Every decision is stored as a `desk.v1` record and hashed. A live trade seals its record in the same transaction; a live "did nothing" checkpoint also advances the on-chain hash chain. **Check it** recomputes the stored hash against the chain. A practice desk has no chain seal, so the check can only compare its paper record.
+
+## Where the trust sits
+
+PreStocks' catalogue is unsigned. The venue's attestor signs the reference the program accepts, so the premium ceiling and 8% output band defend against a compromised **operator** only while the attestor key remains separate. Pyth publishes OpenAI and Anthropic valuation indices, and the program can require a fresh verified Pyth update as an independent premium reference. The venue's current key lacks the `pyth-indices` entitlement, so that optional leg is **not active**. The index describes company valuation, while the token Window settles on the PreStocks token price; they are different measures.
+
+The program was deployed and exercised on a **Surfpool fork of mainnet** on 22 September 2026. The mainnet deploy and a real-money desk remain pending. See [Programs](/architecture/programs) for the network-specific status and [Source map](/builders/source-map) for the code and rehearsal evidence.

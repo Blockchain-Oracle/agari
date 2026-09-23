@@ -1,33 +1,18 @@
 ---
 title: "What is available"
-description: "What each feature needs, and what's deferred past the hackathon deadline."
+description: "Check the network, funds and current source before acting."
 ---
 
-These guides describe the current implementation, not an aspiration. A route can exist in the app while its deployment is missing a program, a key, a service or funds. Read the page's live state and <AppLink href="/status">Status</AppLink> alongside any guide.
+This page is a **23 September 2026 source review**, not a promise that a particular Window, game or quote is live every minute. Read <AppLink href="/status">Status</AppLink> and the screen's current state before signing.
 
-Agari runs on **Solana devnet** with **tUSDC** test collateral. A local screen or sample receipt is not proof that a corresponding live transaction settled — check the transaction itself.
+| Path | Network and prerequisites | Evidence at review |
+| --- | --- | --- |
+| Browse markets and baskets | No wallet; readable app and indexer | Public routes available. |
+| Predict or Cover | Solana devnet wallet, devnet SOL for fees, tUSDC, a trading Window and a quote | Devnet fills and basket settlements in the acceptance ledger. |
+| Trading Balance and tap-trading | Devnet tUSDC, deployed `agari-vault`, a funded and valid grant | Vault deployed and grant paths exercised on devnet. |
+| Earn, specialist tickets, agents, X trading and games | Each route has its own round, grant, role or liquidity conditions | Built after the first venue with devnet evidence; availability varies by route. |
+| Practice desk | Wallet message signature for creation; paper cash, real price/quote reads | Production practice desk and decision record observed. No transaction. |
+| Go live with a desk | Mainnet program deploy, owner wallet, real USDC, PreStocks tokens and SOL fees | **Not yet deployed** at this review; fork rehearsal is not mainnet proof. |
+| Pyth pre-IPO valuation lane | `pyth-indices` entitlement for OpenAI/Anthropic | Trial key denied (403) at review; no lane listed while denied. |
 
-## Supported paths and their prerequisites
-
-| Feature | What it needs |
-| --- | --- |
-| Market browsing | A readable Window list, order book and price feed — no wallet. |
-| A wallet order | A connected Wallet Standard wallet on Solana devnet, devnet SOL for fees, tUSDC, a live Window and an executable quote. |
-| Portfolio and claims | The correct connected wallet and a settled or voided Window to claim from. |
-| Trading Balance / tap-trading | `agari-vault` deployed and a funded, valid grant/session key. As of this snapshot, `agari-vault`'s deploy is a pending devnet sequence — check [Programs](/architecture/programs) for its current status before assuming tap-trading is live. |
-| Pre-open ("schedule a call") | A Window listed before the open (the roller pre-lists the next session's first Window at the prior close) and a PostOnly order. |
-| Sensei | An `AI_MODEL` setting and a matching provider credential, server-side. Without one, the dock still renders but says the reply is unavailable. |
-| Reels / Takes | A wallet signature (no network fee) and the social store running. |
-| The Room | A real position on that Window or ticker, read from the index. |
-| Price alerts | An open browser tab watching a fresh, in-session price tick. |
-| News | A readable headline feed — no wallet. |
-
-## Deferred past the hackathon deadline
-
-Cut for the 2026-09-18 deadline: **Earn** (the maker vault as a public supply-side reserve), **Range, Boost, Parlay and Private** (the specialist ticket types), **agents and copy trading**, **trade-from-X**, and **the games programs** (Practice, Duel, Lucky Draw, Line Rider, Candle Hop, Moonshot). Their app routes exist and render an honest "not live" state rather than a half-built flow — see the [games](/games/overview), [agents](/agents/overview) and [builders](/builders/overview) notes, and [trading's coming-soon page](/trading/coming-soon) for the specialist ticket types.
-
-## Labels that need context
-
-- **A void** ("no signed price arrived" or "the two price sources disagreed") returns your stake as credit. It is not a loss and not shown as a win.
-- **A pre-open call resting** means your order is on the book waiting for the bell, not that it has filled.
-- **"Signed price stale"** on a halted-looking ticker usually means no fresh print has arrived within the admission window, not that the market itself is broken.
+The regular equity, Gap, 24/7 token, PreStocks and basket lanes have distinct clocks and [price sources](/architecture/price-sources). If a source is unavailable, the venue should pause the affected lane or void a Window whose required print does not arrive. A stopped lane is not a confirmed loss. A signature approval is not itself proof that a financial transaction landed; inspect the transaction before retrying.

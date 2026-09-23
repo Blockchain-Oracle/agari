@@ -1,0 +1,18 @@
+---
+title: "Duel and Lucky"
+description: "Two game wrappers that place real devnet orders on Agari's live Windows."
+---
+
+## Duel
+
+At <AppLink href="/games/duel">Duel</AppLink>, two players receive the same committed deck of live Windows. Choose Free or Ranked, inspect the per-card order cap and any side-pot, then find an opponent. Free means **no side-pot**; every pick is still a real market order using your devnet tUSDC. Ranked adds a tUSDC side-pot and rating. The entry names a key held by this browser to place your picks; your wallet signs the entry and pays the fees shown there. Each player keeps the economics of their own positions, while the pot follows the match result or forfeit rules. Claims are pull payments from the arena.
+
+The deck hash is committed on-chain before its cards are revealed. A usable duel requires the `agari-arena` program, a room server, a matchmaker, another player and dealable Windows. The route reports which dependency is missing. A queued match or unsettled card is not a paid result.
+
+## Lucky
+
+At <AppLink href="/games/lucky">Lucky</AppLink>, enter a stake and spin. A server seed is committed before the reels move; your browser adds its seed. The draw names a stock, side and reach, then shows a **live quote** on a live Window. You decide whether to place one ordinary order. If the book moves, the live quote may differ from the reel's reach; review that difference before signing. It settles and claims like another venue position.
+
+Lucky's browser check proves the revealed seed matches the commitment and replays the draw from the seeds. The candidate Window set and its selection rule are recorded, but that check does not prove the server chose the candidate set fairly. Neither a spin nor a deal spends tUSDC until an order is placed.
+
+Both modes use **devnet test money**. For the underlying order and settlement rules, see [Place a trade](/trading/first-trade).

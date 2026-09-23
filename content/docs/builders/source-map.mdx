@@ -1,0 +1,22 @@
+---
+title: "Source map and evidence"
+description: "Where each documented behavior lives in the reviewed Agari checkout."
+---
+
+**Reviewed application:** `integration/w1` at `c412501`, fetched from `origin` on 23 September 2026. The docs site is a separate Git repository. Its source links may require access to Agari's private GitHub repository.
+
+| Behavior | Source owner | Evidence boundary |
+| --- | --- | --- |
+| Registry, baskets and integer index | `packages/core/src/market/baskets.ts` | Frozen member bases and arithmetic; confirmed devnet basket prints and settlements in `docs/plan/acceptance.md` |
+| Order book, Window settlement and claims | `anchor/programs/agari-events/`, `packages/markets/` | Devnet program and transaction ledger |
+| Trading Balance and bounded grants | `anchor/programs/agari-vault/`, `packages/markets/src/vault/` | Devnet program and grant drives |
+| Earn and market making | `anchor/programs/agari-maker/`, `web/src/features/earn/` | Devnet maker deploy and reserve transactions; present liquidity must be read live |
+| Range, Moonshot, Boost, Parlay and Private | `anchor/programs/agari-range/`, `agari-leverage/`, `agari-parlay/`, `agari-private/`; matching `web/src/features/` folders | Separate devnet program deploys and settlement evidence; a listed route may lack a usable quote |
+| Strategy subscriptions and copy | `anchor/programs/agari-strategy/`, `web/src/features/strategies/` | Devnet grant and subscription receipts; a runner must be configured to act |
+| Games and scoring | `anchor/programs/agari-arena/`, `web/src/features/games/` | Duel on devnet; Practice and arcade scores are not on-chain |
+| Price policies, attested PreStocks prints, Pyth index entitlement | `services/ops/config/price-sources.json`, `services/ops/src/actors/`, `packages/markets/src/prices/` | Live source availability can change; `/status` and the ops entitlement probe show current state |
+| Basket and desk screens | `web/src/features/baskets/`, `web/src/features/desk/` | Production routes `/baskets`, `/desk`, `/desk/new` were present at review |
+| Desk rules and record | `packages/core/src/desk/`, `anchor/programs/agari-desk/` | Surfpool mainnet-fork rehearsal, 31/31 checks; **mainnet deployment still pending** |
+| Desk operator and runner | `packages/markets/src/desk/`, `services/ops/src/actors/desk-runner/` | Production paper practice; live program behavior only rehearsed on a fork |
+
+The application README links specific devnet transactions. `docs/plan/specs/desk.md` §10 is the live deploy runbook, while `docs/plan/stage-21-desk.md` leaves C7 unchecked. Do not turn those into a claim that real money has moved.

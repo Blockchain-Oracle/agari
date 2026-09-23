@@ -1,40 +1,40 @@
 # Agari Docs
 
-The step-by-step guide to Agari: a stock-price Up/Down prediction market on Solana devnet, source-led ported from [Masayume](https://github.com/Blockchain-Oracle/masayume). This site is a fresh fork of `masayume-docs` (no shared Git history), rewritten fact by fact for Agari.
+Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, PreStocks baskets, paper desk practice, and the architecture behind each path. The site takes its navigation and media patterns from Masayume Docs, with Agari-specific words, screenshots, program boundaries and evidence.
 
-**Status:** not deployed yet. This repository has no GitHub remote configured and the site has no public URL — both are pending the user's go at S16 (`Q-S15-1` in the main Agari tree's `docs/plan/decisions.md`).
+**Source reviewed:** Agari `integration/w1` at `c412501` on 23 September 2026. In the local app repository, `main` was 820 commits behind that branch and `origin/HEAD` pointed to `integration/w1`. This docs site is a **separate Git repository** on `main`, with no remote configured at this review. Its public docs URL is not verified. The app is live at [useagari.xyz](https://useagari.xyz).
 
-## Find your next step
+## Start with the right guide
 
-| Start with | Guide |
+| Goal | Guide |
 | --- | --- |
-| Get oriented | [Quickstart](content/docs/start/quickstart.mdx) |
-| Place and follow a call | [Your first call](content/docs/trading/first-trade.mdx) |
-| Understand the trading calendar | [Sessions and lanes](content/docs/trading/sessions-and-lanes.mdx) |
-| Trade in advance of the open | [Pre-open calls](content/docs/trading/pre-open-calls.mdx) |
-| See how the parts connect | [Architecture](content/docs/architecture/overview.mdx) |
-| Check what needs a wallet, a key or a running service | [Availability](content/docs/help/availability.mdx) |
+| Make a tUSDC test-money call | [Quickstart](content/docs/start/quickstart.mdx) |
+| Understand the five PreStocks groups | [Baskets](content/docs/trading/baskets.mdx) |
+| Draft a paper desk | [Build a desk](content/docs/agents/desk.mdx) |
+| Compare devnet and mainnet program status | [Programs](content/docs/architecture/programs.mdx) |
+| Trace claims to code and proof | [Source map](content/docs/builders/source-map.mdx) |
+| Check prerequisites and open limitations | [Availability](content/docs/help/availability.mdx) |
+
+The [20-second public-screen tour](public/videos/baskets-to-practice-2026-09-23.mp4) is assembled from [dated Agari captures](public/captures/provenance-2026-09-23.json). It stops before wallet connection; it is not a live transaction recording. Agari's application demo recording remains pending in its stage plan.
 
 ## Run locally
 
-Use Node.js 22+ and `pnpm@11.24.0`.
+Use Node.js 22+ and `pnpm@11.24.0`:
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
+cp .env.example .env.local
 pnpm dev
 ```
 
-Open [localhost:3153](http://localhost:3153). The site renders independently of the trading app, wallets, databases and paid services — it is static documentation content.
+Open [localhost:3153](http://localhost:3153). The docs render without a running app, wallet, database or provider key. Set `NEXT_PUBLIC_APP_URL` to your app origin; the default in `lib/site.ts` points to the deployed public app.
 
 ```sh
-pnpm typecheck
-pnpm build
+pnpm check
 ```
 
-## What changed from the Masayume fork
+`check` validates the local docs links, navigation, media and pinned sibling Agari source, then typechecks and builds. Point `AGARI_SOURCE_DIR` at an `integration/w1` checkout if it is elsewhere. A source-revision failure means review the new code and update the guides before advancing the pin. [Contributing](CONTRIBUTING.md) explains the capture and review workflow.
 
-- Every content page under `content/docs/` is being rewritten fact-by-fact for Agari (Solana devnet, not Somnia; `agari-events`/`agari-vault`, not DreamDEX/EventVault; tUSDC, not tUSDC+STT). See the main Agari tree's stage plan (`docs/plan/stage-15-public-story.md`, box 15c) for the exact rewrite order and what was left unrewritten when time ran out.
-- The interactive `Architecture` diagram widget, the annotated `GuideShot` screenshot component and the `Walkthrough` video-scrubber component were cut for this port (`lib/diagrams.json`, `lib/guides.ts`, `components/architecture.tsx`, `components/guide-shot.tsx`, `components/walkthrough.tsx`, and their backing `scripts/*.mjs` generators are removed). Architecture pages use prose and tables instead; real Agari screenshots are placed directly under `public/` per page.
-- `evidence/` (Masayume's own dated review/capture archive, ~281 MB) and `public/{videos,guides,brand,diagrams,repo-assets}` (Masayume-branded screenshots, demo clips and artwork) are removed — none of it is Agari material.
-- `scripts/check-content.mjs` (a Masayume-specific verifier requiring a sibling source checkout and `evidence/source-coverage.json`) is removed; the gate here is `pnpm typecheck && pnpm build`.
-- `games/`, `agents/` and `builders/` each collapse to one honest "after the hackathon" page, since S8–S12 and S14 are deferred past the 2026-09-18 hackathon deadline (`D-084` in the main tree).
+## Evidence and limits
+
+Predict and Cover use tUSDC on **Solana devnet**. A desk starts in paper practice; the `agari-desk` program passed a 31-check mainnet-fork rehearsal, but its **mainnet deployment is still pending** at this review. Pyth's OpenAI and Anthropic valuation-index feeds were denied to the trial key, so those valuation lanes are not listed. Current route and feed health belongs to the [app's Status page](https://useagari.xyz/status), not to this dated snapshot.

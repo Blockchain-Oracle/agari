@@ -1,27 +1,19 @@
 ---
-title: "Price sources"
-description: "How an opening or closing print gets verified on-chain, source by source."
+title: "Price sources and signed prints"
+description: "Equity, token, PreStocks, basket and valuation lanes use different source policies."
 ---
 
-A Window never settles on "the latest price." Every print is a signed value checked on-chain at an exact timestamp — the first valid print for that boundary wins, and the check happens in the `agari-events` program itself, not off-chain.
+A Window settles from its opening and closing **boundary prints**. The on-chain program checks the configured source and timestamp; the web app does not pick a winner from a latest-price tile. Policy versions are registered ahead of time, so a Window retains the policy it started with.
 
-| Ticker | Primary source today | What happens after the Pyth trial (≈ 2026-09-27) |
-| --- | --- | --- |
-| TSLA | Pyth, cross-checked against RedStone | Switches to RedStone-primary — registered in advance as a second policy version, no redeploy needed |
-| QQQ, VOO | Pyth | Pause with an honest "no signed source" state, unless a source like Stork is added later |
-| NVDA, AAPL, MSFT, META, AMZN, GOOGL | RedStone | Unchanged |
-| The 24/7 token lane | Switchboard On-Demand | Unchanged |
+| Lane | Boundary source and limit |
+| --- | --- |
+| TSLA, QQQ, VOO equity | Pyth pull update. TSLA also cross-checks RedStone within its configured divergence band. The trial was expected to end around 27 September 2026; current entitlement needs a live check. |
+| Other equity names | RedStone signatures under the configured signer threshold. |
+| Tokenized stock lane | Switchboard On-Demand signatures from a pinned queue. An upstream gateway outage can pause this lane without pausing equities. |
+| PreStocks name | Agari's price attestor signs a PreStocks catalogue **token price**. The catalogue itself is unsigned and supplies no independent oracle proof. |
+| PreStocks basket | Agari computes equal-weight index points from all members in one catalogue read and signs that index. Missing members prevent a print. |
+| Pyth pre-IPO valuation lane | Pyth's OpenAI or Anthropic valuation index, only when the venue key is entitled. The trial key was denied at review, so no valuation Window was listed. |
 
-## How each source is verified
+The token price and Pyth's company valuation index are **different measures**. Agari does not treat the latter as a cross-check for a token-price Window. The desk can optionally require a fresh verified Pyth index for a buy, but that leg also needs the separate entitlement. [Baskets](/trading/baskets) explains the points index; [halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints.
 
-- **Pyth** — a pull oracle update, verified against Wormhole's guardian set on-chain. Checked for the right feed id and that its timestamp lands within the Window boundary's allowed window.
-- **RedStone** — a public gateway of signed data packages, no API key needed. The program requires at least 3 of 5 configured signers to agree, and for the first 5 minutes after the boundary it requires all 5 — an anti-selection rule, so a poster can't cherry-pick a favorable 3-of-5 subset while an honest relay can always post all 5.
-- **Switchboard On-Demand** — the 24/7 token lane only. At least 3 distinct oracle signatures from one pinned queue, within a short admission window after the timestamp.
-
-## The TSLA cross-check
-
-TSLA additionally requires its RedStone check price to agree with its Pyth primary price within a divergence threshold. If they disagree beyond it, the Window voids with reason `CrossCheckDivergence` instead of settling on a guess — see [halts and voids](/trading/halts-and-voids).
-
-## If no source covers a Window
-
-A Series' price policy is a set of versions, each valid for a date range, registered in advance. If no version covers a Window's two boundaries, the Window simply isn't listed — the lane shows an honest "paused: no signed source" state rather than trading on an unverified number.
+For a current source read, use <AppLink href="/status">Status</AppLink>. The [source map](/builders/source-map) identifies the config, relay and program boundaries.

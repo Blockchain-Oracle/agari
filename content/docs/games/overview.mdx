@@ -1,16 +1,10 @@
 ---
-title: "Games — after the hackathon"
-description: "Practice, Duel, Lucky Draw, Line Rider, Candle Hop and Moonshot are ported code, not a live Solana program."
+title: "Games"
+description: "Practice and the arcade wrap Agari's live Windows with their own scoring and funding rules."
 ---
 
-Masayume shipped seven game modes on top of its own market contracts. Agari's port carries the same code across (`packages/core/src/games`, `packages/markets/src/games`, `web/src/features/games`) — the swipe mechanics, matchmaking, commit-reveal scoring and arcade rendering all exist in this tree — but the on-chain piece each mode needs (`agari-arena` and the reserves that back Duel pots, Lucky Draw payouts and Moonshot rounds) is part of Stage 12, which is deferred past the 2026-09-18 hackathon deadline alongside Earn, agents, specialist tickets and X trading (`D-084` in the main Agari tree's `docs/plan/decisions.md`). Building a real Solana devnet trading venue — the order book, price verification and settlement this week's deadline is judged on — took priority over the games layer.
+<AppLink href="/games">Games</AppLink> has seven modes: Practice, Duel, Lucky, Range, Moonshot, Line Rider and Candle Hop. They share Agari's live Windows, but have different scoring and money rules. A particular round still needs its own current game state, liquidity or participants.
 
-## What that means today
+Start with [Practice and arcade](/games/practice-and-arcade) to play without a stake. [Duel and Lucky](/games/duel-and-lucky) involve real devnet orders. [Range and Moonshot](/trading/range-and-moonshot) use a separate prefunded reserve. Read the entry cost and result rule in each mode before signing; money-backed games use **devnet test tUSDC** and are separate from the [desk](/agents/desk).
 
-- The app's `/games` routes render honestly: they say a mode is not live rather than pretending to accept a stake.
-- Nothing here is broken or half-wired; the game code simply has no deployed program to place a real order against yet.
-- Practice-style, no-stake play (swiping a live Window card) is the mode closest to needing no new on-chain work, so it is the most likely to return first after the deadline.
-
-## Where to go instead
-
-The market itself — the part these games all wrap — is live: read [Your first call](/trading/first-trade) and [Sessions and lanes](/trading/sessions-and-lanes) for what you can actually do on Agari today.
+The [ordinary call guide](/trading/first-trade) explains the Window beneath the games. Use <AppLink href="/status">Status</AppLink> if a round is not listing or settling.

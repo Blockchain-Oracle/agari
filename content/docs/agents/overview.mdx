@@ -1,16 +1,14 @@
 ---
-title: "Agents and strategies — after the hackathon"
-description: "Publishing, copying and the Sensei-adjacent strategy runner are deferred past the 2026-09-18 deadline."
+title: "Agents and strategies"
+description: "Published strategies, bounded copy permissions, Sensei and the PreStocks desk do different jobs."
 ---
 
-Masayume let a trader publish a strategy (rule-based Momentum, or a model-backed AI Agent) and let others copy it under a bounded, revocable spending grant. Agari's plan carries the same shape forward — `agari-strategy` for the registry, `agari-vault`'s `Grant` for the bounded permission a copier signs — but Stage 9 (agents) is deferred past the 2026-09-18 hackathon deadline, alongside Earn, specialist tickets, X trading and the games programs (`D-084` in the main Agari tree's `docs/plan/decisions.md`). The `agari-strategy` program has not been written or deployed for Agari.
+Agari has two agent paths. <AppLink href="/agents">Agents</AppLink> and <AppLink href="/strategies">Strategies</AppLink> publish or copy devnet Up/Down activity through bounded grants. The [desk](/agents/desk) is a separate PreStocks holding flow: paper practice is available now, and its real-money program is awaiting a Solana mainnet deploy.
 
-## What that means today
+| Product | What it can do | Network and money |
+| --- | --- | --- |
+| Sensei | Explains a ticker or position and hands you a call card. It does not place the call. | Read in the devnet app |
+| Published strategy / copy | Follows a creator's strategy through the grant the copier signs and may revoke. | Solana devnet, tUSDC test money |
+| Desk | Holds a chosen PreStocks basket inside owner-set limits; the runner decides timing. | Paper practice now; a separate mainnet live flow pending deployment |
 
-- The app's `/agents` and `/strategies` routes render honestly: no listed strategies, no copy flow, no runner.
-- `agari-vault`'s `Grant` account already has the shape a future copy-trading grant would use (money caps, expiry, an actor pubkey, a per-market scope added ahead of the vault's first deploy per `D-091`) — the permission model exists in the program even though the strategy layer built on top of it does not yet.
-- **Not investment advice.** When agents do ship, a copied strategy will still be the copier's own decision under a permission they granted and can revoke; nothing here will place a trade a wallet did not authorize.
-
-## Where to go instead
-
-[Ask Sensei for a read](/explore/sensei) — Agari's assistant is live today, gives a stock- and position-aware read, and hands a trade card to the ticket rather than acting on its own.
+The strategy and copy path has devnet acceptance rows, but a listed strategy still needs a live runner and a valid grant. Read the app's current state before enabling a copy. The desk's [first-use guide](/agents/desk) and [trust boundary](/architecture/desk) explain its separate permissions. None of these pages is investment advice.
