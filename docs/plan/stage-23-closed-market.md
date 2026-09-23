@@ -4,8 +4,8 @@
 
 ## Steps
 
-- [ ] **a markets** (`feat(S23.a/…)`): word board session + lane rule, Schedule a call for upcoming stock Windows, 24/7 chips and logos, empty-book state and Max on the ticket, the token maker's overnight quotes; the sweep across lanes, hub, hedge, Boost, parlay, range, reels, Sensei, marquee, notifications, the halted xStocks lanes.
-- [ ] **b shorts + baskets** (`feat(S23.b/web)`): `/short` redesign (logo cards, cadences, closed state, plain thin-book state); `/baskets` card rebuild and the hub table.
-- [ ] **c games** (`feat(S23.c/…)`): duel/practice/Lucky/hub read the session; `nextDealableSec` stops at the close; the matchmaker deals only quoted books; weekday on "Opens".
-- [ ] **d copy + balance** (`feat(S23.d/…)`): copy drawer validation, Max, balance strip, inline deposit, state fixes; private balance and Trading Balance buttons; the runner's indexer URL.
+- [x] **a markets** (`feat(S23.a/…)`): word board session + lane rule, Schedule a call for upcoming stock Windows, 24/7 chips and logos, empty-book state and Max on the ticket, the token maker's overnight quotes; the sweep across lanes, hub, hedge, Boost, parlay, range, reels, Sensei, marquee, notifications, the halted xStocks lanes.
+- [x] **b shorts + baskets** (`feat(S23.b/web)`): `/short` redesign (logo cards, cadences, closed state, plain thin-book state); `/baskets` card rebuild and the hub table.
+- [x] **c games** (`feat(S23.c/…)`): duel/practice/Lucky/hub read the session; `nextDealableSec` stops at the close; the matchmaker deals only quoted books; weekday on "Opens".
+- [x] **d copy + balance** (`feat(S23.d/…)`): copy drawer validation, Max, balance strip, inline deposit, state fixes; private balance and Trading Balance buttons; the runner's indexer URL.
 - [ ] **gate** : merge, web + ops deploys, live capture, after-close capture.

@@ -1,3 +1,13 @@
+# STATUS — updated 2026-09-23 ~03:10 UTC by Claude (**S22 desk redesign live · S23 closed-market pass merged, deploying**)
+
+## Session of 2026-09-23 00:40–03:10Z — READ THIS FIRST
+
+- **S22 (D-127) is live on useagari.xyz** (`f09c9a3`, Coolify web `zy89ajhb…` finished): the desk kit from fifteen 21st catalogue components (`web/src/components/ui/desk-kit`), the value series from `desk_snapshots` and `/api/desk/marks` (seven days of hourly PreStocks marks), the studio (logo basket cards with real 7-day lines, slider weight editor, limits as sliders, receipt), the cockpit (value chart 1D/1W/All, tabs Overview · Holdings · Activity · Rules), the activity timeline (also `/record`), the visual decision page and the `/desk` entry. Verified on the judges' desk `49f67e4d…`. Stage file `stage-22-desk-ux.md`.
+- **S23 (`stage-23-closed-market.md`) merged into `integration/w1` (`97a9b7c`)** from lanes s23a–d: the word board and ticket out of hours (Schedule a call for stock Windows before the bell, 24/7 chips, "No quotes yet", plain empty-book state); **the maker fix** (`seat/token-fair.ts`: a Window's own opening print stands in for a start sample lost to an ops restart — the 02:35Z restart had left 0 of 49 series quoting); `/short` redesign; `/baskets` card rebuild and the hub table; games tell the truth out of hours (weekday on every "Opens", `nextDealableSec` stops at the close, the matchmaker deals only two-sided books, Lucky policy 3/4); the copy drawer (inline reasons, Max, balance strip, inline deposit, state fixes) and the private/Trading Balance buttons.
+- **Ops env changed 02:52Z:** `NEXT_PUBLIC_AGARI_INDEXER_URL` on `agari-ops` = `https://useagari.xyz/api/index` (was the web container's internal name, unreachable from ops: "lanes unreadable: indexer unreachable: fetch failed"). Ops deploy `uskf6hbn…` at `97a9b7c`, then web.
+- **Traps met:** `grep failed` on a deploy log matches words in the log — read `coolify app deployments list` row 1; `next dev` breaks client-side (undici `node:net`) — review with build + start; fresh worktrees need `web/.next/cache` copied or the font fetch fails the build; Next 16 writes `web/AGENTS.md`/`CLAUDE.md` on dev — `agentRules: false` in `next.config.ts`.
+- **Owed:** live capture of /markets, /short, /baskets, games, /strategies after the web deploy; again after the 13:30Z open and the 20:00Z close. C7 (mainnet funding) and the Pyth ask are still the user's.
+
 # STATUS — updated 2026-09-22 ~19:10 UTC by Claude (**S19 baskets · S20 Pyth index · S21 the desk: approved 09-22, building; A1 landed on w1**)
 
 ## Session of 2026-09-22 16:50–19:10Z (research + plan + S19.1) — READ THIS FIRST

@@ -11,7 +11,7 @@
 - [x] **4 cockpit** (`feat(S22.4/web)`): header, value hero + chart + ranges, next-check strip, tabs Overview · Holdings · Activity · Rules.
 - [x] **5 timeline + record + decision** (`feat(S22.5/web)`): the shared activity timeline with filters and day groups, `/record`, the visual decision page.
 - [x] **6 entry + states** (`feat(S22.6/web)`): `/desk` for a visitor with no desk (hero, the judges' desk preview), empty and loading states.
-- [ ] **7 sweep** (`chore(S22.7/web)`): `21st review --strict`, both themes at 390/768/1440, keyboard, dead CSS removed; merge, Coolify web deploy, live capture.
+- [x] **7 sweep** (`chore(S22.7/web)`): `21st review --strict`, both themes at 390/768/1440, keyboard, dead CSS removed; merge, Coolify web deploy, live capture.
 
 ## Handoff
 
