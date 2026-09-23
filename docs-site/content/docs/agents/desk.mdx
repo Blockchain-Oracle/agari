@@ -3,7 +3,9 @@ title: "Build a desk"
 description: "Choose a PreStocks basket and limits, run a paper practice desk, then understand the separate mainnet flow."
 ---
 
-The [desk studio](/agents/desk) is the **Hold** path from [Baskets](/trading/baskets). You choose which PreStocks names it may hold and how much cash to keep. The desk decides *when* to act, within your limits. A desk is different from an Up/Down call: it holds tokens rather than predicting a Window's close.
+The desk studio is the **Hold** path from [Baskets](/trading/baskets). You choose which PreStocks names it may hold and how much cash to keep. The desk decides *when* to act, within your limits. A desk is different from an Up/Down call: it holds tokens rather than predicting a Window's close.
+
+<AppLink href="/desk">Desk</AppLink> without a desk of your own shows what a desk does in three steps, a live card of a desk its owner shares (its basket, total value and latest check), **Start a practice desk** and **See a shared desk**. No wallet is needed until the last step of the studio.
 
 <TourVideo />
 
@@ -11,34 +13,47 @@ The [desk studio](/agents/desk) is the **Hold** path from [Baskets](/trading/bas
 <Step>
 ### Choose the basket
 
-Open <AppLink href="/desk/new">New desk</AppLink>, or choose **Hold** on a basket card. Step 01 starts with a preset; adjust member weights and the cash sleeve. Anyone can draft without a wallet. The draft stays in this browser.
+Open <AppLink href="/desk/new">New desk</AppLink>, or choose **Hold** on a basket card. **The basket** step shows the five baskets as cards with their members and a seven-day line, plus **Build your own** from any of the eight PreStocks companies. Adjust each weight and the cash share with sliders; **Even split** and **Reset to basket** undo your edits, and the weights and cash must add up to 100%. Anyone can draft without a wallet. The draft stays in this browser.
 
-<GuideCapture name="studio" caption="AI Labs starts at 40% OpenAI, 40% Anthropic and 20% cash in this capture; these are editable draft values." />
+<GuideCapture name="studio" caption="AI Labs starts at 40% OpenAI, 40% Anthropic and 20% cash; these are editable draft values. This capture shows the studio before its redesign later on 23 September; the step and its values are the same." />
 </Step>
 <Step>
 ### Set limits
 
-Step 02 sets allowed drift, maximum position, loss stop, maximum premium above the PreStocks mark, and per-action and daily spend caps. The side card repeats what the desk understood. These are the rules it must check before an action.
+**How strict** starts from **Careful**, **Balanced** or **Loose** (or **Custom**) and puts every limit on a slider: allowed drift, the largest share one company may take, the loss stop, the premium ceiling above the PreStocks mark, the per-action and daily spend caps, and the size above which it asks first. Each limit says who enforces it: the per-action and daily caps, the premium ceiling and the allowed companies are **enforced on-chain**; drift, the largest share and the loss stop are **enforced by the desk**'s own code. The defaults are Balanced: 5% drift, 50% largest share, a 15% loss stop, a 10% premium ceiling, $50 per action, $150 a day and ask first above $100.
 
-<GuideCapture name="limits" caption="The labels distinguish checks enforced by the program from checks the desk's own code runs." />
+<GuideCapture name="limits" caption="The labels distinguish checks enforced by the program from checks the desk's own code runs. Captured before the sliders and strictness presets were added." />
 </Step>
 <Step>
 ### Ask for a test read
 
-Step 03 can read current prices and a Jupiter quote. This asks you to connect a wallet and sign a message; it does **not** move money. A bad or stale quote leads to a recorded refusal, not a trade.
+**Test read** runs one real check and shows it as it happens: sign the mandate, read PreStocks prices for every company, quote each trade on Jupiter at your size with PreStocks' 1% fee counted, ask the one timing question, then write the decision down and fingerprint it. This asks you to connect a wallet and sign a message; it does **not** move money. A bad or stale quote leads to a recorded refusal, not a trade. You can also continue without a test read.
 
-<GuideCapture name="testRead" caption="The signed-out screen stops at Connect. The paper amount shown is not a wallet balance." />
+<GuideCapture name="testRead" caption="The signed-out screen stops at Connect. The paper amount shown is not a wallet balance. Captured before the test read became a step-by-step stream." />
 </Step>
 <Step>
 ### Create the practice desk
 
-Step 04 creates a paper desk after a wallet message signature. Practice runs the same decision pipeline on real prices and quotes, with a paper cash ledger and **no on-chain transaction**. Read its decisions and use **Check it** to recompute a record's fingerprint. The app requires six practice checks and a visit to the full record before it offers Go live.
+**Create** shows a receipt of the split, the limits and where the desk starts before you sign. One wallet message signature creates a paper desk. Practice runs the same decision pipeline on real prices and quotes every hour, on the hour, with a paper cash ledger and **no on-chain transaction**. The app requires six practice checks of your own and a visit to the whole record before it offers Go live.
 </Step>
 </Steps>
 
+## Read your desk
+
+Your desk's page opens on its value: a chart of the desk's worth at every check (**1D**, **1W**, **All**), the next check and how many practice checks are done. Four tabs sit under it:
+
+| Tab | What it shows |
+| --- | --- |
+| **Overview** | The latest decision, the allocation now against the target, and the limits in use (spent today, highest premium, distance from the loss stop). |
+| **Holdings** | Each company's tokens, its target share and its recent prices, then the USDC cash. |
+| **Activity** | Every check as a timeline, newest first, with day headings, quiet runs folded together and filters: **All**, **Acted**, **Decided not to**, **Asked you**, **Quiet**, **Problems**. |
+| **Rules** | The basket and each limit, marked **Enforced on-chain** or **Enforced by the desk**, with **Edit** to sign a new mandate version. |
+
+Open any check to read its decision page: the verdict, the companies, how sure the timing call was, the price strip (token price, PreStocks mark, 30-minute average, Pyth index when one was read, and your premium ceiling), the trade it chose or turned down, and each check it passed or refused. **Check it** recomputes the record's fingerprint. A desk its owner has not shared reads as private to anyone else.
+
 ## Go live is a separate step
 
-**Go live** would open a desk on **Solana mainnet**, use real USDC and PreStocks tokens, and require mainnet wallet transactions and funding. The owner selects either **Ask first** or **On its own**. A live operator can buy or sell within the on-chain limits, but cannot withdraw; only the owner can withdraw. PreStocks tokens have a 1% transfer fee and token-level controls, which affect what arrives after a route.
+**Go live** would open a desk on **Solana mainnet**, use real USDC and PreStocks tokens, and require mainnet wallet transactions and funding. The owner selects either **Ask me first** or **On its own**. A live operator can buy or sell within the on-chain limits, but cannot withdraw; only the owner can withdraw. PreStocks tokens have a 1% transfer fee and token-level controls, which affect what arrives after a route.
 
 **As of 23 September 2026, this mainnet step has not been deployed.** The 31-check Surfpool mainnet-fork rehearsal included two Jupiter buys, a sell, a withdrawal and refusal cases. It proves the rehearsal behavior, not a mainnet transaction. Practice desks are available in the production app. Do not treat a paper balance as a wallet balance.
 

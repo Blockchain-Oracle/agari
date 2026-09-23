@@ -8,8 +8,9 @@ type GuidePage = InferPageType<typeof source>;
 export async function guideMarkdown(page: GuidePage): Promise<string> {
   const body = await page.data.getText('processed');
   const sources = page.data.sources ?? [];
+  // Until the app repository is public, `sourceUrl` is null and a source note names the path alone.
   const notes = sources.length
-    ? `\n\n## Source notes\n\nApplication source reviewed ${site.reviewed}, revision ${site.revision}. These GitHub links require repository access.\n\n${sources.map(path => `- [${path}](${sourceUrl(path)})`).join('\n')}`
+    ? `\n\n## Source notes\n\nApplication source reviewed ${site.reviewed}, revision ${site.revision}.\n\n${sources.map(path => { const url = sourceUrl(path); return url ? `- [${path}](${url})` : `- \`${path}\``; }).join('\n')}`
     : '';
 
   return `# ${page.data.title}\n\n${page.data.description || ''}\n\nCanonical URL: ${site.docs}${page.url}\nApplication origin: ${site.app}\nReviewed: ${site.reviewed}\n\n${body}${notes}`;

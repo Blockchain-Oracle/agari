@@ -1,0 +1,59 @@
+---
+title: "PreStocks and Pyth in Agari"
+description: "Where Agari uses PreStocks prices and tokens, where Pyth prices settle Windows on chain, and what each one does not do."
+---
+
+Agari uses two outside price sources in ways that decide money: **PreStocks** for every pre-IPO name and basket, and **Pyth** for the equity Windows that settle on a verified pull update. [Price sources](/architecture/price-sources) lists every lane's policy side by side; this page follows each source through the product. Dates are UTC.
+
+## PreStocks
+
+[PreStocks](https://prestocks.com) issues tokenized pre-IPO stocks on Solana, each backed 1:1 by SPV exposure. Agari reads its public catalogue, [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks), for each name's token price and the SPV's mark price. The catalogue is unsigned, so Agari's price attestor signs each boundary price it reads and the `agari-events` program checks that signature, the attestor key and the timing before it records the print. That makes a PreStocks print a venue-attested read of PreStocks data, not an independent oracle.
+
+**Every pre-IPO price, token and basket in Agari comes from PreStocks.** No other pre-IPO token or issuer is integrated. The eight names are OpenAI, Anthropic, SpaceX, Neuralink, Anduril, Kalshi, Polymarket and Figure AI. PreStocks states that its tokens are not affiliated with, endorsed by or issued by the companies they reference, and are not available in the U.S.
+
+| Where | What PreStocks supplies |
+| --- | --- |
+| The OpenAI 24/7 lane | `OPENAI-60m` is a one-hour Up/Down Window on the OpenAI token price that runs every hour of every day, listed and rolled by the venue with no one at a keyboard. It was registered on 19 September 2026; its first Window opened unattended, printed inside its admission window and settled at 12:00 the same day. Boosts, shorts, Lucky spins and parlay legs have run on it since. See [Sessions and lanes](/trading/sessions-and-lanes). |
+| Cover what you hold | Connect a wallet and Agari reads its PreStocks holdings by mint, read-only on Solana mainnet, and offers a devnet Down call as cover. A wallet holding two or more members of a basket is offered one cover on the basket. The first holder cover was a 1,000-lot Down on `OPENAI-60m` on a Saturday. |
+| Five baskets | Equal-weight indices in points (base 1,000 at frozen base prices) over PreStocks names, each computed from one catalogue read of every member; a partial read produces no print. All five first Windows settled on 22 September 2026 with no void, and the lanes have settled hourly since. See [Baskets](/trading/baskets). |
+| The desk's premium ceiling | A desk never buys a name more than its owner's ceiling above the **PreStocks mark**. The program checks this against a reference the attestor signed (token price, mark and conversion multiplier) no more than 15 minutes old. The first practice desk on production declined its first buy because OpenAI's token was 21.3% above its mark against a 10% ceiling. See [How the desk decides](/architecture/desk). |
+| Pre-IPO pages | Each name's page shows the token price, the PreStocks mark, the token's premium or discount to the mark, and PreStocks' weekly holder count. |
+
+The desk's real-money flow uses PreStocks tokens themselves: Token-2022 mints with a 1% transfer fee, routed through Jupiter. It was rehearsed on a Surfpool fork of mainnet with two real Jupiter buys (OpenAI and Anthropic), a sell and a withdrawal; its mainnet deployment has not happened yet, and practice desks move no money.
+
+Open in the app: <AppLink href="/baskets">Baskets</AppLink>, <AppLink href="/tickers/OPENAI">OpenAI</AppLink>, <AppLink href="/short">Short</AppLink>, <AppLink href="/desk">Desk</AppLink>.
+
+## Pyth
+
+Pyth is a **settlement source** in Agari, not a display feed. A TSLA, QQQ or VOO Window on the Pyth policy settles only once a Pyth pull update for the exact boundary second is verified inside `agari-events` (`public_record_print_pyth`, which anyone may call):
+
+- the `PriceUpdateV2` account must be **fully verified** and carry the policy's feed id;
+- it must be the first publish at or after the boundary: the previous publish time is before the boundary second, and the update's publish time is at or after it and at most 5 seconds later;
+- its confidence interval must be within 0.5% of the price.
+
+The app never settles on a "latest" read. Feeds: [TSLA/USD](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD), [QQQ/USD](https://app.pyth.com/explore/Equity.US.QQQ%2FUSD), [VOO/USD](https://app.pyth.com/explore/Equity.US.VOO%2FUSD).
+
+**Cross-check and void.** TSLA's Pyth policy names RedStone as its check source. Both boundaries are compared, and a gap wider than 25 bps voids the Window (`CrossCheckDivergence`) instead of paying anyone; a missing print voids it as `MissingPrint`. Devnet evidence from 14 September 2026 includes a TSLA Window settled Up on Pyth 358.20432 → 358.75 with RedStone agreeing, a divergence void, and a missing-print void. See [Halts and voids](/trading/halts-and-voids).
+
+**Proof replay.** A settled Window's receipt links to its proof page, which lists each print with its source and signer count. **Re-verify on devnet** posts the archived Pyth update again from a funded `proof-replay` role, so a reader can watch the same bytes verify on chain. Replays are limited to 20 an hour across the deployment and 3 an hour per IP address.
+
+The same Pyth access also feeds the price relay, the halt watch and the market calendar.
+
+**The trial window.** The Pyth policy for TSLA, QQQ and VOO covers Windows through the NYSE close on **25 September 2026**. From then TSLA settles on RedStone under its next registered policy, and QQQ and VOO list nothing ("paused: no signed source") until a new policy is registered. Policies are append-only and a Window keeps the one it opened under.
+
+### Pyth's pre-IPO valuation indices: wired, not active
+
+Pyth publishes [OpenAI](https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD) and [Anthropic](https://app.pyth.com/explore/Equity.Index.ANTHROPIC%2FUSD) valuation indices around the clock. Agari carries a one-hour **valuation lane** for each (`OPENAIV-60m`, `ANTHROPICV-60m`) that would settle on Pyth through the same on-chain path as TSLA. The venue's current key is refused for both feeds (HTTP 403, group `pyth-indices`), so an hourly probe records them as denied, the roller lists no valuation Window, the deploy script refuses to register the lanes, and the pages leave the index rows out rather than show a dead lane. A refused index never affects TSLA, QQQ or VOO.
+
+A key with the `pyth-indices` group switches these on with no code change or program upgrade:
+
+- the registration script accepts the two valuation lanes (it probes first and refuses while the key is denied), and the roller lists them from the next hourly probe;
+- the OpenAI and Anthropic pages add **Pyth index** and **Token vs Pyth** beside the PreStocks mark;
+- a desk decision's price strip shows the index when one was read;
+- a desk owner can require the index: every buy must then carry a fully verified Pyth update no older than 60 seconds, and the premium ceiling is measured against the index instead of the venue-attested mark. That is the one check in the desk's trust boundary that does not depend on Agari's own keys.
+
+The index measures company valuation and the token Window settles on the PreStocks token price, so Agari never uses one as a cross-check for the other.
+
+## Where to check the current state
+
+Source availability changes. <AppLink href="/status">Status</AppLink> shows the price pipelines, the relay and the Pyth entitlement probe as they are now; this page is a snapshot of the reviewed source.

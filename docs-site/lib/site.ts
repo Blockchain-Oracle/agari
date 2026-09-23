@@ -8,8 +8,10 @@ export const site = {
   name: 'Agari',
   docs: origin(process.env.NEXT_PUBLIC_DOCS_URL, 'https://docs.useagari.xyz'),
   app: origin(process.env.NEXT_PUBLIC_APP_URL, 'https://useagari.xyz'),
-  source: null as string | null, // app repository is private
-  revision: 'c412501',
+  // The app repository (github.com/Blockchain-Oracle/agari) is private until submission; set it here to turn on the
+  // GitHub link, llms.txt's README entry and per-page source notes, all pinned to `revision`.
+  source: null as string | null,
+  revision: 'ee12d79',
   reviewed: '2026-09-23',
 };
 export function appUrl(path = '/markets') { return new URL(path, site.app).toString(); }

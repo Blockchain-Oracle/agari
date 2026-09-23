@@ -2,7 +2,7 @@
 
 Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, PreStocks baskets, paper desk practice, and the architecture behind each path. The site takes its navigation and media patterns from Masayume Docs, with Agari-specific words, screenshots, program boundaries and evidence.
 
-**Source reviewed:** Agari `integration/w1` at `c412501` on 23 September 2026. In the local app repository, `main` was 820 commits behind that branch and `origin/HEAD` pointed to `integration/w1`. This docs site is a **separate Git repository** on `main`, with no remote configured at this review. Its public docs URL is not verified. The app is live at [useagari.xyz](https://useagari.xyz).
+**Source reviewed:** Agari at app commit `ee12d79` on 23 September 2026. The site lives in the app's own repository at `docs-site/` and deploys from `integration/w1` to [docs.useagari.xyz](https://docs.useagari.xyz). The app is live at [useagari.xyz](https://useagari.xyz).
 
 ## Start with the right guide
 
@@ -13,9 +13,10 @@ Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, Pre
 | Draft a paper desk | [Build a desk](content/docs/agents/desk.mdx) |
 | Compare devnet and mainnet program status | [Programs](content/docs/architecture/programs.mdx) |
 | Trace claims to code and proof | [Source map](content/docs/builders/source-map.mdx) |
+| See how PreStocks and Pyth are used | [PreStocks and Pyth in Agari](content/docs/architecture/prestocks-and-pyth.mdx) |
 | Check prerequisites and open limitations | [Availability](content/docs/help/availability.mdx) |
 
-The [20-second public-screen tour](public/videos/baskets-to-practice-2026-09-23.mp4) is assembled from [dated Agari captures](public/captures/provenance-2026-09-23.json). It stops before wallet connection; it is not a live transaction recording. Agari's application demo recording remains pending in its stage plan.
+The [20-second public-screen tour](public/videos/baskets-to-practice-2026-09-23.mp4) is assembled from [dated Agari captures](public/captures/provenance-2026-09-23.json). It stops before wallet connection; it is not a live transaction recording. The captures were taken at app commit `c412501`, before the S22 desk redesign and the S23 basket cards, so they show the earlier layouts. Agari's application demo recording remains pending in its stage plan.
 
 ## Run locally
 
@@ -33,7 +34,7 @@ Open [localhost:3153](http://localhost:3153). The docs render without a running 
 pnpm check
 ```
 
-`check` validates the local docs links, navigation, media and pinned sibling Agari source, then typechecks and builds. Point `AGARI_SOURCE_DIR` at an `integration/w1` checkout if it is elsewhere. A source-revision failure means review the new code and update the guides before advancing the pin. [Contributing](CONTRIBUTING.md) explains the capture and review workflow.
+`check` validates the docs links, navigation, media and app routes against the app source in the parent directory, then typechecks and builds. It fails if the reviewed revision (`site.revision` in `lib/site.ts`) is missing or not an ancestor of `HEAD`, and prints a warning listing app commits made since it. Those commits are the list to review: update the guides they affect, then advance the revision. [Contributing](CONTRIBUTING.md) explains the capture and review workflow.
 
 ## Evidence and limits
 

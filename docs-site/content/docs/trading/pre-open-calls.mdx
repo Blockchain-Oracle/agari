@@ -5,6 +5,10 @@ description: "Rest a call on a Window before it opens for trading; taker orders 
 
 Because Windows are prelisted ahead of time (see [Sessions and lanes](/trading/sessions-and-lanes)), you can place a call before the market — or the Monday Gap, or a Window's own trading start — actually opens. This is a **resting**, post-only call, not an instant trade: nothing fills before the Window's trading start, by design.
 
+## Where to schedule one
+
+While the stock market is closed, the `/markets` board lists each company's next Windows under **Schedule a call**. Choose a Window length, then **Call Up** or **Call Down** to open the pre-open ticket at your price. On <AppLink href="/short">Short</AppLink>, a stock Window that opens later offers **Schedule a Down call** on the same terms.
+
 ## How it works
 
 A Window before its trading start is in a **Listed** state. In that state, the venue only accepts **PostOnly** orders — an order that rests on the book rather than taking. A taker-type order (IOC, FOK, or a Normal order that would cross immediately) is refused outright with a `PreOpenTakerRefused` error, so nobody can jump the queue by trading against a resting pre-open call before the bell.

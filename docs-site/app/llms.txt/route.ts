@@ -3,7 +3,7 @@ import { site } from '@/lib/site';
 export const dynamic = 'force-static';
 
 export function GET() {
-  const start = ['/start/quickstart', '/trading/first-trade', '/architecture/overview'];
+  const start = ['/start/quickstart', '/trading/first-trade', '/architecture/overview', '/architecture/prestocks-and-pyth'];
   const pages = source.getPages();
   const priority = start.flatMap(url => pages.filter(page => page.url === url));
   const entry = (page: (typeof pages)[number]) => {
@@ -15,7 +15,7 @@ export function GET() {
 
 > Guides to Agari, a stock-price Up/Down prediction market on Solana devnet. Reviewed ${site.reviewed}.
 
-Agari's own Anchor programs (\`agari-events\`, \`agari-vault\`) settle calls from signed Pyth/RedStone/Switchboard price prints. Devnet only; tUSDC test collateral. No public application repository exists yet, so source links are not included until one does.
+Agari's own Anchor programs settle Up/Down Windows on Solana devnet with tUSDC test collateral, from boundary prints verified on chain: Pyth pull updates, RedStone signatures, Switchboard On-Demand quotes, and PreStocks prices signed by Agari's attestor. The PreStocks desk (\`agari-desk\`) is a separate program built for Solana mainnet and not yet deployed there; practice desks move no money. ${site.source ? `Application source: ${site.source} at ${site.revision}.` : 'The application repository is not public yet, so source links are not included.'}
 
 ## Start here
 

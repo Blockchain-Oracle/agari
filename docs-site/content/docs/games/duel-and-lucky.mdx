@@ -7,11 +7,15 @@ description: "Two game wrappers that place real devnet orders on Agari's live Wi
 
 At <AppLink href="/games/duel">Duel</AppLink>, two players receive the same committed deck of live Windows. Choose Free or Ranked, inspect the per-card order cap and any side-pot, then find an opponent. Free means **no side-pot**; every pick is still a real market order using your devnet tUSDC. Ranked adds a tUSDC side-pot and rating. The entry names a key held by this browser to place your picks; your wallet signs the entry and pays the fees shown there. Each player keeps the economics of their own positions, while the pot follows the match result or forfeit rules. Claims are pull payments from the arena.
 
+A card is dealt only from a Window whose book is quoting both Up and Down, and never from a Window past its series' close (a stock series ends at the session close; a Gap Window has no successor). Out of hours that leaves the 24/7 pre-IPO and basket Windows with live quotes; when none has one, the queue says the market is shut instead of dealing a deck that cannot fill.
+
 The deck hash is committed on-chain before its cards are revealed. A usable duel requires the `agari-arena` program, a room server, a matchmaker, another player and dealable Windows. The route reports which dependency is missing. A queued match or unsettled card is not a paid result.
 
 ## Lucky
 
 At <AppLink href="/games/lucky">Lucky</AppLink>, enter a stake and spin. A server seed is committed before the reels move; your browser adds its seed. The draw names a stock, side and reach, then shows a **live quote** on a live Window. You decide whether to place one ordinary order. If the book moves, the live quote may differ from the reel's reach; review that difference before signing. It settles and claims like another venue position.
+
+What a spin can draw depends on the hour. While any stock Window trades, the list is the nine launch stocks plus the 24/7 lanes (OpenAI and the five baskets). While none trades, it is the 24/7 lanes alone, so an out-of-hours spin never draws a stock with nothing to deal. The list is sealed with the server seed as a numbered policy, so a draw can be replayed against the exact list it was made from.
 
 Lucky's browser check proves the revealed seed matches the commitment and replays the draw from the seeds. The candidate Window set and its selection rule are recorded, but that check does not prove the server chose the candidate set fairly. Neither a spin nor a deal spends tUSDC until an order is placed.
 

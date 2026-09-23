@@ -1,0 +1,28 @@
+---
+title: "Short a fall"
+description: "A Down position the Boost reserve holds for you, marked against the book, with an exit at any time and a knock-out line."
+---
+
+<AppLink href="/short">Short</AppLink> opens a **Down position the reserve holds for you**. It is marked against the Window's book every second, you can close it at any time without waiting for the bell, and the most you can lose is your stake. It uses the same `agari-leverage` reserve as [Boost](/trading/boost-parlay-private), with **devnet tUSDC** test money.
+
+## Pick what to short
+
+The picker shows every stock, PreStocks name and basket that has a Window you can enter, as small logo cards (a row of chips on a phone). Each card shows its kind (**Stock**, **Pre-IPO · 24/7** or **Basket · 24/7**), its price and week, and whether it trades now. Filter with **All**, **Stocks** or **24/7**.
+
+While the stock market is closed, the names trading now come first; the stocks follow under the session line with the time their Windows open. Choose a name, then a Window length, then a Window. A live Window shows what a dollar of Down costs right now.
+
+## Size and open
+
+Enter a stake and choose a multiple. Multiples start at **2×**: the reserve fronts the rest of the position and charges a premium on what it fronts, and that premium is inside your stake. The reserve prices the short against its own book before you sign. If the book can take less than your stake, the ticket says how much it takes and offers **Use** that amount. If the book could not take the position back whole, the reserve refuses to open it.
+
+A Window that has not opened yet cannot hold a short. Its card says when it opens and offers **Schedule a Down call**, a plain [pre-open call](/trading/pre-open-calls) placed on that Window, not a short.
+
+## Your shorts
+
+Each open short shows its stake, what it is worth now, its entry and current price, its size, and how far its mark may fall before it reaches its **knock-out line**. The reserve is repaid before you are, so once the book would pay less than the reserve's maintenance share of what it fronted, anyone may close the position. When no bids can mark it, the card says there is no honest mark and no exit rather than showing a number.
+
+- **Close** sells the position back into the book and returns what it is worth to your wallet.
+- After the Window ends, use **Settle** and **Claim** to collect what is owed.
+- A void pays every contract half its face, so a short opened above 50¢ comes back short of its stake.
+
+When the reserve is paused, no new shorts open; live ones still settle, close and knock out. The premium and the maintenance share are the deployed reserve's parameters, so the page reads them from the reserve rather than from this guide.
