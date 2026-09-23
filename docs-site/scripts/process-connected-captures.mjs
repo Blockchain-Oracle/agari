@@ -25,6 +25,10 @@ const captures = {
   'short-connected': 'chrome-short-connected.png',
   'proof-feed-connected': 'chrome-proof-feed.png',
   'basket-proof-connected': 'chrome-basket-proof.png',
+  'studio-basket-current': 'studio-basket-current.jpg',
+  'studio-limits-current': 'studio-limits-current.jpg',
+  'studio-test-read-current': 'studio-test-read-current.jpg',
+  'studio-create-current': 'studio-create-current.jpg',
 };
 
 export async function maskAccount(input, { funding = false } = {}) {
@@ -41,8 +45,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   await mkdir(output, { recursive: true });
   for (const [name, source] of Object.entries(captures)) {
     const input = await readFile(resolve(raw, source));
-    const masked = await maskAccount(input, { funding: name === 'wallet-funds-connected' });
+    const masked = name.startsWith('studio-') ? input : await maskAccount(input, { funding: name === 'wallet-funds-connected' });
     await sharp(masked).jpeg({ quality: 88, mozjpeg: true }).toFile(resolve(output, `${name}-2026-09-23.jpg`));
-    console.log(`${name}: 1130 × 798, account label masked`);
+    console.log(`${name}: ${name.startsWith('studio-') ? 'signed-out public studio' : 'connected account label masked'}`);
   }
 }

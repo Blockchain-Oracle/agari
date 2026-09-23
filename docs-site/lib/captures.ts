@@ -106,6 +106,22 @@ export const captures = {
     { label: 'The basket print is in points, with separate open and close values.', x: 83, y: 49, toX: 48, toY: 56 },
     { label: 'The source is PreStocks data signed by Agari’s attestor, not an independent Pyth update.', x: 85, y: 80, toX: 63, toY: 91 },
   ]),
+  studioCurrent: connected('Choose the current AI Labs preset', 'studio-basket-current', 'Current desk studio first step with AI Labs, five basket presets, build-your-own and a paper allocation preview.', 'Signed out; public drafting step; AI Labs selected; no signature or money movement.', [
+    { label: 'Choose a basket or build from the eight supported companies.', x: 66, y: 45, toX: 23, toY: 70 },
+    { label: 'The right-hand summary shows the practice starting allocation.', x: 62, y: 82, toX: 83, toY: 74 },
+  ]),
+  limitsCurrent: connected('Money limits and desk checks', 'studio-limits-current', 'Current desk studio limits with a premium ceiling marked enforced on-chain and drift, concentration and loss stop marked enforced by the desk.', 'Signed out; limits step read only; Balanced defaults; no signature or money movement.', [
+    { label: 'Premium and spending caps are intended for program enforcement in a live desk.', x: 44, y: 43, toX: 62, toY: 20 },
+    { label: 'Drift, concentration and loss stop are checked by the runner.', x: 42, y: 72, toX: 65, toY: 68 },
+  ]),
+  testReadCurrent: connected('What one practice test read does', 'studio-test-read-current', 'Current desk studio third step explaining a real PreStocks and Jupiter read with a paper balance and wallet connection gate.', 'Signed out; public step shown; test read not started; no wallet message signed.', [
+    { label: 'The one-cycle preview lists prices, quotes, timing and a written decision.', x: 66, y: 57, toX: 31, toY: 84 },
+    { label: 'The right-hand balance is paper practice money.', x: 61, y: 82, toX: 83, toY: 75 },
+  ]),
+  createCurrent: connected('Practice creation waits for an owner', 'studio-create-current', 'Current desk studio final step with Connect gate, paper practice allocation and one-signature label.', 'Signed out; final gate read only; no wallet connection, signature or desk creation.', [
+    { label: 'Connect and sign a message to create the paper desk.', x: 63, y: 49, toX: 47, toY: 48 },
+    { label: 'The preview still shows a paper balance and selected limits.', x: 60, y: 74, toX: 83, toY: 72 },
+  ]),
 } as const;
 
 export type CaptureName = keyof typeof captures;
