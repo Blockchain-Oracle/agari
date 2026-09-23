@@ -4,6 +4,7 @@ import { canonicalJson, hashRecord } from "@agari/core/desk";
 import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
+import { Code, Download, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { MAINNET_RPC_PATH } from "@/providers/wallet/mainnet-signer";
 import { RECORD } from "./copy-record";
@@ -83,10 +84,10 @@ export function CheckIt({ body, recordHash, proof, initial = null }: { body: unk
   const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, "mainnet-beta") : null;
   return (
     <div className="flex flex-col gap-3">
-      <div className="dk-card-actions">
-        <button type="button" className="dk-control" data-tone="primary" onClick={() => void check()} disabled={busy}>{busy ? C.checking : C.check}</button>
-        <button type="button" className="dk-control" onClick={download}>{C.download}</button>
-        <button type="button" className="dk-control" onClick={() => setBytes((b) => !b)}>{bytes ? C.hideBytes : C.showBytes}</button>
+      <div className="dk-card-actions dc-proof-actions">
+        <button type="button" className="dk-control" data-tone="primary" onClick={() => void check()} disabled={busy} aria-busy={busy}><ShieldCheck aria-hidden />{busy ? C.checking : C.check}</button>
+        <button type="button" className="dk-control" onClick={download}><Download aria-hidden />{C.download}</button>
+        <button type="button" className="dk-control" onClick={() => setBytes((b) => !b)} aria-expanded={bytes}><Code aria-hidden />{bytes ? C.hideBytes : C.showBytes}</button>
       </div>
       {result ? <Verdict result={result} recordHash={recordHash} proof={proof} explorer={explorer} /> : <p className="type-caption text-ink-muted">{proof.kind === "practice" ? C.beforePractice : proof.kind === "unsealed" ? C.beforeUnsealed : C.before}</p>}
       {bytes && <pre className="dk-bytes"><code>{canonicalJson(body)}</code></pre>}
