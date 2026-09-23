@@ -48,6 +48,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "abu.dev",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9a7235af-d606-46ad-b488-537846b2c072"
+      }
     }
   }
 }
