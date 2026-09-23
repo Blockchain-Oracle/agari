@@ -16,15 +16,35 @@
 .sh-filter:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .sh-filter-n { font-family: var(--font-mono); font-size: 10.5px; color: var(--color-ink-muted); }
 
-/* The asset cards: 21st's icon-card radio group, compact enough for fifteen names without a wall. */
-.sh-assets.dkit-radio-cards { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
-.sh-assets .dkit-radio-card { gap: 6px; padding: 12px 14px; border-radius: 14px; }
-.sh-assets .dkit-radio-dot { top: 12px; right: 12px; width: 16px; height: 16px; }
-.sh-assets .dkit-radio-media { min-height: 36px; gap: 8px; }
-.sh-assets .dkit-radio-title { overflow: hidden; max-width: 100%; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; }
-.sh-assets .dkit-radio-footer { justify-content: space-between; padding-top: 8px; }
-.sh-asset-mark { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 9999px; font-size: 34px; }
-.sh-assets .dkit-radio-body { display: flex; flex-direction: column; gap: 6px; }
+/* The names (S24): small logo cards in a dense grid on a desk, a snap row of chips on a phone, grouped tradable-first. */
+.sh-chips { display: flex; flex-direction: column; gap: 14px; }
+.sh-chip-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sh-chip-group-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-muted); }
+.sh-chip-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px; }
+.sh-chip { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 10px 12px; border: 1px solid var(--color-hairline); border-radius: 12px; background: var(--market-card-surface, var(--color-surface-1)); text-align: left; color: var(--color-ink); cursor: pointer; transition: border-color 140ms ease, background 140ms ease, transform 140ms ease; }
+.sh-chip:hover { border-color: var(--color-ink-muted); transform: translateY(-1px); }
+.sh-chip[aria-checked="true"] { border-color: var(--color-accent); background: linear-gradient(180deg, var(--color-accent-wash), transparent 80%), var(--market-card-surface, var(--color-surface-1)); box-shadow: 0 0 0 1px var(--color-accent); }
+.sh-chip:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sh-chip-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.sh-chip-mark { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 9999px; font-size: 26px; }
+.sh-chip-names { display: flex; flex-direction: column; min-width: 0; }
+.sh-chip-name { overflow: hidden; font-family: var(--font-display); font-size: 13px; font-weight: 700; line-height: 1.2; white-space: nowrap; text-overflow: ellipsis; }
+.sh-chip-tag { font-family: var(--font-mono); font-size: 10px; color: var(--color-accent); }
+.sh-chip-bottom { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.sh-chip-bottom .sh-asset-price { overflow: hidden; font-size: 11.5px; text-overflow: ellipsis; }
+.sh-chip-bottom .sh-asset-price--pending { width: 52px; height: 10px; }
+.sh-chip-dot { width: 6px; height: 6px; flex: none; border-radius: 9999px; background: var(--color-ink-muted); }
+.sh-chip-dot[data-live] { background: var(--color-profit); box-shadow: 0 0 0 3px var(--color-profit-wash); }
+.sh-chip-spark { margin-left: auto; flex: none; }
+
+/* The chosen name in full, once, above its cadences. */
+.sh-pick { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 14px; border: 1px solid var(--color-hairline); border-radius: 14px; background: var(--color-surface-2); }
+.sh-pick-mark { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 9999px; font-size: 40px; }
+.sh-pick-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.sh-pick-name { overflow: hidden; font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; text-overflow: ellipsis; color: var(--color-ink); }
+.sh-pick-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.sh-pick-spark { flex: none; }
+
 .sh-asset-when { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.02em; color: var(--color-ink-muted); white-space: nowrap; }
 .sh-asset-when[data-live] { color: var(--color-profit); }
 .sh-asset-when-dot { width: 6px; height: 6px; flex: none; border-radius: 9999px; background: currentColor; opacity: 0.8; }
@@ -35,7 +55,6 @@
 .sh-asset-kind[data-kind="preIpo"], .sh-asset-kind[data-kind="basket"] { color: var(--color-ink-secondary); }
 .sh-asset-price { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--color-ink); white-space: nowrap; }
 .sh-asset-price--pending { display: inline-block; width: 64px; height: 12px; border-radius: 4px; background: var(--color-surface-2); }
-.sh-asset-spark { flex: none; }
 
 /* Cadence chips, then the chosen cadence's Windows. */
 .sh-cadences { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
@@ -75,12 +94,18 @@
 .sh-how-card:hover { border-color: var(--color-ink-muted); transform: translateY(-2px); }
 
 .sh-skel { display: block; border-radius: 12px; background: linear-gradient(90deg, var(--color-surface-2), var(--color-hairline), var(--color-surface-2)); background-size: 200% 100%; animation: sh-shimmer 1.4s ease-in-out infinite; }
-.sh-skel-cards { height: 220px; }
+.sh-skel-cards { height: 180px; }
 @keyframes sh-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
-@media (max-width: 560px) {
-  .sh-assets.dkit-radio-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sh-asset-spark { display: none; }
+@media (max-width: 639px) {
+  .sh-chip-row { display: flex; gap: 8px; padding: 2px 2px 6px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; mask-image: linear-gradient(to right, #000 82%, transparent); -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); }
+  .sh-chip-row::-webkit-scrollbar { display: none; }
+  .sh-chip { flex: 0 0 132px; scroll-snap-align: start; padding: 9px 10px; gap: 6px; }
+  .sh-chip:hover { transform: none; }
+  .sh-chip-spark { display: none; }
+  .sh-pick { gap: 10px; padding: 10px 12px; }
+  .sh-pick-mark { width: 34px; height: 34px; font-size: 34px; }
+  .sh-pick-spark { width: 64px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .sh-skel { animation: none; }

@@ -3,14 +3,14 @@
 import type { EventMarket } from "@agari/core/types";
 import { useState } from "react";
 import { Countdown } from "@/components/data";
-import { EmptyState, RadioCards } from "@/components/ui/desk-kit";
+import { EmptyState } from "@/components/ui/desk-kit";
 import { useDeskMarks } from "@/features/desk/useDeskMarks";
 import { formatCadence } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { CalendarClock } from "lucide-react";
 import { useTopOfBook } from "../markets/hero/useTopOfBook";
 import { SHORT } from "./copy";
-import { assetCardParts } from "./ShortAssetCard";
+import { ShortAssetPicker, ShortPickSummary } from "./ShortAssetPicker";
 import { isLiveWindow, opensAt, type ShortKind, type ShortStock } from "./useShortWindows";
 
 interface ShortPickerProps {
@@ -25,9 +25,10 @@ type Filter = "all" | "stock" | "allDay";
 const FILTER_KINDS: Record<Filter, readonly ShortKind[] | null> = { all: null, stock: ["stock"], allDay: ["preIpo", "basket"] };
 
 /**
- * Pick what to short, then how long (S23): every asset as a logo card that says whether it trades now or when it
- * opens, a filter for stocks against the 24/7 names, the asset's cadences as chips, then its Windows — the live ones
- * priced from their own Down ask, the later ones with the time they open.
+ * Pick what to short, then how long (S23, compact since S24): every asset as a small logo card (a snap row on a phone),
+ * grouped tradable-first while the bell is shut, a filter for stocks against the 24/7 names, the chosen asset in full
+ * once, its cadences as chips, then its Windows — the live ones priced from their own Down ask, the later ones with the
+ * time they open.
  */
 export function ShortPicker({ stocks, loading, selected, onSelect, nowMs }: ShortPickerProps) {
   const { picker } = SHORT;
@@ -57,17 +58,17 @@ export function ShortPicker({ stocks, loading, selected, onSelect, nowMs }: Shor
           ))}
         </div>
       </div>
-      <RadioCards
-        className="sh-assets"
-        label={picker.stock}
+      <ShortAssetPicker
+        stocks={shown}
         value={stock.asset}
+        marks={marks}
         onChange={(asset) => {
           const next = stocks.find((s) => s.asset === asset)?.windows[0];
           if (next) onSelect(next);
         }}
-        items={shown.map((s) => ({ value: s.asset, ...assetCardParts(s, marks) }))}
       />
 
+      <ShortPickSummary stock={stock} marks={marks} />
       <span className="sh-k sh-k--gap">{picker.window}</span>
       <div className="sh-cadences" role="group" aria-label={picker.cadenceAria}>
         {cadences.map((c) => {
