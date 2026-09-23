@@ -56,13 +56,15 @@ interface SignReviewProps {
   /** A refusal that blocks signing (not enough funds, Window locked); the slide stays disabled. */
   blocker?: string | null;
   tone?: "profit" | "loss" | "accent";
+  /** What the send step is called once the wallet has signed: a transaction goes to devnet, a signed message to Agari. */
+  sendingLabel?: string;
 }
 
 /**
  * The one gate before any signature: the exact quote, the maximum loss, which wallet will ask, then a deliberate slide.
  * The slide only starts the request; the wallet's own approval is what signs.
  */
-export function SignReview({ title, lines, maxLoss, confirmLabel, onConfirm, phase = "review", blocker, tone = "accent" }: SignReviewProps) {
+export function SignReview({ title, lines, maxLoss, confirmLabel, onConfirm, phase = "review", blocker, tone = "accent", sendingLabel = "Sending to devnet…" }: SignReviewProps) {
   const { color } = useTheme();
   const kind = useWalletKind();
   const ink = tone === "profit" ? color.profit : tone === "loss" ? color.loss : color.accent;
@@ -81,7 +83,7 @@ export function SignReview({ title, lines, maxLoss, confirmLabel, onConfirm, pha
       {busy ? (
         <View style={[styles.busy, { backgroundColor: color.surface2 }]} accessibilityLiveRegion="polite">
           <ActivityIndicator color={ink} />
-          <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{phase === "signing" ? `Waiting for ${kind ? WALLET_NAME[kind] : "your wallet"}…` : "Sending to devnet…"}</Text>
+          <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{phase === "signing" ? `Waiting for ${kind ? WALLET_NAME[kind] : "your wallet"}…` : sendingLabel}</Text>
         </View>
       ) : (
         <SlideToConfirm label={confirmLabel} onConfirm={onConfirm} disabled={!!blocker || phase === "done"} tone={ink} />

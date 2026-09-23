@@ -1,11 +1,10 @@
-import { describeTargets, type DeskMandate } from "@agari/core/desk";
+import type { DeskMandate } from "@agari/core/desk";
 import type { Address } from "@agari/core/types";
 import { router } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";
 import { practiceCashE6, type StudioDraft } from "@/features/desk/draft";
-import { usd } from "@/features/desk/format";
 import { GO_LIVE_CHECKS } from "@/features/desk/protocol";
 import { STUDIO } from "@/features/desk/studio/copy-studio";
 import type { StudioActions } from "@/features/desk/useDeskWrites";
@@ -13,6 +12,7 @@ import type { NativeDeskView as DeskView } from "../native-view";
 import { Button, ConnectGate } from "~/components/kit";
 import { TYPE, useTheme } from "~/theme";
 import { GoLive } from "../controls/GoLive";
+import { mandateLines } from "../controls/review-lines";
 import { ReviewSheet } from "../controls/ReviewSheet";
 import { IconTile, Panel, RadioCards } from "../kit";
 import { Receipt } from "./Receipt";
@@ -75,14 +75,8 @@ export function CreateStep({ draft, mandate, owner, view, writes, editing, probl
       }}
       review={{
         title: reviewing === "edit" ? `${DESK.page.mandate.version(version)}` : C.practice.title,
-        lines: [
-          { label: "Basket", value: describeTargets(mandate.targets) },
-          ...(exists ? [] : [{ label: DESK.studio.read.practiceCash, value: usd(practiceCashE6(draft), 0) }]),
-          { label: "Most in one action", value: usd(mandate.perActionCapE6, 0) },
-          { label: "Most in a day", value: usd(mandate.dailyCapE6, 0) },
-          { label: "Network", value: DESK.network.practice },
-        ],
-        maxLoss: "$0.00 · practice, no money moves",
+        lines: mandateLines(mandate, exists ? null : practiceCashE6(draft)),
+        maxLoss: "$0.00",
         confirmLabel: reviewing === "edit" ? C.apply : C.practice.button,
       }}
       onConfirm={() => void sign(reviewing)}

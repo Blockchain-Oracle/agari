@@ -14,6 +14,7 @@ import { Chips, Field, LoadingState, Segmented, type QuoteLine } from "~/compone
 import { pushToast } from "~/components/toast/store";
 import { TYPE, useTheme } from "~/theme";
 import { mainnetBlocker } from "./blocker";
+import { said } from "./review-lines";
 import { ReviewSheet } from "./ReviewSheet";
 
 /** Raw 9 dp × the ScaledUiAmount multiplier (E12) → UI tokens at 9 dp, for the receipt's figures. */
@@ -89,7 +90,7 @@ export function MoneySheet({ view, actions, kind, onClose }: Props) {
         if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(tokens(uiRaw(netOfFee(tokenRaw), name.multiplierE12)), name.symbol) });
       }
     };
-    const maxLoss = way === "usdc" ? (usdcE6 ? `${usd(usdcE6)} USDC, traded by the desk inside your limits` : "—") : name ? `${tokens(uiRaw(tokenRaw, name.multiplierE12))} ${name.symbol}, 1% of it as PreStocks' fee` : "—";
+    const maxLoss = way === "usdc" ? (usdcE6 ? `${usd(usdcE6)} USDC` : "—") : name ? `${tokens(uiRaw(tokenRaw, name.multiplierE12))} ${name.symbol}` : "—";
     return (
       <ReviewSheet
         {...sheet}
@@ -151,8 +152,8 @@ export function MoneySheet({ view, actions, kind, onClose }: Props) {
       body={MONEY.withdraw.body}
       review={{
         title: MONEY.withdraw.title,
-        lines: [{ label: MONEY.withdraw.to, value: actions.owner ?? "—" }, { label: "Now", value: MONEY.withdraw.usdcInDesk(usd(cashE6)) }, { label: "After", value: after }, { label: R.networkFee, value: R.networkFeeValue }],
-        maxLoss: asCash ? "PreStocks' 1% fee on every sale" : "$0.00 · it goes to your own wallet",
+        lines: [said(MONEY.withdraw.to, "Your wallet", actions.owner ?? "—"), { label: "In the desk", value: `${usd(cashE6)} USDC` }, said("After", "", after), { label: R.networkFee, value: R.networkFeeValue }],
+        maxLoss: asCash ? "1% of each sale" : "$0.00",
         confirmLabel: MONEY.withdraw.button,
         blocker: (asCash ? null : blocker) ?? (ready ? null : MONEY.withdraw.amount),
       }}

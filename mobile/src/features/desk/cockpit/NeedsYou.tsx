@@ -10,6 +10,7 @@ import type { NativeDeskView as DeskView } from "../native-view";
 import { Button, type QuoteLine } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { RADIUS, TYPE, useTheme } from "~/theme";
+import { said } from "../controls/review-lines";
 import { ReviewSheet } from "../controls/ReviewSheet";
 import { Panel, RadialGauge } from "../kit";
 
@@ -17,8 +18,8 @@ const N = DESK.page.needsYou;
 
 /** The most an approval can cost: nothing in practice; on a live desk, what it spends (a buy) or sells (a sell). */
 function approvalLoss(a: ApprovalWire, live: boolean): string {
-  if (!live) return "$0.00 · practice, no money moves";
-  if (a.side === "sell" && a.amountIn && a.symbol) return `up to ${tokensText(a.amountIn)} ${nameOf(a.symbol)}`;
+  if (!live) return "$0.00";
+  if (a.side === "sell" && a.amountIn && a.symbol) return `${tokensText(a.amountIn)} ${a.symbol}`;
   return a.amountIn ? `${usdText(a.amountIn)} USDC` : "—";
 }
 
@@ -29,11 +30,11 @@ function ApprovalCard({ a, view, actions, zone, nowSec }: { a: ApprovalWire; vie
   const expired = a.status !== "open" || a.expiresAtSec <= nowSec;
   const trade = a.symbol && a.amountIn && a.expectedOut ? N.trade(a.side ?? "buy", a.amountIn, a.expectedOut, nameOf(a.symbol)) : null;
   const lines: QuoteLine[] = [
-    ...(trade ? [{ label: "Trade", value: trade }] : []),
-    { label: "Why it asks", value: N.asking[a.reason] },
-    ...(a.confidencePercent !== null ? [{ label: "Timing", value: N.confidence(a.confidencePercent) }] : []),
-    ...(a.costBps !== null ? [{ label: "Cost", value: N.cost(pct(a.costBps)) }] : []),
-    { label: "Expires", value: `${stamp(a.expiresAtSec, zone)} · ${span(a.expiresAtSec - nowSec)}` },
+    ...(trade ? [said(a.side === "sell" ? "Sell" : "Buy", a.symbol ? nameOf(a.symbol) : "—", trade)] : []),
+    said("Why it asks", a.reason === "ask_first" ? "Ask first" : "Large", N.asking[a.reason]),
+    ...(a.confidencePercent !== null ? [{ label: "Timing", value: `${a.confidencePercent}% sure` }] : []),
+    ...(a.costBps !== null ? [said("Cost", pct(a.costBps), N.cost(pct(a.costBps)))] : []),
+    said("Expires", span(a.expiresAtSec - nowSec), stamp(a.expiresAtSec, zone)),
   ];
   const close = () => {
     actions?.reset();
@@ -80,7 +81,7 @@ function ApprovalCard({ a, view, actions, zone, nowSec }: { a: ApprovalWire; vie
           review={{
             title: answer === "approve" ? "Approve this action" : "Decline this action",
             lines,
-            maxLoss: answer === "approve" ? approvalLoss(a, view.isLive) : "$0.00 · nothing is done",
+            maxLoss: answer === "approve" ? approvalLoss(a, view.isLive) : "$0.00",
             confirmLabel: answer === "approve" ? "Slide to approve" : "Slide to decline",
             tone: answer === "approve" ? "accent" : "loss",
           }}

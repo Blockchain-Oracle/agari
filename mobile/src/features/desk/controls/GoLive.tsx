@@ -128,9 +128,9 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
               { label: "Mode", value: DESK.modes[mode] },
               { label: "Most in one action", value: usd(mandate.perActionCapE6, 0) },
               { label: "Most in a day", value: usd(mandate.dailyCapE6, 0) },
-              { label: "Network fee", value: stage === "open-pending" ? "about 0.02 SOL" : stage === "mandate-pending" ? "none: a signed message" : "under 0.001 SOL" },
+              { label: "Network fee", value: stage === "open-pending" ? "≈ 0.02 SOL" : stage === "mandate-pending" ? "None" : "< 0.001 SOL" },
             ],
-            maxLoss: stage === "open-pending" ? "about 0.02 SOL in rent and fees; no USDC moves" : "$0.00 · no money moves",
+            maxLoss: stage === "open-pending" ? "≈ 0.02 SOL" : "$0.00",
             confirmLabel: STEP_COPY[stage].button,
             blocker,
           }}

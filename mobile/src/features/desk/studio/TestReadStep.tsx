@@ -1,4 +1,4 @@
-import { deskRecordSchema, describeTargets, type DeskMandate } from "@agari/core/desk";
+import { deskRecordSchema, type DeskMandate } from "@agari/core/desk";
 import type { Address } from "@agari/core/types";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -6,13 +6,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";
 import { RECORD } from "@/features/desk/copy-record";
 import { draftKey, practiceCashE6, readBack, type StudioDraft } from "@/features/desk/draft";
-import { clock, usd } from "@/features/desk/format";
+import { clock } from "@/features/desk/format";
 import { STUDIO } from "@/features/desk/studio/copy-studio";
 import { useDecision, useInvalidateDesk } from "@/features/desk/useDesk";
 import type { StudioActions } from "@/features/desk/useDeskWrites";
 import type { NativeDeskView as DeskView } from "../native-view";
 import { Button, Card, ConnectGate, Field } from "~/components/kit";
 import { TYPE, useTheme } from "~/theme";
+import { mandateLines } from "../controls/review-lines";
 import { ReviewSheet } from "../controls/ReviewSheet";
 import { Panel, TimelineNode, TONE, toneInk } from "../kit";
 
@@ -153,14 +154,8 @@ export function TestReadStep({ draft, setDraft, mandate, owner, view, writes, re
           }}
           review={{
             title: exists ? DESK.studio.edit.kicker : R.title,
-            lines: [
-              { label: "Basket", value: describeTargets(mandate.targets) },
-              ...(exists ? [] : [{ label: R.practiceCash, value: usd(practiceCashE6(draft), 0) }]),
-              { label: "Most in one action", value: usd(mandate.perActionCapE6, 0) },
-              { label: "Most in a day", value: usd(mandate.dailyCapE6, 0) },
-              { label: "Network", value: DESK.network.practice },
-            ],
-            maxLoss: "$0.00 · practice, no money moves",
+            lines: mandateLines(mandate, exists ? null : practiceCashE6(draft)),
+            maxLoss: "$0.00",
             confirmLabel: "Slide to sign the mandate",
           }}
           onConfirm={() => void run()}

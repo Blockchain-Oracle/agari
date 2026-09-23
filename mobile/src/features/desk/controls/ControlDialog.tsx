@@ -3,7 +3,7 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";
 import { CONTROLS, MONEY } from "@/features/desk/copy-controls";
-import { clock, stamp } from "@/features/desk/format";
+import { clock } from "@/features/desk/format";
 import type { DeskActions } from "@/features/desk/useDeskWrites";
 import type { NativeDeskView as DeskView } from "../native-view";
 import { Button, type QuoteLine } from "~/components/kit";
@@ -13,14 +13,15 @@ import { TYPE, useTheme } from "~/theme";
 import { mainnetBlocker } from "./blocker";
 import { MoneySheet } from "./MoneySheet";
 import { ModePicker, type LiveMode } from "./ModePicker";
+import { said } from "./review-lines";
 import { ReviewSheet } from "./ReviewSheet";
 
 export type ControlKind = "addMoney" | "withdraw" | "sellAll" | "pause" | "resume" | "mode" | "checkNow" | "share" | "close";
 /** A card is good for ten minutes (web's CARD_TTL_SEC). */
 const CARD_TTL_SEC = 600;
 const C = CONTROLS.card;
-const NOTHING = "$0.00 · nothing moves";
-const FEE = "PreStocks' 1% fee on every sale, and under 0.001 SOL in network fees";
+const NOTHING = "$0.00";
+const FEE = "1% of each sale";
 
 interface Props {
   view: DeskView;
@@ -50,10 +51,10 @@ export function ControlDialog({ view, actions, kind, zone, nowSec, onClose }: Pr
   }
 
   const lines = (now: string[], after: string[], who: "wallet" | "message" | "request", money = false): QuoteLine[] => [
-    ...(now.length > 0 ? [{ label: C.now, value: now.join(" · ") }] : []),
-    { label: C.after, value: after.join(" · ") },
-    { label: "Who signs", value: C.who[who], hint: money ? MONEY.network : undefined },
-    { label: "Card expires", value: stamp(expiresAtSec, zone) },
+    ...(now.length > 0 ? [said(C.now, "", now.join(" · "))] : []),
+    said(C.after, "", after.join(" · ")),
+    said("Who signs", who === "wallet" ? "Transaction" : "Message", money ? `${C.who[who]}. ${MONEY.network}` : C.who[who]),
+    { label: "Card expires", value: clock(expiresAtSec, zone) },
   ];
   const sheet = { visible: true, onClose, phase: state.phase, problem: state.problem, signature: state.signature, done: note };
   const block = (extra: string | null) => (expired ? C.expired : extra);

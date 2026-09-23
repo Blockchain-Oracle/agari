@@ -49,7 +49,7 @@ export function Row({ label, value, tone, strong, hint }: { label: string; value
         {hint ? <Text style={[TYPE.caption, styles.hint, { color: color.inkMuted }]}>{hint}</Text> : null}
       </View>
       {typeof value === "string" || typeof value === "number" ? (
-        <Text style={[strong ? TYPE.dataLg : TYPE.data, { color: ink }]} numberOfLines={1}>
+        <Text style={[strong ? TYPE.dataLg : TYPE.data, styles.value, { color: ink }]} numberOfLines={2}>
           {value}
         </Text>
       ) : (
@@ -130,7 +130,9 @@ const styles = StyleSheet.create({
   segment: { flex: 1, minHeight: 38, alignItems: "center", justifyContent: "center", borderRadius: RADIUS.full, borderWidth: StyleSheet.hairlineWidth, borderColor: "transparent", paddingHorizontal: 8 },
   segmentText: { fontFamily: FONT.bodyStrong, fontSize: 13.5 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 34 },
-  rowLabel: { flexShrink: 1 },
+  // The label keeps at least 40 % of the row; a long value wraps to a second line instead of pushing it out.
+  rowLabel: { flexShrink: 1, minWidth: "40%" },
+  value: { flexShrink: 1, textAlign: "right" },
   hint: { fontSize: 11.5, lineHeight: 15 },
   rows: { borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 6 },
   field: { gap: 6 },
