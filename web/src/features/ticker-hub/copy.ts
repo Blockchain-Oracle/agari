@@ -6,6 +6,7 @@ import type { Ticker, TickerSymbol } from "@agari/core/market";
  */
 export const TICKER_HUB = {
   title: (symbol: TickerSymbol, name: string) => `${name} (${symbol})`,
+  alwaysOpen: "Trading 24/7",
   eyebrow: (kind: Ticker["kind"]) => (kind === "etf" ? "ETF" : kind === "preIpo" ? "Pre-IPO" : kind === "basket" ? "Basket" : kind === "valuation" ? "Valuation" : "Stock"),
   headingJp: "銘柄の広場。",
   intro: (name: string) => `Everything Agari knows about ${name} in one place: the live print, the session, the next report, and every call on its Windows.`,

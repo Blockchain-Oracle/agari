@@ -22,6 +22,7 @@ const signedPct = (bps: number): string => `${bps > 0 ? "+" : bps < 0 ? "−" : 
 export function BasketMembers({ basket, members, held }: BasketMembersProps) {
   const T = TICKER_HUB.basket.table;
   return (
+    <div className="tkh-members-scroll" role="region" aria-label={T.title} tabIndex={0}>
     <table className="tkh-members">
       <thead>
         <tr>
@@ -59,5 +60,6 @@ export function BasketMembers({ basket, members, held }: BasketMembersProps) {
         })}
       </tbody>
     </table>
+    </div>
   );
 }
