@@ -3,7 +3,7 @@
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import type { TickerSymbol } from "@agari/core/market";
 import { useReadingQuery } from "@agari/markets/react";
-import { webEnv } from "@/lib/env";
+import { indexConfigured, indexGet } from "@/lib/index-read";
 import { BUILT_ON_FROM_SEC, builtOnTally, PROOF_SOURCE, type BuiltOnTally, type MixRow } from "./built-on";
 
 /** The mix moves by one Window a close; five minutes of freshness is honest for a count on a story page. */
@@ -26,13 +26,6 @@ interface ProofRow {
   prints?: Record<string, { source: number } | undefined> | null;
 }
 
-async function indexGet<T>(path: string): Promise<T[]> {
-  const base = (webEnv.markets.indexerUrl ?? "").replace(/\/$/, "");
-  const response = await fetch(`${base}/${path}`, { headers: { accept: "application/json" } });
-  if (!response.ok) throw new Error(`index ${response.status}`);
-  return ((await response.json()) as { rows: T[] }).rows;
-}
-
 /** The newest resolved Window among `names` whose closing print came from `source`. */
 async function latestClosedOn(names: readonly TickerSymbol[], source: number): Promise<string | null> {
   const lists = await Promise.all(names.slice(0, PROOF_NAMES).map((s) => indexGet<ProofRow>(`markets?symbol=${s}&state=resolved&limit=${PROOF_SCAN}`).catch(() => [])));
@@ -42,7 +35,7 @@ async function latestClosedOn(names: readonly TickerSymbol[], source: number): P
 }
 
 async function readBuiltOn(): Promise<Reading<BuiltOn>> {
-  if (!webEnv.markets.indexerUrl) return err(diagnosis("indexer-down", "no indexer configured"));
+  if (!indexConfigured()) return err(diagnosis("indexer-down", "no indexer configured"));
   const rows = await indexGet<MixRow>(`status/prints?from=${BUILT_ON_FROM_SEC}`);
   const tally = builtOnTally(rows);
   const [prestocks, pyth] = await Promise.all([

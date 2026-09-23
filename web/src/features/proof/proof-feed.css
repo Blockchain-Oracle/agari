@@ -1,0 +1,96 @@
+/* `/proof` (S25): the settled-Window feed inside Masayume's `/status` table (styles/status.css). The row rhythm is the
+ * status row's (12px 20px, hairline rules, the hover wash); the outcome pill is the landing's settled pill; every colour
+ * is a Yosuku token, so the cream theme follows. */
+
+/* Source filters: mono pills in the gray ramp, the pressed one inked. */
+.pf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-chip {
+  height: 30px; padding: 0 14px;
+  border: 1px solid var(--gray-800); border-radius: 9999px; background: transparent;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); cursor: pointer;
+  transition: color 150ms var(--ease), border-color 150ms var(--ease), background-color 150ms var(--ease);
+}
+.pf-chip:hover { color: var(--white); border-color: var(--gray-600); }
+.pf-chip[aria-pressed="true"] { color: var(--white); border-color: var(--gray-500); background: var(--status-hover); }
+.pf-chip:focus-visible,
+.pf-more:focus-visible,
+.pf-row-link:focus-visible,
+.pf-source-link:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+
+.pf-list { list-style: none; margin: 0; padding: 0; }
+.pf-list > .pf-row + .pf-row { border-top: 1px solid var(--status-rule); }
+
+.pf-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) minmax(0, 15rem) 8.5rem 9rem 3.5rem;
+  align-items: center; gap: 6px 16px;
+  padding: 12px 20px;
+  transition: background-color 150ms var(--ease);
+}
+.pf-row:not(.pf-row-skeleton):hover { background: var(--status-hover); }
+
+.pf-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 9999px;
+}
+.pf-mark .asset-mark { width: 100%; height: 100%; display: block; }
+.pf-mark.generic { background: var(--gray-800); font-family: var(--font-display); font-weight: 800; font-size: 12px; color: var(--white); }
+
+.pf-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pf-row-link {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 13px; font-weight: 500; color: var(--white);
+}
+/* The whole row opens the Window's proof. */
+.pf-row-link::after { content: ""; position: absolute; inset: 0; }
+.pf-when { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.pf-prints { font-family: var(--font-mono); font-size: 12px; color: var(--gray-300); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.pf-source { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--gray-400); white-space: nowrap; }
+/* Above the row's stretched link, so the feed page opens rather than the proof. */
+.pf-source-link {
+  position: relative; z-index: 1;
+  color: inherit;
+  text-decoration: underline; text-decoration-color: var(--gray-700); text-underline-offset: 3px;
+  transition: text-decoration-color 200ms var(--ease), color 200ms var(--ease);
+}
+.pf-source-link:hover { color: var(--white); text-decoration-color: var(--vermilion); }
+
+.pf-outcome {
+  justify-self: start; padding: 3px 8px;
+  border: 1px solid var(--gray-700); border-radius: 9999px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+  color: var(--gray-500);
+}
+.pf-outcome[data-outcome="up"] { color: var(--button-up-ink); border-color: var(--button-up-border); background: var(--button-up-fill); }
+.pf-outcome[data-outcome="down"] { color: var(--button-down-ink); border-color: var(--button-down-border); background: var(--button-down-fill); }
+
+.pf-go { font-family: var(--font-mono); font-size: 11px; color: var(--gray-600); white-space: nowrap; transition: color 150ms var(--ease); }
+.pf-row:hover .pf-go { color: var(--vermilion); }
+
+.pf-empty { margin: 0; padding: 20px; font-size: 13px; color: var(--gray-500); }
+
+.pf-more {
+  align-self: center; height: 36px; padding: 0 18px;
+  border: 1px solid var(--gray-800); border-radius: 9999px; background: transparent;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-400); cursor: pointer;
+}
+.pf-more:hover { color: var(--white); border-color: var(--gray-600); }
+
+/* A tablet drops the arrow; a phone stacks each Window: mark · name · outcome, then the prints, then the source. */
+@media (max-width: 900px) {
+  .pf-row { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 13rem) 7.5rem 8.5rem; }
+  .pf-go { display: none; }
+}
+@media (max-width: 640px) {
+  .pf-row { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 12px 16px; }
+  .pf-row > .pf-mark { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
+  .pf-name { grid-column: 2; grid-row: 1; }
+  .pf-outcome, .pf-outcome-skeleton { grid-column: 3; grid-row: 1; align-self: start; }
+  .pf-prints { grid-column: 2 / -1; grid-row: 2; }
+  .pf-source { grid-column: 2 / -1; grid-row: 3; }
+}

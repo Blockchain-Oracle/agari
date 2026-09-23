@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartLine, ChartNoAxesCombined,
+  Activity, BadgeCheck, BarChart3, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartLine, ChartNoAxesCombined,
   CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
   Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, ScanSearch,
   TrendingDown, Trophy, WalletCards, X as XLogo, type LucideIcon,
@@ -173,6 +173,13 @@ export const NAV_ITEMS = {
     icon: MessageSquare,
     match: { paths: [] },
   },
+  proof: {
+    id: "proof",
+    name: "Print proof",
+    href: "/proof",
+    description: "Every settled Window and the signed prints that decided it.",
+    icon: BadgeCheck,
+  },
   leaderboard: {
     id: "leaderboard",
     name: "Leaderboard",
@@ -293,7 +300,7 @@ export const EXPLORE_GROUP: NavGroup = {
       id: "proof",
       name: "Proof",
       description: "Records and market evidence",
-      items: [NAV_ITEMS.leaderboard, NAV_ITEMS.activity, NAV_ITEMS.stats, NAV_ITEMS.surface, NAV_ITEMS.edge],
+      items: [NAV_ITEMS.proof, NAV_ITEMS.leaderboard, NAV_ITEMS.activity, NAV_ITEMS.stats, NAV_ITEMS.surface, NAV_ITEMS.edge],
     },
     {
       id: "learn",
@@ -336,7 +343,7 @@ export const NAVIGABLE_ROUTE_PATHS = [
   "/activity", "/agents", "/baskets", "/claim", "/demo", "/desk",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
-  "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/reels", "/short", "/stats",
+  "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/proof", "/reels", "/short", "/stats",
   "/status", "/strategies", "/surface", "/trade-from-x",
 ] as const;
 
