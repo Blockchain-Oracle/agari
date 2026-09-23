@@ -51,7 +51,7 @@ export function StudioForm({ form, setForm, symbol, asset, decimals, houseRunner
           ))}
         </div>
       </div>
-      <p className="strat-choice-body">Market scope: all live assets in this deployment’s venue. The runner chooses eligible Windows; this form does not restrict it to one stock.</p>
+      <p className="strat-choice-body">Market scope: every listed stock’s live Windows. The runner chooses eligible Windows and rests while the stock market is closed.</p>
       <button type="button" className="strat-sensei" onClick={() => setForm((f) => ({ ...f, portraitSeed: crypto.randomUUID() }))}>Choose another portrait</button>
     </div>
   );
