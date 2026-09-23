@@ -8,6 +8,7 @@ import { useState } from "react";
 import { CapabilityPending, SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";
 import { useWalletSession } from "@/lib/wallet-session";
+import { MarketSessionChip } from "../markets/session";
 import { useChainNowMs } from "../markets/useChainNow";
 import { useVenue } from "../markets/useVenue";
 import { SHORT } from "./copy";
@@ -16,6 +17,7 @@ import { ShortPositions } from "./ShortPositions";
 import { ShortTicket } from "./ShortTicket";
 import { useShortWindows } from "./useShortWindows";
 import "./short-page.css";
+import "./short-picker.css";
 
 /** `/short` — A-1b: the inverse position, over the leverage reserve that is already deployed (Q-004). */
 export function ShortScreen() {
@@ -61,7 +63,10 @@ function Page({ reserve }: { reserve: LeverageReserveState }) {
   return (
     <>
       <div className="sh-hero">
-        <span className="sh-eyebrow">{SHORT.eyebrow}</span>
+        <div className="sh-hero-top">
+          <span className="sh-eyebrow">{SHORT.eyebrow}</span>
+          <MarketSessionChip />
+        </div>
         <h1 className="page-title">
           {SHORT.title}
           <span className="accent">.</span>
@@ -75,6 +80,7 @@ function Page({ reserve }: { reserve: LeverageReserveState }) {
           <ShortPicker stocks={stocks} loading={loading} selected={selected} onSelect={setPicked} nowMs={nowMs} />
           <ShortTicket
             market={selected}
+            nowMs={nowMs}
             reserve={reserve}
             symbol={symbol}
             walletBase={balance && isOk(balance) ? balance.value.spendableBase : null}
