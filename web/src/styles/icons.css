@@ -149,6 +149,11 @@
 [data-theme="light"] .basket-mark {
   background: rgba(20, 18, 16, 0.08);
 }
+/* A call site often sizes its glyph with `.<disc> .asset-mark { display: block }` (`.lp-mark`, `.pf-mark`); the cluster
+   also wears `.asset-mark`, so it must stay a grid over any such rule, or its members stack down the page. */
+.is-basket > .basket-mark.asset-mark {
+  display: grid;
+}
 /* Two members sit on the diagonal, so a pair reads as a pair rather than a half-empty grid. */
 .basket-mark[data-cells="2"] > :nth-child(1) { grid-area: 1 / 1; }
 .basket-mark[data-cells="2"] > :nth-child(2) { grid-area: 2 / 2; }
