@@ -89,7 +89,7 @@ app never settles on a "latest" read.
    the hourly probe records them as denied, the roller lists nothing on them, the deploy script refuses to register
    them, and the pages omit the rows rather than show a dead lane. A refusal on an index never touches the trial
    feeds: TSLA, QQQ and VOO keep settling.
-4. **What switches on with a `pyth-indices` key, with no deploy:** the two valuation lanes list at the next hourly
+4. **What switches on with a `pyth-indices` key, with no code change or program upgrade:** the registration script (`init-valuation-series`) then accepts the two valuation Series, and they list at the next hourly
    probe; the hubs show "Pyth index" and "Token vs Pyth"; the desk's premium ceiling can be measured against an
    independent reference instead of the venue's own attested mark, which is the one leg of the desk's trust boundary
    that does not depend on Agari's keys (D-126). Asking Pyth for the group is the builder's call.
