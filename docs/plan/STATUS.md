@@ -1,4 +1,4 @@
-# STATUS — updated 2026-09-23 ~15:50 UTC by Claude (**S26 the native app: S26.1 done, S26.2 wallets + funding live on the simulator**)
+# STATUS — updated 2026-09-23 ~16:10 UTC by Claude (**S26 the native app: the first bet placed from the phone (devnet, acceptance 15:05)**)
 
 ## Session of 2026-09-23 12:00–15:50Z — S26 mobile (READ THIS FIRST)
 
@@ -19,8 +19,14 @@
   - JS only: `pnpm expo start --dev-client`, then `xcrun simctl terminate/launch booted xyz.useagari.app`.
   - `idb ui tap --udid 47C904A4-88B2-497C-8DFD-954BD9A9C20D x y` (points = screenshot px / 3).
 - **Blocked on the user:** `! pnpm dlx eas-cli@latest login`, then `pnpm dlx testflight` from `mobile/` (the last S26.0 box).
+- **S26.3 so far:**
+  - The Window screen `/markets/[id]` and the Ticket sheet `/ticket?m=&dir=`, driven by web's `useTicketComposer` (split out of `Ticket.tsx`, diffed identical).
+  - Slide-to-buy, the keypad, the Call receipt.
+  - A real VOO Up landed (`4JGn88…`).
+  - The React Compiler is limited to `mobile/src` (`babel.config.js`).
+  - The SessionKeyProvider stand-in is "not armed" → wallet route.
 - **Next:**
-  - S26.3: the core loop (Window screen, Ticket, receipt, verdict, claim) with the practice wallet.
+  - S26.3 rest: verdict + claim, share card image, the lanes as real cards (21st + web's MarketCardView: spark, prices, clock).
   - Then S26.2's rest: session-key tap trading (Keychain seed, D-128 note), sponsored fees, the Android MWA signer (EAS cloud build; no Android SDK on this Mac).
 
 # STATUS — updated 2026-09-23 ~11:10 UTC by Claude (**S25 sponsor visibility live · docs.useagari.xyz live**)
