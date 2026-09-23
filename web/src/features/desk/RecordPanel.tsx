@@ -6,7 +6,9 @@ import { Panel } from "./DeskPanels";
 import { ago, clock } from "./format";
 import { Outcome } from "./Outcome";
 import type { RecordSummaryWire } from "./protocol";
-import { foldQuietRuns, type RecordRow } from "./record-rows";
+import type { RecordRow } from "./record-rows";
+import { ActivityTimeline } from "./activity/ActivityTimeline";
+import { COCKPIT } from "./cockpit/copy-cockpit";
 
 /** One record as a line that opens the decision; shared with the whole-record page. */
 export function Entry({ record, base, nowSec, quietLine }: { record: RecordSummaryWire; base: string; nowSec: number; quietLine?: boolean }) {
@@ -51,12 +53,12 @@ export function Rows({ rows, base, nowSec, zone }: { rows: RecordRow[]; base: st
   );
 }
 
-/** Item 7 (plan §5.7): the latest decisions with quiet runs folded, and the way to the whole record. */
-export function RecordPanel({ records, base, nowSec, zone }: { records: readonly RecordSummaryWire[]; base: string; nowSec: number; zone: string | null }) {
+/** Item 7 (plan §5.7) as the Activity tab: the latest checks on the timeline, and the way to the whole record. */
+export function ActivityTab({ records, base, nowSec, zone }: { records: readonly RecordSummaryWire[]; base: string; nowSec: number; zone: string | null }) {
   const R = DESK.page.record;
   return (
-    <Panel title={R.title} aside={<Link href={`${base}/record`} className="dk-link type-caption">{R.whole}</Link>}>
-      {records.length === 0 ? <p className="type-body text-ink-secondary">{R.empty}</p> : <Rows rows={foldQuietRuns(records)} base={base} nowSec={nowSec} zone={zone} />}
+    <Panel title={R.title} aside={<Link href={`${base}/record`} className="dk-link type-caption">{COCKPIT.activity.whole}</Link>}>
+      <ActivityTimeline records={records} base={base} nowSec={nowSec} zone={zone} />
     </Panel>
   );
 }
