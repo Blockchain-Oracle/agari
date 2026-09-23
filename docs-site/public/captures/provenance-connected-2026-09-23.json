@@ -1,0 +1,31 @@
+{
+  "capturedAt": "2026-09-23",
+  "application": "https://useagari.xyz",
+  "networkState": "Connected owner wallet; Solana devnet for trading; one existing paper practice desk; no new signature or transaction",
+  "sourceReview": "Blockchain-Oracle/agari integration/w1 86a37ee",
+  "deployedCommit": "not independently identified",
+  "method": "Computer Use screenshots of a connected browser session at 1130 by 798 pixels. Published JPEGs mask the account label; on-page arrows and numbered legends are separate overlays.",
+  "captures": [
+    { "file": "wallet-funds-connected-2026-09-23.jpg", "route": "/portfolio", "state": "test-funds dialog; prior claims read" },
+    { "file": "portfolio-connected-2026-09-23.jpg", "route": "/portfolio", "state": "balance overview" },
+    { "file": "portfolio-balance-connected-2026-09-23.jpg", "route": "/portfolio", "state": "Trading Balance panel" },
+    { "file": "portfolio-history-connected-2026-09-23.jpg", "route": "/portfolio", "state": "settled History tab" },
+    { "file": "baskets-connected-2026-09-23.jpg", "route": "/baskets", "state": "live basket catalogue" },
+    { "file": "basket-quote-connected-2026-09-23.jpg", "route": "/markets", "state": "AI Labs Down quote preview; no buy" },
+    { "file": "desk-overview-connected-2026-09-23.jpg", "route": "/desk", "state": "existing paper desk overview" },
+    { "file": "desk-activity-connected-2026-09-23.jpg", "route": "/desk", "state": "paper Activity tab" },
+    { "file": "desk-rules-connected-2026-09-23.jpg", "route": "/desk", "state": "paper Rules tab" },
+    { "file": "earn-maker-connected-2026-09-23.jpg", "route": "/earn", "state": "Maker Vault read; no supply" },
+    { "file": "earn-range-connected-2026-09-23.jpg", "route": "/earn", "state": "Range reserve read; no supply" },
+    { "file": "strategies-connected-2026-09-23.jpg", "route": "/strategies", "state": "published strategy catalogue" },
+    { "file": "strategy-copy-connected-2026-09-23.jpg", "route": "/strategies", "state": "existing copy permission inspected" },
+    { "file": "short-connected-2026-09-23.jpg", "route": "/short", "state": "short picker preview; no position opened" },
+    { "file": "proof-feed-connected-2026-09-23.jpg", "route": "/proof", "state": "settled Window feed" },
+    { "file": "basket-proof-connected-2026-09-23.jpg", "route": "/proof", "state": "AI Labs boundary proof" }
+  ],
+  "videos": [
+    "connected-basket-ticket-2026-09-23",
+    "connected-portfolio-2026-09-23",
+    "connected-practice-desk-2026-09-23"
+  ]
+}

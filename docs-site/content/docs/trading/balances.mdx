@@ -13,6 +13,8 @@ An ordinary wallet order escrows tUSDC straight from your wallet's token account
 
 Trading Balance is a separate pool of tUSDC held in `agari-vault`, Agari's Trading Balance and bounded-grants program, rather than sitting directly in your wallet's token account. Depositing into it is one signature; withdrawing back to your wallet is another. Its purpose is [tap-trading](/trading/tap-trading): once funded and once you've granted a session key, further orders don't need a new wallet popup for every trade.
 
+<GuideCapture name="portfolioBalance" caption="This connected panel shows wallet funds, vault funds and the amount committed to grants. The buttons were inspected without moving funds." />
+
 Nothing about Trading Balance changes how a position settles — the settlement rule (Up if close ≥ open, void 0.5/0.5 if a print never arrived or two sources disagreed) is identical whether the stake came from your wallet directly or from this balance. It only changes where the money sits before and after a trade, and who can sign an order against it (you, or a session key your wallet granted, capped and revocable).
 
 ## Depositing and withdrawing

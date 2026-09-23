@@ -15,6 +15,8 @@ description: "Five PreStocks groups, one-hour Up/Down Windows, and three differe
 
 <GuideCapture name="baskets" caption="The public basket cards show the index in points and three actions. The number and Window state can change after this capture, which predates the cards' logo stacks and weekly line." />
 
+<GuideCapture name="basketsConnected" caption="The connected catalogue has live 24/7 Windows. Cover is unavailable for this wallet because it does not hold enough members; Predict can still open a devnet ticket." />
+
 Each card keeps the same rows whatever loads or rolls: the members as a stack of logos with their count ("2 companies · equal weight"), the index in points with its recent range and its move this week, and the live Window with its countdown and Up and Down prices in cents. A Window nobody is quoting says **No quotes yet**. Basket Windows trade 24/7, so a card never shows the stock market's session.
 
 ## Pick the action you mean
@@ -28,3 +30,9 @@ Each card keeps the same rows whatever loads or rolls: the members as a stack of
 The basket Window settles on the change in **points** between two signed boundary prints. The venue's price attestor signs an index built from the one catalogue read. That is a venue-attested PreStocks value, not an independent Pyth check. Agari's first five basket Windows printed both boundaries and settled on devnet on 22 September 2026; the [source map](/builders/source-map) points to the implementation and evidence.
 
 If the card says **No Window trading right now**, you can still inspect its members and draft a desk. A Predict or Cover order needs a live Window and a quote.
+
+## Preview a connected ticket
+
+<ConnectedWalkthrough name="basket" />
+
+<GuideCapture name="basketQuote" caption="The AI Labs Down ticket has 5 tUSDC entered. The price, return and maximum loss were visible before Buy; no order was placed." />

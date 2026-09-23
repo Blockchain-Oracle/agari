@@ -1,0 +1,26 @@
+{
+  "source": "connected Agari browser session",
+  "route": "/desk",
+  "capturedAt": "2026-09-23T12:02:27.508Z",
+  "frameCount": 82,
+  "durationMs": 19953,
+  "method": "Real Computer Use browser screenshots sampled with timestamps; account label masked; chapter labels, detail zoom and pointer rings added as separate layers; no transaction submitted.",
+  "chapters": [
+    {
+      "title": "Read a practice desk",
+      "atMs": 153
+    },
+    {
+      "title": "Inspect Activity",
+      "atMs": 4891
+    },
+    {
+      "title": "Inspect Rules",
+      "atMs": 11265
+    },
+    {
+      "title": "Read the promise",
+      "atMs": 16519
+    }
+  ]
+}

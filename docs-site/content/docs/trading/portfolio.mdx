@@ -5,7 +5,9 @@ description: "Read your open and settled positions, and claim what you're owed."
 
 Portfolio is where a position's life ends up, whichever way you placed it: an ordinary wallet order, a pre-open call resting until the bell, or a tap-trading fill through your Trading Balance session key.
 
-<GuideCapture name="portfolio" caption="The signed-out view asks you to connect before showing personal balances or claims. X-Predict has a separate wallet panel." />
+<ConnectedWalkthrough name="portfolio" />
+
+<GuideCapture name="portfolioConnected" caption="Ready to bet combines wallet and Trading Balance tUSDC. Private is a separate balance. Amounts are a dated account example, not a live quote." />
 
 ## Open positions
 
@@ -13,7 +15,9 @@ An open position sits on a live Window. If your order is still resting rather th
 
 ## Settled positions
 
-Once a Window closes and settles (or voids), its positions move into a claimable state. A winning position pays out by the settled ratio; a losing position pays nothing; a voided Window returns 0.5 per lot regardless of side, because nobody could tell what actually happened. Claim (redeem) a position explicitly — settlement does not push funds into your wallet by itself.
+Once a Window closes and settles (or voids), its positions move into a claimable state. A winning position pays out by the settled ratio; a losing position pays nothing; a voided Window returns 0.5 per lot regardless of side, because nobody could tell what actually happened. You can **Claim** while a payout is pending. If it remains unclaimed, the venue's automatic redemption job pays it after a short delay; History then marks it **Paid automatically** with a transaction receipt. Check the row before trying to claim again.
+
+<GuideCapture name="portfolioHistory" caption="The connected History shows settled results, receipt links and a winning position marked Paid automatically. No claim was made during capture." />
 
 ## Trading Balance vs. a plain wallet position
 

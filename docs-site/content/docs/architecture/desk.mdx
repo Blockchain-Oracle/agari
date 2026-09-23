@@ -5,6 +5,8 @@ description: "The owner, operator, attestor, Jupiter route and on-chain limits h
 
 The desk spans a browser, an off-chain runner and `agari-desk`, an Anchor program designed for Solana **mainnet**. The owner's wallet signs changes to the mandate and any live deposit or withdrawal. The runner reads prices and proposes a buy, sell or checkpoint. The program enforces the allowed names, spend caps, a fresh signed reference, the premium ceiling, an output floor, and checks that a Jupiter route did not send the desk's tokens elsewhere.
 
+<Architecture name="desk" />
+
 | Part | Authority |
 | --- | --- |
 | Owner wallet | Picks the basket and limits; approves practice messages; signs live owner actions. Only it can withdraw. |

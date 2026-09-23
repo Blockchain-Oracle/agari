@@ -1,0 +1,80 @@
+{
+  "venue": {
+    "title": "A devnet prediction Window",
+    "subtitle": "The owner signs a call; operators keep the clock and prints moving; the programs decide the result.",
+    "note": "Trading uses test tUSDC on Solana devnet. The price path depends on each Window's policy. PreStocks catalogue reads are signed by Agari's attestor; Pyth, RedStone and Switchboard have their own verification paths.",
+    "sources": ["web/src/features/markets", "packages/core/src/market", "packages/markets/src", "anchor/programs/agari-events", "anchor/programs/agari-vault", "services/ops/src/actors/indexer", "services/ops/src/actors/price-relay"],
+    "rows": [
+      { "label": "01 · Owner action", "nodes": [
+        { "title": "Owner wallet", "subtitle": "Signs an order or bounded grant", "detail": "A normal order needs the owner's wallet signature. Tap trading uses a browser session key under an owner-approved vault grant. Ops never receives the wallet private key.", "authority": "Can authorize its own stake and withdraw its own funds." },
+        { "title": "Web ticket", "subtitle": "Window, side, size, quote", "detail": "The web app reads the selected Window and shows current cost, return and maximum loss before a buy. A displayed quote is not a fill.", "authority": "Displays and prepares an action; it does not settle a Window." },
+        { "title": "Solana adapter", "subtitle": "packages/markets", "detail": "The Solana integration package reads accounts, builds instructions, submits signed transactions and exposes indexed reads to the app and actors.", "authority": "Builds or sends only with a supplied signer or approved session key." },
+        { "title": "Events + Vault", "subtitle": "Anchor programs on devnet", "detail": "agari-events holds order escrow, matches the book, records verified prints and settles or voids. agari-vault holds Trading Balance funds and checks bounded grants.", "authority": "Program checks, account owners and signatures determine spend and payout." }
+      ], "arrows": ["owner signature", "instruction + read", "transaction"] },
+      { "label": "02 · Venue operation", "nodes": [
+        { "title": "Price sources", "subtitle": "Pyth · RedStone · Switchboard · PreStocks", "detail": "Each Window's registry policy selects its price source. PreStocks is an unsigned catalogue input; Agari signs its own attestation of that read.", "authority": "A source read alone is not a recorded or settled print." },
+        { "title": "Price relay", "subtitle": "Boundary fetch + signed package", "detail": "The ops price relay fetches the required boundary data and submits it through the source-specific recording instruction.", "authority": "Its role key can record eligible prints, not spend a user's collateral." },
+        { "title": "Roller · maker · settler", "subtitle": "List, quote, settle or void", "detail": "The roller lists scheduled Windows, the capped maker quotes their books, and the settler cranks permissionless resolution or expiry voids.", "authority": "These roles operate the venue, not the owner's wallet." },
+        { "title": "Program checks", "subtitle": "Exact policy + clock + book", "detail": "The on-chain program verifies print signatures and timing, locks the Window, settles against the closing print or voids when the conditions require it.", "authority": "The outcome is an on-chain state transition, not an indexer decision." }
+      ], "arrows": ["policy input", "boundary print", "checked instruction"] },
+      { "label": "03 · Read and prove", "nodes": [
+        { "title": "Chain accounts + logs", "subtitle": "Window, ledger, receipts", "detail": "Program accounts and confirmed transactions are the authoritative record of a Window and the owner's position.", "authority": "A transaction signature must be checked for its actual effect." },
+        { "title": "Indexer", "subtitle": "Backfill + subscribe + verify", "detail": "The indexer follows program logs and accounts, backfills missed slots and verifies rows before serving app reads.", "authority": "Read-only projection; it cannot change settlement." },
+        { "title": "Web read API", "subtitle": "Books, positions, proof", "detail": "The web routes return current market, wallet and proof views from indexed and chain-backed data.", "authority": "A stale or absent read should be labeled as such by the UI." },
+        { "title": "Portfolio + Proof", "subtitle": "Outcome and source receipt", "detail": "Portfolio shows open and settled positions; the proof feed opens recorded opening and closing prints with their source and transaction links.", "authority": "A page is a view of evidence, not a substitute for the chain receipt." }
+      ], "arrows": ["observed events", "served read", "display"] }
+    ]
+  },
+  "desk": {
+    "title": "A separate PreStocks desk",
+    "subtitle": "The owner controls the mandate and exit; a bounded operator chooses timing.",
+    "note": "This live-money path has been exercised on a Surfpool fork of Solana mainnet only. Production practice desks use paper balances and have no on-chain trade or record seal. The mainnet program deployment is pending.",
+    "sources": ["web/src/features/desk", "services/ops/src/actors/desk-runner", "packages/core/src/desk", "packages/markets/src/desk", "anchor/programs/agari-desk/src"],
+    "rows": [
+      { "label": "01 · Owner authority", "nodes": [
+        { "title": "Owner wallet", "subtitle": "Mandate, deposit, withdrawal", "detail": "The owner chooses allowed PreStocks names, weights, a cash sleeve and limits. Only the owner may change the mandate or withdraw to its own token accounts.", "authority": "Only the owner signs owner instructions and can withdraw." },
+        { "title": "Desk studio", "subtitle": "Draft and practice", "detail": "The browser keeps a draft. A message signature starts a paper practice desk; six checks and the full record are required before the Go live path is offered.", "authority": "A practice signature moves no funds." },
+        { "title": "Mainnet desk PDA", "subtitle": "USDC + PreStocks tokens", "detail": "On mainnet, the desk PDA would hold the owner's cash and token positions. The fork rehearsal used this program; no mainnet desk has been deployed yet.", "authority": "The program, not the runner, controls custody." },
+        { "title": "Owner exit", "subtitle": "Pause, withdraw, close", "detail": "The owner can pause the operator and withdraw. The operator cannot change limits, redirect withdrawals or take ownership.", "authority": "Withdrawal is owner-only and destination-checked." }
+      ], "arrows": ["signed mandate", "future live setup", "owner-only call"] },
+      { "label": "02 · Decision and checks", "nodes": [
+        { "title": "PreStocks marks", "subtitle": "Catalogue + token price", "detail": "The runner reads the token price and PreStocks mark, including transfer-fee and conversion details. The catalogue is unsigned.", "authority": "A catalogue read does not independently authenticate its value." },
+        { "title": "Desk runner", "subtitle": "Hourly price, quote and timing check", "detail": "The runner reads prices and Jupiter quotes at the owner's size, asks a bounded timing question and records buy, sell, ask, wait or refusal decisions.", "authority": "May propose permitted operator actions; cannot withdraw." },
+        { "title": "Price attestor", "subtitle": "Fresh signed reference", "detail": "A separate ops key signs the price, mark and multiplier. The program verifies its signature and freshness before an operator buy or sell.", "authority": "The premium and output safeguards rely on keeping this key separate from the operator." },
+        { "title": "agari-desk checks", "subtitle": "Allowlist, caps, premium, output", "detail": "The program checks allowed names, per-action and daily caps, a fresh reference, premium ceiling, minimum output and exact token movements.", "authority": "Rejects an operator action that breaks the owner's on-chain limits." }
+      ], "arrows": ["observed mark", "attested input", "verified instruction"] },
+      { "label": "03 · Execution and record", "nodes": [
+        { "title": "Desk assets", "subtitle": "PDA token accounts", "detail": "The desk's USDC and PreStocks token accounts are the input and output of an allowed swap.", "authority": "The runner cannot transfer them to an arbitrary destination." },
+        { "title": "Jupiter route", "subtitle": "Swap by CPI", "detail": "Jupiter supplies a route. The program checks setup, account limits, receiving accounts and before/after balances around the CPI.", "authority": "A quote is only a proposal; verified token deltas establish execution." },
+        { "title": "Hash chain", "subtitle": "Decision record seal", "detail": "A live trade seals its decision in the same transaction. A live no-action checkpoint also advances the chain. The stored record can be replayed against the on-chain head.", "authority": "Practice has a local paper record but no chain seal." },
+        { "title": "Desk cockpit", "subtitle": "Value, activity, rules", "detail": "The UI reads the mandate, position value, decisions and record, while labeling practice separately from live status.", "authority": "A displayed paper balance is not a wallet or on-chain balance." }
+      ], "arrows": ["bounded swap", "transaction record", "read and compare"] }
+    ]
+  },
+  "prints": {
+    "title": "Where a closing print comes from",
+    "subtitle": "A Window's policy selects one verification path at its exact boundary.",
+    "note": "The basket index is in points, not dollars. It uses one catalogue read for every member; a missing member voids rather than mixing observations. A Pyth valuation index for OpenAI and Anthropic is a separate, currently unentitled feed and does not settle the PreStocks token Window.",
+    "sources": ["services/ops/config/price-sources.json", "services/ops/src/actors/price-relay", "packages/core/src/market/baskets.ts", "anchor/programs/agari-events/src/instructions/record_print_sources.rs", "web/src/features/proof"],
+    "rows": [
+      { "label": "01 · Oracle-verified policy", "nodes": [
+        { "title": "Pyth, RedStone or Switchboard", "subtitle": "Source-specific signed update", "detail": "The registry's price policy chooses a source. Pyth uses a pull update for the exact Window boundary; other policies use their own signed-package verification and timing rules.", "authority": "The program checks source proof, not just a server label." },
+        { "title": "Price relay", "subtitle": "Fetch boundary evidence", "detail": "The relay obtains the signed material for the required opening or closing second and submits a record instruction.", "authority": "It cannot substitute a latest display price for an exact boundary print." },
+        { "title": "On-chain verifier", "subtitle": "Signature + time + policy", "detail": "The source-specific instruction checks the registered policy and acceptable proof before storing the print.", "authority": "A failed verification leaves the Window without a usable print." },
+        { "title": "Recorded print", "subtitle": "Opening or closing value", "detail": "The program stores the accepted value with its boundary and source, ready for settlement and proof reads.", "authority": "Only the recorded print can decide the Window." }
+      ], "arrows": ["signed material", "record instruction", "accepted value"] },
+      { "label": "02 · PreStocks policy", "nodes": [
+        { "title": "PreStocks catalogue", "subtitle": "Unsigned token prices", "detail": "The catalogue supplies token prices and marks. For a basket, Agari reads all members together and computes an equal-weight price-return index in points.", "authority": "The catalogue is not an independent signed oracle." },
+        { "title": "Agari attestor", "subtitle": "Signs the venue's read", "detail": "The venue signs the observed token or basket value and its boundary for the event program.", "authority": "This is Agari's attestation of a catalogue read, not a PreStocks signature." },
+        { "title": "On-chain verifier", "subtitle": "Attestor + boundary", "detail": "The program verifies the configured attestor and policy before it records the token or basket print.", "authority": "A missing basket member invalidates the sample; the Window must void instead of settling on a partial index." },
+        { "title": "Recorded print", "subtitle": "Token dollars or basket points", "detail": "The resulting print is stored in the same event venue used by other Windows, but units and source trust differ.", "authority": "The proof page must name PreStocks and show basket units as points." }
+      ], "arrows": ["one sample", "signed by venue", "accepted value"] },
+      { "label": "03 · Resolution", "nodes": [
+        { "title": "Opening print", "subtitle": "Value at the first boundary", "detail": "A Window's opening print fixes the reference line; a listed pre-open call can rest before this boundary without filling early.", "authority": "The open is stored on chain." },
+        { "title": "Closing print", "subtitle": "Value at the lock boundary", "detail": "A valid closing print arrives through the Window's registered policy. An absent or invalid print can lead to a void rather than a guessed outcome.", "authority": "The close is checked before resolution." },
+        { "title": "Settle or void", "subtitle": "Permissionless program call", "detail": "Anyone may crank the eligible program instruction. The event program decides Up, Down or Void from recorded facts.", "authority": "The ops settler is a caller, not the outcome authority." },
+        { "title": "Proof page", "subtitle": "Source + transactions", "detail": "The app shows the settled Window's prints, source policy and recording transaction links.", "authority": "The page is a readable trail; program accounts and receipts remain the authority." }
+      ], "arrows": ["boundary comparison", "program decision", "public read"] }
+    ]
+  }
+}

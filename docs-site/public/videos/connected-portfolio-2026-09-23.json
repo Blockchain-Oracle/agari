@@ -1,0 +1,22 @@
+{
+  "source": "connected Agari browser session",
+  "route": "/portfolio",
+  "capturedAt": "2026-09-23T12:01:52.291Z",
+  "frameCount": 68,
+  "durationMs": 12350,
+  "method": "Real Computer Use browser screenshots sampled with timestamps; account label masked; chapter labels, detail zoom and pointer rings added as separate layers; no transaction submitted.",
+  "chapters": [
+    {
+      "title": "Read the balances",
+      "atMs": 134
+    },
+    {
+      "title": "Open Trading Balance",
+      "atMs": 2457
+    },
+    {
+      "title": "Open History",
+      "atMs": 6942
+    }
+  ]
+}

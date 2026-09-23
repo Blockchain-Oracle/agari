@@ -6,7 +6,9 @@ import type { MDXComponents } from 'mdx/types';
 import { AppLink, JourneyList, ProductMap, WelcomeActions } from './welcome';
 import { GuideCapture } from './guide-capture';
 import { TourVideo } from './tour-video';
+import { Architecture } from './architecture';
+import { ConnectedWalkthrough } from './connected-walkthrough';
 import { SponsorLogos } from './sponsor-logos';
-export function getMDXComponents(components?:MDXComponents) {return {...defaultComponents,Callout,Step,Steps,Tab,Tabs,AppLink,JourneyList,ProductMap,WelcomeActions,GuideCapture,TourVideo,SponsorLogos,...components} satisfies MDXComponents;}
+export function getMDXComponents(components?:MDXComponents) {return {...defaultComponents,Callout,Step,Steps,Tab,Tabs,AppLink,JourneyList,ProductMap,WelcomeActions,GuideCapture,TourVideo,Architecture,ConnectedWalkthrough,SponsorLogos,...components} satisfies MDXComponents;}
 export const useMDXComponents=getMDXComponents;
 declare global {type MDXProvidedComponents=ReturnType<typeof getMDXComponents>}

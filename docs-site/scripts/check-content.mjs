@@ -13,6 +13,11 @@ const content = resolve(root, 'content/docs');
 // One pin: `site.revision` in lib/site.ts is the app commit every page was last checked against.
 const pinned = readFileSync(resolve(root, 'lib/site.ts'), 'utf8').match(/revision:\s*'([0-9a-f]{7,40})'/)?.[1] ?? null;
 const appPaths = ['web', 'packages', 'services', 'anchor'];
+const captureSource = readFileSync(resolve(root, 'lib/captures.ts'), 'utf8');
+const captureNames = new Set([...captureSource.matchAll(/^  ([A-Za-z]\w*): (?:\{|connected\()/gm)].map(match => match[1]));
+const graphs = JSON.parse(readFileSync(resolve(root, 'lib/architecture.json'), 'utf8'));
+const tourNames = new Set(['basket', 'portfolio', 'desk']);
+const tourFiles = { basket: 'connected-basket-ticket', portfolio: 'connected-portfolio', desk: 'connected-practice-desk' };
 const failures = [];
 const warnings = [];
 let pages = 0, links = 0, media = 0, appRoutes = 0;
@@ -81,7 +86,17 @@ for (const path of mdx) {
   }
   for (const [, name] of body.matchAll(/<GuideCapture\s+name="([^"]+)"/g)) {
     media++;
-    if (!['markets', 'phone', 'portfolio', 'baskets', 'studio', 'limits', 'testRead'].includes(name)) fail(`${label}: unknown capture ${name}`);
+    if (!captureNames.has(name)) fail(`${label}: unknown capture ${name}`);
+  }
+  for (const [, name] of body.matchAll(/<Architecture\s+name="([^"]+)"/g)) {
+    media++;
+    if (!(name in graphs)) fail(`${label}: unknown architecture ${name}`);
+    else if (!existsSync(resolve(root, 'public/diagrams', `${name}.svg`))) fail(`${label}: missing ${name} diagram`);
+  }
+  for (const [, name] of body.matchAll(/<ConnectedWalkthrough\s+name="([^"]+)"/g)) {
+    media++;
+    if (!tourNames.has(name)) fail(`${label}: unknown walkthrough ${name}`);
+    else for (const ext of ['mp4', 'vtt', 'json']) if (!existsSync(resolve(root, 'public/videos', `${tourFiles[name]}-2026-09-23.${ext}`))) fail(`${label}: missing walkthrough ${name}.${ext}`);
   }
 }
 
@@ -105,6 +120,22 @@ for (const { file } of captures.captures) {
 for (const path of [captures.video.file, captures.video.captions]) {
   media++;
   if (!existsSync(resolve(root, 'public/captures', path))) fail(`Missing tour asset ${path}`);
+}
+const connectedCaptures = JSON.parse(readFileSync(resolve(root, 'public/captures/provenance-connected-2026-09-23.json'), 'utf8'));
+for (const { file } of connectedCaptures.captures) {
+  media++;
+  if (!existsSync(resolve(root, 'public/captures', file))) fail(`Missing connected capture ${file}`);
+}
+for (const stem of connectedCaptures.videos) {
+  for (const ext of ['mp4', 'vtt', 'json']) {
+    media++;
+    if (!existsSync(resolve(root, 'public/videos', `${stem}.${ext}`))) fail(`Missing connected video ${stem}.${ext}`);
+  }
+}
+for (const [name, graph] of Object.entries(graphs)) {
+  if (graph.rows.length !== 3 || graph.rows.some(row => row.nodes.length !== 4 || row.arrows.length !== 3)) fail(`Invalid architecture ${name}`);
+  for (const path of graph.sources) if (!existsSync(resolve(source, path))) fail(`Architecture ${name}: missing source ${path}`);
+  if (!existsSync(resolve(root, 'public/diagrams', `${name}.svg`))) fail(`Missing architecture SVG ${name}`);
 }
 
 console.log(`Content: ${pages} pages, ${links} docs links, ${appRoutes} app links, ${media} media references, ${legacyRedirects.length} redirects`);

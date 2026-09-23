@@ -8,6 +8,7 @@ node_modules/
 .DS_Store
 coverage/
 evidence/raw-video/
+evidence/raw-captures/
 .vercel
 
 # Local AI authoring tools, reference material and design drafts

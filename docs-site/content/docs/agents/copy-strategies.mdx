@@ -5,6 +5,8 @@ description: "Review a creator, set on-chain limits, and release the permission 
 
 <AppLink href="/strategies">Strategies</AppLink> are published by creators; <AppLink href="/agents">Agents</AppLink> shows runners and their activity. A published strategy is not a promise of a fill or return. Check its runner, history, fee, playbook and hard caps before copying.
 
+<GuideCapture name="strategiesConnected" caption="This connected catalogue shows published strategy rows and their recorded results; the screen alone does not prove a runner is currently trading." />
+
 To start, open the copy drawer and enter a **Total budget** and the **Most per trade** (no more than the strategy's own per-trade limit). The drawer then states the whole permission: per trade, per day, open positions and any entry-price ceiling, within the strategy's published caps, for 30 days. A strip shows your wallet, your [Trading Balance](/trading/balances) and what this setup takes from the wallet, fee included; you can deposit to the Trading Balance inline. **Max** fills the budget and the per-trade amount. Each field says in red what is wrong with it (for example "Above this strategy's … per trade" or "More than your total budget"), and the confirm button names the one rule holding it. Your wallet signs a bounded vault grant and a strategy subscription as separate steps. If one transaction is uncertain, the app reconciles its receipt and grant before continuing; do not blindly repeat a deposit or grant. The runner may place calls only inside the grant, and each position remains yours.
 
 You can **copy** the creator's side or **fade** it by taking the opposite side of the same Window. A wallet holds one strategy permission at a time: copying another strategy replaces this one's permission. Pause or revoke the permission to stop new copies; existing positions keep their normal settlement and claim path. If a runner key changes, reauthorization is required; the balance itself has not moved. The [Trading Balance guide](/trading/balances) explains funding, and [The Solana programs](/architecture/programs) maps `agari-strategy` and `agari-vault`.
@@ -12,3 +14,5 @@ You can **copy** the creator's side or **fade** it by taking the opposite side o
 Strategies trade **stock Windows only**, across every listed stock; the 24/7 PreStocks, basket and xStock lanes are not theirs. While no stock Window trades, the runner rests: it checks every five minutes, makes no model call, and the strategy page reports **Resting** until the market opens.
 
 This is a **devnet tUSDC** feature. A listing can be visible while its runner or fill store is unavailable; the app reports those states rather than inventing recent trades.
+
+<GuideCapture name="strategyCopy" caption="An existing permission says Copying enabled while its operation line says Awaiting settlement. Those are separate states; the position count shown here needs investigation against Portfolio." />

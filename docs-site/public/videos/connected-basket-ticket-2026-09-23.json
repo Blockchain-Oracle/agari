@@ -1,0 +1,26 @@
+{
+  "source": "connected Agari browser session",
+  "route": "/baskets → /markets",
+  "capturedAt": "2026-09-23T12:03:07.961Z",
+  "frameCount": 86,
+  "durationMs": 15925,
+  "method": "Real Computer Use browser screenshots sampled with timestamps; account label masked; chapter labels, detail zoom and pointer rings added as separate layers; no transaction submitted.",
+  "chapters": [
+    {
+      "title": "Choose a basket",
+      "atMs": 96
+    },
+    {
+      "title": "Open the live Window",
+      "atMs": 3505
+    },
+    {
+      "title": "Choose Down",
+      "atMs": 8769
+    },
+    {
+      "title": "Preview a quote",
+      "atMs": 11188
+    }
+  ]
+}

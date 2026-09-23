@@ -2,7 +2,7 @@
 
 Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, PreStocks baskets, paper desk practice, and the architecture behind each path. The site takes its navigation and media patterns from Masayume Docs, with Agari-specific words, screenshots, program boundaries and evidence.
 
-**Source reviewed:** Agari at app commit `ee12d79` on 23 September 2026. The site lives in the app's own repository at `docs-site/` and deploys from `integration/w1` to [docs.useagari.xyz](https://docs.useagari.xyz). The app is live at [useagari.xyz](https://useagari.xyz).
+**Source reviewed:** Agari at app commit `86a37ee` on 23 September 2026. The site lives in the app's own repository at `docs-site/` and deploys from `integration/w1` to [docs.useagari.xyz](https://docs.useagari.xyz). The app is live at [useagari.xyz](https://useagari.xyz). Connected captures document the live browser observed that day; its deployed commit was not independently identified.
 
 ## Start with the right guide
 
@@ -11,12 +11,19 @@ Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, Pre
 | Make a tUSDC test-money call | [Quickstart](content/docs/start/quickstart.mdx) |
 | Understand the five PreStocks groups | [Baskets](content/docs/trading/baskets.mdx) |
 | Draft a paper desk | [Build a desk](content/docs/agents/desk.mdx) |
+| Inspect a connected ticket, balance or desk | [Baskets](content/docs/trading/baskets.mdx), [Portfolio](content/docs/trading/portfolio.mdx), [Desk](content/docs/agents/desk.mdx) |
 | Compare devnet and mainnet program status | [Programs](content/docs/architecture/programs.mdx) |
+| Read the drawn architecture | [Venue](content/docs/architecture/overview.mdx), [Desk](content/docs/architecture/desk.mdx), [Price paths](content/docs/architecture/price-sources.mdx) |
+| Audit a settled print | [Proof](content/docs/trading/proof.mdx) |
 | Trace claims to code and proof | [Source map](content/docs/builders/source-map.mdx) |
 | See how PreStocks and Pyth are used | [PreStocks and Pyth in Agari](content/docs/architecture/prestocks-and-pyth.mdx) |
 | Check prerequisites and open limitations | [Availability](content/docs/help/availability.mdx) |
 
-The [20-second public-screen tour](public/videos/baskets-to-practice-2026-09-23.mp4) is assembled from [dated Agari captures](public/captures/provenance-2026-09-23.json). It stops before wallet connection; it is not a live transaction recording. The captures were taken at app commit `c412501`, before the S22 desk redesign and the S23 basket cards, so they show the earlier layouts. Agari's application demo recording remains pending in its stage plan.
+The guides now include three [connected-browser recordings](public/videos/connected-basket-ticket-2026-09-23.mp4): a basket ticket preview, Portfolio and a paper desk. They contain real timestamped UI frames, chapter navigation, captions, masked account labels, pointer cues and detail zoom. The basket recording stops before Buy; no new signature or transaction was made in any recording. The [connected capture manifest](public/captures/provenance-connected-2026-09-23.json) and each video's JSON companion state the route and capture method. Raw frames are retained locally in ignored `evidence/raw-video/`; `scripts/render-connected-walkthroughs.mjs` and `scripts/process-connected-captures.mjs` describe the media treatment.
+
+The earlier [signed-out captures](public/captures/provenance-2026-09-23.json) remain in onboarding and the desk studio with explicit dated captions. They came from app commit `c412501`, before the S22 desk redesign and S23 basket cards. Their [20-second public-screen tour](public/videos/baskets-to-practice-2026-09-23.mp4) is retained as historical evidence and is no longer the guide's walkthrough. A complete transaction demo still needs an owner-run recording; these connected guides deliberately stop before consequential actions.
+
+The three diagrams are rendered from [Agari architecture data](lib/architecture.json) with `node scripts/export-architecture.mjs`; the live diagrams also expose each stage's authority boundary. [Connected-session issue notes](evidence/live-issues-2026-09-23.md) document discrepancies found during capture.
 
 ## Run locally
 
