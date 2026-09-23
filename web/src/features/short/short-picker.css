@@ -1,0 +1,88 @@
+/* /short picker and ticket (S23, D-127 kit): logo cards per asset, cadence chips, Window rows that say when they open,
+   the "opens later" ticket and the plain thin-book state. Layered over short-page.css; tokens only. */
+
+.sh-hero-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+.sh-hero-top .sh-eyebrow { margin-bottom: 0; }
+
+.sh-picker, .sh-ticket { border-color: var(--market-card-border); background: var(--market-card-surface); border-radius: var(--market-card-radius); }
+.sh-picker { display: flex; flex-direction: column; min-width: 0; }
+.sh-picker-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.sh-picker-head .sh-k { margin-bottom: 0; }
+.sh-k { font-size: 10px; letter-spacing: 0.16em; color: var(--color-ink-muted); }
+
+.sh-filters { display: inline-flex; gap: 4px; padding: 3px; border-radius: 9999px; background: var(--color-surface-2); }
+.sh-filter { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; border: 0; background: transparent; font-size: 12px; font-weight: 600; color: var(--color-ink-secondary); cursor: pointer; transition: background 140ms ease, color 140ms ease; }
+.sh-filter[aria-pressed="true"] { background: var(--market-card-surface); color: var(--color-ink); box-shadow: 0 1px 4px rgb(0 0 0 / 0.18); }
+.sh-filter:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sh-filter-n { font-family: var(--font-mono); font-size: 10.5px; color: var(--color-ink-muted); }
+
+/* The asset cards: 21st's icon-card radio group, compact enough for fifteen names without a wall. */
+.sh-assets.dkit-radio-cards { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
+.sh-assets .dkit-radio-card { gap: 6px; padding: 12px 14px; border-radius: 14px; }
+.sh-assets .dkit-radio-dot { top: 12px; right: 12px; width: 16px; height: 16px; }
+.sh-assets .dkit-radio-media { min-height: 36px; gap: 8px; }
+.sh-assets .dkit-radio-title { overflow: hidden; max-width: 100%; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; }
+.sh-assets .dkit-radio-footer { justify-content: space-between; padding-top: 8px; }
+.sh-asset-mark { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 9999px; font-size: 34px; }
+.sh-assets .dkit-radio-body { display: flex; flex-direction: column; gap: 6px; }
+.sh-asset-when { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.02em; color: var(--color-ink-muted); white-space: nowrap; }
+.sh-asset-when[data-live] { color: var(--color-profit); }
+.sh-asset-when-dot { width: 6px; height: 6px; flex: none; border-radius: 9999px; background: currentColor; opacity: 0.8; }
+.sh-asset-when[data-live] .sh-asset-when-dot { box-shadow: 0 0 0 3px var(--color-profit-wash); }
+.sh-asset-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sh-asset-tag { font-family: var(--font-mono); font-size: 11px; color: var(--color-accent); }
+.sh-asset-kind { font-size: 11px; color: var(--color-ink-muted); }
+.sh-asset-kind[data-kind="preIpo"], .sh-asset-kind[data-kind="basket"] { color: var(--color-ink-secondary); }
+.sh-asset-price { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--color-ink); white-space: nowrap; }
+.sh-asset-price--pending { display: inline-block; width: 64px; height: 12px; border-radius: 4px; background: var(--color-surface-2); }
+.sh-asset-spark { flex: none; }
+
+/* Cadence chips, then the chosen cadence's Windows. */
+.sh-cadences { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.sh-cadence { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 16px; border-radius: 9999px; border: 1px solid var(--color-hairline); background: transparent; font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--color-ink-secondary); cursor: pointer; transition: border-color 140ms ease, color 140ms ease, background 140ms ease; }
+.sh-cadence:hover { color: var(--color-ink); border-color: var(--color-ink-muted); }
+.sh-cadence[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent-wash); color: var(--color-ink); }
+.sh-cadence:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sh-cadence-dot { width: 7px; height: 7px; border-radius: 9999px; background: var(--color-ink-muted); }
+.sh-cadence-dot[data-live] { background: var(--color-profit); box-shadow: 0 0 0 3px var(--color-profit-wash); }
+
+.sh-window { min-height: 52px; border-color: var(--color-hairline); }
+.sh-window:hover { border-color: var(--color-ink-muted); }
+.sh-window--on { border-color: var(--color-accent); background: var(--color-accent-wash); }
+.sh-window:not([data-live]) { border-style: dashed; }
+.sh-window-c { color: var(--color-ink); }
+.sh-window-t { font-size: 11px; color: var(--color-ink-secondary); }
+.sh-window-pv { color: var(--color-ink); }
+.sh-window-pk { color: var(--color-ink-muted); }
+
+/* The ticket for a Window that opens later. */
+.sh-ticket--opens { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.sh-opens-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--color-accent-wash); color: var(--color-accent); }
+.sh-opens-icon svg { width: 20px; height: 20px; }
+.sh-opens-t { font-family: var(--font-display); font-size: 17px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; color: var(--color-ink); }
+.sh-opens-d { font-size: 13px; line-height: 1.6; color: var(--color-ink-secondary); }
+.sh-cta--link { display: grid; place-items: center; text-align: center; color: var(--color-accent-foreground); }
+
+/* The thin book's one action: size down to what the book takes. */
+.sh-usemax { display: inline-flex; align-items: center; margin-top: 8px; padding: 6px 12px; border-radius: 9999px; border: 1px solid var(--color-accent); background: var(--color-accent-wash); font-family: var(--font-mono); font-size: 11.5px; color: var(--color-ink); cursor: pointer; }
+.sh-usemax:hover { background: var(--color-accent); color: var(--color-accent-foreground); }
+
+.sh-pos-head { align-items: center; }
+.sh-pos-mark { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 9999px; font-size: 26px; }
+.sh-pos { border-color: var(--market-card-border); background: var(--market-card-surface); }
+
+.sh-how-card { border-color: var(--market-card-border); background: var(--market-card-surface); transition: border-color 160ms ease, transform 160ms ease; }
+.sh-how-card:hover { border-color: var(--color-ink-muted); transform: translateY(-2px); }
+
+.sh-skel { display: block; border-radius: 12px; background: linear-gradient(90deg, var(--color-surface-2), var(--color-hairline), var(--color-surface-2)); background-size: 200% 100%; animation: sh-shimmer 1.4s ease-in-out infinite; }
+.sh-skel-cards { height: 220px; }
+@keyframes sh-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+@media (max-width: 560px) {
+  .sh-assets.dkit-radio-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sh-asset-spark { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-skel { animation: none; }
+  .sh-how-card { transition: none; }
+}

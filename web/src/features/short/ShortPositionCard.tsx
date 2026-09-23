@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { AssetDisc } from "../markets/hero/asset-mark";
 import type { LeverageBusyKey } from "../leverage";
 import { SHORT } from "./copy";
 
@@ -50,6 +51,7 @@ export function ShortPositionCard(p: ShortPositionCardProps) {
   return (
     <li className={cn("sh-pos", !live && "sh-pos--done")}>
       <div className="sh-pos-head">
+        {market && <AssetDisc asset={market.asset} className="sh-pos-mark" />}
         <Link href={marketDeepLink({ marketId: position.marketId })} data-cursor="hover" className="sh-pos-asset">
           {market?.asset ?? (marketKnown ? shortHex(position.marketId, 4, 4) : "…")}
         </Link>

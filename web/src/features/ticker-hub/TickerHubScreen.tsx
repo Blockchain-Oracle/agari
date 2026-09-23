@@ -1,6 +1,6 @@
 "use client";
 
-import { basketOf, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { basketOf, isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
 import { useAssetPrice } from "@agari/markets/react";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
@@ -9,6 +9,7 @@ import { ACTIVITY } from "@/features/activity/copy";
 import { useMoneyUnits, useTickerFeed } from "@/features/activity/useActivity";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { assetPriceLine, basisRaw, feedRawToOracleRaw } from "@/features/markets/hero/units";
+import { StatusDot } from "@/components/ui/desk-kit";
 import { MarketSessionChip } from "@/features/markets/session";
 import { NEWS } from "@/features/news/copy";
 import { articleSymbols, Cashtags, MarkCluster, NewsRow } from "@/features/news/NewsRow";
@@ -123,7 +124,7 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
       <div className="news-inner">
         <div className="news-live tkh-live">
           <span className="news-live-label">{TICKER_HUB.eyebrow(ticker.kind)}</span>
-          <MarketSessionChip />
+          {isTokenOnlyKind(ticker.kind) ? <StatusDot tone="live">{TICKER_HUB.alwaysOpen}</StatusDot> : <MarketSessionChip />}
         </div>
         <h1 className="news-title tkh-title">
           <AssetDisc asset={symbol} className="tkh-mark" />

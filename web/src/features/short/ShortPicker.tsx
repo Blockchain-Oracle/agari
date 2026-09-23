@@ -1,12 +1,17 @@
 "use client";
 
 import type { EventMarket } from "@agari/core/types";
+import { useState } from "react";
 import { Countdown } from "@/components/data";
+import { EmptyState, RadioCards } from "@/components/ui/desk-kit";
+import { useDeskMarks } from "@/features/desk/useDeskMarks";
 import { formatCadence } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { CalendarClock } from "lucide-react";
 import { useTopOfBook } from "../markets/hero/useTopOfBook";
 import { SHORT } from "./copy";
-import type { ShortStock } from "./useShortWindows";
+import { assetCardParts } from "./ShortAssetCard";
+import { isLiveWindow, opensAt, type ShortKind, type ShortStock } from "./useShortWindows";
 
 interface ShortPickerProps {
   stocks: ShortStock[];
@@ -16,69 +21,98 @@ interface ShortPickerProps {
   nowMs: number;
 }
 
+type Filter = "all" | "stock" | "allDay";
+const FILTER_KINDS: Record<Filter, readonly ShortKind[] | null> = { all: null, stock: ["stock"], allDay: ["preIpo", "basket"] };
+
 /**
- * Pick the stock, then how long to hold it.
- *
- * Only the chosen stock's Windows are priced, and each prices itself from the top of its own book — the Down
- * ask, which is literally what a dollar of the fall costs right now. An empty side reads "—" rather than a
- * number nobody is resting.
+ * Pick what to short, then how long (S23): every asset as a logo card that says whether it trades now or when it
+ * opens, a filter for stocks against the 24/7 names, the asset's cadences as chips, then its Windows — the live ones
+ * priced from their own Down ask, the later ones with the time they open.
  */
 export function ShortPicker({ stocks, loading, selected, onSelect, nowMs }: ShortPickerProps) {
   const { picker } = SHORT;
-  if (loading) return <p className="sh-picker-note">{picker.loading}</p>;
-  if (stocks.length === 0) {
-    return (
-      <div className="sh-picker-empty">
-        <p className="sh-picker-empty-t">{picker.noneTitle}</p>
-        <p className="sh-picker-empty-d">{picker.noneBody}</p>
-      </div>
-    );
-  }
-  const stock = stocks.find((s) => s.windows.some((w) => w.marketId === selected?.marketId)) ?? stocks[0];
-  // `stocks` is non-empty here, but every stock is also guaranteed at least one Window by `useShortWindows`.
-  if (!stock) return <p className="sh-picker-note">{picker.loading}</p>;
+  const marks = useDeskMarks();
+  const [filter, setFilter] = useState<Filter>("all");
+  if (loading) return <div className="sh-picker"><span className="sh-skel sh-skel-cards" aria-label={picker.loading} /></div>;
+  if (stocks.length === 0) return <EmptyState icon={<CalendarClock />} title={picker.noneTitle} body={picker.noneBody} />;
+
+  const kinds = FILTER_KINDS[filter];
+  const shown = kinds ? stocks.filter((s) => kinds.includes(s.kind)) : stocks;
+  const stock = stocks.find((s) => s.windows.some((w) => w.marketId === selected?.marketId)) ?? shown[0] ?? stocks[0];
+  if (!stock) return null;
+  const cadences = [...new Set(stock.windows.map((w) => w.intervalSec))].sort((a, b) => a - b);
+  const cadence = selected && selected.asset === stock.asset ? selected.intervalSec : (cadences[0] ?? 0);
+  const windows = stock.windows.filter((w) => w.intervalSec === cadence);
+  const counts: Record<Filter, number> = { all: stocks.length, stock: stocks.filter((s) => s.kind === "stock").length, allDay: stocks.filter((s) => s.kind !== "stock").length };
+
   return (
     <div className="sh-picker">
-      <span className="sh-k">{picker.stock}</span>
-      <div className="sh-stocks" role="group" aria-label={picker.stock}>
-        {stocks.map((s) => (
-          <button
-            key={s.asset}
-            type="button"
-            aria-pressed={s.asset === stock.asset}
-            onClick={() => s.windows[0] && onSelect(s.windows[0])}
-            className={cn("sh-stock", s.asset === stock.asset && "sh-stock--on")}
-            data-cursor="hover"
-          >
-            <span className="sh-stock-a">{s.asset}</span>
-            <span className="sh-stock-n">{picker.windows(s.windows.length)}</span>
-          </button>
-        ))}
+      <div className="sh-picker-head">
+        <span className="sh-k">{picker.stock}</span>
+        <div className="sh-filters" role="group" aria-label={picker.filterAria}>
+          {(["all", "stock", "allDay"] as const).filter((f) => f === "all" || counts[f] > 0).map((f) => (
+            <button key={f} type="button" className="sh-filter" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+              {picker.filter[f]} <span className="sh-filter-n">{counts[f]}</span>
+            </button>
+          ))}
+        </div>
       </div>
+      <RadioCards
+        className="sh-assets"
+        label={picker.stock}
+        value={stock.asset}
+        onChange={(asset) => {
+          const next = stocks.find((s) => s.asset === asset)?.windows[0];
+          if (next) onSelect(next);
+        }}
+        items={shown.map((s) => ({ value: s.asset, ...assetCardParts(s, marks) }))}
+      />
 
       <span className="sh-k sh-k--gap">{picker.window}</span>
+      <div className="sh-cadences" role="group" aria-label={picker.cadenceAria}>
+        {cadences.map((c) => {
+          const first = stock.windows.find((w) => w.intervalSec === c);
+          const live = stock.windows.some((w) => w.intervalSec === c && isLiveWindow(w, nowMs));
+          return (
+            <button key={c} type="button" className="sh-cadence" aria-pressed={c === cadence} onClick={() => first && onSelect(first)} data-cursor="hover">
+              <span className="sh-cadence-dot" data-live={live ? "" : undefined} aria-hidden />
+              {formatCadence(c)}
+            </button>
+          );
+        })}
+      </div>
       <div className="sh-windows" role="group" aria-label={picker.window}>
-        {stock.windows.map((market) => (
-          <WindowChip key={market.marketId} market={market} on={market.marketId === selected?.marketId} onSelect={onSelect} nowMs={nowMs} />
+        {windows.map((market) => (
+          <WindowRow key={market.marketId} market={market} on={market.marketId === selected?.marketId} onSelect={onSelect} nowMs={nowMs} />
         ))}
       </div>
     </div>
   );
 }
 
-function WindowChip({ market, on, onSelect, nowMs }: { market: EventMarket; on: boolean; onSelect: (m: EventMarket) => void; nowMs: number }) {
+function WindowRow({ market, on, onSelect, nowMs }: { market: EventMarket; on: boolean; onSelect: (m: EventMarket) => void; nowMs: number }) {
+  const live = isLiveWindow(market, nowMs);
+  return (
+    <button type="button" aria-pressed={on} onClick={() => onSelect(market)} className={cn("sh-window", on && "sh-window--on")} data-live={live ? "" : undefined} data-cursor="hover">
+      <span className="sh-window-c">{formatCadence(market.intervalSec)}</span>
+      {live ? <LiveTerms market={market} nowMs={nowMs} /> : <span className="sh-window-t">{SHORT.picker.opens(opensAt(market.tradingStartSec))}</span>}
+    </button>
+  );
+}
+
+/** A live Window prices itself from the top of its own book: the Down ask, what a dollar of the fall costs now. */
+function LiveTerms({ market, nowMs }: { market: EventMarket; nowMs: number }) {
   const { picker } = SHORT;
   const { downCents, hydrating } = useTopOfBook(market);
   return (
-    <button type="button" aria-pressed={on} onClick={() => onSelect(market)} className={cn("sh-window", on && "sh-window--on")} data-cursor="hover">
-      <span className="sh-window-c">{formatCadence(market.intervalSec)}</span>
+    <>
       <span className="sh-window-t">
         <Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} /> {picker.left}
       </span>
       <span className="sh-window-p">
         <span className="sh-window-pk">{picker.costLabel}</span>
-        <span className="sh-window-pv numbers">{hydrating ? picker.costPending : downCents === null ? picker.costNone : picker.cost(downCents)}</span>
+        <span className="sh-window-pv numbers">{hydrating ? picker.costPending : downCents === null ? picker.noQuotes : picker.cost(downCents)}</span>
       </span>
-    </button>
+    </>
   );
 }

@@ -62,7 +62,7 @@ export function BasketHubView({ basket, indexRaw, indexStale, facts, window, win
             <dt>{B.members}</dt>
             <dd className="big">{B.membersLine(basket.members.length)}</dd>
           </div>
-          <div className="prf-stat">
+          <div className="prf-stat tkh-stat-long">
             <dt>{B.moved(move ? windowText(move.windowSec) : "")}</dt>
             <dd className="big numbers">{move ? B.movedLine(bpsPct(move.rangeBps), signedPct(move.changeBps)) : B.quiet}</dd>
           </div>
