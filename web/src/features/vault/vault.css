@@ -53,19 +53,24 @@
 }
 
 /* h-11 w-full sm:w-32 rounded-xl border border-black/10 bg-white px-3 font-mono text-sm text-black outline-none focus:border-black/30 — here focus-visible:outline-none with the `.vault-input:focus` border as the ring */
+/* S24: the reference's ground-coloured well disappeared into a dark card; the field now sits on the raised surface with
+   an ink border you can see, and focus draws the accent ring. */
 .vault-input {
   height: 44px;
   width: 100%;
   border-radius: 12px;
-  border: 1px solid var(--input-border);
-  background: var(--input-surface);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 22%, transparent);
+  background: var(--color-surface-2);
   padding: 0 12px;
   font-family: var(--font-mono);
   font-size: 14px;
   color: var(--color-ink);
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
 }
+.vault-input::placeholder { color: var(--color-ink-muted); }
+.vault-input:hover { border-color: color-mix(in srgb, var(--color-ink) 38%, transparent); }
 .vault-input:focus-visible { outline: none; }
-.vault-input:focus { border-color: var(--input-focus-ring); }
+.vault-input:focus { border-color: var(--input-focus-ring); box-shadow: 0 0 0 3px var(--color-accent-wash); }
 @media (min-width: 640px) {
   .vault-input { width: 128px; }
 }
@@ -93,26 +98,28 @@
   cursor: pointer;
   transition: background-color 180ms var(--ease), color 180ms var(--ease), opacity 180ms var(--ease);
 }
-.vault-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-/* bg-black text-white hover:bg-black/85 — ink on ground, so the button stays the dark one on both themes */
-.vault-btn-primary { background: var(--color-ink); color: var(--bg); border: 0; }
-.vault-btn-primary:hover:not(:disabled) { opacity: 0.85; }
-/* S23: the reference's 10% hairline vanished on the dark ground; Withdraw now carries the same weight as Deposit —
-   a filled surface and an ink border you can see in both themes. */
-.vault-btn-outline { background: var(--color-surface-2); color: var(--color-ink); border: 1.5px solid color-mix(in srgb, var(--color-ink) 55%, transparent); }
-.vault-btn-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--color-ink) 12%, var(--color-surface-2)); border-color: var(--color-ink); }
+.vault-btn:disabled { cursor: not-allowed; }
+/* S24: Deposit is the page's call to action in the accent, as Connect is; Withdraw is a clear ink outline in both
+   themes; a disabled button reads as off (muted, dashed) rather than as a faded copy of the live one. */
+.vault-btn-primary { background: var(--color-accent); color: var(--color-accent-foreground); border: 1.5px solid var(--color-accent); }
+.vault-btn-primary:hover:not(:disabled) { background: var(--color-accent-hover); border-color: var(--color-accent-hover); }
+.vault-btn-primary:disabled { background: var(--color-surface-2); border-color: color-mix(in srgb, var(--color-ink) 18%, transparent); color: var(--color-ink-muted); }
+.vault-btn-outline { background: transparent; color: var(--color-ink); border: 1.5px solid color-mix(in srgb, var(--color-ink) 45%, transparent); }
+.vault-btn-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--color-ink) 8%, transparent); border-color: var(--color-ink); }
+.vault-btn-outline:disabled { border-style: dashed; border-color: color-mix(in srgb, var(--color-ink) 22%, transparent); color: var(--color-ink-muted); }
 /* border-emerald-700/20 text-emerald-700 hover:bg-emerald-500/10 — the reference's own green for the private route */
 .vault-btn-private { background: var(--color-profit-wash); color: var(--color-profit); border: 1.5px solid color-mix(in srgb, var(--color-profit) 60%, transparent); }
 .vault-btn-private:hover:not(:disabled) { background: color-mix(in srgb, var(--color-profit) 20%, transparent); border-color: var(--color-profit); }
+.vault-btn-private:disabled { background: transparent; border-style: dashed; border-color: color-mix(in srgb, var(--color-profit) 30%, transparent); color: color-mix(in srgb, var(--color-profit) 55%, transparent); }
 
 /* The amount field (S23): a Max inside the row, a red reason under it when the wallet cannot cover it. */
 .vault-amount { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .vault-amount-row { position: relative; display: flex; align-items: center; }
 .vault-amount-row .vault-input { padding-right: 56px; }
 .vault-amount[data-invalid] .vault-input { border-color: var(--color-loss); box-shadow: 0 0 0 3px var(--color-loss-wash); }
-.vault-max { position: absolute; right: 6px; height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-ink) 30%, transparent); background: var(--color-surface-2); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink); cursor: pointer; }
-.vault-max:hover:not(:disabled) { border-color: var(--color-ink); }
-.vault-max:disabled { opacity: 0.4; cursor: not-allowed; }
+.vault-max { position: absolute; right: 6px; height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--color-accent-dim); background: var(--color-accent-wash); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); cursor: pointer; transition: background-color 160ms var(--ease), color 160ms var(--ease); }
+.vault-max:hover:not(:disabled) { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-foreground); }
+.vault-max:disabled { border-color: color-mix(in srgb, var(--color-ink) 16%, transparent); background: transparent; color: var(--color-ink-muted); cursor: not-allowed; }
 .vault-amount-problem { font-size: 12px; color: var(--color-loss); }
 .vault-amount-hint { font-size: 12px; color: var(--color-ink-muted); }
 
