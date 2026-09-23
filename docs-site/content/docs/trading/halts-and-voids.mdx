@@ -1,0 +1,19 @@
+---
+title: "Halts and voids"
+description: "What it means when a Window can't settle cleanly, and what you get back."
+---
+
+Most Windows settle cleanly: both the opening and closing print show up, and (for tickers with a cross-check source) they agree closely enough. When that doesn't happen, Agari voids the Window rather than guessing — a void pays back 0.5 per lot on every side, plus the seat bond, so nobody is worse off for a price problem that wasn't theirs.
+
+## The two void reasons
+
+- **`MissingPrint`** — a required signed price never arrived within the admission window. The app labels this "Signed price stale" rather than "Trading halted," since there's no licensed exchange-halt feed behind it; it just means nobody posted a verifiable price in time. A real devnet drive produced exactly this for an NVDA Window with no prints posted.
+- **`CrossCheckDivergence`** — for a ticker with two configured price sources (TSLA, during the Pyth trial), the two prints disagreed by more than the allowed tolerance at either boundary. A real devnet drive produced this too, for a test ticker whose attested price landed about 1% away from its RedStone check — the two sources disagreed, so the Window voided rather than picking one arbitrarily.
+
+## "Trading halted" vs. "Signed price stale"
+
+The app only shows **"Trading halted"** for a real exchange-wide or issuer-specific halt signal (a `pyth-wide` or `issuer-halt` condition) — Agari doesn't have a licensed halt feed to call every missing print a "halt." Everything else that keeps a Window from settling on time shows the more accurate "signed price stale" label instead.
+
+## What you get back from a void
+
+Both sides get 0.5 per lot back — your original stake, treated as a wash, not a loss — plus your seat bond. It settles from a `MissingPrint` or `CrossCheckDivergence` result the same way a normal Up/Down Window settles from a real print: claim it from <AppLink href="/portfolio">Portfolio</AppLink> once the void is recorded.

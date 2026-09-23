@@ -1,0 +1,19 @@
+---
+title: "Price sources and signed prints"
+description: "Equity, token, PreStocks, basket and valuation lanes use different source policies."
+---
+
+A Window settles from its opening and closing **boundary prints**. The on-chain program checks the configured source and timestamp; the web app does not pick a winner from a latest-price tile. Policy versions are registered ahead of time, so a Window retains the policy it started with.
+
+| Lane | Boundary source and limit |
+| --- | --- |
+| TSLA, QQQ, VOO equity | Pyth pull update. TSLA also cross-checks RedStone within its configured divergence band. The trial was expected to end around 27 September 2026; current entitlement needs a live check. |
+| Other equity names | RedStone signatures under the configured signer threshold. |
+| Tokenized stock lane | Switchboard On-Demand signatures from a pinned queue. An upstream gateway outage can pause this lane without pausing equities. |
+| PreStocks name | Agari's price attestor signs a PreStocks catalogue **token price**. The catalogue itself is unsigned and supplies no independent oracle proof. |
+| PreStocks basket | Agari computes equal-weight index points from all members in one catalogue read and signs that index. Missing members prevent a print. |
+| Pyth pre-IPO valuation lane | Pyth's OpenAI or Anthropic valuation index, only when the venue key is entitled. The trial key was denied at review, so no valuation Window was listed. |
+
+The token price and Pyth's company valuation index are **different measures**. Agari does not treat the latter as a cross-check for a token-price Window. The desk can optionally require a fresh verified Pyth index for a buy, but that leg also needs the separate entitlement. [Baskets](/trading/baskets) explains the points index; [halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints.
+
+For a current source read, use <AppLink href="/status">Status</AppLink>. The [source map](/builders/source-map) identifies the config, relay and program boundaries.

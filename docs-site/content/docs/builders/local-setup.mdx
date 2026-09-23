@@ -1,0 +1,22 @@
+---
+title: "Run Agari locally"
+description: "Install, check and build the application from its integration checkout."
+---
+
+Use the application checkout, **not** this docs repository, for these commands. The branch reviewed here is `integration/w1` at `c412501`. Follow its `docs/plan/STATUS.md` and `docs/plan/working-rules.md` before changing behavior.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm typecheck && pnpm invariants
+pnpm build
+```
+
+The program build is separate:
+
+```sh
+NO_DNA=1 anchor build --arch v0
+```
+
+Anchor 1.2 otherwise defaults to an SBPF architecture the deployment does not use. The app's `.env.example` files list configuration names; keep provider keys on the server and Solana keypairs under `~/.config/agari/`. Running a local app does not start the production actors or fund a wallet. See the application's README for the exact service and environment prerequisites.
+
+The docs site itself needs only Node 22+ and pnpm 11.24: `pnpm install --frozen-lockfile`, then `pnpm check`. It renders without wallets, a database or provider credentials.

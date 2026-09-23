@@ -1,0 +1,24 @@
+---
+title: "Portfolio"
+description: "Read your open and settled positions, and claim what you're owed."
+---
+
+Portfolio is where a position's life ends up, whichever way you placed it: an ordinary wallet order, a pre-open call resting until the bell, or a tap-trading fill through your Trading Balance session key.
+
+<GuideCapture name="portfolio" caption="The signed-out view asks you to connect before showing personal balances or claims. X-Predict has a separate wallet panel." />
+
+## Open positions
+
+An open position sits on a live Window. If your order is still resting rather than filled, it shows there too — cancel a resting order any time before the Window locks, and get your escrow back immediately.
+
+## Settled positions
+
+Once a Window closes and settles (or voids), its positions move into a claimable state. A winning position pays out by the settled ratio; a losing position pays nothing; a voided Window returns 0.5 per lot regardless of side, because nobody could tell what actually happened. Claim (redeem) a position explicitly — settlement does not push funds into your wallet by itself.
+
+## Trading Balance vs. a plain wallet position
+
+A position funded straight from your wallet and a position funded through your **Trading Balance** (the `agari-vault` account tap-trading uses) both show up here, but they behave a little differently: a Trading Balance position's proceeds land back in that balance, not your wallet, until you withdraw. See [Balances](/trading/balances) for what the Trading Balance actually is and [Tap-trading](/trading/tap-trading) for how a session key places orders from it without a wallet popup each time.
+
+## If a claim looks stuck
+
+Check the transaction's own status before assuming something is wrong — a signature can confirm without the intended effect landing exactly when you expect, especially right after a Window closes and its settlement transaction is still confirming. <AppLink href="/status">Status</AppLink> shows whether the settler and price-relay roles are running.

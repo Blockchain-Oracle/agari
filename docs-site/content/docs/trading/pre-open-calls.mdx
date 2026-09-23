@@ -1,0 +1,23 @@
+---
+title: "Pre-open calls"
+description: "Rest a call on a Window before it opens for trading; taker orders are refused until the bell."
+---
+
+Because Windows are prelisted ahead of time (see [Sessions and lanes](/trading/sessions-and-lanes)), you can place a call before the market — or the Monday Gap, or a Window's own trading start — actually opens. This is a **resting**, post-only call, not an instant trade: nothing fills before the Window's trading start, by design.
+
+## How it works
+
+A Window before its trading start is in a **Listed** state. In that state, the venue only accepts **PostOnly** orders — an order that rests on the book rather than taking. A taker-type order (IOC, FOK, or a Normal order that would cross immediately) is refused outright with a `PreOpenTakerRefused` error, so nobody can jump the queue by trading against a resting pre-open call before the bell.
+
+## What happens at the open
+
+Once the Window opens for trading, resting pre-open calls become ordinary resting orders: the venue's own seed maker or any other trader can fill them at their resting price, same as any other order on the book.
+
+- **Default expiry:** a scheduled call expires 90 seconds after the trading start if nothing has filled it — "fills within the first minute after the bell, or your stake returns." This is the default so a stale call from hours earlier doesn't linger unexpectedly.
+- **Resting until the lock** is available as an explicit opt-in, if you'd rather leave the call open for the whole Window instead of just the first minute.
+
+## What's guaranteed and what isn't
+
+- Nothing fills before the open boundary — that's enforced by the program, not just the UI.
+- No fill is promised. A pre-open call is an offer at your price; it fills only if the book comes to it.
+- If the Window voids for any reason, an unfilled pre-open call loses nothing — cancel it any time before it fills, and the escrow (plus the seat bond) comes straight back.

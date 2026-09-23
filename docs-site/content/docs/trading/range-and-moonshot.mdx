@@ -1,0 +1,12 @@
+---
+title: "Range and Moonshot"
+description: "Two prefunded outcomes decided by a Window's closing print."
+---
+
+<AppLink href="/games/range">Range</AppLink> asks whether the closing price will land **inside or outside** a band you set. Choose a live Window, move the band or its width, choose a side, and inspect the quoted stake and payout before placing. A narrow band may pay more, but the quote comes from the venue book and its measured movement, so read the actual ticket rather than assuming a fixed multiple.
+
+<AppLink href="/games/moonshot">Moonshot</AppLink> asks whether the close reaches a level. Choose long or short and a target multiple; the reserve solves the strike from the live basis. The ticket shows the strike, stake, payout, and expiry budget before you sign. Long pays at or above its level; short pays at or below its level.
+
+Both modes use the `agari-range` devnet program and the same verified closing print as the underlying Window. The reserve sets aside the full potential payout at placement. After resolution, use **Your rounds** to settle or claim. A void returns the stake; a missed outcome loses it. A live Window, usable quote and reserve capacity are required, so the route can be present while placement is unavailable.
+
+For an ordinary Up/Down call, see [Place a trade](/trading/first-trade). For program status, see [The Solana programs](/architecture/programs).

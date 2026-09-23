@@ -1,0 +1,21 @@
+---
+title: "Earn from the four reserves"
+description: "Choose a devnet reserve, read its shares and risk, and withdraw what is idle."
+---
+
+<AppLink href="/earn">Earn</AppLink> has four devnet tUSDC reserve tabs. Each has its own shares, exposure and withdrawal capacity. Supplier capital is at risk; none of the tabs promises a fixed yield. These positions are separate from your [Trading Balance](/trading/balances) and from the [desk](/agents/desk).
+
+| Tab | What supplier capital backs | What may keep it committed |
+| --- | --- | --- |
+| Maker vault | Bids and asks resting on Agari's Window books; spread earned and inventory losses change share value. | Quotes or one-sided inventory on live Windows. |
+| Range & Moonshot | The reserve takes the other side of prefunded band and target tickets. | Potential payouts until each closing print resolves. |
+| Parlay | The reserve funds combined Window tickets. | Maximum payouts until the last leg resolves. |
+| Boost | The reserve fronts capital for boosted positions and charges a premium. | Fronted capital until positions close, knock out or settle. |
+
+1. Connect a devnet wallet and select the reserve you mean. Inspect its value, utilization, risk text and active commitments before entering a tUSDC amount under **Supply**.
+2. Review the wallet transaction. The position view shows your shares, share price, realized return and current paper value separately.
+3. Use **Withdraw** to take the idle part back. Committed capital remains until its Window, round, ticket or Boost resolves. The maker tab can settle a closed Window before withdrawal.
+
+The maker tab's Windows table shows quotes resting, paired sets, one-sided inventory and settlement. The other tabs show their reserve bounds and committed capital instead. When new deposits are paused, existing positions continue settling and idle withdrawals remain available. Read the **selected tab's** live state before signing: deployment evidence does not guarantee that quotes are running or that a particular amount is withdrawable.
+
+The tabs use `agari-maker`, `agari-range`, `agari-parlay` and `agari-leverage` respectively. [The Solana programs](/architecture/programs) maps them, and the app's [acceptance ledger](https://github.com/Blockchain-Oracle/agari/blob/integration/w1/docs/plan/acceptance.md) records their devnet deployments and transactions.

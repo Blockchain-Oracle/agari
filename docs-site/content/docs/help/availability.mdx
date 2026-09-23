@@ -1,0 +1,18 @@
+---
+title: "What is available"
+description: "Check the network, funds and current source before acting."
+---
+
+This page is a **23 September 2026 source review**, not a promise that a particular Window, game or quote is live every minute. Read <AppLink href="/status">Status</AppLink> and the screen's current state before signing.
+
+| Path | Network and prerequisites | Evidence at review |
+| --- | --- | --- |
+| Browse markets and baskets | No wallet; readable app and indexer | Public routes available. |
+| Predict or Cover | Solana devnet wallet, devnet SOL for fees, tUSDC, a trading Window and a quote | Devnet fills and basket settlements in the acceptance ledger. |
+| Trading Balance and tap-trading | Devnet tUSDC, deployed `agari-vault`, a funded and valid grant | Vault deployed and grant paths exercised on devnet. |
+| Earn, specialist tickets, agents, X trading and games | Each route has its own round, grant, role or liquidity conditions | Built after the first venue with devnet evidence; availability varies by route. |
+| Practice desk | Wallet message signature for creation; paper cash, real price/quote reads | Production practice desk and decision record observed. No transaction. |
+| Go live with a desk | Mainnet program deploy, owner wallet, real USDC, PreStocks tokens and SOL fees | **Not yet deployed** at this review; fork rehearsal is not mainnet proof. |
+| Pyth pre-IPO valuation lane | `pyth-indices` entitlement for OpenAI/Anthropic | Trial key denied (403) at review; no lane listed while denied. |
+
+The regular equity, Gap, 24/7 token, PreStocks and basket lanes have distinct clocks and [price sources](/architecture/price-sources). If a source is unavailable, the venue should pause the affected lane or void a Window whose required print does not arrive. A stopped lane is not a confirmed loss. A signature approval is not itself proof that a financial transaction landed; inspect the transaction before retrying.

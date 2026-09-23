@@ -1,0 +1,23 @@
+---
+title: "Ops and the indexer"
+description: "The off-chain actors that operate the venue's clock and price feed."
+---
+
+Nothing in `services/ops` holds a user's funds. Its actors operate the venue's clock and its price feed, as separate roles each with their own key, run from one process (a single writer per role, so two processes never race to sign with the same key).
+
+| Actor | What it does |
+| --- | --- |
+| Window-roller | Lists and rolls Windows on the calendar cadence (5m/15m/60m during NYSE hours, the Monday Gap, the 24/7 token lane). It pre-lists the first Window of the next session at the prior close, so a [pre-open call](/trading/pre-open-calls) has somewhere to rest overnight. |
+| Price-relay | Posts boundary prints. The program checks signatures, timestamps and the configured policy. For PreStocks, the venue signs a value from the unsigned catalogue; that attests the venue's read, not an independent oracle. |
+| Settler / halt-watch | Cranks settlement and voids once a Window's conditions are met, and watches for a halt signal. Settlement and voiding are permissionless instructions in `agari-events` — anyone can call them once the on-chain conditions hold; the settler just does it promptly. |
+| Market-maker | Seeds both sides of a Window's order book with a small, capped quote, so a Window isn't empty the instant it opens. |
+| Indexer | Reads the chain and serves it back to the web app: prices, books, a wallet's positions, the proof feed. Read-only, no signing key. |
+| Desk runner | Runs practice checks and, after a separate mainnet deployment, would propose buys or sells inside an owner's on-chain limits. It has no withdrawal authority. |
+
+## Always on, even when the market is closed
+
+When NYSE is closed, `/markets` still shows the last price, the last session's chart, the session state with a countdown to the next open, and what lists next per lane — never a blank screen or a stale "loading" label. This is deliberate (S18): a last known reading, correctly labeled with its age, is more honest than hiding the page.
+
+## What this buys you, and what it doesn't
+
+An ops role key can post a price, roll a Window, or crank a settlement — none of that spends a user's devnet tUSDC or SOL. The user's wallet or a session key under a bounded `agari-vault` grant signs an order. If an ops process is down, a stalled roller lists no new Windows; a stalled price-relay leaves a Window waiting and eventually voiding. The [desk](/architecture/desk) has a separate mainnet operator and attestor trust boundary. [Status](/help/status) shows the running actors.

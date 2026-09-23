@@ -1,0 +1,16 @@
+---
+title: "Read the market headlines"
+description: "News, sentiment and the tickers each headline is about."
+---
+
+The news feed is a dense list of rows: a lead story, then the wire underneath, each with a source, an age and a sentiment tone shown as a thin colored edge on the row. Every row that names a stock carries an asset-mark chip with a `$TICKER` cashtag, so you can see at a glance which tickers a headline touches.
+
+The same row shape (source, age, sentiment edge, cashtag chips) is reused across the news page, the activity feed and the ticker hub, so a headline reads the same wherever it appears. On narrow screens the sentiment tone moves from the row's left edge into the meta line, so headline titles keep their full width.
+
+## Reading sentiment
+
+The tone is a small colored mark plus a word (not just a bare color), so it doesn't rely on color alone to carry meaning. Sentiment is a read on the headline's language, not a trading signal — treat it the way you'd treat any single news source's slant, not as a settlement input. Nothing about a Window's Up/Down result depends on sentiment; only the signed price print at each boundary does.
+
+## Following a cashtag
+
+Choosing a `$TICKER` chip takes you to that ticker's own hub, where the same news rows, its live price and its open Windows sit together.

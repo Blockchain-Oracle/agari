@@ -1,0 +1,24 @@
+---
+title: "Tap-trading"
+description: "One signature opens a session key; a capped sponsor role pays the fee after that."
+---
+
+Tap-trading removes the per-order wallet popup once you've opted in. It's built on `agari-vault`'s Trading Balance and a bounded session-key grant, not a change to how orders themselves work.
+
+## The one-time setup
+
+A single wallet signature does three things at once: opens your Trading Balance account, deposits the amount you choose, and grants a **SESSION** key — a separate keypair, generated in your browser, that can place orders on your behalf within limits your wallet just approved (a spending cap, an expiry, and which market it can act in).
+
+## Trading after that
+
+Further orders are signed by the session key, not your wallet, so there's no popup per trade. A `sponsor` role — a server-held key, never one that can move your funds — co-signs each transaction as **fee payer only**, against an exact allowlist of instructions, after simulating the transaction first. It can never be a transfer source, never the payer of a new account, and never sign as anything but the fee payer.
+
+That sponsor role is capped in several independent ways at once (names only — see `web/.env.example` in the main Agari tree for the exact defaults): a per-address hourly limit, a per-device hourly limit, per-minute attempt limits before a transaction is even simulated, a per-device daily lamport budget, and a global daily lamport budget with its own circuit breaker. <AppLink href="/status">Status</AppLink> shows the sponsor's remaining budget.
+
+## What this doesn't change
+
+- Deposits are never sponsored — funding the Trading Balance in the first place always needs your wallet.
+- The session key can only place orders within the grant your wallet approved; it cannot withdraw the Trading Balance to itself.
+- You can revoke the grant at any time; a revoked or expired session key stops working immediately, and whatever is left in your Trading Balance stays exactly where it was.
+
+See [Balances](/trading/balances) for what the Trading Balance itself is, and [Portfolio](/trading/portfolio) for where a tap-traded position shows up once it settles.

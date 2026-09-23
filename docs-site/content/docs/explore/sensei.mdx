@@ -1,0 +1,18 @@
+---
+title: "Ask Sensei for a read"
+description: "A stock-, session- and position-aware assistant that never gives investment advice."
+---
+
+Sensei is a dock that knows the ticker you're looking at, the NYSE session state, earnings context and your open positions. It keeps a **Brake** — it does not tell you what to trade, and it explicitly refuses to give investment advice. It can hand a trade card to the ticket for you to review and place yourself; it never places an order on its own.
+
+## What it needs
+
+Sensei is model-agnostic through the Vercel AI SDK: an `AI_MODEL` setting (for example `anthropic/claude-opus-5` or `openai/gpt-5.4`) plus one matching provider credential, all server-side only. Without any AI credential configured, the dock still renders — the ring, the teaser, the drawer, the meter, the tape and trade cards all work — but a reply says it's unavailable and names exactly what's missing rather than failing silently.
+
+## What it won't do
+
+- It won't tell you to buy or sell.
+- It won't promise an outcome.
+- It won't act on your behalf — every trade card still needs your own review and your own wallet signature (or a session key you already granted).
+
+See [what's available](/help/availability) for whether Sensei's model credential is configured in the environment you're using.

@@ -1,0 +1,22 @@
+---
+title: "How Agari fits together"
+description: "Devnet prediction Windows and the separate PreStocks desk share an app but use different money paths."
+---
+
+Agari is a source-led Solana port of Masayume's Up/Down journey. Its core venue is a **new Anchor order book**, not DreamDEX or an EVM contract. It lists Windows, matches Up and Down orders, records signed opening and closing prints, settles, and lets owners claim. The PreStocks desk is a separate program designed to hold tokens on mainnet; its paper practice flow is available while its mainnet deploy is pending.
+
+| Layer | Responsibility |
+| --- | --- |
+| Web app | Shows markets, baskets, tickets, desk decisions and receipts. It does not hold a user's private key. |
+| `packages/core` | Pure registry, market and desk rules; integer money arithmetic. |
+| `packages/markets` | Only Solana integration and transaction boundary. It builds instructions and reads the chain. |
+| Anchor programs | Nine devnet programs cover the venue, vault, reserves, strategies, Private and Duel; `agari-desk` was rehearsed on a mainnet fork and awaits its mainnet deploy. See [the program map](/architecture/programs). |
+| Ops and indexer | Roll Windows, relay prices, settle, quote, run paper desks and serve reads. These role keys do not replace the owner's wallet. |
+
+## Two money paths
+
+**Predict and Cover:** tUSDC with no market value on Solana devnet. A normal order is wallet-signed. A funded Trading Balance can use a bounded grant for tap-trading. The resulting Window settles from signed prints and the on-chain program, not a browser decision.
+
+**Hold through a desk:** a paper ledger during practice. A future Go live step would use real USDC and PreStocks on Solana mainnet. The owner chooses assets and limits; a runner chooses timing; `agari-desk` checks every operator action and the owner alone may withdraw. [How the desk decides](/architecture/desk) records the trust boundary.
+
+A read-only visitor can browse markets, basket marks, desk shares and proof without signing. A displayed screen is not a confirmed transaction. Use [Programs](/architecture/programs), [Price sources](/architecture/price-sources) and <AppLink href="/status">live status</AppLink> to see which path is ready.

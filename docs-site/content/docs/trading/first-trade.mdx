@@ -1,0 +1,42 @@
+---
+title: "Place an Up or Down trade"
+description: "Order types, the four fill paths, and how a Window settles or voids."
+---
+
+A Window is the unit of trading: one ticker, one cadence, one opening print and one closing print. Every call resolves to Up or Down against those two prints — nothing else decides the outcome.
+
+## Order types
+
+- **Normal** — rests on the book if it doesn't fully fill immediately; if the order's fill budget runs out while it could still cross, the unfilled remainder cancels rather than resting mid-cross.
+- **IOC** (immediate-or-cancel) — fills what it can right now and cancels the rest; reverts if it fills nothing at all.
+- **FOK** (fill-or-kill) — reverts unless it fills completely.
+- **PostOnly** — never takes; it reverts if it would cross the book immediately. This is the only order type allowed on a Window that hasn't opened for trading yet — see [Pre-open calls](/trading/pre-open-calls).
+
+Every order also carries an expiry no later than the Window's lock time, and a self-match rule (cancel the taker side or the resting maker side) so you can't trade against yourself by accident.
+
+## How a fill actually happens
+
+The engine matches on price and time, and every fill lands as one of four kinds, depending on what's resting on the other side:
+
+| You place | Matches against | What happens |
+| --- | --- | --- |
+| Buy Up | Sell Up | You buy Up directly from a seller |
+| Sell Down | Buy Down | You sell Down directly to a buyer |
+| Buy Up | Buy Down | A complete Up+Down pair is minted between you two |
+| Sell Down | Sell Up | A complete Up+Down pair is burned between you two |
+
+All four pay out by the identical rule at settlement — Up wins if the close is at or above the open, Down wins otherwise. The fill path only changes who ends up on the other side of the position, never what a winning or losing position is worth. A fill always executes at the resting order's price; if you paid more than that price as a taker, the difference is refunded.
+
+## How a Window settles
+
+Once the Window's close time arrives, the venue needs a verified price print for both the open and the close before it can pay anyone out:
+
+- **Settles Up or Down** once both prints exist and (for tickers with a cross-check) they agree closely enough. A real devnet drive produced exactly this: TSLA's Pyth print and its RedStone cross-check agreed within tolerance, and the Window settled Up.
+- **Voids `MissingPrint`** if a required print never showed up in time — everyone gets 0.5 back per lot (their stake, not a loss) plus their seat bond. A real devnet drive produced this too: an NVDA Window with no price posted voided honestly rather than settling on a guess.
+- **Voids `CrossCheckDivergence`** if a ticker has two price sources and they disagree past the allowed tolerance — same 0.5-back treatment. A real devnet drive produced this for a test ticker whose attested price landed about 1% away from its RedStone check.
+
+See [Halts and voids](/trading/halts-and-voids) for the honest labels the app uses for each of these, and every one of these transactions with its explorer link in the main Agari tree's `docs/plan/acceptance.md`.
+
+## Claim your result
+
+Nothing pays into your wallet automatically. Open <AppLink href="/portfolio">Portfolio</AppLink> once the Window shows a result and claim it — a settled position sits there until you redeem it, and redeeming still works even after the Window itself has been cleaned up on-chain.

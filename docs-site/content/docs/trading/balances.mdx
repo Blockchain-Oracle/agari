@@ -1,0 +1,20 @@
+---
+title: "tUSDC and Trading Balance"
+description: "What your test collateral is, and what the Trading Balance vault adds on top of it."
+---
+
+## tUSDC is devnet test collateral
+
+Every stake, ticket and pre-open order on Agari is sized in **tUSDC**: a 6-decimal SPL token minted by a faucet authority with no freeze authority. It has no market value — it exists only so devnet trading has a consistent unit. Get some from **Get test funds** in the header or Portfolio; see [Wallet and devnet funds](/start/wallet) for the exact flow.
+
+An ordinary wallet order escrows tUSDC straight from your wallet's token account for the life of the order, and returns it to your wallet (or pays out the settled result there) once the position closes.
+
+## Trading Balance
+
+Trading Balance is a separate pool of tUSDC held in `agari-vault`, Agari's Trading Balance and bounded-grants program, rather than sitting directly in your wallet's token account. Depositing into it is one signature; withdrawing back to your wallet is another. Its purpose is [tap-trading](/trading/tap-trading): once funded and once you've granted a session key, further orders don't need a new wallet popup for every trade.
+
+Nothing about Trading Balance changes how a position settles — the settlement rule (Up if close ≥ open, void 0.5/0.5 if a print never arrived or two sources disagreed) is identical whether the stake came from your wallet directly or from this balance. It only changes where the money sits before and after a trade, and who can sign an order against it (you, or a session key your wallet granted, capped and revocable).
+
+## Depositing and withdrawing
+
+Deposit moves tUSDC from your wallet into the vault account; withdraw moves it back. Withdrawal only pays to a token account you own — nothing here can redirect your funds elsewhere. See [Portfolio](/trading/portfolio) for where a Trading Balance position shows up once it settles.

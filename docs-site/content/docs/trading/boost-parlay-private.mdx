@@ -1,0 +1,18 @@
+---
+title: "Boost, Parlay and Private"
+description: "Three distinct devnet ticket paths and their settlement rules."
+---
+
+## Boost
+
+In the <AppLink href="/markets">Markets ticket</AppLink>, choose the **Wallet** route to see 2× or 3× Boost when available. The reserve fronts the rest of the position; your loss is capped at your stake, but the position may knock out before expiry. Review exposure, knock-out line, charge and live quote. Existing Boosts appear in <AppLink href="/portfolio">Portfolio</AppLink>, where cash-out, settlement and claim depend on their state. `agari-leverage` enforces this path on devnet. A private or Trading Balance ticket cannot be boosted.
+
+## Parlay
+
+At <AppLink href="/parlay">Parlay</AppLink>, combine two or three Window legs into one ticket. Every leg must win for the combined payout; one miss loses the ticket. A venue void can void the ticket under the program's rules. The quote accounts for legs that share a closing print, and `agari-parlay` prefunds the maximum payout. Read all legs, the final quote and reserve availability before signing; follow the ticket through settlement and claim on the same route.
+
+## Private
+
+Private is a separate **1×** route inside the <AppLink href="/markets">Markets ticket</AppLink>. It has its own devnet balance and claim flow in <AppLink href="/portfolio">Portfolio</AppLink>, backed by `agari-private`. Check the ticket's funding and recovery instructions before placing and keep the wallet used for the claim. A Private bet cannot use Boost. The presence of Private in a selector does not by itself confirm that the route is usable on the current deployment.
+
+All three use test tUSDC on **Solana devnet**. For the ordinary order book and its opening and closing prints, see [Place a trade](/trading/first-trade).
