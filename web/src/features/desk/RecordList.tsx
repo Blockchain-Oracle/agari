@@ -11,8 +11,7 @@ import { useViewerZone } from "@/lib/when";
 import { DESK, DESK_ADVICE } from "./copy";
 import { RECORD } from "./copy-record";
 import type { RecordSummaryWire } from "./protocol";
-import { foldQuietRuns } from "./record-rows";
-import { Rows } from "./RecordPanel";
+import { ActivityTimeline } from "./activity/ActivityTimeline";
 import { useDeskRecords, useDeskView, useInvalidateDesk } from "./useDesk";
 import "./desk.css";
 
@@ -43,8 +42,8 @@ export function RecordListView({ records, base, nowSec, zone, isOwner, isLive, o
         <p className="type-caption text-ink-secondary">{L.intro}</p>
         {!isOwner && <p className="type-caption text-ink-muted">{DESK.visitor}</p>}
       </header>
-      <section className="dk-panel" aria-label={L.title}>
-        {records.length === 0 ? <p className="type-body text-ink-secondary">{L.empty}</p> : <Rows rows={foldQuietRuns(records)} base={base} nowSec={nowSec} zone={zone} />}
+      <section className="dk-panel dk-record-panel" aria-label={L.title}>
+        <ActivityTimeline records={records} base={base} nowSec={nowSec} zone={zone} />
         {older && (
           <button type="button" className="dk-control self-start" onClick={older}>{L.older}</button>
         )}
