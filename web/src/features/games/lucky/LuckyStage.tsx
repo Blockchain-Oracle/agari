@@ -2,7 +2,8 @@
 
 import type { BookedOrder } from "@agari/core/ports";
 import { isOk } from "@agari/core/schemas";
-import { LUCKY_LIVE_PRE_IPO } from "@agari/core/games";
+import { LUCKY_ALLDAY_ASSETS, LUCKY_ASSETS } from "@agari/core/games";
+import { assetTicker } from "@agari/core/market";
 import { belowMinStake, minStakeBase } from "@agari/core/sizing";
 import type { Signature } from "@agari/core/types";
 import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
@@ -60,6 +61,10 @@ export function LuckyStage() {
   const floorText = decimals === null ? "" : `${formatBaseUnits(minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`;
 
   const { phase } = draw;
+  const closed = market !== null && !market.open;
+  // The reels show the list the server will seal under: the 24/7 lanes alone out of hours (policy 4, S23).
+  const pool = closed ? LUCKY_ALLDAY_ASSETS : LUCKY_ASSETS;
+  const allDayNames = LUCKY_ALLDAY_ASSETS.map((a) => assetTicker(a)?.ticker.name ?? a);
   const busy = phase.kind === "committing" || phase.kind === "spinning";
   const atRest = phase.kind === "idle" || phase.kind === "placed" || phase.kind === "refused" || phase.kind === "failed";
   const spinBlock = !session.isConnected
@@ -103,7 +108,7 @@ export function LuckyStage() {
       <div className="lk-layout">
         <div className="lk-stage">
           <section className="lk-cabinet" aria-label={LUCKY.title}>
-            <LuckyReels cycling={draw.cycling} landing={draw.landing} target={draw.target} onLanded={draw.landed} />
+            <LuckyReels cycling={draw.cycling} landing={draw.landing} target={draw.target} onLanded={draw.landed} pool={pool} />
 
             <div className="lk-stake">
               <div className="lk-stake-head">
@@ -131,8 +136,8 @@ export function LuckyStage() {
               {phase.kind === "committing" ? LUCKY.spin.committing : phase.kind === "spinning" ? (phase.deal ? LUCKY.spin.dealing : LUCKY.spin.spinning) : phase.kind === "idle" ? LUCKY.spin.cta : LUCKY.spin.again}
             </button>
             {spinBlock && atRest && <p className="lk-cta-note">{spinBlock}</p>}
-            {/* Said before the reels move: outside regular hours only the 24/7 names have a Window, so most draws deal nothing. */}
-            {market && !market.open && atRest && <p className="lk-cta-note">{LUCKY.spin.closed(market.label, LUCKY_LIVE_PRE_IPO.join(", "))}</p>}
+            {/* Said before the reels move: out of hours a spin draws only from the 24/7 lanes. */}
+            {closed && atRest && <p className="lk-cta-note">{LUCKY.spin.closed(market?.label ?? "", allDayNames.join(", "))}</p>}
           </section>
 
           {dealt && <LuckyDeal deal={dealt} symbol={symbol} onReport={onReport} onSkip={() => void onSkip()} skipping={skipping} />}

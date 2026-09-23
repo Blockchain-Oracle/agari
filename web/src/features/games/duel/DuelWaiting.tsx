@@ -3,6 +3,7 @@
 import { SOL_FAUCETS } from "@agari/core/constants";
 import type { Address, Diagnosis } from "@agari/core/types";
 import { useNowMs } from "@/components/data";
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { shortHex } from "@agari/core/units";
 import { DUEL } from "./copy";
 import type { DealingView } from "./useDuelRoom";
@@ -28,12 +29,16 @@ function leftSec(dealing: DealingView, nowMs: number): number {
 
 export function DealingPlate({ dealing }: { dealing: DealingView }) {
   const nowMs = useNowMs();
+  const session = useMarketSession();
+  const closed = session !== null && !session.open;
   const bothSeedsIn = dealing.seedsIn >= 2;
   const deckLine =
     dealing.nextDeckInSec === undefined
       ? DUEL.lobby.deckUnknown
       : dealing.nextDeckInSec === null
-        ? DUEL.lobby.deckNone
+        ? closed
+          ? DUEL.queue.deckClosed(session?.label ?? "")
+          : DUEL.lobby.deckNone
         : DUEL.lobby.deckIn(dealing.nextDeckInSec);
 
   return (
@@ -41,7 +46,7 @@ export function DealingPlate({ dealing }: { dealing: DealingView }) {
       <p className="du-deck" aria-live="polite">
         {bothSeedsIn ? deckLine : DUEL.lobby.seedWait(dealing.seedsIn)}
       </p>
-      <p className="du-body">{bothSeedsIn ? DUEL.lobby.venueWait : DUEL.lobby.seedBody}</p>
+      <p className="du-body">{bothSeedsIn ? (closed ? DUEL.queue.deckWhyClosed : DUEL.lobby.venueWait) : DUEL.lobby.seedBody}</p>
       {nowMs > 0 && <p className="du-foot">{DUEL.lobby.givesUp(leftSec(dealing, nowMs))}</p>}
     </>
   );

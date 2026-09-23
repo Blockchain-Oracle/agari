@@ -214,6 +214,7 @@ a.gm-card:hover { border-color: color-mix(in srgb, var(--vermilion) 40%, transpa
 }
 [data-theme="light"] .gm-badge { border-color: rgba(20, 18, 16, 0.14); }
 .gm-badge--live { border-color: color-mix(in srgb, var(--profit) 45%, transparent); color: var(--profit); }
+.gm-badge--after { border-color: color-mix(in srgb, var(--color-warning) 45%, transparent); color: var(--color-warning); }
 
 /* ── Plates: profile, resume, and the sections that have no writer yet ────── */
 

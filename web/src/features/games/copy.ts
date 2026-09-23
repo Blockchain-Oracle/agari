@@ -21,6 +21,9 @@ export const GAMES = {
     open: "Open",
     pendingBadge: "Not connected",
     liveBadge: "Live",
+    /** S23: the stock market is shut, so only the 24/7 lanes (OPENAI and the baskets) have Windows to play on. */
+    afterHoursBadge: "24/7 only",
+    afterHours: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · pre-IPO and baskets only`,
     unavailableBadge: "Unavailable",
     waitingOn: (dependency: string) => `Waiting on ${dependency}`,
     paused: "Paused by the operator",

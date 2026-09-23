@@ -114,9 +114,11 @@ export interface LuckyReelsProps {
   target: ReelTarget | null;
   /** The last reel has stopped and the lock-in beat has passed. */
   onLanded: () => void;
+  /** The names this spin can draw (S23): the 24/7 lanes alone while no stock Window trades. */
+  pool?: readonly string[];
 }
 
-export function LuckyReels({ cycling, landing, target, onLanded }: LuckyReelsProps) {
+export function LuckyReels({ cycling, landing, target, onLanded, pool }: LuckyReelsProps) {
   const { reducedMotion } = useGames();
   const [stopped, setStopped] = useState(0);
   const [announce, setAnnounce] = useState("");
@@ -160,7 +162,7 @@ export function LuckyReels({ cycling, landing, target, onLanded }: LuckyReelsPro
       <Reel<string>
         index={0}
         label={LUCKY.reels.asset}
-        pool={LUCKY_ASSETS}
+        pool={pool ?? LUCKY_ASSETS}
         target={target?.asset ?? null}
         cycling={cycling}
         landing={landing}

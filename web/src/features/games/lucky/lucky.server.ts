@@ -1,8 +1,10 @@
 import {
   LUCKY_ASSETS,
   LUCKY_MULTIPLIERS,
-  LUCKY_POLICY_VERSION,
   chooseLuckyWindow,
+  isLiveLuckyPolicy,
+  luckyPolicyAssets,
+  luckyPolicyFor,
   eligibleLuckyWindows,
   luckyCandidatePreimage,
   mapLuckyDraw,
@@ -53,10 +55,11 @@ export async function commitDraw(input: { wallet: Address; stakeBase: bigint; de
 
   const serverSeed = freshSeed();
   const commitment = keccak256(serverSeed);
+  const policyVersion = luckyPolicyFor(await stocksTrading());
   const created = await createLuckyDraw({
     drawId: freshSeed(),
     wallet: input.wallet,
-    policyVersion: LUCKY_POLICY_VERSION,
+    policyVersion,
     stakeBase: input.stakeBase.toString(),
     commitment,
     serverSeed,
@@ -68,10 +71,24 @@ export async function commitDraw(input: { wallet: Address; stakeBase: bigint; de
       wallet: input.wallet as Address,
       commitment,
       nonce: created.nonce,
-      policyVersion: LUCKY_POLICY_VERSION,
+      policyVersion,
       stakeBase: input.stakeBase.toString(),
     },
   };
+}
+
+/**
+ * Whether any Regular stock Window is trading now: the fact that decides which list a new seed indexes (S23). An
+ * unreadable venue counts as open, so the full list is kept and the scan's own refusal says why.
+ */
+async function stocksTrading(): Promise<boolean> {
+  const env = marketsEnvFromProcess();
+  const venue = await resolveVenueId(env.venueId);
+  if (!isOk(venue) || !venue.value.venueId) return true;
+  const lanes = await marketsProvider.listLiveLanes(venue.value.venueId);
+  if (!isOk(lanes)) return true;
+  const nowMs = marketsProvider.nowMs();
+  return lanes.value.lanes.some((lane) => lane.markets.some((m) => m.lane === "regular" && phase(m, nowMs) === "trading"));
 }
 
 export interface Scanned {
@@ -87,7 +104,7 @@ export interface Scanned {
  * the chooser takes. The other side's quote rides along so the card can show both odds on the Window it
  * was dealt — the choice itself is on the drawn side only.
  */
-export async function scanLuckyWindows(asset: string, side: Side, multiplier: number, stakeBase: bigint): Promise<Scanned | null> {
+export async function scanLuckyWindows(asset: string, side: Side, multiplier: number, stakeBase: bigint, policyVersion: number): Promise<Scanned | null> {
   const env = marketsEnvFromProcess();
   ensureMarkets(env);
   const venue = await resolveVenueId(env.venueId);
@@ -105,7 +122,7 @@ export async function scanLuckyWindows(asset: string, side: Side, multiplier: nu
     trading: phase(m, nowMs) === "trading",
   }));
   const eligible = eligibleLuckyWindows(candidates, asset, Math.floor(nowMs / 1_000));
-  const candidateHash = keccak256(luckyCandidatePreimage(eligible.map((c) => c.marketId), LUCKY_POLICY_VERSION));
+  const candidateHash = keccak256(luckyCandidatePreimage(eligible.map((c) => c.marketId), policyVersion));
 
   const quoted = await Promise.all(
     eligible.map(async (c) => {
@@ -150,7 +167,7 @@ async function dealFromRow(row: LuckyDrawRow): Promise<LuckyDealWire> {
     commitment: row.commitment as Hash32,
     serverSeed: row.serverSeed as Hash32,
     clientSeed: row.clientSeed as Hash32,
-    assets: LUCKY_ASSETS,
+    assets: luckyPolicyAssets(row.policyVersion) ?? LUCKY_ASSETS,
     multipliers: LUCKY_MULTIPLIERS,
     draw: { asset: row.asset ?? "", side: row.side ?? "up", multiplier: row.multiplier ?? 0 },
     candidateHash: (row.candidateHash ?? "0x") as Hash32,
@@ -172,12 +189,13 @@ export async function revealDraw(input: { drawId: Hash32; clientSeed: Hash32 }):
   }
 
   // A seed sealed under a retired policy cannot be dealt under this one: the asset list it would index has changed.
-  if (row.policyVersion !== LUCKY_POLICY_VERSION) return { ok: false, status: 409, error: "that draw was sealed under a retired policy; spin again" };
+  const assets = luckyPolicyAssets(row.policyVersion);
+  if (!isLiveLuckyPolicy(row.policyVersion) || !assets) return { ok: false, status: 409, error: "that draw was sealed under a retired policy; spin again" };
 
   const wallet = row.wallet as Address;
   const digest = luckyDigest(row.serverSeed as Hash32, { clientSeed: input.clientSeed, wallet, nonce: row.nonce, policyVersion: row.policyVersion });
-  const draw = mapLuckyDraw(digest, { assets: LUCKY_ASSETS, multipliers: LUCKY_MULTIPLIERS });
-  const scanned = await scanLuckyWindows(draw.asset, draw.side, draw.multiplier, BigInt(row.stakeBase));
+  const draw = mapLuckyDraw(digest, { assets, multipliers: LUCKY_MULTIPLIERS });
+  const scanned = await scanLuckyWindows(draw.asset, draw.side, draw.multiplier, BigInt(row.stakeBase), row.policyVersion);
 
   const chosen = scanned?.chosen ?? null;
   const refusal = scanRefusal(scanned);
@@ -205,7 +223,7 @@ export async function revealDraw(input: { drawId: Hash32; clientSeed: Hash32 }):
       commitment: row.commitment as Hash32,
       serverSeed: row.serverSeed as Hash32,
       clientSeed: input.clientSeed.toLowerCase() as Hash32,
-      assets: LUCKY_ASSETS,
+      assets,
       multipliers: LUCKY_MULTIPLIERS,
       draw,
       candidateHash: scanned?.candidateHash ?? ("0x" as Hash32),

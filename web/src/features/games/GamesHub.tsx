@@ -17,6 +17,7 @@ import { useSeason } from "./duel/useSeason";
 import { useGames } from "./GamesProvider";
 import { AchievementsPlate } from "./AchievementsPlate";
 import { SeasonBanner } from "./SeasonBanner";
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 
 /**
  * `/games` — the selection, and everything the shell knows about the player.
@@ -47,8 +48,13 @@ export function GamesHub() {
     if (searching > 0) return GAMES.card.searching(searching);
     return occupancy.pairing > 0 ? GAMES.card.inMatch(occupancy.pairing) : GAMES.card.nobody;
   };
-  const status = (entry: GameEntry): CardStatus =>
-    entry.id === "range" || entry.id === "moonshot" ? rangeStatus(reserve) : entry.readiness.kind === "built" ? { kind: "live" } : { kind: "pending", dependency: entry.readiness.dependency };
+  const session = useMarketSession();
+  const closed = session !== null && !session.open;
+  const status = (entry: GameEntry): CardStatus => {
+    const base: CardStatus = entry.id === "range" || entry.id === "moonshot" ? rangeStatus(reserve) : entry.readiness.kind === "built" ? { kind: "live" } : { kind: "pending", dependency: entry.readiness.dependency };
+    // Every mode that plays a Window runs on the 24/7 lanes alone while the stock market is shut; arcade never touches one.
+    return closed && base.kind === "live" && entry.descriptor.group !== "arcade" ? { kind: "after-hours", note: GAMES.card.afterHours(session?.label ?? "") } : base;
+  };
 
   return (
     <div className="container gm-page">

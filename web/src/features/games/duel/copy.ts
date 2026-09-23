@@ -102,9 +102,12 @@ export const DUEL = {
     waited: (sec: number) => `Waited ${sec}s`,
     /** Three answers, never merged — see `QueueView.nextDeckInSec`. */
     deckUnknown: "Checking what the venue can deal…",
-    deckNone: "The venue has no deck to deal within the hour. The queue stays open; a Window opening changes this.",
+    deckNone: "No deck to deal within the hour. The queue stays open; a Window opening changes this.",
+    /** S23: out of hours a deck comes only from the 24/7 lanes, and only from Books quoting both sides. */
+    deckClosed: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`}. Duels deal from pre-IPO and basket Windows with live quotes, and none has one right now.`,
     deckIn: (sec: number) => (sec === 0 ? "A deck is dealable now" : `Next deck dealable in ${sec}s`),
     deckWhy: "A duel needs live Windows with enough time left for both players to play every card.",
+    deckWhyClosed: "While the stock market is shut, only the 24/7 pre-IPO and basket Windows can be dealt.",
     leave: "Leave the queue",
     left: "You left the queue.",
     expired: "The queue timed out before it found an opponent.",
@@ -149,10 +152,10 @@ export const DUEL = {
     /** The wait, named. A spinner cannot tell a browser's second from the venue's ninety. */
     seedWait: (seedsIn: number) => (seedsIn >= 2 ? "Both seeds are in." : `${seedsIn} of 2 seeds are in.`),
     seedBody: "Each browser reveals the seed it committed to when it queued. Neither side, and not the server, can choose one after seeing the other's.",
-    venueWait: "The venue rolls its Windows on fixed boundaries, and a duel needs ones with enough life left for both players to play every card. For a few minutes an hour there are none, and this is one of those minutes.",
+    venueWait: "A duel needs Windows with enough life left for both players to play every card. None qualifies this moment; the next roll brings one.",
     deckIn: (sec: number) => (sec <= 0 ? "A deck is dealable now" : `Next dealable deck in ${sec}s`),
     deckUnknown: "Checking what the venue can deal…",
-    deckNone: "The venue has nothing dealable within the hour.",
+    deckNone: "Nothing dealable within the hour.",
     givesUp: (sec: number) => `This pairing is given up on in ${sec}s`,
     /** The pre-chain deadline: a sealed deck nobody pays for is released rather than left on screen. */
     createBy: (sec: number) => `${sec}s left to put this match on chain`,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { SearchingBanner } from "../art/PixelArt";
 import { DUEL } from "./copy";
 import type { QueueView } from "./useDuelRoom";
@@ -8,20 +9,24 @@ import type { QueueView } from "./useDuelRoom";
  * Waiting for an opponent, with the venue's own supply on screen beside the count.
  *
  * The deck line is the reason this screen exists rather than a spinner. A duel needs live Windows
- * with enough life left for both players to play every card, and for a few minutes an hour the venue
- * has none — so "nothing is happening" and "no deck exists right now" are different facts, and only
- * one of them means the player should walk away.
+ * with enough life left for both players to play every card, and at times the venue has none — at a
+ * roll, or all night while the stock market is shut and only quoted 24/7 Books can be dealt (S23) — so
+ * "nothing is happening" and "no deck exists right now" are different facts, and the screen says which.
  *
  * `nextDeckInSec` has three values and this is where they must not be merged (`protocol.ts` says why):
  * a number is a countdown, `null` is "further out than the projection looked", and **absent** is "not
  * known yet" — which is what every client sees before the server's first supply read lands.
  */
 export function DuelQueue({ queue, waitedSec, onLeave }: { queue: QueueView | null; waitedSec: number; onLeave: () => void }) {
+  const session = useMarketSession();
+  const closed = session !== null && !session.open;
   const deckLine =
     queue === null || queue.nextDeckInSec === undefined
       ? DUEL.queue.deckUnknown
       : queue.nextDeckInSec === null
-        ? DUEL.queue.deckNone
+        ? closed
+          ? DUEL.queue.deckClosed(session?.label ?? "")
+          : DUEL.queue.deckNone
         : DUEL.queue.deckIn(queue.nextDeckInSec);
 
   return (
@@ -56,7 +61,7 @@ export function DuelQueue({ queue, waitedSec, onLeave }: { queue: QueueView | nu
       <p className="du-deck" aria-live="polite">
         {deckLine}
       </p>
-      <p className="du-foot">{DUEL.queue.deckWhy}</p>
+      <p className="du-foot">{closed ? DUEL.queue.deckWhyClosed : DUEL.queue.deckWhy}</p>
 
       <button type="button" className="du-cta du-cta--leave" onClick={onLeave}>
         {DUEL.queue.leave}

@@ -45,7 +45,9 @@ export const PRACTICE = {
     dealing: "Dealing from the venue's live Windows…",
     none: {
       title: "No Window to practise on",
-      body: "Practice deals from the venue's live Windows, and right now none has enough time left to run a round. This is the venue's schedule, not a fault — try again in a minute.",
+      body: "Practice deals from the venue's live Windows, and right now none has enough time left to run a round. The next roll brings one.",
+      /** S23: overnight and at weekends only the 24/7 pre-IPO and basket Windows run. */
+      closedBody: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`}. Practice deals from the pre-IPO and basket Windows until then, and none has enough time left to run a round right now.`,
     },
     offline: {
       title: "The venue is not readable",
