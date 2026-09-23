@@ -12,6 +12,10 @@ import { readRunnerEnv, type RunnerEnv } from "./env";
 import { executeForSubscriber } from "./execute";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
 import { opsMarketsEnv } from "../../runtime/markets-env";
+import { REST_CHECK_MS, tradingStockWindows } from "./stock-hours";
+
+/** The heartbeat while no stock Window trades; `activity.ts` on the web reads it as "Resting". */
+export const RESTING_WHY = "resting: the stock market is closed and strategies trade stock Windows; checking every 5 minutes";
 
 type Log = (why: string) => void;
 
@@ -25,12 +29,12 @@ interface Runner {
 }
 
 /** Durability only (AD-7): the log line is the truth, the row is what the surface reads later. */
-async function heartbeat(runner: Runner, strategyId: bigint, why: string, scanned: number, closestBps: number | null): Promise<void> {
+async function heartbeat(runner: Runner, strategyId: bigint, why: string, scanned: number, closestBps: number | null, intervalMs = runner.env.intervalMs): Promise<void> {
   runner.log(`#${strategyId}: ${why}`);
   const stored = await recordHeartbeat({
     runner: runner.session?.address ?? "unconfigured",
     strategyId: strategyId.toString(),
-    intervalMs: runner.env.intervalMs,
+    intervalMs,
     why,
     scanned,
     closestBps,
@@ -155,9 +159,23 @@ export async function startStrategyRunner(log: Log): Promise<void> {
   };
   const bootAtMs = Date.now();
   let recoveredReads = false;
+  let lastRestMs = 0;
   const tick = serialCycle(async () => {
     const clock = await marketsProvider.syncClock();
     if (!isOk(clock) || clock.stale) throw new Error("chain clock unavailable; holding");
+    // Rest while no stock Window trades: one lanes read per tick, the settlement sweep and a heartbeat every five
+    // minutes, and no strategy read, no price read and no model call until a stock Window opens.
+    const lanes = await marketsProvider.listLiveLanes(runner.venueId);
+    if (isOk(lanes) && !lanes.stale && tradingStockWindows(lanes.value, marketsProvider.nowMs()).length === 0) {
+      if (Date.now() - lastRestMs < REST_CHECK_MS) return;
+      lastRestMs = Date.now();
+      for (const id of await strategiesToRun()) {
+        if (session) await settleStrategyPositions(session, id, env.dryRun, log).catch((error: unknown) => log(`#${id}: settlement sweep failed: ${error instanceof Error ? error.message : String(error)}`));
+        await heartbeat(runner, id, RESTING_WHY, 0, null, REST_CHECK_MS);
+      }
+      return;
+    }
+    lastRestMs = 0;
     if (session && isDbConfigured()) {
       if (!recoveredReads) {
         await interruptStrategyDecisions(session.address, bootAtMs);

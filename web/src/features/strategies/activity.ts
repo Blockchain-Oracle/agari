@@ -51,6 +51,7 @@ export function strategyActivityOf({ state, grant, health, nowMs }: {
   if (/^(?:lanes|strategy|subscriptions) unreadable:|^strategy execution and risk stores unavailable|^agent brain not configured|^metadata carries no readable spec/.test(why) || why.endsWith("no runner key configured, so nothing sent")) {
     return result("Unavailable", "The runner reports a missing dependency or unreadable data. See its report below.");
   }
+  if (/^resting: the stock market is closed/.test(why)) return result("Resting", "Strategies trade stock Windows. The runner checks every five minutes and starts again when the market opens.");
   if (/^holding:|^risk memory unavailable/.test(why)) return result("Held", "The runner reports a hold. See its reason below before expecting another entry.");
   if (why === "published; waiting for a funded live subscriber") return result("Waiting for the next check", "The runner has not yet reported a funded live subscriber. Its next scan must pick up your permission.");
   const counts = why.match(/; (\d+) filled, (\d+) skipped( \(dry run\))?$/);

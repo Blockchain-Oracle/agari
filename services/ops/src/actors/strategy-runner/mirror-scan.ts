@@ -1,10 +1,10 @@
-import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import { decideMirror, type MirrorSpec } from "@agari/core/strategies";
 import type { Address } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { listWalletFills } from "@agari/markets";
 import type { Scan } from "./decide";
+import { tradingStockWindows } from "./stock-hours";
 
 /** A trader's calls are read from the index, so the window of interest is also the only history this needs. */
 const FILL_LIMIT = 50;
@@ -20,7 +20,7 @@ const FILL_LIMIT = 50;
 export async function scanVenueMirror(venueId: Address, spec: MirrorSpec, nowMs: number): Promise<Scan> {
   const lanes = await marketsProvider.listLiveLanes(venueId);
   if (!isOk(lanes) || lanes.stale) return { candidates: [], scanned: 0, closestBps: null, why: `lanes unreadable: ${isOk(lanes) ? "stale state" : lanes.error.technical}` };
-  const markets = lanes.value.lanes.flatMap((lane) => lane.markets).filter((m) => phase(m, nowMs) === "trading");
+  const markets = tradingStockWindows(lanes.value, nowMs);
   const sinceSec = Math.floor(nowMs / 1_000) - spec.withinSec;
   const fills = await listWalletFills(spec.trader, { sinceSec, limit: FILL_LIMIT });
   if (!isOk(fills) || fills.stale) {

@@ -1,6 +1,5 @@
 import { decideAgentWindow, missingCredentialHint, promptHashOf, resolveModel, type ResolvedModel } from "@agari/brain";
 import { formatCadence } from "@agari/core/copy";
-import { phase } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import { agentPrompt, decisionSlot, gateAgentVerdict, type AgentSpec, type StrategyRecord } from "@agari/core/strategies";
 import type { Address, EventMarket } from "@agari/core/types";
@@ -11,6 +10,7 @@ import { readAgentContext } from "@agari/markets/strategies";
 import { readAgentRecord, settlementReader } from "./agent-record";
 import type { Scan } from "./decide";
 import type { RunnerEnv } from "./env";
+import { tradingStockWindows } from "./stock-hours";
 
 const HOUR_MS = 3_600_000;
 const WARM_ROWS = 500;
@@ -85,7 +85,7 @@ export async function scanVenueWithAgent(runner: AgentRunner, strategy: Strategy
   forget(agent, nowSec);
   const lanes = await marketsProvider.listLiveLanes(runner.venueId);
   if (!isOk(lanes) || lanes.stale) return { candidates: [], scanned: 0, closestBps: null, why: `lanes unreadable: ${isOk(lanes) ? "stale state" : lanes.error.technical}` };
-  const markets = lanes.value.lanes.flatMap((lane) => lane.markets).filter((m) => spec.cadences.includes(m.intervalSec) && phase(m, nowMs) === "trading");
+  const markets = tradingStockWindows(lanes.value, nowMs).filter((m) => spec.cadences.includes(m.intervalSec));
   const settlementOf = settlementReader();
   const candidates: Scan["candidates"] = [];
   const notes: string[] = [];
