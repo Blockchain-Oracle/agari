@@ -19,7 +19,9 @@ const WEB_SHIMS = new Map([
   [path.join(webSrc, "lib/toast.ts"), path.join(shims, "toast.ts")],
   [path.join(webSrc, "features/funding/credited.ts"), path.join(shims, "credited.ts")],
   [path.join(webSrc, "lib/url-state.ts"), path.join(shims, "url-state.ts")],
+  [path.join(webSrc, "providers/wallet/mainnet-signer.ts"), path.join(shims, "mainnet-signer.ts")],
   [path.join(webSrc, "features/session/SessionKeyProvider.tsx"), path.join(shims, "session-key-provider.tsx")],
+  [path.join(webSrc, "features/games/duel/useGameKey.ts"), path.join(shims, "game-key.ts")],
   [path.resolve(__dirname, "../packages/markets/src/runtime/page.ts"), path.join(shims, "page.ts")],
 ]);
 
@@ -28,6 +30,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (OPERATOR_ONLY.has(moduleName)) return { type: "empty" };
   // tweetnacl's Node fallback requires "crypto"; the app's Node-compatible crypto is quick-crypto.
   if (moduleName === "next/navigation") return { type: "sourceFile", filePath: path.join(shims, "next-navigation.ts") };
+  if (moduleName === "lucide-react") return { type: "sourceFile", filePath: path.join(shims, "lucide-react.ts") };
   if (moduleName === "crypto") return context.resolveRequest(context, "react-native-quick-crypto", platform);
   const pinned = SINGLETONS.find((name) => moduleName === name || moduleName.startsWith(`${name}/`));
   const ctx = pinned ? { ...context, originModulePath: path.join(appRoot, "index.js") } : context;

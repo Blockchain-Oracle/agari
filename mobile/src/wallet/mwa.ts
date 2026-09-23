@@ -30,7 +30,14 @@ const assertAndroid = () => { if (Platform.OS !== "android") throw new Error("Mo
 export async function connectMwaWallet(): Promise<MwaState> {
   assertAndroid();
   const { transact } = await import("@solana-mobile/mobile-wallet-adapter-protocol");
-  const auth = await transact((wallet) => wallet.authorize({ chain: CHAIN, identity: IDENTITY }));
+  const auth = await transact(async (wallet) => {
+    const authorized = await wallet.authorize({ chain: CHAIN, identity: IDENTITY });
+    const { features } = await wallet.getCapabilities();
+    if (!features.includes(SIGN_TRANSACTIONS)) {
+      throw new Error("This wallet cannot sign for Agari's sponsored transactions. Choose Phantom or Solflare instead.");
+    }
+    return authorized;
+  });
   const state = sessionOf(auth);
   await SecureStore.setItemAsync(KEY, JSON.stringify(state), OPTIONS);
   return state;

@@ -3,8 +3,8 @@ import type { ReadoutCells } from "@/features/markets/ticket/ReadoutStrip";
 import { TICKET } from "@/lib/copy";
 import { RADIUS, TYPE, useTheme } from "~/theme";
 
-/** web's ReadoutStrip: Current cost · Return · Max loss, the caption beneath, the chance with a live quote. */
-export function ReadoutStrip({ cells, live, caption, chance }: { cells: ReadoutCells; live: boolean; caption: string; chance: string | null }) {
+/** web's ReadoutStrip: Current cost · Return · Max loss, the caption beneath, the chance with a live quote, and the one note (a boost's knock-out, an earnings day). */
+export function ReadoutStrip({ cells, live, caption, chance, note = null }: { cells: ReadoutCells; live: boolean; caption: string; chance: string | null; note?: string | null }) {
   const { color } = useTheme();
   const cell = (label: string, value: string | null, accent = false) => (
     <View style={styles.cell} key={label}>
@@ -25,6 +25,7 @@ export function ReadoutStrip({ cells, live, caption, chance }: { cells: ReadoutC
         <Text style={[TYPE.caption, styles.caption, { color: color.inkSecondary }]}>{caption}</Text>
         {chance ? <Text style={[TYPE.data, { color: color.ink }]}>{chance}</Text> : null}
       </View>
+      {note ? <Text style={[TYPE.caption, { color: color.warning }]}>{note}</Text> : null}
     </View>
   );
 }

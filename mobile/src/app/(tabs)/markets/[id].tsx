@@ -1,77 +1,100 @@
+import { isRestable } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
 import type { MarketId, Side } from "@agari/core/types";
 import { useMarket, useOpeningPrice } from "@agari/markets/react";
-import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { assetPriceLine } from "@/features/markets/hero/units";
+import { useQueryClient } from "@tanstack/react-query";
+import { router, useLocalSearchParams } from "expo-router";
+import { StyleSheet, View } from "react-native";
 import { useChartSeries } from "@/features/markets/hero/useChartSeries";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { useTopOfBook } from "@/features/markets/hero/useTopOfBook";
+import { laneAssetLabel, laneTabLabel } from "@/features/markets/lanes/lane-view";
+import { useWindowPhase } from "@/features/markets/ticket/useTicket";
 import { useChainNowMs } from "@/features/markets/useChainNow";
-import { formatCadence } from "@/lib/copy";
-import { AssetDisc } from "~/components/marks/AssetDisc";
-import { CountdownRing } from "~/components/ui/CountdownRing";
+import { Button, Card, EmptyState, ErrorState, LoadingState, Screen, SectionHeader } from "~/components/kit";
 import { SideButtons } from "~/components/window/SideButtons";
-import { WindowChart } from "~/components/window/WindowChart";
-import { WindowQuestion } from "~/components/window/WindowQuestion";
-import { SPACE, TYPE, useTheme } from "~/theme";
+import { WindowLine } from "~/components/window/WindowLine";
+import { NATIVE_MARKETS } from "~/features/markets/copy";
+import { LiveVerdict } from "~/features/markets/verdict/LiveVerdict";
+import { DepthBook } from "~/features/markets/window/DepthBook";
+import { ListedWindow } from "~/features/markets/window/ListedWindow";
+import { WindowHero, UpRamp } from "~/features/markets/window/WindowHero";
+import { WindowLinks } from "~/features/markets/window/WindowLinks";
+import { WindowRules } from "~/features/markets/window/WindowRules";
 
-/** One Window: the question, the live price and line against the strike, the clock, and the two calls. */
+/**
+ * One Window (web's /markets/<id> hero, rail and verdict, as a pushed screen): the price-to-beat sentence, the big live
+ * price and the ring to the bell, the live line against the dashed strike, the Up/Down prices, the book, the rule and
+ * its price source, and — once the bell has rung — this wallet's verdict and claim. A Window listed before its bell is
+ * the asset page with a schedule seam instead.
+ */
 export default function WindowScreen() {
-  const { color } = useTheme();
-  const { id } = useLocalSearchParams<{ id: string; dir?: Side }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const reading = useMarket(id as MarketId);
   const market = reading && isOk(reading) ? reading.value : null;
-  const opening = useOpeningPrice(market?.marketId ?? null);
-  const openingRaw = opening && isOk(opening) ? opening.value : null;
-  const spot = useOracleSpot(market?.asset ?? null);
-  const series = useChartSeries(market);
-  const book = useTopOfBook(market);
   const nowMs = useChainNowMs();
-  if (!market) return <View style={[styles.fill, styles.holding, { backgroundColor: color.ground }]}><Text style={[TYPE.title, { color: color.ink }]}>{reading === null ? "Reading Window…" : reading.ok ? "Window not found" : "Window unavailable"}</Text><Text style={[TYPE.body, { color: color.inkSecondary }]}>Return to Markets to choose a live Window.</Text><Pressable onPress={() => router.back()} accessibilityRole="button"><Text style={[TYPE.bodyStrong, { color: color.accent }]}>Back to Markets →</Text></Pressable></View>;
+  const phase = useWindowPhase(market, nowMs);
+  const opening = useOpeningPrice(market?.marketId ?? null);
+  const series = useChartSeries(market);
+  const spot = useOracleSpot(market?.asset ?? null);
+  const book = useTopOfBook(market);
+  const refresh = () => queryClient.invalidateQueries();
 
-  const nowSec = nowMs > 0 ? nowMs / 1000 : Date.now() / 1000;
-  const remaining = Math.max(0, market.lockAtSec - nowSec);
-  const points = series && isOk(series) ? series.value.points : [];
+  if (!market) {
+    return (
+      <Screen title={NATIVE_MARKETS.windowReading}>
+        {reading === null ? (
+          <LoadingState shape="chart" label={NATIVE_MARKETS.windowReading} />
+        ) : !reading.ok ? (
+          <ErrorState diagnosis={reading.error} retry={() => void refresh()} />
+        ) : (
+          <EmptyState why={NATIVE_MARKETS.windowGone} action={{ label: NATIVE_MARKETS.backToMarkets, onPress: () => router.navigate("/markets") }} />
+        )}
+      </Screen>
+    );
+  }
+
+  const title = `${laneAssetLabel(market.asset, market.lane)} · ${laneTabLabel(market.lane, market.intervalSec)}`;
+  const openingRaw = opening?.ok ? opening.value : market.openingPriceRaw;
+  const latestRaw = series?.ok ? (series.value.latest?.valueRaw ?? null) : null;
+  const currentRaw = latestRaw ?? spot;
   const pick = (side: Side) => router.push({ pathname: "/ticket", params: { m: market.marketId, dir: side } });
+  const listed = phase !== null && isRestable(phase) && market.lane !== "token";
+  const over = phase === "locked" || phase === "settledUnclaimed" || phase === "finalized" || phase === "voided";
+
+  if (listed) {
+    return (
+      <Screen title={title} onRefresh={refresh}>
+        <ListedWindow market={market} nowMs={nowMs} onPick={pick} />
+        <WindowLinks market={market} />
+        <SectionHeader index={NATIVE_MARKETS.sections.rule.index} title={NATIVE_MARKETS.sections.rule.title} />
+        <WindowRules market={market} openingRaw={openingRaw} currentRaw={currentRaw} phase={phase} />
+      </Screen>
+    );
+  }
 
   return (
-    <>
-      <Stack.Screen options={{ headerTitle: () => <WindowTitle asset={market.asset} cadence={formatCadence(market.intervalSec)} />, headerLeft: undefined, unstable_headerLeftItems: undefined }} />
-      <ScrollView style={{ backgroundColor: color.ground }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.body}>
-        <View style={styles.headRow}>
-          <View style={styles.price}>
-            <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Live</Text>
-            <Text style={[TYPE.dataHero, { color: color.ink }]}>{spot === null ? "—" : assetPriceLine(market.asset, spot)}</Text>
-          </View>
-          <CountdownRing remainingSec={remaining} totalSec={market.lockAtSec - market.tradingStartSec} />
-        </View>
-        <WindowQuestion asset={market.asset} openingRaw={openingRaw} currentRaw={spot} />
-        <WindowChart points={points} strikeRaw={openingRaw} />
-        <SideButtons upCents={book.upCents} downCents={book.downCents} onPick={pick} disabled={remaining <= 0} />
-        {market.status === "Resolved" || market.status === "Voided" || market.status === "Finalized" ? <Pressable onPress={() => router.push({ pathname: "/proof/[id]", params: { id: market.marketId } })} accessibilityRole="link" style={[styles.proofLink, { borderColor: color.hairline }]}><Text style={[TYPE.bodyStrong, { color: color.accent }]}>See the settlement prints</Text><Text style={[TYPE.bodyStrong, { color: color.accent }]}>→</Text></Pressable> : null}
-      </ScrollView>
-    </>
-  );
-}
-
-function WindowTitle({ asset, cadence }: { asset: string; cadence: string }) {
-  const { color } = useTheme();
-  return (
-    <View style={styles.title}>
-      <AssetDisc asset={asset} size={22} />
-      <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{asset}</Text>
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{cadence}</Text>
-    </View>
+    <Screen title={title} onRefresh={refresh}>
+      <WindowHero market={market} openingRaw={openingRaw} currentRaw={currentRaw} phase={phase} nowMs={nowMs} />
+      <Card style={styles.chart}>
+        <WindowLine market={market} height={230} />
+        <UpRamp upCents={book.upCents} />
+      </Card>
+      {over ? null : <SideButtons upCents={book.upCents} downCents={book.downCents} hydrating={book.hydrating} onPick={pick} />}
+      <LiveVerdict marketId={market.marketId} />
+      {over ? <Button label={NATIVE_MARKETS.backToMarkets} variant="secondary" onPress={() => router.navigate("/markets")} /> : null}
+      <WindowLinks market={market} />
+      <SectionHeader index={NATIVE_MARKETS.sections.book.index} title={NATIVE_MARKETS.sections.book.title} />
+      <DepthBook market={market} />
+      <SectionHeader index={NATIVE_MARKETS.sections.rule.index} title={NATIVE_MARKETS.sections.rule.title} />
+      <WindowRules market={market} openingRaw={openingRaw} currentRaw={currentRaw} phase={phase} />
+      <View style={styles.foot} />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  holding: { justifyContent: "center", padding: SPACE.gutter, gap: 14 },
-  body: { padding: SPACE.gutter, gap: 18, paddingBottom: 120 },
-  headRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  price: { gap: 2 },
-  title: { flexDirection: "row", alignItems: "center", gap: 8 },
-  proofLink: { borderWidth: 1, borderRadius: 12, height: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
+  chart: { paddingHorizontal: 12, paddingVertical: 14 },
+  foot: { height: 8 },
 });

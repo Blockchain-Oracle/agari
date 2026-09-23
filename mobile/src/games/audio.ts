@@ -48,7 +48,7 @@ function readVolume(key: string): number {
 
 let sfxVolume = readVolume(SFX_VOLUME_KEY);
 let bgmVolume = readVolume(BGM_VOLUME_KEY);
-let sessionReady = false;
+let sessionReady: Promise<void> | null = null;
 const pools = new Map<SfxName, { players: AudioPlayer[]; next: number }>();
 let bed: AudioPlayer | null = null;
 let bgmWanted = false;
@@ -56,10 +56,9 @@ let bgmWanted = false;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((listener) => listener());
 
-function ensureSession(): void {
-  if (sessionReady) return;
-  sessionReady = true;
-  void setAudioModeAsync({
+function ensureSession(): Promise<void> {
+  if (sessionReady) return sessionReady;
+  sessionReady = setAudioModeAsync({
     // The ring/silent switch does not mute game audio the player turned up in the game's own sliders.
     playsInSilentMode: true,
     interruptionMode: "mixWithOthers",
@@ -71,6 +70,12 @@ function ensureSession(): void {
     if (state === "active") syncBgm();
     else bed?.pause();
   });
+  return sessionReady;
+}
+
+/** Arcade cues share the game's audio session and wait for its output policy before their first play. */
+export function gameAudioReady(): Promise<void> {
+  return ensureSession();
 }
 
 function pool(name: SfxName) {
@@ -84,19 +89,21 @@ function pool(name: SfxName) {
 
 /** Load every sample ahead of the first cue, so the first swipe is not silent while its file decodes. */
 export function preloadGameAudio(): void {
-  ensureSession();
+  void ensureSession();
   for (const name of Object.keys(SOURCES) as SfxName[]) pool(name);
 }
 
 export function playSfx(name: SfxName): void {
   if (sfxVolume === 0) return;
   try {
-    ensureSession();
+    const ready = ensureSession();
     const entry = pool(name);
     const player = entry.players[entry.next % POOL]!;
     entry.next += 1;
     player.volume = SFX_VOLUME_BASE * sfxVolume;
-    void player.seekTo(0).then(() => player.play()).catch(() => undefined);
+    void ready.then(() => player.seekTo(0)).then(() => {
+      if (sfxVolume > 0 && AppState.currentState === "active") player.play();
+    }).catch(() => undefined);
   } catch {
     // no audio on this device right now: stay silent
   }
@@ -109,13 +116,15 @@ function syncBgm(): void {
       bed?.pause();
       return;
     }
-    ensureSession();
+    void ensureSession();
     if (!bed) {
       bed = createAudioPlayer(BED_SOURCE);
       bed.loop = true;
     }
     bed.volume = BGM_VOLUME_BASE * bgmVolume;
-    if (!bed.playing) bed.play();
+    if (!bed.playing) void ensureSession().then(() => {
+      if (bgmWanted && bgmVolume > 0 && AppState.currentState === "active") bed?.play();
+    });
   } catch {
     // the bed is decoration: never an error
   }

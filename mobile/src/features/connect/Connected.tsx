@@ -50,7 +50,7 @@ export function Connected({ address, walletName, onFunds, onDone }: { address: s
       </View>
       <View style={styles.actions}>
         {empty ? <Button label="Get test funds" icon={{ ios: "plus.circle.fill", android: "add_circle" }} onPress={onFunds} /> : null}
-        <Button label={empty ? "Look around first" : "Start trading"} variant={empty ? "secondary" : "primary"} onPress={onDone} />
+        <Button label={sheet === null ? "Continue" : empty ? "Look around first" : "Start trading"} variant={empty ? "secondary" : "primary"} onPress={onDone} />
       </View>
     </View>
   );

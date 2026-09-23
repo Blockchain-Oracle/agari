@@ -1,86 +1,56 @@
-import { collateralOrNull } from "@agari/markets";
+import { isRestable } from "@agari/core/lifecycle";
 import { isOk } from "@agari/core/schemas";
-import type { MarketId, Side } from "@agari/core/types";
+import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { useMarket } from "@agari/markets/react";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useTicketComposer } from "@/features/markets/ticket/useTicketComposer";
+import { useLocalSearchParams } from "expo-router";
+import { useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { defaultSide, useBetAgainst } from "@/features/markets/bet-against";
+import { useWindowPhase } from "@/features/markets/ticket/useTicket";
 import { useChainNowMs } from "@/features/markets/useChainNow";
-import { TICKET } from "@/lib/copy";
-import { AssetDisc } from "~/components/marks/AssetDisc";
-import { CallReceipt } from "~/components/ticket/CallReceipt";
-import { QuickChips } from "~/components/ticket/QuickChips";
-import { ReadoutStrip } from "~/components/ticket/ReadoutStrip";
-import { SideToggle } from "~/components/ticket/SideToggle";
-import { TicketCta } from "~/components/ticket/TicketCta";
-import { AmountPad } from "~/components/ui/AmountPad";
-import { FONT, SPACE, TYPE, useTheme } from "~/theme";
-import type { EventMarket } from "@agari/core/types";
+import { EmptyState, ErrorState, LoadingState } from "~/components/kit";
+import { NATIVE_MARKETS } from "~/features/markets/copy";
+import { ScheduleTicket } from "~/features/markets/ticket/ScheduleTicket";
+import { TakerTicket } from "~/features/markets/ticket/TakerTicket";
+import { SPACE, useTheme } from "~/theme";
 
-/** The Ticket as a sheet over the Window: web's composer (useTicketComposer) drawn natively, stake-first. */
+/**
+ * The Ticket as a sheet over whatever opened it (web's TicketDock drawer): `?m=<marketId>&dir=up|down`. A Regular or
+ * Gap Window listed before its bell takes a scheduled call at the user's own price (the limit order, D-088); anything
+ * else is the taker's ticket at the live book.
+ */
 export default function TicketSheet() {
   const { color } = useTheme();
   const { m, dir } = useLocalSearchParams<{ m: string; dir?: Side }>();
   const reading = useMarket(m as MarketId);
-  const market = reading && isOk(reading) ? reading.value : null;
-  if (!market) return <View style={[styles.fill, { backgroundColor: color.ground }]} />;
-  return <Composer market={market} side={dir ?? null} />;
-}
-
-function Composer({ market, side }: { market: EventMarket; side: Side | null }) {
-  const { color } = useTheme();
-  const nowMs = useChainNowMs();
-  const [sessionId] = useState(() => Date.now());
-  const c = useTicketComposer({ marketId: market.marketId, side, market, nowMs, resolving: false, sessionId });
-  const symbol = collateralOrNull()?.symbol ?? "tUSDC";
-
-  if (c.booked) {
+  // A Window the ticket advances to (no-entry buffer) is read afresh; the one in hand stays mounted meanwhile, so the
+  // side and the stake carry over as web's ticket keeps them.
+  const held = useRef<EventMarket | null>(null);
+  const read = reading && isOk(reading) ? reading.value : null;
+  if (read) held.current = read;
+  const market = read ?? held.current;
+  if (!market) {
     return (
-      <ScrollView style={{ backgroundColor: color.ground }} contentContainerStyle={styles.body}>
-        <CallReceipt booked={c.booked} market={c.market} decimals={c.decimals} symbol={symbol} onAnother={c.reset} />
-      </ScrollView>
+      <View style={[styles.holding, { backgroundColor: color.ground }]}>
+        {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={NATIVE_MARKETS.windowGone} />}
+      </View>
     );
   }
-
-  const amount = c.t.stakeText === "" ? "0" : c.t.stakeText;
-  return (
-    <ScrollView style={{ backgroundColor: color.ground }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-      <View style={styles.head}>
-        <AssetDisc asset={c.market.asset} size={26} />
-        <Text style={[TYPE.title, { color: color.ink }]}>{c.market.asset}</Text>
-      </View>
-      <SideToggle side={c.side} onSelect={c.t.selectSide} />
-      <Text style={[styles.amount, { color: c.t.stakeText ? color.ink : color.inkMuted }]} accessibilityLabel={`${amount} ${symbol}`}>
-        {amount}
-        <Text style={[styles.unit, { color: color.inkMuted }]}> {symbol}</Text>
-      </Text>
-      <QuickChips availableBase={c.availableBase} decimals={c.decimals} onPick={c.t.setStakeBase} />
-      <ReadoutStrip cells={c.strip.cells} live={c.strip.live} caption={c.strip.caption} chance={c.strip.chance} />
-      <AmountPad value={c.t.stakeText} onChange={c.t.setStakeText} />
-      <AccountLine connected={c.session.isConnected} onConnect={c.session.connect} />
-      <TicketCta blocker={c.blocker} ctx={c.ctx} side={c.side} costBase={c.displayed?.maxCostBase ?? null} decimals={c.decimals} symbol={symbol} onConfirm={c.place} />
-      <Text style={[TYPE.caption, styles.foot, { color: color.inkMuted }]}>{TICKET.footnote}</Text>
-    </ScrollView>
-  );
+  return <TicketBody market={market} dir={dir ?? null} />;
 }
 
-/** web's AccountGate, reduced to its two phone actions: connect first, or add funds. */
-function AccountLine({ connected, onConnect }: { connected: boolean; onConnect: () => void }) {
-  const { color } = useTheme();
-  return (
-    <Pressable onPress={connected ? () => router.push("/funds") : onConnect} accessibilityRole="link" style={styles.account}>
-      <Text style={[TYPE.caption, { color: color.accent }]}>{connected ? "Add funds" : "Connect a wallet to trade"}</Text>
-    </Pressable>
-  );
+function TicketBody({ market, dir }: { market: EventMarket; dir: Side | null }) {
+  const nowMs = useChainNowMs();
+  const betAgainst = useBetAgainst();
+  // Every opening of the sheet is a new session (web's `sessionId`): a stake preset left for this Window is taken once.
+  const [sessionId] = useState(() => Date.now());
+  const phase = useWindowPhase(market, nowMs);
+  const side = dir ?? defaultSide(betAgainst) ?? null;
+  const selection = { marketId: market.marketId, side, market, nowMs, resolving: false, sessionId };
+  const schedules = phase !== null && isRestable(phase) && market.lane !== "token";
+  return schedules ? <ScheduleTicket selection={selection} /> : <TakerTicket selection={selection} />;
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  body: { padding: SPACE.gutter, paddingTop: 22, gap: 14, paddingBottom: 40 },
-  head: { flexDirection: "row", alignItems: "center", gap: 10 },
-  amount: { fontFamily: FONT.dataStrong, fontSize: 48, textAlign: "center", fontVariant: ["tabular-nums"] },
-  unit: { fontFamily: FONT.data, fontSize: 18 },
-  account: { alignSelf: "center" },
-  foot: { textAlign: "center" },
+  holding: { flex: 1, padding: SPACE.gutter, paddingTop: 28 },
 });

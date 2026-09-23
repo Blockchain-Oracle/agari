@@ -33,6 +33,8 @@ function roles(ramp: typeof DARK_RAMP, dark: boolean) {
     inkMuted: ramp.g500,
     inkDisabled: ramp.g600,
     accent: ramp.vermilion,
+    /** Window Cut's fixed vermilion corner, shared by the approved light and inverse marks. */
+    brandMarkAccent: "#E04D26",
     accentPressed: ramp.vermilionD,
     accentDim: rgba(ramp.vermilion, 0.45),
     accentWash: rgba(ramp.vermilion, 0.12),
