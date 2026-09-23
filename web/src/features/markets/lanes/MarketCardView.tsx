@@ -1,9 +1,11 @@
 "use client";
 
 import { phase, type MarketPhase } from "@agari/core/lifecycle";
+import { isTickerSymbol, TICKERS } from "@agari/core/market";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD, LANE_CARD, LANE_STATE, MARKETS } from "@/lib/copy";
+import { CLOSED } from "@/lib/copy-closed";
 import { cn } from "@/lib/utils";
 import { sidesInOrder, useBetAgainst } from "../bet-against";
 import { AssetDisc } from "../hero/asset-mark";
@@ -88,6 +90,8 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
   if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
 
   const openingRaw = market.openingPriceRaw;
+  // A 24/7 Window says what it is (S23): pre-IPO, basket or xStock, not a stock that happens to trade at night.
+  const kind = market.lane === "token" && isTickerSymbol(market.asset) ? CLOSED.kind[TICKERS[market.asset].kind] : null;
   const asset = laneAssetLabel(market.asset, market.lane);
   const ask = market.lane === "gap" ? LANE_STATE.gap.opensAbove(asset, etWeekday(market.expirySec)) : HERO_HEAD.holdsAbove(asset);
   // The reference approximates its cutoff with `minMintMs * 0.6`; `phase` is the
@@ -118,6 +122,7 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
           <AssetDisc asset={market.asset} className="glyph" />
           <span className="mc-ticker">{asset}</span>
           <span className="mc-cadence">{laneCadenceLabel(market.lane, market.intervalSec)}</span>
+          {kind && <span className="mc-kind">{kind}</span>}
         </span>
         <span className="mc-countdown">
           <span className="clock-dot" aria-hidden />
@@ -165,7 +170,7 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
             <span>{closedStrip(market, current, when)}</span>
           ) : (
             <>
-              <span>{upCents === null ? LANE_CARD.oddsLoading : LANE_CARD.oddsLive}</span>
+              <span>{upCents !== null ? LANE_CARD.oddsLive : hydrating || downCents !== null ? LANE_CARD.oddsLoading : LANE_CARD.noQuotes}</span>
               <span className="ramp">
                 <span>{HERO_HEAD.rampUp}</span>
                 <span className="bar">{upCents !== null && <span className="fill" style={{ width: `${upCents}%` }} />}</span>

@@ -5,6 +5,7 @@ import type { EventMarket, LaneSet } from "@agari/core/types";
 import { useMemo } from "react";
 import { type ChartPoint, useChartSeries } from "../markets/hero/useChartSeries";
 import { useTopOfBook } from "../markets/hero/useTopOfBook";
+import { isListedWindow } from "@agari/core/market";
 import type { SenseiSnapshot } from "./protocol";
 import { oracleToUsd } from "./units";
 
@@ -48,7 +49,8 @@ export function useSenseiSnapshot(laneSet: LaneSet | null, nowMs: number): Sense
     if (laneSet === null) return [];
     return laneSet.lanes
       .flatMap((lane) => lane.markets)
-      .filter((market) => market.expirySec * 1000 > nowMs)
+      // A stock Window before its bell has no book yet (S23): Sensei reads the Windows that trade now.
+      .filter((market) => market.expirySec * 1000 > nowMs && !isListedWindow(market, nowMs))
       .sort((a, b) => a.expirySec - b.expirySec)
       .slice(0, NEAREST);
     // Keyed on the membership tick, not `nowMs`: re-deriving every second would hand

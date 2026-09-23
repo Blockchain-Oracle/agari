@@ -22,6 +22,9 @@ export const HORIZONS = [
  */
 export const LISTED_HORIZON = { key: "listed", label: "Schedule a call" } as const;
 
+/** A stock Window before its bell: it takes a scheduled call and has no book to trade against yet (S23). */
+export const isListedWindow = (market: EventMarket, nowMs: number): boolean => market.lane !== "token" && phase(market, nowMs) === "upcoming";
+
 export type HorizonKey = (typeof HORIZONS)[number]["key"] | typeof LISTED_HORIZON.key;
 
 export interface HorizonGroup {
@@ -52,7 +55,7 @@ export function groupByHorizon(laneSet: LaneSet | null, nowMs: number): HorizonG
   const open = laneSet.lanes
     .flatMap((lane) => lane.markets)
     .filter((market) => market.expirySec * 1000 - nowMs > WORD_BOARD_MIN_LEAD_MS);
-  const isListed = (market: EventMarket) => market.lane !== "token" && phase(market, nowMs) === "upcoming";
+  const isListed = (market: EventMarket) => isListedWindow(market, nowMs);
   const live = open.filter((market) => !isListed(market)).sort((a, b) => a.expirySec - b.expirySec);
   const listed = open.filter(isListed).sort((a, b) => a.tradingStartSec - b.tradingStartSec || a.intervalSec - b.intervalSec);
 
