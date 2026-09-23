@@ -20,6 +20,10 @@ export type DeskBusy = "join" | "add" | "withdraw" | "caps" | "pause" | "resume"
 
 export type DeskWriteResult = CopyWriteResult;
 
+/** After a confirmed setup: read up to 8 times, 1.5 s apart, until the new subscription shows. */
+const SEEN_ATTEMPTS = 8;
+const SEEN_EVERY_MS = 1_500;
+
 /**
  * Whether an uncertain send landed. Reading a transaction's status is the Solana adapter's (S4); until then it is
  * unknown, which the copy flows already treat as "still being reconciled, never resent" (D-015).
@@ -94,10 +98,34 @@ export function useDeskWrites() {
     [settle],
   );
 
+  /**
+   * The chain can answer the refetch before it holds the new consent, which left the drawer on "not copying" until
+   * the next poll (S23). After a confirmed setup, read until the subscription is seen, a bounded few times.
+   */
+  const awaitSubscription = useCallback(async (strategyId: bigint, fade: boolean) => {
+    if (!address) return;
+    for (let attempt = 0; attempt < SEEN_ATTEMPTS; attempt += 1) {
+      const reading = await listSubscriptionsOf(address, [strategyId]).catch(() => null);
+      if (reading && isOk(reading) && !reading.stale && reading.value.some((s) => s.active && s.fade === fade)) return;
+      await new Promise((resolve) => setTimeout(resolve, SEEN_EVERY_MS));
+    }
+  }, [address]);
+
+  // A saved setup whose subscription the chain already shows is finished: the marker goes (S23).
+  useEffect(() => {
+    if (!pending || busy || !address || !pending.grantId) return;
+    let stopped = false;
+    void listSubscriptionsOf(address, [BigInt(pending.strategyId)]).then((reading) => {
+      if (stopped || !isOk(reading) || reading.stale) return;
+      if (reading.value.some((s) => s.active && s.grantId.toString() === pending.grantId)) remember(null);
+    }).catch(() => undefined);
+    return () => { stopped = true; };
+  }, [pending, busy, address, remember]);
+
   /** Fund + limits (one vault call), then consent on the registry. */
   const join = useCallback((input: CopySetupInput) => run("join", async () => {
     if (!submitter || !address) return { ok: false, reason: "connect a wallet first" };
-    return completeCopySetup(input, {
+    const result = await completeCopySetup(input, {
       load: () => {
         const raw = storageKey ? localStorage.getItem(storageKey) : null;
         const saved = parseCopyProgress(raw);
@@ -117,7 +145,9 @@ export function useDeskWrites() {
       subscribe: (grantId) => registry({ kind: input.fade ? "strategy-fade" : "strategy-subscribe", strategyId: input.strategyId, grantId, feeBase: input.feeBase }),
       nowSec: Math.floor(Date.now() / 1000),
     });
-  }), [run, submitter, address, storageKey, remember, registry]);
+    if (result.ok) await awaitSubscription(input.strategyId, input.fade);
+    return result;
+  }), [run, submitter, address, storageKey, remember, registry, awaitSubscription]);
 
   /** Pause stops new copies: the grant is revoked (budget back to the Vault), then the consent record closes. */
   const pause = useCallback(

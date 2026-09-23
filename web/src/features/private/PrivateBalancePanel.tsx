@@ -12,6 +12,7 @@ import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
 import { RegionNote } from "../region/RegionNote";
 import { useVenue } from "../markets/useVenue";
+import { AmountField } from "../vault/AmountField";
 import { deriveVaultBlocker } from "../vault/vault-blocker";
 import "../vault/vault.css";
 import { usePrivateTickets } from "./claims-store";
@@ -52,7 +53,7 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
   const desk = deskReading && isOk(deskReading) ? deskReading.value : null;
   const decimals = desk?.decimals ?? 6;
   const cashout = usePrivateCashout(refresh, decimals, symbol);
-  const [amount, setAmount] = useState(DEFAULT_AMOUNT);
+  const [typed, setAmount] = useState<string | null>(null);
   const frame = cn("vault-panel", inline && "vault-panel-inline", className);
 
   if (!address) return null;
@@ -69,6 +70,8 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
 
   const budget = budgetReading && isOk(budgetReading) ? budgetReading.value : null;
   const walletSpendable = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
+  // Untouched, the default never asks for more than the wallet holds: a wallet with less starts at what it has.
+  const amount = typed ?? (walletSpendable !== null && walletSpendable > 0n && (parseDecimalToBaseUnits(DEFAULT_AMOUNT, decimals) ?? 0n) > walletSpendable ? formatBaseUnits(walletSpendable, decimals, { minDp: 0 }).replace(/,/g, "") : DEFAULT_AMOUNT);
   const amountBase = parseDecimalToBaseUnits(amount, decimals) ?? 0n;
   const blocker = deriveVaultBlocker({ session, hasSigner: writes.hasSigner, busy: writes.state.busy !== null, gasShort: writes.state.gasShort });
   const blocked = blocker !== null;
@@ -86,7 +89,7 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
         </div>
         <div className="flex flex-col gap-2">
           <div className="vault-controls">
-            <input type="number" min="0" step="0.1" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="vault-input" aria-label={PRIVATE.panel.amountLabel} />
+            <AmountField value={amount} onChange={setAmount} decimals={decimals} symbol={symbol} maxBase={walletSpendable} label={PRIVATE.panel.amountLabel} />
             <div className="vault-buttons">
               <button
                 type="button"
