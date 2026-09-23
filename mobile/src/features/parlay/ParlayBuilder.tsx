@@ -1,6 +1,6 @@
 import { diagnosisCopy } from "@agari/core/copy";
 import { formatCadence } from "@agari/core/market";
-import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayQuote, type ParlayReserveState } from "@agari/core/parlay";
+import { PARLAY_MAX_LEGS, PARLAY_STAKE_HEADROOM_BPS, type ParlayLegInput, type ParlayMode, type ParlayQuote, type ParlayReserveState } from "@agari/core/parlay";
 import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket } from "@agari/core/types";
@@ -122,6 +122,9 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
     const frozen = quote;
     const frozenLegs = legInputs;
     const maxStakeBase = mulBpsCeil(frozen.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS);
+    // What the program is actually handed: the lane (`packages/markets/src/parlay/writes.ts`) widens web's cap once
+    // more by PARLAY_STAKE_HEADROOM_BPS, floored. The review names that figure, not web's, as the most it can charge.
+    const sentCapBase = (maxStakeBase * BigInt(10_000 + PARLAY_STAKE_HEADROOM_BPS)) / 10_000n;
     const money = (base: bigint) => `${formatBaseUnits(base, decimals)} ${symbol}`;
     onReview({
       title: `Place a ${legs.length}-leg parlay · ${formatMultiplier(frozen.multiplierMilli)}`,
@@ -134,11 +137,11 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
             tone: (leg.side === "up" ? "profit" : "loss") as "profit" | "loss",
           };
         }),
-        { label: T.youPay, value: money(frozen.stakeBase) },
-        { label: "Most it can charge", value: money(maxStakeBase), hint: "If the book moves before it lands; more is refused", tone: "muted" as const },
-        { label: T.ifLands, value: money(frozen.maxPayoutBase), tone: "profit" as const },
+        { label: T.ifLands, value: money(frozen.maxPayoutBase), tone: "profit" as const, hint: "Sent exactly: the payout is fixed" },
+        { label: "Priced now", value: money(frozen.stakeBase), hint: "The chain prices every leg again as it lands and charges that price" },
+        { label: "Most it can charge", value: money(sentCapBase), hint: "Sent exactly: a higher price is refused, not charged" },
       ],
-      maxLoss: money(maxStakeBase),
+      maxLoss: money(sentCapBase),
       confirmLabel: "Slide to place",
       send: () => place(frozen, frozenLegs, maxStakeBase),
     });
