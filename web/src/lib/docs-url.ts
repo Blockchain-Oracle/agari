@@ -1,17 +1,15 @@
 /**
- * Where "Docs" points. The documentation is a separate application, so a deployment sets its public URL
- * with `NEXT_PUBLIC_DOCS_URL`. Until the Agari docs host is decided (Q-S15-1) the default is the in-app
- * `/how-it-works` page: nothing links to a host Agari does not run, and since that page has no deep
- * guides, every docs path lands on it rather than on a 404.
+ * Where "Docs" points: the Agari docs site (`docs-site/`, served at docs.useagari.xyz since S25.1). The documentation is
+ * a separate application, so a deployment may point elsewhere with `NEXT_PUBLIC_DOCS_URL`; every `/docs/*` bookmark
+ * lands on the same path there.
  */
-const IN_APP_DOCS = "/how-it-works";
+const DOCS_ORIGIN = "https://docs.useagari.xyz";
 
 const configured = process.env.NEXT_PUBLIC_DOCS_URL?.trim().replace(/\/+$/, "") || null;
 
-export const DOCS_URL = configured ?? IN_APP_DOCS;
+export const DOCS_URL = configured ?? DOCS_ORIGIN;
 
-/** Resolve a documentation page beneath the configured site, including any base path. */
+/** Resolve a documentation page beneath the docs site, including any base path. */
 export function docsUrl(path = ""): string {
-  if (!configured) return IN_APP_DOCS;
-  return path ? `${configured}/${path.replace(/^\/+/, "")}` : configured;
+  return path ? `${DOCS_URL}/${path.replace(/^\/+/, "")}` : DOCS_URL;
 }

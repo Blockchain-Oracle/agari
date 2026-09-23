@@ -28,7 +28,7 @@ export function MarketProofRows({ marketId }: { marketId: MarketId }) {
   const settlementHash = resolution?.settlementTxHash ?? null;
   // The row names the signed source and links the print proof page (publish time, signers, the Pyth replay).
   const expirySec = market?.ok && market.value ? market.value.expirySec : null;
-  const source = printSourceText(resolution, expirySec);
+  const source = printSourceText(resolution, expirySec, market?.ok && market.value ? market.value.asset : null);
   return (
     <>
       <ReceiptRow label={CLAIM.receipt.settlement} href={settlementHash ? txUrl(settlementHash, webEnv.markets.cluster) : null} degradedLabel={CLAIM.receipt.settlementDegraded}>

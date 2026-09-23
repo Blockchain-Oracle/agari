@@ -17,7 +17,29 @@ export const LANDING = {
     line: "Pick a stock and a Window. Call Up or Down. It settles on the signed price print at the close, and only you can cash out.",
     primary: "Open markets",
     secondary: "How it works",
+    docs: "Read the docs →",
     dialLabel: (asset: string) => `${asset}, the last session and the live price`,
+  },
+  /** S25: the band under the hero, naming the two data sources the venue settles on, each with its own count and proof. */
+  builtOn: {
+    label: "Built on",
+    since: "since 11 Sep",
+    reading: "Counting settled Windows…",
+    unread: "The index is not answering; the count returns when it does.",
+    proof: "Latest print proof →",
+    prestocks: {
+      name: "PreStocks",
+      figure: "Windows settled on PreStocks prices",
+      what: (names: string, baskets: number) => {
+        const groups = baskets > 0 ? `${baskets} basket${baskets === 1 ? "" : "s"}` : "";
+        return `${[names, groups].filter(Boolean).join(" and ")}, 24/7. Each price read from PreStocks, signed by Agari and verified on chain.`;
+      },
+    },
+    pyth: {
+      name: "Pyth",
+      figure: "Windows settled on Pyth prices",
+      what: (names: string) => `${names}. Each Pyth update verified on chain before the print is recorded.`,
+    },
   },
   steps: {
     section: { index: "01", title: "A call in three steps", desc: "No chart to read. One question, one clock, one print." },
@@ -128,6 +150,7 @@ export const LANDING = {
     markets: "Markets",
     howItWorks: "How it works",
     download: "Get the app",
+    docs: "Docs",
   },
 } as const;
 

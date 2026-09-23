@@ -16,6 +16,7 @@ import { HeroAssetHead } from "./HeroAssetHead";
 import { PriceChart } from "./PriceChart";
 import { ScheduleCallButton } from "./ScheduleCallButton";
 import { assetPriceLine } from "./units";
+import type { SourceLabel } from "../price-source/source-label";
 import "./asset-hero.css";
 import { useSessionPhrase, useWhen } from "@/lib/when";
 
@@ -37,6 +38,8 @@ export interface HeroAssetChartViewProps {
   onSelect?: (marketId: MarketId) => void;
   /** The listed Window the page has selected (D-088): the head names it and the rail is already its schedule ticket, so no seam. */
   window?: EventMarket | null;
+  /** Where the asset's price comes from (S25), under the price; null names nothing. */
+  source?: SourceLabel | null;
 }
 
 /**
@@ -45,7 +48,7 @@ export interface HeroAssetChartViewProps {
  * previous close (the session's open when the archive starts here); the foot says the session phrase, the last
  * close and where the prints come from, and carries the schedule seam where the live hero keeps the Room (D-088).
  */
-export function HeroAssetChartView({ asset, tickers, onPickAsset, session, history, nowSec, range, onRange, onSelect, window = null }: HeroAssetChartViewProps) {
+export function HeroAssetChartView({ asset, tickers, onPickAsset, session, history, nowSec, range, onRange, onSelect, window = null, source = null }: HeroAssetChartViewProps) {
   const when = useWhen();
   const phrase = useSessionPhrase();
   const h = history?.ok ? history.value : null;
@@ -65,6 +68,7 @@ export function HeroAssetChartView({ asset, tickers, onPickAsset, session, histo
         range={range}
         onRange={onRange}
         window={window}
+        source={source}
       />
       {tickers.length > 1 && (
         <div className="mh-asset-pick">
@@ -107,15 +111,16 @@ export interface HeroAssetChartProps {
   onPickAsset: (asset: TickerSymbol | null) => void;
   onSelect?: (marketId: MarketId) => void;
   window?: EventMarket | null;
+  source?: SourceLabel | null;
 }
 
 /** The live hero for an asset: the session, its archive and the tick, on the shared 30 s beat. */
-export function HeroAssetChart({ asset, tickers, onPickAsset, onSelect, window = null }: HeroAssetChartProps) {
+export function HeroAssetChart({ asset, tickers, onPickAsset, onSelect, window = null, source = null }: HeroAssetChartProps) {
   const session = useMarketSession(asset);
   const [range, setRange] = useState<HistoryRange>("1D");
   const history = useAssetHistory(asset, session, range);
   useTick(CLOCK_TICK_MS);
   const nowSec = Math.floor(marketsProvider.nowMs() / 1000);
   if (!session) return null;
-  return <HeroAssetChartView asset={asset} tickers={tickers} onPickAsset={onPickAsset} session={session} history={history} nowSec={nowSec} range={range} onRange={setRange} onSelect={onSelect} window={window} />;
+  return <HeroAssetChartView asset={asset} tickers={tickers} onPickAsset={onPickAsset} session={session} history={history} nowSec={nowSec} range={range} onRange={setRange} onSelect={onSelect} window={window} source={source} />;
 }

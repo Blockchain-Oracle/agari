@@ -5,12 +5,13 @@ import { txUrl } from "@agari/core/urls";
 import type { PrintProof } from "@agari/markets";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import { oraclePriceText } from "@/features/markets/hero";
+import { isPreStocksAsset, printSourceName } from "@/features/markets/price-source/source-label";
 import { webEnv } from "@/lib/env";
 import { PROOF } from "./copy";
 import { etClockSecText, integerText } from "./format";
 import { PythReplayRows } from "./PythReplayRows";
 
-const sourceWord = (print: PrintProof) => (print.source ? PROOF.source[print.source] : PROOF.unknownSource);
+const sourceWord = (print: PrintProof) => (print.source ? printSourceName(print.source, print.symbol) : PROOF.unknownSource);
 
 /** What the archive kept at T: when it was fetched and stored, how many signed bytes, and their digest. */
 function ArchiveRows({ print }: { print: PrintProof }) {
@@ -68,7 +69,7 @@ export function PrintProofReceipt({ print }: { print: PrintProof }) {
       {print.source === "pyth" && <PythReplayRows print={print} />}
       {print.source === "redstone" && <RedStoneRows print={print} />}
       {print.source === "switchboard" && <ReceiptRow label={PROOF.rows.verification}>{PROOF.switchboard}</ReceiptRow>}
-      {print.source === "attested" && <ReceiptRow label={PROOF.rows.verification}>{PROOF.attested}</ReceiptRow>}
+      {print.source === "attested" && <ReceiptRow label={PROOF.rows.verification}>{isPreStocksAsset(print.symbol) ? PROOF.attestedPreStocks : PROOF.attested}</ReceiptRow>}
     </Receipt>
   );
 }

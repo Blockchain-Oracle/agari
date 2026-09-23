@@ -3,8 +3,10 @@ import { AgariMark, SectionHead } from "@/components/shell";
 import { LandingCover } from "./LandingCover";
 import { LandingDesk } from "./LandingDesk";
 import { BRAND } from "@/lib/copy";
+import { DOCS_URL } from "@/lib/docs-url";
 import { MARKETS_PATH } from "@/lib/routes";
 import { LANDING } from "./copy";
+import { LandingBuiltOn } from "./LandingBuiltOn";
 import { LandingDial } from "./LandingDial";
 import { LandingFooter } from "./LandingFooter";
 import { LandingInstall } from "./LandingInstall";
@@ -15,10 +17,10 @@ import { HOW_IT_WORKS_PATH } from "./paths";
 import "./landing.css";
 
 /**
- * `/` (L-11, D-093): a server-rendered shell in Masayume's tokens with three client islands — the dial, the lanes and
- * the settled Windows (plus the install page's own stateful button). Every figure comes from a read the markets page
- * already makes; the shell adds no data path. Order: hero, three steps, three lanes, cover what you hold (plan Step 6),
- * let a desk hold it (S21), proof, install, honesty footer.
+ * `/` (L-11, D-093): a server-rendered shell in Masayume's tokens with four client islands — the dial, the "Built on"
+ * band, the lanes and the settled Windows (plus the install page's own stateful button). Every figure comes from a read
+ * the markets page already makes, except the band's print mix, which is `/status`'s (S25). Order: hero, built on, three
+ * steps, three lanes, cover what you hold (plan Step 6), let a desk hold it (S21), proof, install, honesty footer.
  */
 export function LandingPage() {
   const { hero, steps, lanes, cover, desk, proof } = LANDING;
@@ -50,12 +52,21 @@ export function LandingPage() {
                 <Link href={HOW_IT_WORKS_PATH} className="btn btn-outline lp-cta" data-cursor="hover">
                   {hero.secondary}
                 </Link>
+                <a href={DOCS_URL} className="lp-link lp-docs" data-cursor="hover">
+                  {hero.docs}
+                </a>
               </div>
             </div>
             <div className="lp-hero-dial" role="group" aria-label={hero.dialLabel("TSLA")}>
               <LandingDial />
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="lp-built-band" aria-label={LANDING.builtOn.label}>
+        <div className="container">
+          <LandingBuiltOn />
         </div>
       </section>
 

@@ -34,9 +34,9 @@ export const TICKER_HUB = {
     premiumLine: (bps: number) => `${bps >= 0 ? "+" : "−"}${(Math.abs(bps) / 100).toFixed(1)}% ${bps >= 0 ? "above" : "below"}`,
     holders: "Holders",
     holdersLine: (now: number, monthAgo: number | null) => (monthAgo === null ? now.toLocaleString("en-US") : `${now.toLocaleString("en-US")} (${now >= monthAgo ? "+" : "−"}${Math.abs(now - monthAgo).toLocaleString("en-US")} in 4 wk)`),
-    /** The source line under the bar: the token lane alone, or the token lane beside the valuation lane's Pyth index. */
-    sourcePreStocksOnly: "Single source · signed by Agari from the PreStocks feed · no cross-check",
-    sourceBoth: "Token lane signed by Agari from the PreStocks feed, no cross-check · valuation lane settles on Pyth's index",
+    /** After the PreStocks source line under the bar: the token lane alone, or the token lane beside the valuation lane's Pyth index. */
+    sourcePreStocksOnly: "single source, signed by Agari · no cross-check",
+    sourceBoth: "token lane signed by Agari, no cross-check · valuation lane settles on Pyth's index",
   },
 
   /** `/dev/pyth-index`: the pre-IPO hub's bar with and without the Pyth rows (S20). */
@@ -68,7 +68,8 @@ export const TICKER_HUB = {
       add: "Add with Up",
       noWindow: "Cover and Add open when a basket Window is trading.",
     },
-    source: "Single source · the index is computed and signed by Agari from one PreStocks read of every member · no cross-check",
+    /** After the basket's source line ("Index of 2 PreStocks prices"). */
+    source: "single source, computed and signed by Agari from one read of every member · no cross-check",
   },
 
   feed: { number: "01", title: "Calls", desc: "Fills on this ticker's Windows, the verdicts of the traders who made them, and takes tagged with its cashtag." },

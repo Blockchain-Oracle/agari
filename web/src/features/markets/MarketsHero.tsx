@@ -12,6 +12,7 @@ import { HeroAssetChart } from "./hero/HeroAssetChart";
 import { HeroChart } from "./hero/HeroChart";
 import type { LanesState } from "./lanes";
 import { nextListedWindow } from "./lanes/next-window";
+import { assetSourceLabel, windowSourceLabel } from "./price-source/source-label";
 import { TicketPlaceholder } from "./ticket/TicketPlaceholder";
 import { useWindowPhase } from "./ticket/useTicket";
 import type { MarketsSelection } from "./useMarketsSelection";
@@ -88,7 +89,7 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
       <div className="container">
         <div className="hero-grid hero-grid-mini">
           {listed ? (
-            <HeroAssetChart asset={market.asset} tickers={listedTickers} onPickAsset={pickListed} window={market} />
+            <HeroAssetChart asset={market.asset} tickers={listedTickers} onPickAsset={pickListed} window={market} source={windowSourceLabel(market)} />
           ) : market ? (
             <HeroChart
               market={market}
@@ -101,7 +102,13 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
               onOpenRoom={onOpenRoom}
             />
           ) : lanes.laneSet ? (
-            <HeroAssetChart asset={lanes.ticker ?? DEFAULT_ASSET} tickers={LAUNCH_TICKERS} onPickAsset={lanes.pinTicker} onSelect={onSelect} />
+            <HeroAssetChart
+              asset={lanes.ticker ?? DEFAULT_ASSET}
+              tickers={LAUNCH_TICKERS}
+              onPickAsset={lanes.pinTicker}
+              onSelect={onSelect}
+              source={assetSourceLabel(lanes.ticker ?? DEFAULT_ASSET, lanes.laneSet)}
+            />
           ) : (
             <div className="hero-chart mh-hero-empty">
               <HeroPlaceholder lanes={lanes} />

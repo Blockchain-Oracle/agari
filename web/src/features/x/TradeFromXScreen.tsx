@@ -148,8 +148,8 @@ export function TradeFromXScreen() {
 
         <div className="xt-trust">
           <div className="xt-meta" style={{ marginTop: 0 }}><Dot v /> {TRADE_FROM_X.noWithdraw}</div>
-          <ProofLink href={docsUrl("builders/contracts")}>{TRADE_FROM_X.proofs.contract}</ProofLink>
-          <ProofLink href={docsUrl("architecture/x")}>{TRADE_FROM_X.proofs.caps}</ProofLink>
+          <ProofLink href={docsUrl("architecture/programs")}>{TRADE_FROM_X.proofs.contract}</ProofLink>
+          <ProofLink href={docsUrl("trading/tap-trading")}>{TRADE_FROM_X.proofs.caps}</ProofLink>
           <p className="xt-trust-note">{TRADE_FROM_X.testnetNote}</p>
         </div>
 
