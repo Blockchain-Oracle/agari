@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1200 675">
+  <title id="title">Agari connected walkthroughs</title>
+  <desc id="desc">A dark video slate with a large play circle and three film-strip frames for basket, portfolio and desk walkthroughs.</desc>
+  <rect width="1200" height="675" fill="#201D1A"/>
+  <rect x="0" y="0" width="1200" height="12" fill="#C23F1C"/>
+  <text x="54" y="82" fill="#E9633F" font-family="Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="4">AGARI / WATCH THE JOURNEY</text>
+  <path d="M54 105H1146" stroke="#70665D"/>
+  <text x="49" y="219" fill="#F4EEE3" font-family="Arial,sans-serif" font-size="72" font-weight="900" letter-spacing="-4">One app.</text>
+  <text x="49" y="301" fill="#F4EEE3" font-family="Arial,sans-serif" font-size="72" font-weight="900" letter-spacing="-4">Three close-up views.</text>
+  <text x="54" y="349" fill="#C9BFB3" font-family="Arial,sans-serif" font-size="22">Connected screens. No signed Buy in these recordings.</text>
+  <circle cx="1082" cy="174" r="61" fill="#C23F1C"/>
+  <path d="M1065 139L1120 174L1065 209Z" fill="#FDF8F0"/>
+  <path d="M54 390H1146" stroke="#70665D"/>
+  <g font-family="Arial,sans-serif">
+    <rect x="54" y="415" width="340" height="170" fill="#F4EEE3"/>
+    <text x="77" y="453" fill="#C23F1C" font-size="14" font-weight="700" letter-spacing="3">01  /  BASKET</text>
+    <text x="77" y="505" fill="#211C18" font-size="27" font-weight="800">Read the market.</text>
+    <path d="M77 549H365" stroke="#CCBFB0"/>
+    <text x="77" y="571" fill="#6A625A" font-size="14">WINDOW · PRICE SOURCE · TICKET</text>
+    <rect x="430" y="415" width="340" height="170" fill="#F4EEE3"/>
+    <text x="453" y="453" fill="#C23F1C" font-size="14" font-weight="700" letter-spacing="3">02  /  PORTFOLIO</text>
+    <text x="453" y="505" fill="#211C18" font-size="27" font-weight="800">Follow a position.</text>
+    <path d="M453 549H741" stroke="#CCBFB0"/>
+    <text x="453" y="571" fill="#6A625A" font-size="14">BALANCE · RESULT · RECEIPT</text>
+    <rect x="806" y="415" width="340" height="170" fill="#F4EEE3"/>
+    <text x="829" y="453" fill="#C23F1C" font-size="14" font-weight="700" letter-spacing="3">03  /  DESK</text>
+    <text x="829" y="505" fill="#211C18" font-size="27" font-weight="800">Set your limits.</text>
+    <path d="M829 549H1117" stroke="#CCBFB0"/>
+    <text x="829" y="571" fill="#6A625A" font-size="14">BASKET · PAPER RECORD · RULES</text>
+  </g>
+  <path d="M54 617H1146" stroke="#70665D"/>
+  <text x="54" y="647" fill="#C9BFB3" font-family="Arial,sans-serif" font-size="14" letter-spacing="2">THREE SHORT WALKTHROUGHS · SOLANA DEVNET + PAPER DESK</text>
+  <text x="1146" y="647" text-anchor="end" fill="#E9633F" font-family="Arial,sans-serif" font-size="18" font-weight="700">上がり</text>
+</svg>

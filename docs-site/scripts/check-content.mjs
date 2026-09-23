@@ -52,7 +52,7 @@ else if (!existsSync(resolve(source, 'web/src/app'))) fail(`Agari source missing
 else if (git('cat-file', '-e', `${pinned}^{commit}`) === null) fail(`Pinned revision ${pinned} is not in ${source}'s history`);
 else if (git('merge-base', '--is-ancestor', pinned, 'HEAD') === null) fail(`Pinned revision ${pinned} is not an ancestor of HEAD: the docs were reviewed against a different line of history`);
 else {
-  for (const path of ['packages/core/src/market/baskets.ts', 'packages/core/src/desk/gate.ts', 'anchor/programs/agari-desk/src/lib.rs', 'docs/plan/acceptance.md', 'services/ops/config/price-sources.json']) {
+  for (const path of ['packages/core/src/market/baskets.ts', 'packages/core/src/desk/gate.ts', 'anchor/programs/agari-desk/src/lib.rs', 'docs/evidence/acceptance.md', 'services/ops/config/price-sources.json']) {
     if (!existsSync(resolve(source, path))) fail(`Source path missing: ${path}`);
   }
   // App changes since the review are a reason to re-read the guides, not a broken build.

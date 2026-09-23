@@ -1,6 +1,6 @@
 # Agari Docs
 
-Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, PreStocks baskets, paper desk practice, and the architecture behind each path. The site takes its navigation and media patterns from Masayume Docs, with Agari-specific words, screenshots, program boundaries and evidence.
+Step-by-step guides for [Agari](https://useagari.xyz): devnet Up/Down calls, PreStocks baskets, paper desk practice, and the architecture behind each path. It explains the product with Agari screenshots, program boundaries, price paths and dated evidence.
 
 **Source reviewed:** Agari at app commit `86a37ee` on 23 September 2026. The site lives in the app's own repository at `docs-site/` and deploys from `integration/w1` to [docs.useagari.xyz](https://docs.useagari.xyz). The app is live at [useagari.xyz](https://useagari.xyz). Connected captures document the live browser observed that day; its deployed commit was not independently identified.
 

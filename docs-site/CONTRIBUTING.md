@@ -1,6 +1,6 @@
 # Contributing to Agari Docs
 
-This Fumadocs site lives at `docs-site/` inside the Agari app repository. The app source it documents is the rest of the same checkout; `integration/w1` is the branch that deploys. Read the app's `docs/plan/STATUS.md`, current stage and decisions before changing product claims.
+This Fumadocs site lives at `docs-site/` inside the Agari app repository. The app source it documents is the rest of the same checkout. Check the current source, live status and evidence before changing product claims.
 
 ## Local work
 
@@ -23,7 +23,7 @@ The docs app runs on port 3153. `NEXT_PUBLIC_DOCS_URL` sets canonical and sitema
 2. Trace behavior to the application code, decision and acceptance ledger. The [source map](content/docs/builders/source-map.mdx) is the starting inventory; verify the exact files for the page you change.
 3. Keep devnet calls, paper desk practice, mainnet-fork rehearsal and mainnet transactions distinct. A route or build is not proof of a live transaction.
 4. Link docs pages with `/section/page` paths and app routes with `<AppLink href="/route">`. Run `pnpm check`, then inspect changed pages at desktop and phone sizes.
-5. Record any new screenshot or video in `public/captures/provenance-YYYY-MM-DD.json`: route, date, viewport, wallet/network state and what was actually exercised. Never copy Masayume's media into Agari's pages.
+5. Record any new screenshot or video in `public/captures/provenance-YYYY-MM-DD.json`: route, date, viewport, wallet/network state and what was actually exercised. Create and credit original Agari media.
 
 The `GuideCapture` component expands an original capture and states its signed-out condition. `TourVideo` provides captions, chapters and a transcript. The current clip is a silent edit of actual public screenshots. A continuous recording of a connected-wallet trade still needs its own consent, capture and transaction proof; do not label this tour as one.
 
