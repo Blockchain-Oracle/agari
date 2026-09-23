@@ -79,6 +79,14 @@ export const rules = [
     pattern: /(#[0-9a-fA-F]{3,8}\b|\b\d+(\.\d+)?px\b)/,
   },
   {
+    id: "mobile-design-literals",
+    description: "no raw colours in the app's component code — every colour is a mobile/src/theme token (AD-12, D-128)",
+    scopes: ["mobile/src"],
+    exts: TS,
+    exclude: ["mobile/src/theme"],
+    pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
+  },
+  {
     id: "time-suffix",
     description: "time-shaped fields carry their unit suffix (Ms | Sec | Ns)",
     scopes: ["packages/core", "packages/markets", "services"],

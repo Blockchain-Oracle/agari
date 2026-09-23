@@ -23,16 +23,16 @@ export function AssetDisc({ asset, size = 28 }: { asset: string; size?: number }
 }
 
 function BrandMark({ slug, hex, monogram, size }: { slug: keyof typeof MARK_GLYPHS; hex: string; monogram: string; size: number }) {
-  const { name } = useTheme();
+  const { name, color } = useTheme();
   const glyph = MARK_GLYPHS[slug];
   return (
     <Svg width={size} height={size} viewBox="0 0 32 32">
       <Circle cx={16} cy={16} r={16} fill={hex} />
-      {glyph?.ring && name === "dark" ? <Circle cx={16} cy={16} r={15.5} fill="none" stroke="rgba(255, 255, 255, 0.22)" strokeWidth={1} /> : null}
+      {glyph?.ring && name === "dark" ? <Circle cx={16} cy={16} r={15.5} fill="none" stroke={color.markRing} strokeWidth={1} /> : null}
       {glyph ? (
-        <Path d={glyph.d} transform={glyphTransform(glyph)} fill="#FFFFFF" />
+        <Path d={glyph.d} transform={glyphTransform(glyph)} fill={color.markGlyph} />
       ) : (
-        <SvgText x={16} y={21.5} fill="#FFFFFF" fontFamily={FONT.headingHeavy} fontSize={monogram.length > 2 ? 11 : 15} textAnchor="middle">{monogram}</SvgText>
+        <SvgText x={16} y={21.5} fill={color.markGlyph} fontFamily={FONT.headingHeavy} fontSize={monogram.length > 2 ? 11 : 15} textAnchor="middle">{monogram}</SvgText>
       )}
     </Svg>
   );
@@ -58,6 +58,7 @@ function TokenBadge({ text, size }: { text: string; size: number }) {
 }
 
 function BasketDisc({ basket, size }: { basket: Basket; size: number }) {
+  const { color } = useTheme();
   const cell = size / 2;
   return (
     <View style={[styles.cluster, { width: size, height: size, borderRadius: size / 2, backgroundColor: basket.brand.hex }]}>
@@ -66,7 +67,7 @@ function BasketDisc({ basket, size }: { basket: Basket; size: number }) {
           <AssetDisc key={c.symbol} asset={c.symbol} size={cell} />
         ) : (
           <View key="more" style={[styles.more, { width: cell, height: cell }]}>
-            <Text style={{ color: "#FFFFFF", fontFamily: FONT.headingHeavy, fontSize: cell * 0.42 }}>+{c.count}</Text>
+            <Text style={{ color: color.markGlyph, fontFamily: FONT.headingHeavy, fontSize: cell * 0.42 }}>+{c.count}</Text>
           </View>
         ),
       )}
