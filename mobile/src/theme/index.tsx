@@ -6,6 +6,7 @@ import { DARK, LIGHT, type Palette } from "./palette";
 
 export { FONT, RADIUS, SPACE, TYPE } from "./type";
 export type { Palette } from "./palette";
+export { AVATAR_COLORS } from "./palette";
 
 export type ThemeName = "dark" | "light";
 /** Web's key (lib/theme.ts): a stored choice wins over the system setting. */

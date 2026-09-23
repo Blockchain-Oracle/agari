@@ -22,6 +22,8 @@ const WEB_SHIMS = new Map([
 const upstream = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (OPERATOR_ONLY.has(moduleName)) return { type: "empty" };
+  // tweetnacl's Node fallback requires "crypto"; the app's Node-compatible crypto is quick-crypto.
+  if (moduleName === "crypto") return context.resolveRequest(context, "react-native-quick-crypto", platform);
   const pinned = SINGLETONS.find((name) => moduleName === name || moduleName.startsWith(`${name}/`));
   const ctx = pinned ? { ...context, originModulePath: path.join(appRoot, "index.js") } : context;
   const resolved = (upstream ?? context.resolveRequest)(ctx, moduleName, platform);

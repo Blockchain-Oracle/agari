@@ -4,9 +4,11 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { UserSessionProvider } from "@/providers/UserSessionProvider";
 import { marketsEnv } from "~/lib/env";
 import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
+import { WalletProvider } from "~/wallet/WalletProvider";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,7 +24,11 @@ export default function RootLayout() {
     <QueryClientProvider client={client}>
       <MarketsProvider env={marketsEnv}>
         <ThemeProvider>
-          <RootStack />
+          <WalletProvider>
+            <UserSessionProvider>
+              <RootStack />
+            </UserSessionProvider>
+          </WalletProvider>
         </ThemeProvider>
       </MarketsProvider>
     </QueryClientProvider>
@@ -36,6 +42,8 @@ function RootStack() {
       <StatusBar style={name === "dark" ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="connect" options={{ presentation: "formSheet", sheetAllowedDetents: [0.55, 0.9], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
+        <Stack.Screen name="account" options={{ presentation: "formSheet", sheetAllowedDetents: [0.5], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
       </Stack>
     </>
   );

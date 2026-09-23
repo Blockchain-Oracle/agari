@@ -21,6 +21,7 @@
     "./react": "./src/react/index.ts",
     "./runtime": "./src/runtime/index.ts",
     "./sessions": "./src/sessions/index.ts",
+    "./sessions/mobile": "./src/sessions/mobile/index.ts",
     "./sponsor": "./src/sponsor/index.ts",
     "./strategies": "./src/strategies/index.ts",
     "./vault": "./src/vault/index.ts",
@@ -51,6 +52,7 @@
     "@switchboard-xyz/common": "5.8.5",
     "@switchboard-xyz/on-demand": "3.10.6",
     "@tanstack/react-query": "catalog:",
+    "tweetnacl": "1.0.3",
     "undici": "7.29.0",
     "zod": "catalog:"
   },
