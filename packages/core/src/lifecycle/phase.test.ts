@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isRestable, phase, type PhaseInput } from "./phase";
+import { isRestable, isStalledOpening, OPENING_PRINT_GRACE_SEC, phase, type PhaseInput } from "./phase";
 import { ONCHAIN_STATUS } from "./status";
 
 const START_SEC = 1_000_000;
@@ -59,5 +59,18 @@ describe("isRestable", () => {
   it("admits a post-only call only while the Window is listed before its open (D-088)", () => {
     expect(isRestable("upcoming")).toBe(true);
     for (const p of ["pendingOpeningPrint", "trading", "noEntryBuffer", "locked", "settledUnclaimed", "finalized", "voided"] as const) expect(isRestable(p)).toBe(false);
+  });
+});
+
+describe("isStalledOpening (S24: lists drop a Window whose opening print never came)", () => {
+  it("waits out the grace, then calls a print-less started Window stalled", () => {
+    const waiting = market({ openingPriceRaw: null });
+    expect(isStalledOpening(waiting, at(START_SEC + 30))).toBe(false);
+    expect(isStalledOpening(waiting, at(START_SEC + OPENING_PRINT_GRACE_SEC + 1))).toBe(true);
+  });
+
+  it("never calls a printed or not-yet-started Window stalled", () => {
+    expect(isStalledOpening(market(), at(START_SEC + 200))).toBe(false);
+    expect(isStalledOpening(market({ openingPriceRaw: null }), at(START_SEC - 60))).toBe(false);
   });
 });

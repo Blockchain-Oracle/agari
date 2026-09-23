@@ -1,4 +1,4 @@
-import { phase } from "../lifecycle/phase";
+import { isStalledOpening, phase } from "../lifecycle/phase";
 import type { EventMarket, LaneSet } from "../types/market";
 
 /**
@@ -54,7 +54,7 @@ export function groupByHorizon(laneSet: LaneSet | null, nowMs: number): HorizonG
 
   const open = laneSet.lanes
     .flatMap((lane) => lane.markets)
-    .filter((market) => market.expirySec * 1000 - nowMs > WORD_BOARD_MIN_LEAD_MS);
+    .filter((market) => market.expirySec * 1000 - nowMs > WORD_BOARD_MIN_LEAD_MS && !isStalledOpening(market, nowMs));
   const isListed = (market: EventMarket) => isListedWindow(market, nowMs);
   const live = open.filter((market) => !isListed(market)).sort((a, b) => a.expirySec - b.expirySec);
   const listed = open.filter(isListed).sort((a, b) => a.tradingStartSec - b.tradingStartSec || a.intervalSec - b.intervalSec);

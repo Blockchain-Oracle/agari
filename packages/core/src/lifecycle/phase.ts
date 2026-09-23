@@ -64,3 +64,14 @@ export function isRestable(p: MarketPhase): boolean {
 export function isSettled(p: MarketPhase): boolean {
   return p === "settledUnclaimed" || p === "finalized" || p === "voided";
 }
+
+/** How long a started Window may wait for its opening print before surfaces stop offering it (S24). */
+export const OPENING_PRINT_GRACE_SEC = 120;
+
+/**
+ * A Window past its start whose opening print never came: a halted lane (a paused xStock) or a Window that will void.
+ * Lists drop it rather than show a card that waits for ever; the lifecycle itself is unchanged.
+ */
+export function isStalledOpening(m: PhaseInput, nowMs: number): boolean {
+  return phase(m, nowMs) === "pendingOpeningPrint" && msToSec(nowMs) - m.tradingStartSec > OPENING_PRINT_GRACE_SEC;
+}

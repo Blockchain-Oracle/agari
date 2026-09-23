@@ -1,6 +1,6 @@
 "use client";
 
-import { phase } from "@agari/core/lifecycle";
+import { isStalledOpening, phase } from "@agari/core/lifecycle";
 import { assetTicker, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket } from "@agari/core/types";
@@ -31,7 +31,7 @@ export const isLiveWindow = (market: EventMarket, nowMs: number): boolean => now
 /** A Window that has not started yet but will: shown so a closed market still names what opens and when. */
 const isLaterWindow = (market: EventMarket, nowMs: number): boolean => {
   const p = phase(market, nowMs);
-  return p === "upcoming" || p === "pendingOpeningPrint";
+  return p === "upcoming" || (p === "pendingOpeningPrint" && !isStalledOpening(market, nowMs));
 };
 
 export function kindOf(asset: string): ShortKind {
