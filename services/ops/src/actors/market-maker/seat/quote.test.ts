@@ -68,11 +68,11 @@ describe("quotePair and escrow", () => {
     expect(readSeatMakerEnv({ MM_ORDER_TYPE: "post-only" }).orderType).toBe("post-only");
   });
 
-  it("pins a side past the edge to [minTick, 1000 − minTick] and drops it only when fair sits at the edge", () => {
+  it("pins a side past the edge to [minTick, 1000 − minTick], at fair when fair sits on the edge", () => {
     expect(quotePair({ fairTicks: 975, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 945, askTicks: 980 });
     expect(quotePair({ fairTicks: 25, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 20, askTicks: 55 });
-    expect(quotePair({ fairTicks: 20, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: null, askTicks: 50 });
-    expect(quotePair({ fairTicks: 980, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 950, askTicks: null });
+    expect(quotePair({ fairTicks: 20, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 20, askTicks: 50 });
+    expect(quotePair({ fairTicks: 980, halfSpreadTicks: 30, minTick: 20, bestBidTicks: null, bestAskTicks: null })).toEqual({ bidTicks: 950, askTicks: 980 });
   });
 
   it("escrows the YES price for a bid and the NO price (1000 − ask) for the NO-side ask", () => {
