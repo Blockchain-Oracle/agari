@@ -13,7 +13,7 @@ pnpm dev
 pnpm check
 ```
 
-The docs app runs on port 3153. `NEXT_PUBLIC_DOCS_URL` sets canonical and sitemap URLs; use the local origin until the docs deployment is verified. `NEXT_PUBLIC_APP_URL` sets external app links and may point to the public app or a local dev server.
+The docs app runs on port 3153. `NEXT_PUBLIC_DOCS_URL` sets canonical and sitemap URLs; it defaults to the public `https://docs.useagari.xyz`. `NEXT_PUBLIC_APP_URL` sets external app links and may point to the public app or a local dev server.
 
 `pnpm check` requires the sibling Agari checkout at the pinned revision. Set `AGARI_SOURCE_DIR` if it is elsewhere. If the app advances, fetch and read its new STATUS, diff, relevant consumers and acceptance evidence before changing the revision in `lib/site.ts`, `scripts/check-content.mjs`, the source-map page and README. Do not update a pin just to turn the check green.
 
@@ -29,4 +29,4 @@ The `GuideCapture` component expands an original capture and states its signed-o
 
 ## Deployment
 
-This checkout had no Git remote and no verified docs URL at the 23 September review. The user previously approved a separate docs project on the app's docs subdomain; the exact domain and deployment are still separate steps. Before publishing, configure the real `NEXT_PUBLIC_DOCS_URL`, build, then verify the root, a nested guide, search, video/captions, theme and sitemap at the actual URL. Keep unpublished local origins out of public metadata.
+The docs deploy to Coolify (application `agari-docs` in the `agari` project) from this repository's `main`, built by the root `Dockerfile` and served at `https://docs.useagari.xyz`. After a deploy, verify the root, a nested guide, search, video/captions, theme and sitemap at that URL.

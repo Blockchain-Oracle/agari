@@ -1,0 +1,8 @@
+node_modules
+.next
+.source
+.git
+.vercel
+*.tsbuildinfo
+.env*
+evidence/raw-video
