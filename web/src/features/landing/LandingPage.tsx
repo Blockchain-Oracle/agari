@@ -31,15 +31,17 @@ export function LandingPage() {
         <span className="lp-hero-vertical" aria-hidden="true" />
         <div className="container lp-hero-container">
           <div className="lp-hero-grid">
-            <div className="lp-hero-copy">
+            <div className="lp-hero-brand">
               <p className="lp-eyebrow">
-                <Image src="/brand/solana-logomark.svg" alt="" width={20} height={18} className="lp-solana-mark" />
+                <Image src="/brand/solana-logomark.svg" alt="" width={101} height={88} className="lp-solana-mark" />
                 {hero.eyebrow}
               </p>
               <div className="lp-wordmark">
                 <span className="lp-wordmark-mark"><AgariMark /></span>
                 <span className="lp-wordmark-name">{BRAND.name}</span>
               </div>
+            </div>
+            <div className="lp-hero-copy">
               <h1 className="lp-title">
                 <span>{hero.titleLead}</span>
                 <span>{hero.titleEm}</span>

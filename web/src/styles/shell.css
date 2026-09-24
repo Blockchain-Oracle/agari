@@ -8,6 +8,56 @@
 /* Scrolled headings must not compete with the fixed navigation labels. */
 .header { background: rgba(5, 5, 5, 0.96); }
 [data-theme="light"] .header { background: rgba(244, 238, 227, 0.96); }
+[data-theme="light"] .wallet-pill { border-color: rgba(20, 18, 16, 0.14); }
+[data-theme="light"] .wallet-pill:hover { border-color: rgba(20, 18, 16, 0.3); }
+
+.header .logo { flex-shrink: 0; }
+.logo-copy { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.logo-name { display: inline-block; flex-shrink: 0; }
+.logo-jp {
+  position: relative;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--vermilion) 55%, transparent);
+  font-family: var(--font-jp);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.logo-jp::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(to top,
+    transparent 0%,
+    transparent 41%,
+    color-mix(in srgb, var(--vermilion) 74%, transparent) 47%,
+    #fff1d6 50%,
+    color-mix(in srgb, var(--vermilion) 88%, transparent) 53%,
+    transparent 59%,
+    transparent 100%);
+  background-size: 100% 300%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--vermilion) 75%, transparent));
+  animation: agari-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
+}
+[data-theme="light"] .logo-jp {
+  color: color-mix(in srgb, var(--vermilion) 65%, transparent);
+}
+@keyframes agari-jp-neon-rise {
+  0%, 8% { background-position: 0 0; }
+  64%, 100% { background-position: 0 100%; }
+}
+@media (max-width: 720px) {
+  .logo-copy { gap: 5px; }
+  .logo-jp { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-jp::after { animation: none; opacity: 0; filter: none; }
+}
 
 .dusdc-pill {
   display: inline-flex;

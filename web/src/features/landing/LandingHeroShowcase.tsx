@@ -43,7 +43,7 @@ export function LandingHeroShowcase() {
     : recordedExamples;
 
   return (
-    <div className="lp-hero-art" role="group" aria-label="Agari basket and settlement proof previews">
+    <div className="lp-hero-art" role="group" aria-label="Agari basket and settlement proof previews" tabIndex={0}>
       <section className="lp-screen lp-screen-proof" aria-labelledby="lp-preview-proof-heading">
         <div className="lp-screen-chrome" aria-hidden="true"><i /><i /><i /></div>
         <div className="lp-preview-proof-body">

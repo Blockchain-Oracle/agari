@@ -12,7 +12,7 @@ import { HeaderMoneyPill } from "./HeaderMoneyPill";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { DESKTOP_NAV, isActiveNavItem, type NavGroup } from "./nav-items";
 
-const MOBILE_MAX_WIDTH = 720;
+const COMPACT_NAV_MAX_WIDTH = 1100;
 
 export default function Header() {
   const pathname = usePathname();
@@ -30,24 +30,27 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const closeAtMobileWidth = () => {
-      if (window.innerWidth <= MOBILE_MAX_WIDTH) setOpenGroup(null);
+    const closeAtCompactWidth = () => {
+      if (window.innerWidth <= COMPACT_NAV_MAX_WIDTH) setOpenGroup(null);
     };
-    closeAtMobileWidth();
-    window.addEventListener("resize", closeAtMobileWidth);
-    return () => window.removeEventListener("resize", closeAtMobileWidth);
+    closeAtCompactWidth();
+    window.addEventListener("resize", closeAtCompactWidth);
+    return () => window.removeEventListener("resize", closeAtCompactWidth);
   }, []);
 
   return (
     <>
       <header className="header">
-        <Link className="logo" href="/" aria-label="Agari home" data-cursor="hover">
+        <Link className="logo" href="/" aria-label="Agari 上がり home" data-cursor="hover">
           <span className="logo-mark"><AgariMark /></span>
-          <span>AGARI</span>
+          <span className="logo-copy">
+            <span className="logo-name">AGARI</span>
+            <span className="logo-jp" lang="ja" data-text="上がり">上がり</span>
+          </span>
         </Link>
 
-        <nav className="nav" aria-label="Primary navigation">
-          <div className="nav-links">
+        <div className="nav">
+          <nav className="nav-links" aria-label="Primary navigation">
             {DESKTOP_NAV.map((entry) => {
               if (entry.kind === "group") {
                 return (
@@ -74,14 +77,14 @@ export default function Header() {
                 </Link>
               );
             })}
-          </div>
+          </nav>
 
           <div className="header-right">
             <ThemeToggle />
             <HeaderMoneyPill onOpen={() => setShowFunds(true)} />
             <HeaderAccount onOpenMenu={() => setOpenGroup(null)} />
           </div>
-        </nav>
+        </div>
       </header>
 
       <MobileBottomNav />

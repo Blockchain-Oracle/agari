@@ -18,7 +18,7 @@ export function MobileBottomNav() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <nav className="mobile-bottom-nav" aria-label="Mobile primary navigation">
+      <nav className="mobile-bottom-nav" aria-label="Primary navigation shortcuts">
         {MOBILE_NAV.map((item) => {
           const active = isActiveNavItem(pathname, item);
           const Icon = item.icon;
