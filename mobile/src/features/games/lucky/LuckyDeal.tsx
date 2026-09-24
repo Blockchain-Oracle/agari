@@ -161,7 +161,10 @@ function DealCard({ deal, market, symbol, onReport, onSkip, skipping }: Props & 
         { label: words.quote.payout, value: money(displayed.payoutIfRightBase), tone: "profit" },
       ]
     : [];
-  const signPhase: SignPhase = bet.state.phase === "submitted" ? "signing" : bet.state.phase === "confirming" ? "sending" : "review";
+  // Once the lane has answered (anything but a requote) the order is out: the slide stays shut while the answer is recorded.
+  const answered = bet.state.outcome !== null && bet.state.outcome.status !== "requote";
+  const sending = bet.state.phase === "submitted" || bet.state.phase === "confirming";
+  const signPhase: SignPhase = bet.state.phase === "submitted" ? "signing" : bet.state.phase === "confirming" ? "sending" : answered ? "done" : "review";
   const place = () => {
     if (!displayed) return;
     void bet.place({ market, side, stakeBase, displayedQuote: displayed, route: routing.route });
@@ -216,10 +219,11 @@ function DealCard({ deal, market, symbol, onReport, onSkip, skipping }: Props & 
         confirmLabel={`Slide to place ${SIDE_WORD[side]}`}
         onConfirm={place}
         phase={signPhase}
-        blocker={blocker ? blockerLabel(blocker, ctx) : null}
+        blocker={sending || answered ? null : blocker ? blockerLabel(blocker, ctx) : null}
         tone={side === "up" ? "profit" : "loss"}
       />
-      <Button label={skipping ? words.skipping : words.skip} variant="ghost" size="sm" onPress={onSkip} disabled={skipping || bet.placing} />
+      {answered ? <Text style={[TYPE.caption, { color: color.inkMuted }]} accessibilityLiveRegion="polite">{words.skipping}</Text> : null}
+      <Button label={skipping ? words.skipping : words.skip} variant="ghost" size="sm" onPress={onSkip} disabled={skipping || sending || answered} />
     </Card>
   );
 }

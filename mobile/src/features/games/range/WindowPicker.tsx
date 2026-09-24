@@ -3,10 +3,11 @@ import { countdown } from "@agari/core/lifecycle";
 import { formatCadence } from "@agari/core/market";
 import type { EventMarket, MarketId } from "@agari/core/types";
 import { formatClock } from "@agari/core/units";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RANGE } from "@/features/range/copy";
 import { usdBand } from "@/features/range/format";
-import { EmptyState, haptic, LoadingState } from "~/components/kit";
+import { Button, EmptyState, haptic, LoadingState } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { RADIUS, TYPE, useTheme } from "~/theme";
 
@@ -30,18 +31,22 @@ interface Props {
   onPick: (id: MarketId) => void;
 }
 
+/** Rows shown before "Show all": the soonest few, and the picked one wherever it sits. */
+const FOLDED = 4;
+
 /**
  * web's `range/WindowPicker.tsx` — the Windows a reserve round may sit on (Trading, a minute or more left, soonest
  * first) as touch rows with the stock's disc: loading, none (and why), or the list. Shared by Range and Moonshot.
  */
 export function WindowPicker({ windows, loading, pickedId, nowMs, onPick }: Props) {
   const { color } = useTheme();
+  const [open, setOpen] = useState(false);
   const { builder } = RANGE;
   if (loading && windows.length === 0) return <LoadingState shape="list" label={builder.loading} />;
   if (windows.length === 0) return <EmptyState why={builder.noWindows} detail={builder.noWindowsBody} />;
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel={builder.pickWindow} style={styles.list}>
-      {windows.map((market) => {
+      {windows.filter((market, i) => open || i < FOLDED || market.marketId === pickedId).map((market) => {
         const on = market.marketId === pickedId;
         const opening = market.openingPriceRaw !== null ? `${builder.opening} ${usdBand(market.openingPriceRaw)}` : builder.openingPending;
         return (
@@ -74,6 +79,9 @@ export function WindowPicker({ windows, loading, pickedId, nowMs, onPick }: Prop
           </Pressable>
         );
       })}
+      {windows.length > FOLDED ? (
+        <Button label={open ? "Show fewer Windows" : `Show all ${windows.length} Windows`} variant="ghost" size="sm" onPress={() => setOpen((v) => !v)} />
+      ) : null}
     </View>
   );
 }

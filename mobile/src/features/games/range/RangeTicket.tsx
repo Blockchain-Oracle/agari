@@ -33,6 +33,10 @@ export interface RangeTicketProps {
   walletSpendableBase: bigint | null;
   /** The band is being dragged: the quote waits for the finger to lift. */
   dragging: boolean;
+  /** The band exactly as it was placed, for the receipt. */
+  placedBand: string | null;
+  /** Why the page will not ask for a price right now (D-119's stale basis), named on the review. */
+  holdReason: string | null;
   step: PlaceStep;
   errorTitle: string;
   errorDetail: string;
@@ -52,7 +56,7 @@ const usd = (n: number) => usdOnGrid(n, n < 10_000 ? 2 : 0);
 export function RangeTicket(props: RangeTicketProps) {
   const { color } = useTheme();
   const { window: w, side, lowUsd, highUsd, reserve, symbol, nowMs, quote, quoteLoading, quoteError, onRetryQuote } = props;
-  const { walletSpendableBase, dragging, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
+  const { walletSpendableBase, dragging, holdReason, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
   const { ticket } = RANGE;
   const { decimals } = reserve;
   const money = (base: bigint) => `${formatBaseUnits(base, decimals)} ${symbol}`;
@@ -67,33 +71,31 @@ export function RangeTicket(props: RangeTicketProps) {
 
   const bandText = `${side} ${usd(lowUsd)} – ${usd(highUsd)}`;
   if (step === "success") {
-    return <Placed title={ticket.placed} line={RANGE.cta.placed(bandText)} txHash={txHash} viewTx={ticket.viewTx} another={RANGE.cta.another} onAnother={onReset} />;
+    return <Placed title={ticket.placed} line={RANGE.cta.placed(props.placedBand ?? bandText)} txHash={txHash} viewTx={ticket.viewTx} another={RANGE.cta.another} onAnother={onReset} />;
   }
 
   const sideProbE6 = quote ? (side === "inside" ? quote.insideProbE6 : 1_000_000n - quote.insideProbE6) : null;
   const maxStakeBase = quote ? sentStakeCapBase(quote.stakeBase) : null;
   const hasEnough = walletSpendableBase !== null && maxStakeBase !== null && walletSpendableBase >= maxStakeBase;
-  const blocker = reserve.paused
-    ? ticket.reservePaused
-    : dragging
-      ? ticket.releaseToPrice
-      : quoteLoading
-        ? ticket.pricing
-        : quoteError
-          ? ticket.unavailable
-          : !quote
-            ? ticket.enterAmount
-            : !hasEnough
-              ? ticket.insufficient(symbol)
-              : null;
+  // The first reason the slide cannot be used, in web's PlaceButton order.
+  const blockers: [boolean, string][] = [
+    [reserve.paused, ticket.reservePaused],
+    [holdReason !== null, holdReason ?? ""],
+    [dragging, ticket.releaseToPrice],
+    [quoteLoading, ticket.pricing],
+    [quoteError !== null, ticket.unavailable],
+    [quote === null, ticket.enterAmount],
+    [!hasEnough, ticket.insufficient(symbol)],
+  ];
+  const blocker = blockers.find(([blocked]) => blocked)?.[1] ?? null;
   const lines: QuoteLine[] = quote
     ? [
         { label: "Band", value: bandText },
         { label: "Window", value: `${w.asset} ${formatCadence(w.intervalSec)}` },
         { label: ticket.pays, value: formatMultiplierTenths(quote.multiplierMilli), tone: "accent" },
-        { label: "Payout if it lands", value: money(quote.maxPayoutBase), tone: "profit", hint: "Sent exactly: the round pays this or nothing" },
-        { label: "Priced now", value: money(quote.stakeBase), hint: "The chain prices the band again as it lands and charges that price" },
-        { label: "Most it can charge", value: money(sentStakeCapBase(quote.stakeBase)), hint: "Sent exactly: a higher price is refused, not charged" },
+        { label: "Payout if it lands", value: money(quote.maxPayoutBase), tone: "profit", hint: "Sent exactly" },
+        { label: "Priced now", value: money(quote.stakeBase), hint: "Re-priced as it lands" },
+        { label: "Most it can charge", value: money(sentStakeCapBase(quote.stakeBase)), hint: "Higher is refused" },
       ]
     : [];
 
@@ -139,6 +141,11 @@ export function RangeTicket(props: RangeTicketProps) {
       </View>
 
       {quoteError ? <Button label={`${diagnosisCopy(quoteError.kind).headline} · ${ticket.retry}`} variant="destructive" size="sm" onPress={onRetryQuote} /> : null}
+      {quoteError ? (
+        <Text style={[TYPE.caption, { color: color.inkMuted }]} selectable>
+          {quoteError.technical}
+        </Text>
+      ) : null}
 
       {step === "error" && errorTitle ? <PlaceError title={errorTitle} detail={errorDetail} onReset={onReset} tryAgain={ticket.tryAgain} txHash={txHash} /> : null}
 

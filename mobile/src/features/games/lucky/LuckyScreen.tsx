@@ -138,13 +138,12 @@ export function LuckyScreen() {
           <Card>
             <LuckyReels cycling={draw.cycling} landing={draw.landing} target={draw.target} reduced={reduced} onLanded={onLanded} pool={pool} />
             <View style={styles.stakeHead}>
-              <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{LUCKY.stake.label}</Text>
               {availableBase !== null && decimals !== null ? (
                 <Text style={[TYPE.data, { color: color.inkSecondary }]}>{LUCKY.stake.available(`${formatBaseUnits(availableBase, decimals)} ${symbol}`)}</Text>
               ) : null}
             </View>
             <Field
-              label={LUCKY.stake.aria(symbol)}
+              label={LUCKY.stake.label}
               value={stakeText}
               onChangeText={(text) => setStakeText(sanitize(text))}
               placeholder={LUCKY.stake.placeholder}
@@ -190,6 +189,6 @@ export function LuckyScreen() {
 
 const styles = StyleSheet.create({
   body: { padding: SPACE.gutter, paddingTop: 12, paddingBottom: 120, gap: 16 },
-  stakeHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 4 },
+  stakeHead: { flexDirection: "row", justifyContent: "flex-end", marginTop: 4, marginBottom: -24 },
   deal: { gap: 16 },
 });

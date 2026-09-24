@@ -48,6 +48,8 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
   const [txHash, setTxHash] = useState<Signature | null>(null);
+  // The call as it was sent, frozen: the live quote keeps solving after the round is placed.
+  const [placedLine, setPlacedLine] = useState<string | null>(null);
 
   const picked = (marketId && byId.get(marketId)) || windows[0] || null;
   useEffect(() => {
@@ -91,6 +93,7 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
       setStep("success");
       cue("card-win");
       const target = MOONSHOT.ticket.target(quote.call.direction, usdBand(quote.band.strikePrint));
+      setPlacedLine(`${target} · ${quote.rangeBand.asset}`);
       notify.neutral(MOONSHOT.ticket.toast(target, formatBaseUnits(outcome.stakeBase, decimals), formatBaseUnits(quote.quote.maxPayoutBase, decimals, { maxDp: 0, minDp: 0 }), symbol));
       return;
     }
@@ -141,6 +144,7 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
         errorTitle={errorTitle}
         errorDetail={errorDetail}
         txHash={txHash}
+        placedLine={placedLine}
         onPlace={() => void handlePlace()}
         onReset={reset}
       />

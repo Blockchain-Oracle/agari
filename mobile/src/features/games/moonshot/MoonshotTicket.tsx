@@ -40,6 +40,8 @@ export interface MoonshotTicketProps {
   errorTitle: string;
   errorDetail: string;
   txHash: Signature | null;
+  /** The call exactly as it was placed, for the receipt. */
+  placedLine: string | null;
   onPlace: () => void;
   onReset: () => void;
 }
@@ -76,7 +78,7 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
 
   const target = quote ? ticket.target(call.direction, usdBand(quote.band.strikePrint)) : MOONSHOT.aim.valueText(call.direction, call.multiple);
   if (step === "success") {
-    return <Placed title={ticket.placed} line={`${target} · ${w.asset} ${formatCadence(w.intervalSec)}`} txHash={txHash} viewTx={ticket.viewTx} another="Fire another" onAnother={onReset} />;
+    return <Placed title={ticket.placed} line={props.placedLine ?? `${target} · ${w.asset} ${formatCadence(w.intervalSec)}`} txHash={txHash} viewTx={ticket.viewTx} another="Fire another" onAnother={onReset} />;
   }
 
   const fits = capacity === null || capacity.fits;
@@ -105,9 +107,9 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
         { label: "Target", value: target },
         { label: "Window", value: `${w.asset} ${formatCadence(w.intervalSec)}` },
         { label: ticket.pays, value: formatMultiplierTenths(quote.quote.multiplierMilli), tone: "accent" },
-        { label: "Payout if it lands", value: money(quote.quote.maxPayoutBase), tone: "profit", hint: "Sent exactly: the round pays this or nothing" },
-        { label: "Priced now", value: money(quote.quote.stakeBase), hint: "The chain prices the call again as it lands and charges that price" },
-        { label: "Most it can charge", value: money(sentStakeCapBase(quote.quote.stakeBase)), hint: "Sent exactly: a higher price is refused, not charged" },
+        { label: "Payout if it lands", value: money(quote.quote.maxPayoutBase), tone: "profit", hint: "Sent exactly" },
+        { label: "Priced now", value: money(quote.quote.stakeBase), hint: "Re-priced as it lands" },
+        { label: "Most it can charge", value: money(sentStakeCapBase(quote.quote.stakeBase)), hint: "Higher is refused" },
       ]
     : [];
 
@@ -168,6 +170,11 @@ export function MoonshotTicket(props: MoonshotTicketProps) {
       {overCap ? <Button label={`${ticket.overCap(call.multiple, whole(capBase), symbol)} · ${ticket.useCap}`} variant="secondary" size="sm" onPress={onUseCap} /> : null}
       {capacity && !capacity.fits && capacity.refusal ? <Text style={[TYPE.caption, { color: color.loss }]}>{diagnosisCopy(capacity.refusal.kind).headline}</Text> : null}
       {quoteError ? <Button label={`${diagnosisCopy(quoteError.kind).headline} · ${ticket.retry}`} variant="destructive" size="sm" onPress={onRetryQuote} /> : null}
+      {quoteError ? (
+        <Text style={[TYPE.caption, { color: color.inkMuted }]} selectable>
+          {quoteError.technical}
+        </Text>
+      ) : null}
       {step === "error" && errorTitle ? <PlaceError title={errorTitle} detail={errorDetail} onReset={onReset} tryAgain={ticket.tryAgain} txHash={txHash} /> : null}
 
       <SignReview

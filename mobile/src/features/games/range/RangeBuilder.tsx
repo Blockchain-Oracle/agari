@@ -51,6 +51,8 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
   const [txHash, setTxHash] = useState<Signature | null>(null);
+  // The band as it was sent, frozen: the live band keeps following the price after the round is placed.
+  const [placedBand, setPlacedBand] = useState<string | null>(null);
 
   // The soonest Window is the default; a Window that leaves the list hands over to the next.
   const picked = (marketId && byId.get(marketId)) || windows[0] || null;
@@ -94,6 +96,7 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
     }
     if (outcome.status === "confirmed") {
       setTxHash(outcome.txHash);
+      setPlacedBand(`${band.side} ${usdBand(band.lowPrint)} – ${usdBand(band.highPrint)}`);
       setStep("success");
       cue("card-win");
       notify.neutral(RANGE.ticket.toast(`${band.side} ${usdBand(band.lowPrint)} – ${usdBand(band.highPrint)}`, formatBaseUnits(outcome.stakeBase, decimals), formatBaseUnits(quote.maxPayoutBase, decimals, { maxDp: 0, minDp: 0 }), symbol));
@@ -141,6 +144,8 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
         onPayoutInput={setPayoutInput}
         walletSpendableBase={walletSpendableBase}
         dragging={dragging}
+        placedBand={placedBand}
+        holdReason={picked && staleBasis ? blockerLabel("stale-basis") : null}
         step={step}
         errorTitle={errorTitle}
         errorDetail={errorDetail}
