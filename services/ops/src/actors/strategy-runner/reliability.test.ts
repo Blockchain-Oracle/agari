@@ -74,12 +74,22 @@ describe("durable strategy attempts", () => {
 });
 
 describe("recovery and settlement", () => {
-  it("keeps ambiguous evidence held even after the Window expires", async () => {
+  it("keeps ambiguous evidence held after the Window expires while the owner still holds a position there", async () => {
     mocks.unresolved.mockResolvedValue([{ strategyId: "1", owner: OWNER, runner: RUNNER, marketId: MARKET, grantId: "9", side: "up", fromBlock: "123", nonce: 7, txHash: null }]);
     mocks.recover.mockResolvedValue({ status: "unknown" });
-    mocks.onchain.mockResolvedValue(ok({ marketId: MARKET, status: 4, expirySec: 1, isResolved: true, isVoided: false }));
+    mocks.onchain.mockResolvedValue(ok({ marketId: MARKET, status: 4, expirySec: 1, lockAtSec: 1, isResolved: true, isVoided: false }));
+    mocks.holdings.mockResolvedValueOnce(ok({ upRaw: 200n, downRaw: 0n, upGrantId: 9n, downGrantId: 0n }));
     expect(await reconcileRunnerAttempts(session, () => undefined)).toEqual(new Set(["1"]));
     expect(mocks.finish).toHaveBeenCalledWith(expect.anything(), "unknown", null, "confirmation unknown; not resending");
+    expect(mocks.send).not.toHaveBeenCalled();
+  });
+  it("releases an unknown attempt once its Window is over and the owner holds nothing on it (09-24: one held every strategy)", async () => {
+    mocks.unresolved.mockResolvedValue([{ strategyId: "1", owner: OWNER, runner: RUNNER, marketId: MARKET, grantId: "9", side: "up", fromBlock: "123", nonce: 7, txHash: null }]);
+    mocks.recover.mockResolvedValue({ status: "unknown" });
+    mocks.onchain.mockResolvedValue(ok({ marketId: MARKET, status: 4, expirySec: 1, lockAtSec: 1, isResolved: true, isVoided: false }));
+    mocks.holdings.mockResolvedValueOnce(ok({ upRaw: 0n, downRaw: 0n, upGrantId: 0n, downGrantId: 0n }));
+    expect(await reconcileRunnerAttempts(session, () => undefined)).toEqual(new Set());
+    expect(mocks.finish).toHaveBeenCalledWith(expect.anything(), "nothing-filled", null, expect.stringContaining("no position held"));
     expect(mocks.send).not.toHaveBeenCalled();
   });
   it("recovers a matching fill without sending another order", async () => {

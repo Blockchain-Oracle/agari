@@ -3,7 +3,7 @@ import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFol
 import type { Address, EventMarket } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { openingOnFeedScale } from "@agari/markets/strategies";
-import { tradingStockWindows } from "./stock-hours";
+import { tradingWindows } from "./trading-windows";
 
 export interface Scan {
   /** Windows the runner could act on this cycle, each with its decision. */
@@ -20,7 +20,7 @@ export interface Scan {
 export async function scanVenue(venueId: Address, spec: OracleFollowSpec, nowMs: number): Promise<Scan> {
   const lanes = await marketsProvider.listLiveLanes(venueId);
   if (!isOk(lanes) || lanes.stale) return { candidates: [], scanned: 0, closestBps: null, why: `lanes unreadable: ${isOk(lanes) ? "stale state" : lanes.error.technical}` };
-  const markets = tradingStockWindows(lanes.value, nowMs);
+  const markets = tradingWindows(lanes.value, nowMs);
   const candidates: Scan["candidates"] = [];
   let closest: number | null = null;
   const skipped: string[] = [];

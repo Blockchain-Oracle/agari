@@ -12,10 +12,10 @@ import { readRunnerEnv, type RunnerEnv } from "./env";
 import { executeForSubscriber } from "./execute";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
 import { opsMarketsEnv } from "../../runtime/markets-env";
-import { REST_CHECK_MS, tradingStockWindows } from "./stock-hours";
+import { REST_CHECK_MS, tradingWindows } from "./trading-windows";
 
-/** The heartbeat while no stock Window trades; `activity.ts` on the web reads it as "Resting". */
-export const RESTING_WHY = "resting: the stock market is closed and strategies trade stock Windows; checking every 5 minutes";
+/** The heartbeat while no Window trades on any lane; `activity.ts` on the web reads it as "Resting". */
+export const RESTING_WHY = "resting: no Window is trading on any lane; checking every 5 minutes";
 
 type Log = (why: string) => void;
 
@@ -163,10 +163,10 @@ export async function startStrategyRunner(log: Log): Promise<void> {
   const tick = serialCycle(async () => {
     const clock = await marketsProvider.syncClock();
     if (!isOk(clock) || clock.stale) throw new Error("chain clock unavailable; holding");
-    // Rest while no stock Window trades: one lanes read per tick, the settlement sweep and a heartbeat every five
-    // minutes, and no strategy read, no price read and no model call until a stock Window opens.
+    // Rest while no Window trades on any lane: one lanes read per tick, the settlement sweep and a heartbeat every five
+    // minutes, and no strategy read, no price read and no model call until a Window opens.
     const lanes = await marketsProvider.listLiveLanes(runner.venueId);
-    if (isOk(lanes) && !lanes.stale && tradingStockWindows(lanes.value, marketsProvider.nowMs()).length === 0) {
+    if (isOk(lanes) && !lanes.stale && tradingWindows(lanes.value, marketsProvider.nowMs()).length === 0) {
       if (Date.now() - lastRestMs < REST_CHECK_MS) return;
       lastRestMs = Date.now();
       for (const id of await strategiesToRun()) {

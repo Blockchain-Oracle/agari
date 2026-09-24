@@ -5,6 +5,16 @@ import { marketsProvider, readRecoveryCursor, type SubmitterSession } from "@aga
 import { listStrategySubscribers } from "@agari/markets/strategies";
 import { getVaultGrant, listVaultTallies, recoverVaultExecution } from "@agari/markets/vault";
 
+/** True only when the attempt's Window can no longer trade and the owner's vault holds nothing on it. */
+async function provedNothingHeld(attempt: { owner: string; marketId: string }): Promise<boolean> {
+  const chain = await marketsProvider.getOnchain(toMarketId(attempt.marketId));
+  if (!isOk(chain) || chain.stale) return false;
+  const over = chain.value.isResolved || chain.value.isVoided || marketsProvider.nowMs() >= chain.value.lockAtSec * 1000;
+  if (!over) return false;
+  const held = await marketsProvider.getVaultHoldings(attempt.owner as Address, chain.value);
+  return isOk(held) && !held.stale && held.value.upRaw + held.value.downRaw === 0n;
+}
+
 /** Unknown sends are recovered from receipts/events. They are never submitted again. */
 export async function reconcileRunnerAttempts(session: SubmitterSession, log: (why: string) => void): Promise<Set<string>> {
   const unresolved = new Set<string>();
@@ -31,6 +41,11 @@ export async function reconcileRunnerAttempts(session: SubmitterSession, log: (w
         log(`#${attempt.strategyId}: recovered ${result.txHash}`);
       } else if (result.status === "reverted") {
         await finishStrategyAttempt(attempt, "reverted", result.txHash, "receipt confirms revert");
+      } else if (await provedNothingHeld(attempt)) {
+        // The Window is over, so nothing can be resent into it, and the owner's vault holds nothing on it: whatever
+        // the send did, it left no position. Holding every strategy on this forever stopped all trading (09-24).
+        await finishStrategyAttempt(attempt, "nothing-filled", attempt.txHash, "Window over and no position held; confirmation never found");
+        log(`#${attempt.strategyId}: released an unknown attempt on ${attempt.marketId}: the Window is over and nothing is held`);
       } else {
         // An expired Window prevents a later fill, but cannot prove whether an earlier send filled.
         // The bounded evidence scan may be incomplete; unknown must continue to hold this actor.
