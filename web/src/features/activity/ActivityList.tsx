@@ -22,14 +22,14 @@ interface RowProps {
   item: ActivityItem;
   take: FeedTake | undefined;
   units: MoneyUnits;
-  /** Name the wallet on the row (following and ticker feeds); the inbox is all "you". */
+  /** Name the wallet on the row (ticker feeds); the inbox is all "you". */
   showWho: boolean;
   nowMs: number;
 }
 
 /**
  * One event as a wire row — `/news`'s grammar (`NewsRow`, D-082): the wallet's hue avatar in the mark slot, the kind
- * as the tone's word in the kind's ink, the time (and, on a following or ticker feed, the wallet) as mono metadata.
+ * as the tone's word in the kind's ink, the time (and, on a ticker feed, the wallet) as mono metadata.
  * The headline links to the transaction or the Window; the wallet to its profile.
  */
 const ActivityRow = memo(function ActivityRow({ index, item, take, units, showWho, nowMs }: RowProps) {

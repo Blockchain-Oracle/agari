@@ -11,12 +11,9 @@ export const ACTIVITY = {
   heading: "Your",
   headingAccent: "Activity",
   headingJp: "取引の記録。",
-  intro: "Fills, verdicts and payouts from the chain's own record, plus what the people you follow are calling.",
-  tabs: { inbox: "Inbox", following: "Following" },
-  tabsLabel: "Activity feeds",
+  intro: "Fills, verdicts and payouts from the chain's own record.",
+  tabs: { inbox: "Inbox" },
   notifications: { enable: "Turn on notifications", on: "Notifications on", blocked: "Notifications blocked" },
-  friends: { title: "Friends", desc: "The traders you follow, and you, on the same 24-hour board.", meta: "rolling 24h" },
-  calls: { title: "Their calls", desc: "Fills, verdicts and takes from the wallets you follow, newest first." },
   connect: {
     title: "Connect a wallet to see its activity.",
     body: "The inbox reads your fills and settlements from the index. It needs no signature.",
@@ -27,8 +24,6 @@ export const ACTIVITY = {
   unavailable: "Activity needs the index store, and it isn't configured on this deployment.",
   empty: {
     inbox: "Nothing here yet. Your fills and verdicts land here as the chain records them.",
-    following: "Follow traders from their profiles and their calls show up here.",
-    followingQuiet: "The people you follow haven't made a call yet.",
     ticker: "No calls on this ticker yet.",
   },
   you: "you",

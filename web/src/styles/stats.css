@@ -7,7 +7,9 @@
  * light-card treatment (part-01 .creator-studio), as reel-theme.css and share-card.css do.
  * Grays are the CSS variables, not the `text-gray-*` utilities, so they follow the theme. */
 
-.stats {
+/* The leaderboard's Live activity section reuses these rows, so it carries the same tokens. */
+.stats,
+.lb-activity {
   --stats-card: #0d0d10;
   --stats-card-top: #0e1310;
   --stats-hairline: rgba(255, 255, 255, 0.07);
@@ -16,7 +18,8 @@
   --stats-row-hover: rgba(255, 255, 255, 0.02);
 }
 
-[data-theme="light"] .stats {
+[data-theme="light"] .stats,
+[data-theme="light"] .lb-activity {
   --stats-card: #fffaf2;
   --stats-card-top: #f4faf5;
   --stats-hairline: rgba(33, 28, 24, 0.11);

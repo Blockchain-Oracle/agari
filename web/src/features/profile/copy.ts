@@ -10,8 +10,6 @@ export const PROFILE = {
   eyebrowYou: "Your profile",
   headingJp: "取引者の記録。",
   intro: "A wallet's record on Agari, read from the chain's own index: every settled Window, the badges it earned and the calls still running.",
-  followers: "Followers",
-  following: "Following",
   x: "On X",
   xVerified: "verified link",
   /** A-3b: copy this wallet's calls as a strategy. */

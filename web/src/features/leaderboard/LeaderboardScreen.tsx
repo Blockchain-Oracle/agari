@@ -6,9 +6,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
+import { useTraction } from "@/features/stats";
 import { useWalletSession } from "@/lib/wallet-session";
 import type { BoardQuery } from "./leaderboard-client";
-import type { BoardScope } from "./BoardFilters";
 import { LeaderboardBoard } from "./LeaderboardBoard";
 import { LEADERBOARD_KEY, useLeaderboard } from "./useLeaderboard";
 
@@ -17,7 +17,7 @@ import { LEADERBOARD_KEY, useLeaderboard } from "./useLeaderboard";
  *
  * The rankings come from `/api/leaderboard` for the chosen period and ticker ("This session" first); the "next close"
  * seal reads the live lanes the rest of the app already holds, so the countdown here is the same one the markets
- * page shows.
+ * page shows. Live activity is Masayume's `/stats` feed, read through the same `/api/traction` poll.
  */
 export function LeaderboardScreen() {
   const { address } = useWalletSession();
@@ -25,9 +25,8 @@ export function LeaderboardScreen() {
   const lanes = useLanes(venueId);
   const nowMs = useChainNowMs();
   const [board, setBoard] = useState<BoardQuery>({ period: "session", ticker: null });
-  // Q-S13-8: the Friends tab, mounted here where the board it filters lives.
-  const [scope, setScope] = useState<BoardScope>("all");
   const reading = useLeaderboard(board);
+  const activity = useTraction();
   const queryClient = useQueryClient();
   const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: LEADERBOARD_KEY }), [queryClient]);
 
@@ -39,5 +38,5 @@ export function LeaderboardScreen() {
           .reduce<number | null>((min, expiry) => (min === null || expiry < min ? expiry : min), null)
       : null;
 
-  return <LeaderboardBoard reading={reading} address={address} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={setBoard} scope={scope} onScope={setScope} retry={retry} />;
+  return <LeaderboardBoard reading={reading} address={address} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={setBoard} activity={activity} retry={retry} />;
 }
