@@ -1,5 +1,5 @@
 import {
-  getAdminDistributeSeasonInstructionAsync, getAgentPlacePickInstructionAsync, getPlayerAuthorizeAgentInstructionAsync, getPlayerCancelMatchInstructionAsync,
+  getAgentPlacePickInstructionAsync, getPlayerAuthorizeAgentInstructionAsync, getPlayerCancelMatchInstructionAsync,
   getPlayerCreateMatchInstructionAsync, getPlayerJoinMatchInstructionAsync, getPlayerPlacePickInstructionAsync, getPublicClaimCreditInstructionAsync,
   getPublicFinalizeInstructionAsync, getPublicLockPicksInstructionAsync, getPublicRefundUnjoinedInstructionAsync, getPublicRefundUnrevealedInstructionAsync,
   getPublicReleaseAgentInstructionAsync, getPublicRevealDeckInstructionAsync, getPublicSettleCardInstructionAsync,
@@ -10,8 +10,6 @@ import { diagnosis, type Address, type Diagnosis, type Hash32, type MarketId, ty
 import { getTransferSolInstruction } from "@solana-program/system";
 import { findAssociatedTokenPda, getCreateAssociatedTokenIdempotentInstructionAsync, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import { AccountRole, type Instruction, type TransactionSigner } from "@solana/kit";
-import { createDeployClient } from "../deploy/client";
-import { send } from "../deploy/send";
 import { diagnose } from "../errors/error-map";
 import { readMarket, readSeries } from "../runtime/accounts";
 import { solana } from "../runtime/solana";
@@ -20,7 +18,7 @@ import { OrderRefusedError, SimulationFailedError } from "../submitter/errors";
 import { submitLaneWrite } from "../submitter/lane-write";
 import { signSendConfirm, type WriteContext } from "../submitter/settle-write";
 import { buildWrite } from "../submitter/steps/message";
-import { arenaProgramId, creditAddress, idBytes, kit, seasonAddress, seasonVaultAddress } from "./deployment";
+import { arenaProgramId, creditAddress, idBytes, kit } from "./deployment";
 import { arenaEventsOf } from "./events";
 import { getArenaMatch, readArena } from "./read";
 
@@ -171,29 +169,4 @@ function pickRefusal(error: unknown): ArenaPickOutcome {
   if (error instanceof OrderRefusedError) return { status: "refused", diagnosis: error.diagnosis };
   if (error instanceof SimulationFailedError) return { status: "refused", diagnosis: failureDiagnosis(error.failure) };
   return { status: "refused", diagnosis: diagnose(error) };
-}
-
-export interface DistributeSeasonInput {
-  /** The season admin role's 64-byte Solana keypair. */
-  secretKey: Uint8Array;
-  rpcUrl: string;
-  rpcSubscriptionsUrl: string;
-  seasonId: string;
-  winners: readonly Address[];
-  amountsBase: readonly bigint[];
-}
-
-/** The admin's one write: pay the winners and lock the pool. Each winner is paid to their own token account, created if missing. */
-export async function distributeSeasonPrizes(input: DistributeSeasonInput): Promise<Signature> {
-  if (input.winners.length === 0 || input.winners.length !== input.amountsBase.length) throw new Error("winners and amounts differ in number, or there are none");
-  const arena = await readArena();
-  if (!arena) throw new Error("no arena on this cluster");
-  const mint = arena.data.collateralMint as string;
-  const client = await createDeployClient({ rpcUrl: input.rpcUrl, rpcSubscriptionsUrl: input.rpcSubscriptionsUrl, payerSecret: input.secretKey });
-  const season = await seasonAddress(input.seasonId);
-  const tokens = await Promise.all(input.winners.map((winner) => tokenOf(winner, mint)));
-  const creates = await Promise.all(input.winners.map((winner) => getCreateAssociatedTokenIdempotentInstructionAsync({ payer: client.payer, owner: kit(winner), mint: kit(mint) })));
-  const distribute = await getAdminDistributeSeasonInstructionAsync({ admin: client.payer, season: kit(season), vault: kit(await seasonVaultAddress(season)), collateralMint: kit(mint), tokenProgram: TOKEN_PROGRAM_ADDRESS, amountsBase: [...input.amountsBase] }, config());
-  const withWinners: Instruction = { ...distribute, accounts: [...(distribute.accounts ?? []), ...tokens.map((address) => ({ address, role: AccountRole.WRITABLE }))] };
-  return (await send({ client, log: () => undefined }, "distribute season", [...creates, withWinners], `${input.winners.length} winners of ${input.seasonId}`)) as Signature;
 }
