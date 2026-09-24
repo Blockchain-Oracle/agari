@@ -41,6 +41,12 @@ The native review surfaces quote, maximum loss, and a deliberate confirmation be
 - `expo export --platform ios` and `expo export --platform android` completed on the current route set and produced bundles; the iOS bundle includes all 26 arcade sound files.
 - The iOS development app installed and launched on the iPhone 17 Pro Max simulator. Full screen and interaction acceptance is pending; the Mac locked during simulator control.
 
+## Notifications, Live Activity and widget (2026-09-24)
+
+- More → Notifications registers this install with one wallet signature and changes or stops it with the device secret it got back. The server words each push with web's in-tab lifecycle notifications.
+- Simulator-verified: real Expo token registration, kinds change from the phone, a tapped notification opening its screen, the Live Activity from a real devnet bet through to its verdict, and the Next Window widget with real stock marks.
+- Not yet delivered through Expo: APNs credentials are missing on the EAS project (`InvalidCredentials`). Android's ongoing notification has not been run.
+
 ## Remaining gates
 
 1. **X sign-in and recovery for a new account:** the web OAuth callback writes an HTTP-only browser cookie. The native fetch session does not receive that cookie. Existing wallet bindings can be read, but new in-app X sign-in needs an explicit, secure server-to-app session handoff before this route can be called complete. No mobile-only cookie workaround is claimed.

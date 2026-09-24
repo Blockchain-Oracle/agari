@@ -10,6 +10,7 @@
 import { startDuelProjector } from "./actors/duel-projector";
 import { startDeskRunner } from "./actors/desk-runner";
 import { startDuelSettler } from "./actors/duel-settler";
+import { startPushClock } from "./actors/push-clock";
 import { startGameRoom } from "./actors/game-room";
 import { startHaltWatch } from "./actors/halt-watch";
 import { startIndexer } from "./actors/indexer";
@@ -35,7 +36,7 @@ const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
 const VENUE_ACTORS = ["relay", "roller", "settler", "maker", "indexer", "http", "halts", "earnings"] as const;
-const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler"] as const;
+const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler", "push-clock"] as const;
 /** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126). */
 const OPT_IN_ACTORS = ["desk-runner"] as const;
 
@@ -124,6 +125,8 @@ if (actors.has("leverage-keeper")) void startLeverageKeeper(log("leverage-keeper
 if (actors.has("game-room")) void startGameRoom(log("game-room")).then((room) => startDuelProjector(log("duel-projector"), room));
 else if (actors.has("duel-projector")) void startDuelProjector(log("duel-projector"), null);
 if (actors.has("duel-settler")) void startDuelSettler(log("duel-settler"));
+// S26.4: the phone push drain's clock; web chooses and words each notification.
+if (actors.has("push-clock")) void boot("push-clock", () => startPushClock(log("push-clock")));
 setInterval(() => {
   const stuck = heartbeats().filter((b) => b.passStartedMs !== null && Date.now() - b.passStartedMs > STUCK_PASS_MS);
   if (stuck.length === 0) return console.log(whyString("ops", "idle heartbeat"));

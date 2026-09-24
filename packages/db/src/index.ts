@@ -32,6 +32,8 @@ export * from "./proofs";
 export * from "./sponsor";
 export * from "./schema-sponsor";
 export * from "./follows";
+// S26.4: phone push devices and the sent journal.
+export * from "./push";
 // S21 (D-126): the desk's records, paper ledger, approvals and grades.
 export * from "./schema-desk";
 export * from "./desk";

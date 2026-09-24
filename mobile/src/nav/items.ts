@@ -70,7 +70,8 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
     item("Demo", "/demo", "Walk through the complete product story.", "play.rectangle.fill", "slideshow"),
     item("Pitch", "/pitch", "Read the concise Agari thesis.", "rectangle.on.rectangle", "co_present"),
   ] },
-  { id: "account", name: "Account", description: "Recovery", items: [
+  { id: "account", name: "Account", description: "Notifications and recovery", items: [
+    item("Notifications", "/notifications", "Choose what this phone hears about your calls.", "bell.badge.fill", "notifications"),
     item("X recovery", "/claim", "Recover a trade created from X.", "key.fill", "key", false, "x"),
   ] },
 ];

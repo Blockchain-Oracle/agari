@@ -11,6 +11,7 @@ import { marketsEnv } from "~/lib/env";
 import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
 import { Toaster } from "~/components/toast/Toaster";
+import { AlertsHost } from "~/features/alerts/AlertsHost";
 import { DeskWatcher } from "~/features/desk/DeskWatcher";
 import { DropBellWatcher } from "~/features/hedge/DropBell";
 import { WriteRecovery } from "~/features/recovery/WriteRecovery";
@@ -67,6 +68,8 @@ function RootStack() {
       {/* web mounts the drop alert's watcher app-wide (AppProviders), so an armed bell fires on any screen. */}
       <DropBellWatcher />
       <WriteRecovery />
+      {/* S26.4: notification taps, the Live Activity (Android: ongoing notification) and the widget feed. */}
+      <AlertsHost />
     </>
   );
 }

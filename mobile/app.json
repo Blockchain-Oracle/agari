@@ -18,7 +18,8 @@
         "LSApplicationQueriesSchemes": [
           "phantom",
           "solflare"
-        ]
+        ],
+        "NSSupportsLiveActivities": true
       }
     },
     "android": {
@@ -43,7 +44,33 @@
       ],
       "expo-secure-store",
       "react-native-quick-crypto",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#E04D26",
+          "defaultChannel": "activity"
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "NextWindow",
+              "displayName": "Next Window",
+              "description": "The next Windows to close, with their countdowns.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "systemLarge"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
