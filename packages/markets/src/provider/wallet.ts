@@ -98,8 +98,8 @@ export async function listClaimables(wallet: Address, venueId: Address): Promise
 
 /** The Trading Balance's free `available` (Masayume `balances.ts:64`): null without a vault, 0 before an account opens. */
 async function vaultAvailable(wallet: Address): Promise<bigint | null> {
-  if (!(await loadVaultDeployment())) return null;
-  return (await readVaultAccount(wallet))?.available ?? 0n;
+  const [deployment, account] = await Promise.all([loadVaultDeployment(), readVaultAccount(wallet)]);
+  return deployment ? (account?.available ?? 0n) : null;
 }
 
 /** Every pool of money labelled separately (FR-5): wallet tUSDC, SOL, cash locked by resting orders, seat credit, the Trading Balance. */

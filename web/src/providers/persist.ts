@@ -12,12 +12,13 @@ import { useEffect } from "react";
  * document, so every returning user paid the full cold chain cost again, and the boot facts
  * alone measured 0.4-2.0 s of that.
  *
- * What is written to disk is a deliberately short list, and the rule is not "what would be
- * nice to have back" but "what can never be wrong about somebody". Every entry here is public,
- * chain-scoped and slowly changing. Nothing account-scoped is written at all — not a balance,
- * not a position, not a history page — so there is no account to purge on disconnect and no
- * way for one wallet's data to be shown to another. That is a stronger guarantee than a purge,
- * because a purge is a thing that can fail to run.
+ * What is written to disk is a deliberately short list. The public list is chain-scoped and
+ * slowly changing, and comes back as a live answer. The account list (09-24) is the connected
+ * wallet's own balance sheet, open bets and claims: refusing it made every refresh read the
+ * balance and the Open tab from nothing, through a paced RPC, for seconds. Those entries are
+ * keyed by the wallet's address, so one wallet's rows can never answer another's read; they come
+ * back marked aged and dated when they were stored, so the page shows the last true figure and
+ * refetches it at once instead of treating it as fresh. Grants, sessions and history stay off disk.
  *
  * Bump `SCHEMA_VERSION` whenever a persisted value's shape changes; with the cluster it is
  * the cache buster, and a namespace miss simply reads as "nothing stored".
@@ -25,6 +26,8 @@ import { useEffect } from "react";
 const SCHEMA_VERSION = 1;
 const NAMESPACE = `agari.read-cache.v${SCHEMA_VERSION}.${CLUSTER}`;
 const MAX_AGE_MS = 24 * 60 * 60 * 1_000;
+/** An account entry older than this is not worth showing, even labelled. */
+const ACCOUNT_MAX_AGE_MS = 15 * 60 * 1_000;
 const WRITE_DEBOUNCE_MS = 1_000;
 
 interface StoredEntry {
@@ -47,7 +50,29 @@ interface StoredEntry {
 export function isPersistable(key: QueryKey): boolean {
   const [, , family, sub] = key as readonly unknown[];
   if (family === "boot") return sub === "collateral" || sub === "venue";
-  return family === "bookParams";
+  return family === "bookParams" || isAccountEntry(key);
+}
+
+/**
+ * The account allowlist: what the portfolio's first screen needs for the wallet in the key — its balance sheet, open
+ * positions and resting calls, the vault's open bets (every X trade), live boosts and claims. Never the vault snapshot
+ * (it carries grants) or history.
+ */
+export function isAccountEntry(key: QueryKey): boolean {
+  const k = key as readonly unknown[];
+  if (k[0] !== "agari" || k[1] !== "markets" || typeof k[3] !== "string") return false;
+  switch (k[2]) {
+    case "positions":
+      return k.length === 4 || (k.length === 5 && k[4] === "resting");
+    case "balanceSheet":
+    case "leverage":
+    case "vaultOpenBets":
+      return k.length === 4;
+    case "claimables":
+      return k.length === 5;
+    default:
+      return false;
+  }
 }
 
 /** A restored value is true but old: it says so until its own read confirms it. */
@@ -63,11 +88,13 @@ async function restore(queryClient: QueryClient): Promise<void> {
   if (!stored) return;
   const now = Date.now();
   for (const entry of stored) {
-    if (now - entry.storedAtMs > MAX_AGE_MS) continue;
+    const account = isAccountEntry(entry.key);
+    if (now - entry.storedAtMs > (account ? ACCOUNT_MAX_AGE_MS : MAX_AGE_MS)) continue;
     if (!isPersistable(entry.key)) continue;
     // Never overwrite a live answer that already arrived while the restore was in flight.
     if (queryClient.getQueryData(entry.key) !== undefined) continue;
-    queryClient.setQueryData(entry.key, aged(entry.value));
+    // An account entry keeps its real age, so its query is stale on arrival and refetches as soon as it may run.
+    queryClient.setQueryData(entry.key, aged(entry.value), account ? { updatedAt: entry.storedAtMs } : undefined);
   }
 }
 
@@ -77,7 +104,8 @@ function collect(queryClient: QueryClient): StoredEntry[] {
     .getQueryCache()
     .getAll()
     .filter((query) => query.state.status === "success" && query.state.data !== undefined && isPersistable(query.queryKey))
-    .map((query) => ({ key: query.queryKey, value: query.state.data, storedAtMs: now }));
+    // A restored account entry not yet confirmed keeps its first date, so re-saving it cannot make it look newer.
+    .map((query) => ({ key: query.queryKey, value: query.state.data, storedAtMs: isAccountEntry(query.queryKey) ? query.state.dataUpdatedAt : now }));
 }
 
 /**

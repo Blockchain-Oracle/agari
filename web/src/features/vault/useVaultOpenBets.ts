@@ -4,7 +4,7 @@ import { MARKETS_POLL_MS } from "@agari/core/constants";
 import type { TickerSymbol } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
 import { type Address, type IndexedStatus, type MarketId } from "@agari/core/types";
-import { listVaultTallies, marketsProvider, tallyToLedger, withReading } from "@agari/markets";
+import { getMarketsLite, listVaultTallies, tallyToLedger, withReading } from "@agari/markets";
 import { useReadingQuery } from "@agari/markets/react";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -23,29 +23,31 @@ export interface VaultOpenBet {
 
 const SETTLED: ReadonlySet<IndexedStatus> = new Set<IndexedStatus>(["Resolved", "Voided", "Finalized"]);
 
-export const vaultOpenBetsKey = (wallet: string | null) => ["agari", "vault-open-bets", wallet] as const;
+/** In the markets family, so the persisted read cache can keep it with the wallet's other open bets. */
+export const vaultOpenBetsKey = (wallet: string | null) => ["agari", "markets", "vaultOpenBets", wallet] as const;
 
 export async function listVaultOpenBets(wallet: Address): Promise<Reading<VaultOpenBet[]>> {
   return withReading(`vault-open-bets:${wallet}`, async (inner) => {
     const { tallies } = await listVaultTallies(wallet);
     const open = tallies.map(tallyToLedger).filter((ledger) => ledger.heldUpRaw + ledger.heldDownRaw > 0n);
-    const rows = await Promise.all(
-      open.map(async (ledger) => {
-        const market = inner(await marketsProvider.getMarket(ledger.marketId));
-        if (!market || SETTLED.has(market.status)) return null;
-        return {
-          marketId: ledger.marketId,
-          asset: market.asset,
-          intervalSec: market.intervalSec,
-          expirySec: market.expirySec,
-          decimals: market.decimals,
-          heldUpRaw: ledger.heldUpRaw,
-          heldDownRaw: ledger.heldDownRaw,
-          // The vault's position slots record lots, not cash, so a cost of 0 means "not recorded", never "free".
-          stakeBase: ledger.costBase > ledger.proceedsBase ? ledger.costBase - ledger.proceedsBase : null,
-        } satisfies VaultOpenBet;
-      }),
-    );
+    if (open.length === 0) return [];
+    // One index query for every held Window, not one per Window.
+    const markets = inner(await getMarketsLite(open.map((ledger) => ledger.marketId)));
+    const rows = open.map((ledger) => {
+      const market = markets.get(ledger.marketId);
+      if (!market || SETTLED.has(market.status)) return null;
+      return {
+        marketId: ledger.marketId,
+        asset: market.asset,
+        intervalSec: market.intervalSec,
+        expirySec: market.expirySec,
+        decimals: market.decimals,
+        heldUpRaw: ledger.heldUpRaw,
+        heldDownRaw: ledger.heldDownRaw,
+        // The vault's position slots record lots, not cash, so a cost of 0 means "not recorded", never "free".
+        stakeBase: ledger.costBase > ledger.proceedsBase ? ledger.costBase - ledger.proceedsBase : null,
+      } satisfies VaultOpenBet;
+    });
     return rows.filter((row): row is VaultOpenBet => row !== null).sort((a, b) => a.expirySec - b.expirySec);
   });
 }

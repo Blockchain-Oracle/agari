@@ -18,9 +18,9 @@ export { recoverVaultExecution, type RecoveredVaultExecution, type VaultExecutio
 /** The Trading Balance and the live grant per kind: the account, then its live grants, in two batched reads. */
 export async function getVaultSnapshot(wallet: Address): Promise<Reading<VaultSnapshot | null>> {
   return withReading(`vault:${wallet}`, async () => {
-    const deployment = await loadVaultDeployment();
+    // The probe and the account ride together: the account's address needs only the program id.
+    const [deployment, account, venue] = await Promise.all([loadVaultDeployment(), readVaultAccount(wallet), readVenueStatic()]);
     if (!deployment) return null;
-    const [account, venue] = await Promise.all([readVaultAccount(wallet), readVenueStatic()]);
     const grants: Record<GrantKind, VaultGrant | null> = { session: null, executor: null, strategy: null };
     if (account) {
       const tickBase = tickBaseOf(venue.decimals);
