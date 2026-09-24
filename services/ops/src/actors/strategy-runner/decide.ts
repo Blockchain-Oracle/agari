@@ -1,5 +1,6 @@
 import { isOk } from "@agari/core/schemas";
 import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFollowSpec } from "@agari/core/strategies";
+import { spotSymbolOf } from "@agari/core/market";
 import type { Address, EventMarket } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
 import { openingOnFeedScale } from "@agari/markets/strategies";
@@ -25,7 +26,7 @@ export async function scanVenue(venueId: Address, spec: OracleFollowSpec, nowMs:
   let closest: number | null = null;
   const skipped: string[] = [];
   for (const market of markets) {
-    const [opening, price] = await Promise.all([marketsProvider.getOpeningPrice(market.marketId), marketsProvider.getAssetPrice(market.asset)]);
+    const [opening, price] = await Promise.all([marketsProvider.getOpeningPrice(market.marketId), marketsProvider.getAssetPrice(spotSymbolOf(market.asset, market.lane))]);
     if (!isOk(opening) || opening.stale || opening.value === null) {
       skipped.push(`${market.asset}/${market.intervalSec}s: no print yet`);
       continue;

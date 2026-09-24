@@ -17,7 +17,7 @@ export const keys = {
   marketsLite: (ids: string) => [QUERY_KEY_SCOPE, APP, "marketsLite", ids] as const,
   openingPrice: (marketId: string | null) => [QUERY_KEY_SCOPE, APP, "opening", marketId] as const,
   assetPrice: (asset: string | null) => [QUERY_KEY_SCOPE, APP, "assetPrice", asset] as const,
-  priceHistory: (asset: string | null, fromSec: number, toSec: number) => [QUERY_KEY_SCOPE, APP, "priceHistory", asset, fromSec, toSec] as const,
+  priceHistory: (asset: string | null, fromSec: number, toSec: number, basis: string | null = null) => [QUERY_KEY_SCOPE, APP, "priceHistory", asset, basis, fromSec, toSec] as const,
   bookParams: (pool: string | null) => [QUERY_KEY_SCOPE, APP, "bookParams", pool] as const,
   resolution: (marketId: string | null) => [QUERY_KEY_SCOPE, APP, "resolution", marketId] as const,
   positions: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "positions", wallet] as const,

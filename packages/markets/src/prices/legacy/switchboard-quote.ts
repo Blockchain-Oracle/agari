@@ -13,6 +13,7 @@
 import { CrossbarClient, CrossbarNetwork, FeedHash, OracleJob, type IOracleFeed } from "@switchboard-xyz/common";
 import { AnchorUtils, Queue } from "@switchboard-xyz/on-demand";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { floorDecimalE8 } from "../jupiter";
 
 /** Switchboard's default devnet queue (9 oracles; C:13 §2.1). Pinned on chain as `config.switchboard_queue`. */
 export const SWITCHBOARD_DEVNET_QUEUE = "EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7";
@@ -34,6 +35,19 @@ export function surgeFeed(symbol: string): IOracleFeed {
 
 /** Lower-case hex without `0x`, as `price-sources.json` `tokenLane.<xStock>.feedHash` pins it. */
 export const surgeFeedHashHex = (symbol: string) => FeedHash.computeOracleFeedId(surgeFeed(symbol)).toString("hex");
+
+/**
+ * The token-lane feed's value now, unsigned, from the crossbar's simulator: the same job the Window's print signs, so
+ * it is the live price to show beside a 24/7 Window (Jupiter's last swap sits 10–60 bps away). Display only; × 10⁸
+ * floored. Throws when the crossbar answers an error or no result.
+ */
+export async function simulateSurgeE8(symbol: string, crossbarUrl = SWITCHBOARD_CROSSBAR_URL): Promise<bigint> {
+  const sim = await crossbarFor(crossbarUrl).simulateFeed(surgeFeed(symbol));
+  if (sim.error) throw new Error(`crossbar ${symbol}: ${sim.error}`);
+  const value = sim.results?.[0];
+  if (typeof value !== "string" && typeof value !== "number") throw new Error(`crossbar ${symbol}: no result`);
+  return floorDecimalE8(String(value));
+}
 
 export interface QuoteFeed {
   feedHashHex: string;

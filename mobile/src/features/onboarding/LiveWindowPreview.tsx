@@ -1,10 +1,10 @@
-import { isTickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket } from "@agari/core/types";
-import { useAssetPrice, useLanes } from "@agari/markets/react";
+import { useLanes } from "@agari/markets/react";
 import { SymbolView } from "expo-symbols";
 import { StyleSheet, Text, View } from "react-native";
 import { basisRaw, feedRawToOracleRaw } from "@/features/markets/hero/units";
+import { useWindowSpotPrice } from "@/features/markets/hero/useOracleSpot";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { Pill, Skeleton } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
@@ -35,7 +35,7 @@ export function LiveWindowPreview() {
   const { color } = useTheme();
   const { market, loading } = useLiveWindow();
   const nowMs = useChainNowMs();
-  const reading = useAssetPrice(market && isTickerSymbol(market.asset) ? market.asset : null);
+  const reading = useWindowSpotPrice(market);
   const point = reading && isOk(reading) ? reading.value : null;
   const currentRaw = point ? feedRawToOracleRaw(basisRaw(point), point.decimals) : null;
   const leftSec = market && nowMs ? Math.max(0, Math.floor(market.lockAtSec - nowMs / 1000)) : null;

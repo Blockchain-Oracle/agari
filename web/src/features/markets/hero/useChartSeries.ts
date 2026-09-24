@@ -1,5 +1,6 @@
 "use client";
 
+import { spotSymbolOf } from "@agari/core/market";
 import { mapReading, stale, type Reading } from "@agari/core/schemas";
 import type { AssetPrice, EventMarket, PricePoint } from "@agari/core/types";
 import { useAssetPrice, usePriceHistory } from "@agari/markets/react";
@@ -41,8 +42,9 @@ function dedupeByTime(points: ChartPoint[]): ChartPoint[] {
  */
 export function useChartSeries(market: EventMarket | null): Reading<ChartSeries> | null {
   const fromSec = (market?.tradingStartSec ?? 0) - HISTORY_LEAD_SEC;
-  const history = usePriceHistory(market?.asset ?? null, fromSec, market?.expirySec ?? 0);
-  const live = useAssetPrice(market?.asset ?? null);
+  const history = usePriceHistory(market?.asset ?? null, fromSec, market?.expirySec ?? 0, market?.lane);
+  // A 24/7 Window's live line is its xStock's price, the one it settles on; the stock's own print can sit a dollar away.
+  const live = useAssetPrice(market ? spotSymbolOf(market.asset, market.lane) : null);
   const [liveTicks, setLiveTicks] = useState<ChartPoint[]>([]);
 
   useEffect(() => setLiveTicks([]), [market?.marketId]);

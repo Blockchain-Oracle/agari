@@ -28,7 +28,7 @@ export const LANE_STATE = {
   },
   source: {
     gap: (open: string, close: string) => `Settles on the oracle price at ${open} ET and ${close} ET (first regular-session print, not the opening cross)`,
-    token: (xstock: string) => `Settles on the Switchboard ${xstock} token price observed ≤ 60 s after each boundary · chart follows Jupiter`,
+    token: (xstock: string) => `Settles on the Switchboard ${xstock} token price observed ≤ 60 s after each boundary · the live price is that feed`,
     /** A valuation lane (S20, D-125): Pyth's valuation index for the company, posted to the receiver and verified on chain, like TSLA. */
     valuation: (name: string) => `Settles on Pyth's ${name} valuation index, verified on chain at open and close · chart follows the index`,
     /** A pre-IPO name (D-100, D-101): one source, the venue's own signature; the chart follows the same read. */

@@ -1,10 +1,10 @@
-import type { TickerSymbol } from "../market/tickers";
+import type { SpotSymbol } from "../market/tickers";
 import type { PrintSource, VoidReason } from "./market";
 import type { Signature } from "./primitives";
 
-/** Live spot for a ticker from price-relay (display only; never a settlement input). */
+/** Live spot for a ticker or an xStock from price-relay (display only; never a settlement input). */
 export interface AssetPrice {
-  asset: TickerSymbol;
+  asset: SpotSymbol;
   priceRaw: bigint;
   emaRaw: bigint;
   decimals: number;

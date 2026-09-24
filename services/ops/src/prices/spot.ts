@@ -10,7 +10,8 @@ export interface SpotQuote {
   /** The source's own publish time. */
   publishTimeSec: number;
   /** `"prestocks"`: the catalogue's `tokenPrice` for a pre-IPO name (plan Step 1); display and quoting only. */
-  source: "pyth" | "redstone" | "jupiter" | "prestocks";
+  /** `"switchboard"`: a token-lane xStock's Surge value, read unsigned for display beside its 24/7 Windows. */
+  source: "pyth" | "redstone" | "jupiter" | "prestocks" | "switchboard";
 }
 
 export interface SpotFeed {

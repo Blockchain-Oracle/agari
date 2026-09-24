@@ -1,7 +1,7 @@
 import { isOk } from "@agari/core/schemas";
 import type { MarketId, OpenPosition } from "@agari/core/types";
 import { collateralOrNull } from "@agari/markets";
-import { useOpeningPrice, usePositions } from "@agari/markets/react";
+import { useMarket, useOpeningPrice, usePositions } from "@agari/markets/react";
 import * as Notifications from "expo-notifications";
 import { after, type LiveActivity } from "expo-widgets";
 import { useEffect, useRef, useState } from "react";
@@ -51,7 +51,9 @@ export function useWindowActivity(marksVersion: number): string | null {
   const marketId = (shown?.marketId ?? null) as MarketId | null;
   const opening = useOpeningPrice(marketId);
   const openingRaw = opening && isOk(opening) ? opening.value : null;
-  const spotRaw = useOracleSpot(shown?.asset ?? null);
+  // The Window itself names the lane: a 24/7 xStock Window is judged on the token's price, not the stock's.
+  const followedWindow = useMarket(marketId);
+  const spotRaw = useOracleSpot(followedWindow && isOk(followedWindow) ? followedWindow.value : null);
   const verdictState = useVerdict({ marketId, wallet: address });
   const verdictRead = verdictState.phase === "settled" && verdictState.verdict && isOk(verdictState.verdict) ? verdictState.verdict : null;
   const verdict = verdictRead?.value ?? null;

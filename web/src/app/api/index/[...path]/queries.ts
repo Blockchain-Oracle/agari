@@ -52,6 +52,8 @@ const marketsQuery = z.object({
 const fillsQuery = z.object({ market: address.optional(), book: address.optional(), since: optionalInt, limit: optionalInt, offset: optionalInt });
 const pageQuery = z.object({ limit: optionalInt, offset: optionalInt });
 const rangeQuery = z.object({ from: int, to: int, limit: optionalInt });
+/** `basis` (0 Regular, 1 Gap, 2 Token) keeps one lane: a ticker's stock and 24/7 xStock Windows print different prices. */
+const printsQuery = rangeQuery.extend({ basis: z.coerce.number().int().min(0).max(2).optional() });
 
 function walletQuery(wallet: string, resource: string | undefined, query: Record<string, string>): IndexQuery | null {
   const owner = parse(address, wallet);
@@ -112,8 +114,8 @@ export function resolveIndexQuery(path: readonly string[], query: Record<string,
     case "prints": {
       if (second === undefined || third !== undefined) return null;
       const ticker = parse(symbol, second);
-      const q = parse(rangeQuery, query);
-      return { scope: "public", run: (r) => r.printHistory(ticker, q.from, q.to, q.limit) };
+      const q = parse(printsQuery, query);
+      return { scope: "public", run: (r) => r.printHistory(ticker, q.from, q.to, q.limit, q.basis) };
     }
     case "candles": {
       if (second === undefined || third !== undefined) return null;

@@ -38,7 +38,7 @@ interface Props {
 export const ReelCard = memo(function ReelCard({ market, near, closing, height }: Props) {
   const { color } = useTheme();
   const opening = useOpeningPrice(near ? market.marketId : null);
-  const spotRaw = useOracleSpot(near ? market.asset : null);
+  const spotRaw = useOracleSpot(near ? market : null);
   const book = useTopOfBook(near ? market : null);
   const openingRaw = opening?.ok ? opening.value : market.openingPriceRaw;
   const pick = (side: Side) => router.push({ pathname: "/ticket", params: { m: market.marketId, dir: side } });

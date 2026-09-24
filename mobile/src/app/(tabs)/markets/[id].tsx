@@ -38,7 +38,7 @@ export default function WindowScreen() {
   const phase = useWindowPhase(market, nowMs);
   const opening = useOpeningPrice(market?.marketId ?? null);
   const series = useChartSeries(market);
-  const spot = useOracleSpot(market?.asset ?? null);
+  const spot = useOracleSpot(market ?? null);
   const book = useTopOfBook(market);
   const refresh = () => queryClient.invalidateQueries();
 

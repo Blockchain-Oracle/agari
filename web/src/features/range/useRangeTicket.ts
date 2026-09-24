@@ -71,7 +71,7 @@ const PHASE_BLOCKERS: Partial<Record<MarketPhase, BlockerKind>> = {
  */
 export function useRangeTicket(p: UseRangeTicketInput): RangeTicketApi {
   const { market, phase, decimals, symbol, reserve, stakeBase, availableBase, session, hasSigner, enabled } = p;
-  const spot = useOracleSpot(market.asset);
+  const spot = useOracleSpot(market);
   // D-119: the band stays centred on the live price — that is what the player is betting about, and what the
   // control's own "at market price" says. The reserve prices from somewhere else: the opening print carried by the
   // drift its venue's book implies, which `centrePrintOf` reconstructs. Those two agree while the book is trading.

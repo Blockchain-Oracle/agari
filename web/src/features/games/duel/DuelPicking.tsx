@@ -12,15 +12,15 @@ import {
   type Pick,
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import { isTickerSymbol } from "@agari/core/market";
 import type { Address, Hash32 } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { quoteArenaPick } from "@agari/markets/games";
-import { useArenaState, useAssetPrice, useOpeningPrice } from "@agari/markets/react";
+import { useArenaState, useOpeningPrice } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNowMs } from "@/components/data";
 import { useVenue } from "@/features/markets";
 import { assetPriceLine } from "@/features/markets/hero/units";
+import { useWindowSpotPriceById } from "@/features/markets/hero/useOracleSpot";
 import { webEnv } from "@/lib/env";
 import { clockUrgency, StageFace } from "../stage/StageFace";
 import { SwipeDeck, type DeckPlace } from "../stage/SwipeDeck";
@@ -302,7 +302,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
 function DuelFace({ card, place, nowMs, stake }: { card: DeckCard; place: DeckPlace; nowMs: number | undefined; stake: string }) {
   const opening = useOpeningPrice(card.marketId);
   const lineRaw = opening?.ok ? opening.value : null;
-  const price = useAssetPrice(isTickerSymbol(card.asset) ? card.asset : null);
+  const price = useWindowSpotPriceById(card.marketId);
   const spot = price?.ok ? price.value : null;
   return (
     <StageFace

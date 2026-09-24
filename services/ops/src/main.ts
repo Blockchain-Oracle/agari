@@ -28,6 +28,7 @@ import { createSessionService } from "./calendar/session-service";
 import { startOpsHttp } from "./http/server";
 import type { SpotFeed } from "./prices/spot";
 import { createXStockSpotFeed, joinXStockSpot } from "./prices/xstock-spot";
+import { createSwitchboardSpotFeed, joinSwitchboardSpot } from "./prices/switchboard-spot";
 import { createPreStocksSpotFeed, joinPreStocksSpot, PRESTOCKS_SPOT_EVERY_MS, type PreStocksSpotHandle } from "./prices/prestocks-spot";
 import { createPythIndexSpotFeed, joinPythIndexSpot, type PythIndexSpotHandle } from "./prices/pyth-index-spot";
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
@@ -104,7 +105,14 @@ if (actors.has("maker") || actors.has("http") || actors.has("desk-runner")) {
   pythIndexSpot.start();
   marketSpot = joinPythIndexSpot(joinPreStocksSpot(joinXStockSpot(spot, xstockSpot), prestocksSpot), pythIndexSpot);
 }
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: marketSpot, prestocks: prestocksSpot, pythIndex: { store: pythIndex, spot: pythIndexSpot }, sessions, halts, events, env, log: log("http") }));
+// What web shows: a 24/7 Window's live price is its Switchboard Surge value, the one its print signs (the maker keeps Jupiter).
+let displaySpot: SpotFeed | null = marketSpot;
+if (actors.has("http")) {
+  const switchboardSpot = createSwitchboardSpotFeed({ log: log("switchboard-spot") });
+  switchboardSpot.start();
+  displaySpot = joinSwitchboardSpot(marketSpot, switchboardSpot);
+}
+if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: displaySpot, prestocks: prestocksSpot, pythIndex: { store: pythIndex, spot: pythIndexSpot }, sessions, halts, events, env, log: log("http") }));
 if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
 if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
 if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));

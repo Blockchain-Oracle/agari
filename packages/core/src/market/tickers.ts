@@ -331,6 +331,12 @@ export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbo
   return t.xstock?.symbol ?? t.preIpo?.symbol ?? t.basket ?? null;
 }
 
+/** A symbol the spot feed publishes: a ticker's own price, or an xStock's token price (`/prices/latest` keys both). */
+export type SpotSymbol = TickerSymbol | XStockSymbol;
+
+/** The spot a Window settles on: a listed ticker's 24/7 Window follows its xStock; a pre-IPO name, basket or stock lane its ticker. */
+export const spotSymbolOf = (symbol: TickerSymbol, basis: LaneBasis): SpotSymbol => (basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? symbol) : symbol);
+
 export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: number): string {
   // An off-lane key names no lane: `parseLaneKey` returns null for it, so no clock is ever derived from it.
   if (!laneListable(symbol, basis)) return `#${symbol}-${basis}-${cadenceSec}`;

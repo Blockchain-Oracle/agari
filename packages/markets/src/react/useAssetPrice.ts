@@ -1,5 +1,5 @@
 import { PRICE_POLL_MS, PRICE_STALE_AFTER_MS } from "@agari/core/constants";
-import type { TickerSymbol } from "@agari/core/market";
+import type { SpotSymbol } from "@agari/core/market";
 import { ok, stale, type Reading } from "@agari/core/schemas";
 import type { AssetPrice } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
@@ -20,13 +20,13 @@ export interface AssetPriceOptions {
 }
 
 /**
- * Spot for one ticker: the tab's one shared stream while it is live, the polled `/prices/latest` snapshot otherwise.
+ * Spot for one ticker or xStock: the tab's one shared stream while it is live, the polled `/prices/latest` snapshot otherwise.
  * Either way a price older than the freshness budget is flagged stale, re-evaluated every second without a new tick.
  */
-export function useAssetPrice(asset: TickerSymbol | null, { pollMs = PRICE_POLL_MS }: AssetPriceOptions = {}): Reading<AssetPrice | null> | null {
+export function useAssetPrice(asset: SpotSymbol | null, { pollMs = PRICE_POLL_MS }: AssetPriceOptions = {}): Reading<AssetPrice | null> | null {
   const subscribe = useCallback((onChange: () => void) => (asset === null ? () => undefined : subscribeSpot(asset, onChange)), [asset]);
   const view = useSyncExternalStore(subscribe, () => (asset === null ? NOT_LIVE : spotView(asset)), () => NOT_LIVE);
-  const fallback = useReadingQuery(keys.assetPrice(asset), () => getAssetPrice(asset as TickerSymbol), {
+  const fallback = useReadingQuery(keys.assetPrice(asset), () => getAssetPrice(asset as SpotSymbol), {
     enabled: asset !== null && !(view.live && view.tick),
     pollMs,
     needs: [],

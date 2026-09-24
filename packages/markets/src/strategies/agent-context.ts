@@ -1,5 +1,6 @@
 import { err, isOk, ok, type Reading } from "@agari/core/schemas";
 import type { AgentContext, AgentSample } from "@agari/core/strategies";
+import { spotSymbolOf } from "@agari/core/market";
 import { diagnosis, type EventMarket, type PricePoint, type Side } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { marketsProvider } from "../provider";
@@ -50,8 +51,8 @@ export async function readAgentContext(market: EventMarket, stakeBase: bigint, n
   const nowSec = msToSec(nowMs);
   const [opening, price, history, upCents, downCents] = await Promise.all([
     marketsProvider.getOpeningPrice(market.marketId),
-    marketsProvider.getAssetPrice(market.asset),
-    marketsProvider.getPriceHistory(market.asset, market.tradingStartSec - runUpSec(market.intervalSec), nowSec),
+    marketsProvider.getAssetPrice(spotSymbolOf(market.asset, market.lane)),
+    marketsProvider.getPriceHistory(market.asset, market.tradingStartSec - runUpSec(market.intervalSec), nowSec, market.lane),
     sideCents(market, "up", stakeBase),
     sideCents(market, "down", stakeBase),
   ]);

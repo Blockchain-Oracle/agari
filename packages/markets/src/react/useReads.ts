@@ -9,7 +9,7 @@ import type { ProviderShares } from "@agari/core/reserves";
 import type { WalletHistory } from "@agari/core/projection";
 import type { RangeReserveState, RangeRound } from "@agari/core/range";
 import { isOk, type Reading } from "@agari/core/schemas";
-import type { Address, BalanceSheet, BookParams, ClaimableRow, ClockSync, EventMarket, Hash32, LaneSet, MarketId, OnchainSnapshot, OpenPosition, PricePoint, Resolution } from "@agari/core/types";
+import type { Address, BalanceSheet, BookParams, ClaimableRow, ClockSync, EventMarket, Hash32, LaneBasis, LaneSet, MarketId, OnchainSnapshot, OpenPosition, PricePoint, Resolution } from "@agari/core/types";
 import type { VaultHoldings, VaultSnapshot } from "@agari/core/vault";
 import { getArenaCredit, getArenaMatch, getArenaState, quoteArenaPick, type ArenaMatchView, type ArenaState } from "../games/read";
 import { getLeverageMark, getLeverageReserveState, getLeverageSharesOf, listLeveragePositionsOf } from "../leverage";
@@ -77,8 +77,9 @@ export function useOpeningPrice(marketId: MarketId | null): Reading<bigint | nul
   });
 }
 
-export function usePriceHistory(asset: TickerSymbol | null, fromSec: number, toSec: number): Reading<PricePoint[]> | null {
-  return useReadingQuery(keys.priceHistory(asset, fromSec, toSec), () => getPriceHistory(asset as TickerSymbol, fromSec, toSec), {
+/** A ticker's recorded prints; pass the Window's `basis` so a stock lane and its 24/7 xStock lane never share a line. */
+export function usePriceHistory(asset: TickerSymbol | null, fromSec: number, toSec: number, basis?: LaneBasis): Reading<PricePoint[]> | null {
+  return useReadingQuery(keys.priceHistory(asset, fromSec, toSec, basis ?? null), () => getPriceHistory(asset as TickerSymbol, fromSec, toSec, basis), {
     enabled: asset !== null,
     staleTimeMs: Number.POSITIVE_INFINITY,
   });

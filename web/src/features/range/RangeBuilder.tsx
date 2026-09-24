@@ -60,7 +60,7 @@ export function RangeBuilder({ reserve, symbol }: RangeBuilderProps) {
     if (picked && picked.marketId !== marketId) setMarketId(picked.marketId);
   }, [picked, marketId]);
 
-  const spot = useOracleSpot(picked?.asset ?? null);
+  const spot = useOracleSpot(picked ?? null);
   // D-119: the same basis the ticket reads — the band is centred on the live price, and the reserve's own centre
   // is reconstructed only to check the two have not parted.
   const basis = useRangeBasis(picked?.marketId ?? null);

@@ -52,7 +52,7 @@ export function TakeComposer({ laneSet, nowMs, configured, onClose }: TakeCompos
   const market = horizon.market;
   const opening = useOpeningPrice(market?.marketId ?? null);
   const lineRaw = opening?.ok ? opening.value : (market?.openingPriceRaw ?? null);
-  const spotRaw = useOracleSpot(market?.asset ?? null);
+  const spotRaw = useOracleSpot(market ?? null);
 
   // The chip's words after the asset, as the card cuts them (`callParts`): " over $359.07", " vs the opening print".
   const band = market === null ? null : lineRaw === null ? TAKES.noLine(market.asset) : side === "up" ? TAKES.over(market.asset, assetPriceLine(market.asset, lineRaw)) : TAKES.under(market.asset, assetPriceLine(market.asset, lineRaw));

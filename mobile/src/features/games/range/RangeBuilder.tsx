@@ -60,7 +60,7 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
     if (picked && picked.marketId !== marketId) setMarketId(picked.marketId);
   }, [picked, marketId]);
 
-  const spot = useOracleSpot(picked?.asset ?? null);
+  const spot = useOracleSpot(picked ?? null);
   // D-119: the band is centred on the live price; the reserve's own centre is rebuilt only to check the two agree.
   const basis = useRangeBasis(picked?.marketId ?? null);
   const tauSec = picked ? Math.max(0, picked.expirySec - Math.floor(Date.now() / 1000)) : 0;

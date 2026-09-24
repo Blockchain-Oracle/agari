@@ -92,12 +92,12 @@ export function indexReader(sql: Sql) {
       return sql`SELECT market, source, price::text, expo, source_ts_sec::text, signers FROM idx_prints WHERE which = 0 AND market = ANY(${markets as string[]}::text[])`;
     },
 
-    /** Recorded prints of a ticker over time: every open and close boundary once (Masayume `fetchPriceHistory`). */
-    async printHistory(symbol: string, fromSec: number, toSec: number, limit?: number): Promise<IdxRow[]> {
+    /** Recorded prints of a ticker over time: every open and close boundary once (Masayume `fetchPriceHistory`); `basis` keeps one lane. */
+    async printHistory(symbol: string, fromSec: number, toSec: number, limit?: number, basis?: number): Promise<IdxRow[]> {
       return sql`
         SELECT DISTINCT ON (p.source_ts_sec, p.source) p.source_ts_sec::text, p.source, p.price::text, p.expo, p.signers
         FROM idx_prints p JOIN idx_markets m ON m.market = p.market
-        WHERE m.symbol = ${symbol} AND p.which IN (0, 1) AND p.source_ts_sec BETWEEN ${fromSec} AND ${toSec}
+        WHERE m.symbol = ${symbol} ${basis === undefined ? sql`` : sql`AND m.basis = ${basis}`} AND p.which IN (0, 1) AND p.source_ts_sec BETWEEN ${fromSec} AND ${toSec}
         ORDER BY p.source_ts_sec, p.source LIMIT ${clamp(limit, 500)}`;
     },
 

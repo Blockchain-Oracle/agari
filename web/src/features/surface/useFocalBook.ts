@@ -23,7 +23,7 @@ export function useFocalBook(market: EventMarket | null): FocalBook {
   const params = useBookParams(market?.poolAddress ?? null);
   const fee = useSettlementFee(market?.marketId ?? null);
   const opening = useOpeningPrice(market?.marketId ?? null);
-  const spotRaw = useOracleSpot(market?.asset ?? null);
+  const spotRaw = useOracleSpot(market ?? null);
   return {
     book,
     structure: book && book.ok ? bookStructure(book.value) : null,

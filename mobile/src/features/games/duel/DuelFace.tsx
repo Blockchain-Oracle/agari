@@ -1,9 +1,9 @@
 import type { DeckCard } from "@agari/core/games";
-import { isTickerSymbol } from "@agari/core/market";
-import { useAssetPrice, useOpeningPrice } from "@agari/markets/react";
+import { useOpeningPrice } from "@agari/markets/react";
 import { Text } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import { assetPriceLine } from "@/features/markets/hero/units";
+import { useWindowSpotPriceById } from "@/features/markets/hero/useOracleSpot";
 import { StageFace, usePendingQuestionStyle, type DeckPlace } from "../stage";
 
 /**
@@ -14,7 +14,7 @@ import { StageFace, usePendingQuestionStyle, type DeckPlace } from "../stage";
 export function DuelFace({ card, place, nowMs, stake }: { card: DeckCard; place: DeckPlace; nowMs: number | undefined; stake: string }) {
   const opening = useOpeningPrice(card.marketId);
   const lineRaw = opening?.ok ? opening.value : null;
-  const price = useAssetPrice(isTickerSymbol(card.asset) ? card.asset : null);
+  const price = useWindowSpotPriceById(card.marketId);
   const spot = price?.ok ? price.value : null;
   const pending = usePendingQuestionStyle();
   return (

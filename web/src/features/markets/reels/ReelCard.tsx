@@ -34,7 +34,7 @@ interface ReelCardProps {
  */
 export const ReelCard = memo(function ReelCard({ market, near, closing }: ReelCardProps) {
   const opening = useOpeningPrice(near ? market.marketId : null);
-  const spotRaw = useOracleSpot(near ? market.asset : null);
+  const spotRaw = useOracleSpot(near ? market : null);
   const openingRaw = opening?.ok ? opening.value : market.openingPriceRaw;
 
   return (

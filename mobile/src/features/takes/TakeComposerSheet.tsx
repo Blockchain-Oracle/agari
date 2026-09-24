@@ -48,7 +48,7 @@ export function TakeComposerSheet({ visible, laneSet, nowMs, configured, onClose
   const market = horizon.market;
   const opening = useOpeningPrice(visible ? (market?.marketId ?? null) : null);
   const lineRaw = opening?.ok ? opening.value : (market?.openingPriceRaw ?? null);
-  const spotRaw = useOracleSpot(visible ? (market?.asset ?? null) : null);
+  const spotRaw = useOracleSpot(visible ? (market ?? null) : null);
   const [checking, setChecking] = useState(false);
   const [failed, setFailed] = useState(false);
   const working = busy || checking;

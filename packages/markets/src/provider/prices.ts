@@ -3,9 +3,9 @@
  * live, else one `/prices/latest` snapshot shared by every symbol asking in the same second. Print history is what
  * the chain recorded, from the index.
  */
-import type { TickerSymbol } from "@agari/core/market";
+import type { SpotSymbol, TickerSymbol } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
-import { diagnosis, type AssetPrice, type PricePoint } from "@agari/core/types";
+import { diagnosis, LANE_BASES, type AssetPrice, type LaneBasis, type PricePoint } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { peekClient } from "../runtime/read-runtime";
 import { liveSpot } from "../runtime/spot-stream";
@@ -34,7 +34,7 @@ function latestSnapshot(base: string): Promise<LatestBody> {
   return body;
 }
 
-const toAssetPrice = (asset: TickerSymbol, priceE8: bigint, publishTimeSec: number): AssetPrice => ({
+const toAssetPrice = (asset: SpotSymbol, priceE8: bigint, publishTimeSec: number): AssetPrice => ({
   asset,
   priceRaw: priceE8,
   emaRaw: priceE8,
@@ -42,7 +42,7 @@ const toAssetPrice = (asset: TickerSymbol, priceE8: bigint, publishTimeSec: numb
   publishTimeSec,
 });
 
-export async function getAssetPrice(asset: TickerSymbol): Promise<Reading<AssetPrice | null>> {
+export async function getAssetPrice(asset: SpotSymbol): Promise<Reading<AssetPrice | null>> {
   return withReading(`price:${asset}`, async () => {
     const tick = liveSpot(asset);
     if (tick) return toAssetPrice(asset, tick.priceE8, tick.publishTimeSec);
@@ -59,10 +59,14 @@ export async function getAssetPrice(asset: TickerSymbol): Promise<Reading<AssetP
   });
 }
 
-/** One point per print time, the lowest source id first when two sources printed the same second. */
-export async function getPriceHistory(asset: TickerSymbol, fromSec: number, toSec: number): Promise<Reading<PricePoint[]>> {
-  return withReading(`history:${asset}:${fromSec}:${toSec}`, async () => {
-    const rows = await indexRows<PrintHistoryRow>(`prints/${asset}`, { from: Math.floor(fromSec), to: Math.ceil(toSec), limit: 1_000 });
+/**
+ * One point per print time, the lowest source id first when two sources printed the same second. `basis` keeps one
+ * lane's prints: a ticker's stock Windows print the stock, its 24/7 Windows print the xStock, and both share the ticker.
+ */
+export async function getPriceHistory(asset: TickerSymbol, fromSec: number, toSec: number, basis?: LaneBasis): Promise<Reading<PricePoint[]>> {
+  return withReading(`history:${asset}:${basis ?? "any"}:${fromSec}:${toSec}`, async () => {
+    const lane = basis === undefined ? {} : { basis: LANE_BASES.indexOf(basis) };
+    const rows = await indexRows<PrintHistoryRow>(`prints/${asset}`, { from: Math.floor(fromSec), to: Math.ceil(toSec), limit: 1_000, ...lane });
     const points: PricePoint[] = [];
     let lastSec = -1;
     for (const row of rows) {

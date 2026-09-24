@@ -1,8 +1,8 @@
 import type { WalletHistory } from "../projection/types";
-import type { TickerSymbol } from "../market/tickers";
+import type { SpotSymbol, TickerSymbol } from "../market/tickers";
 import type { Reading } from "../schemas/reading";
 import type { AssetPrice, ClockSync, PricePoint, Resolution } from "../types/feeds";
-import type { EventMarket, LaneSet, MarketId, OnchainSnapshot, Side } from "../types/market";
+import type { EventMarket, LaneBasis, LaneSet, MarketId, OnchainSnapshot, Side } from "../types/market";
 import type { Address, Hash32 } from "../types/primitives";
 import type { BalanceSheet, BookDepth, BookParams, ClaimableRow, ExitQuote, Holdings, OpenPosition, Quote } from "../types/trading";
 import type { VaultHoldings, VaultSnapshot } from "../vault/types";
@@ -31,8 +31,8 @@ export interface MarketsProvider {
   /** Watch-free exit quote for a plain cash-out (L-35); null when the Book would fill nothing ("No exit liquidity"). */
   freshExitQuote(target: QuoteTarget, side: Side, contractsRaw: bigint): Promise<Reading<ExitQuote | null>>;
   getOpeningPrice(marketId: MarketId): Promise<Reading<bigint | null>>;
-  getAssetPrice(asset: TickerSymbol): Promise<Reading<AssetPrice | null>>;
-  getPriceHistory(asset: TickerSymbol, fromSec: number, toSec: number): Promise<Reading<PricePoint[]>>;
+  getAssetPrice(asset: SpotSymbol): Promise<Reading<AssetPrice | null>>;
+  getPriceHistory(asset: TickerSymbol, fromSec: number, toSec: number, basis?: LaneBasis): Promise<Reading<PricePoint[]>>;
   settlementFeeBps(marketId: MarketId): Promise<Reading<number>>;
   listOpenPositions(wallet: Address): Promise<Reading<OpenPosition[]>>;
   getHoldings(wallet: Address, onchain: OnchainSnapshot): Promise<Reading<Holdings>>;
