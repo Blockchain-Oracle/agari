@@ -252,20 +252,25 @@
 .mobile-nav-copy strong sup { margin-left: 0.25rem; color: var(--vermilion); font-family: var(--font-mono); font-size: 0.5rem; text-transform: uppercase; }
 .mobile-nav-copy small { display: block; margin-top: 0.25rem; color: var(--gray-500); font-size: 0.68rem; line-height: 1.35; }
 
+/* Tablet and small desktop keep the header navigation; the bottom dock is phones only.
+   Links, gaps and the wallet controls tighten so the connected header fits at 721px. */
 @media (min-width: 721px) and (max-width: 1100px) {
   .header { padding-inline: clamp(16px, 2vw, 24px); }
-  .nav { gap: 0; }
-  .nav-links { display: none; }
+  .nav { gap: 16px; }
+  .nav-links { gap: 16px; }
   .header-right { gap: 8px; }
   .header-right .dusdc-pill { gap: 4px; padding: 5px 8px; font-size: 11px; }
   .header-right .dusdc-pill .dusdc-unit { display: none; }
   .header-right .wallet-pill { gap: 6px; padding: 5px 9px 5px 5px; font-size: 11px; }
   .header-right .wallet-pill .addr-dot { width: 18px; height: 18px; }
   .header-right .wallet-pill .addr-dot::after { inset: 5px; }
-  .mobile-bottom-nav { display: flex; width: min(26rem, calc(100vw - 1.25rem)); justify-content: stretch; }
-  .mobile-bottom-nav a,
-  .mobile-bottom-nav button { flex: 1 1 20%; min-width: 0; padding-inline: 0.35rem; }
-  body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Below this the links and wallet controls need the wordmark's room: the mark stands alone. */
+@media (min-width: 721px) and (max-width: 920px) {
+  .header .logo-copy { display: none; }
+  .nav { gap: 12px; }
+  .nav-links { gap: 10px; }
 }
 
 @media (max-width: 720px) {

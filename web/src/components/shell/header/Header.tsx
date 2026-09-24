@@ -12,7 +12,7 @@ import { HeaderMoneyPill } from "./HeaderMoneyPill";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { DESKTOP_NAV, isActiveNavItem, type NavGroup } from "./nav-items";
 
-const COMPACT_NAV_MAX_WIDTH = 1100;
+const MOBILE_MAX_WIDTH = 720;
 
 export default function Header() {
   const pathname = usePathname();
@@ -30,12 +30,12 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    const closeAtCompactWidth = () => {
-      if (window.innerWidth <= COMPACT_NAV_MAX_WIDTH) setOpenGroup(null);
+    const closeAtMobileWidth = () => {
+      if (window.innerWidth <= MOBILE_MAX_WIDTH) setOpenGroup(null);
     };
-    closeAtCompactWidth();
-    window.addEventListener("resize", closeAtCompactWidth);
-    return () => window.removeEventListener("resize", closeAtCompactWidth);
+    closeAtMobileWidth();
+    window.addEventListener("resize", closeAtMobileWidth);
+    return () => window.removeEventListener("resize", closeAtMobileWidth);
   }, []);
 
   return (
