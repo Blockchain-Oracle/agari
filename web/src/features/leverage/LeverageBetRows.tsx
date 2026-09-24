@@ -47,14 +47,15 @@ function Row({ position, symbol, decimals, nowMs, writes }: RowProps) {
  * own the lists and their pages, so this returns items rather than sections. Empty without a
  * reserve or without positions — the wallet's panel already carries the empty state.
  */
-export function useLeverageBetItems(symbol: string | undefined): { live: readonly ListItem[]; done: readonly ListItem[] } {
+export function useLeverageBetItems(symbol: string | undefined): { live: readonly ListItem[]; done: readonly ListItem[]; pending: boolean } {
   const { address } = useWalletSession();
   const reserve = useLeverageReserve();
   const decimals = reserve && isOk(reserve) && reserve.value ? reserve.value.decimals : 6;
   const nowMs = useChainNowMs();
   const reading = useMyLeveragePositions(address);
   const writes = useLeverageWrites();
-  if (!reading || !isOk(reading) || reading.value.length === 0) return { live: NONE, done: NONE };
+  if (!reading) return { live: NONE, done: NONE, pending: address !== null };
+  if (!isOk(reading) || reading.value.length === 0) return { live: NONE, done: NONE, pending: false };
   const item = (p: LeveragePosition): ListItem => ({
     key: `boost:${p.positionId.toString()}`,
     node: <Row position={p} symbol={symbol} decimals={decimals} nowMs={nowMs} writes={writes} />,
@@ -62,5 +63,6 @@ export function useLeverageBetItems(symbol: string | undefined): { live: readonl
   return {
     live: reading.value.filter((p) => p.status === "live").map(item),
     done: reading.value.filter((p) => p.status !== "live").map(item),
+    pending: false,
   };
 }

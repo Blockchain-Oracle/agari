@@ -102,9 +102,11 @@ function RestingRow({ view, symbol }: { view: RestingOrderView; symbol: string |
  * The wallet's scheduled calls as Open-tab items, ahead of the positions: what rests now or is on its way back. A
  * filled call is a position and appears there instead; a cancelled one has left the index's open set.
  */
-export function useRestingItems(symbol: string | undefined): ListItem[] {
+export function useRestingItems(symbol: string | undefined): { items: ListItem[]; pending: boolean } {
   const { address } = useWalletSession();
   const reading = useRestingOrders(address);
-  if (!reading || !isOk(reading)) return [];
-  return reading.value.filter((view) => view.status !== "filled" && view.status !== "cancelled").map((view) => ({ key: `resting:${view.id}`, node: <RestingRow view={view} symbol={symbol} /> }));
+  if (!reading) return { items: [], pending: address !== null };
+  if (!isOk(reading)) return { items: [], pending: false };
+  const items = reading.value.filter((view) => view.status !== "filled" && view.status !== "cancelled").map((view) => ({ key: `resting:${view.id}`, node: <RestingRow view={view} symbol={symbol} /> }));
+  return { items, pending: false };
 }

@@ -2,8 +2,8 @@ import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, ty
 import { encodeBase58, type Address, type MarketId, type Signature } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
 import { readMarket, readSeries } from "../runtime/accounts";
-import { getVaultDeployment } from "../runtime/read-runtime";
 import { ANY_MARKET, readVaultAccount } from "./accounts";
+import { loadVaultDeployment } from "./deployment";
 
 /** A vault round has no single transaction to link: the fills are the vault seat's, attributed by tally. */
 export const VAULT_TX_SENTINEL = encodeBase58(new Uint8Array(64)) as Signature;
@@ -41,9 +41,11 @@ export interface VaultTallies {
  * line rather than a stake of zero. A closed round is not here at all; that history needs the vault's events indexed.
  */
 export async function listVaultTallies(wallet: Address, _options: { complete?: boolean } = {}): Promise<VaultTallies> {
-  if (!getVaultDeployment()) return { tallies: [], complete: true };
-  const account = await readVaultAccount(wallet);
-  if (!account) return { tallies: [], complete: true };
+  // Awaited, never peeked: the synchronous answer is null until some other read has probed the vault, so a fresh page
+  // whose open-bets read won that race was told "nothing held" and kept it for a poll (09-24: an X trade missing from
+  // Open after a refresh). The account read needs only the program id, so it rides alongside the probe.
+  const [deployment, account] = await Promise.all([loadVaultDeployment(), readVaultAccount(wallet)]);
+  if (!deployment || !account) return { tallies: [], complete: true };
   const held = account.positions.filter((slot) => (slot.market as string) !== ANY_MARKET && slot.yesLots + slot.noLots > 0n);
   const tallies = await Promise.all(held.map(async (slot): Promise<VaultTally | null> => {
     const market = await readMarket(slot.market);
