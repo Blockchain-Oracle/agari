@@ -95,7 +95,8 @@ function DealCard({ deal, market, symbol, onReport, onSkip, skipping }: Props & 
   const onchainValue = onchain?.ok ? onchain.value : null;
   const routing = useTicketRoute({ market, side, stakeBase, quote, onchain: onchainValue, source: "wallet", walletAvailableBase, symbol });
   const bet = usePlaceBet({ submitter: routing.submitter, wallet: routing.wallet });
-  const displayed = bet.requoted ?? quote;
+  const requoted = bet.requoteFor(market.marketId, side, stakeBase);
+  const displayed = requoted ?? quote;
   const walletRoute = routing.route.kind === "wallet";
   const funding = useFundingCheck(walletRoute ? address : null, onchainValue, displayed);
 
@@ -206,9 +207,9 @@ function DealCard({ deal, market, symbol, onReport, onSkip, skipping }: Props & 
         </Text>
       </View>
 
-      {bet.requoted ? (
+      {requoted ? (
         <Text style={[TYPE.caption, { color: color.warning }]} accessibilityLiveRegion="polite">
-          {TICKET.requotePrefix} {money(bet.requoted.maxCostBase)} {TICKET.requoteSuffix}
+          {TICKET.requotePrefix} {money(requoted.maxCostBase)} {TICKET.requoteSuffix}
         </Text>
       ) : null}
 

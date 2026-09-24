@@ -63,6 +63,18 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
     if (outcome && outcome.status !== "confirmed") setReviewing(false);
   }, [outcome]);
 
+  // The ticket rolled to the next Window: the review in hand priced the old Book, so it closes and is opened afresh,
+  // and a requote or refusal said about the old Window goes with it. A fill's receipt stays.
+  const marketId = c.market.marketId;
+  const shownFor = useRef(marketId);
+  const { reset: resetBet } = c.bet;
+  useEffect(() => {
+    if (shownFor.current === marketId) return;
+    shownFor.current = marketId;
+    setReviewing(false);
+    if (outcome && outcome.status !== "confirmed") resetBet();
+  }, [marketId, outcome, resetBet]);
+
   if (c.isRange && c.range.placed) {
     return (
       <ScrollView style={{ backgroundColor: color.ground }} contentContainerStyle={styles.body}>

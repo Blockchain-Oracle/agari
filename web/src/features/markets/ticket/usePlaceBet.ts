@@ -2,7 +2,7 @@
 
 import { ownCentsOf } from "@agari/core/orders";
 import type { OrderOutcome, OrderRequest, WritePhase } from "@agari/core/ports";
-import type { Address, Quote, Signature } from "@agari/core/types";
+import type { Address, MarketId, Quote, Side, Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,9 +16,11 @@ export interface PlaceBetState {
   phase: WritePhase;
   outcome: OrderOutcome | null;
   txHash: Signature | null;
+  /** The Window the outcome is for: a requote is a price on that Book, never on the Window the ticket advanced to. */
+  marketId: MarketId | null;
 }
 
-const IDLE: PlaceBetState = { phase: "composing", outcome: null, txHash: null };
+const IDLE: PlaceBetState = { phase: "composing", outcome: null, txHash: null, marketId: null };
 
 function phaseOf(outcome: OrderOutcome): WritePhase {
   switch (outcome.status) {
@@ -64,7 +66,7 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
     async (request: Omit<OrderRequest, "wallet">) => {
       if (inFlight.current || !submitter || !address) return;
       inFlight.current = true;
-      setState({ phase: "submitted", outcome: null, txHash: null });
+      setState({ phase: "submitted", outcome: null, txHash: null, marketId: request.market.marketId });
       try {
         const outcome = await submitter.submitOrder({ ...request, wallet: address }, (phase, detail) =>
           setState((s) => ({ ...s, phase, txHash: detail?.txHash ?? s.txHash })),
@@ -74,7 +76,7 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
           await invalidateAfterWrite(queryClient, { wallet: user.address ?? address, marketId: request.market.marketId });
           if (user.address && user.address !== address) await invalidateAfterWrite(queryClient, { wallet: address });
         }
-        setState({ phase: phaseOf(outcome), outcome, txHash: txHashOf(outcome) });
+        setState({ phase: phaseOf(outcome), outcome, txHash: txHashOf(outcome), marketId: request.market.marketId });
         if (outcome.status === "confirmed") {
           const { booked } = outcome;
           // The bet records the bettor, as the reference's does (`bet_registry::record` inside the bet PTB).
@@ -94,7 +96,15 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
   );
 
   const reset = useCallback(() => setState(IDLE), []);
-  const requoted: Quote | null = state.outcome?.status === "requote" ? state.outcome.quote : null;
+  /** The book's new price after a refused fill, while the ticket still asks for the same Window, side and stake; else null. */
+  const requoteFor = useCallback(
+    (marketId: MarketId, side: Side | null, stakeBase: bigint): Quote | null => {
+      const outcome = state.outcome;
+      if (outcome?.status !== "requote" || state.marketId !== marketId) return null;
+      return outcome.quote.side === side && outcome.quote.stakeBase === stakeBase ? outcome.quote : null;
+    },
+    [state],
+  );
 
-  return { state, place, reset, requoted, placing: state.phase === "submitted" };
+  return { state, place, reset, requoteFor, placing: state.phase === "submitted" };
 }

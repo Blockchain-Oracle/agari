@@ -119,7 +119,7 @@ function DealCard({ deal, market, symbol, onReport, onSkip, skipping }: LuckyDea
   const walletAvailableBase = balances ? balances.spendableBase + balances.venueCreditBase : null;
   const routing = useTicketRoute({ market, side, stakeBase, quote, onchain: onchain?.ok ? onchain.value : null, source: "wallet", walletAvailableBase, symbol });
   const bet = usePlaceBet({ submitter: routing.submitter, wallet: routing.wallet });
-  const displayed = bet.requoted ?? quote;
+  const displayed = bet.requoteFor(market.marketId, side, stakeBase) ?? quote;
   const walletRoute = routing.route.kind === "wallet";
   const funding = useFundingCheck(walletRoute ? address : null, onchain?.ok ? onchain.value : null, displayed);
 

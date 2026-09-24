@@ -88,7 +88,8 @@ export function useTicketComposer(selection: TicketSelection) {
   const range = useRangeTicket({ market, phase, decimals, symbol, reserve: rangeReserve, stakeBase, availableBase: balances?.spendableBase ?? null, session, hasSigner, enabled: isRange });
 
   const bet = usePlaceBet({ submitter: routing.submitter, wallet: routing.wallet });
-  const displayed = bet.requoted ?? quoteState.quote;
+  // A requote belongs to the Window, side and stake it priced: after an advance or an edit the fresh quote leads.
+  const displayed = bet.requoteFor(market.marketId, side, stakeBase) ?? quoteState.quote;
   const walletRoute = routing.route.kind === "wallet" && !privateMode;
   const funding = useFundingCheck(walletRoute ? address : null, onchain?.ok ? onchain.value : null, displayed);
   // A plain wallet order also funds the seat deposit on its first order in the Window; the guard and the top-up leave room for it.
