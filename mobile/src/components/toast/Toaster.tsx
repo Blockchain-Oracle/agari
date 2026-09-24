@@ -1,6 +1,7 @@
-import * as Haptics from "expo-haptics";
 import { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { FullWindowOverlay } from "react-native-screens";
+import { haptic } from "~/components/kit/haptics";
 import Animated, { FadeOutUp, SlideInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RADIUS, TYPE, useTheme } from "~/theme";
@@ -10,17 +11,21 @@ import { dismissToast, useToasts, type ToastItem } from "./store";
 export function Toaster() {
   const toasts = useToasts();
   const insets = useSafeAreaInsets();
-  return (
+  const host = (
     <View pointerEvents="box-none" style={[styles.host, { top: insets.top + 6 }]}>
       {toasts.map((t) => <Toast key={t.id} toast={t} />)}
     </View>
   );
+  // iOS presents sheets in their own window layer; a toast drawn in the app's root view would sit underneath an open
+  // ticket or connect sheet. The full-window overlay draws above every sheet, so a refusal is never hidden.
+  return Platform.OS === "ios" ? <FullWindowOverlay>{host}</FullWindowOverlay> : host;
 }
 
 function Toast({ toast }: { toast: ToastItem }) {
   const { color } = useTheme();
   useEffect(() => {
-    Haptics.notificationAsync(toast.tone === "warning" ? Haptics.NotificationFeedbackType.Warning : Haptics.NotificationFeedbackType.Success);
+    if (toast.tone === "warning") haptic.error();
+    else haptic.success();
   }, [toast.tone]);
   return (
     <Animated.View entering={SlideInUp.springify().damping(18)} exiting={FadeOutUp.duration(180)}>

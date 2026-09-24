@@ -23,9 +23,13 @@ import { NextWindowOffer } from "./NextWindowOffer";
 import { PrivateNote, privateCtaLabel } from "./PrivateParts";
 import { RangeBand, rangeCtaLabel, RangePlacedCard, rangeReview } from "./RangeParts";
 import { ticketReview } from "./review";
+import { SheetToasts } from "./SheetToasts";
+import { pushToast } from "~/components/toast/store";
 import { TicketHead } from "./TicketHead";
 import { useClampedScroll } from "./useClampedScroll";
 import { BetAgainstToggle, BetModes, PublicPrivate, RouteChoice } from "./Toggles";
+
+const TICKET_NOT_PLACED = "Not placed";
 
 /**
  * web's Ticket, block for block (`Ticket.tsx` over `useTicketComposer`): mode · side · the amount (keypad, +1/+5/+20,
@@ -69,9 +73,11 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
   const ctx = c.isRange ? c.range.ctx : c.privateMode ? { ...c.ctx, ...c.priv.ctx } : c.ctx;
   const ctaLabel = c.isRange ? rangeCtaLabel(c) : ((c.privateMode ? privateCtaLabel(c.priv, c.side, c.decimals, c.symbol) : null) ?? review?.cta ?? TICKET.buyPlain);
   const confirm = () => {
-    if (c.isRange) void c.range.place();
-    else if (c.privateMode) void c.priv.place();
-    else if (c.boosted) void c.placeBoost();
+    // A write that throws (a lane that rejects instead of answering) is said in the sheet, never swallowed.
+    const said = (write: Promise<unknown>) => void write.catch((error: unknown) => pushToast({ title: TICKET_NOT_PLACED, description: error instanceof Error ? error.message : String(error), tone: "warning" }));
+    if (c.isRange) said(c.range.place());
+    else if (c.privateMode) said(c.priv.place());
+    else if (c.boosted) said(c.placeBoost());
     else c.place();
   };
   const note = [c.boosted ? LEVERAGE.strip.knockout(c.multiple) : null, c.laneGuard.earnings].filter(Boolean).join(" ") || null;
@@ -148,6 +154,7 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
         </Text>
       </ScrollView>
       <View collapsable={false} style={[styles.dock, { borderTopColor: color.hairline, backgroundColor: color.ground }]}>
+        <SheetToasts />
         {reviewing && review ? (
           <>
             <SignReview
@@ -163,7 +170,14 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
             {placing ? null : <Button label={NATIVE_MARKETS.editCall} variant="ghost" size="sm" onPress={() => setReviewing(false)} />}
           </>
         ) : (
-          <TicketCta blocker={blocker} ctx={ctx} side={c.side} label={ctaLabel} onReview={() => setReviewing(true)} />
+          <TicketCta
+            blocker={blocker}
+            ctx={ctx}
+            side={c.side}
+            label={ctaLabel}
+            // Resuming a private bet finishes one already reviewed and signed (web's PrivateCta): nothing new to review.
+            onReview={c.privateMode && c.priv.pending ? confirm : () => setReviewing(true)}
+          />
         )}
       </View>
     </View>

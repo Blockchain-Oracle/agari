@@ -20,6 +20,7 @@ import { AccountGate, OutcomeNote } from "./AccountGate";
 import { AmountBlock } from "./AmountBlock";
 import { PriceControl } from "./PriceControl";
 import { ScheduledReceipt } from "./ScheduledReceipt";
+import { SheetToasts } from "./SheetToasts";
 import { TicketHead } from "./TicketHead";
 import { useClampedScroll } from "./useClampedScroll";
 import { BetAgainstToggle } from "./Toggles";
@@ -110,6 +111,7 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
         </Text>
       </ScrollView>
       <View collapsable={false} style={[styles.dock, { borderTopColor: color.hairline }]}>
+        <SheetToasts />
         {reviewing && side && quote ? (
           <>
             <SignReview
