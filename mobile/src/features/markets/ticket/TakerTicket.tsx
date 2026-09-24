@@ -2,7 +2,7 @@ import { blockerLabel, formatCadence } from "@agari/core/copy";
 import { BPS_PER_X } from "@agari/core/leverage";
 import { belowMinStake } from "@agari/core/sizing";
 import { formatBaseUnits } from "@agari/core/units";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { TicketSelection } from "@/features/markets/ticket/types";
 import { useTicketComposer } from "@/features/markets/ticket/useTicketComposer";
@@ -20,11 +20,12 @@ import { NATIVE_MARKETS } from "../copy";
 import { AccountGate, OutcomeNote } from "./AccountGate";
 import { AmountBlock } from "./AmountBlock";
 import { NextWindowOffer } from "./NextWindowOffer";
+import { clearPrivateFailure, PrivateFailureNote, recordPrivateAttempt } from "./PrivateFailure";
 import { PrivateNote, privateCtaLabel } from "./PrivateParts";
 import { RangeBand, rangeCtaLabel, RangePlacedCard, rangeReview } from "./RangeParts";
 import { ticketReview } from "./review";
 import { SheetToasts } from "./SheetToasts";
-import { pushToast } from "~/components/toast/store";
+import { pushToast, useToasts } from "~/components/toast/store";
 import { TicketHead } from "./TicketHead";
 import { useClampedScroll } from "./useClampedScroll";
 import { BetAgainstToggle, BetModes, PublicPrivate, RouteChoice } from "./Toggles";
@@ -42,6 +43,14 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
   const c = useTicketComposer(selection);
   const scroll = useClampedScroll();
   const [reviewing, setReviewing] = useState(false);
+  const toasts = useToasts();
+  const toastsRef = useRef(toasts);
+  toastsRef.current = toasts;
+  // A private bet that placed clears the last refusal kept on the ticket.
+  const privPlaced = c.priv.placed;
+  useEffect(() => {
+    if (privPlaced) clearPrivateFailure();
+  }, [privPlaced]);
   const review = c.isRange ? rangeReview(c) : ticketReview(c);
   // Signed and landed but not yet read back (the lane refreshes the wallet before it reports): still in flight, so no
   // second slide is offered while the outcome is on its way.
@@ -76,7 +85,11 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
     // A write that throws (a lane that rejects instead of answering) is said in the sheet, never swallowed.
     const said = (write: Promise<unknown>) => void write.catch((error: unknown) => pushToast({ title: TICKET_NOT_PLACED, description: error instanceof Error ? error.message : String(error), tone: "warning" }));
     if (c.isRange) said(c.range.place());
-    else if (c.privateMode) said(c.priv.place());
+    else if (c.privateMode) {
+      void recordPrivateAttempt(c.priv.place(), toastsRef.current, () => toastsRef.current, (error) =>
+        pushToast({ title: TICKET_NOT_PLACED, description: error instanceof Error ? error.message : String(error), tone: "warning" }),
+      );
+    }
     else if (c.boosted) said(c.placeBoost());
     else c.place();
   };
@@ -144,6 +157,7 @@ export function TakerTicket({ selection }: { selection: TicketSelection }) {
           />
         ) : null}
         {c.privateMode ? <PrivateNote priv={c.priv} stakeBase={c.stakeBase} decimals={c.decimals} symbol={c.symbol} /> : null}
+        {c.privateMode || c.priv.pending ? <PrivateFailureNote priv={c.priv} decimals={c.decimals} symbol={c.symbol} /> : null}
         {c.t.advancedFrom ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{TICKET.advanced(formatCadence(c.t.advancedFrom.intervalSec), formatCadence(c.market.intervalSec))}</Text> : null}
         <OutcomeNote state={c.bet.state} decimals={c.decimals} symbol={c.symbol} onDismiss={c.bet.reset} />
         <Text style={[TYPE.caption, styles.foot, { color: color.inkMuted }]}>

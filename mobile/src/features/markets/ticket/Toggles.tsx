@@ -85,7 +85,8 @@ export function PublicPrivate({ priv, onChange, privateEnabled, privateTitle, re
         ]}
       />
       <View style={styles.titleRow}>
-        <Text style={[TYPE.caption, styles.grow, { color: privateEnabled || priv ? color.inkMuted : color.inkSecondary }]}>{privateTitle}</Text>
+        {/* Chosen, the private note below says the same honest line; the title here is for the choice, not the bet. */}
+        {priv ? <View style={styles.grow} /> : <Text style={[TYPE.caption, styles.grow, { color: privateEnabled ? color.inkMuted : color.inkSecondary }]}>{privateTitle}</Text>}
         {retry ? <Button label={PRIVATE.route.retry} variant="ghost" size="sm" block={false} onPress={retry} /> : null}
       </View>
     </View>

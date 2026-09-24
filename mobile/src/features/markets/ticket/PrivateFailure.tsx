@@ -66,11 +66,31 @@ export async function recordPrivateAttempt(attempt: Promise<unknown>, before: re
   } catch (error) {
     thrown(error);
   }
+  // The route's warning is raised just before it returns; let the toast list render once before reading it.
+  await new Promise((resolve) => setTimeout(resolve, 60));
   const raised = after().filter((toast) => !seen.has(toast.id) && toast.tone === "warning");
   const last = raised.at(-1);
   if (last) {
     console.warn(`[private bet] not placed: ${last.title}${last.description ? ` — ${last.description}` : ""}`);
-    write({ title: last.title, description: last.description ?? null, atMs: Date.now() });
+    write({ title: last.title, description: last.description ? plainSolanaError(last.description) : null, atMs: Date.now() });
+  }
+}
+
+/**
+ * A Solana error string carries its context base64-encoded in the "decode this error" hint; say it plainly: the RPC's own
+ * status and message ("Too Many Requests, HTTP 429"). Anything else is shown as it came.
+ */
+export function plainSolanaError(text: string): string {
+  const match = /#(\d+);.*'([A-Za-z0-9+/=]+)'/.exec(text);
+  if (!match) return text;
+  try {
+    const params = new URLSearchParams(atob(match[2]!));
+    const message = params.get("message");
+    const status = params.get("statusCode");
+    if (!message) return text;
+    return `The RPC answered "${message}"${status ? ` (HTTP ${status})` : ""} · Solana error ${match[1]}`;
+  } catch {
+    return text;
   }
 }
 
@@ -91,7 +111,7 @@ export function PrivateFailureNote({ priv, decimals, symbol }: { priv: PrivateTi
     <View style={[styles.box, { borderColor: color.warning, backgroundColor: color.surface1 }]} accessibilityRole="alert">
       <Text style={[TYPE.labelMicro, { color: color.warning }]}>Last private bet not placed</Text>
       <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{failure.title}</Text>
-      {failure.description ? <Text style={[TYPE.caption, { color: color.inkSecondary }]} selectable>{failure.description}</Text> : null}
+      {failure.description ? <Text style={[TYPE.caption, { color: color.inkSecondary }]} selectable>{plainSolanaError(failure.description)}</Text> : null}
       <Text style={[TYPE.caption, { color: color.inkSecondary }]}>
         {held !== null && held > 0n
           ? `${formatBaseUnits(held, decimals)} ${symbol} sits in your private balance. Only your wallet can withdraw it: Portfolio › Private balance.`
