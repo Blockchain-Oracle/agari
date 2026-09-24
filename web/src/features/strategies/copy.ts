@@ -201,6 +201,7 @@ export const STRATEGIES = {
       model: (model: string) => `Model: ${model}`,
       noModel: "Model: none yet — it has not read a Window",
     },
+    tabs: { copy: "Copy", manage: "Your copy", decisions: "Decisions", playbook: "Playbook" },
     memory: {
       eyebrow: "◈ Agent memory",
       body: "The last Windows it read, in its own words, with the gate's ruling on each.",

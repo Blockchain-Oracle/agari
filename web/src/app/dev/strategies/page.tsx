@@ -97,9 +97,9 @@ export default function DevStrategiesPage() {
       <section className="flex flex-col gap-4">
         <SectionHeader index="06" title={DEV.memory} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="strat-preview">{AGENT.agent && <AgentMemory agent={AGENT.agent} storeConnected asset="TSLA" nowMs={FIXTURE_NOW_MS} />}</div>
+          <div className="strat-preview">{AGENT.agent && <AgentMemory agent={AGENT.agent} agentName="Fixture agent" storeConnected decimals={DECIMALS} symbol={SYMBOL} nowMs={FIXTURE_NOW_MS} />}</div>
           <div className="strat-preview">
-            <AgentMemory agent={{ model: null, decisions: [] }} storeConnected={false} asset="TSLA" nowMs={FIXTURE_NOW_MS} />
+            <AgentMemory agent={{ model: null, decisions: [] }} agentName="Fixture agent" storeConnected={false} decimals={DECIMALS} symbol={SYMBOL} nowMs={FIXTURE_NOW_MS} />
           </div>
         </div>
       </section>

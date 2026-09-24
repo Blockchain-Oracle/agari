@@ -1,0 +1,33 @@
+/** The words of one agent decision's detail view: the Window it read, what it said, what the gate sent, how it settled. */
+export const DECISION = {
+  open: "Open this decision",
+  eyebrow: "Agent decision",
+  close: "Close",
+  window: (asset: string, cadence: string) => `${asset} · ${cadence} Window`,
+  unknownWindow: "Window",
+  sections: { window: "The Window", read: "The read", gate: "The gate", trades: "Copies placed", settlement: "Settlement" },
+  rows: {
+    trading: "Trading",
+    decided: "Decided",
+    opening: "Opening print",
+    closing: "Closing print",
+    call: "Call",
+    model: "Model",
+    ruling: "Ruling",
+    outcome: "Outcome",
+    settledTx: "Settling transaction",
+  },
+  noTrades: "Nothing was placed on this Window.",
+  tradesUnlisted: "Placed. The copies show here once they are recorded.",
+  trade: {
+    side: (side: string) => side.toUpperCase(),
+    stake: "Stake",
+    shares: "Shares",
+    price: "Avg price",
+    payout: "Paid out",
+    copier: "Copier",
+    tx: "Transaction ↗",
+  },
+  pending: "Not settled yet",
+  explorer: "View on Solana Explorer ↗",
+} as const;

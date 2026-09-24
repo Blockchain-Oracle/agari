@@ -6,6 +6,19 @@ import { z } from "zod";
 /** Wire shape of `/api/strategies` — base units travel as decimal strings, never floats. */
 const capsSchema = z.object({ maxStakePerTradeBase: z.string(), maxDailySpendBase: z.string(), maxOpenPositions: z.number(), maxPriceRaw: z.string() });
 
+export const fillWireSchema = z.object({
+  txHash: z.string(),
+  strategyId: z.string(),
+  owner: z.string(),
+  marketId: z.string(),
+  side: z.enum(["up", "down"]),
+  cashDeltaBase: z.string(),
+  tokenDeltaRaw: z.string(),
+  atSec: z.number(),
+  settled: z.boolean(),
+  payoutBase: z.string().nullable(),
+});
+
 /** One Window an agent read, as the card and the drawer show it; the outcome is the Window's own settlement. */
 export const decisionWireSchema = z.object({
   marketId: z.string(),
@@ -22,6 +35,15 @@ export const decisionWireSchema = z.object({
   intervalSec: z.number().nullable(),
   asset: z.string().nullable().optional(),
   outcome: z.enum(["won", "lost", "void", "open"]).nullable(),
+  /** The Window's trading start and closing boundary, unix seconds. */
+  window: z.object({ startSec: z.number(), expirySec: z.number() }).nullable().optional(),
+  /** Opening and closing prints (× 10⁻⁸) as decimal strings; the closing one once the Window has settled. */
+  openingRaw: z.string().nullable().optional(),
+  closingRaw: z.string().nullable().optional(),
+  /** The transaction that settled the Window, once it has. */
+  settleTx: z.string().nullable().optional(),
+  /** The copies this decision placed, newest first. */
+  trades: z.array(fillWireSchema).optional(),
 });
 
 /** Null for a momentum/reversion spec; for an agent, the model that last answered and its last Windows. */
@@ -58,18 +80,6 @@ export const strategyWireSchema = z.object({
   agent: agentWireSchema.nullable(),
 });
 
-export const fillWireSchema = z.object({
-  txHash: z.string(),
-  strategyId: z.string(),
-  owner: z.string(),
-  marketId: z.string(),
-  side: z.enum(["up", "down"]),
-  cashDeltaBase: z.string(),
-  tokenDeltaRaw: z.string(),
-  atSec: z.number(),
-  settled: z.boolean(),
-  payoutBase: z.string().nullable(),
-});
 
 export const strategiesPayloadSchema = z.object({
   deployed: z.boolean(),

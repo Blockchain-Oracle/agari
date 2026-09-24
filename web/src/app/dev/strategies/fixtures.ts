@@ -67,6 +67,7 @@ const decision = (over: Partial<StrategyWire["agent"] extends infer A ? (A exten
   filled: 2,
   model: MODEL,
   intervalSec: 900,
+  asset: "TSLA",
   outcome: "won" as const,
   ...over,
 });
@@ -86,7 +87,20 @@ export const AGENT = strategy({
       decision({ marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011020"), decidedAtMs: FIXTURE_NOW_MS - 1_800_000, verdictSide: "none", confidence: null, why: "timeout — no answer within 20000 ms", gate: "failed", gateReason: "model unavailable: timeout — no answer within 20000 ms", side: null, filled: 0, outcome: null }),
       decision({ marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011019"), decidedAtMs: FIXTURE_NOW_MS - 2_700_000, verdictSide: "down", confidence: 0.58, why: "spot below the print but the samples are mixed", gate: "held", gateReason: "confidence 0.58 under the balanced floor 0.65: spot below the print but the samples are mixed", side: null, filled: 0, outcome: null }),
       decision({ marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011018"), decidedAtMs: FIXTURE_NOW_MS - 3_600_000, outcome: "lost", why: "steady climb since the print", gateReason: "agent bets up (0.72): steady climb since the print" }),
-      decision({ marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011017"), decidedAtMs: FIXTURE_NOW_MS - 7_200_000, outcome: "won" }),
+      decision({
+        marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011017"),
+        decidedAtMs: FIXTURE_NOW_MS - 7_200_000,
+        outcome: "won",
+        // The detail view's whole case: the Window's span and prints, two copies placed, and the settling transaction.
+        window: { startSec: NOW_SEC - 7_425, expirySec: NOW_SEC - 6_525 },
+        openingRaw: (43_512n * 1_000_000n).toString(),
+        closingRaw: (43_598n * 1_000_000n).toString(),
+        settleTx: fixtureSignature("0xbbbb000000000000000000000000000000000000000000000000000000000001"),
+        trades: [
+          { txHash: fixtureSignature("0xaaaa000000000000000000000000000000000000000000000000000000000011"), strategyId: "4", owner: fixtureAddress("0x1111111111111111111111111111111111111111"), marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011017"), side: "up", cashDeltaBase: (2n * ONE + 170_000n).toString(), tokenDeltaRaw: (5n * ONE).toString(), atSec: NOW_SEC - 7_190, settled: true, payoutBase: (5n * ONE).toString() },
+          { txHash: fixtureSignature("0xaaaa000000000000000000000000000000000000000000000000000000000012"), strategyId: "4", owner: fixtureAddress("0x2222222222222222222222222222222222222222"), marketId: fixtureMarketId("0x0000000000000000000000000000000000000000000000000000000000011017"), side: "up", cashDeltaBase: (1n * ONE + 300_000n).toString(), tokenDeltaRaw: (3n * ONE).toString(), atSec: NOW_SEC - 7_189, settled: true, payoutBase: (3n * ONE).toString() },
+        ],
+      }),
     ],
   },
 });
