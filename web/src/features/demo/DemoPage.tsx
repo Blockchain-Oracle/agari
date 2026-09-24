@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { DEMO } from "./copy";
 import { Eyebrow, Frame, Kicker, ProofCode, ProofLink, Reveal, Serif } from "./DemoBlocks";
 import { DemoTraction } from "./DemoTraction";
-import { demoVideoAvailable, DemoVideo } from "./DemoVideo";
+import { DemoVideo } from "./DemoVideo";
 import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProof, txProofHref, txProofLabel } from "./proofs";
 
 /**
@@ -12,8 +12,8 @@ import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PR
  *
  * The reference is "the walkthrough, in place of a video": the real product, with
  * every claim a transaction anyone can open. That is kept exactly. What changes is
- * every fact: the video is Agari's own recording, or an honest notice until it exists
- * (D-097); the traction line is read live from the venue; the screenshots are dated
+ * every fact: the video is Agari's own recording, embedded from YouTube
+ * (D-097, superseded 09-24); the traction line is read live from the venue; the screenshots are dated
  * captures of this product; and the proofs are confirmed devnet signatures from
  * `docs/plan/acceptance.md` and the configured programs, on Solana Explorer.
  *
@@ -66,7 +66,7 @@ function Hero() {
           <Serif>{DEMO.hero.headlineSerif}</Serif>
         </h1>
       </Reveal>
-      <div className="demo-video-label">{demoVideoAvailable() ? DEMO.hero.videoLabel : DEMO.hero.videoLabelPending}</div>
+      <div className="demo-video-label">{DEMO.hero.videoLabel}</div>
       <Reveal immediate>
         <DemoVideo />
       </Reveal>

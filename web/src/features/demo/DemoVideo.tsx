@@ -1,56 +1,32 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { DEMO } from "./copy";
 
 /**
- * The demo video, or the honest word that it is not recorded yet (D-097).
- *
- * The reference embeds a hosted video. Agari's walkthrough is captured on the running product during NYSE hours,
- * so until `public/video/agari-demo.mp4` exists this renders a plain notice in the same 16:9 box: no player, no
- * request, so no 404 in anyone's console and nothing that looks like a video when there is none. The check runs on
- * the server when the page renders (at build for a static build, so dropping the file in means a rebuild).
+ * The demo video, hosted on YouTube as the reference hosts its own. `youtube-nocookie` keeps the embed from setting
+ * tracking cookies until the viewer presses play, and the caption links out for anyone whose browser blocks frames.
  */
-const VIDEO_FILE = "agari-demo.mp4";
-const CAPTIONS_FILE = "agari-demo.vtt";
-
-const publicVideo = (file: string) => join(process.cwd(), "public", "video", file);
-
-export function demoVideoAvailable(): boolean {
-  return existsSync(publicVideo(VIDEO_FILE));
-}
+export const DEMO_VIDEO_ID = "iPtmue-eyIc";
+export const DEMO_VIDEO_URL = `https://youtu.be/${DEMO_VIDEO_ID}`;
 
 export function DemoVideo() {
-  if (!demoVideoAvailable()) {
-    return (
-      <figure className="demo-video-figure">
-        {/* `.demo-video-figure .demo-video` gives the player a block box on a fixed black ground. A notice is text, not
-            video, so it re-centres itself and lets the page ground through, keeping the ink legible in both themes. */}
-        <div className="demo-video" role="status" aria-describedby="demo-video-caption" style={{ display: "grid", placeItems: "center", background: "transparent" }}>
-          <div style={{ display: "grid", gap: 10, padding: 24, textAlign: "center", justifyItems: "center" }}>
-            <span className="demo-video-label" style={{ marginBottom: 0 }}>
-              {DEMO.video.pendingEyebrow}
-            </span>
-            <span className="demo-h2" style={{ margin: 0 }}>
-              {DEMO.video.pendingTitle}
-            </span>
-          </div>
-        </div>
-        <figcaption id="demo-video-caption" className="demo-video-caption">
-          <span>{DEMO.video.pendingCaption}</span>
-        </figcaption>
-      </figure>
-    );
-  }
-
-  const captions = existsSync(publicVideo(CAPTIONS_FILE));
   return (
     <figure className="demo-video-figure">
-      <video className="demo-video" width={1280} height={720} controls playsInline preload="metadata" aria-describedby="demo-video-caption">
-        <source src={`/video/${VIDEO_FILE}`} type="video/mp4" />
-        {captions && <track kind="captions" src={`/video/${CAPTIONS_FILE}`} srcLang="en" label="English" default />}
-      </video>
+      <iframe
+        className="demo-video"
+        src={`https://www.youtube-nocookie.com/embed/${DEMO_VIDEO_ID}?rel=0&modestbranding=1`}
+        title={DEMO.video.title}
+        width={1280}
+        height={720}
+        loading="lazy"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allowFullScreen
+        aria-describedby="demo-video-caption"
+      />
       <figcaption id="demo-video-caption" className="demo-video-caption">
         <span>{DEMO.video.caption}</span>
+        <a href={DEMO_VIDEO_URL} target="_blank" rel="noopener noreferrer">
+          {DEMO.video.watch}
+        </a>
       </figcaption>
     </figure>
   );
