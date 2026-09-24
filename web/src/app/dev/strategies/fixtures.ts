@@ -25,7 +25,6 @@ function strategy(over: Partial<StrategyWire> & { strategyId: string }): Strateg
     revision: 0,
     record: { fills: 0, settled: 0, wins: 0, losses: 0, voids: 0, netBase: "0", stakedBase: "0", curve: [], lastActiveSec: 0, distinctSubscribers: 0, typicalCostBase: "0" },
     playbook: null,
-    memory: null,
     health: { kind: "never-started", lastTickMs: null, intervalMs: null, why: null },
     agent: null,
     ...over,

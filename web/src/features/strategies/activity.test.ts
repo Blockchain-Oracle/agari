@@ -66,4 +66,9 @@ describe("strategy operating state alongside copy permission", () => {
     expect(activity({ health: report("published; waiting for a funded live subscriber") }).label).toBe("Waiting for the next check");
     expect(activity({ health: report("a future report format") }).label).toBe("Operation unavailable");
   });
+
+  it("reads the runner's rest in either wording", () => {
+    expect(activity({ health: report("resting: no Window is trading on any lane; checking every 5 minutes") })).toMatchObject({ label: "Resting", detail: expect.stringContaining("any lane") });
+    expect(activity({ health: report("resting: the stock market is closed; checking every 5 minutes") }).label).toBe("Resting");
+  });
 });

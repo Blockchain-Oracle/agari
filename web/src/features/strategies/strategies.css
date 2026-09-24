@@ -120,31 +120,6 @@
 /* sensei link: rounded-full border border-vermilion/40 bg-vermilion/[0.07] px-4 py-2 text-[12.5px] font-semibold text-vermilion */
 .strat-sensei { flex-shrink: 0; border-radius: 9999px; border: 1px solid rgba(224, 77, 38, 0.4); background: rgba(224, 77, 38, 0.07); padding: 8px 16px; font-size: 12.5px; font-weight: 600; color: var(--color-vermilion); transition: background 0.2s; }
 .strat-sensei:hover { background: rgba(224, 77, 38, 0.14); }
-/* the memory market headline: font-display font-[800] text-[2rem] md:text-[3.1rem] leading-[0.94] tracking-tight */
-.strat-memory-h2 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 0.94; letter-spacing: -0.025em; max-width: 48rem; color: var(--color-ink); }
-@media (min-width: 768px) { .strat-memory-h2 { font-size: 3.1rem; } }
-/* coming-soon capsule: border border-dashed border-white/[0.09] bg-white/[0.01] p-6 min-h-[280px] */
-.strat-capsule-soon { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 1px dashed color-mix(in srgb, var(--white) 9%, transparent); background: color-mix(in srgb, var(--white) 1%, transparent); padding: 24px; min-height: 280px; text-align: center; }
-/* h-10 w-10 rounded-full border border-white/10 */
-.strat-capsule { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; border: 1px solid color-mix(in srgb, var(--white) 9%, transparent); background: color-mix(in srgb, var(--white) 2%, transparent); padding: 24px; min-height: 280px; }
-.strat-capsule .strat-confirm { margin-top: auto; }
-.strat-capsule-body { width: 100%; max-height: 22rem; overflow: auto; white-space: pre-wrap; margin: 0; font-family: var(--font-mono); }
-.strat-capsule-icon { height: 40px; width: 40px; display: grid; place-items: center; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 10%, transparent); color: color-mix(in srgb, var(--white) 40%, transparent); }
-.strat-capsule-icon svg { width: 16px; height: 16px; }
-/* the X bar: mt-5 border-y border-white/10 py-3 */
-.strat-xbar { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid color-mix(in srgb, var(--white) 10%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--white) 10%, transparent); padding: 12px 0; }
-@media (min-width: 640px) { .strat-xbar { flex-direction: row; align-items: center; justify-content: space-between; } }
-/* h-9 w-9 rounded-full border border-white/12 bg-white/[0.03] */
-.strat-xbar-icon { display: flex; height: 36px; width: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); background: color-mix(in srgb, var(--white) 3%, transparent); }
-.strat-xbar-icon svg { width: 16px; height: 16px; }
-/* text-[13px] font-semibold */
-.strat-xbar-title { font-size: 13px; font-weight: 600; }
-/* h-9 rounded-full border border-white/15 px-4 text-[12px] font-semibold */
-.strat-xbar-btn { display: inline-flex; height: 36px; align-items: center; gap: 8px; border-radius: 9999px; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); padding: 0 16px; font-size: 12px; font-weight: 600; transition: border-color 0.2s; }
-.strat-xbar-btn:hover { border-color: color-mix(in srgb, var(--white) 30%, transparent); }
-.strat-xbar-btn--v { background: var(--color-vermilion); border-color: transparent; color: var(--white); }
-.strat-xbar-btn--v:hover { background: var(--color-vermilion-d, #b53d1c); }
-.strat-xbar-btn svg { width: 14px; height: 14px; }
 /* drawer: fixed inset-0 z-[9999] flex justify-end; panel max-w-[440px] border-l border-white/10 bg-[var(--bg)] p-6 shadow-2xl animate-[slideIn_.22s_ease] */
 .strat-drawer-root { position: fixed; inset: 0; z-index: 9999; display: flex; justify-content: flex-end; }
 .strat-drawer-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }

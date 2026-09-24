@@ -2,7 +2,6 @@ import { SIGNED_MESSAGE_BRAND, messageSignatureSchema } from "@agari/core/auth";
 import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, type RunnerHealthKind } from "@agari/core/strategies";
 import { addressSchema } from "@agari/core/types";
 import { z } from "zod";
-import { sealedMemoryWireSchema } from "./memory-protocol";
 
 /** Wire shape of `/api/strategies` — base units travel as decimal strings, never floats. */
 const capsSchema = z.object({ maxStakePerTradeBase: z.string(), maxDailySpendBase: z.string(), maxOpenPositions: z.number(), maxPriceRaw: z.string() });
@@ -55,8 +54,6 @@ export const strategyWireSchema = z.object({
     typicalCostBase: z.string(),
   }),
   playbook: z.string().nullable(),
-  /** A sealed memory subscribers can read (L-56): its title and length only. The body is served by the gated route. */
-  memory: sealedMemoryWireSchema.nullable(),
   health: z.object({ kind: z.enum(["never-started", "alive", "stale", "unknown"]), lastTickMs: z.number().nullable(), intervalMs: z.number().nullable(), why: z.string().nullable() }),
   agent: agentWireSchema.nullable(),
 });
