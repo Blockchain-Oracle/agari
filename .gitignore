@@ -77,3 +77,9 @@ web/CLAUDE.md
 # deploy scripts: localnet (Surfpool) addresses are per-machine
 scripts/deploy/addresses.localnet.json
 scripts/drive/last-run.*.json
+
+# personal notes (demo scripts, drafts)
+/.thoughts/
+
+# the README with every asset on its raw GitHub URL, for pasting outside the repo; generated locally
+/README.raw.md
