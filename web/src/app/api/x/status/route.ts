@@ -4,6 +4,7 @@ import { X_HANDLE } from "@/features/x/copy";
 import { executorAddress } from "@/features/x/config.server";
 import { findBinding, readXGate } from "@/features/x/gate.server";
 import type { XStatus } from "@/features/x/protocol";
+import { publicOrigin } from "@/lib/client-ip.server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req: NextRequest) {
   const wallet = req.nextUrl.searchParams.get("wallet");
-  const gate = await readXGate(req.nextUrl.origin);
+  const gate = await readXGate(publicOrigin(req));
   const storeConfigured = isDbConfigured();
   const relay = storeConfigured ? await xGetRelayHealth().catch(() => null) : null;
   const base = { storeConfigured, executor: executorAddress(), handle: X_HANDLE, relay };

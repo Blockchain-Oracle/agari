@@ -4,6 +4,7 @@ import { X_ERRORS } from "@/features/x/copy";
 import { readXGate, signatureFresh, verifyLinkSignature } from "@/features/x/gate.server";
 import { xUnlinkRequestSchema } from "@/features/x/protocol";
 import { X_SESSION_COOKIE } from "@/features/x/session.server";
+import { publicOrigin } from "@/lib/client-ip.server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ function refuse(reason: string, status: number) {
 
 /** Removes the X route only; the Trading Balance stays with the wallet. Signed by the bound wallet, as the reference requires. */
 export async function POST(req: NextRequest) {
-  const gate = await readXGate(req.nextUrl.origin);
+  const gate = await readXGate(publicOrigin(req));
   if (!gate.configured) return NextResponse.json({ ok: false, configured: false, missing: gate.missing });
   if (!isDbConfigured()) return refuse(X_ERRORS.storeUnavailable, 503);
   if (!gate.session) return refuse(X_ERRORS.signInFirst, 401);
