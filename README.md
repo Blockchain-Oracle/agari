@@ -32,11 +32,9 @@ Three ways in:
 
 ## Watch the product
 
-[![Watch the Agari demo on YouTube](docs/assets/readme/watch.png)](https://youtu.be/iPtmue-eyIc)
+[![Open the Agari demo](docs/assets/readme/watch.png)](https://useagari.xyz/demo)
 
-**[Watch the demo on YouTube](https://youtu.be/iPtmue-eyIc)**: the full walkthrough of the running product. It is also embedded on [useagari.xyz/demo](https://useagari.xyz/demo), beside the transaction table.
-
-Short clips of single flows: [the connected basket ticket](docs-site/public/videos/connected-basket-ticket-2026-09-23.mp4) · [a portfolio walkthrough](docs-site/public/videos/connected-portfolio-2026-09-23.mp4) · [a practice desk walkthrough](docs-site/public/videos/connected-practice-desk-2026-09-23.mp4).
+[Play the connected basket ticket](docs-site/public/videos/connected-basket-ticket-2026-09-23.mp4) · [See a portfolio walkthrough](docs-site/public/videos/connected-portfolio-2026-09-23.mp4) · [See a practice desk walkthrough](docs-site/public/videos/connected-practice-desk-2026-09-23.mp4) · [Open the app's demo and transaction table](https://useagari.xyz/demo)
 
 These short screen recordings show the connected app through a quote preview or paper-desk read; they do not show a newly signed Buy. The banner and cover are editorial compositions based on these dated app screens, refreshed with the [current Agari mark](brand/README.md). The footage retains the interface as captured. The [capture provenance](docs-site/public/captures/provenance-connected-2026-09-23.json) names the routes and states. On-chain transactions are linked below and in the [evidence ledger](docs/evidence/acceptance.md).
 
