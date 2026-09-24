@@ -16,7 +16,7 @@ import { DECISION } from "./decision/copy-decision";
 import { DecisionHero } from "./decision/DecisionHero";
 import { CostShown, LimitsCheck, Options, WhatItSaw } from "./DecisionSaw";
 import { ago, pct, pctSigned, stamp, tokensText, usdText } from "./format";
-import { TONE } from "./activity/ActivityTimeline";
+import { TONE } from "./activity/check-groups";
 import type { DecisionWire } from "./protocol";
 import "./desk.css";
 import "./decision/decision.css";

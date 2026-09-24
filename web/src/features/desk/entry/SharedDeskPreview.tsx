@@ -7,7 +7,7 @@ import Link from "next/link";
 import { EmptyState, LogoStack, NumberTicker, Sparkline, StatusDot } from "@/components/ui/desk-kit";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
-import { TONE } from "../activity/ActivityTimeline";
+import { TONE } from "../activity/check-groups";
 import { DESK } from "../copy";
 import { RECORD } from "../copy-record";
 import { ago } from "../format";

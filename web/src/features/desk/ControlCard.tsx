@@ -45,13 +45,15 @@ export function ControlCard(p: ControlCardProps) {
       <p className="type-caption text-ink-secondary">{p.body}</p>
       {p.children}
       {(p.now.length > 0 || p.after.length > 0) && (
-        <dl className="dk-card-diff">
-          <div>
-            <dt>{C.now}</dt>
-            {p.now.map((line) => (
-              <dd key={`n-${line}`}>{line}</dd>
-            ))}
-          </div>
+        <dl className="dk-card-diff" data-single={p.now.length === 0 ? "" : undefined}>
+          {p.now.length > 0 && (
+            <div>
+              <dt>{C.now}</dt>
+              {p.now.map((line) => (
+                <dd key={`n-${line}`}>{line}</dd>
+              ))}
+            </div>
+          )}
           <div>
             <dt>{C.after}</dt>
             {p.after.map((line) => (

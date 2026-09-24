@@ -3,10 +3,10 @@
 import { Menu } from "@base-ui/react/menu";
 import { ArrowDownToLine, Coins, Ellipsis, LogOut, Pause, Play, Plus, RefreshCw, Share2, SlidersHorizontal } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { notify } from "@/lib/toast";
 import { ControlCard } from "./ControlCard";
 import { DESK } from "./copy";
+import { DeskDialog } from "./DeskDialog";
 import { CONTROLS } from "./copy-controls";
 import { COCKPIT } from "./cockpit/copy-cockpit";
 import { clock } from "./format";
@@ -162,12 +162,9 @@ export function DeskControls({ view, actions, zone, nowSec, open, setOpen }: { v
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
-      <Sheet open={open !== null} onOpenChange={(next) => !next && close()}>
-        <SheetContent side="bottom" className="dk-sheet">
-          <SheetTitle className="sr-only">{open ? CONTROLS.actions[open] : CONTROLS.title}</SheetTitle>
-          {open && actions && <ControlDialog key={open} view={view} actions={actions} kind={open} zone={zone} nowSec={nowSec} onClose={close} />}
-        </SheetContent>
-      </Sheet>
+      <DeskDialog open={open !== null} onOpenChange={(next) => !next && close()} title={open ? CONTROLS.actions[open] : CONTROLS.title}>
+        {open && actions && <ControlDialog key={open} view={view} actions={actions} kind={open} zone={zone} nowSec={nowSec} onClose={close} />}
+      </DeskDialog>
     </div>
   );
 }

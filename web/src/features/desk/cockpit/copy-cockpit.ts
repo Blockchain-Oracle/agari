@@ -26,9 +26,8 @@ export const COCKPIT = {
     live: "On Solana mainnet",
   },
   overview: {
-    latest: "Latest decision",
-    open: "Open the decision",
-    noneYet: "No decision yet",
+    latest: "Latest check",
+    noneYet: "No check yet",
     allocation: "Allocation",
     now: "Now",
     target: "Target",
