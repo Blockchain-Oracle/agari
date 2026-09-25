@@ -24,6 +24,9 @@ export function Toaster() {
   const toasts = useToasts();
   const insets = useSafeAreaInsets();
   const bottom = Math.max(12.8, insets.bottom - 8) + DOCK_HEIGHT + 8;
+  // A mounted full-window overlay hides the whole app from VoiceOver (and the UI test driver), so it exists only
+  // while a toast is on screen.
+  if (toasts.length === 0) return null;
   const host = (
     <View pointerEvents="box-none" style={[styles.host, { bottom }]}>
       {toasts.map((t) => <Toast key={t.id} toast={t} />)}
