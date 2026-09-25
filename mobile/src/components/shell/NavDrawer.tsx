@@ -12,29 +12,35 @@ import { FONT, useTheme } from "~/theme";
 import { chromeTokens } from "~/theme/chrome";
 
 /**
- * web's More drawer (MobileBottomNav's SheetContent side="right", navigation.css .mobile-nav-*): full width on a
- * phone, slides in from the right over a 72 % scrim; "Navigate" kicker, "Everything in Agari", the line under it,
+ * web's More drawer (MobileBottomNav's SheetContent side="right", navigation.css .mobile-nav-*) as web draws it above
+ * 480 px — a side panel with its left border, not the full-width sheet — so the page stays in view beside it (the
+ * owner's call, 09-25): PANEL_SHARE of the screen, slides in from the right over a 72 % scrim, a tap there closes it; "Navigate" kicker, "Everything in Agari", the line under it,
  * then every section with its mono title and each destination as an icon tile, name and one line.
  */
+/** The panel's share of a phone's width, and web's own cap (28 rem). */
+const PANEL_SHARE = 0.82;
+const PANEL_MAX = 448;
+
 export function NavDrawer({ open, onClose, pathname }: { open: boolean; onClose: () => void; pathname: string }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { name, color } = useTheme();
   const t = chromeTokens(name);
   const [mounted, setMounted] = useState(open);
-  const x = useSharedValue(width);
+  const panelWidth = Math.min(Math.round(width * PANEL_SHARE), PANEL_MAX);
+  const x = useSharedValue(panelWidth);
 
   useEffect(() => {
     if (open) {
       setMounted(true);
       x.value = withTiming(0, { duration: 260, easing: Easing.out(Easing.cubic) });
     } else if (mounted) {
-      x.value = withTiming(width, { duration: 220, easing: Easing.in(Easing.cubic) }, (done) => done && runOnJS(setMounted)(false));
+      x.value = withTiming(panelWidth, { duration: 220, easing: Easing.in(Easing.cubic) }, (done) => done && runOnJS(setMounted)(false));
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const panel = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
-  const scrim = useAnimatedStyle(() => ({ opacity: 1 - x.value / width }));
+  const scrim = useAnimatedStyle(() => ({ opacity: 1 - x.value / panelWidth }));
 
 
   return (
@@ -42,7 +48,7 @@ export function NavDrawer({ open, onClose, pathname }: { open: boolean; onClose:
       <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: t.navOverlay }, scrim]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close navigation" />
       </Animated.View>
-      <Animated.View style={[styles.panel, { backgroundColor: color.ground }, panel]} accessibilityViewIsModal>
+      <Animated.View style={[styles.panel, { width: panelWidth, backgroundColor: color.ground, borderLeftColor: t.navPanelBorder }, panel]} accessibilityViewIsModal>
         <View style={[styles.header, { paddingTop: Math.max(20, insets.top), borderBottomColor: t.navDivider }]}>
           <Text style={[styles.kicker, { color: color.accent }]}>NAVIGATE</Text>
           <Text style={[styles.title, { color: color.ink }]}>Everything in Agari</Text>
@@ -108,7 +114,7 @@ export function NavSections({ pathname, onGo, bottomPad }: { pathname: string; o
 }
 
 const styles = StyleSheet.create({
-  panel: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
+  panel: { position: "absolute", top: 0, right: 0, bottom: 0, borderLeftWidth: 1 },
   header: { paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1 },
   kicker: { fontFamily: FONT.dataStrong, fontSize: 9.6, letterSpacing: 1.73 },
   title: { marginTop: 5.6, fontFamily: FONT.headingHeavy, fontSize: 20, letterSpacing: -0.4 },
