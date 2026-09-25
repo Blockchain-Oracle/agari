@@ -2,7 +2,7 @@
 // usage: node mobile/scripts/webdump.mjs <url> [dark|light] [rootSelector=main] [--shot out.png] [--wait ms]
 // Each line: tag.class "text" [x,y w×h] then only the properties that differ from the parent (inherited noise dropped).
 import { spawn } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { rmSync, writeFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
 const flag = (name) => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
@@ -13,7 +13,12 @@ if (!url) { console.error("usage: webdump.mjs <url> [dark|light] [rootSelector] 
 
 const port = 9200 + Math.floor(Math.random() * 600);
 const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=/tmp/webdump-${port}`, "--no-first-run", "--hide-scrollbars"], { stdio: "ignore" });
+  ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=/tmp/webdump-${port}`, "--no-first-run", "--hide-scrollbars"], { stdio: "ignore", detached: true });
+// Chrome's helpers outlive a kill of the main process; its whole group goes on every exit, and a hung page ends the run.
+const reap = () => { try { process.kill(-chrome.pid, "SIGKILL"); } catch {} rmSync(`/tmp/webdump-${port}`, { recursive: true, force: true }); };
+process.on("exit", reap);
+for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => process.exit(1));
+setTimeout(() => { console.error("webdump: timed out"); process.exit(1); }, 60_000 + wait).unref();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 60 && !ws; i++) {
@@ -72,4 +77,4 @@ if (shot) {
   const img = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true });
   writeFileSync(shot, Buffer.from(img.result.data, "base64"));
 }
-sock.close(); chrome.kill();
+sock.close(); process.exit(0);
