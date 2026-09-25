@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { CAPS_DEFAULTS, termsFromForm, workedExample, type CapsForm } from "@/features/session/caps";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./copy";
 import { SESSION_KEY_TOPUP_LAMPORTS } from "@/features/session/fees";
 import { notify } from "@/lib/toast";
 import { WebButton } from "~/components/portfolio/web/Button";

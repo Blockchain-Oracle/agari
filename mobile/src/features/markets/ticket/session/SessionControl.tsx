@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./copy";
 import type { SessionStatus } from "@/features/session/view";
 import { haptic } from "~/components/kit";
 import { useSessionKey } from "~/web-shims/session-key-provider";

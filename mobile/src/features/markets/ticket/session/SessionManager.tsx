@@ -3,7 +3,7 @@ import { capResetsAtSec, dailyHeadroomBase } from "@agari/core/vault";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { priceCapText } from "@/features/session/caps";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./copy";
 import { LAMPORTS_PER_TAP, SESSION_KEY_TOPUP_LAMPORTS, SOL_DECIMALS } from "@/features/session/fees";
 import type { SessionKeyView } from "@/features/session/view";
 import { notify } from "@/lib/toast";

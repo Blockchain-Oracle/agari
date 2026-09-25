@@ -3,7 +3,7 @@ import { formatBaseUnits } from "@agari/core/units";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFaucet } from "@/features/markets/faucet/useFaucet";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./session/copy";
 import type { FundingSource } from "@/features/session/useTicketRoute";
 import { diagnosisCopy, FAUCET, TICKET } from "@/lib/copy";
 import type { WalletSession } from "@/lib/wallet-session";

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { EXPIRY_CHOICES, type CapsForm } from "@/features/session/caps";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./copy";
 import { FONT } from "~/theme";
 import { tkType, useTk } from "../tk";
 import { sessionStyles } from "./Details";

@@ -43,7 +43,8 @@ export function MarketsScreen() {
   // a pick made on this page, opens the ticket drawer on it — once per request, so those are dropped from the address.
   useEffect(() => {
     if (!params.m || !isMarketId(params.m)) return;
-    scroll.current?.scrollTo({ y: 0, animated: true });
+    // A tap (`k`) brings the page to the hero; an in-place rewrite (a successor, a side switch) leaves the scroll alone.
+    if (params.k) scroll.current?.scrollTo({ y: 0, animated: true });
     const dir: Side | null = params.dir === "up" || params.dir === "down" ? params.dir : null;
     if (!dir && params.t !== "1") return;
     router.setParams({ dir: undefined, k: undefined, t: undefined });

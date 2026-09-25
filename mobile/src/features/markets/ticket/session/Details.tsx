@@ -2,7 +2,7 @@ import type { Address } from "@agari/core/types";
 import { formatBaseUnits, formatUtc, shortHex } from "@agari/core/units";
 import { Children, createContext, useContext, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./copy";
 import { SOL_DECIMALS } from "@/features/session/fees";
 import { FONT } from "~/theme";
 import { tkType, useTk } from "../tk";

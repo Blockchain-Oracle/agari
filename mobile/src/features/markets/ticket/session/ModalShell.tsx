@@ -2,7 +2,7 @@ import { BlurView } from "expo-blur";
 import { X } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SESSION } from "@/features/session/copy";
+import { SESSION } from "./copy";
 import { FONT, useTheme } from "~/theme";
 import { sessionTokens } from "~/theme/web/markets-session";
 
