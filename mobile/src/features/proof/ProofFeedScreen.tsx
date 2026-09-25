@@ -1,24 +1,31 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { sourceChips } from "@/features/proof/feed";
 import { PROOF_FEED as F } from "@/features/proof/feed-copy";
-import { FEED_LIMIT } from "@/features/proof/useProofFeed";
-import { useProofFeed } from "@/features/proof/useProofFeed";
+import { FEED_LIMIT, useProofFeed } from "@/features/proof/useProofFeed";
 import { useWhen } from "@/lib/when";
-import { Button, Chips, EmptyState, LoadingState, Screen, SectionHeader } from "~/components/kit";
-import { FONT, TYPE, useTheme } from "~/theme";
-import { FeedRowView } from "./FeedRowView";
+import { haptic } from "~/components/kit";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { SectionHeader } from "~/features/explore/SectionHeader";
+import { FONT, useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { statusTokens } from "~/theme/web/explore/status";
+import { FeedRowView, FeedSkeletonRow } from "./FeedRowView";
+import { Holding, StatusTable } from "./Frame";
 
-/** Rows drawn at first; the rest of the read opens a page at a time (web's PAGE). */
+/** Rows drawn at first; the rest of the read opens a page at a time. */
 const PAGE = 40;
+const SKELETON_ROWS = 8;
 
 /**
- * `/proof` — web's ProofFeedScreen (features/proof/ProofFeedScreen.tsx): every settled Window across every lane, newest
- * first, filterable by the sources the rows actually hold, each opening its print proof. One cached index read.
+ * `/proof` — web's ProofFeedScreen.tsx: the settled Windows across every lane, newest first, each opening its print
+ * proof. Masayume's `/status` frame (numbered header, holding states, the hairline table) with mono filter chips over
+ * the sources the rows actually hold. One cached read, never polled.
  */
 export function ProofFeedScreen() {
-  const { color } = useTheme();
+  const { name, color } = useTheme();
+  const t = statusTokens(name);
   const client = useQueryClient();
   const when = useWhen();
   const reading = useProofFeed();
@@ -30,41 +37,77 @@ export function ProofFeedScreen() {
   const filtered = rows ? (active === F.all ? rows : rows.filter((r) => r.sourceName === active)) : [];
   const visible = filtered.slice(0, shown);
   const pick = (next: string) => {
+    haptic.select();
     setSource(next);
     setShown(PAGE);
   };
 
   return (
-    <Screen title={F.title} onRefresh={() => client.invalidateQueries({ queryKey: ["agari", "proof", "feed", FEED_LIMIT] })}>
+    <ExplorePage title={F.title} onRefresh={() => client.invalidateQueries({ queryKey: ["agari", "proof", "feed", FEED_LIMIT] })} style={styles.page}>
       <SectionHeader index={F.section.index} title={F.section.title} desc={F.section.desc} />
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{F.intro}</Text>
+      <Text style={[styles.intro, { color: color.inkSecondary }]}>{F.intro}</Text>
 
       {reading !== null && !reading.ok ? (
-        <EmptyState why={F.unreachable} action={{ label: "Try again", onPress: () => void client.invalidateQueries({ queryKey: ["agari", "proof", "feed", FEED_LIMIT] }) }} />
+        <Holding kind="alert" text={F.unreachable} />
       ) : (
-        <>
+        <View style={styles.report}>
           {chips.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityLabel={F.filters}>
-              <Chips options={[F.all, ...chips].map((chip) => ({ value: chip, label: chip }))} value={active} onPick={pick} />
-            </ScrollView>
+            <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel={F.filters}>
+              {[F.all, ...chips].map((chip) => {
+                const on = chip === active;
+                return (
+                  <Pressable
+                    key={chip}
+                    onPress={() => pick(chip)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    style={[styles.chip, on ? { borderColor: color.inkMuted, backgroundColor: t.hover } : { borderColor: color.surface2 }]}
+                  >
+                    <Text style={[styles.chipText, { color: on ? color.ink : color.inkMuted }]}>{chip}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           ) : null}
-          <Text style={[styles.count, { color: color.inkMuted }]}>{rows ? F.tableTitle(visible.length, filtered.length).toUpperCase() : F.loading}</Text>
-          {rows === null ? <LoadingState shape="list" label={F.loading} /> : null}
-          {rows !== null && filtered.length === 0 ? <EmptyState why={active === F.all ? F.none : F.noneFor(active)} /> : null}
-          <View>
-            {visible.map((row) => (
-              <FeedRowView key={row.market} row={row} when={when} />
-            ))}
-          </View>
+          <StatusTable title={rows ? F.tableTitle(visible.length, filtered.length) : F.loading}>
+            {rows === null ? (
+              <View accessibilityRole="progressbar" accessibilityLabel={F.loading}>
+                {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+                  <FeedSkeletonRow key={i} first={i === 0} />
+                ))}
+              </View>
+            ) : filtered.length === 0 ? (
+              <Text style={[styles.empty, { color: color.inkMuted }]}>{active === F.all ? F.none : F.noneFor(active)}</Text>
+            ) : (
+              visible.map((row, i) => <FeedRowView key={row.market} row={row} when={when} first={i === 0} />)
+            )}
+          </StatusTable>
           {filtered.length > visible.length ? (
-            <Button label={F.more(Math.min(PAGE, filtered.length - visible.length))} variant="outline" onPress={() => setShown((n) => n + PAGE)} />
+            <Pressable
+              onPress={() => {
+                haptic.tap();
+                setShown((n) => n + PAGE);
+              }}
+              accessibilityRole="button"
+              style={({ pressed }) => [styles.more, { borderColor: pressed ? color.inkDisabled : color.surface2 }]}
+            >
+              <Text style={[styles.chipText, { color: color.inkSecondary }]}>{F.more(Math.min(PAGE, filtered.length - visible.length))}</Text>
+            </Pressable>
           ) : null}
-        </>
+        </View>
       )}
-    </Screen>
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  count: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.4 },
+  // .status-page: 28 px under the header, 48 px over the dock's floor.
+  page: { paddingTop: 28, paddingBottom: 48 + CHROME.dockClearance },
+  intro: { marginTop: 12, fontFamily: FONT.body, fontSize: 15, lineHeight: 23.25 },
+  report: { marginTop: 24, gap: 24 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: { height: 30, paddingHorizontal: 14, borderWidth: 1, borderRadius: 9999, justifyContent: "center" },
+  chipText: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.1, textTransform: "uppercase", textAlign: "center" },
+  empty: { padding: 20, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
+  more: { alignSelf: "center", height: 36, paddingHorizontal: 18, borderWidth: 1, borderRadius: 9999, justifyContent: "center" },
 });
