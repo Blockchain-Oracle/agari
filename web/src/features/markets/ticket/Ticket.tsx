@@ -131,6 +131,8 @@ export function Ticket({ selection, drawer }: TicketProps) {
           )}
           {privateMode && <PrivateNote priv={priv} stakeBase={stakeBase} decimals={decimals} symbol={symbol} />}
           {t.advancedFrom && <AutoAdvanceNote from={t.advancedFrom} to={market} />}
+          {/* An armed tap the caps refuse signs from the wallet instead — and says so, as the enable sheet promised. */}
+          {!privateMode && !isRange && routing.fallbackReason && <p className="tk-note">{routing.fallbackReason}</p>}
           <OutcomeNote state={bet.state} decimals={decimals} symbol={symbol} onDismiss={bet.reset} />
           {cta}
           {regionHeld && <RegionNote />}
