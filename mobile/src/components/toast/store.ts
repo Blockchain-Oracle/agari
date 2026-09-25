@@ -7,7 +7,8 @@ export interface ToastItem {
   tone: "neutral" | "warning";
 }
 
-const LIFETIME_MS = 4_000;
+/** Base UI's default toast timeout, which web's Toaster keeps. */
+const LIFETIME_MS = 5_000;
 let items: ToastItem[] = [];
 let nextId = 1;
 const listeners = new Set<() => void>();
@@ -15,7 +16,8 @@ const emit = () => listeners.forEach((l) => l());
 
 export function pushToast(toast: Omit<ToastItem, "id">): void {
   const id = nextId++;
-  items = [...items.slice(-2), { ...toast, id }];
+  // web's Toaster limit={1}: a new toast replaces the one showing.
+  items = [{ ...toast, id }];
   emit();
   setTimeout(() => dismissToast(id), LIFETIME_MS);
 }

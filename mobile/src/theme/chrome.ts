@@ -16,6 +16,7 @@ const DARK = {
   navOverlay: "rgba(0, 0, 0, 0.72)", navPanelBorder: "rgba(255, 255, 255, 0.1)", navDivider: "rgba(255, 255, 255, 0.08)", navSectionDivider: "rgba(255, 255, 255, 0.07)",
   navItemBorder: "rgba(255, 255, 255, 0.08)", navItemFill: "rgba(255, 255, 255, 0.045)", navIconBorder: "rgba(255, 255, 255, 0.09)", navActiveBorder: "rgba(224, 77, 38, 0.35)",
   navLinkInk: "#D4D4D4",
+  toastBg: "rgba(23, 23, 23, 0.9)", toastBorder: "rgba(255, 255, 255, 0.22)", toastWarnBorder: "rgba(242, 153, 74, 0.2)", toastInk: "#FFFFFF", toastMuted: "#A3A3A3", toastIcon: "#737373",
 };
 
 const LIGHT: typeof DARK = {
@@ -30,6 +31,7 @@ const LIGHT: typeof DARK = {
   navOverlay: "rgba(0, 0, 0, 0.72)", navPanelBorder: "rgba(20, 18, 16, 0.12)", navDivider: "rgba(20, 18, 16, 0.09)", navSectionDivider: "rgba(20, 18, 16, 0.09)",
   navItemBorder: "rgba(20, 18, 16, 0.1)", navItemFill: "rgba(20, 18, 16, 0.04)", navIconBorder: "rgba(20, 18, 16, 0.12)", navActiveBorder: "rgba(217, 62, 31, 0.35)",
   navLinkInk: "#453E33",
+  toastBg: "rgba(251, 247, 238, 0.9)", toastBorder: "rgba(20, 18, 16, 0.22)", toastWarnBorder: "rgba(242, 153, 74, 0.2)", toastInk: "#141210", toastMuted: "#5E574B", toastIcon: "#7C7466",
 };
 
 export type ChromeTokens = typeof DARK;
