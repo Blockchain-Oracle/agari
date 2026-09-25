@@ -14,7 +14,7 @@
 
 Agari runs on Android and iPhone as well as the web, on the same Solana devnet Windows.
 
-- **Android:** scan the code or download [agari-0.1.0.apk](https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.0/agari-0.1.0.apk) (170 MB) from the [GitHub release](https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.0). SHA-256 `96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447`.
+- **Android:** scan the code or download [agari-0.1.1.apk](https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.1/agari-0.1.1.apk) (59.1 MB, arm64) from the [GitHub release](https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.1). SHA-256 `7a3d4f2711f0a4dbe4aa6f68fecfe5a8f2de5798a548f8acccaea5434d28901f`.
 - **iPhone:** TestFlight is next. Until then, add [useagari.xyz](https://useagari.xyz) to your Home Screen from Safari.
 
 The app source is in [mobile](mobile); [Get the app](https://docs.useagari.xyz/start/mobile-app) covers wallets on a phone, one-tap trading and notifications.

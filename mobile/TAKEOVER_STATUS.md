@@ -11,9 +11,13 @@
   ElevenLabs sounds (`assets/sounds/onboard-*.mp3`).
 - **Deployed 09-25:** web + ops at 04579d2b (push-clock and switchboard-spot live; `PUSH_DRAIN_SECRET` set on both),
   then web + docs again with /download and the docs page.
-- **Android:** APK on GitHub release `android-v0.1.0` (EAS build ece6a36d, preview profile, remote keystore);
-  SHA-256 `96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447`, 178.7 MB. The first EAS build failed
-  on `babel-preset-expo` not being a direct dependency (fixed 5f353d09). QR: `~/dev/hackathon/agari-release/`.
+- **Android 0.1.1:** EAS preview build `04b4ad72-3294-4f9b-b289-99cb828bd64b`, versionCode 2,
+  arm64-v8a only with compressed native libraries (`extractNativeLibs=true`). The APK is 59,148,677 bytes,
+  SHA-256 `7a3d4f2711f0a4dbe4aa6f68fecfe5a8f2de5798a548f8acccaea5434d28901f`.
+  Signature, archive, package metadata, emulator install and launch passed. The Samsung owner installed from the
+  test download link and reported "tha app works now lol" on 09-25, then tapped the downloaded APK in My Files and
+  confirmed "Update/Install works." The owner declined Wireless debugging, so the old Samsung `INSTALL_FAILED_*`
+  code was not captured; the exact cause of the original install failure remains unverified.
 - **iOS:** App Store Connect app "Agari – Call the Close" (6816116543). Build 9 (0.1.0) uploaded with `xcrun altool`
   (EAS's submit queue stalled; key copied to `~/.appstoreconnect/private_keys/`), VALID, internal testing ready.
   Public group "Agari Beta" (`https://testflight.apple.com/join/g3MnDrr7`) holds build 9, beta review submitted

@@ -4,13 +4,13 @@
  * installs from the browser. Every sentence is about what exists on Solana devnet today.
  */
 
-/** The published Android build: GitHub release `android-v0.1.0`, built by EAS 09-25. */
+/** The published Android build: GitHub release `android-v0.1.1`, built by EAS 09-25. */
 export const ANDROID_RELEASE = {
-  version: "0.1.0",
-  url: "https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.0/agari-0.1.0.apk",
-  page: "https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.0",
-  sha256: "96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447",
-  sizeMb: 170,
+  version: "0.1.1",
+  url: "https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.1/agari-0.1.1.apk",
+  page: "https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.1",
+  sha256: "7a3d4f2711f0a4dbe4aa6f68fecfe5a8f2de5798a548f8acccaea5434d28901f",
+  sizeMb: 59.1,
   qr: "/download/agari-android-qr.svg",
 } as const;
 export const IOS_TESTFLIGHT = {
