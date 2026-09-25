@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { readXConfig } from "@/features/x/config.server";
+import { publicOrigin } from "@/lib/client-ip.server";
 import { accessToken } from "@/features/x/oauth.server";
 import { X_DEFAULT_RETURN, X_REASON_PARAM, X_RETURN_PARAM } from "@/features/x/protocol";
 import { signSession, X_OAUTH_COOKIES, X_SESSION_COOKIE, X_SESSION_TTL_MS } from "@/features/x/session.server";
@@ -12,9 +13,13 @@ export const dynamic = "force-dynamic";
  * with; the verifier is exchanged for the account's id and handle, which go into a signed session, and
  * the browser bounces back to the page that started it with `?x=1` — or `?x=err&x_reason=`.
  * Ported from the reference's `api/claim/x/callback`, on OAuth 1.0a since 2026-09-05.
+ *
+ * The way home is built on the callback's own public origin (`X_REDIRECT_URI`), never the server's view of the
+ * request: behind Cloudflare that is `http://`, which would bounce a signed-in browser off TLS.
  */
 export async function GET(req: NextRequest) {
-  const origin = req.nextUrl.origin;
+  const reading = readXConfig(publicOrigin(req));
+  const origin = reading.configured ? new URL(reading.config.redirectUri).origin : publicOrigin(req);
   const jar = await cookies();
   const ret = jar.get(X_OAUTH_COOKIES.ret)?.value;
   const home = `${origin}${ret && ret.startsWith("/") && !ret.startsWith("//") ? ret : X_DEFAULT_RETURN}`;
@@ -25,7 +30,6 @@ export async function GET(req: NextRequest) {
     return url.toString();
   };
 
-  const reading = readXConfig(origin);
   if (!reading.configured) return NextResponse.redirect(withResult("err", "config"));
   const { config } = reading;
 

@@ -41,13 +41,16 @@ export default function Header() {
   return (
     <>
       <header className="header">
-        <Link className="logo" href="/" aria-label="Agari home" data-cursor="hover">
+        <Link className="logo" href="/" aria-label="Agari 上がり home" data-cursor="hover">
           <span className="logo-mark"><AgariMark /></span>
-          <span>AGARI</span>
+          <span className="logo-copy">
+            <span className="logo-name">AGARI</span>
+            <span className="logo-jp" lang="ja" data-text="上がり">上がり</span>
+          </span>
         </Link>
 
-        <nav className="nav" aria-label="Primary navigation">
-          <div className="nav-links">
+        <div className="nav">
+          <nav className="nav-links" aria-label="Primary navigation">
             {DESKTOP_NAV.map((entry) => {
               if (entry.kind === "group") {
                 return (
@@ -74,14 +77,14 @@ export default function Header() {
                 </Link>
               );
             })}
-          </div>
+          </nav>
 
           <div className="header-right">
             <ThemeToggle />
             <HeaderMoneyPill onOpen={() => setShowFunds(true)} />
             <HeaderAccount onOpenMenu={() => setOpenGroup(null)} />
           </div>
-        </nav>
+        </div>
       </header>
 
       <MobileBottomNav />

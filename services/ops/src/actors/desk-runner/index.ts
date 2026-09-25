@@ -53,6 +53,9 @@ export async function createRunnerContext(deps: DeskRunnerDeps): Promise<RunnerC
   return ctx;
 }
 
+/** A move wake within this long of the last check adds nothing that check did not see. */
+const MOVE_COOLDOWN_SEC = 10 * 60;
+
 const isPractice = (d: DeskRow) => d.mode === "practice" || !d.address;
 
 /** Everything that may wake one desk this tick, in order: a check-now request, the hour, money, a move. */
@@ -67,7 +70,10 @@ async function wakesDue(ctx: RunnerContext, desk: DeskRow, nowSec: number): Prom
   if (snapshot) {
     const positions = Object.fromEntries(snapshot.holdings.map((h) => [h.symbol, BigInt(h.raw)]));
     const move = heldMoveBps(ctx.feed, positions, nowSec);
-    if (move && Math.abs(move.bps) >= MOVE_WAKE_BPS) {
+    // A check already due this tick, or one in the last few minutes, has seen these prices: a second wake only wrote the
+    // same verdicts again seconds later (09-24: "hour" and "move" checks at 20:00:01 and 20:00:04, every hour).
+    const justChecked = due.length > 0 || nowSec - snapshot.takenAtSec < MOVE_COOLDOWN_SEC;
+    if (move && Math.abs(move.bps) >= MOVE_WAKE_BPS && !justChecked) {
       const claimed = await ctx.q.claimWake({ deskId: desk.id, scheduledForSec: hourSec, trigger: "move", nowSec });
       if (claimed) due.push({ trigger: "move", scheduledForSec: nowSec, wakeId: claimed.id });
     }

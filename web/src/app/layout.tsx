@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { AppStrip, ShellChrome } from "@/components/shell";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className={cn("antialiased cursor-custom", fontVariables)} suppressHydrationWarning>
         {/* Paint the resolved theme on the FIRST frame (no flash of dark). Runs
             synchronously before the app renders; mirrors lib/theme resolveTheme. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <Script id="agari-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <AppStrip />
         <AppProviders>
           <TooltipProvider>

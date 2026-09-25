@@ -4,7 +4,7 @@
 
 **Agari is an on-chain stock prediction exchange (DEX) on Solana.** Make an Up or Down call on a short price window, cover a tokenized stock you already hold, and inspect the price prints that settled the result. PreStocks powers an around-the-clock pre-IPO lane, five baskets, and a separate portfolio desk you can try with paper money.
 
-[**Open Agari**](https://useagari.xyz) · [**Watch the product**](#watch-the-product) · [**See settlement proof**](https://useagari.xyz/proof) · [**Read the guides**](https://docs.useagari.xyz)
+[**Open Agari**](https://useagari.xyz) · [**Watch the demo**](https://youtu.be/iPtmue-eyIc) · [**See settlement proof**](https://useagari.xyz/proof) · [**Read the guides**](https://docs.useagari.xyz)
 
 **Stocklana tracks:** [Main, Best Use of PreStocks, Best use of Pyth market data](https://hackathons.solana.com/hackathons/stocklana).
 
@@ -32,11 +32,11 @@ Three ways in:
 
 ## Watch the product
 
-[![Watch Agari's connected AI Labs basket ticket walkthrough](docs/assets/readme/watch.png)](docs-site/public/videos/connected-basket-ticket-2026-09-23.mp4)
+[![Open the Agari demo](docs/assets/readme/watch.png)](https://useagari.xyz/demo)
 
 [Play the connected basket ticket](docs-site/public/videos/connected-basket-ticket-2026-09-23.mp4) · [See a portfolio walkthrough](docs-site/public/videos/connected-portfolio-2026-09-23.mp4) · [See a practice desk walkthrough](docs-site/public/videos/connected-practice-desk-2026-09-23.mp4) · [Open the app's demo and transaction table](https://useagari.xyz/demo)
 
-These short screen recordings show the connected app through a quote preview or paper-desk read; they do not show a newly signed Buy. The banner and cover are editorial compositions based on these dated app screens. The [capture provenance](docs-site/public/captures/provenance-connected-2026-09-23.json) names the routes and states. On-chain transactions are linked below and in the [evidence ledger](docs/evidence/acceptance.md).
+These short screen recordings show the connected app through a quote preview or paper-desk read; they do not show a newly signed Buy. The banner and cover are editorial compositions based on these dated app screens, refreshed with the [current Agari mark](brand/README.md). The footage retains the interface as captured. The [capture provenance](docs-site/public/captures/provenance-connected-2026-09-23.json) names the routes and states. On-chain transactions are linked below and in the [evidence ledger](docs/evidence/acceptance.md).
 
 ## Why the integrations matter
 

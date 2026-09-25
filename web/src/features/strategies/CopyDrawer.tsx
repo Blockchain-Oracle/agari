@@ -17,7 +17,7 @@ import { COPY_FORM } from "./copy-form-copy";
 import { CopyFormFields } from "./CopyFormFields";
 import { capsFor, money, parseAmount } from "./format";
 import { strategyIdentity } from "./identity";
-import { STRATEGY_DIRECTION } from "./copy";
+import { STRATEGIES, STRATEGY_DIRECTION } from "./copy";
 import { copyStateOf, COPY_STATE_LABEL } from "./lifecycle";
 import type { StrategyWire } from "./protocol";
 import { RecordCard } from "./RecordCard";
@@ -27,6 +27,10 @@ import { useSubscriptionFee } from "./useSubscriptionFee";
 import { useStrategyHealth } from "./useStrategies";
 import "./strategies.css";
 import "./builder.css";
+import "./decision.css";
+
+type DrawerTab = "copy" | "decisions" | "playbook";
+const T = STRATEGIES.drawer.tabs;
 
 interface CopyDrawerProps {
   card: StrategyWire; sub: StrategySubscription | null; grant: VaultGrant | null; readable: boolean;
@@ -76,6 +80,10 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
   const withdrawBase = parseAmount(withdrawAmount, decimals);
   const fundBase = parseAmount(fundAmount, decimals);
   const withdrawable = availableBase + (ownGrant?.budgetBase ?? 0n);
+  const playbook = card.playbook ?? meta?.playbook ?? null;
+  const tabs: DrawerTab[] = ["copy", ...(card.agent ? ["decisions" as const] : []), ...(playbook ? ["playbook" as const] : [])];
+  // An agent's decisions come first for someone deciding whether to copy it; managing an existing copy opens on the copy.
+  const [tab, setTab] = useState<DrawerTab>(() => (card.agent && !sub && !pending ? "decisions" : "copy"));
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -83,6 +91,8 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
     document.body.style.overflow = "hidden";
     panel.current?.querySelector<HTMLButtonElement>("button")?.focus();
     const onKey = (event: KeyboardEvent) => {
+      // A decision's detail dialog handles its own keys; Escape there closes only the dialog.
+      if (event.target instanceof Element && event.target.closest("[data-strat-detail]")) return;
       if (event.key === "Escape") closeRef.current();
       if (event.key !== "Tab") return;
       const nodes = [...(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), [tabindex="0"]') ?? [])].filter((node) => node.getClientRects().length > 0);
@@ -111,6 +121,8 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
       <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on Solana ↗</a></div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>
       <RecordCard record={card.record} decimals={decimals} symbol={symbol} />
+      {tabs.length > 1 && <div className="strat-drawer-tabs mt-5" role="tablist" aria-label={name}>{tabs.map((key) => <button key={key} type="button" role="tab" id={`strat-tab-${key}`} aria-controls={`strat-panel-${key}`} aria-selected={tab === key} onClick={() => setTab(key)}>{key === "decisions" ? `${T.decisions} · ${card.agent?.decisions.length ?? 0}` : key === "playbook" ? T.playbook : sub ? T.manage : T.copy}</button>)}</div>}
+      <div role={tabs.length > 1 ? "tabpanel" : undefined} id="strat-panel-copy" aria-labelledby={tabs.length > 1 ? "strat-tab-copy" : undefined} hidden={tab !== "copy"}>
       <div className="strat-drawer-rule mt-5" data-state={state}>{state === "copying" && <p className="copy-you" role="status"><span aria-hidden />{sub?.fade ? COPY_FORM.fading : COPY_FORM.copying}</p>}<p className="strat-meta mb-2 text-vermilion">{COPY_STATE_LABEL[state]}</p><p className="strat-drawer-body">{state === "copying" ? "Your permission is active. A trade still needs a signal and fresh risk checks." : state === "checking" ? "Checking your current vault permission and registry consent before making changes." : state === "inactive" ? "This strategy is not accepting new subscriptions. Existing consent can be paused." : "Review a new permission to start or resume. Publishing alone does not fund or activate a copy."}</p></div>
       {state === "replaced" && grant && !grant.revoked && sub && grant.grantId !== sub.grantId && <p className="agent-builder-error mt-3">{COPY_FORM.replaced}</p>}
       <StrategyActivity state={state} grant={grant && sub?.grantId === grant.grantId ? grant : null} health={health ?? null} nowMs={nowMs} />
@@ -150,8 +162,9 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
         {ownGrant && (state === "copying" || state === "unfunded") && <details className="mt-5"><summary className="strat-meta cursor-pointer">Add budget without changing limits</summary><p className="strat-drawer-body my-3">Move up to {money(availableBase, decimals, symbol)} of available Vault funds into this permission. One transaction; no subscription fee. Deposit more in your <a className="text-vermilion" href="/portfolio">Trading Balance</a> first if needed.</p><label className="desk-field-label block">Amount · {symbol}<input className="strat-input mt-2" inputMode="decimal" value={fundAmount} onChange={(e) => setFundAmount(e.target.value)} /></label><button className="desk-pill mt-3" disabled={disabled || Boolean(pending) || fundBase <= 0n || fundBase > availableBase} onClick={() => void perform(() => writes.fundBudget(ownGrant.grantId, fundBase))}>Move Vault funds into budget</button></details>}
         <details className="mt-5"><summary className="strat-meta cursor-pointer">Withdraw available funds</summary><p className="strat-drawer-body my-3">Up to {money(withdrawable, decimals, symbol)} is available including this copy's unspent budget. Withdrawing from its budget revokes this permission first. Open positions settle separately.</p><label className="desk-field-label block">Amount · {symbol}<input className="strat-input mt-2" inputMode="decimal" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} /></label><button className="desk-pill mt-3" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onClick={() => void perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))}>Withdraw to wallet</button></details>
       </>}
-      {card.agent && <details className="mt-6"><summary className="strat-meta mb-3 cursor-pointer">Agent memory and decisions</summary><AgentMemory agent={card.agent} storeConnected={decisionsStore} asset={asset} nowMs={nowMs} /></details>}
-      {(card.playbook || meta?.playbook) && <details className="mt-5"><summary className="strat-meta cursor-pointer">Public playbook</summary><pre className="strat-drawer-body mt-3 whitespace-pre-wrap break-words">{card.playbook ?? meta?.playbook}</pre></details>}
+      </div>
+      {card.agent && <div role="tabpanel" id="strat-panel-decisions" aria-labelledby="strat-tab-decisions" className="mt-5" hidden={tab !== "decisions"}><AgentMemory agent={card.agent} agentName={name} storeConnected={decisionsStore} decimals={decimals} symbol={symbol} nowMs={nowMs} /></div>}
+      {playbook && <div role="tabpanel" id="strat-panel-playbook" aria-labelledby="strat-tab-playbook" className="mt-5" hidden={tab !== "playbook"}><pre className="strat-drawer-body whitespace-pre-wrap break-words">{playbook}</pre></div>}
     </div>
   </div>;
 }

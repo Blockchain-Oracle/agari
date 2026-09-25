@@ -97,7 +97,7 @@
   /* Slim the top bar on mobile: shorter header, tighter logo + wallet pill. */
   .header { padding: 0 14px; height: 46px; }
   .logo { font-size: 14px; font-weight: 800; letter-spacing: 0.12em; gap: 8px; }
-  .logo-mark { width: 15px; height: 18px; }
+  .logo-mark { width: 18px; height: 18px; }
   /* slimmer top tape on phones; header hangs directly under it */
   [data-strip="on"] { --appstrip: 28px; }
   .appstrip-msg { font-size: 9.5px; gap: 7px; padding: 0 8px; }

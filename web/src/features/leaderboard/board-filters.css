@@ -20,8 +20,3 @@
     max-width: 100%;
   }
 }
-
-/* Q-S13-8: the scope tabs sit first in the bar, before the period tabs, with the bar's own hairline between them. */
-.lb-scopes { padding-right: 14px; margin-right: 2px; border-right: 1px solid rgba(255, 255, 255, 0.1); }
-[data-theme="light"] .lb-scopes { border-right-color: rgba(20, 18, 16, 0.12); }
-@media (max-width: 640px) { .lb-scopes { padding-right: 0; margin-right: 0; border-right: 0; } }

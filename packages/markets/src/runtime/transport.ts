@@ -73,11 +73,14 @@ function retryable(error: unknown): boolean {
   return isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR) && RETRY_STATUS.has(error.context.statusCode);
 }
 
+type Request = Parameters<RpcTransport>[0];
+type Send = (request: Request) => Promise<unknown>;
+
 /** Kit's default transport, paced per endpoint and retried on rate limits and gateway errors. */
-export function pacedRpcTransport(url: string): RpcTransport {
+function pacedSend(url: string): Send {
   const { anyCall, sendCall } = bucketsFor(url);
   const inner = createDefaultRpcTransport({ url: url as Parameters<typeof createDefaultRpcTransport>[0]["url"] });
-  return (async (request: Parameters<RpcTransport>[0]) => {
+  return async (request) => {
     const method = methodOf(request.payload);
     for (let attempt = 1; ; attempt++) {
       try {
@@ -92,7 +95,75 @@ export function pacedRpcTransport(url: string): RpcTransport {
         await sleep(Math.min(wait, MAX_DELAY_MS), request.signal);
       }
     }
-  }) as RpcTransport;
+  };
+}
+
+interface InfoCall {
+  id: unknown;
+  address: string;
+  resolve: (response: unknown) => void;
+  reject: (error: unknown) => void;
+}
+
+/** `getMultipleAccounts` takes at most this many addresses. */
+const MULTIPLE_ACCOUNTS_MAX = 100;
+const configKey = (config: unknown) => JSON.stringify(config ?? {}, (_, value) => (typeof value === "bigint" ? value.toString() : value));
+
+/**
+ * Every `getAccountInfo` sent in the same turn with the same config becomes one `getMultipleAccounts`, answered back
+ * to each caller in `getAccountInfo`'s own shape (the RPC returns each entry exactly as `getAccountInfo`'s `value`).
+ * `loadAccount` batches our own reads; this catches the generated clients' `fetchMaybe…` reads, which call
+ * `getAccountInfo` one account at a time and, behind the 4 RPS bucket, queued a page load for seconds (09-24: twelve
+ * single calls on /portfolio, 250 ms apart).
+ */
+function coalescedAccountInfo(send: Send): (request: Request) => Promise<unknown> {
+  const batches = new Map<string, { config: unknown; calls: InfoCall[] }>();
+  let scheduled = false;
+
+  const settle = async (config: unknown, group: InfoCall[]) => {
+    const addresses = [...new Set(group.map((call) => call.address))];
+    const payload = { jsonrpc: "2.0", id: `batch-${group[0]!.id as string}`, method: "getMultipleAccounts", params: [addresses, ...(config === undefined ? [] : [config])] };
+    try {
+      const response = (await send({ payload })) as { error?: unknown; result?: { context: unknown; value: unknown[] } };
+      for (const call of group) {
+        if (response.error !== undefined || !response.result) call.resolve({ jsonrpc: "2.0", id: call.id, error: response.error });
+        else call.resolve({ jsonrpc: "2.0", id: call.id, result: { context: response.result.context, value: response.result.value[addresses.indexOf(call.address)] ?? null } });
+      }
+    } catch (error) {
+      for (const call of group) call.reject(error);
+    }
+  };
+
+  const flush = () => {
+    scheduled = false;
+    const pending = [...batches.values()];
+    batches.clear();
+    for (const { config, calls: group } of pending) {
+      for (let i = 0; i < group.length; i += MULTIPLE_ACCOUNTS_MAX) void settle(config, group.slice(i, i + MULTIPLE_ACCOUNTS_MAX));
+    }
+  };
+
+  return (request) => {
+    const { id, params } = request.payload as { id: unknown; params: [string, unknown?] };
+    const [address, config] = params;
+    return new Promise((resolve, reject) => {
+      const key = configKey(config);
+      let batch = batches.get(key);
+      if (!batch) batches.set(key, (batch = { config, calls: [] }));
+      batch.calls.push({ id, address, resolve, reject });
+      request.signal?.addEventListener("abort", () => reject(request.signal?.reason), { once: true });
+      if (scheduled) return;
+      scheduled = true;
+      setTimeout(flush, 0);
+    });
+  };
+}
+
+/** The paced transport, with same-turn `getAccountInfo` calls coalesced into one `getMultipleAccounts`. */
+export function pacedRpcTransport(url: string): RpcTransport {
+  const send = pacedSend(url);
+  const accountInfo = coalescedAccountInfo(send);
+  return ((request: Request) => (methodOf(request.payload) === "getAccountInfo" ? accountInfo(request) : send(request))) as RpcTransport;
 }
 
 /** HTTP JSON-RPC calls this tab or process has sent, by method (retries included): the per-tab budget, measured. */

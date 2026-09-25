@@ -1,9 +1,9 @@
 "use client";
 
-import { Activity, LayoutDashboard, Layers, ScrollText } from "lucide-react";
+import { Activity, LayoutDashboard, Layers, Plus, ScrollText } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TabsPanel, UnderlineTabs, type TabItem } from "@/components/ui/desk-kit";
 import { CheckStrip } from "./cockpit/CheckStrip";
 import { CockpitHeader } from "./cockpit/CockpitHeader";
@@ -13,6 +13,7 @@ import { ValueHero } from "./cockpit/ValueHero";
 import { DESK_ADVICE } from "./copy";
 import { GO_LIVE } from "./copy-controls";
 import { DeskControls, type ControlKind } from "./DeskControls";
+import { DeskDialog } from "./DeskDialog";
 import { GoLive } from "./GoLive";
 import { HoldingsTab } from "./HoldingsPanel";
 import { RulesTab } from "./MandatePanel";
@@ -29,6 +30,8 @@ export interface DeskPageProps {
   zone: string | null;
   nowSec: number;
   initialControl?: ControlKind | null;
+  /** A visitor's way to their own desk, or into the studio when they have none. */
+  visitorCta?: { href: string; label: string; primary: boolean } | null;
 }
 
 const isTab = (v: string | null): v is CockpitTab => v !== null && (COCKPIT_TABS as readonly string[]).includes(v);
@@ -64,7 +67,7 @@ function Rise({ i, children }: { i: number; children: ReactNode }) {
  * as a value chart beside the next check, then Overview · Holdings · Activity · Rules. A shared desk is the same page
  * read-only with "Someone else's desk" at the top.
  */
-export function DeskPage({ view, actions, zone, nowSec, initialControl = null }: DeskPageProps) {
+export function DeskPage({ view, actions, zone, nowSec, initialControl = null, visitorCta = null }: DeskPageProps) {
   const [tab, setTab] = useUrlTab();
   const [control, setControl] = useState<ControlKind | null>(initialControl);
   const [goLive, setGoLive] = useState(false);
@@ -80,7 +83,19 @@ export function DeskPage({ view, actions, zone, nowSec, initialControl = null }:
   return (
     <div className="cp-page container">
       <Rise i={0}>
-        <CockpitHeader view={view} actions={<DeskControls view={view} actions={owner ? actions : null} zone={zone} nowSec={nowSec} open={control} setOpen={setControl} />} />
+        <CockpitHeader
+          view={view}
+          actions={
+            visitorCta ? (
+              <Link href={visitorCta.href} className="dk-control cp-visitor-cta" data-tone={visitorCta.primary ? "primary" : undefined}>
+                {visitorCta.primary && <Plus aria-hidden />}
+                {visitorCta.label}
+              </Link>
+            ) : (
+              <DeskControls view={view} actions={owner ? actions : null} zone={zone} nowSec={nowSec} open={control} setOpen={setControl} />
+            )
+          }
+        />
       </Rise>
       <Rise i={1}>
         <div className="cp-top">
@@ -106,12 +121,9 @@ export function DeskPage({ view, actions, zone, nowSec, initialControl = null }:
       </Rise>
       <p className="type-caption text-ink-muted">{DESK_ADVICE}</p>
       {owner && actions && (
-        <Sheet open={goLive} onOpenChange={setGoLive}>
-          <SheetContent side="bottom" className="dk-sheet">
-            <SheetTitle className="sr-only">{GO_LIVE.title}</SheetTitle>
-            {goLive && <GoLive view={view} actions={actions} liveMode="ask_first" zone={zone} nowSec={nowSec} />}
-          </SheetContent>
-        </Sheet>
+        <DeskDialog open={goLive} onOpenChange={setGoLive} title={GO_LIVE.title}>
+          {goLive && <GoLive view={view} actions={actions} liveMode="ask_first" zone={zone} nowSec={nowSec} />}
+        </DeskDialog>
       )}
     </div>
   );

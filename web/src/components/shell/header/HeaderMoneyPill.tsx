@@ -26,11 +26,13 @@ export function HeaderMoneyPill({ onOpen }: { onOpen: () => void }) {
   const sheet = balance.reading && isOk(balance.reading) ? balance.reading.value : null;
   const total = sheet ? sheet.spendableBase + (sheet.vaultBase ?? 0n) : null;
   const symbol = balance.symbol ?? "";
+  const formattedTotal = total === null || !sheet ? null : formatBaseUnits(total, sheet.decimals, { maxDp: AMOUNT_DP, minDp: AMOUNT_DP });
+  const balanceLabel = formattedTotal === null ? FUNDING.pill.aria : `Balance ${formattedTotal}${symbol ? ` ${symbol}` : ""}. Tap to add money.`;
 
   return (
-    <button type="button" onClick={onOpen} title={FUNDING.pill.title} aria-label={FUNDING.pill.aria} className="dusdc-pill" data-cursor="hover">
+    <button type="button" onClick={onOpen} title={balanceLabel} aria-label={balanceLabel} className="dusdc-pill" data-cursor="hover">
       <TUsdcMark className="dusdc-coin" />
-      <span className={`dusdc-total${total === null ? " dusdc-total--dim" : ""}`}>{total === null || !sheet ? "—" : formatBaseUnits(total, sheet.decimals, { maxDp: AMOUNT_DP, minDp: AMOUNT_DP })}</span>
+      <span className={`dusdc-total${formattedTotal === null ? " dusdc-total--dim" : ""}`}>{formattedTotal ?? "—"}</span>
       <span className="dusdc-unit">{symbol}</span>
       <span className="dusdc-plus" aria-hidden>
         {FUNDING.pill.plus}

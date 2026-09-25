@@ -8,8 +8,9 @@ import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { diagnosisCopy } from "@/lib/copy";
 import { Banzuke, banzukeRows } from "./Banzuke";
-import { BoardFilters, type BoardScope } from "./BoardFilters";
-import { FriendsBoard } from "@/features/social/FriendsBoard";
+import type { TractionData } from "@/features/stats";
+import { BoardActivity } from "./BoardActivity";
+import { BoardFilters } from "./BoardFilters";
 import { LEADERBOARD, type BoardSpan } from "./copy";
 import type { BoardQuery } from "./leaderboard-client";
 import { Podium, podiumOrder } from "./Podium";
@@ -26,9 +27,8 @@ export interface LeaderboardBoardProps {
   /** The period and ticker tabs; a canned board without them is the venue's 24 h board. */
   board?: BoardQuery;
   onBoard?: (board: BoardQuery) => void;
-  /** Q-S13-8: the whole board, or only the wallets you follow. */
-  scope?: BoardScope;
-  onScope?: (scope: BoardScope) => void;
+  /** The venue's latest calls and cash-outs; the section is left out when a canned board passes none. */
+  activity?: Reading<TractionData> | null;
   retry?: () => void;
 }
 
@@ -55,11 +55,9 @@ interface HeroProps {
   board: BoardQuery;
   onBoard: (board: BoardQuery) => void;
   span: BoardSpan;
-  scope: BoardScope;
-  onScope: (scope: BoardScope) => void;
 }
 
-function Hero({ data, nextExpirySec, nowMs, board, onBoard, scope, onScope, span }: HeroProps) {
+function Hero({ data, nextExpirySec, nowMs, board, onBoard, span }: HeroProps) {
   const words = LEADERBOARD.hero;
   const meta = data?.meta ?? null;
   const dash = LEADERBOARD.dash;
@@ -108,14 +106,14 @@ function Hero({ data, nextExpirySec, nowMs, board, onBoard, scope, onScope, span
             </div>
           </div>
         </div>
-        <BoardFilters board={board} onBoard={onBoard} scope={scope} onScope={onScope} meta={meta ? words.closedCalls(meta.closedCalls, span, meta.complete, meta.ticker ?? null) : words.counting} />
+        <BoardFilters board={board} onBoard={onBoard} meta={meta ? words.closedCalls(meta.closedCalls, span, meta.complete, meta.ticker ?? null) : words.counting} />
       </div>
     </section>
   );
 }
 
-/** The board's every state, ported from the reference page: reading, failed, empty, podium, the field, and you. */
-export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board = VENUE_DAY, onBoard = ignore, scope = "all", onScope = ignore, retry }: LeaderboardBoardProps) {
+/** The board's every state, ported from the reference page: reading, failed, empty, podium, the field, live activity, and you. */
+export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board = VENUE_DAY, onBoard = ignore, activity, retry }: LeaderboardBoardProps) {
   const data = reading && isOk(reading) ? reading.value : null;
   const span = spanOf(data, board, nowMs);
   const podium = useMemo(() => (data ? podiumOrder(data.rankings) : []), [data]);
@@ -123,7 +121,7 @@ export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board
 
   return (
     <div className="lb-page">
-      <Hero data={data} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={onBoard} scope={scope} onScope={onScope} span={span} />
+      <Hero data={data} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={onBoard} span={span} />
       <div>
         <div className="container">
           {reading?.ok && (
@@ -160,25 +158,20 @@ export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board
               <span className="lb-state-sub">{LEADERBOARD.empty.body}</span>
             </div>
           )}
-          {scope === "friends" && (
-            <section>
-              <SectionHeader index={LEADERBOARD.friends.number} title={LEADERBOARD.friends.title} desc={LEADERBOARD.friends.desc} className="lb-section-head" />
-              <FriendsBoard />
-            </section>
-          )}
-          {scope === "all" && data && podium.length > 0 && (
+          {data && podium.length > 0 && (
             <section>
               <SectionHeader index={LEADERBOARD.podium.number} title={LEADERBOARD.podium.title} desc={LEADERBOARD.podium.desc(span)} className="lb-section-head" />
               <Podium spots={podium} decimals={data.meta.decimals} symbol={data.meta.symbol} />
             </section>
           )}
-          {scope === "all" && data && field.length > 0 && (
+          {data && field.length > 0 && (
             <section>
               <SectionHeader index={LEADERBOARD.field.number} title={LEADERBOARD.field.title} desc={LEADERBOARD.field.desc} eyebrow={LEADERBOARD.field.meta(span)} className="lb-section-head" />
               <Banzuke rows={field} decimals={data.meta.decimals} span={span} />
             </section>
           )}
-          {scope === "all" && address && data && <YouBar address={address} data={data} span={span} />}
+          {activity !== undefined && <BoardActivity reading={activity} nowMs={nowMs} />}
+          {address && data && <YouBar address={address} data={data} span={span} />}
         </div>
       </div>
     </div>

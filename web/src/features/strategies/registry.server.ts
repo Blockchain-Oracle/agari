@@ -1,15 +1,17 @@
 import { isOk } from "@agari/core/schemas";
 import { deriveRunnerHealth, parseStrategyMetadata, scoreFill, strategyRecord, type AgentWindowOutcome, type FillSettlement, type StrategyFill, type StrategyRecord } from "@agari/core/strategies";
 import { SIDE_TO_OUTCOME, toMarketId, type Address, type MarketId, type Signature } from "@agari/core/types";
-import { isDbConfigured, latestHeartbeats, listPlaybooks, listSealedMemoryIndex, listStrategyDecisions, listStrategyFills, recentHeartbeats, type StrategyDecisionRecord, type StrategyFillRecord } from "@agari/db";
+import { isDbConfigured, latestHeartbeats, listPlaybooks, listStrategyDecisions, listStrategyFills, recentHeartbeats, type StrategyDecisionRecord, type StrategyFillRecord } from "@agari/db";
 import { ensureMarkets, loadCollateral, marketsProvider, mapPool, parseMarketsEnv, unwrap } from "@agari/markets";
 import { listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
-import type { DecisionWire, HealthPayload, StrategiesPayload, StrategyWire } from "./protocol";
+import type { DecisionWire, FillWire, HealthPayload, StrategiesPayload, StrategyWire } from "./protocol";
 
 const CACHE_TTL_MS = 20_000;
 const FILL_LIMIT = 500;
 const DECISION_LIMIT = 200;
 const DECISIONS_PER_CARD = 8;
+/** The copies one decision placed, as its detail view lists them. */
+const TRADES_PER_DECISION = 6;
 const RECENT_WHY = 12;
 const CONCURRENCY = 6;
 const ASSET = "all live venue assets";
@@ -41,6 +43,11 @@ interface WindowFacts {
   feeBps: number;
   intervalSec: number | null;
   asset: string | null;
+  startSec: number | null;
+  expirySec: number | null;
+  openingRaw: bigint | null;
+  closingRaw: bigint | null;
+  settleTx: string | null;
 }
 
 /** Settlement facts per Window, read once per market rather than once per fill or decision. */
@@ -49,9 +56,23 @@ async function settlementsFor(marketIds: readonly MarketId[]): Promise<Map<Marke
     const [market, fee] = await Promise.all([marketsProvider.getMarket(marketId), marketsProvider.settlementFeeBps(marketId)]);
     const m = isOk(market) ? market.value : null;
     const settled = m ? m.status === "Resolved" || m.status === "Voided" || m.status === "Finalized" : false;
-    return { marketId, settlement: { settled, voided: m?.voided ?? false, winningOutcome: m?.winningOutcome ?? null }, feeBps: isOk(fee) ? fee.value : 0, intervalSec: m?.intervalSec ?? null, asset: m?.asset ?? null };
+    // The closing print and the settling transaction exist only once the Window has settled.
+    const resolution = settled ? await marketsProvider.getResolution(marketId) : null;
+    const r = resolution && isOk(resolution) ? resolution.value : null;
+    const facts: WindowFacts = {
+      settlement: { settled, voided: m?.voided ?? false, winningOutcome: m?.winningOutcome ?? null },
+      feeBps: isOk(fee) ? fee.value : 0,
+      intervalSec: m?.intervalSec ?? null,
+      asset: m?.asset ?? null,
+      startSec: m?.tradingStartSec ?? null,
+      expirySec: m?.expirySec ?? null,
+      openingRaw: r?.openingRaw ?? m?.openingPriceRaw ?? null,
+      closingRaw: r?.closingRaw ?? null,
+      settleTx: r?.settlementTxHash ?? null,
+    };
+    return [marketId, facts] as const;
   });
-  return new Map(rows.map((r) => [r.marketId, { settlement: r.settlement, feeBps: r.feeBps, intervalSec: r.intervalSec, asset: r.asset }]));
+  return new Map(rows);
 }
 
 function outcomeOf(side: "up" | "down" | null, settlement: FillSettlement | undefined): AgentWindowOutcome | null {
@@ -61,7 +82,7 @@ function outcomeOf(side: "up" | "down" | null, settlement: FillSettlement | unde
   return settlement.winningOutcome === SIDE_TO_OUTCOME[side] ? "won" : "lost";
 }
 
-function toDecisionWire(row: StrategyDecisionRecord, facts: WindowFacts | undefined): DecisionWire {
+function toDecisionWire(row: StrategyDecisionRecord, facts: WindowFacts | undefined, trades: FillWire[]): DecisionWire {
   return {
     marketId: row.marketId,
     decidedAtMs: row.decidedAtMs,
@@ -76,6 +97,26 @@ function toDecisionWire(row: StrategyDecisionRecord, facts: WindowFacts | undefi
     intervalSec: facts?.intervalSec ?? null,
     asset: facts?.asset ?? null,
     outcome: outcomeOf(row.side, facts?.settlement),
+    window: facts && facts.startSec !== null && facts.expirySec !== null ? { startSec: facts.startSec, expirySec: facts.expirySec } : null,
+    openingRaw: facts?.openingRaw?.toString() ?? null,
+    closingRaw: facts?.closingRaw?.toString() ?? null,
+    settleTx: facts?.settleTx ?? null,
+    trades,
+  };
+}
+
+function toFillWire(f: ReturnType<typeof scoreFill>): FillWire {
+  return {
+    txHash: f.txHash,
+    strategyId: f.strategyId.toString(),
+    owner: f.owner,
+    marketId: f.marketId,
+    side: f.side,
+    cashDeltaBase: f.cashDeltaBase.toString(),
+    tokenDeltaRaw: f.tokenDeltaRaw.toString(),
+    atSec: f.atSec,
+    settled: f.settled,
+    payoutBase: f.payoutBase === null ? null : f.payoutBase.toString(),
   };
 }
 
@@ -91,7 +132,7 @@ async function compute(): Promise<StrategiesPayload> {
   const nowMs = Date.now();
   const deployed = resolveRegistryDeployment() !== null;
   const strategies: StrategyRecord[] = deployed ? (unwrap(await listStrategies()) ?? []) : [];
-  const [fillRows, beats, playbooks, decisionRows, sealed] = await Promise.all([listStrategyFills(null, FILL_LIMIT), latestHeartbeats(), listPlaybooks(), listStrategyDecisions(null, DECISION_LIMIT), listSealedMemoryIndex()]);
+  const [fillRows, beats, playbooks, decisionRows] = await Promise.all([listStrategyFills(null, FILL_LIMIT), latestHeartbeats(), listPlaybooks(), listStrategyDecisions(null, DECISION_LIMIT)]);
   const fills = (fillRows ?? []).map(toFill);
   const settlements = await settlementsFor([...new Set([...fills.map((f) => f.marketId), ...(decisionRows ?? []).map((d) => toMarketId(d.marketId))])]);
   const scored = fills.map((f) => {
@@ -100,12 +141,15 @@ async function compute(): Promise<StrategiesPayload> {
   });
   const beatBy = new Map((beats ?? []).map((b) => [b.strategyId, b]));
   const playbookBy = new Map((playbooks ?? []).map((p) => [p.strategyId, p.body]));
-  const sealedBy = new Map((sealed ?? []).map((m) => [m.strategyId, m]));
   // Rows arrive newest first, so the first eight per strategy are its latest Windows.
   const decisionsBy = new Map<string, DecisionWire[]>();
   for (const row of decisionRows ?? []) {
     const list = decisionsBy.get(row.strategyId) ?? [];
-    if (list.length < DECISIONS_PER_CARD) list.push(toDecisionWire(row, settlements.get(toMarketId(row.marketId))));
+    if (list.length < DECISIONS_PER_CARD) {
+      const marketId = toMarketId(row.marketId);
+      const trades = scored.filter((f) => f.strategyId.toString() === row.strategyId && f.marketId === marketId && f.dryRun === row.dryRun).slice(0, TRADES_PER_DECISION).map(toFillWire);
+      list.push(toDecisionWire(row, settlements.get(marketId), trades));
+    }
     decisionsBy.set(row.strategyId, list);
   }
 
@@ -148,7 +192,6 @@ async function compute(): Promise<StrategiesPayload> {
         typicalCostBase: median(own.map((f) => f.cashDeltaBase)).toString(),
       },
       playbook: playbookBy.get(id) ?? null,
-      memory: sealedMemoryOf(sealedBy.get(id), s.creator),
       health,
       agent: isAgent ? { model: decisions[0]?.model ?? null, decisions } : null,
     };
@@ -157,18 +200,7 @@ async function compute(): Promise<StrategiesPayload> {
   return {
     deployed,
     strategies: wires,
-    fills: scored.map((f) => ({
-      txHash: f.txHash,
-      strategyId: f.strategyId.toString(),
-      owner: f.owner,
-      marketId: f.marketId,
-      side: f.side,
-      cashDeltaBase: f.cashDeltaBase.toString(),
-      tokenDeltaRaw: f.tokenDeltaRaw.toString(),
-      atSec: f.atSec,
-      settled: f.settled,
-      payoutBase: f.payoutBase === null ? null : f.payoutBase.toString(),
-    })),
+    fills: scored.map(toFillWire),
     stores: { fills: fillRows !== null, heartbeats: beats !== null, decisions: decisionRows !== null },
     decimals: collateral.decimals,
     symbol: collateral.symbol,
@@ -209,9 +241,4 @@ export async function readHealth(strategyIds: readonly string[]): Promise<Health
   } catch {
     return { reachable: false, strategies: {}, computedAtMs: nowMs };
   }
-}
-
-/** A sealed memory is listed only under the strategy's own on-chain creator, whatever the store says. */
-function sealedMemoryOf(row: { creator: string; title: string; chars: number; updatedAtMs: number } | undefined, creator: string): { title: string; chars: number; updatedAtMs: number } | null {
-  return row && row.creator === creator ? { title: row.title, chars: row.chars, updatedAtMs: row.updatedAtMs } : null;
 }

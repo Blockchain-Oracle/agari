@@ -4,7 +4,7 @@
  * The reference's structure is kept line for line; every claim is rewritten to what Agari does on Solana devnet.
  * Two of the reference's promises do not hold here and are not repeated: calls are not gas-free by default (the
  * wallet pays SOL; the faucet tops a short wallet up), and there is no native mobile build (the web app installs
- * as a PWA). The video is honest about not existing yet (D-097), and nothing here names an X handle.
+ * as a PWA). The video is Agari's own walkthrough, hosted on YouTube, and nothing here names an X handle.
  */
 export const DEMO = {
   title: "Demo",
@@ -12,9 +12,7 @@ export const DEMO = {
     title: "Agari — demo",
     description: "Call whether a US stock closes its Window up or down, settled on a signed price on Solana devnet — and every claim a transaction you can open.",
     caption: "Markets on the NYSE clock, the call before the bell, and a settlement you can audit. Recorded on the running product.",
-    pendingEyebrow: "● not recorded yet",
-    pendingTitle: "Recording during NYSE hours the week of 22 Sep",
-    pendingCaption: "The walkthrough is captured on the live product after the 09:30 ET bell, so it shows Windows trading rather than a closed board. Until then, everything it would show is below, as transactions you can open.",
+    watch: "Watch on YouTube ↗",
   },
   bar: {
     brand: "AGARI",
@@ -28,7 +26,6 @@ export const DEMO = {
     headline: "See Agari ",
     headlineSerif: "work.",
     videoLabel: "▶ demo · Solana devnet",
-    videoLabelPending: "● recording wed 16 sep · nyse hours",
     lead: "Up or down on a US stock, settled on a signed price the program checks itself — one tap, non-custodial, on the web and as an installable app, and still open after the bell. Full feature breakdown and verifiable on-chain proofs below.",
     open: "Open the app",
     stats: "View live stats",
@@ -103,7 +100,7 @@ export const DEMO = {
     footer: "Agari · stock prediction Windows on Solana, open after the bell.",
   },
   frame: {
-    caption: (date: string) => `captured from the running devnet product · ${date}`,
+    caption: (date: string) => `captured from the running devnet product · ${date} · before the identity refresh`,
     markets: "Agari's market board after the close: the last price, the next session on the clock, and the ticket beside it",
     reel: "The reel after the close: the next session on the clock, with the latest takes a swipe away",
     sensei: "Sensei open over the market, reading the same stream the page holds",

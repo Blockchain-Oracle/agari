@@ -1,16 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SectionHeader } from "@/components/chrome";
 import { notificationState, requestNotificationPermission, type NotificationState } from "@/features/alerts/notifications";
-import { FriendsBoard } from "@/features/social/FriendsBoard";
-import { useFollows } from "@/features/social/useFollows";
 import { useWalletSession } from "@/lib/wallet-session";
 import { ActivityList } from "./ActivityList";
 import { ACTIVITY } from "./copy";
-import { useFollowingFeed, useInboxFeed, useMoneyUnits } from "./useActivity";
-
-type Tab = "inbox" | "following";
+import { useInboxFeed, useMoneyUnits } from "./useActivity";
 
 /** Whether lifecycle events reach the system tray; a toast shows in the tab either way. */
 function NotificationsControl() {
@@ -27,19 +22,14 @@ function NotificationsControl() {
 }
 
 /**
- * `/activity` — the signed-in inbox and the following feed (spec §1.6), in `/news`'s page frame: live eyebrow,
- * two-tone headline, the Japanese line, one sentence, then the wire. The tabs are the leaderboard's asset tabs. The
- * inbox shares its cache entry with `LifecycleWatcher`, so opening this page adds no poll; the following feed (with
- * the Friends board over it) only polls while its tab is showing.
+ * `/activity` — the signed-in inbox (spec §1.6), in `/news`'s page frame: live eyebrow, two-tone headline, the
+ * Japanese line, one sentence, then the wire. The inbox shares its cache entry with `LifecycleWatcher`, so opening
+ * this page adds no poll.
  */
 export function ActivityScreen() {
   const { address, connect } = useWalletSession();
-  const [tab, setTab] = useState<Tab>("inbox");
   const units = useMoneyUnits();
   const inbox = useInboxFeed(address);
-  const following = useFollowingFeed(address, tab === "following");
-  const follows = useFollows(address);
-  const followsNobody = follows.data !== null && follows.data.following.length === 0;
 
   return (
     <div className="container news-page">
@@ -67,29 +57,12 @@ export function ActivityScreen() {
         ) : (
           <>
             <div className="act-tabs">
-              <div className="asset-tabs" role="tablist" aria-label={ACTIVITY.tabsLabel}>
-                {(["inbox", "following"] as const).map((id) => (
-                  <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "asset-tab active" : "asset-tab"} onClick={() => setTab(id)} data-cursor="hover">
-                    {ACTIVITY.tabs[id]}
-                  </button>
-                ))}
+              <div className="asset-tabs">
+                <span className="asset-tab active">{ACTIVITY.tabs.inbox}</span>
               </div>
               <NotificationsControl />
             </div>
-            {tab === "inbox" ? (
-              <ActivityList feed={inbox.feed} failed={inbox.failed} units={units} showWho={false} empty={ACTIVITY.empty.inbox} />
-            ) : (
-              <div className="act-following">
-                <section>
-                  <SectionHeader index="01" title={ACTIVITY.friends.title} desc={ACTIVITY.friends.desc} eyebrow={ACTIVITY.friends.meta} className="lb-section-head" />
-                  <FriendsBoard />
-                </section>
-                <section>
-                  <SectionHeader index="02" title={ACTIVITY.calls.title} desc={ACTIVITY.calls.desc} className="lb-section-head" />
-                  <ActivityList feed={following.feed} failed={following.failed} units={units} showWho empty={followsNobody ? ACTIVITY.empty.following : ACTIVITY.empty.followingQuiet} />
-                </section>
-              </div>
-            )}
+            <ActivityList feed={inbox.feed} failed={inbox.failed} units={units} showWho={false} empty={ACTIVITY.empty.inbox} />
           </>
         )}
       </div>

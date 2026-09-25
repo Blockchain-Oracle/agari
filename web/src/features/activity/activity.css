@@ -16,7 +16,7 @@
   --news-hover: rgba(20, 18, 16, 0.03);
 }
 
-/* The wallet on a following or ticker row, in the meta line; its hue avatar sits in the row's mark slot. */
+/* The wallet on a ticker row, in the meta line; its hue avatar sits in the row's mark slot. */
 .act-who {
   color: var(--gray-500);
   transition: color 200ms var(--ease);
@@ -64,7 +64,3 @@
   color: var(--gray-400);
 }
 
-/* The following tab's two sections take their rhythm from .lb-section-head (48px above, 24px below). */
-.act-following .act-list {
-  margin-top: 0;
-}

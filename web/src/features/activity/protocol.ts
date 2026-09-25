@@ -46,5 +46,4 @@ export interface ActivityFeed {
 export const ACTIVITY_POLL_MS = 15_000;
 export const ACTIVITY_LIMIT = 50;
 export const activityKey = (wallet: string | null) => ["agari", "social", "activity", wallet] as const;
-export const followingKey = (wallet: string | null) => ["agari", "social", "activity", wallet, "following"] as const;
 export const tickerKey = (symbol: string | null) => ["agari", "social", "ticker", symbol] as const;

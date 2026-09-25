@@ -6,14 +6,14 @@ import { ADVICE_COPY } from "@agari/core/copy";
  */
 export const LANDING = {
   meta: {
-    title: "Agari · Own the stock. Call the move.",
-    description: "Trade Up or Down Windows on US stocks, cover PreStocks you hold, and inspect the signed price print behind every settlement on Solana.",
+    title: "Agari · Stock prediction markets on Solana",
+    description: "Predict whether a stock price will rise or fall, cover PreStocks you hold, and inspect the signed price print behind every settlement on Solana.",
   },
   hero: {
     eyebrow: "Solana stock markets",
-    titleLead: "Own the stock.",
-    titleEm: "Call the move.",
-    line: "Trade an Up or Down Window, cover a stock you hold, and inspect the price print that settled it.",
+    titleLead: "Predict stock",
+    titleEm: "price moves.",
+    line: "Choose a stock. Predict whether its price will rise or fall. See the price print that settled the market.",
     primary: "Open markets",
     secondary: "How it works",
     docs: "Read the docs →",

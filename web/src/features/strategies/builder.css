@@ -23,8 +23,6 @@
 .agent-rule-preview { display: grid; gap: .8rem; padding: 1rem; border: 1px solid var(--color-hairline); font-family: var(--font-mono); color: var(--white); font-size: .75rem; }
 .agent-published { display: grid; gap: 1rem; max-width: 42rem; margin: 2rem 0; }
 .agent-next-steps { padding-left: 1.25rem; display: grid; gap: .8rem; color: var(--white); font-size: .875rem; line-height: 1.6; }
-.agent-selection { margin: 1.5rem 0; display: grid; gap: .5rem; max-width: 34rem; }
-.agent-selection select { width: 100%; min-height: 2.75rem; }
 .copy-progress { border: 1px solid var(--color-vermilion); padding: 1rem; margin: 1rem 0; color: var(--white); }
 .copy-progress a { overflow-wrap: anywhere; }
 .copy-progress p { font-size: .8rem; line-height: 1.6; }
@@ -34,5 +32,26 @@
 @media (max-width: 540px) { .agent-builder-heading { display: block; } .agent-builder-heading > p { margin-top: 1rem; } .agent-steps { gap: .5rem; } .agent-steps button { font-size: .65rem; } .agent-builder-actions { gap: .5rem; } }
 
 .agent-builder-error { border-left: 2px solid var(--color-vermilion); padding: .75rem 1rem; color: var(--white); font-size: .8rem; line-height: 1.6; }
-.agent-selection select { background: var(--bg); color: var(--white); border: 1px solid var(--color-hairline); padding: .5rem; }
 .desk-btn-primary:disabled, .desk-pill:disabled { opacity: .45; cursor: not-allowed; }
+/* "Manage a strategy": the reference's own dropdown idiom (the parlay Window picker, `.pl-picker`/`.pl-menu`), sized for a portrait row. */
+.strat-picker { position: relative; max-width: 34rem; }
+.strat-picker-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 3.5rem; padding: .5rem .75rem; border-radius: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); text-align: left; cursor: pointer; transition: border-color 200ms var(--ease); }
+.strat-picker-btn:hover, .strat-picker-btn[aria-expanded="true"] { border-color: rgba(255, 255, 255, 0.2); }
+.strat-picker-btn:focus-visible, .strat-picker-item:focus-visible { outline: 2px solid var(--color-vermilion); outline-offset: 2px; }
+.strat-picker-empty { font-family: var(--font-mono); font-size: .75rem; color: var(--gray-500); }
+.strat-picker-chevron { width: 14px; height: 14px; color: var(--gray-500); flex-shrink: 0; transition: transform 200ms var(--ease); }
+.strat-picker-chevron--open { transform: rotate(180deg); }
+.strat-picker-menu { position: absolute; z-index: 20; left: 0; right: 0; margin-top: 4px; max-height: 18rem; overflow-y: auto; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: var(--gray-900); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); animation: strat-picker-drop 160ms var(--easeOut) both; }
+.strat-picker-item { width: 100%; display: flex; padding: .5rem .75rem; text-align: left; background: transparent; cursor: pointer; transition: background 200ms var(--ease); }
+.strat-picker-item:hover { background: rgba(255, 255, 255, 0.05); }
+.strat-picker-item--on { background: rgba(255, 255, 255, 0.1); }
+.strat-picker-row { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.strat-picker-name { display: block; font-size: .875rem; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.strat-picker-meta { display: block; margin-top: 2px; font-family: var(--font-mono); font-size: .65rem; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@keyframes strat-picker-drop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .strat-picker-menu { animation: none; } }
+[data-theme="light"] .strat-picker-btn { background: rgba(20, 18, 16, 0.03); border-color: rgba(20, 18, 16, 0.11); }
+[data-theme="light"] .strat-picker-btn:hover, [data-theme="light"] .strat-picker-btn[aria-expanded="true"] { border-color: rgba(20, 18, 16, 0.22); }
+[data-theme="light"] .strat-picker-menu { border-color: rgba(20, 18, 16, 0.11); background: #FBF7EE; }
+[data-theme="light"] .strat-picker-item:hover { background: rgba(20, 18, 16, 0.05); }
+[data-theme="light"] .strat-picker-item--on { background: rgba(20, 18, 16, 0.08); }

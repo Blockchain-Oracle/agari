@@ -5,7 +5,7 @@ import type { PreIpoSymbol } from "@agari/core/market";
 import { Ban, Check, CircleDashed, Hand, OctagonAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { LogoStack, RadialGauge, StatusDot, type NodeTone } from "@/components/ui/desk-kit";
-import { TONE } from "../activity/ActivityTimeline";
+import { TONE } from "../activity/check-groups";
 import { namesIn } from "../activity/activity-model";
 import { DESK } from "../copy";
 import { RECORD } from "../copy-record";

@@ -1,7 +1,8 @@
 import type { MarketId } from "@agari/core/types";
 import { keys } from "@agari/markets/react";
 import { describe, expect, it } from "vitest";
-import { isPersistable } from "./persist";
+import { vaultOpenBetsKey } from "@/features/vault/useVaultOpenBets";
+import { isAccountEntry, isPersistable } from "./persist";
 
 const WALLET = "0xd357000000000000000000000000000000009358";
 const MARKET = `0x${"ab".repeat(32)}` as unknown as MarketId;
@@ -13,15 +14,27 @@ describe("read-cache persistence allowlist", () => {
     expect(isPersistable(keys.bookParams("0xpool"))).toBe(true);
   });
 
-  it("never stores anything scoped to an account", () => {
+  it("stores the wallet's own balance and open bets, keyed by its address, so a refresh starts from the last figure", () => {
     for (const key of [
       keys.positions(WALLET),
+      keys.restingOrders(WALLET),
       keys.balanceSheet(WALLET),
+      keys.claimables(WALLET, null),
+      keys.leveragePositions(WALLET),
+      vaultOpenBetsKey(WALLET),
+    ]) {
+      expect(isPersistable(key)).toBe(true);
+      expect(isAccountEntry(key)).toBe(true);
+    }
+  });
+
+  it("never stores grants, history, a wallet-less key, or another product's account reads", () => {
+    for (const key of [
+      keys.positions(null),
+      keys.holdings(WALLET, "m"),
       keys.history(WALLET),
       keys.vault(WALLET),
-      keys.claimables(WALLET, null),
       keys.privateBudget(WALLET),
-      keys.leveragePositions(WALLET),
       keys.parlays(WALLET),
       keys.ranges(WALLET),
       keys.makerShares(WALLET),

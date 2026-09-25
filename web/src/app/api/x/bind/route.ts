@@ -4,6 +4,7 @@ import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server"
 import { X_ERRORS } from "@/features/x/copy";
 import { readXGate, signatureFresh, toBinding, verifyLinkSignature } from "@/features/x/gate.server";
 import { xBindRequestSchema } from "@/features/x/protocol";
+import { publicOrigin } from "@/lib/client-ip.server";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ function refuse(reason: string, status: number, extra: Record<string, unknown> =
 export async function POST(req: NextRequest) {
   // The geofence comes before any key, balance or co-signature (D-095).
   if (regionRestricted(req)) return regionRestrictedResponse();
-  const gate = await readXGate(req.nextUrl.origin);
+  const gate = await readXGate(publicOrigin(req));
   if (!gate.configured) return NextResponse.json({ ok: false, configured: false, missing: gate.missing });
   if (!isDbConfigured()) return refuse(X_ERRORS.storeUnavailable, 503);
   if (!gate.session) return refuse(X_ERRORS.signInFirst, 401);

@@ -59,10 +59,10 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   const nowMs = useChainNowMs();
   const phrase = useSessionPhrase();
   const reading = usePositions(address);
-  const vaultItems = useVaultBetItems(symbol);
+  const vault = useVaultBetItems(symbol);
   const boosts = useLeverageBetItems(symbol);
   // Scheduled calls lead the Open tab (D-088): what rests for the open sits above what is already held.
-  const restingItems = useRestingItems(symbol);
+  const resting = useRestingItems(symbol);
   const queryClient = useQueryClient();
   const session = useMarketSession();
   const [tab, setTab] = useState<Tab>("open");
@@ -80,9 +80,13 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
 
   const positionItems: ListItem[] =
     reading && isOk(reading) ? reading.value.map((position) => ({ key: `wallet:${position.marketId}`, node: <BetRow position={position} symbol={symbol} nowMs={nowMs} /> })) : [];
-  const openItems = [...restingItems, ...positionItems, ...vaultItems, ...boosts.live];
+  const openItems = [...resting.items, ...positionItems, ...vault.items, ...boosts.live];
   const pager = usePager(openItems, PAGE_SIZE);
-  const openCount = reading && isOk(reading) ? openItems.length : null;
+  // The tab answers once every source has: a wallet read alone said "0 open" while an X trade (a vault bet) was still
+  // being read, then the row appeared seconds later (09-24). Until then it is loading, never empty.
+  const sourcesPending = resting.pending || vault.pending || boosts.pending;
+  const openReading = sourcesPending && openItems.length === 0 ? null : reading;
+  const openCount = openReading && isOk(openReading) && !sourcesPending ? openItems.length : null;
 
   return (
     <section className="flex flex-col gap-4" aria-label={PORTFOLIO.betsTitle}>
@@ -99,7 +103,7 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
       <div className="bets-plate" role="tabpanel">
         {tab === "open" ? (
           <ReadingBoundary
-            reading={reading}
+            reading={openReading}
             shape="row"
             retry={retry}
             isEmpty={() => openItems.length === 0}

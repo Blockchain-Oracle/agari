@@ -10,4 +10,5 @@ export {
   arenaHeadBlock, getArenaCredit, getArenaMatch, getArenaState, getSeasonPool, listArenaEvents, quoteArenaPick, readArenaAgent, resolveArenaDeployment,
   type ArenaMatchView, type ArenaState, type SeasonPoolState,
 } from "./read";
-export { distributeSeasonPrizes, submitArenaPickWrite, submitArenaTx, type ArenaPickOutcome, type DistributeSeasonInput } from "./write";
+export { submitArenaPickWrite, submitArenaTx, type ArenaPickOutcome } from "./write";
+export { distributeSeasonPrizes, type DistributeSeasonInput } from "./admin-write";

@@ -20,6 +20,8 @@
 .cp-head-mode { font-family: var(--font-data); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-secondary); }
 .cp-head-members { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 12.5px; color: var(--color-ink-secondary); }
 .cp-visitor { grid-column: 1 / -1; }
+.cp-visitor-cta { display: inline-flex; gap: 6px; padding: 0 18px; justify-self: end; }
+.cp-visitor-cta svg { width: 15px; height: 15px; }
 
 /* Toolbar */
 .cp-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
@@ -43,6 +45,7 @@
 @media (max-width: 720px) {
   .cp-head { grid-template-columns: minmax(0, 1fr); }
   .cp-actions { justify-content: flex-start; }
+  .cp-visitor-cta { justify-self: start; }
   .cp-action[data-pinned]:not([data-first]) { display: none; }
   .cp-menu-item[data-pinned]:not([data-first]) { display: flex; }
   .cp-head-disc { width: 52px; height: 52px; font-size: 52px; border-radius: 15px; }
@@ -86,6 +89,16 @@
 .cp-segments { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
 .cp-segment { height: 8px; border-radius: 3px; background: var(--color-surface-2, var(--color-hairline)); transition: background 300ms ease; }
 .cp-segment[data-on] { background: var(--color-accent); box-shadow: 0 0 10px var(--color-accent-dim); }
+.cp-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cp-list-item { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: start; gap: 10px; font-size: 13px; color: var(--color-ink); }
+.cp-list-item[data-done] .cp-list-text > span { color: var(--color-ink-secondary); }
+.cp-list-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding-top: 1px; }
+.cp-tick { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 9999px; border: 1.5px solid var(--color-hairline); transition: background 200ms ease, border-color 200ms ease; }
+.cp-tick[data-on] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-accent-foreground); }
+.cp-tick svg { width: 12px; height: 12px; }
+.cp-list-open { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 12px; border-radius: 9999px; border: 1px solid var(--color-accent); font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--color-accent); }
+.cp-list-open:hover, .cp-list-open:focus-visible { background: var(--color-accent-wash); }
+.cp-list-open svg { width: 13px; height: 13px; }
 .cp-golive { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; border-radius: 9999px; border: 1px dashed var(--color-hairline); background: transparent; font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--color-ink-muted); }
 .cp-golive svg { width: 15px; height: 15px; }
 .cp-golive[data-ready] { border-style: solid; border-color: var(--color-accent); background: var(--color-accent); color: var(--color-accent-foreground); cursor: pointer; }
@@ -113,26 +126,7 @@
 .cp-approval-expired { display: flex; align-items: center; gap: 6px; color: var(--color-ink-muted); }
 .cp-approval-expired svg { width: 14px; height: 14px; }
 
-.cp-latest { color: inherit; transition: border-color 160ms ease, transform 160ms ease; }
-.cp-latest:hover { border-color: var(--color-ink-muted); transform: translateY(-2px); }
-.cp-latest:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.cp-latest[data-tone="acted"] { background: linear-gradient(180deg, var(--color-profit-wash), transparent 70%), var(--market-card-surface, var(--color-surface-1)); }
-.cp-latest[data-tone="declined"] { background: linear-gradient(180deg, var(--color-accent-wash), transparent 70%), var(--market-card-surface, var(--color-surface-1)); }
-.cp-latest[data-tone="asked"] { background: linear-gradient(180deg, color-mix(in srgb, var(--color-warning) 12%, transparent), transparent 70%), var(--market-card-surface, var(--color-surface-1)); }
-.cp-latest-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.cp-latest-body { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; }
-.cp-latest-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--color-hairline); color: var(--color-ink-muted); }
-.cp-latest-icon svg { width: 20px; height: 20px; }
-.cp-latest-icon[data-tone="acted"] { color: var(--color-profit); border-color: var(--color-profit); }
-.cp-latest-icon[data-tone="declined"] { color: var(--color-accent); border-color: var(--color-accent-dim); }
-.cp-latest-icon[data-tone="asked"] { color: var(--color-warning); border-color: var(--color-warning); }
-.cp-latest-icon[data-tone="error"], .cp-latest-icon[data-tone="stopped"] { color: var(--color-loss); border-color: var(--color-loss); }
-.cp-latest-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.cp-latest-summary { font-family: var(--font-display); font-size: 18px; font-weight: 700; line-height: 1.35; letter-spacing: -0.01em; color: var(--color-ink); }
-.cp-latest-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.cp-latest-open { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 13px; font-weight: 700; color: var(--color-accent); }
-.cp-latest-open svg { width: 15px; height: 15px; transition: transform 160ms ease; }
-.cp-latest:hover .cp-latest-open svg { transform: translateX(3px); }
+.cp-card > .act-check { padding: 0; border: 0; background: transparent; }
 
 .cp-alloc-body { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px 28px; }
 .cp-alloc-center { display: flex; flex-direction: column; align-items: center; gap: 1px; }
@@ -213,5 +207,5 @@
 @keyframes cp-shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) {
   .cp-holding, .cp-chart-skeleton { animation: none; }
-  .cp-action, .cp-latest, .cp-segment, .cp-weight-fill { transition: none; }
+  .cp-action, .cp-segment, .cp-tick, .cp-weight-fill { transition: none; }
 }

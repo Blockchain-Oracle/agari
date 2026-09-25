@@ -1,6 +1,6 @@
 import {
   Activity, BadgeCheck, BarChart3, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartLine, ChartNoAxesCombined,
-  CircleHelp, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
+  CircleHelp, CirclePlus, Clapperboard, Coins, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox, KeyRound,
   Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, ScanSearch,
   TrendingDown, Trophy, WalletCards, X as XLogo, type LucideIcon,
 } from "lucide-react";
@@ -135,6 +135,14 @@ export const NAV_ITEMS = {
     href: "/desk",
     description: "Hold a basket of pre-IPO names under your rules",
     icon: Briefcase,
+  },
+  newDesk: {
+    id: "new-desk",
+    name: "Create a desk",
+    href: "/desk/new",
+    description: "Pick a basket, set its limits, start in practice.",
+    icon: CirclePlus,
+    match: { paths: ["/desk/new"], exact: true },
   },
   xTrade: {
     id: "x-trade",
@@ -274,7 +282,7 @@ const BUILD_SECTIONS: readonly NavSection[] = [
     id: "automate",
     name: "Automate",
     description: "Playbooks and agents",
-    items: [NAV_ITEMS.strategies, NAV_ITEMS.agents, NAV_ITEMS.desk, NAV_ITEMS.xTrade],
+    items: [NAV_ITEMS.strategies, NAV_ITEMS.agents, NAV_ITEMS.desk, NAV_ITEMS.newDesk, NAV_ITEMS.xTrade],
   },
 ];
 
@@ -340,7 +348,7 @@ export const MOBILE_OVERFLOW: readonly NavItem[] = MOBILE_DRAWER_SECTIONS.flatMa
 
 /** Every real, user-facing page that must retain an explicit navigation home. */
 export const NAVIGABLE_ROUTE_PATHS = [
-  "/activity", "/agents", "/baskets", "/claim", "/demo", "/desk",
+  "/activity", "/agents", "/baskets", "/claim", "/demo", "/desk", "/desk/new",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/proof", "/reels", "/short", "/stats",

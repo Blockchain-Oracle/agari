@@ -8,7 +8,6 @@
   --lp-card-raised: var(--ms-surface-2);
   display: flex;
   align-items: flex-start;
-  min-height: calc(100svh - var(--appstrip));
   padding: 118px 0 28px;
   background: var(--lp-paper);
   color: var(--lp-ink);
@@ -20,11 +19,12 @@
 .lp-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.93fr) minmax(0, 1.17fr);
+  grid-template-rows: auto 1fr;
   align-items: start;
-  gap: clamp(28px, 3vw, 64px);
-  min-height: min(550px, calc(100svh - var(--appstrip) - 220px));
+  column-gap: clamp(28px, 3vw, 64px);
 }
-.lp-hero-copy { position: relative; z-index: 2; min-width: 0; padding-top: 15px; }
+.lp-hero-brand { position: relative; z-index: 2; grid-column: 1; grid-row: 1; min-width: 0; padding-top: 15px; }
+.lp-hero-copy { position: relative; z-index: 2; grid-column: 1; grid-row: 2; min-width: 0; }
 .lp-eyebrow {
   display: flex;
   align-items: center;
@@ -39,7 +39,7 @@
 }
 .lp-solana-mark { display: block; width: 20px; height: auto; flex: none; }
 .lp-wordmark { display: flex; align-items: baseline; gap: 9px; color: var(--lp-ink); }
-.lp-wordmark-mark { display: inline-flex; width: clamp(22px, 2.1vw, 34px); height: clamp(28px, 2.6vw, 42px); flex-shrink: 0; }
+.lp-wordmark-mark { display: inline-flex; width: clamp(28px, 2.8vw, 44px); height: clamp(28px, 2.8vw, 44px); flex-shrink: 0; }
 .lp-wordmark-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .lp-wordmark-name {
   font-family: Georgia, "Times New Roman", serif;
@@ -101,17 +101,15 @@
   -webkit-background-clip: text;
   background-clip: text;
   filter: drop-shadow(0 0 9px color-mix(in srgb, var(--vermilion) 75%, transparent));
-  animation: lp-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
-}
-@keyframes lp-jp-neon-rise {
-  0%, 8% { background-position: 0 0; }
-  64%, 100% { background-position: 0 100%; }
+  animation: agari-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
 }
 .lp-hero-vertical { position: absolute; top: 14%; right: 4.4%; width: 1px; height: 72%; background: var(--vermilion); opacity: 0.8; pointer-events: none; }
 .lp-hero-folio { display: flex; justify-content: space-between; gap: 18px; padding-top: 14px; border-top: 1px solid var(--lp-rule); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.29em; text-transform: uppercase; }
 
 .lp-hero-art {
   position: relative;
+  grid-column: 2;
+  grid-row: 1 / 3;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
@@ -121,6 +119,7 @@
   margin-left: -50px;
   perspective: 1400px;
 }
+.lp-hero-art:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 4px; }
 .lp-screen {
   position: relative;
   overflow: hidden;
@@ -140,7 +139,7 @@
 .lp-preview-basket-body, .lp-preview-proof-body { padding: 13px 17px 16px; }
 .lp-preview-rail { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--lp-rule); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
 .lp-preview-rail > span { display: inline-flex; align-items: center; gap: 6px; }
-.lp-preview-rail svg { width: 11px; height: 13px; }
+.lp-preview-rail svg { width: 13px; height: 13px; }
 .lp-preview-rail a { color: var(--lp-muted); text-decoration: none; }
 .lp-preview-rail a:hover { color: var(--vermilion); }
 .lp-preview-basket-head { display: flex; align-items: center; gap: 13px; margin-top: 15px; }
@@ -187,19 +186,80 @@
 .lp-preview-row-arrow { display: none; }
 .lp-art-caption { position: absolute; right: 3%; bottom: 0; color: var(--lp-muted); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1279px) {
   .lp-hero { padding-top: 116px; }
-  .lp-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .lp-hero-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; gap: 28px; }
+  .lp-hero-brand, .lp-hero-copy, .lp-hero-art { grid-column: 1; grid-row: auto; }
   .lp-wordmark-name { font-size: clamp(6rem, 15vw, 10rem); }
   .lp-title { font-size: clamp(3.4rem, 7vw, 5rem); }
   .lp-hero-art { width: min(100%, 850px); height: 500px; margin-inline: auto; }
   .lp-hero-jp { top: 33%; }
 }
+@media (min-width: 1280px) {
+  .lp-hero-folio { margin-top: 28px; }
+}
+/* A short desktop window keeps the CTAs above the fold. */
+@media (min-width: 1280px) and (max-height: 760px) {
+  .lp-hero { padding-top: 100px; }
+  .lp-eyebrow { margin-bottom: 14px; padding-bottom: 12px; }
+  .lp-wordmark-name { font-size: min(8.5vw, 15svh); }
+  .lp-title { margin-top: 14px; font-size: min(4vw, 8svh); }
+  .lp-title-rule { margin-top: 20px; }
+  .lp-hero-paths { margin-top: 16px; }
+  .lp-ctas { margin-top: 18px; }
+}
+/* Tablet and small laptop: the wordmark row, the copy in two editorial columns, then both previews side by side at equal size. */
+@media (min-width: 761px) and (max-width: 1279px) {
+  .lp-hero { padding-top: 112px; }
+  .lp-hero-container { padding-inline: clamp(22px, 3vw, 36px); }
+  .lp-hero-grid { row-gap: 0; }
+  .lp-hero-brand { padding-top: 0; }
+  .lp-eyebrow { margin-bottom: 17px; font-size: 9px; letter-spacing: 0.27em; }
+  .lp-wordmark-name { font-size: clamp(6rem, 12vw, 8.5rem); }
+  .lp-wordmark-mark { width: clamp(30px, 3.5vw, 42px); height: clamp(30px, 3.5vw, 42px); }
+  .lp-hero-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "title paths" "title line" "rule ctas";
+    grid-template-rows: 1fr auto auto;
+    align-items: end;
+    column-gap: clamp(24px, 4vw, 56px);
+    margin-top: 26px;
+  }
+  .lp-title { grid-area: title; margin: 0; font-size: clamp(2.6rem, 5vw, 3.6rem); }
+  .lp-title-rule { grid-area: rule; align-self: center; margin: 0; }
+  .lp-hero-paths { grid-area: paths; margin: 0; font-size: 9px; letter-spacing: 0.2em; }
+  .lp-line { grid-area: line; font-size: 14px; }
+  .lp-ctas { grid-area: ctas; margin-top: 16px; }
+  .lp-cta { padding: 10px 15px; font-size: 12px; }
+  .lp-hero-art {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    height: auto;
+    margin: 36px 0 0;
+    perspective: none;
+  }
+  .lp-hero-art .lp-screen,
+  .lp-hero-art .lp-screen:hover,
+  .lp-hero-art .lp-screen:focus-within { grid-row: 1; align-self: stretch; height: auto; min-height: 0; transform: none; }
+  .lp-art-caption { display: none; }
+  .lp-hero-jp { top: 112px; right: 12px; font-size: 56px; }
+  .lp-hero-vertical { top: 118px; right: 67px; height: 155px; }
+  .lp-hero-folio { margin-top: 24px; }
+}
 @media (max-width: 760px) {
-  .lp-hero-art { display: flex; flex-direction: column-reverse; gap: 16px; width: min(100%, 560px); height: auto; margin-top: 18px; perspective: none; }
+  .lp-hero-grid { row-gap: 0; }
+  .lp-hero-art { display: flex; flex-direction: column-reverse; gap: 24px; width: min(100%, 560px); height: auto; margin-top: 46px; perspective: none; }
   .lp-screen, .lp-screen:hover, .lp-screen:focus-within { position: relative; width: 100%; height: auto; transform: none; }
   .lp-preview-basket-body, .lp-preview-proof-body { padding: 13px 14px 16px; }
   .lp-art-caption { display: none; }
+}
+@media (min-width: 601px) and (max-width: 760px) {
+  .lp-hero-art { width: 90%; margin-left: auto; margin-right: 0; }
+  .lp-hero-jp { top: 164px; right: 12px; font-size: 56px; }
+  .lp-hero-vertical { top: 170px; right: 67px; height: 155px; }
 }
 @media (max-width: 600px) {
   .lp-hero { padding: 116px 0 30px; }
@@ -213,7 +273,7 @@
   .lp-ctas { margin-top: 19px; }
   .lp-cta { padding: 10px 14px; font-size: 12px; }
   .lp-docs { margin-left: 0; }
-  .lp-hero-jp { top: 164px; right: 4px; font-size: 56px; }
+  .lp-hero-jp { top: 164px; right: 12px; font-size: 56px; }
   .lp-hero-vertical { top: 170px; right: 67px; height: 155px; }
   .lp-hero-folio { margin-top: 25px; font-size: 8px; letter-spacing: 0.09em; }
 }

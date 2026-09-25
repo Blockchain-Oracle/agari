@@ -5,7 +5,7 @@ import type { Address } from "@agari/core/types";
 import { useQuery } from "@tanstack/react-query";
 import { useVenue } from "@/features/markets/useVenue";
 import type { MoneyUnits } from "./describe";
-import { ACTIVITY_POLL_MS, activityKey, followingKey, tickerKey, type ActivityFeed } from "./protocol";
+import { ACTIVITY_POLL_MS, activityKey, tickerKey, type ActivityFeed } from "./protocol";
 
 export interface FeedReading {
   feed: ActivityFeed | null;
@@ -38,10 +38,6 @@ function usePolledFeed(key: readonly unknown[], path: string | null): FeedReadin
 /** The wallet's inbox. `LifecycleWatcher` and `/activity` share this one cache entry, so a tab polls it once. */
 export function useInboxFeed(wallet: Address | null): FeedReading {
   return usePolledFeed(activityKey(wallet), wallet ? `/api/activity?wallet=${encodeURIComponent(wallet)}` : null);
-}
-
-export function useFollowingFeed(wallet: Address | null, enabled = true): FeedReading {
-  return usePolledFeed(followingKey(wallet), wallet && enabled ? `/api/activity/following?wallet=${encodeURIComponent(wallet)}` : null);
 }
 
 export function useTickerFeed(symbol: string | null): FeedReading {

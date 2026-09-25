@@ -3,7 +3,8 @@ import { oneUnit } from "@agari/core/units";
 import { diagnosis, err, ok, stale, type Reading } from "@agari/core";
 import type { BoardData, BoardQuery, BoardRanking } from "@/features/leaderboard";
 import { DECIMALS, FIXED_NOW_MS, FIXED_NOW_SEC, SYMBOL } from "../states/fixtures";
-import { fixtureAddress } from "../fixture-ids";
+import type { TractionData } from "@/features/stats";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 const ONE = oneUnit(DECIMALS);
 /** A full-width 32-byte key per trader (a small number would base58 to a run of 1s). */
@@ -69,3 +70,32 @@ export const EMPTY_SLICE: Reading<BoardData> = ok(board({ period: "session", tic
 export const FAILED: Reading<BoardData> = err(diagnosis("indexer-down", "Leaderboard request failed or timed out"));
 export const NEXT_EXPIRY_SEC = FIXED_NOW_SEC + 275;
 export const YOU = owner(1_000 + 5);
+
+const TAPE_ASSETS = ["TSLA", "NVDA", "AAPL", "QQQ"] as const;
+
+/** The venue's latest fills for the Live activity section: calls, every fifth a cash-out, a few minutes apart. */
+export const ACTIVITY: Reading<TractionData> = ok(
+  {
+    wallets: 9,
+    calls: 64,
+    cashOuts: 12,
+    stakedBase: 128n * ONE,
+    unattributed: 0,
+    windows: 90,
+    settledWindows: 88,
+    curve: [],
+    recent: Array.from({ length: 10 }, (_, i) => ({
+      id: `${i}`,
+      wallet: owner(i % 9),
+      kind: i % 5 === 4 ? ("cash-out" as const) : ("call" as const),
+      side: i % 2 === 0 ? ("up" as const) : ("down" as const),
+      asset: TAPE_ASSETS[i % TAPE_ASSETS.length]!,
+      marketId: fixtureMarketId(0x9100 + i),
+      stakeBase: i % 5 === 4 ? 0n : BigInt(1 + (i % 3)) * ONE,
+      txHash: fixtureSignature(0xabd000 + i),
+      atMs: FIXED_NOW_MS - (i * 3 + 1) * 60_000,
+    })),
+    meta: { period: "24h", windowStartMs: FIXED_NOW_MS - 86_400_000, windowEndMs: FIXED_NOW_MS, computedAtMs: FIXED_NOW_MS - 42_000, complete: true, decimals: DECIMALS, symbol: SYMBOL },
+  },
+  FIXED_NOW_MS,
+);

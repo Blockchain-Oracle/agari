@@ -48,6 +48,9 @@ export function DeskScreen({ id = null, studio = false }: DeskScreenProps) {
   const key = id ?? address;
   const reading = useDeskView(key, address);
   const writes = useDeskWrites(key);
+  // A visitor on someone else's desk: their own, to offer "Your desk" or "Create your desk" in its place.
+  const mine = useDeskView(id !== null ? address : null, address);
+  const mineExists = mine !== null && isOk(mine) && mine.value.desk !== null;
   // `?basket=` from /baskets and `?edit=1` from the mandate panel, read once after mount so both renders agree.
   const [params, setParams] = useState<{ basket: string | null; edit: boolean }>({ basket: null, edit: false });
   useEffect(() => {
@@ -80,5 +83,6 @@ export function DeskScreen({ id = null, studio = false }: DeskScreenProps) {
   if (!view.exists || (studio && own)) {
     return <DeskStudio owner={own || !view.exists ? address : null} view={view.exists ? view : null} writes={writes} initialBasket={params.basket} editing={studio && view.exists && params.edit} onConnect={connect} zone={zone} nowSec={nowSec} />;
   }
-  return <DeskPage view={view} actions={own ? writes : null} zone={zone} nowSec={nowSec} />;
+  const visitorCta = view.isOwner ? null : mineExists ? { href: "/desk", label: ENTRY.yours, primary: false } : { href: "/desk/new", label: ENTRY.start, primary: true };
+  return <DeskPage view={view} actions={own ? writes : null} zone={zone} nowSec={nowSec} visitorCta={visitorCta} />;
 }
