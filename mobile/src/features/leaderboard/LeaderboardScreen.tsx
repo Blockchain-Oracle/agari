@@ -91,7 +91,7 @@ export function LeaderboardScreen() {
           {reading?.ok ? (
             <Text style={[styles.freshness, { color: color.inkDisabled }]} numberOfLines={1} accessibilityLiveRegion="polite">
               {BOARD_PHONE.updated(reading.asOfMs)}
-              {reading.stale ? ` · ${BOARD_PHONE.retrying}` : ""}
+              {reading.stale ? ` · ${reading.staleReason === "refresh-failed" ? BOARD_PHONE.retrying : BOARD_PHONE.refreshing}` : ""}
             </Text>
           ) : null}
           {reading === null ? <BoardSkeleton label={LEADERBOARD.loading} /> : null}

@@ -13,5 +13,6 @@ export const BOARD_PHONE = {
   placeCall: "Place a call →",
   updated: (atMs: number) => `Updated ${new Date(atMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
   retrying: "retrying",
+  refreshing: "refreshing",
   you: { unranked: "Unranked", of: (n: string) => `of ${n}`, net: "Net", ledger: "Your ledger →" },
 } as const;
