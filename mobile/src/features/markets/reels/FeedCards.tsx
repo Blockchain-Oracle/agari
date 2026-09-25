@@ -16,6 +16,7 @@ import { FONT, useTheme } from "~/theme";
 import { ReelFrame } from "./ReelFrame";
 import { TakeAuthor, TakeChip, TakeCta, TakeFootNote, takeStyles, TakeVoice } from "./TakeParts";
 import { useReelTokens } from "./tokens";
+import { openWindow } from "../openWindow";
 
 const USD_DP = 6;
 
@@ -29,7 +30,7 @@ export const HoldingReelCard = memo(function HoldingReelCard({ pick }: { pick: H
   const name = TICKERS[pick.underlying].name;
   const value = pick.exposureUsdE6 === null ? null : `$${formatBaseUnits(pick.exposureUsdE6, USD_DP, { maxDp: 0, minDp: 0 })}`;
   const line = value === null ? holdingTokens(pick) : `${holdingTokens(pick)} ≈ ${value}`;
-  const bet = (dir: "up" | "down") => () => router.push({ pathname: "/ticket", params: { m: market.marketId, dir } });
+  const bet = (dir: "up" | "down") => () => openWindow(market.marketId, dir);
   return (
     <View style={styles.fill} accessibilityLabel={HEDGE.reel.aria(name)}>
       <ReelFrame>

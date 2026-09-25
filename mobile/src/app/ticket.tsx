@@ -8,21 +8,28 @@ import { StyleSheet, View } from "react-native";
 import { defaultSide, useBetAgainst } from "@/features/markets/bet-against";
 import { useWindowPhase } from "@/features/markets/ticket/useTicket";
 import { useChainNowMs } from "@/features/markets/useChainNow";
-import { EmptyState, ErrorState, LoadingState } from "~/components/kit";
+import { EmptyState, ErrorState, LoadingState } from "~/components/portfolio/web/states";
 import { ScheduleTicket } from "~/features/markets/ticket/ScheduleTicket";
 import { Ticket } from "~/features/markets/ticket/Ticket";
-import { useTk } from "~/features/markets/ticket/tk";
+import { TicketFrame } from "~/features/markets/ticket/TicketFrame";
 
 /** A deep link to a Window the index no longer holds: said, with the way back. */
 const GONE = { why: "Window not found", back: "Back to Markets" } as const;
 
 /**
- * web's TicketDock below 1024 px — the drawer over whatever opened it: `?m=<marketId>&dir=up|down`. A Regular or Gap
+ * web's TicketDock below 1024 px — the right-edge drawer over whatever opened it (the route is a clear modal): `?m=<marketId>&dir=up|down`. A Regular or Gap
  * Window listed before its bell takes a scheduled call at the user's own price (D-088); anything else is the taker's
  * Ticket at the live book.
  */
-export default function TicketSheet() {
-  const tk = useTk();
+export default function TicketRoute() {
+  return (
+    <TicketFrame>
+      <TicketContent />
+    </TicketFrame>
+  );
+}
+
+function TicketContent() {
   const { m, dir } = useLocalSearchParams<{ m: string; dir?: Side }>();
   const reading = useMarket(m as MarketId);
   // A Window the ticket advances to (no-entry buffer) is read afresh; the one in hand stays mounted meanwhile, so the
@@ -33,8 +40,8 @@ export default function TicketSheet() {
   const market = read ?? held.current;
   if (!market) {
     return (
-      <View collapsable={false} style={[styles.holding, { backgroundColor: tk.drawerBg }]}>
-        {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={GONE.why} action={{ label: GONE.back, onPress: () => router.navigate("/markets") }} />}
+      <View style={styles.holding}>
+        {reading === null ? <LoadingState shape="ticket" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={GONE.why} nextAction={{ label: GONE.back, onPress: () => router.navigate("/markets") }} />}
       </View>
     );
   }

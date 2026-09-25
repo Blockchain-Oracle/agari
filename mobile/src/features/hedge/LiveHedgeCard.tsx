@@ -3,7 +3,6 @@ import { TICKERS } from "@agari/core/market";
 import type { LaneSet, MarketId, Side } from "@agari/core/types";
 import { collateralOrNull } from "@agari/markets";
 import { useBalanceSheet } from "@agari/markets/react";
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { calmSet, holdsPreIpo } from "@/features/hedge/calm";
 import { HEDGE } from "@/features/hedge/copy";
@@ -17,14 +16,15 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { storage } from "~/lib/storage";
 import { pushToast } from "~/components/toast/store";
 import { HedgeCard, HedgeTeaser } from "./HedgeCard";
+import { selectWindow } from "~/features/markets/openWindow";
 
 const FALLBACK_SYMBOL = "tUSDC";
 const FALLBACK_DECIMALS = 6;
 // Base58 is case-sensitive: the address is keyed exactly as written, as web keys it.
 const NOTICED_KEY = (address: string) => `agari.holdings.noticed.${address}`;
 
-/** Without a page to select on (the default), a side opens the ticket for that Window. */
-const openTicket = (marketId: MarketId, side?: Side) => router.push({ pathname: "/ticket", params: side ? { m: marketId, dir: side } : { m: marketId } });
+/** Without a page to select on (the default), a side goes to /markets?m=&dir=, which opens the ticket there. */
+const openTicket = (marketId: MarketId, side?: Side) => selectWindow(marketId, side);
 
 interface LiveHedgeCardProps {
   laneSet: LaneSet | null;

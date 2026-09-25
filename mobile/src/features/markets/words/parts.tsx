@@ -1,14 +1,14 @@
 import type { Side } from "@agari/core/types";
-import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Button, haptic } from "~/components/kit";
 import { FONT, useTheme } from "~/theme";
 import { wordsTokens } from "~/theme/web/markets-words";
+import { openWindow as openMarket } from "../openWindow";
 
-/** web's word-board links, as the app routes them: a side opens the ticket on that Window, "Open" opens the Window. */
-export const openTicket = (marketId: string, dir: Side) => router.push({ pathname: "/ticket", params: { m: marketId, dir } });
-export const openWindow = (marketId: string) => router.push({ pathname: "/markets/[id]", params: { id: marketId } });
+/** web's word-board links (`marketDeepLink`): a side selects the Window and opens its ticket, "Open" selects it. */
+export const openTicket = (marketId: string, dir: Side) => openMarket(marketId, dir);
+export const openWindow = (marketId: string) => openMarket(marketId);
 
 export function useWords() {
   const { name, color } = useTheme();

@@ -1,7 +1,6 @@
 import { phase as phaseOf, type MarketPhase } from "@agari/core/lifecycle";
 import { formatCadence, isTickerSymbol, TICKERS } from "@agari/core/market";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { sidesInOrder, useBetAgainst } from "@/features/markets/bet-against";
@@ -21,6 +20,7 @@ import { CardSpark } from "./CardSpark";
 import { CardHead, Ramp, RoomStrip } from "./CardParts";
 import { CardClock } from "./CardClock";
 import { ListedCard } from "./ListedCard";
+import { selectWindow } from "../openWindow";
 
 type When = ReturnType<typeof useWhen>;
 
@@ -34,9 +34,9 @@ export interface MarketCardProps {
   onOpenRoom?: (market: EventMarket) => void;
 }
 
-/** Opens the ticket on a Window — web's selection on a phone, where the ticket is a drawer over the page. */
+/** Opens the ticket on a Window — web's selection on a phone: /markets?m=&dir= selects it and opens the drawer there. */
 export function openTicket(marketId: MarketId, side?: Side): void {
-  router.push({ pathname: "/ticket", params: side ? { m: marketId, dir: side } : { m: marketId } });
+  selectWindow(marketId, side);
 }
 
 /** web MarketsScreen's `roomCallLabel`: the question the Room is about, and which Window that was. */

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import type { ChartPoint } from "@/features/markets/hero/useChartSeries";
 import { LANE_CARD } from "@/lib/copy";
 import { FONT, useTheme } from "~/theme";
 import { lanesTokens } from "~/theme/web/markets-lanes";
 import { card } from "./card-styles";
+
+/** Half the `.strike-tick` chip: the plot band keeps 8 px clear of the box's top and bottom, so the rule and its "line"
+ *  chip never land on an edge the box clips (web 95f7fe45). */
+const PAD = 8;
 
 interface Plot {
   /** Points in the box's own pixels. */
@@ -46,7 +50,8 @@ export function CardSpark({ points, openingRaw }: { points: readonly ChartPoint[
   const t = lanesTokens(name);
   const [width, setWidth] = useState(0);
   const height = card.spark.height;
-  const shape = plot(points, openingRaw, width, height);
+  const shape = plot(points, openingRaw, width, height - 2 * PAD);
+  const strikeY = shape?.strikeY == null ? null : PAD + shape.strikeY;
   return (
     <View style={card.spark} onLayout={(event) => setWidth(event.nativeEvent.layout.width)} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <Svg style={StyleSheet.absoluteFill} width={width} height={height}>
@@ -57,11 +62,15 @@ export function CardSpark({ points, openingRaw }: { points: readonly ChartPoint[
           </LinearGradient>
         </Defs>
         <Rect x={0} y={0} width={width} height={height} fill="url(#mcSparkWash)" />
-        {shape ? <Path d={shape.path} fill="none" stroke={shape.winning ? t.profit : t.loss} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" /> : null}
-        {shape?.strikeY != null ? <Line x1={0} x2={width} y1={shape.strikeY + 0.5} y2={shape.strikeY + 0.5} stroke={t.vermilion} strokeWidth={1} strokeDasharray="3,3" /> : null}
+        {shape ? (
+          <G transform={`translate(0, ${PAD})`}>
+            <Path d={shape.path} fill="none" stroke={shape.winning ? t.profit : t.loss} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
+          </G>
+        ) : null}
+        {strikeY !== null ? <Line x1={0} x2={width} y1={strikeY + 0.5} y2={strikeY + 0.5} stroke={t.vermilion} strokeWidth={1} strokeDasharray="3,3" /> : null}
       </Svg>
-      {shape?.strikeY != null ? (
-        <Text style={[styles.tick, { top: shape.strikeY - 7.4, color: t.vermilion, backgroundColor: t.strikeTickBg }]}>{LANE_CARD.line}</Text>
+      {strikeY !== null ? (
+        <Text style={[styles.tick, { top: strikeY - 7.4, color: t.vermilion, backgroundColor: t.strikeTickBg }]}>{LANE_CARD.line}</Text>
       ) : null}
     </View>
   );

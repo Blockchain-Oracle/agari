@@ -1,7 +1,6 @@
 import { basketMembersHeld, isBasketCoverable, type Basket } from "@agari/core/market";
 import { formatBaseUnits } from "@agari/core/units";
 import { useAssetPrice, useLanes } from "@agari/markets/react";
-import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { basketHolding, heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
 import { bpsPct, windowText } from "@/features/hedge/calm";
@@ -19,6 +18,7 @@ import { MarketCard } from "~/features/markets/board/MarketCard";
 import { FONT, useTheme } from "~/theme";
 import { BasketMembers } from "./BasketMembers";
 import { SourceCaption, Stat, StatBar } from "./HubParts";
+import { openWindow } from "~/features/markets/openWindow";
 
 const USD_DP = 6;
 const signedPct = (bps: number): string => `${bps > 0 ? "+" : bps < 0 ? "−" : ""}${(Math.abs(bps) / 100).toFixed(1)}%`;
@@ -71,7 +71,7 @@ export function BasketHub({ basket }: { basket: Basket }) {
   const value = holding?.valueUsdE6 == null ? null : `$${formatBaseUnits(holding.valueUsdE6, USD_DP, { maxDp: 0, minDp: 0 })}`;
   const holdLine = held === null ? B.hold.connect : heldMembers.length === 0 ? B.hold.none(basket.members.length) : B.hold.some(heldMembers.length, basket.members.length, value);
   const openTicket = (dir: "up" | "down") => {
-    if (window) router.push({ pathname: "/ticket", params: { m: window.marketId, dir } });
+    if (window) openWindow(window.marketId, dir);
   };
 
   return (

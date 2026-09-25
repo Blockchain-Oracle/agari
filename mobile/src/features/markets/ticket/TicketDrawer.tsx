@@ -1,37 +1,33 @@
 import { countdown, type MarketPhase } from "@agari/core/lifecycle";
 import type { EventMarket } from "@agari/core/types";
 import { formatClock } from "@agari/core/units";
-import { router } from "expo-router";
 import { X } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { laneAssetLabel, laneTabLabel } from "@/features/markets/lanes/lane-view";
 import { HERO, SETTLING, TICKET } from "@/lib/copy";
 import { FONT } from "~/theme";
-import { SheetToasts } from "./SheetToasts";
+import { useCloseTicket } from "./TicketFrame";
 import { TicketMiniChart } from "./TicketMiniChart";
 import { useTk } from "./tk";
-import { useClampedScroll } from "./useClampedScroll";
 
 /**
  * web's `.tk-drawer` holding a `.tk-ticket--drawer` (TicketDock below 1024 px): the panel is the surface, 24 px in, one
  * column at a 12 px gap; the close in the corner, the head (which Window, its phase, the clock) and the mini chart,
- * then the composer's blocks. Presented over whatever opened it, it closes back to it.
+ * then the composer's blocks. It scrolls inside TicketFrame's panel, whose slide-out the ✕ runs.
  */
 export function TicketDrawer({ market, phase, nowMs, children }: { market: EventMarket; phase: MarketPhase | null; nowMs: number; children: ReactNode }) {
   const tk = useTk();
-  const scroll = useClampedScroll();
+  const close = useCloseTicket();
   return (
-    // The sheet lays out a ScrollView beside at most one sibling (react-native-screens): it stays a real view.
-    <View collapsable={false} style={[styles.fill, { backgroundColor: tk.drawerBg }]}>
-      <ScrollView {...scroll} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+    <View style={styles.fill}>
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <View style={styles.head}>
           <TicketHeader market={market} phase={phase} nowMs={nowMs} />
         </View>
         <TicketMiniChart market={market} />
         {children}
-        <SheetToasts />
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={TICKET.close} hitSlop={6} style={styles.close}>
+        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={TICKET.close} hitSlop={6} style={styles.close}>
           <X size={16} color={tk.close} />
         </Pressable>
       </ScrollView>

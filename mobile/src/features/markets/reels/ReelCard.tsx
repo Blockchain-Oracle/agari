@@ -3,7 +3,6 @@ import { neededMove } from "@agari/core/market";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { formatClock } from "@agari/core/units";
 import { useOpeningPrice } from "@agari/markets/react";
-import { router } from "expo-router";
 import { memo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
@@ -16,6 +15,7 @@ import { WindowLine } from "~/components/window/WindowLine";
 import { FONT } from "~/theme";
 import { ReelFrame } from "./ReelFrame";
 import { useReelTokens } from "./tokens";
+import { openWindow } from "../openWindow";
 
 /** Local wall-clock hour and minute — the reference's `clockHM`, in the viewer's own zone. */
 function closesAt(expirySec: number): string {
@@ -132,7 +132,7 @@ function ReelCall({ marketId, closing }: { marketId: MarketId; closing: boolean 
   }
   const pick = (dir: Side) => {
     haptic.tap();
-    router.push({ pathname: "/ticket", params: { m: marketId, dir } });
+    openWindow(marketId, dir);
   };
   return (
     <View style={[styles.call, styles.pair]}>

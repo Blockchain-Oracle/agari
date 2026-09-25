@@ -1,19 +1,13 @@
 import { isMarketId } from "@agari/core/types";
-import { Redirect, Stack, useLocalSearchParams } from "expo-router";
-import { MarketsScreen } from "~/features/markets/MarketsScreen";
+import { Redirect, useLocalSearchParams } from "expo-router";
 
 /**
- * `/markets/<id>` — web's app/markets/[id]/page.tsx: the shareable address of one Window renders the same page as
- * /markets with that Window in the hero (the deep link resolves it, a dead Window to its successor with a note); a
- * mistyped id lands on /markets.
+ * `/markets/<id>` — web's app/markets/[id]/page.tsx renders the Markets page with that Window in the hero: here it is
+ * `/markets?m=<id>` (a side, when the link names one, opens the ticket there); a mistyped id lands on /markets.
  */
 export default function MarketRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, dir } = useLocalSearchParams<{ id: string; dir?: string }>();
   if (!isMarketId(id)) return <Redirect href="/markets" />;
-  return (
-    <>
-      <Stack.Screen options={{ title: "Markets", headerShown: false }} />
-      <MarketsScreen />
-    </>
-  );
+  const side = dir === "up" || dir === "down" ? { dir } : {};
+  return <Redirect href={{ pathname: "/markets", params: { m: id, ...side } }} />;
 }

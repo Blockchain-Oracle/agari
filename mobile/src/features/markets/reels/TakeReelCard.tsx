@@ -19,11 +19,12 @@ import { takeAvatar } from "~/theme/web/reels";
 import { ReelFrame } from "./ReelFrame";
 import { TakeAuthor, TakeChip, TakeCta, takeStyles, TakeVoice } from "./TakeParts";
 import { useReelTokens } from "./tokens";
+import { openWindow } from "../openWindow";
 
 const shortAddress = (address: string): string => (address.length > 10 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address || TAKES.anon);
 
 const toTicker = (symbol: string) => router.push({ pathname: "/tickers/[symbol]", params: { symbol } });
-const toWindow = (id: string) => router.push({ pathname: "/markets/[id]", params: { id } });
+const toWindow = (id: string) => openWindow(id);
 
 /** web's `callParts`: `▲ UP · $TSLA over $359.07`, the band's asset cut off its front to be set as a cashtag. */
 function callParts(take: FeedTake): { glyph: string; dir: string; tail: string } {
@@ -94,7 +95,7 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: { take: 
           </Text>
         </View>
         {open ? (
-          <TakeCta label={TAKES.otherSide} onPress={() => router.push({ pathname: "/ticket", params: { m: take.marketId, dir: otherSide } })} />
+          <TakeCta label={TAKES.otherSide} onPress={() => openWindow(take.marketId, otherSide)} />
         ) : (
           <TakeCta label={TAKES.seeWindow} onPress={() => toWindow(take.marketId)} />
         )}

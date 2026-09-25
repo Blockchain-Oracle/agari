@@ -13,6 +13,7 @@ import { AssetDisc } from "~/components/marks/AssetDisc";
 import { Countdown } from "~/features/markets/parts/Countdown";
 import { FONT, useTheme } from "~/theme";
 import { senseiTokens } from "~/theme/web/explore/sensei";
+import { openWindow } from "~/features/markets/openWindow";
 
 const priceOf = (asset: string, raw: bigint | null): string => (raw === null ? HERO_HEAD.noPrice : assetPriceLine(asset, raw));
 const cents = (value: number | null): string => (value === null ? MARKETS.noBook : `${value}¢`);
@@ -31,7 +32,9 @@ export function SenseiTradeCards({ markets, snapshotMarkets, nowMs }: { markets:
 
   const act = (market: EventMarket, dir: "up" | "down") => {
     haptic.tap();
-    router.replace({ pathname: "/ticket", params: { m: market.marketId, dir } });
+    // web: the card is a link to /markets?m=&dir=, which opens the ticket there; Sensei's drawer closes under it.
+    router.back();
+    openWindow(market.marketId, dir);
   };
 
   return (

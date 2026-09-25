@@ -1,7 +1,9 @@
-import type { EventMarket } from "@agari/core/types";
+import { isMarketId, type EventMarket, type Side } from "@agari/core/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { AlertsWatcher } from "@/features/alerts/AlertsWatcher";
 import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
@@ -17,6 +19,7 @@ import { roomCallLabel } from "./board/MarketCard";
 import { WordBoard } from "./board/WordBoard";
 import { MarketsHero } from "./hero/MarketsHero";
 import { useHeroSelection } from "./hero/useHeroSelection";
+import { openWindow, selectWindow } from "./openWindow";
 import { SessionChip } from "./parts/SessionChip";
 import { SenseiDock } from "./sensei-dock/SenseiDock";
 import { LiveVerdict } from "./verdict/LiveVerdict";
@@ -33,7 +36,26 @@ export function MarketsScreen() {
   const venue = useVenue();
   const nowMs = useChainNowMs();
   const lanes = useLanesState(venue.venueId);
-  const { selection, select } = useHeroSelection(lanes.laneSet, lanes.activeLane, lanes.ticker, nowMs);
+  const selection = useHeroSelection(lanes.laneSet, lanes.activeLane, lanes.ticker, nowMs);
+  const scroll = useRef<ScrollView>(null);
+  const params = useLocalSearchParams<{ m?: string; dir?: string; k?: string; t?: string; sensei?: string }>();
+
+  // `?m=&dir=`: the Window is already in the hero (the address is the selection) and the page comes to it; a side, or
+  // a pick made on this page, opens the ticket drawer on it — once per request, so those are dropped from the address.
+  useEffect(() => {
+    if (!params.m || !isMarketId(params.m)) return;
+    scroll.current?.scrollTo({ y: 0, animated: true });
+    const dir: Side | null = params.dir === "up" || params.dir === "down" ? params.dir : null;
+    if (!dir && params.t !== "1") return;
+    router.setParams({ dir: undefined, k: undefined, t: undefined });
+    router.push({ pathname: "/ticket", params: dir ? { m: params.m, dir } : { m: params.m } });
+  }, [params.m, params.dir, params.k, params.t]);
+  // `?sensei=1`: the nav's way to Sensei (web's SenseiDock reads it and opens the drawer).
+  useEffect(() => {
+    if (params.sensei !== "1") return;
+    router.setParams({ sensei: undefined });
+    router.push("/sensei");
+  }, [params.sensei]);
   // Held at the page, as web holds it: a cadence switch can never leave it open on a Window the page no longer shows.
   const [roomMarket, setRoomMarket] = useState<EventMarket | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,16 +73,17 @@ export function MarketsScreen() {
   return (
     <View style={[styles.fill, { backgroundColor: color.ground }]}>
       <ScrollView
+        ref={scroll}
         contentContainerStyle={styles.page}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} />}
       >
-        <MarketsHero selection={selection} lanes={lanes} onSelect={select} onOpenRoom={() => setRoomMarket(selection.market)} />
+        <MarketsHero selection={selection} lanes={lanes} onSelect={selectWindow} onOpenRoom={() => setRoomMarket(selection.market)} />
         <View style={styles.container}>
-          <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={select} />
+          <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={selectWindow} />
           {selection.marketId ? <LiveVerdict marketId={selection.marketId} /> : null}
           <View style={styles.section} accessibilityLabel={SECTIONS.lanes.title}>
             <SectionHeader index={SECTIONS.lanes.index} title={SECTIONS.lanes.title} aside={<SessionChip />} />
-            <LaneBoard state={lanes} boot={venue.boot} venueId={venue.venueId} nowMs={nowMs} selectedMarketId={selection.marketId} onSelect={select} onOpenRoom={setRoomMarket} />
+            <LaneBoard state={lanes} boot={venue.boot} venueId={venue.venueId} nowMs={nowMs} selectedMarketId={selection.marketId} onSelect={selectWindow} onOpenRoom={setRoomMarket} />
           </View>
           <View style={styles.section} accessibilityLabel={SECTIONS.words.title}>
             <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
@@ -69,6 +92,8 @@ export function MarketsScreen() {
         </View>
       </ScrollView>
       <SenseiDock laneSet={lanes.laneSet} nowMs={nowMs} />
+      {/* web mounts the price-alert evaluator in its providers; the landing tab stays mounted, so it watches from here. */}
+      <AlertsWatcher />
       {roomMarket ? (
         <MarketRoomSheet
           visible
@@ -80,7 +105,7 @@ export function MarketsScreen() {
           onBet={() => {
             const id = roomMarket.marketId;
             setRoomMarket(null);
-            select(id);
+            selectWindow(id);
           }}
         />
       ) : null}
