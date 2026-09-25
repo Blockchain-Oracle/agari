@@ -1,20 +1,16 @@
-import { formatCadence } from "@agari/core/copy";
-import { shortBookTotals, shortPnl, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
+import { shortBookTotals, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
 import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
 import { useLeverageMark, useMarket, useMyLeveragePositions } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useLeverageWrites } from "@/features/leverage";
 import { SHORT } from "@/features/short/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { ConnectGate, EmptyState, LoadingState } from "~/components/kit";
-import { RADIUS, TYPE, useTheme } from "~/theme";
-import type { ReviewRequest } from "./ReviewSheet";
+import { FONT, useTheme } from "~/theme";
+import { basketsShortTokens } from "~/theme/web/products/baskets-short";
+import { ConnectButton, Money } from "./PageParts";
 import { ShortPositionCard } from "./ShortPositionCard";
 
-/** web's `CLOSE_FLOOR_BPS`: the owner's slippage guard on a close; the book may move between the mark and the send. */
-const CLOSE_FLOOR_BPS = 9_700n;
 const W = SHORT.positions;
 
 type Writes = ReturnType<typeof useLeverageWrites>;
@@ -24,15 +20,16 @@ interface Props {
   symbol: string;
   decimals: number;
   nowMs: number;
-  onReview: (request: ReviewRequest) => void;
 }
 
 /**
- * web's `features/short/ShortPositions.tsx`: the wallet's shorts, live first, under one totals line computed with
- * the cards' own arithmetic (`shortBookTotals`). Each card reads its own mark and reports it up by value.
+ * web's `features/short/ShortPositions.tsx`: connect or empty in the `.sh-empty` panel; otherwise the one totals line
+ * (the cards' own arithmetic, `shortBookTotals`), the live cards, then "Closed shorts". Each card reads its own mark
+ * and reports it up by value, so a poll returning the same mark re-renders nothing.
  */
-export function ShortPositions({ symbol, decimals, nowMs, onReview }: Props) {
-  const { color } = useTheme();
+export function ShortPositions({ symbol, decimals, nowMs }: Props) {
+  const { color, name } = useTheme();
+  const t = basketsShortTokens(name);
   const { address } = useWalletSession();
   const reading = useMyLeveragePositions(address);
   const writes = useLeverageWrites();
@@ -51,115 +48,73 @@ export function ShortPositions({ symbol, decimals, nowMs, onReview }: Props) {
   const live = useMemo(() => held.filter((p) => p.status === "live"), [held]);
   const done = useMemo(() => held.filter((p) => p.status !== "live"), [held]);
   const totals = useMemo(() => shortBookTotals(live.map((position) => ({ position, mark: marks.get(position.positionId.toString()) ?? null }))), [live, marks]);
+  const panel = [styles.empty, { borderColor: t.emptyBorder, backgroundColor: t.emptyBg }];
 
-  if (address === null) return <ConnectGate why={W.connect} />;
-  if (reading === null) return <LoadingState shape="list" />;
-  if (held.length === 0) return <EmptyState why={W.empty} detail={W.emptyBody} />;
+  if (address === null) {
+    return (
+      <View style={panel}>
+        <Text style={[styles.emptyT, { color: color.ink }]}>{W.connect}</Text>
+        <ConnectButton />
+      </View>
+    );
+  }
+  if (held.length === 0) {
+    return (
+      <View style={panel}>
+        <Text style={[styles.emptyT, { color: color.ink }]}>{W.empty}</Text>
+        <Text style={[styles.emptyD, { color: color.inkMuted }]}>{W.emptyBody}</Text>
+      </View>
+    );
+  }
 
-  const money = (base: bigint) => formatBaseUnits(base, decimals);
-  const pnlInk = totals.pnlBase > 0n ? color.profit : totals.pnlBase < 0n ? color.loss : color.inkSecondary;
   const card = (position: LeveragePosition) => (
-    <PositionRow key={position.positionId.toString()} position={position} symbol={symbol} decimals={decimals} nowMs={nowMs} writes={writes} report={report} onReview={onReview} />
+    <Row key={position.positionId.toString()} position={position} symbol={symbol} decimals={decimals} nowMs={nowMs} writes={writes} report={report} />
   );
 
   return (
-    <View style={styles.book}>
+    <View>
       {live.length > 0 ? (
-        <View style={[styles.totals, { backgroundColor: color.surface2 }]}>
-          <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{W.totals(totals.priced, totals.live)}</Text>
-          <View style={styles.totalsRow}>
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-              {W.staked} <Text style={[TYPE.data, { color: color.ink }]}>{money(totals.stakedBase)}</Text>
-            </Text>
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-              {W.worth} <Text style={[TYPE.data, { color: color.ink }]}>{money(totals.equityBase)}</Text>
-            </Text>
-            <Text style={[TYPE.data, { color: pnlInk }]}>{formatBaseUnits(totals.pnlBase, decimals, { signed: true })}</Text>
+        <>
+          <View style={styles.totals}>
+            <Text style={[styles.totalsN, { color: color.inkMuted }]}>{W.totals(totals.priced, totals.live)}</Text>
+            <View style={styles.flex} />
+            <Text style={[styles.totalsK, { color: color.inkDisabled }]}>{W.staked}</Text>
+            <Money value={totals.stakedBase} decimals={decimals} symbol={symbol} style={[styles.totalsV, { color: color.ink }]} />
+            <Text style={[styles.totalsK, { color: color.inkDisabled }]}>{W.worth}</Text>
+            <Money value={totals.equityBase} decimals={decimals} symbol={symbol} style={[styles.totalsV, { color: color.ink }]} />
+            <Money value={totals.pnlBase} decimals={decimals} tone="pnl" style={styles.totalsV} />
           </View>
-        </View>
+          <View style={styles.list}>{live.map(card)}</View>
+        </>
       ) : null}
-      {live.map(card)}
-      {done.length > 0 ? <Text style={[TYPE.labelMicro, styles.doneHead, { color: color.inkMuted }]}>{W.settledTitle}</Text> : null}
-      {done.map(card)}
+      {done.length > 0 ? (
+        <>
+          <Text style={[styles.doneHead, { color: color.inkDisabled }]}>{W.settledTitle}</Text>
+          <View style={styles.list}>{done.map(card)}</View>
+        </>
+      ) : null}
     </View>
   );
 }
 
-function PositionRow({ position, symbol, decimals, nowMs, writes, report, onReview }: {
+function Row({ position, symbol, decimals, nowMs, writes, report }: {
   position: LeveragePosition;
   symbol: string;
   decimals: number;
   nowMs: number;
   writes: Writes;
   report: Report;
-  onReview: (request: ReviewRequest) => void;
 }) {
   const market = useMarket(position.marketId);
   const marketKnown = market !== null && isOk(market);
-  const markReading = useLeverageMark(position.status === "live" ? position.positionId : null);
-  const mark = markReading && isOk(markReading) ? markReading.value : null;
+  const reading = useLeverageMark(position.status === "live" ? position.positionId : null);
+  const mark = reading && isOk(reading) ? reading.value : null;
   const id = position.positionId.toString();
   useEffect(() => report(id, mark), [report, id, mark]);
-  const view = marketKnown && market.value ? { asset: market.value.asset, intervalSec: market.value.intervalSec } : null;
-  const name = view ? `${view.asset} ${formatCadence(view.intervalSec)}` : "this Window";
-  const money = (base: bigint) => `${formatBaseUnits(base, decimals)} ${symbol}`;
-
-  const reviewClose = (p: LeveragePosition, m: LeverageMark) => {
-    // The mark is what the book pays for the contracts; the reserve's front is repaid out of it first.
-    const floor = (m.markBase * CLOSE_FLOOR_BPS) / 10_000n;
-    const yoursAtFloor = floor > p.frontedBase ? floor - p.frontedBase : 0n;
-    const worst = p.stakeBase > yoursAtFloor ? p.stakeBase - yoursAtFloor : 0n;
-    onReview({
-      title: `Close your ${name} short`,
-      lines: [
-        { label: "The book pays now", value: money(m.markBase) },
-        { label: "Reserve repaid first", value: money(p.frontedBase), tone: "muted" },
-        { label: W.worth, value: money(shortPnl(p, m.markBase).equityBase), tone: "accent" },
-        { label: "The least the book may pay", value: money(floor), hint: "Refused rather than filled worse if the book moves" },
-        { label: W.staked, value: money(p.stakeBase) },
-      ],
-      maxLoss: money(worst),
-      confirmLabel: "Slide to close",
-      send: async () => {
-        await writes.close(p.positionId, p.marketId, floor, decimals, symbol);
-        report(id, null);
-        return null;
-      },
-    });
-  };
-
-  const reviewSettle = (p: LeveragePosition) =>
-    onReview({
-      title: `Settle your ${name} short`,
-      lines: [
-        { label: W.staked, value: money(p.stakeBase) },
-        { label: "Pays", value: "What the contracts paid, reserve repaid first" },
-      ],
-      maxLoss: null,
-      confirmLabel: "Slide to settle",
-      send: async () => {
-        await writes.settle(p.positionId, p.marketId);
-        return null;
-      },
-    });
-
-  const reviewClaim = (p: LeveragePosition) =>
-    onReview({
-      title: `Claim from your ${name} short`,
-      lines: [{ label: "To your wallet", value: money(p.owedBase), tone: "profit" }],
-      maxLoss: null,
-      confirmLabel: "Slide to claim",
-      tone: "profit",
-      send: async () => {
-        await writes.claim(p.positionId, p.marketId, p.owedBase, decimals, symbol);
-        return null;
-      },
-    });
-
   return (
     <ShortPositionCard
       position={position}
-      market={view}
+      market={marketKnown && market.value ? { asset: market.value.asset, intervalSec: market.value.intervalSec } : null}
       marketKnown={marketKnown}
       mark={mark}
       symbol={symbol}
@@ -167,9 +122,9 @@ function PositionRow({ position, symbol, decimals, nowMs, writes, report, onRevi
       nowMs={nowMs}
       busy={writes.busy}
       canSign={writes.canSign && writes.address === position.owner}
-      onClose={reviewClose}
-      onSettle={reviewSettle}
-      onClaim={reviewClaim}
+      onClose={(p, min) => void writes.close(p.positionId, p.marketId, min, decimals, symbol).then(() => report(id, null))}
+      onSettle={(p) => void writes.settle(p.positionId, p.marketId)}
+      onClaim={(p) => void writes.claim(p.positionId, p.marketId, p.owedBase, decimals, symbol)}
     />
   );
 }
@@ -180,8 +135,14 @@ function sameMark(a: LeverageMark | null, b: LeverageMark | null): boolean {
 }
 
 const styles = StyleSheet.create({
-  book: { gap: 10 },
-  totals: { borderRadius: RADIUS.md, padding: 12, gap: 6 },
-  totalsRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 14 },
-  doneHead: { marginTop: 8 },
+  empty: { paddingVertical: 32, paddingHorizontal: 20, borderWidth: 1, borderRadius: 16, alignItems: "center" },
+  emptyT: { marginBottom: 8, fontFamily: FONT.heading, fontSize: 14, lineHeight: 22.4, textAlign: "center" },
+  emptyD: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.5, textAlign: "center" },
+  totals: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 10, rowGap: 6, marginBottom: 14 },
+  totalsN: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1, textTransform: "uppercase" },
+  flex: { flexGrow: 1 },
+  totalsK: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.26, textTransform: "uppercase" },
+  totalsV: { fontSize: 12, lineHeight: 19.2 },
+  list: { gap: 12 },
+  doneHead: { marginTop: 28, marginBottom: 12, fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.62, textTransform: "uppercase" },
 });

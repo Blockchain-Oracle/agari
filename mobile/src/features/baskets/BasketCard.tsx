@@ -7,11 +7,12 @@ import { bpsPct, windowText } from "@/features/hedge/calm";
 import { pointsLine } from "@/features/markets/hero/units";
 import { laneTabLabel } from "@/features/markets/lanes/lane-view";
 import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
-import { haptic, Skeleton } from "~/components/kit";
+import { haptic } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { Clock } from "~/features/short/Clock";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { LogoStack, Sparkline } from "./DeskKit";
+import { FONT, useTheme } from "~/theme";
+import { basketsShortTokens } from "~/theme/web/products/baskets-short";
+import { LogoStack, Shimmer, Sparkline } from "./DeskKit";
 
 const C = BASKETS_COPY.card;
 
@@ -30,28 +31,21 @@ export interface BasketCardProps {
   /** Members this wallet holds; null with no wallet connected. */
   heldCount: number | null;
   coverable: boolean;
-  /** The basket's hourly index over the last week, oldest first. */
+  /** The basket's hourly index over the last week, oldest first; empty before the marks load. */
   line: readonly number[];
 }
 
 /**
- * web's `features/baskets/BasketCard.tsx`: the header with its cashtag (into the ticker hub), the members' marks,
- * the index with its week, the live Window row with its book, then Predict · Cover · Hold and why Cover is or is
- * not open. Every row keeps its height whatever arrives, so a read landing never moves the card.
+ * web's `features/baskets/BasketCard.tsx` + `baskets.css` at ≤ 480 px: the header with its cashtag (into the ticker
+ * hub), the blurb held to two lines, the members' marks, the index with its week, the 44 px Window row, then
+ * Predict · Cover · Hold and why Cover is or is not open. Every row keeps its height whatever arrives.
  */
 export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCount, coverable, line }: BasketCardProps) {
   const { color } = useTheme();
   const memberSymbols = basket.members.map((m) => m.symbol);
   const names = basket.members.map((m) => TICKERS[m.symbol].name);
   const coverWhy =
-    heldCount === null
-      ? C.coverWhy.connect
-      : !window
-        ? C.coverWhy.noWindow
-        : !coverable
-          ? C.coverWhy.needsTwo(heldCount)
-          : C.coverWhy.ready(heldCount, basket.members.length);
-  const quoted = book !== null && (book.upCents !== null || book.downCents !== null);
+    heldCount === null ? C.coverWhy.connect : !window ? C.coverWhy.noWindow : !coverable ? C.coverWhy.needsTwo(heldCount) : C.coverWhy.ready(heldCount, basket.members.length);
   const first = line[0];
   const weekMove = line.length >= 2 && first ? Math.round((((line.at(-1) ?? 0) - first) / first) * 10_000) : null;
   const weekInk = weekMove === null || weekMove === 0 ? color.inkMuted : weekMove > 0 ? color.profit : color.loss;
@@ -59,149 +53,162 @@ export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCo
   const hub = () => router.push(route(`/tickers/${basket.symbol}`));
 
   return (
-    <View
-      style={[styles.card, { backgroundColor: color.surface1, borderColor: color.hairline }]}
-      accessibilityLabel={C.aria(basket.name)}
-    >
-      <Pressable onPress={hub} accessibilityRole="link" accessibilityLabel={`${basket.name}, open $${basket.symbol}`} style={styles.head}>
-        <AssetDisc asset={basket.symbol} size={44} />
+    <View style={[styles.card, { backgroundColor: color.surface1, borderColor: color.hairline }]} accessibilityLabel={C.aria(basket.name)}>
+      <View style={styles.head}>
+        <AssetDisc asset={basket.symbol} size={48} />
         <View style={styles.title}>
-          <Text style={[TYPE.title, { color: color.ink }]}>{basket.name}</Text>
-          <Text style={[TYPE.data, { color: color.accent }]}>${basket.symbol}</Text>
+          <Text style={[styles.name, { color: color.ink }]} numberOfLines={1}>
+            {basket.name}
+          </Text>
+          <Pressable onPress={hub} accessibilityRole="link" hitSlop={8} style={styles.cashtagHit}>
+            <Text style={[styles.cashtag, { color: color.accent }]}>${basket.symbol}</Text>
+          </Pressable>
         </View>
-      </Pressable>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{basket.blurb}</Text>
+      </View>
+      <Text style={[styles.blurb, { color: color.inkSecondary }]} numberOfLines={2}>
+        {basket.blurb}
+      </Text>
 
       <View style={styles.members}>
-        <LogoStack symbols={memberSymbols} names={names} max={5} />
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{C.count(basket.members.length)}</Text>
+        <LogoStack symbols={memberSymbols} names={names} max={5} size={20} />
+        <Text style={[styles.membersText, { color: color.inkMuted }]} numberOfLines={1}>
+          {C.count(basket.members.length)}
+        </Text>
       </View>
 
-      <View style={[styles.index, { borderColor: color.hairline }]}>
-        <View style={styles.indexFigures}>
-          <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{C.index}</Text>
+      <View style={[styles.index, { backgroundColor: color.surface2 }]}>
+        <View style={styles.figures}>
+          <Text style={[styles.indexLabel, { color: color.inkMuted }]}>{C.index}</Text>
           {indexRaw === null ? (
-            <Skeleton width={120} height={24} />
+            <Shimmer width={140} height={29} label={C.loading} />
           ) : (
-            <Text style={[TYPE.dataLg, { color: color.ink }]}>{pointsLine(indexRaw)}</Text>
+            <Text style={[styles.indexValue, { color: color.ink }]} numberOfLines={1}>
+              {pointsLine(indexRaw)}
+            </Text>
           )}
-          <Text style={[TYPE.caption, { color: color.inkMuted }]} numberOfLines={2}>
+          <Text style={[styles.indexMove, { color: color.inkSecondary }]} numberOfLines={1}>
             {move ? C.moved(bpsPct(move.rangeBps), windowText(move.windowSec)) : C.quiet}
           </Text>
         </View>
         <View style={styles.week}>
-          <Sparkline values={line} width={104} height={40} />
-          <Text style={[styles.weekText, { color: weekInk }]}>
+          <Sparkline values={line} width={120} height={40} boxWidth={88} />
+          <Text style={[styles.weekLabel, { color: weekInk }]}>
             {weekMove === null ? C.weekNone : C.week(`${weekSign}${bpsPct(Math.abs(weekMove))}`)}
           </Text>
         </View>
       </View>
 
-      <WindowRow window={window} book={book} quoted={quoted} nowMs={nowMs} />
+      <WindowRow window={window} book={book} nowMs={nowMs} />
 
       <View style={styles.actions}>
-        <Action
-          label={C.predict}
-          kind="predict"
-          onPress={() => (window ? router.push(`/markets/${window.marketId}`) : hub())}
-        />
-        <Action
-          label={C.cover}
-          kind="cover"
-          disabled={!(window && coverable)}
-          hint={coverWhy}
-          onPress={() => window && router.push(`/markets/${window.marketId}?dir=down`)}
-        />
-        <Action
-          label={C.hold}
-          kind="hold"
-          hint={C.holdWhy}
-          onPress={() => router.push(route(`/desk/new?basket=${basket.symbol}`))}
-        />
+        <Action label={C.predict} kind="predict" onPress={() => (window ? router.push(`/markets/${window.marketId}`) : hub())} />
+        <Action label={C.cover} kind="cover" off={!(window && coverable)} hint={coverWhy} onPress={() => window && router.push(`/markets/${window.marketId}?dir=down`)} />
+        <Action label={C.hold} kind="hold" hint={C.holdWhy} onPress={() => router.push(route(`/desk/new?basket=${basket.symbol}`))} />
       </View>
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{coverWhy}</Text>
+      <Text style={[styles.why, { color: color.inkMuted }]} numberOfLines={1}>
+        {coverWhy}
+      </Text>
     </View>
   );
 }
 
-/** The Window line: live dot, cadence and clock, then the book's Up and Down asks, or why there are none. */
-function WindowRow({ window, book, quoted, nowMs }: { window: EventMarket | null; book: BasketCardProps["book"]; quoted: boolean; nowMs: number }) {
+/** `.bk-window`: live dot, cadence and clock, then the book's Up and Down asks — or why there are none. */
+function WindowRow({ window, book, nowMs }: { window: EventMarket | null; book: BasketCardProps["book"]; nowMs: number }) {
   const { color } = useTheme();
   if (!window) {
     return (
-      <View style={[styles.window, { backgroundColor: color.surface2 }]}>
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{C.noWindow}</Text>
+      <View style={[styles.window, styles.windowNone, { borderColor: color.hairline }]}>
+        <Text style={[styles.windowQuiet, { color: color.inkMuted }]}>{C.noWindow}</Text>
       </View>
     );
   }
+  const quoted = book !== null && (book.upCents !== null || book.downCents !== null);
   return (
-    <View style={[styles.window, { backgroundColor: color.surface2 }]}>
+    <View style={[styles.window, { borderColor: color.hairline }]}>
       <View style={styles.windowLabel}>
-        <View style={[styles.liveDot, { backgroundColor: color.profit }]} />
-        <Text style={[TYPE.caption, { color: color.ink }]}>{C.window(laneTabLabel(window.lane, window.intervalSec))}</Text>
-        <Clock expirySec={window.expirySec} intervalSec={window.intervalSec} nowMs={nowMs} />
+        <View style={[styles.liveDot, { backgroundColor: color.profit, boxShadow: `0px 0px 0px 3px ${color.profitWash}` }]} />
+        <Text style={[styles.windowText, { color: color.inkSecondary }]} numberOfLines={1}>
+          {C.window(laneTabLabel(window.lane, window.intervalSec))}
+        </Text>
+        <Clock expirySec={window.expirySec} intervalSec={window.intervalSec} nowMs={nowMs} style={[styles.clock, { color: color.ink }]} />
       </View>
       {book === null ? (
-        <Skeleton width={96} height={16} />
+        <Shimmer width={110} height={16} label={C.loading} />
       ) : quoted ? (
         <View style={styles.book}>
-          <Text style={[TYPE.caption, { color: color.profit }]}>
-            {C.up} <Text style={styles.cents}>{book.upCents === null ? C.unquoted : `${book.upCents}¢`}</Text>
+          <Text style={[styles.windowText, { color: color.inkSecondary }]}>
+            {C.up} <Text style={[styles.cents, { color: color.profit }]}>{book.upCents === null ? C.unquoted : `${book.upCents}¢`}</Text>
           </Text>
-          <Text style={[TYPE.caption, { color: color.loss }]}>
-            {C.down} <Text style={styles.cents}>{book.downCents === null ? C.unquoted : `${book.downCents}¢`}</Text>
+          <Text style={[styles.windowText, { color: color.inkSecondary }]}>
+            {C.down} <Text style={[styles.cents, { color: color.loss }]}>{book.downCents === null ? C.unquoted : `${book.downCents}¢`}</Text>
           </Text>
         </View>
       ) : (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{C.noQuotes}</Text>
+        <Text style={[styles.windowQuiet, { color: color.inkMuted }]}>{C.noQuotes}</Text>
       )}
     </View>
   );
 }
 
-function Action({ label, kind, onPress, disabled, hint }: { label: string; kind: "predict" | "cover" | "hold"; onPress: () => void; disabled?: boolean; hint?: string }) {
-  const { color } = useTheme();
-  const primary = kind === "predict";
+/** `.bk-action`: a 42 px pill in Sora 13 — Predict filled vermilion, Cover ringed in the loss ink (45% while off), Hold ringed muted. */
+function Action({ label, kind, onPress, off, hint }: { label: string; kind: "predict" | "cover" | "hold"; onPress: () => void; off?: boolean; hint?: string }) {
+  const { color, name } = useTheme();
+  const t = basketsShortTokens(name);
+  const border = kind === "predict" ? color.accent : kind === "cover" ? t.coverBorder : color.inkMuted;
   return (
     <Pressable
       onPress={() => {
         haptic.tap();
         onPress();
       }}
-      disabled={disabled}
-      accessibilityRole="button"
+      disabled={off}
+      accessibilityRole={off ? "text" : "link"}
       accessibilityLabel={label}
       accessibilityHint={hint}
-      accessibilityState={{ disabled: !!disabled }}
+      accessibilityState={{ disabled: !!off }}
       style={({ pressed }) => [
         styles.action,
         {
-          backgroundColor: primary ? color.accent : color.surface2,
-          borderColor: primary ? color.accent : color.hairline,
-          opacity: disabled ? 0.4 : pressed ? 0.85 : 1,
+          backgroundColor: kind === "predict" ? color.accent : "transparent",
+          borderColor: pressed && kind !== "predict" ? color.ink : border,
+          opacity: off ? 0.45 : 1,
+          transform: [{ translateY: pressed ? -1 : 0 }],
         },
       ]}
     >
-      <Text style={[styles.actionText, { color: primary ? color.onAccent : color.ink }]}>{label}</Text>
+      <Text style={[styles.actionText, { color: kind === "predict" ? color.onAccent : color.ink }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 12 },
-  head: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44 },
-  title: { flex: 1, gap: 2 },
+  card: { gap: 12, padding: 16, borderWidth: 1, borderRadius: 12 },
+  head: { flexDirection: "row", alignItems: "center", gap: 14 },
+  title: { flexShrink: 1, gap: 2 },
+  name: { fontFamily: FONT.headingHeavy, fontSize: 20, lineHeight: 24, letterSpacing: -0.2 },
+  cashtagHit: { alignSelf: "flex-start" },
+  cashtag: { fontFamily: FONT.data, fontSize: 12.5, lineHeight: 20 },
+  blurb: { height: 38, fontFamily: FONT.body, fontSize: 13, lineHeight: 18.85 },
   members: { flexDirection: "row", alignItems: "center", gap: 10 },
-  index: { flexDirection: "row", alignItems: "center", gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 10 },
-  indexFigures: { flex: 1, gap: 4 },
-  week: { alignItems: "flex-end", gap: 4 },
-  weekText: { fontFamily: FONT.data, fontSize: 11 },
-  window: { borderRadius: RADIUS.md, padding: 10, gap: 6, minHeight: 58, justifyContent: "center" },
-  windowLabel: { flexDirection: "row", alignItems: "center", gap: 8 },
-  liveDot: { width: 7, height: 7, borderRadius: 4 },
-  book: { flexDirection: "row", gap: 16 },
-  cents: { fontFamily: FONT.dataStrong },
+  membersText: { flexShrink: 1, fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
+  index: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12 },
+  figures: { flexShrink: 1, gap: 4 },
+  indexLabel: { fontFamily: FONT.dataRegular, fontSize: 10.5, lineHeight: 16.8, letterSpacing: 1.26, textTransform: "uppercase" },
+  indexValue: { fontFamily: FONT.heading, fontSize: 22, lineHeight: 24.2, letterSpacing: -0.44, fontVariant: ["tabular-nums"] },
+  indexMove: { fontFamily: FONT.body, fontSize: 12, lineHeight: 16.8 },
+  week: { flexShrink: 0, alignItems: "flex-end", gap: 4 },
+  weekLabel: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+  window: { height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 12, borderWidth: 1, borderRadius: 12 },
+  windowNone: { justifyContent: "center", borderStyle: "dashed" },
+  windowLabel: { flexShrink: 1, flexDirection: "row", alignItems: "center", gap: 6, overflow: "hidden" },
+  liveDot: { width: 7, height: 7, borderRadius: 3.5 },
+  windowText: { flexShrink: 1, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
+  clock: { fontFamily: FONT.dataRegular, fontSize: 13, lineHeight: 20.8 },
+  book: { flexShrink: 0, flexDirection: "row", gap: 14 },
+  cents: { fontFamily: FONT.bodyStrong, fontVariant: ["tabular-nums"] },
+  windowQuiet: { fontFamily: FONT.body, fontSize: 12.5, lineHeight: 20 },
   actions: { flexDirection: "row", gap: 8 },
-  action: { flex: 1, minHeight: 44, borderRadius: RADIUS.md, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  actionText: { fontFamily: FONT.bodyStrong, fontSize: 15 },
+  action: { flex: 1, minHeight: 42, borderRadius: 9999, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  actionText: { fontFamily: FONT.heading, fontSize: 13, lineHeight: 20.8, letterSpacing: 0.26 },
+  why: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18 },
 });

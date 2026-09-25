@@ -1,18 +1,18 @@
-import { formatCadence } from "@agari/core/market";
+import { formatCadence } from "@agari/core/copy";
 import type { EventMarket } from "@agari/core/types";
+import { CalendarClock } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useDeskMarks, type DeskMarks } from "@/features/desk/useDeskMarks";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useDeskMarks } from "@/features/desk/useDeskMarks";
 import { useTopOfBook } from "@/features/markets/hero/useTopOfBook";
-import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { SHORT } from "@/features/short/copy";
 import { isLiveWindow, opensAt, type ShortKind, type ShortStock } from "@/features/short/useShortWindows";
-import { EmptyState, haptic, LoadingState } from "~/components/kit";
-import { AssetDisc } from "~/components/marks/AssetDisc";
-import { Sparkline } from "~/features/baskets/DeskKit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { lineOf, nameOfAsset, PriceLine } from "./assets";
+import { haptic } from "~/components/kit";
+import { Shimmer } from "~/features/baskets/DeskKit";
+import { FONT, useTheme } from "~/theme";
+import { basketsShortTokens } from "~/theme/web/products/baskets-short";
 import { Clock } from "./Clock";
+import { ShortAssetPicker, ShortPickSummary } from "./ShortAssetPicker";
 
 const P = SHORT.picker;
 
@@ -27,18 +27,31 @@ interface ShortPickerProps {
   nowMs: number;
 }
 
+/** The `.sh-picker` / `.sh-ticket` shell (short-page.css under short-picker.css): the card surface, 16 px in on a phone. */
+export function usePanelStyle() {
+  const { name } = useTheme();
+  const t = basketsShortTokens(name);
+  return [styles.panel, { backgroundColor: t.panelBg, borderColor: t.panelBorder }, t.panelShadow === "none" ? null : { boxShadow: t.panelShadow }];
+}
+
 /**
- * web's `features/short/ShortPicker.tsx` + `ShortAssetPicker.tsx`: the filter, every name as a card in a snap row
- * (tradable first while the bell is shut), the chosen name in full once, its cadences, then its Windows — live ones
- * priced from their own Down ask, later ones with the time they open.
+ * web's `features/short/ShortPicker.tsx`: "What to short" with the All · Stocks · 24/7 filter, the names, the chosen
+ * one in full, "How long" as cadence chips, then that cadence's Windows — live ones priced from their own Down ask,
+ * later ones dashed with the time they open.
  */
 export function ShortPicker({ stocks, loading, selected, onSelect, nowMs }: ShortPickerProps) {
   const { color } = useTheme();
+  const panel = usePanelStyle();
   const marks = useDeskMarks();
-  const session = useMarketSession();
   const [filter, setFilter] = useState<Filter>("all");
-  if (loading) return <LoadingState shape="plate" label={P.loading} />;
-  if (stocks.length === 0) return <EmptyState why={P.noneTitle} detail={P.noneBody} />;
+  if (loading) {
+    return (
+      <View style={panel}>
+        <Shimmer width="100%" height={180} radius={12} label={P.loading} />
+      </View>
+    );
+  }
+  if (stocks.length === 0) return <EmptyPicker />;
 
   const kinds = FILTER_KINDS[filter];
   const shown = kinds ? stocks.filter((s) => kinds.includes(s.kind)) : stocks;
@@ -47,50 +60,54 @@ export function ShortPicker({ stocks, loading, selected, onSelect, nowMs }: Shor
   const cadences = [...new Set(stock.windows.map((w) => w.intervalSec))].sort((a, b) => a - b);
   const cadence = selected && selected.asset === stock.asset ? selected.intervalSec : (cadences[0] ?? 0);
   const windows = stock.windows.filter((w) => w.intervalSec === cadence);
-  const counts: Record<Filter, number> = {
-    all: stocks.length,
-    stock: stocks.filter((s) => s.kind === "stock").length,
-    allDay: stocks.filter((s) => s.kind !== "stock").length,
-  };
-  const live = shown.filter((s) => s.liveCount > 0);
-  const later = shown.filter((s) => s.liveCount === 0);
-  const split = live.length > 0 && later.length > 0;
-  const laterLabel = later.every((s) => s.kind === "stock") && session && !session.open ? P.groupLater(session.label) : P.groupLaterBare;
-  const pickAsset = (asset: string) => {
-    const next = stocks.find((s) => s.asset === asset)?.windows[0];
-    if (next) onSelect(next);
-  };
+  const counts: Record<Filter, number> = { all: stocks.length, stock: stocks.filter((s) => s.kind === "stock").length, allDay: stocks.filter((s) => s.kind !== "stock").length };
 
   return (
-    <View style={styles.picker}>
+    <View style={panel}>
       <View style={styles.head}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{P.stock}</Text>
-        <View style={styles.filters} accessibilityRole="tablist" accessibilityLabel={P.filterAria}>
+        <Text style={[styles.k, { color: color.inkMuted }]}>{P.stock}</Text>
+        <View style={[styles.filters, { backgroundColor: color.surface2 }]} accessibilityLabel={P.filterAria}>
           {(["all", "stock", "allDay"] as const)
             .filter((f) => f === "all" || counts[f] > 0)
             .map((f) => (
-              <Toggle key={f} on={filter === f} onPress={() => setFilter(f)} label={`${P.filter[f]} ${counts[f]}`} />
+              <FilterButton key={f} on={filter === f} label={P.filter[f]} count={counts[f]} onPress={() => setFilter(f)} />
             ))}
         </View>
       </View>
+      <ShortAssetPicker
+        stocks={shown}
+        value={stock.asset}
+        onChange={(asset) => {
+          const next = stocks.find((s) => s.asset === asset)?.windows[0];
+          if (next) onSelect(next);
+        }}
+      />
 
-      {split ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{P.groupLive}</Text> : null}
-      <AssetRow stocks={split ? live : shown} value={stock.asset} marks={marks} onPick={pickAsset} />
-      {split ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{laterLabel}</Text> : null}
-      {split ? <AssetRow stocks={later} value={stock.asset} marks={marks} onPick={pickAsset} /> : null}
-
-      <Summary stock={stock} marks={marks} />
-
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{P.window}</Text>
-      <View style={styles.filters} accessibilityLabel={P.cadenceAria}>
+      <ShortPickSummary stock={stock} marks={marks} />
+      <Text style={[styles.k, styles.kGap, { color: color.inkMuted }]}>{P.window}</Text>
+      <View style={styles.cadences} accessibilityLabel={P.cadenceAria}>
         {cadences.map((c) => {
           const first = stock.windows.find((w) => w.intervalSec === c);
+          const live = stock.windows.some((w) => w.intervalSec === c && isLiveWindow(w, nowMs));
           const on = c === cadence;
-          const isLive = stock.windows.some((w) => w.intervalSec === c && isLiveWindow(w, nowMs));
-          return <Toggle key={c} on={on} live={isLive} onPress={() => first && onSelect(first)} label={formatCadence(c)} />;
+          return (
+            <Pressable
+              key={c}
+              onPress={() => {
+                haptic.select();
+                if (first) onSelect(first);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: on }}
+              style={[styles.cadence, on ? { borderColor: color.accent, backgroundColor: color.accentWash } : { borderColor: color.hairline }]}
+            >
+              <View style={[styles.cadenceDot, live ? { backgroundColor: color.profit, boxShadow: `0px 0px 0px 3px ${color.profitWash}` } : { backgroundColor: color.inkMuted }]} />
+              <Text style={[styles.cadenceText, { color: on ? color.ink : color.inkSecondary }]}>{formatCadence(c)}</Text>
+            </Pressable>
+          );
         })}
       </View>
-      <View style={styles.windows}>
+      <View style={styles.windows} accessibilityLabel={P.window}>
         {windows.map((market) => (
           <WindowRow key={market.marketId} market={market} on={market.marketId === selected?.marketId} onSelect={onSelect} nowMs={nowMs} />
         ))}
@@ -99,8 +116,10 @@ export function ShortPicker({ stocks, loading, selected, onSelect, nowMs }: Shor
   );
 }
 
-function Toggle({ on, onPress, label, live }: { on: boolean; onPress: () => void; label: string; live?: boolean }) {
-  const { color } = useTheme();
+/** `.sh-filter`: the pressed one lifts onto the card surface. */
+function FilterButton({ on, label, count, onPress }: { on: boolean; label: string; count: number; onPress: () => void }) {
+  const { color, name } = useTheme();
+  const t = basketsShortTokens(name);
   return (
     <Pressable
       onPress={() => {
@@ -109,86 +128,32 @@ function Toggle({ on, onPress, label, live }: { on: boolean; onPress: () => void
       }}
       accessibilityRole="button"
       accessibilityState={{ selected: on }}
-      accessibilityLabel={label}
-      style={[styles.toggle, { backgroundColor: on ? color.accentWash : color.surface1, borderColor: on ? color.accent : color.hairline }]}
+      style={[styles.filter, on ? { backgroundColor: color.surface1, boxShadow: t.filterShadow } : null]}
     >
-      {live !== undefined ? <View style={[styles.dot, { backgroundColor: live ? color.profit : color.inkDisabled }]} /> : null}
-      <Text style={[TYPE.data, { color: on ? color.accent : color.ink }]}>{label}</Text>
+      <Text style={[styles.filterText, { color: on ? color.ink : color.inkSecondary }]}>{label}</Text>
+      <Text style={[styles.filterN, { color: color.inkMuted }]}>{count}</Text>
     </Pressable>
   );
 }
 
-/** web's snap row of name chips (`.sh-chip`): mark, name, cashtag, live dot, price, the week's line. */
-function AssetRow({ stocks, value, marks, onPick }: { stocks: ShortStock[]; value: string; marks: DeskMarks | null; onPick: (asset: string) => void }) {
+/** desk-kit `EmptyState` with lucide's CalendarClock: nothing listed to short yet. */
+function EmptyPicker() {
   const { color } = useTheme();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow} accessibilityRole="radiogroup" accessibilityLabel={P.stock}>
-      {stocks.map((s) => {
-        const on = s.asset === value;
-        const line = lineOf(s, marks);
-        return (
-          <Pressable
-            key={s.asset}
-            onPress={() => {
-              haptic.select();
-              onPick(s.asset);
-            }}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: on }}
-            accessibilityLabel={`${nameOfAsset(s.asset)}, ${s.liveCount > 0 ? P.liveNow : P.closed}`}
-            style={[styles.chip, { backgroundColor: on ? color.accentWash : color.surface1, borderColor: on ? color.accent : color.hairline }]}
-          >
-            <View style={styles.chipTop}>
-              <AssetDisc asset={s.asset} size={26} />
-              <View style={styles.chipNames}>
-                <Text style={[TYPE.caption, { color: color.ink }]} numberOfLines={1}>
-                  {nameOfAsset(s.asset)}
-                </Text>
-                <Text style={[styles.tag, { color: color.inkMuted }]}>${s.asset}</Text>
-              </View>
-            </View>
-            <View style={styles.chipBottom}>
-              <View style={[styles.dot, { backgroundColor: s.liveCount > 0 ? color.profit : color.inkDisabled }]} />
-              <PriceLine asset={s.asset} style={styles.chipPrice} />
-              {line.length > 1 ? <Sparkline values={line} width={36} height={14} /> : null}
-            </View>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
-  );
-}
-
-/** web's `ShortPickSummary`: the chosen name in full, once — kind, when it trades, price and week. */
-function Summary({ stock, marks }: { stock: ShortStock; marks: DeskMarks | null }) {
-  const { color } = useTheme();
-  const live = stock.liveCount > 0;
-  const next = stock.windows[0];
-  const line = lineOf(stock, marks);
-  return (
-    <View style={[styles.summary, { backgroundColor: color.surface1, borderColor: color.hairline }]} accessibilityLiveRegion="polite">
-      <AssetDisc asset={stock.asset} size={40} />
-      <View style={styles.summaryText}>
-        <Text style={[TYPE.bodyStrong, { color: color.ink }]} numberOfLines={1}>
-          {nameOfAsset(stock.asset)}
-        </Text>
-        <Text style={[TYPE.caption, { color: color.inkMuted }]} numberOfLines={2}>
-          ${stock.asset} · {P.kind[stock.kind]} ·{" "}
-          <Text style={{ color: live ? color.profit : color.inkSecondary }}>
-            {live ? P.liveNow : next ? P.opens(opensAt(next.tradingStartSec)) : P.closed}
-          </Text>
-        </Text>
+    <View style={[styles.empty, { borderColor: color.hairline }]}>
+      <View style={[styles.emptyIcon, { backgroundColor: color.surface2 }]}>
+        <CalendarClock size={24} color={color.inkSecondary} />
       </View>
-      <View style={styles.summaryRight}>
-        <PriceLine asset={stock.asset} />
-        {line.length > 1 ? <Sparkline values={line} width={72} height={22} /> : null}
-      </View>
+      <Text style={[styles.emptyTitle, { color: color.ink }]}>{P.noneTitle}</Text>
+      <Text style={[styles.emptyBody, { color: color.inkSecondary }]}>{P.noneBody}</Text>
     </View>
   );
 }
 
+/** `.sh-window`: cadence, then time left and the Down ask — or, dashed, when it opens. */
 function WindowRow({ market, on, onSelect, nowMs }: { market: EventMarket; on: boolean; onSelect: (m: EventMarket) => void; nowMs: number }) {
-  const { color } = useTheme();
+  const { color, name } = useTheme();
+  const t = basketsShortTokens(name);
   const live = isLiveWindow(market, nowMs);
   return (
     <Pressable
@@ -196,13 +161,12 @@ function WindowRow({ market, on, onSelect, nowMs }: { market: EventMarket; on: b
         haptic.select();
         onSelect(market);
       }}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: on }}
-      accessibilityLabel={`${formatCadence(market.intervalSec)} window`}
-      style={[styles.window, { backgroundColor: on ? color.accentWash : color.surface1, borderColor: on ? color.accent : color.hairline }]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: on }}
+      style={[styles.window, { borderColor: on ? t.windowOnBorder : t.windowBorder, borderStyle: live ? "solid" : "dashed" }, on ? { backgroundColor: color.accentWash } : null]}
     >
-      <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{formatCadence(market.intervalSec)}</Text>
-      {live ? <LiveTerms market={market} nowMs={nowMs} /> : <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{P.opens(opensAt(market.tradingStartSec))}</Text>}
+      <Text style={[styles.windowC, { color: color.ink }]}>{formatCadence(market.intervalSec)}</Text>
+      {live ? <LiveTerms market={market} nowMs={nowMs} /> : <Text style={[styles.windowT, { color: color.inkSecondary }]}>{P.opens(opensAt(market.tradingStartSec))}</Text>}
     </Pressable>
   );
 }
@@ -212,35 +176,40 @@ function LiveTerms({ market, nowMs }: { market: EventMarket; nowMs: number }) {
   const { color } = useTheme();
   const { downCents, hydrating } = useTopOfBook(market);
   return (
-    <View style={styles.terms}>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>
+    <>
+      <Text style={[styles.windowT, { color: color.inkSecondary }]}>
         <Clock expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} /> {P.left}
       </Text>
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-        {P.costLabel}{" "}
-        <Text style={[TYPE.data, { color: color.loss }]}>{hydrating ? P.costPending : downCents === null ? P.noQuotes : P.cost(downCents)}</Text>
-      </Text>
-    </View>
+      <View style={styles.price}>
+        <Text style={[styles.priceK, { color: color.inkMuted }]}>{P.costLabel}</Text>
+        <Text style={[styles.priceV, { color: color.ink }]}>{hydrating ? P.costPending : downCents === null ? P.noQuotes : P.cost(downCents)}</Text>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  picker: { gap: 12 },
-  head: { gap: 8 },
-  filters: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  toggle: { minHeight: 40, paddingHorizontal: 14, borderRadius: RADIUS.full, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  chipRow: { gap: 8, paddingRight: 8 },
-  chip: { width: 148, borderRadius: RADIUS.md, borderWidth: 1, padding: 10, gap: 8 },
-  chipTop: { flexDirection: "row", alignItems: "center", gap: 8 },
-  chipNames: { flex: 1 },
-  tag: { fontFamily: FONT.data, fontSize: 11 },
-  chipBottom: { flexDirection: "row", alignItems: "center", gap: 6 },
-  chipPrice: { fontSize: 12, flexShrink: 1 },
-  summary: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 12 },
-  summaryText: { flex: 1, gap: 2 },
-  summaryRight: { alignItems: "flex-end", gap: 4 },
+  panel: { padding: 16, borderWidth: 1, borderRadius: 12 },
+  head: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 },
+  k: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1.6, textTransform: "uppercase" },
+  kGap: { marginTop: 20, marginBottom: 8 },
+  filters: { flexDirection: "row", gap: 4, padding: 3, borderRadius: 9999 },
+  filter: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 9999 },
+  filterText: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 19.2 },
+  filterN: { fontFamily: FONT.dataRegular, fontSize: 10.5, lineHeight: 16.8 },
+  cadences: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 },
+  cadence: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 36, paddingHorizontal: 16, borderWidth: 1, borderRadius: 9999 },
+  cadenceDot: { width: 7, height: 7, borderRadius: 3.5 },
+  cadenceText: { fontFamily: FONT.heading, fontSize: 13, lineHeight: 20.8 },
   windows: { gap: 8 },
-  window: { minHeight: 52, borderRadius: RADIUS.md, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  terms: { alignItems: "flex-end", gap: 2 },
+  window: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 52, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderRadius: 12 },
+  windowC: { fontFamily: FONT.heading, fontSize: 13, lineHeight: 20.8 },
+  windowT: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+  price: { marginLeft: "auto", alignItems: "flex-end", gap: 1 },
+  priceK: { fontFamily: FONT.dataRegular, fontSize: 8, lineHeight: 12.8, letterSpacing: 1.28, textTransform: "uppercase" },
+  priceV: { fontFamily: FONT.body, fontSize: 14, lineHeight: 15.4, fontVariant: ["tabular-nums"] },
+  empty: { alignItems: "center", gap: 8, paddingVertical: 32, paddingHorizontal: 16, borderWidth: 1, borderStyle: "dashed", borderRadius: 14 },
+  emptyIcon: { width: 48, height: 48, marginBottom: 4, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  emptyTitle: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 24, textAlign: "center" },
+  emptyBody: { maxWidth: 260, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8, textAlign: "center" },
 });

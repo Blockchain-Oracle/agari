@@ -3,7 +3,7 @@ import { isOk } from "@agari/core/schemas";
 import type { LaneSet } from "@agari/core/types";
 import { useAssetPrice, useLanes } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
 import { BASKETS_COPY } from "@/features/baskets/copy";
 import { basketLine, lineNumbers, useDeskMarks, type DeskMarks } from "@/features/desk/useDeskMarks";
@@ -14,10 +14,11 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { usePreIpoFactsAll, type PreIpoFactsView } from "@/features/ticker-hub/usePreIpoFacts";
 import { useWalletSession } from "@/lib/wallet-session";
-import { ErrorState, Pill, Screen, SectionHeader } from "~/components/kit";
-import { TitleHero } from "~/features/short/PageParts";
-import { TYPE, useTheme } from "~/theme";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { SectionHeader } from "~/features/explore/SectionHeader";
+import { FONT, useTheme } from "~/theme";
 import { BasketCard } from "./BasketCard";
+import { LiveStatus } from "./DeskKit";
 
 interface LiveCardProps {
   symbol: BasketSymbol;
@@ -51,8 +52,9 @@ function LiveBasketCard({ symbol, laneSet, nowMs, facts, held, marks }: LiveCard
 }
 
 /**
- * `/baskets` — web's `features/baskets/BasketsIndex.tsx`: the five baskets in registry order, each read the app
- * already makes (lanes, price stream, PreStocks facts, the wallet's holdings, the week's marks).
+ * `/baskets` — web's `features/baskets/BasketsIndex.tsx` in the news-page frame at 402 px: the "PRE-IPO · 24/7"
+ * line with its live chip, the Sora title, the Japanese line, the intro, "01 · Baskets", the five cards in registry
+ * order, the mono foot. Every read is one the app already makes.
  */
 export function BasketsScreen() {
   const { color } = useTheme();
@@ -68,32 +70,50 @@ export function BasketsScreen() {
   const held = holdings?.ok ? heldSymbols(holdings.value) : null;
 
   return (
-    <Screen title={BASKETS_COPY.title} onRefresh={() => queryClient.invalidateQueries()}>
-      <TitleHero
-        eyebrow={BASKETS_COPY.eyebrow}
-        aside={<Pill label={BASKETS_COPY.alwaysOpen} tone="profit" dot />}
-        title={BASKETS_COPY.title}
-        jp={BASKETS_COPY.headingJp}
-        lead={BASKETS_COPY.intro}
-      />
-      <SectionHeader index="01" title={BASKETS_COPY.title} />
-      {lanes && !lanes.ok ? <ErrorState diagnosis={lanes.error} /> : null}
-      {BASKET_SYMBOLS.map((symbol) => (
-        <LiveBasketCard
-          key={symbol}
-          symbol={symbol}
-          laneSet={laneSet}
-          nowMs={nowMs}
-          facts={facts?.ok ? (facts.value[symbol] ?? null) : null}
-          held={held}
-          marks={marks}
-        />
-      ))}
-      <Text style={[TYPE.caption, styles.foot, { color: color.inkMuted }]}>{BASKETS_COPY.foot}</Text>
-    </Screen>
+    <ExplorePage title={BASKETS_COPY.title} onRefresh={() => queryClient.invalidateQueries()}>
+      <View style={styles.page}>
+        <View style={styles.live}>
+          <Text style={[styles.liveLabel, { color: color.inkMuted }]}>{BASKETS_COPY.eyebrow}</Text>
+          <View style={styles.liveChip}>
+            <LiveStatus>{BASKETS_COPY.alwaysOpen}</LiveStatus>
+          </View>
+        </View>
+        <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+          {BASKETS_COPY.title}
+        </Text>
+        <Text style={[styles.jp, { color: color.inkMuted }]}>{BASKETS_COPY.headingJp}</Text>
+        <Text style={[styles.intro, { color: color.inkSecondary }]}>{BASKETS_COPY.intro}</Text>
+        <View accessibilityLabel={BASKETS_COPY.title}>
+          <SectionHeader index="01" title={BASKETS_COPY.title} style={styles.sectionHead} />
+          <View style={styles.grid}>
+            {BASKET_SYMBOLS.map((symbol) => (
+              <LiveBasketCard
+                key={symbol}
+                symbol={symbol}
+                laneSet={laneSet}
+                nowMs={nowMs}
+                facts={facts?.ok ? (facts.value[symbol] ?? null) : null}
+                held={held}
+                marks={marks}
+              />
+            ))}
+          </View>
+        </View>
+        <Text style={[styles.foot, { color: color.inkMuted }]}>{BASKETS_COPY.foot}</Text>
+      </View>
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  foot: { marginTop: 8 },
+  page: { paddingTop: 48, paddingBottom: 96 },
+  live: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 28, marginBottom: 12 },
+  liveLabel: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 2.2, textTransform: "uppercase" },
+  liveChip: { marginLeft: 4 },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 36, lineHeight: 39.6, letterSpacing: -0.9 },
+  jp: { marginTop: 14, fontFamily: FONT.stamp, fontSize: 16, lineHeight: 24, letterSpacing: 0.6 },
+  intro: { marginTop: 8, fontFamily: FONT.body, fontSize: 14, lineHeight: 21.7 },
+  sectionHead: { marginTop: 48 },
+  grid: { marginTop: 24, gap: 16 },
+  foot: { marginTop: 24, fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 0.36 },
 });
