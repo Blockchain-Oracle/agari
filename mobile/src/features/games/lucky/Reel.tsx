@@ -1,23 +1,23 @@
-import { SymbolView } from "expo-symbols";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
-import Animated, { cancelAnimation, Easing, runOnJS, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { LUCKY } from "@/features/games/lucky/copy";
 import { AssetDisc } from "~/components/marks/AssetDisc";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { CoinMark } from "~/features/games/shell/PixelArt";
+import { PIXEL_FONT } from "~/theme/web/games";
+import { CrtFace, useLuckyTokens } from "./parts";
 import { reelLock } from "./reel-sfx";
 
 /**
- * One reel of web's `LuckyReels.tsx` as a real strip — 21st: hyperiux/rolling-text (a column of duplicates that
- * scrolls and eases out onto the final value), ported to Reanimated on the UI thread. While the round trips run the
- * strip loops at web's step rate (one value per 60 ms); once the deal is in hand the reel decelerates onto its value
- * so that it lands exactly at its own stop time, then thunks.
+ * One reel of web's `LuckyReels.tsx` (`.lk-reel`): the pixel label over a CRT face with the art up top, the value
+ * in the pixel face below and a foot bar that lights when the reel lands. While moving, the face steps to the NEXT
+ * value in the pool every 60 ms with the art dimmed; it lands at its own stop time with a 1.06 → 1 thunk, the value
+ * and the foot bar taking the reel's tone. Reduced motion leaves the face blank until the deal, then lands at once.
  */
-const CELL = 88;
-const STEP_MS = 60;
-const DECEL_MS = 420;
-const FADE = 16;
+const CYCLE_MS = 60;
+const FACE = 112;
+
+export type ReelTone = "asset" | "up" | "down" | "reach";
 
 interface ReelProps<T> {
   index: number;
@@ -31,146 +31,105 @@ interface ReelProps<T> {
   /** When this reel lands, counted from the deal's arrival. */
   stopMs: number;
   last: boolean;
-  render: (value: T) => ReactNode;
+  tone: (value: T) => ReelTone;
+  /** The art above the value (`.lk-face-art`); null shows the coin. */
+  art: (value: T | null) => ReactNode;
+  word: (value: T | null) => string;
+  reach?: boolean;
   onStop: (index: number) => void;
 }
 
-// 21st: hyperiux/rolling-text
-export function Reel<T>({ index, label, pool, target, cycling, landing, reduced, haptics, stopMs, last, render, onStop }: ReelProps<T>) {
-  const { color } = useTheme();
-  const n = Math.max(1, pool.length);
-  const loop = n * CELL;
-  // Enough copies that a landing a full loop further on never runs off the strip, even for the two-value side reel.
-  const copies = Math.max(4, Math.ceil(24 / n));
-  const y = useSharedValue(0);
-  const [locked, setLocked] = useState(target !== null);
-  const [blank, setBlank] = useState(target === null);
+export function Reel<T>({ index, label, pool, target, cycling, landing, reduced, haptics, stopMs, last, tone, art, word, reach, onStop }: ReelProps<T>) {
+  const { color } = useLuckyTokens();
+  const [shown, setShown] = useState<T | null>(null);
+  const [locked, setLocked] = useState(false);
   const stopRef = useRef(onStop);
   stopRef.current = onStop;
-  const targetIndex = target === null ? -1 : pool.indexOf(target);
+  const scale = useSharedValue(1);
 
-  // At rest: the landed value, or the blank face.
+  // Idle or already dealt: the face shows the target, or nothing.
   useEffect(() => {
     if (cycling || landing) return;
+    setShown(target);
     setLocked(target !== null);
-    setBlank(target === null);
-    if (targetIndex >= 0) y.value = -(loop + targetIndex * CELL);
-  }, [cycling, landing, target, targetIndex, loop, y]);
+  }, [cycling, landing, target]);
 
-  // Rolling: loop the strip from the tap until this reel's own landing takes over.
-  const rolling = cycling || landing;
+  // Moving: step the pool; landing: schedule this reel's stop.
   useEffect(() => {
-    if (!rolling) return;
+    if (!cycling && !landing) return;
     setLocked(false);
-    if (reduced) {
-      setBlank(true);
-      return;
-    }
-    setBlank(false);
-    y.value = 0;
-    y.value = withRepeat(withTiming(-loop, { duration: n * STEP_MS, easing: Easing.linear }), -1, false);
-    return () => cancelAnimation(y);
-  }, [rolling, reduced, loop, n, y]);
-
-  // Landing: decelerate onto the value so the reel stops at its own time.
-  useEffect(() => {
-    if (!landing || targetIndex < 0) return;
-    const land = () => {
-      setLocked(true);
-      reelLock(last, haptics);
-      stopRef.current(index);
+    let at = index % Math.max(1, pool.length);
+    const interval = reduced
+      ? null
+      : setInterval(() => {
+          at = (at + 1) % pool.length;
+          setShown(pool[at] ?? null);
+        }, CYCLE_MS);
+    if (reduced) setShown(null);
+    const stop =
+      landing && target !== null
+        ? setTimeout(
+            () => {
+              if (interval) clearInterval(interval);
+              setShown(target);
+              setLocked(true);
+              if (!reduced) scale.value = withSequence(withTiming(1.06, { duration: 0 }), withTiming(1, { duration: 240, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
+              reelLock(last, haptics);
+              stopRef.current(index);
+            },
+            reduced ? 0 : stopMs,
+          )
+        : null;
+    return () => {
+      if (interval) clearInterval(interval);
+      if (stop) clearTimeout(stop);
     };
-    if (reduced) {
-      setBlank(false);
-      y.value = -(loop + targetIndex * CELL);
-      land();
-      return;
-    }
-    const timer = setTimeout(() => {
-      cancelAnimation(y);
-      // Where the loop has got to, folded into the first copy of the pool.
-      const current = -((((-y.value) % loop) + loop) % loop);
-      y.value = current;
-      let end = -(loop + targetIndex * CELL);
-      if (current - end < CELL * 2) end -= loop;
-      y.value = withTiming(end, { duration: DECEL_MS, easing: Easing.out(Easing.cubic) }, (finished) => {
-        if (finished) runOnJS(land)();
-      });
-    }, Math.max(0, stopMs - DECEL_MS));
-    return () => clearTimeout(timer);
     // `haptics` and `last` are read when the reel lands; a change mid-spin should not restart it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [landing, targetIndex, reduced, loop, stopMs, index, y]);
+  }, [cycling, landing, target, index, pool, reduced, stopMs, scale]);
 
-  const strip = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
-  const cells = Array.from({ length: copies * n }, (_, i) => pool[i % n] as T);
+  const thunk = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const moving = cycling || (landing && !locked);
+  const t = shown === null ? null : tone(shown);
+  const lit = locked && t !== null ? (t === "up" ? color.profit : t === "down" ? color.loss : color.accent) : null;
 
   return (
-    <View style={styles.reel}>
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{label}</Text>
-      <View
-        style={[styles.face, { backgroundColor: color.surface2, borderColor: locked ? color.accent : color.hairline }]}
-        accessible
-        accessibilityLabel={`${label}: ${locked && target !== null ? String(target) : LUCKY.reels.blank}`}
-      >
-        {blank ? (
-          <View style={styles.cell}>
-            <SymbolView name={{ ios: "questionmark.circle", android: "help" }} size={30} tintColor={color.inkMuted} />
-            <Text style={[styles.value, { color: color.inkMuted }]}>{LUCKY.reels.blank}</Text>
-          </View>
-        ) : (
-          <Animated.View style={strip}>
-            {cells.map((value, i) => (
-              <View key={i} style={styles.cell}>
-                {render(value)}
-              </View>
-            ))}
-          </Animated.View>
-        )}
-        <Fade ink={color.surface2} edge="top" />
-        <Fade ink={color.surface2} edge="bottom" />
-      </View>
+    <View style={styles.reel} accessible accessibilityLabel={`${label}: ${locked && target !== null ? word(target) : LUCKY.reels.blank}`}>
+      <Text style={[styles.k, { color: color.inkMuted }]}>{label.toUpperCase()}</Text>
+      <Animated.View style={thunk}>
+        <CrtFace height={FACE}>
+          <View style={[styles.art, moving && styles.artMoving, lit && (t === "up" || t === "down") ? [styles.glow, { shadowColor: lit }] : null]}>{art(shown)}</View>
+          <Text
+            style={[
+              styles.v,
+              reach && styles.vReach,
+              { color: lit ?? color.inkSecondary },
+              lit ? { textShadowColor: lit, textShadowRadius: 16, textShadowOffset: { width: 0, height: 0 } } : null,
+            ]}
+            numberOfLines={1}
+          >
+            {word(shown).toUpperCase()}
+          </Text>
+          <View style={[styles.foot, { backgroundColor: lit ?? color.inkDisabled, opacity: lit ? 1 : 0.35 }]} />
+        </CrtFace>
+      </Animated.View>
     </View>
   );
 }
 
-/** The strip's soft edge: the face's own ground fading over the passing values. */
-function Fade({ ink, edge }: { ink: string; edge: "top" | "bottom" }) {
-  const id = `reel-fade-${edge}`;
-  return (
-    <Svg pointerEvents="none" style={[styles.fade, edge === "top" ? styles.fadeTop : styles.fadeBottom]} width="100%" height={FADE}>
-      <Defs>
-        <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={ink} stopOpacity={edge === "top" ? 1 : 0} />
-          <Stop offset="1" stopColor={ink} stopOpacity={edge === "top" ? 0 : 1} />
-        </LinearGradient>
-      </Defs>
-      <Rect x="0" y="0" width="100%" height={FADE} fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
-/** A reel's face: the stock's disc, the side's arrow or the reach, over its word. */
-export function ReelFace({ kind, asset, text, ink }: { kind: "asset" | "up" | "down" | "reach"; asset?: string; text: string; ink: string }) {
-  return (
-    <>
-      {kind === "asset" && asset ? <AssetDisc asset={asset} size={34} /> : null}
-      {kind === "up" ? <SymbolView name={{ ios: "arrow.up.right", android: "trending_up" }} size={30} tintColor={ink} /> : null}
-      {kind === "down" ? <SymbolView name={{ ios: "arrow.down.right", android: "trending_down" }} size={30} tintColor={ink} /> : null}
-      <Text style={[kind === "reach" ? styles.reach : styles.value, { color: ink }]} numberOfLines={1} adjustsFontSizeToFit>
-        {text}
-      </Text>
-    </>
-  );
+/** `.lk-face-art`: the stock's disc, the bull or bear, or the coin while nothing is dealt — 44 px. */
+export function ReelArt({ asset, mark }: { asset?: string | null; mark?: ReactNode }) {
+  if (asset) return <AssetDisc asset={asset} size={44} />;
+  return <>{mark ?? <CoinMark size={44} />}</>;
 }
 
 const styles = StyleSheet.create({
-  reel: { flex: 1, gap: 6 },
-  face: { height: CELL, borderRadius: RADIUS.md, borderWidth: 1, overflow: "hidden" },
-  cell: { height: CELL, alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 6 },
-  value: { fontFamily: FONT.dataStrong, fontSize: 15, letterSpacing: 0.4 },
-  reach: { fontFamily: FONT.dataStrong, fontSize: 30, lineHeight: 34 },
-  fade: { position: "absolute", left: 0, right: 0, height: FADE },
-  fadeTop: { top: 0 },
-  fadeBottom: { bottom: 0 },
+  reel: { flex: 1, minWidth: 0, gap: 6 },
+  k: { fontFamily: PIXEL_FONT, fontSize: 12, lineHeight: 19.2, letterSpacing: 2.4, textAlign: "center" },
+  art: { position: "absolute", top: 12, left: 0, right: 0, alignItems: "center" },
+  artMoving: { opacity: 0.7 },
+  glow: { shadowOpacity: 1, shadowRadius: 12, shadowOffset: { width: 0, height: 0 } },
+  v: { position: "absolute", bottom: 12, left: 4, right: 4, zIndex: 4, textAlign: "center", fontFamily: PIXEL_FONT, fontSize: 22, lineHeight: 22, letterSpacing: 2.2, fontVariant: ["tabular-nums"] },
+  vReach: { fontSize: 33, lineHeight: 33, letterSpacing: 3.3 },
+  foot: { position: "absolute", left: 0, right: 0, bottom: 0, height: 3, zIndex: 4 },
 });

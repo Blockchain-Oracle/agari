@@ -5,13 +5,13 @@ import { AccessibilityInfo, StyleSheet, View } from "react-native";
 import { LUCKY } from "@/features/games/lucky/copy";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { useGames } from "~/features/games/shell";
-import { useTheme } from "~/theme";
-import { Reel, ReelFace } from "./Reel";
+import { BearMark, BullMark } from "~/features/games/shell/PixelArt";
+import { Reel, ReelArt } from "./Reel";
 import { reelPick, reelTick } from "./reel-sfx";
 
 /**
- * web's `LuckyReels.tsx`: three reels — stock, side, reach. They roll from the tap through both round trips and stop
- * only once the deal is in hand, staggered (720, 980, 1240 ms), each with its own thunk and buzz, the last one
+ * web's `LuckyReels.tsx` (`.lk-reels`, three columns, gap 8): stock, side, reach. They roll from the tap through both
+ * round trips and stop only once the deal is in hand, staggered (720, 980, 1240 ms), each with its own thunk and buzz, the last one
  * heavier; the pick is then held lit for a beat before the card appears. Reduced motion keeps every state and drops
  * the movement: the reels sit blank until the deal, then land together.
  */
@@ -38,7 +38,6 @@ interface Props {
 }
 
 export function LuckyReels({ cycling, landing, target, reduced, onLanded, pool }: Props) {
-  const { color } = useTheme();
   const { settings } = useGames();
   const haptics = settings.haptics;
   const [stopped, setStopped] = useState(0);
@@ -76,7 +75,7 @@ export function LuckyReels({ cycling, landing, target, reduced, onLanded, pool }
   const shared = { cycling, landing, reduced, haptics, onStop };
 
   return (
-    <View style={styles.row} accessibilityRole="none" accessibilityLabel={LUCKY.title}>
+    <View style={styles.reels} accessibilityLabel={LUCKY.title}>
       <Reel<string>
         {...shared}
         index={0}
@@ -85,7 +84,9 @@ export function LuckyReels({ cycling, landing, target, reduced, onLanded, pool }
         label={LUCKY.reels.asset}
         pool={pool ?? LUCKY_ASSETS}
         target={target?.asset ?? null}
-        render={(asset) => <ReelFace kind="asset" asset={asset} text={asset} ink={color.ink} />}
+        tone={() => "asset"}
+        art={(asset) => <ReelArt asset={asset} />}
+        word={(asset) => asset ?? LUCKY.reels.blank}
       />
       <Reel<Side>
         {...shared}
@@ -95,7 +96,9 @@ export function LuckyReels({ cycling, landing, target, reduced, onLanded, pool }
         label={LUCKY.reels.side}
         pool={SIDES}
         target={target?.side ?? null}
-        render={(side) => <ReelFace kind={side} text={SIDE_WORD[side]} ink={side === "up" ? color.profit : color.loss} />}
+        tone={(side) => side}
+        art={(side) => <ReelArt mark={side === "up" ? <BullMark size={44} /> : side === "down" ? <BearMark size={44} /> : undefined} />}
+        word={(side) => (side ? SIDE_WORD[side] : LUCKY.reels.blank)}
       />
       <Reel<number>
         {...shared}
@@ -105,12 +108,15 @@ export function LuckyReels({ cycling, landing, target, reduced, onLanded, pool }
         label={LUCKY.reels.reach}
         pool={LUCKY_MULTIPLIERS}
         target={target?.multiplier ?? null}
-        render={(m) => <ReelFace kind="reach" text={LUCKY.reels.multiple(m)} ink={color.accent} />}
+        tone={() => "reach"}
+        art={(m) => (m === null ? <ReelArt /> : null)}
+        word={(m) => (m === null ? LUCKY.reels.blank : LUCKY.reels.multiple(m))}
+        reach
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8 },
+  reels: { flexDirection: "row", gap: 8 },
 });

@@ -1,16 +1,21 @@
 import { LUCKY_VERIFIED } from "@agari/core/games";
 import type { Address } from "@agari/core/types";
 import { shortHex } from "@agari/core/units";
+import { router, type Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { LUCKY } from "@/features/games/lucky/copy";
 import type { LuckyHistoryWire, LuckyRowWire } from "@/features/games/lucky/lucky-wire";
 import { useLuckyBoard } from "@/features/games/lucky/useLuckyHistory";
-import { Card, LoadingState, SectionHeader } from "~/components/kit";
+import { Plate, PlateBody, PlateMeta, PlateTitle } from "~/features/games/frame";
 import { useGames } from "~/features/games/shell";
-import { TYPE, useTheme } from "~/theme";
+import { FONT } from "~/theme";
+import { PIXEL_FONT } from "~/theme/web/games";
 import { LuckyResultModal } from "./LuckyResultModal";
+import { LinkWord, LUCKY_TEXT, useLuckyTokens } from "./parts";
 import { luckyLoseSting, luckyWinSting } from "./reel-sfx";
+
+const BOARD_SHOWN = 5;
 
 interface Props {
   wallet: string | null;
@@ -19,17 +24,16 @@ interface Props {
   watchDrawId: string | null;
   decimals: number | null;
   symbol: string;
-  reduced: boolean;
 }
 
 /**
- * web's `LuckySide.tsx`: this wallet's streak, the top of the streak ladder, and the two things a player should know
- * before the first spin. The streak and the ladder count settled spins only. The verdict watcher lives here because
- * the history is polled here: when the spin placed in this session settles, the result modal opens once, with the
- * verdict's own sting.
+ * web's `LuckySide.tsx` (`.lk-side`): the mode's own sentence, this wallet's streak and best with a way to its
+ * spins, the top five of the streak ladder, and the two things a player should know before the first spin. The
+ * verdict watcher lives here because the history is polled here: when the spin placed in this session settles,
+ * the result modal opens once, with the verdict's own sting.
  */
-export function LuckySide({ wallet, feed, watchDrawId, decimals, symbol, reduced }: Props) {
-  const { color } = useTheme();
+export function LuckySide({ wallet, feed, watchDrawId, decimals, symbol }: Props) {
+  const { t, color } = useSideTokens();
   const { settings } = useGames();
   const board = useLuckyBoard();
   const [shown, setShown] = useState<LuckyRowWire | null>(null);
@@ -49,70 +53,97 @@ export function LuckySide({ wallet, feed, watchDrawId, decimals, symbol, reduced
 
   const words = LUCKY.board;
   return (
-    <>
+    <View style={styles.side}>
+      <Text style={[LUCKY_TEXT.body, { color: color.inkSecondary }]}>{LUCKY.intro}</Text>
+
       {feed?.configured ? (
-        <View style={styles.streak}>
-          <Fact label={LUCKY.history.streak} value={String(feed.streak)} />
-          <Fact label={LUCKY.history.best} value={String(feed.best)} />
-        </View>
+        <Plate>
+          <View style={styles.streak}>
+            <Fact k={LUCKY.history.streak} v={feed.streak} />
+            <Fact k={LUCKY.history.best} v={feed.best} />
+          </View>
+          <LinkWord label={LUCKY.history.title} onPress={() => router.push("/games/history" as Href)} style={styles.start} />
+        </Plate>
       ) : null}
 
-      <SectionHeader index="03" title={words.title} desc={words.intro} />
-      {board === null ? (
-        <LoadingState shape="list" label={words.loading} />
-      ) : !board.configured ? (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{words.notConfigured}</Text>
-      ) : board.rows.length === 0 ? (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{words.empty}</Text>
-      ) : (
-        <View>
-          {board.rows.slice(0, 5).map((row, i) => {
-            const you = row.wallet === wallet;
-            return (
-              <View key={row.wallet} style={[styles.rung, { borderBottomColor: color.hairline }, you && { backgroundColor: color.accentWash }]}>
-                <Text style={[TYPE.dataLg, styles.place, { color: i === 0 ? color.accent : color.inkMuted }]}>{i + 1}</Text>
-                <View style={styles.rungMain}>
-                  <Text style={[TYPE.data, { color: color.ink }]}>{you ? words.you : shortHex(row.wallet as Address, 6, 4)}</Text>
-                  <Text style={[TYPE.caption, { color: color.inkMuted }]}>{words.spins(row.spins)}</Text>
+      <Plate>
+        <PlateTitle>{words.title}</PlateTitle>
+        <PlateBody>{words.intro}</PlateBody>
+        {board === null ? (
+          <PlateMeta>{words.loading}</PlateMeta>
+        ) : !board.configured ? (
+          <PlateMeta>{words.notConfigured}</PlateMeta>
+        ) : board.rows.length === 0 ? (
+          <PlateMeta>{words.empty}</PlateMeta>
+        ) : (
+          <View style={styles.board}>
+            {board.rows.slice(0, BOARD_SHOWN).map((row, i) => {
+              const you = row.wallet === wallet;
+              return (
+                <View key={row.wallet} style={[styles.rung, { borderColor: you ? t.you : color.hairline }]}>
+                  <Text style={[styles.place, { color: color.inkMuted }]}>{i + 1}</Text>
+                  <View style={styles.main}>
+                    <Text style={[LUCKY_TEXT.v, { color: color.ink }]} numberOfLines={1}>
+                      {you ? words.you : shortHex(row.wallet as Address, 6, 4)}
+                    </Text>
+                    <Text style={[LUCKY_TEXT.k, { color: color.inkMuted }]}>{words.spins(row.spins).toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.rungSide}>
+                    <Text style={[styles.rungV, { color: color.ink }]}>{row.streak}</Text>
+                    <Text style={[LUCKY_TEXT.k, { color: color.inkMuted }]}>
+                      {`${words.now} · ${words.best} ${row.best}`.toUpperCase()}
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.rungSide}>
-                  <Text style={[TYPE.dataLg, { color: color.ink }]}>{row.streak}</Text>
-                  <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-                    {words.now} · {words.best} {row.best}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      )}
+              );
+            })}
+          </View>
+        )}
+      </Plate>
 
-      <Card>
-        <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{LUCKY.deal.proof.label}</Text>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{LUCKY.deal.proof.scope}</Text>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{LUCKY.deal.honesty}</Text>
-      </Card>
+      <Plate>
+        <PlateTitle>{LUCKY.deal.proof.label}</PlateTitle>
+        <PlateBody>{LUCKY.deal.proof.scope}</PlateBody>
+      </Plate>
+      <Plate>
+        <PlateBody>{LUCKY.deal.honesty}</PlateBody>
+      </Plate>
 
-      {shown ? <LuckyResultModal row={shown} decimals={decimals} symbol={symbol} streak={feed?.streak ?? 0} reduced={reduced} onClose={() => setShown(null)} /> : null}
-    </>
+      {shown ? <LuckyResultModal row={shown} decimals={decimals} symbol={symbol} streak={feed?.streak ?? 0} onClose={() => setShown(null)} /> : null}
+    </View>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
-  const { color } = useTheme();
+/** The ladder's own row edge is the games accent (`--gm-accent`): the player's chosen ring, vermilion by default. */
+function useSideTokens() {
+  const { color } = useLuckyTokens();
+  const { settings } = useGames();
+  const you = settings.accent === "up" ? color.profit : settings.accent === "down" ? color.loss : color.accent;
+  return { t: { you }, color };
+}
+
+/** `.gm-match-fact`: the mono key over the pixel figure (`.lk-streak-v`). */
+function Fact({ k, v }: { k: string; v: number }) {
+  const { color } = useLuckyTokens();
   return (
-    <View style={[styles.fact, { backgroundColor: color.surface1, borderColor: color.hairline }]}>
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{label}</Text>
-      <Text style={[TYPE.dataHero, { color: color.ink }]}>{value}</Text>
+    <View style={styles.fact}>
+      <Text style={[styles.factK, { color: color.inkMuted }]}>{k.toUpperCase()}</Text>
+      <Text style={[styles.factV, { color: color.accent }]}>{v}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  streak: { flexDirection: "row", gap: 10 },
-  fact: { flex: 1, borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, padding: 14, gap: 6 },
-  rung: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10, paddingHorizontal: 6, borderBottomWidth: StyleSheet.hairlineWidth },
-  place: { width: 26, textAlign: "center" },
-  rungMain: { flex: 1, gap: 2 },
+  side: { gap: 12 },
+  streak: { flexDirection: "row", alignItems: "center", gap: 12 },
+  start: { alignSelf: "flex-start" },
+  fact: { gap: 2 },
+  factK: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.26 },
+  factV: { fontFamily: PIXEL_FONT, fontSize: 33, lineHeight: 33, fontVariant: ["tabular-nums"] },
+  board: { gap: 6 },
+  rung: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, paddingVertical: 8, paddingHorizontal: 10, borderWidth: 1 },
+  place: { minWidth: 22, fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, fontVariant: ["tabular-nums"] },
+  main: { flex: 1, minWidth: 0, gap: 2 },
   rungSide: { alignItems: "flex-end", gap: 2 },
+  rungV: { fontFamily: PIXEL_FONT, fontSize: 22, lineHeight: 22, fontVariant: ["tabular-nums"] },
 });
