@@ -4,7 +4,8 @@ import type { MarketId, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
-import { Text } from "react-native";
+import { Rocket } from "lucide-react-native";
+import { Text, View } from "react-native";
 import { MOONSHOT } from "@/features/games/moonshot/copy";
 import { useExpiryCapacity } from "@/features/games/moonshot/useExpiryCapacity";
 import { useMoonshotQuote } from "@/features/games/moonshot/useMoonshotQuote";
@@ -16,21 +17,23 @@ import { useRangeWrites } from "@/features/range/useRangeWrites";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Card, ConnectGate } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
 import { useGames } from "~/features/games/shell";
+import { ConnectPlate, useRangeTokens } from "../range/PageParts";
+import { builderStyles as styles } from "../range/RangeBuilder";
 import type { PlaceStep } from "../range/TicketParts";
 import { WindowPicker } from "../range/WindowPicker";
 import { AimLadder, useRememberedCall } from "./AimLadder";
 import { MoonshotTicket } from "./MoonshotTicket";
 
+const SUCCESS_RESET_MS = 3_500;
+
 /**
- * web's `moonshot/MoonshotBuilder.tsx`, whole: the Window and the aim, then the ticket. The level, the odds and the
+ * web's `moonshot/MoonshotBuilder.tsx`: the Window plate and the aim above the ticket. The level, the odds and the
  * multiple are the contract's own (`previewBasis` → `solveStrike` → `previewOpen`); the expiry's capacity is read
- * before the slide; the open goes through web's `useRangeWrites`, which returns a requote instead of overcharging.
+ * before the tap; the open goes through web's `useRangeWrites`, which returns a requote instead of overcharging.
  */
 export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveState; symbol: string }) {
-  const { color } = useTheme();
+  const { t, r, color } = useRangeTokens();
   const { feedback: cue } = useGames();
   const { address } = useWalletSession();
   const nowMs = useChainNowMs();
@@ -48,8 +51,6 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
   const [txHash, setTxHash] = useState<Signature | null>(null);
-  // The call as it was sent, frozen: the live quote keeps solving after the round is placed.
-  const [placedLine, setPlacedLine] = useState<string | null>(null);
 
   const picked = (marketId && byId.get(marketId)) || windows[0] || null;
   useEffect(() => {
@@ -93,8 +94,8 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
       setStep("success");
       cue("card-win");
       const target = MOONSHOT.ticket.target(quote.call.direction, usdBand(quote.band.strikePrint));
-      setPlacedLine(`${target} · ${quote.rangeBand.asset}`);
       notify.neutral(MOONSHOT.ticket.toast(target, formatBaseUnits(outcome.stakeBase, decimals), formatBaseUnits(quote.quote.maxPayoutBase, decimals, { maxDp: 0, minDp: 0 }), symbol));
+      setTimeout(() => setStep("idle"), SUCCESS_RESET_MS);
       return;
     }
     setStep("error");
@@ -111,13 +112,20 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
     if ("txHash" in outcome && outcome.txHash) setTxHash(outcome.txHash);
   }, [address, quote, writes, decimals, symbol, quoteState, cue]);
 
+  if (!address) return <ConnectPlate title={MOONSHOT.connect.title} sub={MOONSHOT.connect.sub} />;
+
   return (
-    <ConnectGate why={MOONSHOT.connect.sub}>
-      <Card>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{MOONSHOT.builder.yourWindow}</Text>
-        <WindowPicker windows={windows} loading={windowsLoading} pickedId={picked?.marketId ?? null} nowMs={nowMs} onPick={setMarketId} />
-        {picked ? <AimLadder call={call} onCall={setCall} disabled={step === "placing"} /> : null}
-      </Card>
+    <View style={styles.grid}>
+      <View style={[styles.plate, { borderColor: t.cardBorder, backgroundColor: r.plate }]}>
+        <View style={[styles.plateHead, { borderBottomColor: r.headRule }]}>
+          <Rocket size={16} color={color.accent} strokeWidth={2} />
+          <Text style={[styles.plateName, { color: color.ink }]}>{MOONSHOT.builder.yourWindow}</Text>
+        </View>
+        <View style={styles.plateBody}>
+          <WindowPicker windows={windows} loading={windowsLoading} pickedId={picked?.marketId ?? null} nowMs={nowMs} onPick={setMarketId} />
+          {picked ? <AimLadder call={call} onCall={setCall} disabled={step === "placing"} /> : null}
+        </View>
+      </View>
       <MoonshotTicket
         window={picked}
         call={call}
@@ -144,10 +152,9 @@ export function MoonshotBuilder({ reserve, symbol }: { reserve: RangeReserveStat
         errorTitle={errorTitle}
         errorDetail={errorDetail}
         txHash={txHash}
-        placedLine={placedLine}
         onPlace={() => void handlePlace()}
         onReset={reset}
       />
-    </ConnectGate>
+    </View>
   );
 }

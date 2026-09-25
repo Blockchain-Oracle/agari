@@ -5,7 +5,8 @@ import type { MarketId, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet, useRangeBasis } from "@agari/markets/react";
 import { useCallback, useEffect, useState } from "react";
-import { Text } from "react-native";
+import { Target } from "lucide-react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { RANGE } from "@/features/range/copy";
@@ -18,21 +19,23 @@ import { useRangeWrites } from "@/features/range/useRangeWrites";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Card, ConnectGate } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
+import { FONT } from "~/theme";
 import { useGames } from "~/features/games/shell";
 import { BandControl } from "./BandControl";
+import { ConnectPlate, useRangeTokens } from "./PageParts";
 import { RangeTicket } from "./RangeTicket";
 import type { PlaceStep } from "./TicketParts";
 import { WindowPicker } from "./WindowPicker";
 
+const SUCCESS_RESET_MS = 3_500;
+
 /**
- * web's `range/RangeBuilder.tsx`, whole: the Window, the band, inside or outside, and the ticket — the quote is the
- * reserve's own (`previewOpen`), and the open goes through web's `useRangeWrites`, which hands back a requote rather
- * than overcharging when the basis moved between the quote and the signature.
+ * web's `range/RangeBuilder.tsx`: the Window plate (the picker, the band, inside or outside) above the ticket — the
+ * quote is the reserve's own (`previewOpen`), and the open goes through web's `useRangeWrites`, which hands back a
+ * requote rather than overcharging when the basis moved between the quote and the signature.
  */
 export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; symbol: string }) {
-  const { color } = useTheme();
+  const { t, r, color } = useRangeTokens();
   const { feedback: cue } = useGames();
   const { address } = useWalletSession();
   const nowMs = useChainNowMs();
@@ -51,8 +54,6 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
   const [errorTitle, setErrorTitle] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
   const [txHash, setTxHash] = useState<Signature | null>(null);
-  // The band as it was sent, frozen: the live band keeps following the price after the round is placed.
-  const [placedBand, setPlacedBand] = useState<string | null>(null);
 
   // The soonest Window is the default; a Window that leaves the list hands over to the next.
   const picked = (marketId && byId.get(marketId)) || windows[0] || null;
@@ -96,10 +97,10 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
     }
     if (outcome.status === "confirmed") {
       setTxHash(outcome.txHash);
-      setPlacedBand(`${band.side} ${usdBand(band.lowPrint)} – ${usdBand(band.highPrint)}`);
       setStep("success");
       cue("card-win");
       notify.neutral(RANGE.ticket.toast(`${band.side} ${usdBand(band.lowPrint)} – ${usdBand(band.highPrint)}`, formatBaseUnits(outcome.stakeBase, decimals), formatBaseUnits(quote.maxPayoutBase, decimals, { maxDp: 0, minDp: 0 }), symbol));
+      setTimeout(() => setStep("idle"), SUCCESS_RESET_MS);
       return;
     }
     setStep("error");
@@ -116,14 +117,21 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
     if ("txHash" in outcome && outcome.txHash) setTxHash(outcome.txHash);
   }, [address, quote, band, writes, decimals, symbol, quoteState, cue]);
 
+  if (!address) return <ConnectPlate title={RANGE.connect.title} sub={RANGE.connect.sub} />;
+
   return (
-    <ConnectGate why={RANGE.connect.sub}>
-      <Card>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{RANGE.builder.yourWindow}</Text>
-        <WindowPicker windows={windows} loading={windowsLoading} pickedId={picked?.marketId ?? null} nowMs={nowMs} onPick={setMarketId} />
-        {picked ? <BandControl asset={picked.asset} intervalSec={picked.intervalSec} draft={draft} side={side} onSide={setSide} spot={spot} onDragging={setDragging} /> : null}
-        {picked && staleBasis ? <Text style={[TYPE.caption, { color: color.warning }]}>{blockerLabel("stale-basis")}</Text> : null}
-      </Card>
+    <View style={styles.grid}>
+      <View style={[styles.plate, { borderColor: t.cardBorder, backgroundColor: r.plate }]}>
+        <View style={[styles.plateHead, { borderBottomColor: r.headRule }]}>
+          <Target size={16} color={color.accent} strokeWidth={2} />
+          <Text style={[styles.plateName, { color: color.ink }]}>{RANGE.builder.yourWindow}</Text>
+        </View>
+        <View style={styles.plateBody}>
+          <WindowPicker windows={windows} loading={windowsLoading} pickedId={picked?.marketId ?? null} nowMs={nowMs} onPick={setMarketId} />
+          {picked ? <BandControl asset={picked.asset} intervalSec={picked.intervalSec} draft={draft} side={side} onSide={setSide} spot={spot} onDragging={setDragging} /> : null}
+          {picked && staleBasis ? <Text style={[styles.note, { color: color.accent }]}>{blockerLabel("stale-basis")}</Text> : null}
+        </View>
+      </View>
       <RangeTicket
         window={picked}
         side={side}
@@ -143,9 +151,6 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
         payoutInput={payoutInput}
         onPayoutInput={setPayoutInput}
         walletSpendableBase={walletSpendableBase}
-        dragging={dragging}
-        placedBand={placedBand}
-        holdReason={picked && staleBasis ? blockerLabel("stale-basis") : null}
         step={step}
         errorTitle={errorTitle}
         errorDetail={errorDetail}
@@ -153,6 +158,17 @@ export function RangeBuilder({ reserve, symbol }: { reserve: RangeReserveState; 
         onPlace={() => void handlePlace()}
         onReset={reset}
       />
-    </ConnectGate>
+    </View>
   );
 }
+
+/** parlay-builder.css `.pl-grid` / `.pl-plate`: the Window plate over the ticket, 24 apart. */
+export const builderStyles = StyleSheet.create({
+  grid: { gap: 24 },
+  plate: { borderRadius: 16, borderWidth: 1 },
+  plateHead: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 16, paddingHorizontal: 20, borderBottomWidth: 1 },
+  plateName: { fontFamily: FONT.heading, fontSize: 14, lineHeight: 20, letterSpacing: 0.35 },
+  plateBody: { padding: 20, gap: 12 },
+  note: { marginTop: 10, fontFamily: FONT.body, fontSize: 12, lineHeight: 18 },
+});
+const styles = builderStyles;

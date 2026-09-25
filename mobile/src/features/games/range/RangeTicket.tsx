@@ -1,5 +1,5 @@
 import { formatCadence } from "@agari/core/market";
-import { type RangeQuote, type RangeReserveState, type RangeSide } from "@agari/core/range";
+import type { RangeQuote, RangeReserveState, RangeSide } from "@agari/core/range";
 import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { StyleSheet, Text, View } from "react-native";
@@ -7,10 +7,9 @@ import { RANGE } from "@/features/range/copy";
 import { formatMultiplierTenths, formatProbE6, usdBand, usdOnGrid, utilizationPct } from "@/features/range/format";
 import type { SolveMode } from "@/features/range/RangeTicket";
 import { diagnosisCopy } from "@/lib/copy";
-import { Button, Card, Row, Rows, SignReview, type QuoteLine } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
-import { Clock } from "./WindowPicker";
-import { PlaceError, Placed, Pays, Solver, sentStakeCapBase, type PlaceStep } from "./TicketParts";
+import { FONT } from "~/theme";
+import { useRangeTokens } from "./PageParts";
+import { AmountField, Clock, ErrorBlock, Footnote, Need, Pays, PlaceButton, Profit, QuoteErr, Row, Solver, TicketFrame, TxLink, type PlaceStep } from "./TicketParts";
 
 export interface RangeTicketProps {
   window: EventMarket | null;
@@ -31,12 +30,6 @@ export interface RangeTicketProps {
   payoutInput: string;
   onPayoutInput: (v: string) => void;
   walletSpendableBase: bigint | null;
-  /** The band is being dragged: the quote waits for the finger to lift. */
-  dragging: boolean;
-  /** The band exactly as it was placed, for the receipt. */
-  placedBand: string | null;
-  /** Why the page will not ask for a price right now (D-119's stale basis), named on the review. */
-  holdReason: string | null;
   step: PlaceStep;
   errorTitle: string;
   errorDetail: string;
@@ -45,131 +38,84 @@ export interface RangeTicketProps {
   onReset: () => void;
 }
 
-/** Whole dollars where the asset trades in the tens of thousands; cents on a $0.20 grid. */
+/** Whole dollars where the asset trades in the tens of thousands; cents on ETH's $0.20 grid. */
 const usd = (n: number) => usdOnGrid(n, n < 10_000 ? 2 : 0);
 
 /**
- * web's `range/RangeTicket.tsx`: the contract's multiple, the solver, what you pay and win, the band on its Window,
- * then the kit's SignReview — the exact figures, the maximum loss (the stake cap the open carries, quote + headroom)
- * and a slide. A blocked ticket names why on the review itself; the reserve's own state is the footnote.
+ * web's `range/RangeTicket.tsx`, in the parlay ticket's grammar: the multiple, the solver, the breakdown, the place
+ * control (the wallet asks to sign on the tap, as web's does), the footnotes, the error block and the transaction.
  */
 export function RangeTicket(props: RangeTicketProps) {
-  const { color } = useTheme();
-  const { window: w, side, lowUsd, highUsd, reserve, symbol, nowMs, quote, quoteLoading, quoteError, onRetryQuote } = props;
-  const { walletSpendableBase, dragging, holdReason, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
+  const { r, color } = useRangeTokens();
+  const { window: w, side, lowUsd, highUsd, reserve, symbol, nowMs, quote, quoteLoading, quoteError, onRetryQuote, solveMode, onSolveMode } = props;
+  const { stakeInput, onStakeInput, payoutInput, onPayoutInput, walletSpendableBase, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
   const { ticket } = RANGE;
   const { decimals } = reserve;
-  const money = (base: bigint) => `${formatBaseUnits(base, decimals)} ${symbol}`;
-
-  if (!w || lowUsd === null || highUsd === null) {
-    return (
-      <Card>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{ticket.needBand}</Text>
-      </Card>
-    );
-  }
-
-  const bandText = `${side} ${usd(lowUsd)} – ${usd(highUsd)}`;
-  if (step === "success") {
-    return <Placed title={ticket.placed} line={RANGE.cta.placed(props.placedBand ?? bandText)} txHash={txHash} viewTx={ticket.viewTx} another={RANGE.cta.another} onAnother={onReset} />;
-  }
-
+  const money = (base: bigint) => formatBaseUnits(base, decimals);
+  const stakeText = quote ? money(quote.stakeBase) : "···";
+  const payoutText = quote ? money(quote.maxPayoutBase) : "···";
+  const hasEnough = walletSpendableBase !== null && quote !== null && walletSpendableBase >= quote.stakeBase;
   const sideProbE6 = quote ? (side === "inside" ? quote.insideProbE6 : 1_000_000n - quote.insideProbE6) : null;
-  const maxStakeBase = quote ? sentStakeCapBase(quote.stakeBase) : null;
-  const hasEnough = walletSpendableBase !== null && maxStakeBase !== null && walletSpendableBase >= maxStakeBase;
-  // The first reason the slide cannot be used, in web's PlaceButton order.
-  const blockers: [boolean, string][] = [
-    [reserve.paused, ticket.reservePaused],
-    [holdReason !== null, holdReason ?? ""],
-    [dragging, ticket.releaseToPrice],
-    [quoteLoading, ticket.pricing],
-    [quoteError !== null, ticket.unavailable],
-    [quote === null, ticket.enterAmount],
-    [!hasEnough, ticket.insufficient(symbol)],
-  ];
-  const blocker = blockers.find(([blocked]) => blocked)?.[1] ?? null;
-  const lines: QuoteLine[] = quote
-    ? [
-        { label: "Band", value: bandText },
-        { label: "Window", value: `${w.asset} ${formatCadence(w.intervalSec)}` },
-        { label: ticket.pays, value: formatMultiplierTenths(quote.multiplierMilli), tone: "accent" },
-        { label: "Payout if it lands", value: money(quote.maxPayoutBase), tone: "profit", hint: "Sent exactly" },
-        { label: "Priced now", value: money(quote.stakeBase), hint: "Re-priced as it lands" },
-        { label: "Most it can charge", value: money(sentStakeCapBase(quote.stakeBase)), hint: "Higher is refused" },
-      ]
-    : [];
 
   return (
-    <Card>
-      <View style={styles.head}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{ticket.title}</Text>
-        <Text style={[TYPE.labelMicro, { color: color.accent }]}>{ticket.tag}</Text>
-      </View>
-      <Pays
-        label={ticket.pays}
-        loading={quoteLoading}
-        multiple={quote ? formatMultiplierTenths(quote.multiplierMilli) : null}
-        sub={quote && sideProbE6 !== null ? ticket.odds(formatProbE6(sideProbE6), side) : null}
-      />
-      <Solver
-        labels={ticket}
-        solveMode={props.solveMode}
-        onSolveMode={props.onSolveMode}
-        stakeInput={props.stakeInput}
-        onStakeInput={props.onStakeInput}
-        payoutInput={props.payoutInput}
-        onPayoutInput={props.onPayoutInput}
-        symbol={symbol}
-        walletHint={walletSpendableBase !== null ? ticket.wallet(formatBaseUnits(walletSpendableBase, decimals), symbol) : undefined}
-      />
-      <Rows>
-        <Row label={ticket.youPay} value={quoteLoading ? "…" : quote ? money(quote.stakeBase) : "···"} strong />
-        <Row label={ticket.youWin} value={quoteLoading ? "…" : quote ? money(quote.maxPayoutBase) : "···"} tone="accent" />
-        {quote ? <Text style={[TYPE.caption, { color: color.profit }]}>{ticket.profit(formatBaseUnits(quote.maxPayoutBase - quote.stakeBase, decimals), symbol)}</Text> : null}
-      </Rows>
-      <View style={styles.breakdown}>
-        <View style={styles.what}>
-          <Text style={[TYPE.data, { color: color.ink }]}>{bandText}</Text>
-          <View style={styles.when}>
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-              {w.asset} {formatCadence(w.intervalSec)} ·{" "}
+    <TicketFrame title={ticket.title} tag={ticket.tag}>
+      {!w || lowUsd === null || highUsd === null ? (
+        <Need>{ticket.needBand}</Need>
+      ) : (
+        <>
+          <Pays label={ticket.pays} loading={quoteLoading} multiple={quote ? formatMultiplierTenths(quote.multiplierMilli) : null} sub={quote && sideProbE6 !== null ? ticket.odds(formatProbE6(sideProbE6), side) : null} />
+
+          <Solver labels={ticket} solveMode={solveMode} onSolveMode={onSolveMode}>
+            {solveMode === "fixStake" ? (
+              <AmountField label={ticket.youPay} value={stakeInput} onChange={onStakeInput} symbol={symbol} hint={walletSpendableBase !== null ? ticket.wallet(money(walletSpendableBase), symbol) : undefined} />
+            ) : (
+              <AmountField label={ticket.youWin} value={payoutInput} onChange={onPayoutInput} symbol={symbol} hint={ticket.ifLands} />
+            )}
+            <View style={styles.rows}>
+              <Row label={ticket.youPay} emphasize>
+                {quoteLoading ? "…" : quote ? `${stakeText} ${symbol}` : "···"}
+              </Row>
+              <Row label={ticket.youWin} accent>
+                {quoteLoading ? "…" : quote ? `${payoutText} ${symbol}` : "···"}
+              </Row>
+              <Profit>{quote ? ticket.profit(money(quote.maxPayoutBase - quote.stakeBase), symbol) : null}</Profit>
+            </View>
+          </Solver>
+
+          <View style={styles.bdRow}>
+            <Text style={[styles.bdWhat, { color: color.inkMuted }]}>
+              <Text style={[styles.side, { color: color.accent }]}>{side.toUpperCase()}</Text> {usd(lowUsd)} – {usd(highUsd)}
+              <Text style={{ color: r.gray700 }}>
+                {" "}
+                · {w.asset} {formatCadence(w.intervalSec)} · <Clock expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
+              </Text>
             </Text>
-            <Clock expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
+            <Text style={[styles.bdProb, { color: color.inkSecondary }]}>{w.openingPriceRaw !== null ? usdBand(w.openingPriceRaw) : "·"}</Text>
           </View>
-        </View>
-        <Text style={[TYPE.data, { color: color.inkMuted }]}>{w.openingPriceRaw !== null ? usdBand(w.openingPriceRaw) : "·"}</Text>
-      </View>
 
-      {quoteError ? <Button label={`${diagnosisCopy(quoteError.kind).headline} · ${ticket.retry}`} variant="destructive" size="sm" onPress={onRetryQuote} /> : null}
-      {quoteError ? (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]} selectable>
-          {quoteError.technical}
-        </Text>
-      ) : null}
+          {quoteError ? <QuoteErr onPress={onRetryQuote}>{`${diagnosisCopy(quoteError.kind).headline} · ${ticket.retry}`}</QuoteErr> : null}
 
-      {step === "error" && errorTitle ? <PlaceError title={errorTitle} detail={errorDetail} onReset={onReset} tryAgain={ticket.tryAgain} txHash={txHash} /> : null}
+          <PlaceButton step={step} quoted={quote !== null} quoteLoading={quoteLoading} quoteError={quoteError !== null} hasEnough={hasEnough} stakeText={stakeText} symbol={symbol} onPlace={onPlace} labels={ticket} />
 
-      <SignReview
-        title={RANGE.cta.place(usd(lowUsd), usd(highUsd)).replace(" →", "")}
-        lines={lines}
-        maxLoss={maxStakeBase !== null ? money(maxStakeBase) : "—"}
-        confirmLabel="Slide to place range"
-        onConfirm={onPlace}
-        phase={step === "placing" ? "signing" : "review"}
-        blocker={step === "placing" ? null : blocker}
-      />
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-        {ticket.footnote}
-        {"\n"}
-        {reserve.paused ? ticket.reservePaused : ticket.reserve(formatBaseUnits(reserve.liquidBase, decimals), symbol, utilizationPct(reserve.utilizationBps))}
-      </Text>
-    </Card>
+          <Footnote lines={[ticket.footnote, reserve.paused ? ticket.reservePaused : ticket.reserve(money(reserve.liquidBase), symbol, utilizationPct(reserve.utilizationBps))]} />
+
+          {step === "error" && errorTitle ? <ErrorBlock title={errorTitle} detail={errorDetail} onReset={onReset} labels={ticket} /> : null}
+          {step === "success" && txHash ? <TxLink txHash={txHash} label={ticket.viewTx} /> : null}
+        </>
+      )}
+    </TicketFrame>
   );
 }
 
+/** `.pl-breakdown` rows, shared with the Moonshot ticket. */
+export const breakdownStyles = StyleSheet.create({
+  bdRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", gap: 8 },
+  bdWhat: { flexShrink: 1, fontFamily: FONT.body, fontSize: 11, lineHeight: 17.6 },
+  side: { fontFamily: FONT.dataRegular, fontSize: 11, letterSpacing: 0.88 },
+  bdProb: { marginLeft: "auto", fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+});
+
 const styles = StyleSheet.create({
-  head: { flexDirection: "row", justifyContent: "space-between" },
-  breakdown: { flexDirection: "row", alignItems: "center", gap: 10 },
-  what: { flex: 1, gap: 2 },
-  when: { flexDirection: "row", alignItems: "center" },
+  rows: { gap: 6, paddingTop: 4 },
+  ...breakdownStyles,
 });

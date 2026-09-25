@@ -1,23 +1,22 @@
 import { aimToCall, callToAim, MOONSHOT_AIM_LADDER, type MoonshotAim, type MoonshotCall } from "@agari/core/range";
-import { SymbolView } from "expo-symbols";
-import { useCallback, useRef } from "react";
-import { Pressable, StyleSheet, Text, View, type AccessibilityActionEvent } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { ChevronDown, ChevronUp } from "lucide-react-native";
+import { useCallback } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MOONSHOT } from "@/features/games/moonshot/copy";
 import { usePersistedState } from "@/lib/persisted";
 import { haptic } from "~/components/kit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
 import { useGames } from "~/features/games/shell";
+import { FONT } from "~/theme";
+import { IconBtn } from "../range/BandControl";
+import { useRangeTokens } from "../range/PageParts";
 
 /** web's `useRememberedCall` (AimControl.tsx): the aim under Pips' key, LONG ×5 by default. */
 const AIM_KEY = "agari.games.moonshot.aim";
 const DEFAULT_AIM: MoonshotAim = 5;
 const LAST = MOONSHOT_AIM_LADDER.length - 1;
-const RUNG_H = 44;
-const MID_H = 10;
-/** Deepest LONG at the top, deepest SHORT at the bottom — the knob's own order, read top down. */
-const ORDER: readonly MoonshotAim[] = [...MOONSHOT_AIM_LADDER].reverse();
+/** Deepest LONG at the ceiling, deepest SHORT at the floor — the knob's own order, read top down. */
+const LONG_RUNGS = [...MOONSHOT_AIM_LADDER].filter((aim) => aim > 0).reverse();
+const SHORT_RUNGS = [...MOONSHOT_AIM_LADDER].filter((aim) => aim < 0).reverse();
 
 const aimCodec = {
   parse: (raw: string): MoonshotAim | null => {
@@ -33,108 +32,72 @@ export function useRememberedCall(): [MoonshotCall, (call: MoonshotCall) => void
   return [aimToCall(aim), setCall];
 }
 
-/** Which rung a finger at `y` (points from the ladder's top) is on. */
-function rungAt(y: number): MoonshotAim {
-  const longs = ORDER.filter((a) => a > 0).length;
-  const row = y < longs * RUNG_H ? Math.floor(y / RUNG_H) : Math.floor((y - MID_H) / RUNG_H);
-  return ORDER[Math.max(0, Math.min(ORDER.length - 1, row))] as MoonshotAim;
-}
-
 /**
- * web's `moonshot/AimControl.tsx` (Pips' AIM knob) as a touch ladder: ten rungs, the sign is the side and the distance
- * the reach. Tap a rung, or hold and slide and the aim follows the finger, a detent per rung (a plain swipe still
- * scrolls the page). The flip sting fires only when the side crosses the middle. VoiceOver adjusts it like a slider.
+ * web's `moonshot/AimControl.tsx` (moonshot.css): Pips' AIM knob as a ladder of ten rungs — the sign is the side and
+ * the distance the reach — beside the readout (the reach large, the side, the hint and the two steps). The flip
+ * sting fires only when the side crosses the middle; a step within a side is the control's own click.
  */
 export function AimLadder({ call, onCall, disabled }: { call: MoonshotCall; onCall: (call: MoonshotCall) => void; disabled?: boolean }) {
-  const { color } = useTheme();
-  const { feedback: cue } = useGames();
+  const { r, color } = useRangeTokens();
+  const { feedback } = useGames();
   const words = MOONSHOT.aim;
   const aim = callToAim(call);
   const index = MOONSHOT_AIM_LADDER.indexOf(aim);
-  const current = useRef(aim);
-  current.current = aim;
 
   const set = useCallback(
-    (next: MoonshotAim) => {
-      const was = current.current;
-      if (disabled || next === was) return;
-      if (next > 0 !== was > 0) cue(next > 0 ? "swipe-up" : "swipe-down");
-      else haptic.select();
-      current.current = next;
-      onCall(aimToCall(next));
+    (next: number) => {
+      const nextAim = MOONSHOT_AIM_LADDER[Math.max(0, Math.min(LAST, next))];
+      if (nextAim === undefined || nextAim === aim) return;
+      if (nextAim > 0 !== aim > 0) feedback(nextAim > 0 ? "swipe-up" : "swipe-down");
+      onCall(aimToCall(nextAim));
     },
-    [disabled, onCall, cue],
+    [aim, onCall, feedback],
   );
-  const step = (by: number) => {
-    const next = MOONSHOT_AIM_LADDER[Math.max(0, Math.min(LAST, index + by))];
-    if (next !== undefined) set(next);
-  };
-  const follow = (y: number) => set(rungAt(y));
-
-  const pan = Gesture.Pan()
-    .enabled(!disabled)
-    // Hold, then slide: a plain vertical swipe over the ladder still scrolls the page.
-    .activateAfterLongPress(160)
-    .onStart((e) => runOnJS(follow)(e.y))
-    .onUpdate((e) => runOnJS(follow)(e.y));
-
-  const onAction = (event: AccessibilityActionEvent) => {
-    if (event.nativeEvent.actionName === "increment") step(1);
-    else if (event.nativeEvent.actionName === "decrement") step(-1);
-  };
-  const long = call.direction === "long";
-  const ink = long ? color.profit : color.loss;
 
   const rung = (value: MoonshotAim) => {
     const on = value === aim;
-    const isLong = value > 0;
-    const tone = isLong ? color.profit : color.loss;
+    const long = value > 0;
+    const onGround = long ? { borderColor: r.longOnBorder, backgroundColor: r.longOnBg } : { borderColor: r.shortOnBorder, backgroundColor: r.shortOnBg };
     return (
       <Pressable
         key={value}
-        onPress={() => set(value)}
-        importantForAccessibility="no"
-        accessibilityElementsHidden
-        style={[styles.rung, { backgroundColor: on ? tone : "transparent", borderColor: on ? tone : color.hairline }]}
+        onPress={() => {
+          haptic.select();
+          set(MOONSHOT_AIM_LADDER.indexOf(value));
+        }}
+        disabled={disabled}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: on, disabled: !!disabled }}
+        accessibilityLabel={words.valueText(long ? "long" : "short", Math.abs(value))}
+        style={({ pressed }) => [styles.rung, { borderColor: r.rungBorder }, on && onGround, disabled && styles.off, pressed && styles.pressed]}
       >
-        <Text style={[styles.rungSide, { color: on ? color.ground : tone }]}>{isLong ? "L" : "S"}</Text>
-        <Text style={[styles.rungX, { color: on ? color.ground : color.ink }]}>{words.rung(Math.abs(value))}</Text>
+        <Text style={[styles.rungSide, { color: long ? color.profit : color.loss, opacity: on ? 1 : 0.7 }]}>{long ? "L" : "S"}</Text>
+        <Text style={[styles.rungX, { color: on ? color.ink : r.rungInk }]}>{words.rung(Math.abs(value))}</Text>
       </Pressable>
     );
   };
 
+  const long = call.direction === "long";
+  const ink = long ? color.profit : color.loss;
   return (
-    <View style={styles.wrap}>
+    <View>
       <View style={styles.head}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{words.label}</Text>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{words.must}</Text>
+        <Text style={[styles.label, { color: r.bandLabel }]}>{words.label.toUpperCase()}</Text>
+        <Text style={[styles.must, { color: r.bandMust }]}>{words.must}</Text>
       </View>
-      <View style={styles.body}>
-        <GestureDetector gesture={pan}>
-          <View
-            style={styles.ladder}
-            accessible
-            accessibilityRole="adjustable"
-            accessibilityLabel={words.ladder}
-            accessibilityValue={{ text: words.valueText(call.direction, call.multiple) }}
-            accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
-            onAccessibilityAction={onAction}
-          >
-            {ORDER.filter((a) => a > 0).map(rung)}
-            <View style={styles.mid}>
-              <View style={[styles.midLine, { backgroundColor: color.borderStrong }]} />
-            </View>
-            {ORDER.filter((a) => a < 0).map(rung)}
-          </View>
-        </GestureDetector>
+      <View style={[styles.body, { borderColor: r.bandBorder, backgroundColor: r.bandBg }]}>
+        <View style={styles.ladder} accessibilityRole="radiogroup" accessibilityLabel={words.ladder}>
+          {LONG_RUNGS.map(rung)}
+          <View style={[styles.mid, { backgroundColor: r.ladderMid }]} />
+          {SHORT_RUNGS.map(rung)}
+        </View>
         <View style={styles.readout} accessibilityLiveRegion="polite">
-          <Text style={[styles.readoutX, { color: ink }]}>{words.rung(call.multiple)}</Text>
-          <Text style={[TYPE.labelMicro, { color: ink }]}>{long ? words.long : words.short}</Text>
-          <SymbolView name={long ? { ios: "arrow.up.forward", android: "north_east" } : { ios: "arrow.down.forward", android: "south_east" }} size={28} tintColor={ink} />
-          <Text style={[TYPE.caption, styles.hint, { color: color.inkMuted }]}>{words.hint}</Text>
+          <Text style={[styles.x, { color: color.accent }]}>{words.rung(call.multiple)}</Text>
+          <Text style={[styles.side, { color: ink }]}>{(long ? words.long : words.short).toUpperCase()}</Text>
+          <Text style={[styles.hint, { color: r.hint }]}>{words.hint.toUpperCase()}</Text>
           <View style={styles.btns}>
-            <StepButton up label={words.up} disabled={disabled || index === LAST} onPress={() => step(1)} />
-            <StepButton up={false} label={words.down} disabled={disabled || index === 0} onPress={() => step(-1)} />
+            <IconBtn Icon={ChevronUp} label={words.up} disabled={disabled || index === LAST} onPress={() => set(index + 1)} />
+            <IconBtn Icon={ChevronDown} label={words.down} disabled={disabled || index === 0} onPress={() => set(index - 1)} />
           </View>
         </View>
       </View>
@@ -142,35 +105,21 @@ export function AimLadder({ call, onCall, disabled }: { call: MoonshotCall; onCa
   );
 }
 
-function StepButton({ up, label, disabled, onPress }: { up: boolean; label: string; disabled?: boolean; onPress: () => void }) {
-  const { color } = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: !!disabled }}
-      style={({ pressed }) => [styles.step, { borderColor: color.hairline, backgroundColor: pressed ? color.surface2 : color.surface1, opacity: disabled ? 0.4 : 1 }]}
-    >
-      <SymbolView name={up ? { ios: "chevron.up", android: "expand_less" } : { ios: "chevron.down", android: "expand_more" }} size={18} tintColor={color.ink} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
-  head: { gap: 2 },
-  body: { flexDirection: "row", gap: 14 },
-  ladder: { flex: 1.1 },
-  rung: { height: RUNG_H - 4, marginVertical: 2, borderRadius: RADIUS.md, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12 },
-  rungSide: { fontFamily: FONT.dataStrong, fontSize: 12, letterSpacing: 1 },
-  rungX: { fontFamily: FONT.dataStrong, fontSize: 16 },
-  mid: { height: MID_H, justifyContent: "center" },
-  midLine: { height: 2, borderRadius: 1 },
-  readout: { flex: 1, alignItems: "center", justifyContent: "center", gap: 6 },
-  readoutX: { fontFamily: FONT.dataStrong, fontSize: 56, lineHeight: 62, fontVariant: ["tabular-nums"] },
-  hint: { textAlign: "center" },
-  btns: { flexDirection: "row", gap: 8, marginTop: 6 },
-  step: { width: 48, height: 44, borderRadius: RADIUS.md, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 8 },
+  label: { fontFamily: FONT.dataRegular, fontSize: 9, letterSpacing: 1.44 },
+  must: { flexShrink: 1, textAlign: "right", fontFamily: FONT.dataRegular, fontSize: 8.5 },
+  body: { flexDirection: "row", gap: 16, borderRadius: 6, borderWidth: 1, padding: 12 },
+  ladder: { width: 104, gap: 3 },
+  mid: { height: 1, marginVertical: 3, marginHorizontal: 4 },
+  rung: { height: 28, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 10, borderRadius: 4, borderWidth: 1 },
+  rungSide: { fontFamily: FONT.dataRegular, fontSize: 8, letterSpacing: 1.12 },
+  rungX: { fontFamily: FONT.dataRegular, fontSize: 11, fontVariant: ["tabular-nums"] },
+  off: { opacity: 0.5 },
+  pressed: { transform: [{ scale: 0.98 }] },
+  readout: { flex: 1, minWidth: 0 },
+  x: { fontFamily: FONT.headingHeavy, fontSize: 40, lineHeight: 44, letterSpacing: -1, fontVariant: ["tabular-nums"] },
+  side: { marginTop: 6, fontFamily: FONT.dataStrong, fontSize: 11, letterSpacing: 1.54 },
+  hint: { marginTop: 10, fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 13.5, letterSpacing: 0.72 },
+  btns: { marginTop: "auto", paddingTop: 12, flexDirection: "row", gap: 4 },
 });

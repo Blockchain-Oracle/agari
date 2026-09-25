@@ -1,17 +1,17 @@
 import { formatCadence } from "@agari/core/market";
-import { type MoonshotCall, type RangeReserveState } from "@agari/core/range";
+import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@agari/core/range";
 import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
 import type { MoonshotQuote, RangeCapacity } from "@agari/markets/range";
 import { StyleSheet, Text, View } from "react-native";
 import { MOONSHOT } from "@/features/games/moonshot/copy";
 import { formatMultiplierTenths, formatProbE6, usdBand, utilizationPct } from "@/features/range/format";
 import type { SolveMode } from "@/features/range/RangeTicket";
 import { diagnosisCopy } from "@/lib/copy";
-import { Button, Card, Row, Rows, SignReview, type QuoteLine } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
-import { PlaceError, Placed, Pays, Solver, sentStakeCapBase, type PlaceStep } from "../range/TicketParts";
-import { Clock } from "../range/WindowPicker";
+import { FONT } from "~/theme";
+import { useRangeTokens } from "../range/PageParts";
+import { breakdownStyles } from "../range/RangeTicket";
+import { AmountField, Clock, ErrorBlock, Footnote, Need, Pays, PlaceButton, Profit, QuoteErr, Row, Solver, TicketFrame, TxLink, type PlaceStep } from "../range/TicketParts";
 
 export interface MoonshotTicketProps {
   window: EventMarket | null;
@@ -25,9 +25,12 @@ export interface MoonshotTicketProps {
   onRetryQuote: () => void;
   /** The reserve's answer for this round's lock on this expiry; null while it is being read. */
   capacity: RangeCapacity | null;
+  /** This rung's payout ceiling — the product's cap under the contract's — known before any quote. */
   capBase: bigint;
+  /** "Set payout" typed over the cap: the chain is not asked, and one tap sets the field to the cap. */
   overCap: boolean;
   onUseCap: () => void;
+  /** What "Set stake" asked for, so the ticket can say when the cap took less than that. */
   stakeBase: bigint;
   solveMode: SolveMode;
   onSolveMode: (mode: SolveMode) => void;
@@ -40,8 +43,6 @@ export interface MoonshotTicketProps {
   errorTitle: string;
   errorDetail: string;
   txHash: Signature | null;
-  /** The call exactly as it was placed, for the receipt. */
-  placedLine: string | null;
   onPlace: () => void;
   onReset: () => void;
 }
@@ -55,151 +56,99 @@ function distancePct(strikePrint: bigint, openingPrint: bigint): { text: string;
 }
 
 /**
- * web's `moonshot/MoonshotTicket.tsx`: the contract's multiple, the solved level and how far it sits, the solver,
- * the caps and the house's liability, then the kit's SignReview with the maximum loss (the stake cap the open
- * carries). The reserve's caps are asked before the slide, so a round that will not fit says so here, not as a revert.
+ * web's `moonshot/MoonshotTicket.tsx`, in the parlay ticket's grammar: the contract's multiple, the solved level and
+ * how far it sits, the solver, the breakdown, the caps and the liability line, the place control (the wallet asks
+ * to sign on the tap), the footnotes, the error block and the transaction.
  */
 export function MoonshotTicket(props: MoonshotTicketProps) {
-  const { color } = useTheme();
-  const { window: w, call, reserve, symbol, nowMs, quote, quoteLoading, quoteError, onRetryQuote, capacity, capBase, overCap, onUseCap, stakeBase, solveMode } = props;
-  const { walletSpendableBase, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
+  const { r, color } = useRangeTokens();
+  const { window: w, call, reserve, symbol, nowMs, quote, quoteLoading, quoteError, onRetryQuote, capacity, capBase, overCap, onUseCap, stakeBase, solveMode, onSolveMode } = props;
+  const { stakeInput, onStakeInput, payoutInput, onPayoutInput, walletSpendableBase, step, errorTitle, errorDetail, txHash, onPlace, onReset } = props;
   const { ticket } = MOONSHOT;
   const { decimals, params } = reserve;
-  const money = (base: bigint) => `${formatBaseUnits(base, decimals)} ${symbol}`;
+  const money = (base: bigint) => formatBaseUnits(base, decimals);
   const whole = (base: bigint) => formatBaseUnits(base, decimals, { maxDp: 0, minDp: 0 });
-
-  if (!w) {
-    return (
-      <Card>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{ticket.needWindow}</Text>
-      </Card>
-    );
-  }
-
-  const target = quote ? ticket.target(call.direction, usdBand(quote.band.strikePrint)) : MOONSHOT.aim.valueText(call.direction, call.multiple);
-  if (step === "success") {
-    return <Placed title={ticket.placed} line={props.placedLine ?? `${target} · ${w.asset} ${formatCadence(w.intervalSec)}`} txHash={txHash} viewTx={ticket.viewTx} another="Fire another" onAnother={onReset} />;
-  }
-
+  const stakeText = quote ? money(quote.quote.stakeBase) : "···";
+  const payoutText = quote ? money(quote.quote.maxPayoutBase) : "···";
   const fits = capacity === null || capacity.fits;
+  const hasEnough = walletSpendableBase !== null && quote !== null && walletSpendableBase >= quote.quote.stakeBase;
   const distance = quote ? distancePct(quote.band.strikePrint, quote.openingPrint) : null;
   const room = capacity ? (params.maxExpiryLockedBase > capacity.lockedByExpiryBase ? params.maxExpiryLockedBase - capacity.lockedByExpiryBase : 0n) : null;
+  // "Set stake" ran into the cap: the contract's stake for the capped payout is below what was typed.
   const cappedStake = solveMode === "fixStake" && quote !== null && quote.quote.maxPayoutBase === capBase && quote.quote.stakeBase < stakeBase;
-  const maxStakeBase = quote ? sentStakeCapBase(quote.quote.stakeBase) : null;
-  const hasEnough = walletSpendableBase !== null && maxStakeBase !== null && walletSpendableBase >= maxStakeBase;
-  const blocker = reserve.paused
-    ? ticket.reservePaused
-    : overCap
-      ? ticket.overCap(call.multiple, whole(capBase), symbol)
-      : quoteLoading
-        ? ticket.pricing
-        : quoteError
-          ? ticket.unavailable
-          : !quote
-            ? ticket.build
-            : !fits
-              ? ticket.wontFit
-              : !hasEnough
-                ? ticket.insufficient(symbol)
-                : null;
-  const lines: QuoteLine[] = quote
-    ? [
-        { label: "Target", value: target },
-        { label: "Window", value: `${w.asset} ${formatCadence(w.intervalSec)}` },
-        { label: ticket.pays, value: formatMultiplierTenths(quote.quote.multiplierMilli), tone: "accent" },
-        { label: "Payout if it lands", value: money(quote.quote.maxPayoutBase), tone: "profit", hint: "Sent exactly" },
-        { label: "Priced now", value: money(quote.quote.stakeBase), hint: "Re-priced as it lands" },
-        { label: "Most it can charge", value: money(sentStakeCapBase(quote.quote.stakeBase)), hint: "Higher is refused" },
-      ]
-    : [];
+  const labels = { ...ticket, insufficient: (s: string) => (fits ? ticket.insufficient(s) : ticket.wontFit) };
+  const liability = [
+    capBase < params.maxPayoutCapBase ? ticket.capRung(call.multiple, whole(capBase), symbol) : ticket.capContract(whole(capBase), symbol),
+    ...(cappedStake && quote ? [ticket.cappedStake(money(quote.quote.stakeBase), whole(capBase), symbol)] : []),
+    `${quote ? `${ticket.locks(money(quote.houseLockedBase), symbol)} ` : ""}${room === null ? ticket.expiryReading : ticket.expiryRoom(money(room), whole(params.maxExpiryLockedBase), symbol)}`,
+  ];
 
   return (
-    <Card>
-      <View style={styles.head}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{ticket.title}</Text>
-        <Text style={[TYPE.labelMicro, { color: color.accent }]}>{ticket.tag}</Text>
-      </View>
-      <Pays
-        label={ticket.pays}
-        loading={quoteLoading}
-        multiple={quote ? formatMultiplierTenths(quote.quote.multiplierMilli) : null}
-        sub={quote ? ticket.odds(formatProbE6(quote.quote.insideProbE6), call.direction, usdBand(quote.band.strikePrint)) : null}
-      />
-      <Solver
-        labels={ticket}
-        solveMode={solveMode}
-        onSolveMode={props.onSolveMode}
-        stakeInput={props.stakeInput}
-        onStakeInput={props.onStakeInput}
-        payoutInput={props.payoutInput}
-        onPayoutInput={props.onPayoutInput}
-        symbol={symbol}
-        walletHint={walletSpendableBase !== null ? ticket.wallet(formatBaseUnits(walletSpendableBase, decimals), symbol) : undefined}
-      />
-      <Rows>
-        <Row label={ticket.youPay} value={quoteLoading ? "…" : quote ? money(quote.quote.stakeBase) : "···"} strong />
-        <Row label={ticket.youWin} value={quoteLoading ? "…" : quote ? money(quote.quote.maxPayoutBase) : "···"} tone="accent" />
-        {quote ? <Text style={[TYPE.caption, { color: color.profit }]}>{ticket.profit(formatBaseUnits(quote.quote.maxPayoutBase - quote.quote.stakeBase, decimals), symbol)}</Text> : null}
-      </Rows>
+    <TicketFrame title={ticket.title} tag={ticket.tag}>
+      {!w ? (
+        <Need>{ticket.needWindow}</Need>
+      ) : (
+        <>
+          <Pays label={ticket.pays} loading={quoteLoading} multiple={quote ? formatMultiplierTenths(quote.quote.multiplierMilli) : null} sub={quote ? ticket.odds(formatProbE6(quote.quote.insideProbE6), call.direction, usdBand(quote.band.strikePrint)) : null} />
 
-      <View style={styles.breakdown}>
-        <View style={styles.what}>
-          <Text style={[TYPE.data, { color: call.direction === "long" ? color.profit : color.loss }]}>{target}</Text>
-          <View style={styles.when}>
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-              {w.asset} {formatCadence(w.intervalSec)} ·{" "}
-            </Text>
-            <Clock expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
+          <Solver labels={ticket} solveMode={solveMode} onSolveMode={onSolveMode}>
+            {solveMode === "fixStake" ? (
+              <AmountField label={ticket.youPay} value={stakeInput} onChange={onStakeInput} symbol={symbol} hint={walletSpendableBase !== null ? ticket.wallet(money(walletSpendableBase), symbol) : undefined} />
+            ) : (
+              <AmountField label={ticket.youWin} value={payoutInput} onChange={onPayoutInput} symbol={symbol} hint={ticket.ifLands} />
+            )}
+            <View style={styles.rows}>
+              <Row label={ticket.youPay} emphasize>
+                {quoteLoading ? "…" : quote ? `${stakeText} ${symbol}` : "···"}
+              </Row>
+              <Row label={ticket.youWin} accent>
+                {quoteLoading ? "…" : quote ? `${payoutText} ${symbol}` : "···"}
+              </Row>
+              <Profit>{quote ? ticket.profit(money(quote.quote.maxPayoutBase - quote.quote.stakeBase), symbol) : null}</Profit>
+            </View>
+          </Solver>
+
+          <View style={styles.breakdown}>
+            <View style={styles.bdRow}>
+              <Text style={[styles.bdWhat, { color: color.inkMuted }]}>
+                <Text style={[styles.side, { color: color.accent }]}>{(quote ? ticket.target(call.direction, usdBand(quote.band.strikePrint)) : MOONSHOT.aim.valueText(call.direction, call.multiple)).toUpperCase()}</Text>
+                <Text style={{ color: r.gray700 }}>
+                  {" "}
+                  · {w.asset} {formatCadence(w.intervalSec)} · <Clock expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
+                </Text>
+              </Text>
+              <Text style={[styles.bdProb, { color: color.inkSecondary }]}>{w.openingPriceRaw !== null ? usdBand(w.openingPriceRaw) : "·"}</Text>
+            </View>
+            {distance ? <Text style={[styles.bdWhat, { color: color.inkMuted }]}>{ticket.distance(distance.text, distance.above)}</Text> : null}
           </View>
-          {distance ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{ticket.distance(distance.text, distance.above)}</Text> : null}
-        </View>
-        <Text style={[TYPE.data, { color: color.inkMuted }]}>{w.openingPriceRaw !== null ? usdBand(w.openingPriceRaw) : "·"}</Text>
-      </View>
 
-      <View style={[styles.liability, { backgroundColor: color.surface2 }]}>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>
-          {capBase < params.maxPayoutCapBase ? ticket.capRung(call.multiple, whole(capBase), symbol) : ticket.capContract(whole(capBase), symbol)}
-        </Text>
-        {cappedStake && quote ? <Text style={[TYPE.caption, { color: color.warning }]}>{ticket.cappedStake(formatBaseUnits(quote.quote.stakeBase, decimals), whole(capBase), symbol)}</Text> : null}
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>
-          {quote ? `${ticket.locks(formatBaseUnits(quote.houseLockedBase, decimals), symbol)} ` : ""}
-          {room === null ? ticket.expiryReading : ticket.expiryRoom(formatBaseUnits(room, decimals), whole(params.maxExpiryLockedBase), symbol)}
-        </Text>
-      </View>
+          <Text style={[styles.liability, { color: color.inkMuted }]}>{liability.join("\n")}</Text>
 
-      {overCap ? <Button label={`${ticket.overCap(call.multiple, whole(capBase), symbol)} · ${ticket.useCap}`} variant="secondary" size="sm" onPress={onUseCap} /> : null}
-      {capacity && !capacity.fits && capacity.refusal ? <Text style={[TYPE.caption, { color: color.loss }]}>{diagnosisCopy(capacity.refusal.kind).headline}</Text> : null}
-      {quoteError ? <Button label={`${diagnosisCopy(quoteError.kind).headline} · ${ticket.retry}`} variant="destructive" size="sm" onPress={onRetryQuote} /> : null}
-      {quoteError ? (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]} selectable>
-          {quoteError.technical}
-        </Text>
-      ) : null}
-      {step === "error" && errorTitle ? <PlaceError title={errorTitle} detail={errorDetail} onReset={onReset} tryAgain={ticket.tryAgain} txHash={txHash} /> : null}
+          {overCap ? <QuoteErr onPress={onUseCap}>{`${ticket.overCap(call.multiple, whole(capBase), symbol)} · ${ticket.useCap}`}</QuoteErr> : null}
+          {capacity && !capacity.fits && capacity.refusal ? <QuoteErr>{diagnosisCopy(capacity.refusal.kind).headline}</QuoteErr> : null}
+          {quoteError ? <QuoteErr onPress={onRetryQuote}>{`${diagnosisCopy(quoteError.kind).headline} · ${ticket.retry}`}</QuoteErr> : null}
 
-      <SignReview
-        title={quote ? ticket.place(formatBaseUnits(quote.quote.stakeBase, decimals), symbol) : ticket.build}
-        lines={lines}
-        maxLoss={maxStakeBase !== null ? money(maxStakeBase) : "—"}
-        confirmLabel="Slide to fire"
-        onConfirm={onPlace}
-        phase={step === "placing" ? "signing" : "review"}
-        blocker={step === "placing" ? null : blocker}
-        tone={call.direction === "long" ? "profit" : "loss"}
-      />
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-        {ticket.footnote}
-        {"\n"}
-        {reserve.paused ? ticket.reservePaused : ticket.reserve(formatBaseUnits(reserve.liquidBase, decimals), symbol, utilizationPct(reserve.utilizationBps))}
-      </Text>
-    </Card>
+          <PlaceButton step={step} quoted={quote !== null} quoteLoading={quoteLoading} quoteError={quoteError !== null} hasEnough={hasEnough && fits} stakeText={stakeText} symbol={symbol} onPlace={onPlace} labels={labels} />
+
+          <Footnote
+            lines={[
+              ticket.footnote,
+              ...(quote ? [ticket.upTo(money(mulBpsCeil(quote.quote.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS)), symbol)] : []),
+              reserve.paused ? ticket.reservePaused : ticket.reserve(money(reserve.liquidBase), symbol, utilizationPct(reserve.utilizationBps)),
+            ]}
+          />
+
+          {step === "error" && errorTitle ? <ErrorBlock title={errorTitle} detail={errorDetail} onReset={onReset} labels={ticket} /> : null}
+          {step === "success" && txHash ? <TxLink txHash={txHash} label={ticket.viewTx} /> : null}
+        </>
+      )}
+    </TicketFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { flexDirection: "row", justifyContent: "space-between" },
-  breakdown: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  what: { flex: 1, gap: 2 },
-  when: { flexDirection: "row", alignItems: "center" },
-  liability: { borderRadius: 8, padding: 12, gap: 4 },
+  rows: { gap: 6, paddingTop: 4 },
+  breakdown: { gap: 4 },
+  ...breakdownStyles,
+  liability: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
 });

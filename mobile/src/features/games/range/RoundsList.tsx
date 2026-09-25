@@ -1,12 +1,11 @@
 import { useCallback } from "react";
-import { Text } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { RANGE } from "@/features/range/copy";
 import { useRangeRounds, type RangeRoundView } from "@/features/range/useRangeRounds";
 import { useRangeWrites } from "@/features/range/useRangeWrites";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useWalletSession } from "@/lib/wallet-session";
-import { EmptyState, ReadingView } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
+import { ReadingBoundary, SlipEmpty } from "./PageParts";
 import { RoundCard } from "./RoundCard";
 
 interface Props {
@@ -20,11 +19,10 @@ interface Props {
 }
 
 /**
- * web's `range/RangeSlip.tsx`: the connected wallet's rounds of one kind, live first; the crank, the stale void and
- * the claim are on each card, through web's `useRangeWrites`. Shared by Range and Moonshot.
+ * web's `range/RangeSlip.tsx` (`.pl-slip`, 16 apart): the connected wallet's rounds of one kind, live first; the crank,
+ * the stale void and the claim are on each card, through web's `useRangeWrites`. Shared by Range and Moonshot.
  */
 export function RoundsList({ symbol, decimals, staleAfterSec, kind, empty }: Props) {
-  const { color } = useTheme();
   const { address } = useWalletSession();
   const reading = useRangeRounds(address);
   const nowMs = useChainNowMs();
@@ -35,28 +33,34 @@ export function RoundsList({ symbol, decimals, staleAfterSec, kind, empty }: Pro
   const onSettle = useCallback((round: RangeRoundView) => void writes.settle(round.roundId, round.marketId), [writes]);
   const onVoidStale = useCallback((round: RangeRoundView) => void writes.voidStale(round.roundId), [writes]);
 
-  if (!address) return <Text style={[TYPE.caption, { color: color.inkMuted }]}>{words.disconnected}</Text>;
+  if (!address) return <SlipEmpty>{words.disconnected}</SlipEmpty>;
 
   return (
-    <ReadingView reading={reading} loading="list">
+    <ReadingBoundary reading={reading} shape="row">
       {(all) => {
         const rounds = all.filter((round) => round.kind.kind === kind);
-        if (rounds.length === 0) return <EmptyState why={words.connected} />;
-        return rounds.map((round) => (
-          <RoundCard
-            key={round.roundId.toString()}
-            round={round}
-            nowMs={nowMs}
-            symbol={symbol}
-            decimals={decimals}
-            staleAfterSec={staleAfterSec}
-            busy={writes.busy}
-            onClaim={onClaim}
-            onSettle={onSettle}
-            onVoidStale={onVoidStale}
-          />
-        ));
+        if (rounds.length === 0) return <SlipEmpty>{words.connected}</SlipEmpty>;
+        return (
+          <View style={styles.slip}>
+            {rounds.map((round) => (
+              <RoundCard
+                key={round.roundId.toString()}
+                round={round}
+                nowMs={nowMs}
+                symbol={symbol}
+                decimals={decimals}
+                staleAfterSec={staleAfterSec}
+                busy={writes.busy}
+                onClaim={onClaim}
+                onSettle={onSettle}
+                onVoidStale={onVoidStale}
+              />
+            ))}
+          </View>
+        );
       }}
-    </ReadingView>
+    </ReadingBoundary>
   );
 }
+
+const styles = StyleSheet.create({ slip: { gap: 16 } });
