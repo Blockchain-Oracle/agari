@@ -1,250 +1,173 @@
-import { useRouter, type Href } from "expo-router";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { Image } from "expo-image";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, type Href } from "expo-router";
+import { ArrowRight, ChartCandlestick, MessageSquare, ScrollText, ShieldCheck, Smartphone, TrendingUp, Zap } from "lucide-react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { DEMO } from "@/features/demo/copy";
 import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProof, txProofHref, txProofLabel } from "@/features/demo/proofs";
-import { Button, Card, Screen } from "~/components/kit";
-import { openExternal } from "~/lib/external";
-import { Pager, type Page } from "~/features/pitch/Pager";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { Headline, InlineLink, Kicker, ProofRow, Reveal, Traction } from "./Parts";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { FONT, useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { demoTokens } from "~/theme/web/explore/demo";
+import { Ctas, DemoBar, DemoHero } from "./Hero";
+import { Body, Frame, Headline, InlineLink, Kicker, ProofLink, ProofNote, Reveal } from "./Parts";
 
 const S = DEMO.sections;
 const shortAddress = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
+const go = (href: Href) => router.push(href);
 
-const DEMO_VIDEO_ID = "iPtmue-eyIc";
-const DEMO_VIDEO_URL = `https://youtu.be/${DEMO_VIDEO_ID}`;
-
-/** web DemoVideo.tsx: the walkthrough hosted on YouTube, as its poster frame in the 16:9 box; a tap plays it on YouTube. */
-function DemoVideo() {
-  const { color } = useTheme();
+/** The three depth cards (`.demo-card`), each citing the transaction that proves it. */
+function DepthCards() {
+  const { name, color } = useTheme();
+  const t = demoTokens(name);
+  const cards = [
+    { Icon: ChartCandlestick, card: S.depth.cards.book, proof: txProof("fill") },
+    { Icon: ScrollText, card: S.depth.cards.receipts, proof: txProof("settlement") },
+    { Icon: TrendingUp, card: S.depth.cards.edge, proof: txProof("payout") },
+  ];
   return (
-    <View style={styles.videoWrap}>
-      <Text style={[styles.mono, { color: color.accent }]}>{DEMO.hero.videoLabel}</Text>
-      <Pressable
-        accessibilityRole="link"
-        accessibilityLabel={DEMO.video.title}
-        onPress={() => void openExternal(DEMO_VIDEO_URL)}
-        style={[styles.video, { borderColor: color.hairline, backgroundColor: color.surface2 }]}
-      >
-        <Image source={{ uri: `https://i.ytimg.com/vi/${DEMO_VIDEO_ID}/hqdefault.jpg` }} style={StyleSheet.absoluteFill} contentFit="cover" />
-        <View style={[styles.play, { backgroundColor: color.accent }]}>
-          <SymbolView name={{ ios: "play.fill", android: "play_arrow" }} size={22} tintColor={color.onAccent} />
-        </View>
-      </Pressable>
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{DEMO.video.caption}</Text>
-      <Pressable accessibilityRole="link" onPress={() => void openExternal(DEMO_VIDEO_URL)} hitSlop={8}>
-        <Text style={[TYPE.caption, { color: color.accent }]}>{DEMO.video.watch}</Text>
-      </Pressable>
+    <View style={styles.cards}>
+      {cards.map(({ Icon, card, proof }) => (
+        <Reveal key={card.title}>
+          <View style={[styles.card, { borderColor: t.hair08 }]}>
+            <LinearGradient colors={[t.wash, t.washEnd]} style={StyleSheet.absoluteFill} />
+            <Icon size={24} color={color.accent} />
+            <Text style={[styles.cardTitle, { color: color.ink }]}>{card.title}</Text>
+            <Text style={[styles.cardBody, { color: color.inkSecondary }]}>{card.body}</Text>
+            <View style={styles.cardProof}>
+              <ProofLink href={txProofHref(proof)} label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} />
+            </View>
+          </View>
+        </Reveal>
+      ))}
     </View>
   );
 }
 
-function Body({ children }: { children: string }) {
-  const { color } = useTheme();
-  return <Text style={[TYPE.body, { color: color.inkSecondary }]}>{children}</Text>;
-}
-
-/** The three ways out web's hero and close offer — Markets, Stats, the Pitch — as native routes. */
-function Ctas({ go }: { go: (href: Href) => void }) {
+/** Section 05: the receipts of one Window's life, then the programs every Window runs on. */
+function Verify() {
   return (
-    <View style={styles.ctas}>
-      <Button label={DEMO.hero.open} onPress={() => go("/markets")} size="lg" />
-      <View style={styles.ctaRow}>
-        <Button label={DEMO.hero.stats} icon={{ ios: "chart.bar.fill", android: "bar_chart" }} variant="outline" onPress={() => go("/stats")} style={styles.flex} />
-        <Button label={DEMO.hero.pitch} variant="outline" onPress={() => go("/pitch")} style={styles.flex} />
+    <View style={styles.section}>
+      <Reveal>
+        <Kicker icon={ShieldCheck}>{S.verify.kicker}</Kicker>
+        <Headline level="h2" lead={S.verify.headline} serif={S.verify.headlineSerif} />
+        <Body wide>{S.verify.body}</Body>
+        <ProofNote>{PROOF_WALLET !== null && PROOFS_READ_ON !== null ? S.verify.readOn(shortAddress(PROOF_WALLET), PROOFS_READ_ON) : S.verify.pending}</ProofNote>
+      </Reveal>
+      <View style={styles.proofs}>
+        {TX_PROOFS.map((proof) => (
+          <Reveal key={proof.hash} style={styles.proofRow}>
+            {proof.network === "fork" ? (
+              <ProofLink href={null} label={txProofLabel(proof)} reference={proof.hash} note={S.verify.fork} />
+            ) : (
+              <ProofLink href={txProofHref(proof)} label={txProofLabel(proof)} reference={proof.hash} />
+            )}
+            <ProofNote>{proof.detail}</ProofNote>
+          </Reveal>
+        ))}
+      </View>
+      <Reveal>
+        <ProofNote>{S.verify.contracts}</ProofNote>
+      </Reveal>
+      <View style={styles.proofs}>
+        {CONTRACT_PROOFS.map((proof) =>
+          proof.address === null ? null : (
+            <Reveal key={proof.key} style={styles.proofRow}>
+              <ProofLink href={contractProofHref(proof)} label={proof.label} reference={proof.address} />
+            </Reveal>
+          ),
+        )}
       </View>
     </View>
   );
 }
 
-function pages(go: (href: Href) => void): Page[] {
-  const depth = [
-    { glyph: { ios: "chart.bar.xaxis", android: "candlestick_chart" }, card: S.depth.cards.book, proof: txProof("fill") },
-    { glyph: { ios: "scroll.fill", android: "receipt_long" }, card: S.depth.cards.receipts, proof: txProof("settlement") },
-    { glyph: { ios: "chart.line.uptrend.xyaxis", android: "trending_up" }, card: S.depth.cards.edge, proof: txProof("payout") },
-  ] as const;
-  return [
-    {
-      id: "hero",
-      section: DEMO.hero.eyebrow,
-      render: () => (
-        <>
-          <Reveal>
-            <Headline size="h1" lead={DEMO.hero.headline} accent={DEMO.hero.headlineSerif} />
-          </Reveal>
-          <Reveal i={1}>
-            <DemoVideo />
-          </Reveal>
-          <Reveal i={2}>
-            <Body>{DEMO.hero.lead}</Body>
-          </Reveal>
-          <Reveal i={3}>
-            <Traction />
-          </Reveal>
-          <Reveal i={4}>
-            <Ctas go={go} />
-          </Reveal>
-        </>
-      ),
-    },
-    {
-      id: "tap",
-      section: S.tap.kicker,
-      render: () => (
-        <Reveal>
-          <View style={styles.section}>
-            <Kicker glyph={{ ios: "iphone", android: "smartphone" }}>{S.tap.kicker}</Kicker>
-            <Headline lead={S.tap.headline} accent={S.tap.headlineSerif} />
-            <Body>{S.tap.body}</Body>
-            <InlineLink label={S.tap.link} onPress={() => go("/markets")} />
-          </View>
-        </Reveal>
-      ),
-    },
-    {
-      id: "reel",
-      section: S.reel.kicker,
-      render: () => (
-        <Reveal>
-          <View style={styles.section}>
-            <Kicker glyph={{ ios: "bolt.fill", android: "bolt" }}>{S.reel.kicker}</Kicker>
-            <Headline lead={S.reel.headline} accent={S.reel.headlineSerif} />
-            <Body>{S.reel.body}</Body>
-            <InlineLink label={S.reel.link} onPress={() => go("/reels")} />
-          </View>
-        </Reveal>
-      ),
-    },
-    {
-      id: "social",
-      section: S.social.kicker,
-      render: () => (
-        <Reveal>
-          <View style={styles.section}>
-            <Kicker glyph={{ ios: "bubble.left.and.bubble.right.fill", android: "forum" }}>{S.social.kicker}</Kicker>
-            <Headline lead={S.social.headline} accent={S.social.headlineSerif} />
-            <Body>{S.social.body}</Body>
-            <InlineLink label={S.social.room} onPress={() => go("/markets")} />
-          </View>
-        </Reveal>
-      ),
-    },
-    {
-      id: "depth",
-      section: S.depth.kicker,
-      render: () => (
-        <>
-          <Reveal>
-            <View style={styles.section}>
-              <Kicker glyph={{ ios: "chart.line.uptrend.xyaxis", android: "trending_up" }}>{S.depth.kicker}</Kicker>
-              <Headline lead={S.depth.headline} accent={S.depth.headlineSerif} />
-            </View>
-          </Reveal>
-          {depth.map(({ glyph, card, proof }, index) => (
-            <Reveal key={card.title} i={index + 1}>
-              <Card>
-                <DepthCard glyph={glyph} title={card.title} body={card.body} />
-                <ProofRow label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} href={txProofHref(proof)} />
-              </Card>
-            </Reveal>
-          ))}
-        </>
-      ),
-    },
-    {
-      id: "verify",
-      section: S.verify.kicker,
-      render: () => (
-        <>
-          <Reveal>
-            <View style={styles.section}>
-              <Kicker glyph={{ ios: "checkmark.shield.fill", android: "verified_user" }}>{S.verify.kicker}</Kicker>
-              <Headline lead={S.verify.headline} accent={S.verify.headlineSerif} />
-              <Body>{S.verify.body}</Body>
-              <Note>{PROOF_WALLET !== null && PROOFS_READ_ON !== null ? S.verify.readOn(shortAddress(PROOF_WALLET), PROOFS_READ_ON) : S.verify.pending}</Note>
-            </View>
-          </Reveal>
-          {TX_PROOFS.map((proof) => (
-            <ProofRow
-              key={proof.hash}
-              label={txProofLabel(proof)}
-              reference={proof.hash}
-              href={txProofHref(proof)}
-              note={proof.network === "fork" ? S.verify.fork : undefined}
-              detail={proof.detail}
-            />
-          ))}
-          <Note>{S.verify.contracts}</Note>
-          {CONTRACT_PROOFS.map((proof) =>
-            proof.address === null ? null : <ProofRow key={proof.key} label={proof.label} reference={proof.address} href={contractProofHref(proof)} />,
-          )}
-        </>
-      ),
-    },
-    {
-      id: "close",
-      section: "close",
-      render: () => (
-        <Reveal>
-          <View style={styles.section}>
-            <Headline size="h1" lead={DEMO.close.headline} accent={DEMO.close.headlineSerif} />
-            <Ctas go={go} />
-            <Note>{DEMO.close.footer}</Note>
-          </View>
-        </Reveal>
-      ),
-    },
-  ];
-}
-
-function DepthCard({ glyph, title, body }: { glyph: SymbolViewProps["name"]; title: string; body: string }) {
-  const { color } = useTheme();
-  return (
-    <View style={styles.depth}>
-      <SymbolView name={glyph} size={22} tintColor={color.accent} />
-      <Text style={[TYPE.title, { color: color.ink }]}>{title}</Text>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{body}</Text>
-    </View>
-  );
-}
-
-function Note({ children }: { children: string }) {
-  const { color } = useTheme();
-  return <Text style={[TYPE.caption, { color: color.inkMuted }]}>{children}</Text>;
-}
-
 /**
- * `/demo` — web DemoPage.tsx, section for section, as a paged walkthrough: the hero (the YouTube walkthrough, the
- * live traction line), the ritual, the reel, the Room, the depth with a proof per card, every devnet receipt, the
- * close. Web's screenshots of itself are left out: each section opens the native screen it describes instead.
+ * `/demo` — web DemoPage.tsx at 402 px: the sticky demo bar, the hero with the video, five sections (the ritual, the
+ * reel, the Room and Sensei, the depth cards, the receipts) and the close, each block rising in as web's `Reveal`.
  */
 export function DemoScreen() {
-  const router = useRouter();
-  const go = (href: Href) => router.push(href);
+  const { color } = useTheme();
   return (
-    <Screen title={DEMO.title} scroll={false}>
-      <Pager pages={pages(go)} />
-    </Screen>
+    <ExplorePage title={DEMO.title} scroll={false}>
+      <ScrollView style={{ backgroundColor: color.ground }} contentContainerStyle={styles.page} stickyHeaderIndices={[0]}>
+        <DemoBar />
+        <DemoHero />
+
+        <View style={styles.section}>
+          <Reveal>
+            <Kicker icon={Smartphone}>{S.tap.kicker}</Kicker>
+            <Headline level="h2" lead={S.tap.headline} serif={S.tap.headlineSerif} />
+            <Body>{S.tap.body}</Body>
+            <InlineLink label={S.tap.link} icon={ArrowRight} onPress={() => go("/markets")} />
+          </Reveal>
+          <Reveal>
+            <Frame path="/demo/markets.png" alt={DEMO.frame.markets} />
+          </Reveal>
+        </View>
+
+        <View style={styles.section}>
+          <Reveal>
+            <Kicker icon={Zap}>{S.reel.kicker}</Kicker>
+            <Headline level="h2" lead={S.reel.headline} serif={S.reel.headlineSerif} />
+            <Body>{S.reel.body}</Body>
+            <InlineLink label={S.reel.link} icon={ArrowRight} onPress={() => go("/reels")} />
+          </Reveal>
+          <Reveal>
+            <Frame path="/demo/reel.png" alt={DEMO.frame.reel} phone />
+          </Reveal>
+        </View>
+
+        <View style={styles.section}>
+          <Reveal>
+            <Kicker icon={MessageSquare}>{S.social.kicker}</Kicker>
+            <Headline level="h2" lead={S.social.headline} serif={S.social.headlineSerif} />
+            <Body>{S.social.body}</Body>
+            <View style={styles.links}>
+              <InlineLink flush label={S.social.room} icon={ArrowRight} onPress={() => go("/markets")} />
+              <InlineLink flush label={S.social.sensei} icon={ArrowRight} onPress={() => go("/sensei")} />
+            </View>
+          </Reveal>
+          <Reveal>
+            <Frame path="/demo/sensei.png" alt={DEMO.frame.sensei} />
+          </Reveal>
+        </View>
+
+        <View style={styles.section}>
+          <Reveal>
+            <Kicker icon={TrendingUp}>{S.depth.kicker}</Kicker>
+            <Headline level="h2" lead={S.depth.headline} serif={S.depth.headlineSerif} />
+          </Reveal>
+          <DepthCards />
+        </View>
+
+        <Verify />
+
+        <View style={styles.close}>
+          <Reveal>
+            <Headline level="close" lead={DEMO.close.headline} serif={DEMO.close.headlineSerif} />
+            <View style={styles.closeCtas}>
+              <Ctas big />
+            </View>
+            <Text style={[styles.footer, { color: color.inkDisabled }]}>{DEMO.close.footer}</Text>
+          </Reveal>
+        </View>
+      </ScrollView>
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  videoWrap: { gap: 8 },
-  video: {
-    aspectRatio: 16 / 9,
-    borderRadius: RADIUS.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  play: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
-  mono: { fontFamily: FONT.data, fontSize: 11, letterSpacing: 1.4 },
-  ctas: { gap: 10 },
-  ctaRow: { flexDirection: "row", gap: 10 },
-  flex: { flex: 1 },
-  section: { gap: 14 },
-  depth: { gap: 6 },
+  page: { paddingBottom: CHROME.dockClearance },
+  section: { gap: 48, paddingVertical: 80, paddingHorizontal: 24 },
+  links: { gap: 8, marginTop: 24 },
+  cards: { gap: 16, marginTop: 40 },
+  card: { borderWidth: 1, borderRadius: 16, padding: 24, overflow: "hidden" },
+  cardTitle: { fontFamily: FONT.heading, fontSize: 18, lineHeight: 28.8, marginTop: 16 },
+  cardBody: { fontFamily: FONT.body, fontSize: 13.5, lineHeight: 21.94, marginTop: 8 },
+  cardProof: { marginTop: 16 },
+  proofs: { gap: 14, marginTop: 32 },
+  proofRow: { paddingVertical: 4 },
+  close: { paddingVertical: 96, paddingHorizontal: 24 },
+  closeCtas: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 12, marginTop: 32 },
+  footer: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 0.275, marginTop: 40, textAlign: "center" },
 });

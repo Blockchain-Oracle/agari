@@ -1,138 +1,156 @@
-import { useQuery } from "@tanstack/react-query";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { Image } from "expo-image";
+import { Code, ExternalLink } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 import { DEMO } from "@/features/demo/copy";
-import { leaderboardPayloadSchema } from "@/features/leaderboard/protocol";
-import { haptic } from "~/components/kit";
 import { openExternal } from "~/lib/external";
 import { SITE_URL } from "~/lib/env";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT, useTheme } from "~/theme";
+import { demoTokens } from "~/theme/web/explore/demo";
 
-/** web DemoBlocks.tsx `Reveal`: a block rises in as its page arrives. */
-export function Reveal({ i = 0, children }: { i?: number; children: ReactNode }) {
-  return <Animated.View entering={FadeInDown.delay(i * 90).duration(380)}>{children}</Animated.View>;
+/** web DemoBlocks `Reveal`: the reference's rise (opacity 0, y 28 → in, 700 ms, ease [0.22, 1, 0.36, 1]). */
+export function Reveal({ children, style }: { children: ReactNode; style?: object }) {
+  return (
+    <Animated.View entering={FadeInDown.duration(700).easing(Easing.bezier(0.22, 1, 0.36, 1).factory())} style={style}>
+      {children}
+    </Animated.View>
+  );
 }
 
-/** web `Kicker`: the section's glyph and mono line ("01 · the ritual"). */
-export function Kicker({ glyph, children }: { glyph: SymbolViewProps["name"]; children: string }) {
+/** `.demo-eyebrow`: mono, 0.34em, vermilion at 80 %. */
+export function Eyebrow({ children }: { children: string }) {
+  const { name } = useTheme();
+  return <Text style={[styles.eyebrow, { color: demoTokens(name).eyebrow }]}>{children}</Text>;
+}
+
+/** `.demo-h1` / `.demo-h2` / `.demo-close-h2` with the `Serif` half in Noto Serif JP and vermilion. */
+export function Headline({ lead, serif, level }: { lead: string; serif: string; level: "h1" | "h2" | "close" }) {
+  const { color } = useTheme();
+  return (
+    <Text style={[styles[level], { color: color.ink }]} accessibilityRole="header">
+      {lead}
+      <Text style={[styles.serif, { color: color.accent }]}>{serif}</Text>
+    </Text>
+  );
+}
+
+/** `.demo-kicker`: the section's lucide glyph (20) and its mono line. */
+export function Kicker({ icon: Icon, children }: { icon: typeof Code; children: string }) {
   const { color } = useTheme();
   return (
     <View style={styles.kicker}>
-      <SymbolView name={glyph} size={15} tintColor={color.accent} />
-      <Text style={[styles.kickerText, { color: color.accent }]}>{children.toUpperCase()}</Text>
+      <Icon size={20} color={color.accent} />
+      <Text style={[styles.kickerText, { color: color.accent }]}>{children}</Text>
     </View>
   );
 }
 
-/** web `demo-h2` with its `Serif` half: the second half set apart in vermilion (the app has no serif face for it). */
-export function Headline({ lead, accent, size = "h2" }: { lead: string; accent: string; size?: "h1" | "h2" }) {
+/** `.demo-body` (46ch; `.wide` 52ch). */
+export function Body({ children, wide = false }: { children: string; wide?: boolean }) {
   const { color } = useTheme();
-  return (
-    <Text style={[size === "h1" ? TYPE.display : TYPE.headline, { color: color.ink }]} accessibilityRole="header">
-      {lead}
-      <Text style={{ color: color.accent }}>{accent}</Text>
-    </Text>
-  );
+  return <Text style={[styles.body, { color: color.inkSecondary, maxWidth: wide ? 440 : 390 }]}>{children}</Text>;
 }
 
-/** web `demo-inline-link`: a text action with an arrow, opening a native screen. */
-export function InlineLink({ label, onPress }: { label: string; onPress: () => void }) {
+/** `.demo-proof-note`: mono 11 in gray-500. */
+export function ProofNote({ children }: { children: string }) {
+  const { color } = useTheme();
+  return <Text style={[styles.proofNote, { color: color.inkMuted }]}>{children}</Text>;
+}
+
+/** `.demo-inline-link`: mono 13 vermilion with the 16 px arrow, opening a native screen. */
+export function InlineLink({ label, icon: Icon, onPress, flush = false }: { label: string; icon: typeof Code; onPress: () => void; flush?: boolean }) {
   const { color } = useTheme();
   return (
-    <Pressable
-      onPress={() => {
-        haptic.tap();
-        onPress();
-      }}
-      accessibilityRole="link"
-      hitSlop={8}
-      style={styles.inline}
-    >
-      <Text style={[TYPE.bodyStrong, { color: color.accent }]}>{label}</Text>
-      <SymbolView name={{ ios: "arrow.right", android: "arrow_forward" }} size={13} tintColor={color.accent} />
+    <Pressable onPress={onPress} accessibilityRole="link" hitSlop={8} style={[styles.inline, flush ? null : styles.inlineTop]}>
+      <Text style={[styles.inlineText, { color: color.accent }]}>{label}</Text>
+      <Icon size={16} color={color.accent} />
     </Pressable>
   );
 }
 
 /**
- * web DemoBlocks.tsx `ProofLink` / `ProofCode`: a proof's label and the head of its hash. A devnet proof opens on
- * Solana Explorer; a fork proof has no explorer page, so it prints where it ran instead.
+ * web `ProofLink` / `ProofCode`: the external-link glyph, the label and the first eight characters of the hash in
+ * gray-600. A devnet proof opens on Solana Explorer; a fork proof prints where it ran instead.
  */
-export function ProofRow({ label, reference, href, note, detail }: { label: string; reference: string; href: string | null; note?: string; detail?: string }) {
+export function ProofLink({ label, reference, href, note }: { label: string; reference: string; href: string | null; note?: string }) {
   const { color } = useTheme();
-  const body = (
-    <>
-      <View style={styles.proofHead}>
-        <SymbolView
-          name={href ? { ios: "arrow.up.right.square", android: "open_in_new" } : { ios: "chevron.left.forwardslash.chevron.right", android: "code" }}
-          size={15}
-          tintColor={href ? color.accent : color.inkMuted}
-        />
-        <Text style={[TYPE.bodyStrong, styles.proofLabel, { color: color.ink }]}>{label}</Text>
-        <Text style={[TYPE.data, styles.hash, { color: color.inkMuted }]}>{reference.slice(0, 8)}…</Text>
+  const Icon = href ? ExternalLink : Code;
+  const row = (
+    <View style={styles.proofLink}>
+      <Icon size={14} color={color.inkSecondary} />
+      <Text style={[styles.proofText, styles.proofLabel, { color: color.inkSecondary }]}>{label}</Text>
+      <Text style={[styles.proofText, { color: color.inkDisabled }]}>{reference.slice(0, 8)}…</Text>
+      {note ? <Text style={[styles.proofText, { color: color.inkDisabled }]}>{note}</Text> : null}
+    </View>
+  );
+  if (!href) return row;
+  return (
+    <Pressable onPress={() => void openExternal(href)} accessibilityRole="link" accessibilityLabel={`${label}, open on Solana Explorer`}>
+      {row}
+    </Pressable>
+  );
+}
+
+/** web `Frame`: a dated capture of the running product (`/demo/*.png`), 16 px radius over the frame shadow. */
+export function Frame({ path, alt, phone = false }: { path: string; alt: string; phone?: boolean }) {
+  const { name, color } = useTheme();
+  const t = demoTokens(name);
+  return (
+    <View style={phone ? styles.phoneFrame : null}>
+      <View style={[styles.frameImg, { borderColor: t.hair10, boxShadow: t.frameShadow, aspectRatio: phone ? 780 / 1688 : 2560 / 1600 }]}>
+        <Image source={{ uri: `${SITE_URL}${path}` }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={alt} />
       </View>
-      {note ? <Text style={[TYPE.data, styles.hash, { color: color.warning }]}>{note}</Text> : null}
-      {detail ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{detail}</Text> : null}
-    </>
+      <Text style={[styles.caption, { color: color.inkDisabled }]}>{DEMO.frame.caption(DEMO.capturedOn)}</Text>
+    </View>
   );
-  const frame = [styles.proof, { backgroundColor: color.surface1, borderColor: color.hairline }];
-  if (!href) return <View style={frame}>{body}</View>;
+}
+
+/** `.demo-cta` (vermilion pill) and `.demo-cta.ghost` (15 % hairline); `big` is the close's 14×24 / 16 px size. */
+export function Cta({ label, onPress, primary = false, big = false, lead: Lead, trail: Trail }: { label: string; onPress: () => void; primary?: boolean; big?: boolean; lead?: typeof Code; trail?: typeof Code }) {
+  const { name, color } = useTheme();
+  const t = demoTokens(name);
+  const ink = primary ? color.onAccent : color.ink;
   return (
     <Pressable
-      onPress={() => {
-        haptic.tap();
-        void openExternal(href);
-      }}
+      onPress={onPress}
       accessibilityRole="link"
-      accessibilityLabel={`${label}, open on Solana Explorer`}
-      style={({ pressed }) => [frame, pressed && { opacity: 0.85 }]}
+      style={({ pressed }) => [
+        styles.cta,
+        big && styles.ctaBig,
+        primary ? { backgroundColor: pressed ? color.accentPressed : color.accent, borderColor: "transparent" } : { borderColor: t.hair15 },
+      ]}
     >
-      {body}
+      {Lead ? <Lead size={16} color={ink} /> : null}
+      <Text style={[styles.ctaText, big && styles.ctaTextBig, { color: ink }]}>{label}</Text>
+      {Trail ? <Trail size={16} color={ink} /> : null}
     </Pressable>
   );
 }
 
-/**
- * web DemoTraction.tsx: the traction line read live from `/api/leaderboard` — the same venue scan the board runs —
- * saying it is reading, or that the read failed, rather than show a figure it does not have.
- */
-export function Traction() {
-  const { color } = useTheme();
-  const query = useQuery({
-    queryKey: ["agari", "demo", "traction"],
-    queryFn: async ({ signal }) => {
-      const response = await fetch(`${SITE_URL}/api/leaderboard`, { signal });
-      if (!response.ok) throw new Error(String(response.status));
-      return leaderboardPayloadSchema.parse(await response.json()).meta;
-    },
-    staleTime: 180_000,
-  });
-  const T = DEMO.traction;
-  const items = query.data
-    ? [
-        T.wallets(query.data.rankedTraders.toLocaleString("en-US")),
-        T.calls(query.data.closedCalls.toLocaleString("en-US")),
-        T.period(query.data.period),
-        ...(query.data.complete ? [] : [T.partial]),
-        T.live,
-      ]
-    : [query.isError ? T.failed : T.reading, T.live];
-  return (
-    <Text style={[TYPE.data, styles.traction, { color: color.inkSecondary }]} accessibilityLiveRegion="polite">
-      {items.join("  ·  ")}
-    </Text>
-  );
-}
+const MONO = { fontFamily: FONT.dataRegular } as const;
 
 const styles = StyleSheet.create({
+  eyebrow: { ...MONO, fontSize: 11, lineHeight: 17.6, letterSpacing: 3.74, textTransform: "uppercase" },
+  h1: { fontFamily: FONT.headingHeavy, fontSize: 33, lineHeight: 35, letterSpacing: -0.825, marginTop: 20, marginBottom: 8 },
+  h2: { fontFamily: FONT.headingHeavy, fontSize: 27, lineHeight: 30, marginTop: 16 },
+  close: { fontFamily: FONT.headingHeavy, fontSize: 30, lineHeight: 34, textAlign: "center" },
+  serif: { fontFamily: FONT.stamp, fontStyle: "italic", letterSpacing: 0 },
   kicker: { flexDirection: "row", alignItems: "center", gap: 8 },
-  kickerText: { fontFamily: FONT.data, fontSize: 11, letterSpacing: 1.6 },
-  inline: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44, alignSelf: "flex-start" },
-  proof: { borderRadius: RADIUS.md, borderWidth: StyleSheet.hairlineWidth, padding: 12, gap: 6 },
-  proofHead: { flexDirection: "row", alignItems: "center", gap: 8 },
-  proofLabel: { flex: 1, fontSize: 14 },
-  hash: { fontSize: 11.5 },
-  traction: { fontSize: 12, lineHeight: 18 },
+  kickerText: { ...MONO, fontSize: 12, lineHeight: 19.2, letterSpacing: 1.2, textTransform: "uppercase" },
+  body: { fontFamily: FONT.body, fontSize: 15, lineHeight: 24.375, marginTop: 16 },
+  proofNote: { ...MONO, fontSize: 11, lineHeight: 17.6, marginTop: 16 },
+  inline: { flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start" },
+  inlineTop: { marginTop: 24 },
+  inlineText: { ...MONO, fontSize: 13, lineHeight: 20.8 },
+  proofLink: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  proofText: { ...MONO, fontSize: 12, lineHeight: 19.2 },
+  proofLabel: { flexShrink: 1 },
+  phoneFrame: { width: "100%", maxWidth: 300, alignSelf: "center" },
+  frameImg: { width: "100%", borderWidth: 1, borderRadius: 16, overflow: "hidden" },
+  caption: { ...MONO, fontSize: 10, lineHeight: 16, letterSpacing: 0.8, textTransform: "uppercase", marginTop: 10 },
+  cta: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 9999, borderWidth: 1 },
+  ctaBig: { paddingVertical: 14, paddingHorizontal: 24 },
+  ctaText: { fontFamily: FONT.heading, fontSize: 14, lineHeight: 22.4 },
+  ctaTextBig: { fontSize: 16, lineHeight: 25.6 },
 });
