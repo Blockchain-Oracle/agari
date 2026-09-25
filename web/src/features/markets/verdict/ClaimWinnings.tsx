@@ -80,17 +80,20 @@ export function ClaimWinnings({ verdict, marketId, symbol, voidGiven }: ClaimWin
     if (!submitter || !address || items.length === 0) return;
     setClaiming(true);
     setError(null);
+    let failed = false;
     for (const item of items) {
       const result = await redeemOne(submitter, item);
       if (result.patch.diagnosis) {
         setError(diagnosisCopy(result.patch.diagnosis.kind).headline);
+        failed = true;
         break;
       }
       if (result.stop) break;
     }
     await invalidateAfterWrite(queryClient, { wallet: address });
     setClaiming(false);
-    setClaimed(true);
+    // A refused claim keeps Collect beside its error: "Paid" only once nothing failed (the claimables then confirm it).
+    if (!failed) setClaimed(true);
   };
 
   if (isVoid) {
