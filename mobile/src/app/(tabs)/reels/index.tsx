@@ -1,102 +1,145 @@
-import type { EventMarket } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { FlatList, StyleSheet, Text, View, type LayoutChangeEvent, type ViewToken } from "react-native";
-import { useLanesState } from "@/features/markets/lanes/useLanes";
-import { isClosing, reelPhase, useReelRounds } from "@/features/markets/reels/useReelRounds";
-import { useMarketSession } from "@/features/markets/session/useMarketSession";
-import { useChainNowMs } from "@/features/markets/useChainNow";
-import { useVenue } from "@/features/markets/useVenue";
+import { useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FlatList, StyleSheet, useWindowDimensions, View, type LayoutChangeEvent, type ViewToken } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { isClosing, reelPhase } from "@/features/markets/reels/useReelRounds";
+import type { ReelItem } from "@/features/takes/weave";
 import { REELS } from "@/lib/copy";
-import { SESSION_COPY } from "@/lib/copy-session";
-import { useSessionPhrase } from "@/lib/when";
-import { haptic, LoadingState } from "~/components/kit";
+import { haptic } from "~/components/kit";
 import { TabScreen } from "~/components/shell/TabScreen";
+import { DeskReelCard, HoldingReelCard } from "~/features/markets/reels/FeedCards";
 import { ReelCard } from "~/features/markets/reels/ReelCard";
-import { ReelRail } from "~/features/markets/reels/ReelRail";
-import { ClosedStrip } from "~/features/markets/board/WordBoard";
-import { RADIUS, SPACE, TYPE, useTheme } from "~/theme";
+import { SwipeHint, TakeButton } from "~/features/markets/reels/ReelChrome";
+import { ReelHolding, ReelSlot } from "~/features/markets/reels/ReelFrame";
+import { TakeReelCard } from "~/features/markets/reels/TakeReelCard";
+import { useReelFeed } from "~/features/markets/reels/useReelFeed";
+import { TakeComposerSheet } from "~/features/takes/TakeComposerSheet";
 
+/** A real move, not the first stray pixel of momentum — the reference's own correction. */
+const SCROLLED_PX = 60;
+/** A take's age prints at a minute's grain, so its card re-renders once a minute. */
+const MINUTE_MS = 60_000;
+/** web's dock floats 0.8 rem off the viewport's foot; the reel's clearances are measured from there. */
+const WEB_DOCK_BOTTOM = 12.8;
 const VIEWABILITY = { itemVisiblePercentThreshold: 60 };
 
+type Row = { kind: "closed"; line: string } | { kind: "empty"; line: string } | ReelItem;
+
 /**
- * The reel (web's /reels, ReelsScreen): a full-screen vertical pager of live Windows, one per asset and lane, soonest
- * bell first — the question, the live line against its strike, and Up/Down straight into the ticket. Only the card on
- * screen and its neighbours read live. Off-hours the closed line leads, and the 24/7 Windows still roll beneath it.
+ * web's `/reels` (`ReelsScreen`): a full-height vertical snap feed between the header and the viewport's foot — live
+ * Windows woven with community takes, "you hold this" cards and your desk's latest decision; off-hours the closed card
+ * leads it. The floating Take slab opens the composer; the swipe hint stays until the reel has moved. Only the card on
+ * screen and its neighbours read live.
  */
 export default function ReelsScreen() {
-  const { color } = useTheme();
-  const venue = useVenue();
-  const nowMs = useChainNowMs();
-  const lanes = useLanesState(venue.venueId);
-  const session = useMarketSession();
-  const phrase = useSessionPhrase();
-  const reelRounds = useReelRounds(lanes.laneSet, nowMs);
-  // Same bell, same slot: a refetch that lists two Windows closing together in another order must not move the page.
-  const rounds = useMemo(() => [...reelRounds].sort((a, b) => a.expirySec - b.expirySec || a.asset.localeCompare(b.asset) || a.lane.localeCompare(b.lane)), [reelRounds]);
-  const [height, setHeight] = useState(0);
+  const { reel, closedLine, waiting, venueId, nowMs, laneSet, configured } = useReelFeed();
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const { m } = useLocalSearchParams<{ m?: string }>();
+  const box = useRef<View>(null);
+  const list = useRef<FlatList<Row>>(null);
+  const [frame, setFrame] = useState({ height: 0, top: 0 });
   const [active, setActive] = useState(0);
-  const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken<EventMarket>[] }) => {
+  const [scrolled, setScrolled] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const restored = useRef(false);
+
+  const hasReel = reel.length > 0;
+  const holding = waiting ? REELS.reading : venueId === null ? REELS.noVenue : !hasReel ? (closedLine ?? REELS.betweenRounds) : null;
+  const leading = holding === null && closedLine !== null ? 1 : 0;
+  const rows = useMemo<Row[]>(
+    () => (holding !== null ? [{ kind: "empty", line: holding }] : [...(closedLine !== null ? [{ kind: "closed" as const, line: closedLine }] : []), ...reel]),
+    [holding, closedLine, reel],
+  );
+  const minuteMs = Math.floor(nowMs / MINUTE_MS) * MINUTE_MS;
+  const dockLift = Math.max(WEB_DOCK_BOTTOM, insets.bottom - 8) - WEB_DOCK_BOTTOM;
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    const height = Math.round(event.nativeEvent.layout.height);
+    box.current?.measureInWindow((_x, y) => setFrame({ height, top: y }));
+  };
+  const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken<Row>[] }) => {
     const first = viewableItems[0]?.index;
     if (first !== undefined && first !== null) {
       setActive(first);
       haptic.select();
     }
   }).current;
-  const onLayout = (event: LayoutChangeEvent) => setHeight(Math.round(event.nativeEvent.layout.height));
-  const renderItem = useCallback(
-    ({ item, index }: { item: EventMarket; index: number }) => <ReelCard market={item} near={Math.abs(index - active) <= 1} closing={isClosing(reelPhase(item, nowMs))} height={height} />,
-    // The clock is read inside the card; `closing` flips once, so a tick every second does not rebuild the pager.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [active, height, Math.floor(nowMs / 5_000)],
-  );
 
-  const waiting = lanes.reading === null || nowMs === 0;
-  const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(phrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
-  const holding = waiting ? REELS.reading : venue.venueId === null && venue.venueFailure ? REELS.noVenue : rounds.length === 0 ? (closedLine ?? REELS.betweenRounds) : null;
+  // web's useReelPosition: a `?m=<marketId>` link lands on that Window's card, once, the moment it exists.
+  useEffect(() => {
+    if (restored.current || !m || frame.height === 0) return;
+    const index = rows.findIndex((row) => row.kind === "market" && row.market.marketId === m);
+    if (index < 0) return;
+    restored.current = true;
+    list.current?.scrollToIndex({ index, animated: false });
+  }, [m, rows, frame.height]);
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: Row; index: number }) => {
+      const near = Math.abs(index - active) <= 1;
+      return (
+        <ReelSlot height={frame.height} bottomClear={92 + dockLift}>
+          {item.kind === "closed" || item.kind === "empty" ? (
+            <ReelHolding>{item.line}</ReelHolding>
+          ) : item.kind === "market" ? (
+            <ReelCard market={item.market} near={near} closing={isClosing(reelPhase(item.market, nowMs))} />
+          ) : item.kind === "take" ? (
+            <TakeReelCard take={item.take} nowMs={minuteMs} />
+          ) : item.kind === "holding" ? (
+            <HoldingReelCard pick={item.pick} />
+          ) : (
+            <DeskReelCard decision={item.decision} nowSec={Math.floor(minuteMs / 1000)} />
+          )}
+        </ReelSlot>
+      );
+    },
+    // The clock is read inside the cards; `closing` flips once, so a tick every second does not rebuild the pager.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [active, frame.height, dockLift, minuteMs, Math.floor(nowMs / 5_000)],
+  );
 
   return (
     <TabScreen>
-      {closedLine && rounds.length > 0 ? (
-        <View style={styles.strip}>
-          <ClosedStrip line={closedLine} />
-        </View>
-      ) : null}
-      <View style={styles.page}>
-        <View style={styles.fill} onLayout={onLayout}>
-          {holding !== null ? (
-            <View style={[styles.holding, { borderColor: color.hairline, backgroundColor: color.surface1 }]}>
-              <Text style={[TYPE.title, styles.center, { color: color.ink }]}>{holding}</Text>
-              {waiting ? <LoadingState shape="chart" /> : null}
-            </View>
-          ) : height > 0 ? (
-            <>
-              <FlatList
-                data={rounds}
-                keyExtractor={(market) => market.marketId}
-                renderItem={renderItem}
-                pagingEnabled
-                decelerationRate="fast"
-                showsVerticalScrollIndicator={false}
-                getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
-                onViewableItemsChanged={onViewable}
-                viewabilityConfig={VIEWABILITY}
-                windowSize={3}
-                initialNumToRender={2}
-              />
-              <ReelRail count={rounds.length} active={active} hint={active === 0 ? REELS.swipeHint : null} />
-            </>
-          ) : null}
-        </View>
+      <View ref={box} style={styles.fill} onLayout={onLayout}>
+        {frame.height > 0 ? (
+          <FlatList
+            ref={list}
+            data={rows}
+            keyExtractor={rowKey}
+            renderItem={renderItem}
+            pagingEnabled
+            decelerationRate="fast"
+            showsVerticalScrollIndicator={false}
+            getItemLayout={(_, index) => ({ length: frame.height, offset: frame.height * index, index })}
+            onViewableItemsChanged={onViewable}
+            viewabilityConfig={VIEWABILITY}
+            onScroll={(event) => {
+              if (!scrolled && event.nativeEvent.contentOffset.y > SCROLLED_PX) setScrolled(true);
+            }}
+            scrollEventThrottle={100}
+            windowSize={3}
+            initialNumToRender={2}
+          />
+        ) : null}
+        {hasReel && holding === null && frame.height > 0 ? (
+          <>
+            <TakeButton centerY={windowHeight / 2 - frame.top} onPress={() => setComposerOpen(true)} />
+            <SwipeHint label={leading > 0 ? REELS.swipeTakes : REELS.swipeHint} bottom={86 + dockLift} hidden={scrolled} />
+          </>
+        ) : null}
       </View>
+      <TakeComposerSheet visible={composerOpen} laneSet={laneSet} nowMs={nowMs} configured={configured} onClose={() => setComposerOpen(false)} />
     </TabScreen>
   );
 }
 
-const styles = StyleSheet.create({
-  page: { flex: 1, paddingBottom: 86 },
-  fill: { flex: 1 },
-  strip: { paddingHorizontal: SPACE.gutter, paddingTop: 8 },
-  holding: { margin: 12, flex: 1, borderRadius: RADIUS.xl, borderWidth: StyleSheet.hairlineWidth, padding: 24, justifyContent: "center", gap: 18 },
-  center: { textAlign: "center" },
-});
+function rowKey(row: Row, index: number): string {
+  if (row.kind === "market") return row.market.marketId;
+  if (row.kind === "take") return `take-${row.take.id}`;
+  if (row.kind === "holding") return `hold-${row.pick.underlying}-${index}`;
+  if (row.kind === "desk") return `desk-${row.decision.record.seq}`;
+  return row.kind;
+}
+
+const styles = StyleSheet.create({ fill: { flex: 1 } });
