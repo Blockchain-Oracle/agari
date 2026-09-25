@@ -9,7 +9,7 @@ import { usePreIpoFacts, type PreIpoFactsView } from "@/features/ticker-hub/useP
 import type { PythIndexRow } from "@/features/ticker-hub/usePythIndex";
 import { useNextEarnings } from "@/features/ticker-hub/useTickerNews";
 import { TickerRoomButton } from "~/features/room/TickerRoomButton";
-import { LinkButton, SourceLine, Stat, StatBar } from "./HubParts";
+import { SourceCaption, Stat, StatBar, TabLink } from "./HubParts";
 
 /** "Tue, Oct 21 · after close" from an ET calendar date; noon UTC keeps the weekday right in every zone (web's `reportDay`). */
 function reportDay(dateEt: string, hour: keyof typeof TICKER_HUB.hour | null): string {
@@ -27,19 +27,14 @@ function PreIpoFigures({ spot, spotStale, facts, index }: { spot: string; spotSt
       {index ? <Stat label={t.index} value={usdLine(index.indexE8)} /> : null}
       <Stat label={t.premium} value={typeof facts?.premiumBps === "number" ? t.premiumLine(facts.premiumBps) : TICKER_HUB.dash} />
       {index && index.premiumBps !== null ? <Stat label={t.indexPremium} value={t.premiumLine(index.premiumBps)} /> : null}
-      <Stat
-        label={t.holders}
-        value={facts && facts.holders !== null ? t.holdersLine(facts.holders, facts.holdersMonthAgo) : TICKER_HUB.dash}
-        long
-      />
+      <Stat label={t.holders} value={facts && facts.holders !== null ? t.holdersLine(facts.holders, facts.holdersMonthAgo) : TICKER_HUB.dash} />
     </>
   );
 }
 
 /**
  * web's `NameFacts` (features/ticker-hub/TickerHubScreen.tsx): a listed name's spot and next report, or a pre-IPO
- * name's PreStocks facts, then the source line, the ticker's Room and "Trade it →". The spot is the one shared price
- * stream; the lane read is the markets tab's own cache entry.
+ * name's PreStocks facts, then the source caption, the ticker's Room and "Trade it →", as profile.css's figure bar.
  */
 export function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null }) {
   const price = useAssetPrice(symbol);
@@ -50,26 +45,16 @@ export function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; pre
   const source = assetSourceLabel(symbol, lanes?.ok ? lanes.value : null);
   const spot = price?.ok && price.value ? assetPriceLine(symbol, feedRawToOracleRaw(basisRaw(price.value), price.value.decimals)) : TICKER_HUB.dash;
   const stale = Boolean(price?.ok && price.stale);
-  const report = earnings.event
-    ? reportDay(earnings.event.dateEt, earnings.event.hour)
-    : earnings.known
-      ? TICKER_HUB.earningsNone
-      : TICKER_HUB.earningsUnknown;
+  const report = earnings.event ? reportDay(earnings.event.dateEt, earnings.event.hour) : earnings.known ? TICKER_HUB.earningsNone : TICKER_HUB.earningsUnknown;
   const t = TICKER_HUB.preIpo;
-
-  const foot = preIpo ? (
-    <SourceLine label={source} tail={index ? t.sourceBoth : t.sourcePreStocksOnly} />
-  ) : source ? (
-    <SourceLine label={source} />
-  ) : null;
 
   return (
     <StatBar
-      foot={foot}
+      foot={preIpo ? <SourceCaption label={source} tail={index ? t.sourceBoth : t.sourcePreStocksOnly} /> : source ? <SourceCaption label={source} /> : null}
       actions={
         <>
           <TickerRoomButton symbol={symbol} />
-          <LinkButton label={TICKER_HUB.trade} icon onPress={() => router.push("/markets")} />
+          <TabLink label={TICKER_HUB.trade} onPress={() => router.navigate("/markets")} />
         </>
       }
     >
@@ -78,7 +63,7 @@ export function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; pre
       ) : (
         <>
           <Stat label={stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot} value={spot} />
-          <Stat label={TICKER_HUB.earnings} value={report} mono={false} />
+          <Stat label={TICKER_HUB.earnings} value={report} />
         </>
       )}
     </StatBar>
