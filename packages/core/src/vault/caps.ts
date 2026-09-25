@@ -1,3 +1,4 @@
+import type { Side } from "../types/market";
 import type { VaultGrant } from "./types";
 
 const DAY_SEC = 86_400;
@@ -67,4 +68,29 @@ export function simulateCaps(input: CapCheckInput): CapVerdict {
     return { ok: false, refusal: { kind: "positions", wouldBe: grant.openPositions + 1, cap: caps.maxOpenPositions } };
   }
   return { ok: true, headroomBase: dailyHeadroomBase(grant, nowSec) - spendBase };
+}
+
+export interface CappableQuote {
+  /** The IOC limit in YES terms, padded by the cadence's crossing cushion. */
+  limitPriceRaw: bigint;
+  contractsRaw: bigint;
+  expectedCostBase: bigint;
+  maxCostBase: bigint;
+}
+
+/**
+ * A grant tap's limit held to the grant's price cap. A quote's limit is the walked price plus the cadence's crossing
+ * cushion (about 56 % on a 5m Window), so a tap filling at 70¢ carries a limit near 99¢ and the 95¢ cap would refuse
+ * almost every tap above 61¢. The cap is a ceiling on what a contract may cost, not on the cushion: where the walk's
+ * average fits under it, the limit (and the escrow it implies) comes down to the cap, tick-aligned, and the IOC fills
+ * what the book offers at or under it. A quote already under the cap, a cap of 0 (none) or an average over the cap
+ * comes back unchanged — the last is a real price refusal and says so.
+ */
+export function capQuoteToGrant<Q extends CappableQuote>(quote: Q, side: Side, maxPriceRaw: bigint, one: bigint, tickRaw: bigint): Q {
+  if (maxPriceRaw === 0n || quote.contractsRaw === 0n || tickRaw <= 0n) return quote;
+  const ownLimit = side === "up" ? quote.limitPriceRaw : one - quote.limitPriceRaw;
+  const cap = maxPriceRaw - (maxPriceRaw % tickRaw);
+  if (ownLimit <= cap) return quote;
+  if (quote.expectedCostBase * one > cap * quote.contractsRaw) return quote;
+  return { ...quote, limitPriceRaw: side === "up" ? cap : one - cap, maxCostBase: (quote.contractsRaw * cap) / one };
 }

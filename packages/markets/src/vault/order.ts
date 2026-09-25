@@ -7,8 +7,8 @@
 import type { BookedOrder, OrderOutcome, OrderRequest, OrderRoute, PhaseListener } from "@agari/core/ports";
 import { SIDE_TO_OUTCOME, diagnosis, type Address, type Diagnosis, type MarketId, type Side, type Signature } from "@agari/core/types";
 import { formatCadence } from "@agari/core/copy";
-import { formatBaseUnits } from "@agari/core/units";
-import { VAULT_NOT_DEPLOYED, type VaultDeployment } from "@agari/core/vault";
+import { formatBaseUnits, oneUnit } from "@agari/core/units";
+import { capQuoteToGrant, VAULT_NOT_DEPLOYED, type VaultDeployment } from "@agari/core/vault";
 import type { Address as KitAddress } from "@solana/kit";
 import { readMarket, type SeriesFacts } from "../runtime/accounts";
 import { ENGINE_CODE } from "../submitter/chain-failure";
@@ -108,13 +108,15 @@ async function notSentOutcome(error: unknown, quoteInput: QuoteInput | null, now
 
 async function prepareVaultBuy(ctx: OrderLaneContext, deployment: VaultDeployment, req: OrderRequest, route: VaultRoute, quoteInput: QuoteInput, gate: Awaited<ReturnType<typeof statusGate>>): Promise<{ paid: PaidWrite; owner: Address }> {
   const nowMs = ctx.nowMs();
-  const quote = await freshQuote({ ...quoteInput, displayed: req.displayedQuote }, nowMs);
+  const fresh = await freshQuote({ ...quoteInput, displayed: req.displayedQuote }, nowMs);
   const expireTs = orderExpiry(nowMs, { lockAtSec: gate.onchain.lockAtSec, intervalSec: req.market.intervalSec });
   const { owner, grant } = await vaultOwnerOf(ctx, route);
   forgetVaultAccount(owner);
   const [account, market] = await Promise.all([readVaultAccount(owner), readMarket(req.market.marketId)]);
   if (!market) throw new OrderRefusedError(diagnosis("market-not-trading", `Window ${req.market.marketId} not found`));
   const tickBase = tickBaseOf(gate.venue.decimals);
+  // A grant tap's limit sits at the grant's price cap rather than the cadence's cushion above it (core capQuoteToGrant).
+  const quote = grant ? capQuoteToGrant(fresh, req.side, toVaultGrant(grant, tickBase).caps.maxPriceRaw, oneUnit(req.market.decimals), gate.series.tickBase) : fresh;
   if (grant) {
     const refusal = grantBuyRefusal({
       grant: toVaultGrant(grant, tickBase), actor: ctx.wallet, marketId: req.market.marketId, side: req.side, quote, decimals: req.market.decimals, nowSec: Math.floor(nowMs / 1000),

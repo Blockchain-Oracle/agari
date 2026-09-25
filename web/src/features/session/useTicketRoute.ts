@@ -3,7 +3,7 @@
 import type { OrderRoute } from "@agari/core/ports";
 import type { Address, EventMarket, OnchainSnapshot, Quote, Side } from "@agari/core/types";
 import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@agari/core/units";
-import { dailyHeadroomBase, simulateCaps } from "@agari/core/vault";
+import { capQuoteToGrant, dailyHeadroomBase, simulateCaps } from "@agari/core/vault";
 import { useSubmitter, useVaultHoldings } from "@agari/markets/react";
 import { SESSION } from "./copy";
 import { refusalText } from "./refusal";
@@ -59,12 +59,14 @@ export function useTicketRoute({ market, side, stakeBase, quote, onchain, source
     let refusal: string | null = null;
     if (quote && side) {
       const held = holdings?.ok ? (side === "up" ? holdings.value.upRaw : holdings.value.downRaw) : 0n;
+      // The key's order goes in at the grant's price cap, not the cadence's cushion above the walk (markets does the same).
+      const tap = capQuoteToGrant(quote, side, grant.caps.maxPriceRaw, oneUnit(decimals), oneUnit(decimals) / 1000n);
       const verdict = simulateCaps({
         grant,
         nowSec: view.nowSec,
-        sidePriceRaw: ownTermsPriceRaw(quote.limitPriceRaw, side, decimals),
-        quantityRaw: quote.contractsRaw,
-        spendBase: quote.expectedCostBase,
+        sidePriceRaw: ownTermsPriceRaw(tap.limitPriceRaw, side, decimals),
+        quantityRaw: tap.contractsRaw,
+        spendBase: tap.expectedCostBase,
         one: oneUnit(decimals),
         opensNewPosition: held === 0n,
       });

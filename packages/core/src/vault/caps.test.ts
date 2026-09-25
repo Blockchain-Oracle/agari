@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { simulateCaps, utcDayOf } from "./caps";
+import { capQuoteToGrant, simulateCaps, utcDayOf } from "./caps";
 import type { VaultGrant } from "./types";
 import { testAddress } from "../testing/ids";
 
@@ -69,4 +69,48 @@ describe("simulateCaps mirrors EventVault.placeFor on the shared vectors", () =>
       }
     });
   }
+});
+
+describe("capQuoteToGrant", () => {
+  const one = 1_000_000n;
+  const tick = 1_000n;
+  const cap = 950_000n;
+  // A 5m tap walked at 82.7¢ a contract, padded by the ~56 % cushion to a 99.9¢ limit.
+  const walked = { limitPriceRaw: 999_000n, contractsRaw: 1_001_000n, expectedCostBase: 827_827n, maxCostBase: 999_999n };
+
+  it("holds an UP tap's limit and escrow to the price cap when the walk fits under it", () => {
+    const capped = capQuoteToGrant(walked, "up", cap, one, tick);
+    expect(capped.limitPriceRaw).toBe(cap);
+    expect(capped.maxCostBase).toBe((walked.contractsRaw * cap) / one);
+    expect(capped.expectedCostBase).toBe(walked.expectedCostBase);
+  });
+
+  it("reads a DOWN tap's cap in its own terms (YES limit = 1 − cap)", () => {
+    const down = { ...walked, limitPriceRaw: 1_000n };
+    expect(capQuoteToGrant(down, "down", cap, one, tick).limitPriceRaw).toBe(one - cap);
+  });
+
+  it("leaves a quote already under the cap, a grant with no cap, and a walk priced over the cap unchanged", () => {
+    const under = { ...walked, limitPriceRaw: 900_000n };
+    expect(capQuoteToGrant(under, "up", cap, one, tick)).toBe(under);
+    expect(capQuoteToGrant(walked, "up", 0n, one, tick)).toBe(walked);
+    const dear = { ...walked, expectedCostBase: 980_000n };
+    expect(capQuoteToGrant(dear, "up", cap, one, tick)).toBe(dear);
+  });
+
+  it("aligns the cap down to a whole tick", () => {
+    expect(capQuoteToGrant(walked, "up", 950_500n, one, tick).limitPriceRaw).toBe(950_000n);
+  });
+
+  it("turns the 5m price refusal into an admitted tap", () => {
+    // The practice wallet's live devnet grant (#16): 5 a tap, 25 a day, four Windows, 95¢, a 25 budget.
+    const grant: VaultGrant = {
+      grantId: 16n, owner: testAddress(1), actor: testAddress(2), kind: "session", revoked: false, expiresAtSec: NOW_SEC + 86_400,
+      spentDay: 0, spentTodayBase: 0n, openPositions: 0, budgetBase: 25_000_000n,
+      caps: { maxStakePerTradeBase: 5_000_000n, maxDailySpendBase: 25_000_000n, maxOpenPositions: 4, maxPriceRaw: cap },
+    };
+    const verdict = (q: typeof walked) => simulateCaps({ grant, nowSec: NOW_SEC, sidePriceRaw: q.limitPriceRaw, quantityRaw: q.contractsRaw, spendBase: q.expectedCostBase, one, opensNewPosition: true });
+    expect(verdict(walked).ok).toBe(false);
+    expect(verdict(capQuoteToGrant(walked, "up", cap, one, tick)).ok).toBe(true);
+  });
 });
