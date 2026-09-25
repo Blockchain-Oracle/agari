@@ -3,18 +3,21 @@ import { router, type Href } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { PRACTICE } from "@/features/games/practice/copy";
-import { Button } from "~/components/kit";
+import { useGamesTokens } from "~/features/games/frame";
 import { useGames } from "~/features/games/shell";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { useStageTokens } from "~/features/games/stage";
+import { FONT } from "~/theme";
+import { practiceStyles, PrLink } from "./PracticePanels";
 import { PracticeRow } from "./PracticeRow";
 
 /**
- * web's `PracticeResult`: a count of cards and nothing else — no money, no rating, no streak, because practice
- * writes none. A card the feed could not price at the close is counted in one sentence rather than scored flat.
- * The result's own cue plays once on arrival (web: duel-win, duel-lose, or the neutral modal-open for a tie).
+ * web's `PracticeResult`: the scoreboard (`.pr-score` — you, the dash, the bot, the verdict), the scored rows, the
+ * footnotes, and two `.pr-link`s: play again, or on to the duel. A count of cards and nothing else — practice
+ * writes no money, rating or streak. The result's own cue plays once on arrival.
  */
 export function PracticeResult({ round, score, onAgain }: { round: PracticeRound; score: PracticeScore; onAgain: () => void }) {
-  const { color } = useTheme();
+  const { s, color } = useStageTokens();
+  const { t } = useGamesTokens();
   const { feedback } = useGames();
   const unscored = round.picks.length - score.cards.length;
 
@@ -25,55 +28,53 @@ export function PracticeResult({ round, score, onAgain }: { round: PracticeRound
   }, []);
 
   const verdict = score.winner === "you" ? PRACTICE.result.won : score.winner === "bot" ? PRACTICE.result.lost : PRACTICE.result.tied;
+  const edge = score.winner === "you" ? s.scoreWon : score.winner === "bot" ? s.scoreLost : t.cardBorder;
+  const foot = [practiceStyles.foot, { color: color.inkMuted }];
 
   return (
-    <View style={styles.root} accessibilityLabel={PRACTICE.result.title}>
-      <View style={[styles.score, { backgroundColor: color.cream, borderColor: color.creamHairline }]}>
-        <Text style={[TYPE.labelMicro, { color: color.accent }]}>{PRACTICE.result.title}</Text>
-        <View style={styles.tally} accessible accessibilityLabel={`${PRACTICE.result.you} ${score.youWon}, ${PRACTICE.result.bot} ${score.botWon}`}>
-          <Tally label={PRACTICE.result.you} value={score.youWon} />
-          <Text style={[styles.dash, { color: color.creamInk }]}>–</Text>
-          <Tally label={PRACTICE.result.bot} value={score.botWon} />
-        </View>
-        <Text style={[TYPE.stamp, styles.verdict, { color: color.creamInk }]}>{verdict}</Text>
+    <View style={styles.watch} accessibilityLabel={PRACTICE.result.title}>
+      <View style={[styles.score, { backgroundColor: s.scoreBg, borderColor: edge }]}>
+        <Tally label={PRACTICE.result.you} value={score.youWon} />
+        <Text style={[styles.dash, { color: color.inkDisabled }]}>—</Text>
+        <Tally label={PRACTICE.result.bot} value={score.botWon} />
+        <Text style={[styles.verdict, { color: color.ink }]}>{verdict}</Text>
       </View>
 
-      {score.cards.map((c) => (
-        <PracticeRow key={c.card.index} card={c.card} side={c.side} botSide={c.botSide} entryRaw={c.entryRaw} closeRaw={c.closeRaw} you={c.you} bot={c.bot} />
-      ))}
+      <View style={styles.rows}>
+        {score.cards.map((c) => (
+          <PracticeRow key={c.card.index} card={c.card} side={c.side} botSide={c.botSide} entryRaw={c.entryRaw} closeRaw={c.closeRaw} you={c.you} bot={c.bot} />
+        ))}
+      </View>
 
-      {score.cards.some((c) => c.move === "flat") ? <Foot>{PRACTICE.result.flatNote}</Foot> : null}
-      {unscored > 0 ? <Foot>{PRACTICE.result.unscored(unscored)}</Foot> : null}
-      <Foot>{PRACTICE.result.botNote}</Foot>
+      {score.cards.some((c) => c.move === "flat") ? <Text style={foot}>{PRACTICE.result.flatNote}</Text> : null}
+      {unscored > 0 ? <Text style={foot}>{PRACTICE.result.unscored(unscored)}</Text> : null}
+      <Text style={foot}>{PRACTICE.result.botNote}</Text>
 
-      <Button label={PRACTICE.result.again} icon={{ ios: "arrow.clockwise", android: "refresh" }} onPress={onAgain} />
-      <Button label={PRACTICE.result.toDuel} variant="outline" onPress={() => router.push("/games/duel" as Href)} />
+      <View style={practiceStyles.actions}>
+        <PrLink label={PRACTICE.result.again} onPress={onAgain} />
+        <PrLink label={PRACTICE.result.toDuel} quiet onPress={() => router.push("/games/duel" as Href)} />
+      </View>
     </View>
   );
 }
 
 function Tally({ label, value }: { label: string; value: number }) {
-  const { color } = useTheme();
+  const { color } = useStageTokens();
   return (
     <View style={styles.side}>
-      <Text style={[TYPE.labelMicro, { color: color.creamInk }]} numberOfLines={1}>
-        {label}
-      </Text>
-      <Text style={[TYPE.dataHero, { color: color.creamInk }]}>{value}</Text>
+      <Text style={[styles.k, { color: color.inkMuted }]}>{label.toUpperCase()}</Text>
+      <Text style={[styles.v, { color: color.ink }]}>{value}</Text>
     </View>
   );
 }
 
-function Foot({ children }: { children: string }) {
-  const { color } = useTheme();
-  return <Text style={[TYPE.caption, { color: color.inkMuted }]}>{children}</Text>;
-}
-
 const styles = StyleSheet.create({
-  root: { gap: 12 },
-  score: { borderWidth: 1, borderRadius: RADIUS.lg, padding: 20, gap: 12, alignItems: "center" },
-  tally: { flexDirection: "row", alignItems: "flex-end", gap: 18 },
-  side: { alignItems: "center", gap: 4, minWidth: 96 },
-  dash: { fontFamily: FONT.dataStrong, fontSize: 28, lineHeight: 42 },
-  verdict: { textAlign: "center" },
+  watch: { gap: 12 },
+  score: { flexDirection: "row", alignItems: "center", gap: 16, borderRadius: 16, paddingVertical: 18, paddingHorizontal: 20, borderWidth: 1 },
+  side: { gap: 4 },
+  k: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 0.9 },
+  v: { fontFamily: FONT.dataRegular, fontSize: 30, lineHeight: 30, fontVariant: ["tabular-nums"] },
+  dash: { fontFamily: FONT.dataRegular, fontSize: 20, lineHeight: 32 },
+  verdict: { marginLeft: "auto", flexShrink: 1, textAlign: "right", fontFamily: FONT.headingHeavy, fontSize: 16, lineHeight: 25.6 },
+  rows: { gap: 8 },
 });

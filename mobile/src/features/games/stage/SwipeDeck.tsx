@@ -19,7 +19,7 @@
  * game setting, or the OS) removes the drag and the flight; the two calls are always drawn and always sufficient,
  * and VoiceOver/TalkBack get increment (Up) / decrement (Down) actions on the card.
  * Sound + haptic: swipe-up / swipe-down on a commit, deny on a refusal — through `~/games/feedback`.
- * The deck must not sit inside a vertical ScrollView (the drag is vertical): give it a fixed layout.
+ * Inside a scrolling page, put it in `StageScroll`: the pan then holds that page still while a card is dragged.
  */
 import type { DeckCard, Pick } from "@agari/core/games";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -27,11 +27,13 @@ import { AccessibilityInfo, StyleSheet, Text, View, type AccessibilityActionEven
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedReaction, useSharedValue, withSpring } from "react-native-reanimated";
 import { STAGE } from "@/features/games/stage/copy";
-import { FONT, useTheme } from "~/theme";
+import { FONT } from "~/theme";
 import { cadenceLabel } from "./cadence";
 import { BehindCards, CardShell, LeavingCard, useDragStyles } from "./DeckCards";
 import { Call, DeckEmpty, ProgressStrip, type DeckOdds, type SideOdds } from "./DeckParts";
 import { LeanContext } from "./lean";
+import { useStageScroll } from "./StageScroll";
+import { useStageTokens } from "./tokens";
 import { useStageFeel } from "./useStageFeel";
 
 export type { DeckOdds, SideOdds };
@@ -66,8 +68,9 @@ const NO_ODDS: SideOdds = { pct: null, locked: false };
 const PHONE_HINT = "Swipe up or down — the buttons do the same.";
 
 export function SwipeDeck({ cards, active, playedSide, onPick, busy = false, refusal = null, odds = null, renderFace, hint }: SwipeDeckProps) {
-  const { color } = useTheme();
+  const { s, color } = useStageTokens();
   const { reducedMotion, feedback } = useStageFeel();
+  const page = useStageScroll();
   const [thrown, setThrown] = useState<Pick | null>(null);
   const [lockedHint, setLockedHint] = useState<Pick | null>(null);
   const [leaning, setLeaning] = useState<Pick | null>(null);
@@ -144,7 +147,9 @@ export function SwipeDeck({ cards, active, playedSide, onPick, busy = false, ref
     },
   );
 
-  const pan = Gesture.Pan()
+  const base = Gesture.Pan();
+  // web's active card is `touch-action: pan-x`: a vertical drag that starts on it plays the card, not the page.
+  const pan = (page ? base.blocksExternalGesture(page) : base)
     .enabled(draggable)
     .activeOffsetY([-8, 8])
     .failOffsetX([-28, 28])
@@ -217,7 +222,7 @@ export function SwipeDeck({ cards, active, playedSide, onPick, busy = false, ref
       </View>
 
       {refusal ? (
-        <View style={[styles.refusal, { borderColor: color.accentDim, backgroundColor: color.accentWash }]}>
+        <View style={[styles.refusal, { borderColor: s.refusalBorder, backgroundColor: s.refusalBg }]}>
           <Text style={[styles.refusalText, { color: color.inkSecondary }]}>{refusal}</Text>
         </View>
       ) : null}
@@ -233,11 +238,11 @@ export function SwipeDeck({ cards, active, playedSide, onPick, busy = false, ref
 }
 
 const styles = StyleSheet.create({
-  stage: { gap: 14 },
+  stage: { gap: 16 },
   // Above the calls and the hint that follow it, so a card dragged down over them stays on top.
   deck: { position: "relative", zIndex: 2, elevation: 2 },
   refusal: { borderRadius: 12, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 12 },
-  refusalText: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18 },
+  refusalText: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18.6 },
   actions: { flexDirection: "row", gap: 10 },
-  hint: { fontFamily: FONT.data, fontSize: 10.5, lineHeight: 16, textAlign: "center" },
+  hint: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, textAlign: "center" },
 });

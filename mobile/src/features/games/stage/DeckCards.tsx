@@ -13,8 +13,9 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 import { STAGE } from "@/features/games/stage/copy";
-import { FONT, useTheme } from "~/theme";
+import { PIXEL_FONT } from "~/theme/web/games";
 import { CardBack } from "../shell/PixelArt";
+import { useStageTokens } from "./tokens";
 
 /**
  * The cards themselves, from web's `SwipeDeck.tsx` and `stage.css`: the drag's five signals derived from one shared
@@ -52,7 +53,7 @@ export function CardShell({ children, held, reducedMotion, drag, leaning }: {
   drag: DragStyles;
   leaning: Pick | null;
 }) {
-  const { color } = useTheme();
+  const { s } = useStageTokens();
   const enter = useSharedValue(reducedMotion ? 1 : 0);
   useEffect(() => {
     if (!reducedMotion) enter.value = withSpring(1, SETTLE);
@@ -62,12 +63,12 @@ export function CardShell({ children, held, reducedMotion, drag, leaning }: {
     transform: [{ translateY: 12 * (1 - enter.value) }, { scale: 0.96 + 0.04 * enter.value }],
   }));
   return (
-    <Animated.View style={[styles.card, { backgroundColor: color.surface1, borderColor: color.hairline }, held && styles.held, entering]}>
+    <Animated.View style={[styles.card, { backgroundColor: s.cardBg, borderColor: s.cardBorder }, held && styles.held, entering]}>
       {children}
       {reducedMotion ? null : (
         <>
-          <Animated.View pointerEvents="none" style={[styles.tint, { backgroundColor: color.profitWash }, drag.upTint]} />
-          <Animated.View pointerEvents="none" style={[styles.tint, { backgroundColor: color.lossWash }, drag.downTint]} />
+          <Animated.View pointerEvents="none" style={[styles.tint, { backgroundColor: s.tintUp }, drag.upTint]} />
+          <Animated.View pointerEvents="none" style={[styles.tint, { backgroundColor: s.tintDown }, drag.downTint]} />
         </>
       )}
       {leaning ? <Stamp side={leaning} /> : null}
@@ -77,7 +78,7 @@ export function CardShell({ children, held, reducedMotion, drag, leaning }: {
 
 /** The stamp past 24 pt of travel: a bordered word at ∓6°, with the reference's hard offset shadow. */
 function Stamp({ side }: { side: Pick }) {
-  const { color } = useTheme();
+  const { s, color } = useStageTokens();
   const ink = side === "up" ? color.profit : color.loss;
   return (
     <View
@@ -85,7 +86,7 @@ function Stamp({ side }: { side: Pick }) {
       style={[
         styles.stamp,
         side === "up" ? styles.stampUp : styles.stampDown,
-        { borderColor: ink, backgroundColor: color.ground, shadowColor: color.shadow },
+        { borderColor: ink, backgroundColor: s.stampBg, boxShadow: `3px 3px 0 ${s.stampShadow}` },
       ]}
     >
       <Text style={[styles.stampText, { color: ink }]}>{(side === "up" ? STAGE.up : STAGE.down).toUpperCase()}</Text>
@@ -95,7 +96,7 @@ function Stamp({ side }: { side: Pick }) {
 
 /** The two cards still to come, stacked behind and inert; the next one rises toward full size as the top is dragged. */
 export function BehindCards({ cards, progress }: { cards: readonly DeckCard[]; progress: DerivedValue<number> }) {
-  const { color } = useTheme();
+  const { s } = useStageTokens();
   const next = useAnimatedStyle(() => ({
     transform: [{ translateY: 10 * (1 - progress.value) }, { scale: 0.965 + 0.035 * progress.value }],
   }));
@@ -110,11 +111,13 @@ export function BehindCards({ cards, progress }: { cards: readonly DeckCard[]; p
             importantForAccessibility="no-hide-descendants"
             style={[
               styles.behind,
-              { backgroundColor: color.surface1, borderColor: color.hairline, opacity: 0.5 - (depth + 1) * 0.14 },
+              { backgroundColor: s.cardBg, borderColor: s.cardBorder, opacity: 0.5 - (depth + 1) * 0.14 },
               depth === 0 ? next : { transform: [{ translateY: 20 }, { scale: 0.93 }] },
             ]}
           >
-            <CardBack size={96} />
+            <View style={styles.backArt}>
+              <CardBack size={96} />
+            </View>
           </Animated.View>
         ))
         .reverse()}
@@ -124,7 +127,7 @@ export function BehindCards({ cards, progress }: { cards: readonly DeckCard[]; p
 
 /** A confirmed card on its way out: opaque, spinning off past its tilt, then gone. */
 export function LeavingCard({ side, onDone, children }: { side: Pick; onDone: () => void; children: ReactNode }) {
-  const { color } = useTheme();
+  const { s } = useStageTokens();
   const t = useSharedValue(0);
   // Held in a ref so a parent re-render (the clock ticks every second) never restarts the throw.
   const done = useRef(onDone);
@@ -144,7 +147,7 @@ export function LeavingCard({ side, onDone, children }: { side: Pick; onDone: ()
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      style={[styles.card, styles.leaving, { backgroundColor: color.surface1, borderColor: color.hairline }, style]}
+      style={[styles.card, styles.leaving, { backgroundColor: s.cardBg, borderColor: s.cardBorder }, style]}
     >
       {children}
     </Animated.View>
@@ -152,7 +155,7 @@ export function LeavingCard({ side, onDone, children }: { side: Pick; onDone: ()
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 10, borderRadius: 20, padding: 14, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
+  card: { gap: 10, borderRadius: 20, padding: 16, borderWidth: 1, overflow: "hidden" },
   held: { opacity: 0.86 },
   leaving: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 5 },
   behind: {
@@ -162,10 +165,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
+  backArt: { opacity: 0.9 },
   tint: { ...StyleSheet.absoluteFill, borderRadius: 20, zIndex: 3 },
   stamp: {
     position: "absolute",
@@ -174,11 +178,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderWidth: 2,
     borderRadius: 4,
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.6,
-    shadowRadius: 0,
   },
   stampUp: { top: 18, left: 18, transform: [{ rotate: "-6deg" }] },
   stampDown: { bottom: 18, right: 18, transform: [{ rotate: "6deg" }] },
-  stampText: { fontFamily: FONT.dataStrong, fontSize: 30, lineHeight: 34, letterSpacing: 2.4 },
+  stampText: { fontFamily: PIXEL_FONT, fontSize: 33, lineHeight: 33, letterSpacing: 2.64 },
 });

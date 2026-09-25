@@ -1,64 +1,84 @@
 import { StyleSheet, Text, View } from "react-native";
 import { GAMES } from "@/features/games/copy";
 import { PRACTICE } from "@/features/games/practice/copy";
-import { Button } from "~/components/kit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { Plate, PlateBody, PlateMeta, PlateTitle, Press, useGamesTokens } from "~/features/games/frame";
+import { useStageTokens } from "~/features/games/stage";
+import { FONT } from "~/theme";
 
 /** web's practice `Plate`: dealing, nothing dealable, or the venue unreadable — three sentences, never merged. */
 export function ReadinessPlate({ readiness, closedLabel }: { readiness: "dealing" | "no-deck" | "unreadable"; closedLabel: string | null }) {
-  const { color } = useTheme();
-  const plate = [styles.plate, { backgroundColor: color.surface1, borderColor: color.hairline }];
   if (readiness === "dealing") {
     return (
-      <View style={plate} accessibilityLiveRegion="polite">
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{PRACTICE.deal.dealing}</Text>
-      </View>
+      <Plate>
+        <PlateBody>{PRACTICE.deal.dealing}</PlateBody>
+      </Plate>
     );
   }
   const copy = readiness === "no-deck" ? PRACTICE.deal.none : PRACTICE.deal.offline;
-  const body = readiness === "no-deck" && closedLabel !== null ? PRACTICE.deal.none.closedBody(closedLabel) : copy.body;
   return (
-    <View style={plate}>
-      <Text style={[TYPE.title, { color: color.ink }]}>{copy.title}</Text>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{body}</Text>
-      <Text style={[styles.meta, { color: color.inkMuted }]}>{GAMES.card.waitingOn("the venue's live Window list")}</Text>
-    </View>
+    <Plate>
+      <PlateTitle>{copy.title}</PlateTitle>
+      <PlateBody>{readiness === "no-deck" && closedLabel !== null ? PRACTICE.deal.none.closedBody(closedLabel) : copy.body}</PlateBody>
+      <PlateMeta>{GAMES.card.waitingOn("the venue's live Window list")}</PlateMeta>
+    </Plate>
   );
 }
 
-/** web's first-run tutorial panel (`pr-tutorial`), shown until the player dismisses it; "How this works" brings it back. */
+/** `.pr-link` (and `--quiet`): a mono 10 uppercase text button, vermilion or gray-500. */
+export function PrLink({ label, onPress, quiet, disabled }: { label: string; onPress: () => void; quiet?: boolean; disabled?: boolean }) {
+  const { color } = useStageTokens();
+  return (
+    <Press onPress={onPress} disabled={disabled} accessibilityRole="button" hitSlop={10}>
+      <Text style={[styles.link, { color: quiet ? color.inkMuted : color.accent }]}>{label.toUpperCase()}</Text>
+    </Press>
+  );
+}
+
+/** web's first-run `.pr-tutorial`: inline beside the deck it explains, until the player says "Got it". */
 export function TutorialPlate({ onDismiss }: { onDismiss: () => void }) {
-  const { color } = useTheme();
+  const { s, color } = useStageTokens();
   return (
-    <View style={[styles.plate, { backgroundColor: color.cream, borderColor: color.creamHairline }]}>
-      <Text style={[TYPE.title, { color: color.creamInk }]}>{PRACTICE.tutorial.title}</Text>
-      {PRACTICE.tutorial.steps.map((step, index) => (
-        <View key={step} style={[styles.step, { borderTopColor: color.creamHairline }]}>
-          <Text style={[styles.index, { color: color.accent }]}>{String(index + 1).padStart(2, "0")}</Text>
-          <Text style={[TYPE.body, styles.stepText, { color: color.creamInk }]}>{step}</Text>
-        </View>
-      ))}
-      <Button label={PRACTICE.tutorial.dismiss} onPress={onDismiss} />
+    <View style={[styles.tutorial, { borderColor: s.tutorialBorder, backgroundColor: s.tutorialBg }]}>
+      <Text style={[styles.tutorialTitle, { color: color.ink }]}>{PRACTICE.tutorial.title}</Text>
+      <View style={styles.list}>
+        {PRACTICE.tutorial.steps.map((step) => (
+          <Text key={step} style={[styles.item, { color: color.inkSecondary }]}>
+            {step}
+          </Text>
+        ))}
+      </View>
+      <View style={[styles.actions, styles.tutorialActions]}>
+        <PrLink label={PRACTICE.tutorial.dismiss} onPress={onDismiss} />
+      </View>
     </View>
   );
 }
 
-/** web's `pr-note`: the sentence that keeps the mode honest, on screen at all times. */
+/** web's `.pr-note`: the sentence that keeps the mode honest, on screen at all times. */
 export function ScoringNote() {
-  const { color } = useTheme();
+  const { t, color } = useGamesTokens();
   return (
-    <View style={[styles.note, { borderLeftColor: color.accent }]}>
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{PRACTICE.scoring.label}</Text>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{PRACTICE.scoring.body}</Text>
+    <View style={[styles.note, { borderColor: t.cardBorder, backgroundColor: t.cardBg }]}>
+      <Text style={[styles.noteK, { color: color.inkMuted }]}>{PRACTICE.scoring.label.toUpperCase()}</Text>
+      <Text style={[styles.noteBody, { color: color.inkSecondary }]}>{PRACTICE.scoring.body}</Text>
     </View>
   );
 }
+
+export const practiceStyles = StyleSheet.create({
+  actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
+  foot: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
+});
 
 const styles = StyleSheet.create({
-  plate: { borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.lg, padding: 16, gap: 10 },
-  meta: { fontFamily: FONT.data, fontSize: 11 },
-  step: { flexDirection: "row", gap: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  index: { fontFamily: FONT.dataStrong, fontSize: 13, lineHeight: 23 },
-  stepText: { flex: 1 },
-  note: { borderLeftWidth: 2, paddingLeft: 12, gap: 4 },
+  link: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.6 },
+  tutorial: { borderRadius: 14, padding: 16, borderWidth: 1 },
+  tutorialTitle: { fontFamily: FONT.heading, fontSize: 13, lineHeight: 20.8 },
+  list: { marginTop: 10, paddingLeft: 18, gap: 8 },
+  item: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
+  actions: practiceStyles.actions,
+  tutorialActions: { marginTop: 12 },
+  note: { gap: 6, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: 1 },
+  noteK: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.08 },
+  noteBody: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.8 },
 });

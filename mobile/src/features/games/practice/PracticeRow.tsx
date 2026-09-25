@@ -1,10 +1,9 @@
 import { practiceMove, type DeckCard, type Pick, type PracticeCardResult, type PracticeMove } from "@agari/core/games";
-import { SymbolView } from "expo-symbols";
 import { StyleSheet, Text, View } from "react-native";
 import { PRACTICE } from "@/features/games/practice/copy";
-import { AssetDisc } from "~/components/marks/AssetDisc";
+import { useGamesTokens } from "~/features/games/frame";
 import { cadenceLabel } from "~/features/games/stage";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT } from "~/theme";
 
 /** The move as a signed percentage, computed in integers and only made a float to be printed (web's `movePercent`). */
 export function movePercent(entryRaw: bigint, closeRaw: bigint): string {
@@ -26,30 +25,23 @@ interface PracticeRowProps {
 }
 
 /**
- * web's `PracticeRow`: one card in the watch and again in the result. The watch has no verdicts (a card
- * "winning" eight seconds into the watch has won nothing); verdicts arrive with the close.
+ * web's `PracticeRow` (`.pr-row`): the asset and cadence, the move with its arrow (the arrow, not the colour, says
+ * which way), and each side's call. The watch has no verdicts; they arrive with the close.
  */
 export function PracticeRow({ card, side, entryRaw, closeRaw, botSide, you, bot }: PracticeRowProps) {
-  const { color } = useTheme();
+  const { t, color } = useGamesTokens();
   const move = closeRaw === null ? null : practiceMove(entryRaw, closeRaw);
-  const moveInk = moveColor(move, color);
+  const ink = moveInk(move, color);
   return (
-    <View style={[styles.row, { borderColor: color.hairline, backgroundColor: color.surface1 }]}>
+    <View style={[styles.row, { borderColor: t.cardBorder, backgroundColor: t.cardBg }]}>
       <View style={styles.top}>
-        <AssetDisc asset={card.asset} size={28} />
         <View style={styles.name}>
-          <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{card.asset}</Text>
+          <Text style={[styles.asset, { color: color.ink }]}>{card.asset}</Text>
           <Text style={[styles.meta, { color: color.inkMuted }]}>{cadenceLabel(card.intervalSec)}</Text>
         </View>
-        <View
-          style={styles.moveBox}
-          accessible
-          accessibilityLabel={move && closeRaw !== null ? `${PRACTICE.result.move[move]} ${movePercent(entryRaw, closeRaw)}` : "Price unreadable"}
-        >
-          {move === "up" || move === "down" ? (
-            <SymbolView name={move === "up" ? { ios: "arrow.up", android: "arrow_upward" } : { ios: "arrow.down", android: "arrow_downward" }} size={12} tintColor={moveInk} />
-          ) : null}
-          <Text style={[styles.move, { color: moveInk }]}>{closeRaw === null ? "—" : movePercent(entryRaw, closeRaw)}</Text>
+        <View style={styles.move} accessible accessibilityLabel={move && closeRaw !== null ? `${PRACTICE.result.move[move]} ${movePercent(entryRaw, closeRaw)}` : "Price unreadable"}>
+          {move ? <Text style={[styles.arrow, { color: ink }]}>{PRACTICE.result.arrow[move]}</Text> : null}
+          <Text style={[styles.moveText, { color: ink }]}>{closeRaw === null ? "—" : movePercent(entryRaw, closeRaw)}</Text>
         </View>
       </View>
       <View style={styles.sides}>
@@ -61,40 +53,37 @@ export function PracticeRow({ card, side, entryRaw, closeRaw, botSide, you, bot 
 }
 
 function Side({ label, side, verdict }: { label: string; side: Pick; verdict?: PracticeCardResult }) {
-  const { color } = useTheme();
+  const { color } = useGamesTokens();
   const verdictInk = verdict === "won" ? color.profit : verdict === "lost" ? color.loss : color.inkMuted;
   return (
     <View style={styles.side}>
       <View style={[styles.dot, { backgroundColor: side === "up" ? color.profit : color.loss }]} />
-      <Text style={[styles.sideText, { color: color.inkSecondary }]} numberOfLines={1}>
+      <Text style={[styles.sideText, { color: color.inkMuted }]}>
         {label} · {PRACTICE.result.call[side]}
       </Text>
-      {verdict ? (
-        <View style={[styles.verdict, { borderColor: verdictInk }]}>
-          <Text style={[styles.verdictText, { color: verdictInk }]}>{PRACTICE.result.cardResult[verdict].toUpperCase()}</Text>
-        </View>
-      ) : null}
+      {verdict ? <Text style={[styles.sideText, styles.verdict, { color: verdictInk }]}>{PRACTICE.result.cardResult[verdict].toUpperCase()}</Text> : null}
     </View>
   );
 }
 
-function moveColor(move: PracticeMove | null, color: ReturnType<typeof useTheme>["color"]): string {
+export function moveInk(move: PracticeMove | null, color: ReturnType<typeof useGamesTokens>["color"]): string {
   if (move === "up") return color.profit;
   if (move === "down") return color.loss;
   return color.inkMuted;
 }
 
 const styles = StyleSheet.create({
-  row: { borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.md, padding: 12, gap: 10 },
-  top: { flexDirection: "row", alignItems: "center", gap: 10 },
-  name: { flex: 1 },
-  meta: { fontFamily: FONT.data, fontSize: 11 },
-  moveBox: { flexDirection: "row", alignItems: "center", gap: 4 },
-  move: { fontFamily: FONT.dataStrong, fontSize: 15, fontVariant: ["tabular-nums"] },
-  sides: { gap: 6 },
-  side: { flexDirection: "row", alignItems: "center", gap: 8 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  sideText: { flex: 1, fontFamily: FONT.body, fontSize: 13 },
-  verdict: { borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 1 },
-  verdictText: { fontFamily: FONT.data, fontSize: 9.5, letterSpacing: 0.8 },
+  row: { gap: 4, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1 },
+  top: { flexDirection: "row", alignItems: "center", gap: 12 },
+  name: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8 },
+  asset: { fontFamily: FONT.heading, fontSize: 14, lineHeight: 22.4 },
+  meta: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
+  move: { flexDirection: "row", alignItems: "baseline", gap: 4 },
+  arrow: { fontFamily: FONT.dataRegular, fontSize: 12 },
+  moveText: { fontFamily: FONT.dataRegular, fontSize: 14, lineHeight: 22.4, fontVariant: ["tabular-nums"] },
+  sides: { flexDirection: "row", flexWrap: "wrap", rowGap: 6, columnGap: 14 },
+  side: { flexDirection: "row", alignItems: "center", gap: 5 },
+  dot: { width: 7, height: 7, borderRadius: 9999 },
+  sideText: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
+  verdict: { letterSpacing: 0.6 },
 });
