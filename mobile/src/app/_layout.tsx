@@ -75,7 +75,7 @@ function RootStack() {
         <Stack.Screen name="welcome" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="connect" options={dialog} />
-        <Stack.Screen name="ticket" options={{ presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
+        <Stack.Screen name="ticket" options={dialog} />
         <Stack.Screen name="funds" options={dialog} />
         <Stack.Screen name="account" options={dialog} />
         <Stack.Screen name="sensei" options={dialog} />

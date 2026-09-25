@@ -9,7 +9,7 @@ import { CHROME, chromeTokens } from "~/theme/chrome";
 
 /** web's key, so the dismissal means the same thing in both. */
 const KEY = "agari.appstrip.dismissed";
-/** web's second line; its first ("installs as a web app") is not true of the app, and "Get it" opens test funds. */
+/** web's second line (its first, "installs as a web app", is not true of the app); "Get it" opens /download as on web. */
 const LINE = "Solana devnet — test funds only";
 
 /** web's AppStrip: the thin line above the page, dismissible, the dismissal sticks. */
@@ -20,7 +20,7 @@ export function AppStrip() {
   if (gone) return null;
   return (
     <View style={[styles.strip, { backgroundColor: t.stripBg, borderBottomColor: t.stripBorder }]}>
-      <Pressable style={styles.msg} onPress={() => router.push("/funds")} accessibilityRole="link" accessibilityLabel={`${LINE}. Get it`}>
+      <Pressable style={styles.msg} onPress={() => router.push("/download")} accessibilityRole="link" accessibilityLabel={`${LINE}. Get it`}>
         <Svg width={11} height={15} viewBox="0 0 14 20" fill="none" stroke={t.stripText} strokeWidth={1.6} strokeLinecap="round">
           <Rect x={1.2} y={1.2} width={11.6} height={17.6} rx={2.6} />
           <Path d="M5.6 3.6h2.8" />
