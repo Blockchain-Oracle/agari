@@ -14,6 +14,8 @@ import { demoTokens } from "~/theme/web/explore/demo";
 import { Cta, Eyebrow, Headline, Reveal } from "./Parts";
 
 const DEMO_VIDEO_ID = "iPtmue-eyIc";
+/** YouTube's own poster for the video (hqdefault), bundled so the frame draws offline. */
+const POSTER = require("../../../assets/explore/demo-video-poster.jpg");
 const DEMO_VIDEO_URL = `https://youtu.be/${DEMO_VIDEO_ID}`;
 const go = (href: Href) => router.push(href);
 
@@ -61,7 +63,7 @@ function DemoVideo() {
         accessibilityLabel={DEMO.video.title}
         style={[styles.video, { backgroundColor: t.videoGround, borderColor: t.hair10, boxShadow: t.frameShadow }]}
       >
-        <Image source={{ uri: `https://i.ytimg.com/vi/${DEMO_VIDEO_ID}/hqdefault.jpg` }} style={StyleSheet.absoluteFill} contentFit="cover" />
+        <Image source={POSTER} style={StyleSheet.absoluteFill} contentFit="cover" />
         <View style={[styles.play, { backgroundColor: t.youtubeRed }]}>
           <Play size={20} color={t.youtubeGlyph} fill={t.youtubeGlyph} />
         </View>

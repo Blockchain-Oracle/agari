@@ -101,7 +101,7 @@ export function DemoScreen() {
             <InlineLink label={S.tap.link} icon={ArrowRight} onPress={() => go("/markets")} />
           </Reveal>
           <Reveal>
-            <Frame path="/demo/markets.png" alt={DEMO.frame.markets} />
+            <Frame shot="markets" alt={DEMO.frame.markets} />
           </Reveal>
         </View>
 
@@ -113,7 +113,7 @@ export function DemoScreen() {
             <InlineLink label={S.reel.link} icon={ArrowRight} onPress={() => go("/reels")} />
           </Reveal>
           <Reveal>
-            <Frame path="/demo/reel.png" alt={DEMO.frame.reel} phone />
+            <Frame shot="reel" alt={DEMO.frame.reel} phone />
           </Reveal>
         </View>
 
@@ -128,7 +128,7 @@ export function DemoScreen() {
             </View>
           </Reveal>
           <Reveal>
-            <Frame path="/demo/sensei.png" alt={DEMO.frame.sensei} />
+            <Frame shot="sensei" alt={DEMO.frame.sensei} />
           </Reveal>
         </View>
 

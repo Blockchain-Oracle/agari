@@ -2,12 +2,11 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View } from "react-native";
 import { INSTALL } from "@/features/install/copy";
-import { SITE_URL } from "~/lib/env";
 import { useTheme } from "~/theme";
 import { downloadTokens } from "~/theme/web/explore/download";
 
-/** web's capture of `/markets` on a phone (public/demo/bet-screen.png, 780×1688). */
-const SHOT = { uri: `${SITE_URL}/demo/bet-screen.png` };
+/** web's capture of `/markets` on a phone (public/demo/bet-screen.png, 780×1688), bundled. */
+const SHOT = require("../../../assets/explore/bet-screen.png");
 const PHONE_W = 250;
 const SCREEN_W = PHONE_W - 12;
 

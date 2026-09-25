@@ -5,7 +5,6 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 import { DEMO } from "@/features/demo/copy";
 import { openExternal } from "~/lib/external";
-import { SITE_URL } from "~/lib/env";
 import { FONT, useTheme } from "~/theme";
 import { demoTokens } from "~/theme/web/explore/demo";
 
@@ -92,14 +91,21 @@ export function ProofLink({ label, reference, href, note }: { label: string; ref
   );
 }
 
+/** web's `/demo/*.png` captures, bundled in assets/explore. */
+const SHOTS = {
+  markets: require("../../../assets/explore/markets.png"),
+  reel: require("../../../assets/explore/reel.png"),
+  sensei: require("../../../assets/explore/sensei.png"),
+} as const;
+
 /** web `Frame`: a dated capture of the running product (`/demo/*.png`), 16 px radius over the frame shadow. */
-export function Frame({ path, alt, phone = false }: { path: string; alt: string; phone?: boolean }) {
+export function Frame({ shot, alt, phone = false }: { shot: keyof typeof SHOTS; alt: string; phone?: boolean }) {
   const { name, color } = useTheme();
   const t = demoTokens(name);
   return (
     <View style={phone ? styles.phoneFrame : null}>
       <View style={[styles.frameImg, { borderColor: t.hair10, boxShadow: t.frameShadow, aspectRatio: phone ? 780 / 1688 : 2560 / 1600 }]}>
-        <Image source={{ uri: `${SITE_URL}${path}` }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={alt} />
+        <Image source={SHOTS[shot]} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={alt} />
       </View>
       <Text style={[styles.caption, { color: color.inkDisabled }]}>{DEMO.frame.caption(DEMO.capturedOn)}</Text>
     </View>
