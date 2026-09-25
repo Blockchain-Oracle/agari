@@ -23,7 +23,7 @@ const noop = async () => undefined;
 const LINK: XLink = { loading: false, busy: "", error: "", ok: "", needsLink: false, walletMismatch: false, sessionMatchesBinding: true,
   refresh: noop, link: noop, unlink: noop, startUrl: () => "#", setOk: () => undefined, setError: () => undefined,
   status: { configured: true, missing: [], storeConfigured: true, signedIn: true, session: { authorId: "1", handle: "demo_trader" },
-    binding: { authorId: "1", handle: "demo_trader", wallet: OWNER, since: 0 }, executor: EXECUTOR, handle: "@agari_app" } };
+    binding: { authorId: "1", handle: "demo_trader", wallet: OWNER, since: 0 }, executor: EXECUTOR, handle: "@useagari" } };
 
 /** Interactive rehearsal of the production update state machine, with only its wallet/chain boundaries replaced. */
 export function XUpgradeFixture() {

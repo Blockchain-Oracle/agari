@@ -13,7 +13,7 @@ const BRAND = {
   brand: "AGARI",
   site: (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://useagari.xyz").replace(/^https?:\/\//, ""),
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://useagari.xyz",
-  handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "@agari_app",
+  handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "@useagari",
 } as const;
 
 const signOff = `${BRAND.site} via ${BRAND.handle}`;
