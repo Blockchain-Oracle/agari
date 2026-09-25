@@ -15,15 +15,16 @@ export interface SurfaceHandle {
 
 const EMPTY: Frame = { ops: [], gradients: [] };
 
-export function ArcadeSurface({ ref }: { ref: Ref<SurfaceHandle> }) {
+/** `x0`: field units trimmed off the left edge, behind the player (the full-screen stage uses it to draw bigger). */
+export function ArcadeSurface({ ref, x0 = 0 }: { ref: Ref<SurfaceHandle>; x0?: number }) {
   const [frame, setFrame] = useState<Frame>(EMPTY);
   useImperativeHandle(ref, () => ({ paint: setFrame }), []);
 
   return (
     <Svg
       style={StyleSheet.absoluteFill}
-      viewBox={`0 0 ${FIELD_W} ${FIELD_H}`}
-      preserveAspectRatio="xMinYMin slice"
+      viewBox={`${x0} 0 ${FIELD_W - x0} ${FIELD_H}`}
+      preserveAspectRatio={x0 > 0 ? "xMidYMid meet" : "xMinYMin slice"}
       pointerEvents="none"
     >
       {frame.gradients.length > 0 ? (

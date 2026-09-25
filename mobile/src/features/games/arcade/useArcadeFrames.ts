@@ -37,6 +37,13 @@ const SLOW_FRAME_MS = 24;
 
 export const FRESH_STATS: FrameStats = { frameMs: 0, workMs: 0, targetFps: 60 };
 
+/** Where the full-screen stage draws the field: a band of the screen, and the field units trimmed behind the player. */
+export interface FieldBand {
+  top: number;
+  height: number;
+  x0: number;
+}
+
 /** `statsRef` is the caller's: the loop keeps the measured frame times in it. */
 export function useArcadeFrames(
   driverRef: RefObject<LoopDriver>,

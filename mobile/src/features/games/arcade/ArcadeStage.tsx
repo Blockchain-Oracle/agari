@@ -14,6 +14,7 @@ import { Checker, Eyebrow, PAGE_PADDING } from "~/features/games/frame";
 import { useGameScreen, useGames } from "~/features/games/shell";
 import { FONT, useTheme } from "~/theme";
 import { ArcadeBoard } from "./ArcadeBoard";
+import { ArcadeFullScreen } from "./ArcadeFullScreen";
 import { ArcadeIsland } from "./ArcadeIsland";
 import { ArcadeNote, ArcadeReadout, CalmSwitch } from "./ArcadeNotes";
 import { hopCrashSfx, hopScoreSfx, milestoneSfx, preloadArcadeSfx, regainSfx, rideCrashSfx, rideStartSfx } from "./sfx";
@@ -26,7 +27,7 @@ import { hopCrashSfx, hopScoreSfx, milestoneSfx, preloadArcadeSfx, regainSfx, ri
  * when it answered, the phone's own entropy when it did not — and what ends a run is the engine, never the player:
  * there is no quit, so every run that ends is a run that can be posted. Posting carries the duel room's token (the
  * game key's word for the wallet, no prompt); a signed-out player plays the same game and the board says "connect
- * to post". The page scrolls past the title card; while a run is live the field owns the finger.
+ * to post". The page is web's; a live run takes the whole phone (`ArcadeFullScreen`) and hands back at game over.
  */
 interface Hud {
   score: number;
@@ -129,6 +130,14 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
     [feedback],
   );
 
+  // Ending from the pause plate throws the run away: the engine never ended it, so there is nothing to post.
+  const quit = useCallback(() => {
+    feedback("tap");
+    setRun(null);
+    setHud(HUD_ZERO);
+    setPhase("title");
+  }, [feedback]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -161,10 +170,11 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
 
       <View style={styles.layout}>
         <View style={styles.column}>
+          {/* The page's screen only ever shows the idle field: a live run plays full screen, over the page. */}
           <ArcadeIsland
             game={game}
             phase={phase}
-            run={run}
+            run={null}
             reduced={reducedMotion}
             hud={hud}
             liveBest={liveBest}
@@ -187,6 +197,21 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
           <ArcadeNote />
         </View>
       </View>
+      {playing && run ? (
+        <ArcadeFullScreen
+          game={game}
+          run={run}
+          reduced={reducedMotion}
+          hud={hud}
+          best={best ?? 0}
+          onRideHud={onRideHud}
+          onFlapHud={onFlapHud}
+          onEnd={onEnd}
+          onRideCue={onRideCue}
+          onFlapCue={onFlapCue}
+          onQuit={quit}
+        />
+      ) : null}
     </ScrollView>
   );
 }

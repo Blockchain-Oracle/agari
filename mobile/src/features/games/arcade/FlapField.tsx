@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { ArcadeSurface, type SurfaceHandle } from "./ArcadeSurface";
-import { useArcadeFrames, type FrameStats, type LoopDriver } from "./useArcadeFrames";
+import { useArcadeFrames, type FieldBand, type FrameStats, type LoopDriver } from "./useArcadeFrames";
 
 /**
  * web's `FlapCanvas.tsx`, native — the ride's twin with one bit of input. A touch-down anywhere on the field
@@ -32,9 +32,13 @@ interface Props {
   onEnd: (end: RunEnd) => void;
   onCue: (cue: FlapCue) => void;
   statsRef: RefObject<FrameStats>;
+  /** The full-screen stage: the whole screen takes the finger, the picture sits in this band. */
+  band?: FieldBand | null;
+  /** A paused run holds its tick; the trace is by tick, so a pause never changes the replay. */
+  paused?: boolean;
 }
 
-export function FlapField({ run, reduced, onHud, onEnd, onCue, statsRef }: Props) {
+export function FlapField({ run, reduced, onHud, onEnd, onCue, statsRef, band = null, paused = false }: Props) {
   const surfaceRef = useRef<SurfaceHandle>(null);
   const stateRef = useRef<FlapState>(createFlapState(createRng(IDLE_SEED), { calm: false }));
   const rngRef = useRef<Rng>(createRng(IDLE_SEED));
@@ -92,7 +96,7 @@ export function FlapField({ run, reduced, onHud, onEnd, onCue, statsRef }: Props
     },
   });
 
-  useArcadeFrames(driverRef, surfaceRef, running, statsRef);
+  useArcadeFrames(driverRef, surfaceRef, running && !paused, statsRef);
 
   useEffect(() => {
     if (!run) return;
@@ -115,18 +119,26 @@ export function FlapField({ run, reduced, onHud, onEnd, onCue, statsRef }: Props
     () =>
       Gesture.Manual()
         .runOnJS(true)
-        .enabled(running)
+        .enabled(running && !paused)
         .onTouchesDown(() => {
           pressedRef.current = true;
         }),
-    [running],
+    [running, paused],
   );
 
   return (
     <GestureDetector gesture={press}>
       <View style={StyleSheet.absoluteFill}>
-        <ArcadeSurface ref={surfaceRef} />
+        {band ? (
+          <View pointerEvents="none" style={[styles.band, { top: band.top, height: band.height }]}>
+            <ArcadeSurface ref={surfaceRef} x0={band.x0} />
+          </View>
+        ) : (
+          <ArcadeSurface ref={surfaceRef} />
+        )}
       </View>
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({ band: { position: "absolute", left: 0, right: 0 } });
