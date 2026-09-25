@@ -4,7 +4,8 @@
  * theme through the reference's own tokens. */
 
 /* ---- XWalletCard: the plate's ink ------------------------------------------------------- */
-.xw { --xw-ink: var(--lp-ink, #1a1612); --xw-mute: var(--lp-mute, #6b6353); --xw-line: var(--lp-line, rgba(201, 191, 166, 0.6)); --xw-paper: var(--lp-paper-raised, #fffdf8); --xw-v: #e04d26; --xw-loss: #b53d30; --xw-mint: #34d399; }
+/* Outside a ledger plate (Portfolio places the card after it) the fallbacks are the theme's own, as the plate's dark values are. */
+.xw { --xw-ink: var(--lp-ink, var(--white)); --xw-mute: var(--lp-mute, var(--gray-400)); --xw-line: var(--lp-line, var(--ms-hairline)); --xw-paper: var(--lp-paper-raised, var(--ms-surface-2)); --xw-v: #e04d26; --xw-loss: #b53d30; --xw-mint: #34d399; }
 /* mb-3 flex items-center gap-2 */
 .xw-head { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .xw-head-icon { width: 16px; height: 16px; color: var(--xw-v); }
@@ -77,7 +78,7 @@
 .xw-btn-out { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; padding: 8px 20px; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; background: transparent; border: 1px solid var(--xw-line); color: var(--xw-ink); cursor: pointer; }
 .xw-btn-out:disabled, .xw-btn-fill:disabled { opacity: 0.4; }
 /* filled: background #1A1612 color #FBF7EE */
-.xw-btn-fill { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; border-radius: 8px; padding: 8px 20px; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; background: var(--xw-ink); color: var(--lp-paper, #fbf7ee); border: 0; cursor: pointer; }
+.xw-btn-fill { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; border-radius: 8px; padding: 8px 20px; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; background: var(--xw-ink); color: var(--lp-paper, var(--bg)); border: 0; cursor: pointer; }
 /* mt-6 pt-5 flex flex-col gap-2.5 sm:flex-row sm:items-center; border-top rgba(201,191,166,0.3) */
 .xw-fund { margin-top: 24px; padding-top: 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--xw-line); }
 @media (min-width: 640px) { .xw-fund { flex-direction: row; align-items: center; } }
