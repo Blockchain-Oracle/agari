@@ -57,20 +57,34 @@ function TokenBadge({ text, size }: { text: string; size: number }) {
   );
 }
 
+/**
+ * web's BasketMark (icons.css `.basket-mark`): the members' marks on a two-by-two grid inside a pale disc, 4% padding and
+ * gap; a pair sits on the diagonal, a third member centres at half width on the lower row; the "+N" cell wears the
+ * basket's colour.
+ */
 function BasketDisc({ basket, size }: { basket: Basket; size: number }) {
   const { color } = useTheme();
-  const cell = size / 2;
+  const pad = size * 0.04;
+  const cell = (size - pad * 3) / 2;
+  const cells = basketClusterCells(basket);
+  const at = (i: number) => {
+    if (cells.length === 2) return i === 0 ? { left: pad, top: pad } : { left: pad * 2 + cell, top: pad * 2 + cell };
+    if (cells.length === 3 && i === 2) return { left: (size - cell) / 2, top: pad * 2 + cell };
+    return { left: pad + (i % 2) * (cell + pad), top: pad + Math.floor(i / 2) * (cell + pad) };
+  };
   return (
-    <View style={[styles.cluster, { width: size, height: size, borderRadius: size / 2, backgroundColor: basket.brand.hex }]}>
-      {basketClusterCells(basket).map((c) =>
-        c.kind === "member" ? (
-          <AssetDisc key={c.symbol} asset={c.symbol} size={cell} />
-        ) : (
-          <View key="more" style={[styles.more, { width: cell, height: cell }]}>
-            <Text style={{ color: color.markGlyph, fontFamily: FONT.headingHeavy, fontSize: cell * 0.42 }}>+{c.count}</Text>
-          </View>
-        ),
-      )}
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color.markBasket }}>
+      {cells.map((c, i) => (
+        <View key={c.kind === "member" ? c.symbol : "more"} style={[styles.cell, at(i), { width: cell, height: cell, borderRadius: cell / 2 }]}>
+          {c.kind === "member" ? (
+            <AssetDisc asset={c.symbol} size={cell} />
+          ) : (
+            <View style={[styles.more, { width: cell, height: cell, backgroundColor: basket.brand.hex }]}>
+              <Text style={{ color: color.markGlyph, fontFamily: FONT.headingHeavy, fontSize: size * 0.34, letterSpacing: -0.02 * size * 0.34 }}>+{c.count}</Text>
+            </View>
+          )}
+        </View>
+      ))}
     </View>
   );
 }
@@ -78,6 +92,6 @@ function BasketDisc({ basket, size }: { basket: Basket; size: number }) {
 const styles = StyleSheet.create({
   generic: { alignItems: "center", justifyContent: "center" },
   badge: { position: "absolute", right: -3, bottom: -2, paddingHorizontal: 2, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  cluster: { flexDirection: "row", flexWrap: "wrap", overflow: "hidden" },
+  cell: { position: "absolute", overflow: "hidden" },
   more: { alignItems: "center", justifyContent: "center" },
 });
