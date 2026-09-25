@@ -2,7 +2,7 @@
   "expo": {
     "name": "Agari",
     "slug": "agari",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "agari",
@@ -24,6 +24,7 @@
     },
     "android": {
       "package": "xyz.useagari.app",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#171714",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,6 +44,15 @@
         }
       ],
       "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": ["arm64-v8a"],
+            "useLegacyPackaging": true
+          }
+        }
+      ],
       "react-native-quick-crypto",
       "expo-web-browser",
       [
