@@ -1,9 +1,16 @@
-import { isTickerSymbol } from "@agari/core/market";
-import { useLocalSearchParams } from "expo-router";
-import { StoryScreen } from "~/features/news/StoryScreen";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
+import { openArticle } from "~/features/news/parts";
 
-/** One wire story: `id` is its place on the wire, `url` finds it in the cached read, `symbol` names which wire. */
+/**
+ * `/news/<id>?url=` — web has no story page: a headline opens its source. An old link to a story here does the same
+ * (the article in the in-app browser) and lands on the wire behind it.
+ */
 export default function StoryRoute() {
-  const { id, url, symbol } = useLocalSearchParams<{ id: string; url?: string; symbol?: string }>();
-  return <StoryScreen url={url ?? ""} index={id} symbol={isTickerSymbol(symbol ?? null) ? (symbol as never) : null} />;
+  const { url, symbol } = useLocalSearchParams<{ id: string; url?: string; symbol?: string }>();
+  useEffect(() => {
+    router.replace(symbol ? { pathname: "/news", params: { symbol } } : "/news");
+    if (url) openArticle(url);
+  }, [url, symbol]);
+  return null;
 }

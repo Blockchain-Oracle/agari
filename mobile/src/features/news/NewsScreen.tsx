@@ -1,30 +1,28 @@
 import type { TickerSymbol } from "@agari/core/market";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { NEWS } from "@/features/news/copy";
 import type { Article } from "@/features/news/protocol";
 import { NEWS_KEY, useNews } from "@/features/news/useNews";
-import { EmptyState, ErrorState, Screen, Skeleton } from "~/components/kit";
-import { FONT, TYPE, useTheme } from "~/theme";
-import { NewsFilters, type ToneFilter } from "./Filters";
-import { LeadStory, WireRow } from "./Wire";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { FONT, useTheme } from "~/theme";
+import { LeadStory, NewsSkeleton, Rule, WireRow } from "./NewsWire";
 
-/** web NewsScreen.tsx's "Updated live" chip: a breathing vermilion dot, still under Reduce Motion. */
-function LiveChip() {
+/** web NewsScreen.tsx `.news-live`: the pulsing vermilion dot and "Updated live". */
+function Live() {
   const { color } = useTheme();
   const reduce = useReducedMotion();
   const pulse = useSharedValue(1);
   useEffect(() => {
-    if (!reduce) pulse.value = withRepeat(withTiming(0.3, { duration: 1100 }), -1, true);
+    if (!reduce) pulse.value = withRepeat(withTiming(0.5, { duration: 1000 }), -1, true);
   }, [reduce, pulse]);
-  const dot = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  const fade = useAnimatedStyle(() => ({ opacity: pulse.value }));
   return (
     <View style={styles.live}>
-      <Animated.View style={[styles.liveDot, { backgroundColor: color.accent }, dot]} />
-      <Text style={[styles.liveText, { color: color.inkSecondary }]}>{NEWS.live.toUpperCase()}</Text>
+      <Animated.View style={[styles.liveDot, { backgroundColor: color.accent, shadowColor: color.accent }, fade]} />
+      <Text style={[styles.liveLabel, { color: color.inkMuted }]}>{NEWS.live}</Text>
     </View>
   );
 }
@@ -33,88 +31,57 @@ function LiveChip() {
 function NewsHead({ symbol }: { symbol: TickerSymbol | null }) {
   const { color } = useTheme();
   return (
-    <View style={styles.head}>
-      <Text style={[TYPE.display, { color: color.ink }]} accessibilityRole="header">
+    <>
+      <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
         {symbol ?? NEWS.heading} <Text style={{ color: color.accent }}>{NEWS.headingAccent}</Text>
       </Text>
       <Text style={[styles.jp, { color: color.inkMuted }]}>{NEWS.headingJp}</Text>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{NEWS.intro}</Text>
-    </View>
+      <Text style={[styles.intro, { color: color.inkSecondary }]}>{NEWS.intro}</Text>
+    </>
   );
 }
 
-/** The reference keeps its last headlines when a refresh fails, and says so. */
-function StaleNote() {
+/** web NewsFeed.tsx: skeleton, the quiet line (no stories or no read), or the lead, the rule and the wire. */
+function NewsFeed({ symbol }: { symbol: TickerSymbol | null }) {
   const { color } = useTheme();
-  return <Text style={[TYPE.caption, { color: color.warning }]}>Showing the last good read; the latest refresh failed.</Text>;
-}
-
-/** web NewsFeed.tsx `NewsSkeleton`: a display-size lead and five wire lines. */
-function NewsSkeleton() {
+  const reading = useNews(symbol);
+  if (reading === null) return <View style={styles.feed}><NewsSkeleton /></View>;
+  const articles = reading.ok ? reading.value : [];
+  if (articles.length === 0) return <Text style={[styles.quiet, { color: color.inkDisabled }]}>{NEWS.quiet}</Text>;
+  const [lead, ...rest] = articles as [Article, ...Article[]];
   return (
-    <View style={styles.skeleton} accessibilityRole="progressbar" accessibilityLabel="Reading the wire">
-      <Skeleton width="30%" height={12} />
-      <Skeleton height={26} />
-      <Skeleton width="70%" height={26} />
-      {["85%", "76%", "67%", "58%", "49%"].map((width) => (
-        <Skeleton key={width} width={width as `${number}%`} height={14} />
+    <View style={styles.feed}>
+      <LeadStory article={lead} />
+      <Rule />
+      {rest.map((article, i) => (
+        <WireRow key={article.url} article={article} index={i + 2} />
       ))}
     </View>
   );
 }
 
-/**
- * `/news` — web features/news: the live wire (polled each minute, same key and route as web), a lead story and
- * numbered rows, narrowed to one ticker like `/news?symbol=`; every story opens its own screen.
- */
-export function NewsScreen({ initialSymbol }: { initialSymbol: TickerSymbol | null }) {
-  const router = useRouter();
+/** `/news` — web features/news/NewsScreen.tsx on a phone; `?symbol=` narrows the head and the wire. */
+export function NewsScreen({ symbol }: { symbol: TickerSymbol | null }) {
   const client = useQueryClient();
-  const [symbol, setSymbol] = useState<TickerSymbol | null>(initialSymbol);
-  const [tone, setTone] = useState<ToneFilter>("all");
-  const reading = useNews(symbol);
-
-  const open = (article: Article, index: number) =>
-    router.push({ pathname: "/news/[id]", params: { id: String(index), url: article.url, symbol: symbol ?? "" } });
-
-  const body = () => {
-    if (reading === null) return <NewsSkeleton />;
-    if (!reading.ok) return <ErrorState diagnosis={reading.error} retry={() => void client.invalidateQueries({ queryKey: NEWS_KEY })} />;
-    const articles = reading.value.filter((article) => tone === "all" || article.sentiment === tone);
-    if (reading.value.length === 0) return <EmptyState why={NEWS.quiet} />;
-    if (articles.length === 0) {
-      return <EmptyState why={`No ${NEWS.sentiment[tone as Exclude<ToneFilter, "all">]} headlines on the wire right now.`} action={{ label: "Show every tone", onPress: () => setTone("all") }} />;
-    }
-    const [lead, ...rest] = articles as [Article, ...Article[]];
-    return (
-      <View style={styles.feed}>
-        <LeadStory article={lead} onOpen={() => open(lead, 1)} />
-        <View>
-          {rest.map((article, i) => (
-            <WireRow key={article.url} article={article} index={i + 2} onOpen={() => open(article, i + 2)} />
-          ))}
-        </View>
-      </View>
-    );
-  };
-
   return (
-    <Screen title={NEWS.title} onRefresh={() => client.invalidateQueries({ queryKey: NEWS_KEY })}>
-      <LiveChip />
-      <NewsHead symbol={symbol} />
-      <NewsFilters symbol={symbol} onSymbol={setSymbol} tone={tone} onTone={setTone} />
-      {reading?.ok && reading.stale ? <StaleNote /> : null}
-      {body()}
-    </Screen>
+    <ExplorePage title={NEWS.title} onRefresh={() => client.invalidateQueries({ queryKey: NEWS_KEY })}>
+      <View style={styles.page}>
+        <Live />
+        <NewsHead symbol={symbol} />
+        <NewsFeed symbol={symbol} />
+      </View>
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  live: { flexDirection: "row", alignItems: "center", gap: 8 },
-  liveDot: { width: 7, height: 7, borderRadius: 4 },
-  liveText: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.6 },
-  head: { gap: 8 },
-  jp: { fontFamily: FONT.stamp, fontSize: 14, lineHeight: 20 },
-  skeleton: { gap: 12 },
-  feed: { gap: 16 },
+  page: { paddingTop: 48, paddingBottom: 96 },
+  live: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, shadowOpacity: 1, shadowRadius: 6, shadowOffset: { width: 0, height: 0 } },
+  liveLabel: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 2.2, textTransform: "uppercase" },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 36, lineHeight: 39.6, letterSpacing: -0.9, marginBottom: 8 },
+  jp: { fontFamily: FONT.stamp, fontSize: 16, lineHeight: 24, letterSpacing: 0.6, marginTop: 14, marginBottom: 8 },
+  intro: { fontFamily: FONT.body, fontSize: 14, lineHeight: 21.7 },
+  feed: { marginTop: 48 },
+  quiet: { marginTop: 64, fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 18 },
 });

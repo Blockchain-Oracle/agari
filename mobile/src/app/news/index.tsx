@@ -6,5 +6,5 @@ import { NewsScreen } from "~/features/news/NewsScreen";
 export default function NewsRoute() {
   const { symbol } = useLocalSearchParams<{ symbol?: string }>();
   const raw = symbol?.toUpperCase() ?? null;
-  return <NewsScreen key={raw ?? "all"} initialSymbol={isTickerSymbol(raw) ? raw : null} />;
+  return <NewsScreen key={raw ?? "all"} symbol={isTickerSymbol(raw) ? raw : null} />;
 }
