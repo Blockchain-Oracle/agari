@@ -1,27 +1,8 @@
 import { Stack } from "expo-router";
 import { useTheme } from "~/theme";
-import { BrandTitle } from "./BrandTitle";
-import { HeaderAccount } from "./HeaderAccount";
-import { ThemeToggle } from "./ThemeToggle";
 
-/** Each tab's native stack: the brand at the leading edge (as web's phone header), detail screens push inside the tab. */
+/** Each tab's stack: web's header is the app chrome above it, so screens push with no native bar (edge swipe goes back). */
 export function TabStack() {
   const { color } = useTheme();
-  return (
-    <Stack
-      screenOptions={{
-        headerTitle: "",
-        // iOS 26 seats bar items on a shared glass capsule; web's brand sits on the bare header.
-        unstable_headerLeftItems: () => [{ type: "custom", element: <BrandTitle />, hidesSharedBackground: true }],
-        unstable_headerRightItems: () => [
-          { type: "custom", element: <HeaderAccount />, hidesSharedBackground: true },
-          { type: "custom", element: <ThemeToggle /> },
-        ],
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: color.ground },
-        headerTintColor: color.ink,
-        contentStyle: { backgroundColor: color.ground },
-      }}
-    />
-  );
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.ground } }} />;
 }

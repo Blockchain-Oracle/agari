@@ -1,12 +1,15 @@
 import * as Haptics from "expo-haptics";
-import { SymbolView } from "expo-symbols";
+import { Moon, Sun } from "lucide-react-native";
 import { Pressable, StyleSheet } from "react-native";
 import { useTheme } from "~/theme";
+import { chromeTokens } from "~/theme/chrome";
 
-/** web's ThemeToggle: ☀ in dark flips to the cream light theme, ☾ in light flips back; the choice persists. */
+/** web's ThemeToggle: a 28 px ring, lucide ☀ in dark (to the cream light theme), ☾ in light; the choice persists. */
 export function ThemeToggle() {
-  const { name, color, setTheme } = useTheme();
+  const { name, setTheme } = useTheme();
+  const t = chromeTokens(name);
   const dark = name === "dark";
+  const Icon = dark ? Sun : Moon;
   return (
     <Pressable
       onPress={() => {
@@ -16,11 +19,11 @@ export function ThemeToggle() {
       accessibilityRole="button"
       accessibilityLabel={dark ? "Switch to light mode" : "Switch to dark mode"}
       hitSlop={8}
-      style={styles.button}
+      style={[styles.ring, { borderColor: t.toggleBorder }]}
     >
-      <SymbolView name={dark ? { ios: "sun.max", android: "light_mode" } : { ios: "moon", android: "dark_mode" }} size={18} tintColor={color.ink} />
+      <Icon size={14} color={t.toggleInk} strokeWidth={2} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({ button: { width: 36, height: 36, alignItems: "center", justifyContent: "center" } });
+const styles = StyleSheet.create({ ring: { width: 28, height: 28, borderRadius: 14, borderWidth: 1, alignItems: "center", justifyContent: "center" } });

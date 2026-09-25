@@ -199,7 +199,7 @@ export const NAV_ITEMS = {
     id: "activity",
     name: "Activity",
     href: "/activity",
-    description: "Your fills, verdicts, payouts and follows.",
+    description: "Your fills, verdicts and payouts.",
     icon: Inbox,
   },
   stats: { id: "stats", name: "Stats", href: "/stats", description: "Inspect protocol and market activity.", icon: BarChart3 },

@@ -1,6 +1,5 @@
 import type { ArcadeGame } from "@agari/core/games/arcade";
 import { ARCADE } from "@/features/games/arcade/copy";
-import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { Card, haptic } from "~/components/kit";
 import { gameEntry } from "~/features/games/shell";
@@ -13,11 +12,11 @@ import { ARCADE_NATIVE } from "./copy";
  */
 export function ArcadeReadout({ game }: { game: ArcadeGame }) {
   const { color } = useTheme();
-  const icon = gameEntry(game).nav.icon;
+  const Icon = gameEntry(game).nav.icon;
   return (
     <View style={styles.readout}>
       <View style={[styles.readoutIcon, { backgroundColor: color.accentWash }]}>
-        <SymbolView name={icon} size={18} tintColor={color.accent} />
+        <Icon size={18} color={color.accent} strokeWidth={1.8} />
       </View>
       <View style={styles.readoutText}>
         <Text style={[styles.readoutName, { color: color.ink }]}>{ARCADE.games[game].readout.toUpperCase()}</Text>

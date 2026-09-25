@@ -1,11 +1,11 @@
 import { Stack } from "expo-router";
 import { useState, type ReactNode } from "react";
-import { Platform, RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { FONT, SPACE, useTheme } from "~/theme";
+import { RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { SPACE, useTheme } from "~/theme";
 import { haptic } from "./haptics";
 
 interface Props {
-  /** The native header's title; also what VoiceOver reads on arrival. */
+  /** What VoiceOver reads on arrival. */
   title: string;
   children: ReactNode;
   /** Pull to refresh: the screen's queries' refetch. The spinner holds until the promise settles. */
@@ -18,8 +18,8 @@ interface Props {
 }
 
 /**
- * A pushed screen: the platform's own header with a back button (iOS: translucent glass over the content; Android:
- * the solid app bar), the page ground, the 16-pt gutter and room below the tab bar.
+ * A pushed screen under web's chrome: the page ground, the 16-pt gutter and room below the floating dock; the edge
+ * swipe (iOS) or the system back (Android) goes back, as the browser's back does on web.
  */
 export function Screen({ title, children, onRefresh, headerRight, scroll = true, contentStyle }: Props) {
   const { color } = useTheme();
@@ -36,25 +36,13 @@ export function Screen({ title, children, onRefresh, headerRight, scroll = true,
       }
     : undefined;
 
+  // web's pages carry no bar of their own under the site header: the title only names the screen for VoiceOver, and a
+  // trailing control (a game's settings) sits at the top right of the content.
   const header = (
-    <Stack.Screen
-      options={{
-        title,
-        headerShown: true,
-        headerTitle: title,
-        headerBackTitle: "Back",
-        headerTintColor: color.accent,
-        headerTitleStyle: { color: color.ink, fontFamily: FONT.heading },
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: Platform.OS === "ios" ? "transparent" : color.ground },
-        headerTransparent: Platform.OS === "ios",
-        headerBlurEffect: "systemChromeMaterial",
-        headerRight,
-        // Inside a tab's stack the brand and account sit at the leading/trailing edge; a pushed screen shows back + title.
-        unstable_headerLeftItems: undefined,
-        unstable_headerRightItems: undefined,
-      }}
-    />
+    <>
+      <Stack.Screen options={{ title, headerShown: false }} />
+      {headerRight ? <View style={styles.trailing}>{headerRight()}</View> : null}
+    </>
   );
 
   if (!scroll) {
@@ -84,4 +72,5 @@ export function Screen({ title, children, onRefresh, headerRight, scroll = true,
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   body: { padding: SPACE.gutter, paddingTop: 12, paddingBottom: 120, gap: 16 },
+  trailing: { flexDirection: "row", justifyContent: "flex-end", paddingHorizontal: 8 },
 });

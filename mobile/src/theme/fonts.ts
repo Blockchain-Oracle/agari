@@ -1,5 +1,5 @@
-import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
-import { JetBrainsMono_500Medium, JetBrainsMono_600SemiBold } from "@expo-google-fonts/jetbrains-mono";
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { JetBrainsMono_400Regular, JetBrainsMono_500Medium, JetBrainsMono_600SemiBold } from "@expo-google-fonts/jetbrains-mono";
 import { Sora_700Bold, Sora_800ExtraBold } from "@expo-google-fonts/sora";
 import { useFonts } from "expo-font";
 
@@ -11,7 +11,9 @@ const FACES = {
   Sora_700Bold,
   Sora_800ExtraBold,
   Inter_400Regular,
+  Inter_500Medium,
   Inter_600SemiBold,
+  JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,
   JetBrainsMono_600SemiBold,
   NotoSerifJP_500Medium: require("../../assets/fonts/NotoSerifJP-500Medium-subset.ttf"),

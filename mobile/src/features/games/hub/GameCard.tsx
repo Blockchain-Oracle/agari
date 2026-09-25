@@ -18,11 +18,12 @@ export function GameCard({ entry, status, presence }: { entry: GameEntry; status
   const openable = status.kind === "live" || status.kind === "loading" || status.kind === "after-hours";
   const note = status.kind === "pending" ? GAMES.card.waitingOn(status.dependency) : status.kind === "unavailable" ? status.why : status.kind === "after-hours" ? status.note : null;
 
+  const Icon = entry.nav.icon;
   const body = (
     <>
       <View style={styles.head}>
         <View style={[styles.icon, { backgroundColor: openable ? color.accentWash : color.surface2 }]}>
-          <SymbolView name={entry.nav.icon} size={20} tintColor={openable ? color.accent : color.inkMuted} />
+          <Icon size={20} color={openable ? color.accent : color.inkMuted} strokeWidth={1.8} />
         </View>
         <Text style={[TYPE.title, styles.name, { color: color.ink }]} numberOfLines={1}>
           {entry.nav.name}

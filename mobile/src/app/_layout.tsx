@@ -10,6 +10,8 @@ import { UserSessionProvider } from "@/providers/UserSessionProvider";
 import { marketsEnv } from "~/lib/env";
 import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
+import { AppChrome } from "~/components/shell/AppChrome";
+import { BottomDock } from "~/components/shell/BottomDock";
 import { Toaster } from "~/components/toast/Toaster";
 import { AlertsHost } from "~/features/alerts/AlertsHost";
 import { DeskWatcher } from "~/features/desk/DeskWatcher";
@@ -51,9 +53,14 @@ function RootStack() {
   const { name, color } = useTheme();
   const pathname = usePathname();
   useEffect(() => trackPath(pathname), [pathname]);
+  // web's ShellChrome: every route gets the strip, marquee and header, and the floating dock; the first-run welcome
+  // paints its own screen, and /trade-from-x is web's one island (its own top edge, the dock kept).
+  const bare = pathname === "/welcome";
+  const island = pathname.startsWith("/trade-from-x");
   return (
     <>
       <StatusBar style={name === "dark" ? "light" : "dark"} />
+      {bare || island ? null : <AppChrome />}
       <Stack screenOptions={{ headerShown: false, headerStyle: { backgroundColor: color.ground }, headerTintColor: color.ink, headerBackTitle: "Back", contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="welcome" />
         <Stack.Screen name="(tabs)" />
@@ -63,6 +70,7 @@ function RootStack() {
         <Stack.Screen name="account" options={{ presentation: "formSheet", sheetAllowedDetents: [0.5], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
         <Stack.Screen name="sensei" options={{ presentation: "modal", gestureEnabled: true }} />
       </Stack>
+      {bare ? null : <BottomDock />}
       <Toaster />
       <DeskWatcher />
       {/* web mounts the drop alert's watcher app-wide (AppProviders), so an armed bell fires on any screen. */}
