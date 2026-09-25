@@ -12,6 +12,7 @@ import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
 import { AppChrome } from "~/components/shell/AppChrome";
 import { BottomDock } from "~/components/shell/BottomDock";
+import { useImmersive } from "~/components/shell/immersive";
 import { FundingHost } from "~/components/funding/CreditWelcome";
 import { AlertsWatcher } from "@/features/alerts/AlertsWatcher";
 import { LifecycleWatcher } from "~/features/activity/LifecycleWatcher";
@@ -63,6 +64,8 @@ function RootStack() {
   // one island (its own top edge, the dock kept). Dialogs (welcome, connect, funds, account) are transparent modals
   // over it, each drawing web's own scrim and card or sheet.
   const island = pathname.startsWith("/trade-from-x");
+  // An arcade run in play takes the whole phone: the chrome and the dock step out (and the marquee stops scrolling).
+  const immersive = useImmersive();
   const { welcome } = useGlobalSearchParams<{ welcome?: string }>();
   useEffect(() => {
     if (welcome === "1") router.push("/welcome");
@@ -70,7 +73,7 @@ function RootStack() {
   return (
     <>
       <StatusBar style={name === "dark" ? "light" : "dark"} />
-      {island ? null : <AppChrome />}
+      {island || immersive ? null : <AppChrome />}
       <Stack screenOptions={{ headerShown: false, headerStyle: { backgroundColor: color.ground }, headerTintColor: color.ink, headerBackTitle: "Back", contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="welcome" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
         <Stack.Screen name="(tabs)" />
@@ -80,7 +83,7 @@ function RootStack() {
         <Stack.Screen name="account" options={dialog} />
         <Stack.Screen name="sensei" options={dialog} />
       </Stack>
-      <BottomDock />
+      {immersive ? null : <BottomDock />}
       <FundingHost />
       <Toaster />
       <DeskWatcher />
