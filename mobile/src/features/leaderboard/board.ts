@@ -1,8 +1,10 @@
 import { etDateOf } from "@agari/core/market";
 import { formatBaseUnits } from "@agari/core/units";
+import { router, type Href } from "expo-router";
 import type { BoardSpan } from "@/features/leaderboard/copy";
 import type { BoardQuery } from "@/features/leaderboard/leaderboard-client";
 import type { BoardData, BoardRanking } from "@/features/leaderboard/protocol";
+import { profileHref } from "@/features/takes/cashtags";
 
 /**
  * The board's pure shaping, as web does it in its view files (Podium.tsx `podiumOrder`, Banzuke.tsx `banzukeRows`,
@@ -21,35 +23,27 @@ export function podiumOrder(rankings: readonly BoardRanking[]): Spot[] {
   ];
 }
 
-export interface BanzukeRow {
-  rank: number;
-  /** "4-5", or "49" when the west seat is empty. */
-  label: string;
-  /** 3 ranks 4–7, 4 ranks 8–12, 5 the long tail — web's tiers, which set the dividers and sizes. */
-  tier: 3 | 4 | 5;
-  east: BoardRanking | null;
-  west: BoardRanking | null;
-}
-
 const PODIUM = 3;
 const FIELD_END = 50;
 
-function tierOf(rank: number): BanzukeRow["tier"] {
-  if (rank <= 7) return 3;
-  if (rank <= 12) return 4;
-  return 5;
+/** One ranked row of the phone list: ranks four to fifty. */
+export interface FieldRow {
+  rank: number;
+  trader: BoardRanking;
 }
 
-/** Ranks four to fifty, two to a row (east and west), as web's `banzukeRows`. */
-export function banzukeRows(rankings: readonly BoardRanking[]): BanzukeRow[] {
-  const field = rankings.slice(PODIUM, FIELD_END);
-  const rows: BanzukeRow[] = [];
-  for (let i = 0; i < field.length; i += 2) {
-    const eastRank = i + PODIUM + 1;
-    const west = field[i + 1] ?? null;
-    rows.push({ rank: eastRank, label: west ? `${eastRank}-${eastRank + 1}` : String(eastRank), tier: tierOf(eastRank), east: field[i] ?? null, west });
-  }
-  return rows;
+export const fieldRows = (rankings: readonly BoardRanking[]): FieldRow[] =>
+  rankings.slice(PODIUM, FIELD_END).map((trader, i) => ({ rank: i + PODIUM + 1, trader }));
+
+/** Wins and losses over the settled calls, from web's win rate. */
+export function record(trader: BoardRanking): { wins: number; losses: number } {
+  const wins = Math.round((trader.settledTrades * trader.winRatePct) / 100);
+  return { wins, losses: Math.max(0, trader.settledTrades - wins) };
+}
+
+/** A trader's profile, `/u/<address>` (web's `profileHref`) — the phone board links every name. */
+export function openProfile(address: string): void {
+  router.push(profileHref(address) as Href);
 }
 
 const SETTLE_TAIL_MS = 900_000;

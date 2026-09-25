@@ -1,44 +1,82 @@
+import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Skeleton } from "~/components/kit";
 import { FONT, useTheme } from "~/theme";
+import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
+import { BOARD_PHONE } from "./words";
 
-/** `.lb-state` — the reading line, mono 11, 64 above and below. */
-export function BoardReading({ text }: { text: string }) {
-  const { color } = useTheme();
+/** The board while its first read is in flight: a podium's worth of space and five skeleton rows, under web's line. */
+export function BoardSkeleton({ label }: { label: string }) {
+  const { name, color } = useTheme();
+  const t = leaderboardTokens(name);
   return (
-    <Text style={[styles.reading, { color: color.inkMuted }]} accessibilityRole="progressbar" accessibilityLabel={text}>
-      {text}
-    </Text>
+    <View accessibilityRole="progressbar" accessibilityLabel={label}>
+      <Text style={[styles.reading, { color: color.inkMuted }]}>{label}</Text>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <View key={i} style={[styles.skRow, { borderBottomColor: t.rowBorder }]}>
+          <Skeleton width={18} height={12} />
+          <Skeleton width={34} height={34} radius={17} />
+          <View style={styles.skText}>
+            <Skeleton width="55%" height={13} />
+            <Skeleton width="35%" height={10} />
+          </View>
+          <Skeleton width={56} height={14} />
+        </View>
+      ))}
+    </View>
   );
 }
 
-/**
- * `.lb-state.lb-state-empty` (leaderboard-theme.css): the ◷ glyph, the headline, the dimmer sub line and, on a failed
- * read, part-03's `.btn.btn-primary` retry pill.
- */
-export function BoardEmpty({ headline, sub, retry }: { headline: string; sub: string; retry?: { label: string; onPress: () => void } }) {
+/** web's vermilion `.btn-primary` pill. */
+function Cta({ label, onPress }: { label: string; onPress: () => void }) {
   const { color } = useTheme();
   return (
-    <View style={styles.empty} accessibilityRole={retry ? "alert" : undefined}>
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.btn, { backgroundColor: pressed ? color.accentPressed : color.accent }]}>
+      <Text style={[styles.btnText, { color: color.onAccent }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+/** `.lb-state-empty`: the ◷ glyph, the headline, the dimmer line and a CTA (retry, or a call). */
+export function BoardEmpty({ headline, sub, action }: { headline: string; sub: string; action?: { label: string; onPress: () => void } }) {
+  const { color } = useTheme();
+  return (
+    <View style={styles.empty}>
       <Text style={[styles.glyph, { color: color.inkMuted }]}>◷</Text>
-      <Text style={[styles.line, { color: color.inkMuted }]}>
-        {headline}
-        {"\n"}
-        <Text style={{ color: color.inkDisabled }}>{sub}</Text>
-      </Text>
-      {retry ? (
-        <Pressable onPress={retry.onPress} accessibilityRole="button" style={({ pressed }) => [styles.btn, { backgroundColor: pressed ? color.accentPressed : color.accent }]}>
-          <Text style={[styles.btnText, { color: color.onAccent }]}>{retry.label}</Text>
-        </Pressable>
-      ) : null}
+      <Text style={[styles.head, { color: color.ink }]}>{headline}</Text>
+      <Text style={[styles.sub, { color: color.inkMuted }]}>{sub}</Text>
+      {action ? <Cta label={action.label} onPress={action.onPress} /> : null}
+    </View>
+  );
+}
+
+/** A board of one to three: the podium says who; this says the field is open and how to join it. */
+export function BoardSparse({ headline }: { headline: string }) {
+  const { name, color } = useTheme();
+  const t = leaderboardTokens(name);
+  return (
+    <View style={[styles.sparse, { borderColor: t.spotBorder, backgroundColor: t.spotFill }]}>
+      <Text style={[styles.sparseHead, { color: color.ink }]}>{headline}</Text>
+      <Text style={[styles.sub, styles.left, { color: color.inkMuted }]}>{BOARD_PHONE.sparseBody}</Text>
+      <View style={styles.leftCta}>
+        <Cta label={BOARD_PHONE.placeCall} onPress={() => router.navigate("/markets")} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  reading: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, paddingVertical: 64, textAlign: "center" },
-  empty: { paddingVertical: 96, paddingHorizontal: 24, alignItems: "center" },
-  glyph: { fontFamily: FONT.dataRegular, fontSize: 30, lineHeight: 48, marginBottom: 14, opacity: 0.5 },
-  line: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 24, textAlign: "center" },
-  btn: { marginTop: 16, borderRadius: 999, paddingVertical: 11, paddingHorizontal: 22 },
-  btnText: { fontFamily: FONT.bodyStrong, fontSize: 13, lineHeight: 13, letterSpacing: 0.26 },
+  reading: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, paddingVertical: 12 },
+  skRow: { flexDirection: "row", alignItems: "center", gap: 12, height: 62, paddingHorizontal: 4, borderBottomWidth: 1 },
+  skText: { flex: 1, gap: 6 },
+  empty: { paddingVertical: 48, paddingHorizontal: 24, alignItems: "center", gap: 6 },
+  glyph: { fontFamily: FONT.dataRegular, fontSize: 30, lineHeight: 40, opacity: 0.5, marginBottom: 6 },
+  head: { fontFamily: FONT.heading, fontSize: 16, lineHeight: 22, textAlign: "center" },
+  sub: { fontFamily: FONT.dataRegular, fontSize: 11.5, lineHeight: 18, textAlign: "center" },
+  left: { textAlign: "left" },
+  btn: { marginTop: 12, alignSelf: "center", borderRadius: 999, paddingVertical: 11, paddingHorizontal: 22 },
+  btnText: { fontFamily: FONT.bodyStrong, fontSize: 13, lineHeight: 15, letterSpacing: 0.26 },
+  sparse: { marginTop: 16, borderWidth: 1, borderRadius: 4, padding: 16, gap: 6, alignItems: "flex-start" },
+  leftCta: { alignSelf: "flex-start" },
+  sparseHead: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 20 },
 });

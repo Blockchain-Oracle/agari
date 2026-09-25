@@ -1,71 +1,60 @@
-import { shortHex } from "@agari/core/units";
+import { formatBaseUnits } from "@agari/core/units";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { LEADERBOARD, type BoardSpan } from "@/features/leaderboard/copy";
 import { glyphFromAddress } from "@/features/leaderboard/glyph";
 import type { BoardData } from "@/features/leaderboard/protocol";
 import { FONT, useTheme } from "~/theme";
 import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
+import { BOARD_PHONE } from "./words";
+
+/** The slim bar's height, so the page can keep its last row clear of it. */
+export const YOU_BAR_H = 52;
 
 /**
- * web's sticky vermilion `YouBar` (features/leaderboard/YouBar.tsx, part-09 `.you-bar`, part-14 ≤1100 px): your rank
- * and "of N on the venue", your glyph, name and standing in two columns, the stats hidden as web hides them on a phone,
- * and the cream "Your ledger →" pill under the rank.
+ * web's vermilion `.you-bar` slimmed for a phone: your glyph, rank (or Unranked) of the ranked field, your net and
+ * the cream "Your ledger →" pill, docked just above the floating dock.
  */
-export function YouBar({ address, data, span }: { address: string; data: BoardData; span: BoardSpan }) {
+export function YouBar({ address, data }: { address: string; data: BoardData }) {
   const { name, color } = useTheme();
   const t = leaderboardTokens(name);
-  const words = LEADERBOARD.you;
+  const words = BOARD_PHONE.you;
   // Exact match: base58 is case-sensitive (D-010).
   const index = data.rankings.findIndex((r) => r.owner === address);
+  const trader = index === -1 ? null : data.rankings[index];
   const ranked = data.meta.rankedTraders;
-  const rankedText = ranked > 0 ? ranked.toLocaleString() : LEADERBOARD.dash;
-  const standing = index === -1 ? words.none(span) : words.top(Math.round(((index + 1) / Math.max(1, ranked)) * 100));
+  const net = trader ? `${trader.pnlBase >= 0n ? "+" : ""}${formatBaseUnits(trader.pnlBase, data.meta.decimals)}` : "—";
   return (
     <View style={[styles.bar, { backgroundColor: color.accent, shadowColor: t.youShadow }]}>
-      <View style={styles.grid}>
-        <View style={styles.col}>
-          <Text style={[styles.lbl, { color: t.youSoft }]}>{words.rank}</Text>
-          <Text>
-            <Text style={[styles.val, { color: t.youInk }]}>{index === -1 ? words.unranked : `#${index + 1}`}</Text>
-            <Text style={[styles.of, { color: t.youSoft }]}> {words.of(rankedText)}</Text>
-          </Text>
-        </View>
-        <View style={[styles.col, styles.info]}>
-          <View style={[styles.portrait, { backgroundColor: t.youPortraitFill, borderColor: t.youPortraitBorder }]}>
-            <Text style={[styles.glyph, { color: t.youPortraitInk }]}>{glyphFromAddress(address)}</Text>
-          </View>
-          <View style={styles.text}>
-            <Text style={[styles.name, { color: t.youInk }]} numberOfLines={1}>
-              {words.name(shortHex(address))}
-            </Text>
-            <Text style={[styles.meta, { color: t.youInk }]}>{standing}</Text>
-          </View>
-        </View>
+      <View style={[styles.portrait, { backgroundColor: t.youPortraitFill, borderColor: t.youPortraitBorder }]}>
+        <Text style={[styles.glyph, { color: t.youPortraitInk }]}>{glyphFromAddress(address)}</Text>
       </View>
-      <View style={styles.grid}>
-        <Pressable onPress={() => router.push("/portfolio")} accessibilityRole="link" style={[styles.col, styles.cta, { backgroundColor: t.youCtaFill }]}>
-          <Text style={[styles.ctaText, { color: color.accent }]}>{words.cta}</Text>
-        </Pressable>
-        <View style={styles.col} />
+      <Text style={styles.rankLine} numberOfLines={1}>
+        <Text style={[styles.rank, { color: t.youInk }]}>{trader ? `#${index + 1}` : words.unranked}</Text>
+        <Text style={[styles.soft, { color: t.youSoft }]}> {words.of(ranked > 0 ? ranked.toLocaleString() : "—")}</Text>
+      </Text>
+      <View style={styles.net}>
+        <Text style={[styles.lbl, { color: t.youSoft }]}>{words.net}</Text>
+        <Text style={[styles.netValue, { color: t.youInk }]} numberOfLines={1}>
+          {net}
+        </Text>
       </View>
+      <Pressable onPress={() => router.push("/portfolio")} accessibilityRole="link" style={[styles.cta, { backgroundColor: t.youCtaFill }]}>
+        <Text style={[styles.ctaText, { color: color.accent }]}>{words.ledger}</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: { borderRadius: 4, paddingVertical: 16, paddingHorizontal: 24, gap: 12, shadowOpacity: 1, shadowRadius: 30, shadowOffset: { width: 0, height: 18 }, elevation: 12 },
-  grid: { flexDirection: "row", alignItems: "center", gap: 12 },
-  col: { flex: 1, minWidth: 0 },
-  lbl: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.98, textTransform: "uppercase", marginBottom: 2 },
-  val: { fontFamily: FONT.headingHeavy, fontSize: 28, lineHeight: 28, letterSpacing: -0.84, fontVariant: ["tabular-nums"] },
-  of: { fontFamily: FONT.body, fontSize: 14 },
-  info: { flexDirection: "row", alignItems: "center", gap: 16 },
-  portrait: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  glyph: { fontFamily: FONT.heading, fontSize: 17, letterSpacing: 0.34 },
-  text: { flex: 1, minWidth: 0, gap: 2 },
-  name: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 24 },
-  meta: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.6, opacity: 0.8 },
-  cta: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 },
-  ctaText: { fontFamily: FONT.bodyBold, fontSize: 12, lineHeight: 19.2, letterSpacing: 0.48 },
+  bar: { height: YOU_BAR_H, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 10, borderRadius: 999, shadowOpacity: 1, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 10 },
+  portrait: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  glyph: { fontFamily: FONT.heading, fontSize: 13 },
+  rankLine: { flexShrink: 1 },
+  rank: { fontFamily: FONT.headingHeavy, fontSize: 18, letterSpacing: -0.54, fontVariant: ["tabular-nums"] },
+  soft: { fontFamily: FONT.body, fontSize: 12 },
+  net: { flex: 1, alignItems: "flex-end" },
+  lbl: { fontFamily: FONT.dataRegular, fontSize: 8, lineHeight: 11, letterSpacing: 1.3, textTransform: "uppercase" },
+  netValue: { fontFamily: FONT.heading, fontSize: 14, lineHeight: 18, fontVariant: ["tabular-nums"] },
+  cta: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999 },
+  ctaText: { fontFamily: FONT.bodyBold, fontSize: 11.5, lineHeight: 15, letterSpacing: 0.46 },
 });
