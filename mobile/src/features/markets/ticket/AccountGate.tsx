@@ -7,11 +7,11 @@ import { SESSION } from "@/features/session/copy";
 import type { FundingSource } from "@/features/session/useTicketRoute";
 import { diagnosisCopy, FAUCET, TICKET } from "@/lib/copy";
 import type { WalletSession } from "@/lib/wallet-session";
-import { useSessionKey } from "~/web-shims/session-key-provider";
 import { FONT } from "~/theme";
 import { ModeTile } from "./Controls";
 import { ConnectButton, GateCta } from "./TicketButton";
 import { tkType, useTk } from "./tk";
+import { SessionControl } from "./session/SessionControl";
 
 export interface RouteChoice {
   show: boolean;
@@ -86,7 +86,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
       {connected ? (
         <View style={styles.gateRow}>
           {route?.show ? <RouteControl route={route} decimals={decimals} symbol={symbol} /> : <View />}
-          {balanceSource !== "private" ? <SessionChip /> : null}
+          {balanceSource !== "private" ? <SessionControl symbol={symbol} /> : null}
         </View>
       ) : null}
     </>
@@ -122,22 +122,6 @@ function RouteControl({ route, decimals, symbol }: { route: RouteChoice; decimal
   );
 }
 
-/**
- * web's SessionChip in the leverage-chip grammar. The phone holds no session key yet (the web-shim's honest
- * "disarmed"), and there is no arming sheet here, so the chip is shown and disabled — web's own face for a wallet
- * that cannot arm.
- */
-function SessionChip() {
-  const tk = useTk();
-  const { view } = useSessionKey();
-  const armed = view.status === "armed";
-  return (
-    <View accessibilityRole="button" accessibilityState={{ disabled: !armed }} accessibilityLabel={`${armed ? SESSION.chip.on : SESSION.chip.off} — ${SESSION.chip.titleOff}`} style={[styles.chip, { borderColor: armed ? tk.levOnBorder : tk.levBorder, backgroundColor: armed ? tk.levOnBg : "transparent" }, !armed && styles.dim]}>
-      <Text style={[tkType.chip, { color: armed ? tk.levOnInk : tk.lev }]}>{armed ? SESSION.chip.on : SESSION.chip.off}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   gate: { borderWidth: 1, padding: 16 },
   body: { marginBottom: 12, fontFamily: FONT.body, fontSize: 12.5, lineHeight: 17.2 },
@@ -149,6 +133,4 @@ const styles = StyleSheet.create({
   gateRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   route: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 12 },
   tray: { flex: 1, flexDirection: "row", gap: 4, borderRadius: 6, borderWidth: 1, padding: 4 },
-  chip: { minWidth: 40, borderRadius: 4, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
-  dim: { opacity: 0.35 },
 });
