@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { isDbConfigured, registerPushDevice, updatePushDevice } from "@agari/db";
 import { NextResponse } from "next/server";
 import { PUSH_ERRORS, PUSH_SIGNATURE_TTL_MS, pushRegisterMessage, pushRegisterSchema, pushUpdateSchema, type PushRegistration } from "@/features/push/protocol";
-import { clientIp, createRateGate } from "@/features/social/limits.server";
+import { clientIp, createLimiter } from "@/features/room/limits.server";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 
 /**
@@ -13,7 +13,7 @@ import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
  */
 export const runtime = "nodejs";
 
-const perIp = createRateGate([{ max: 20, windowMs: 60_000 }]);
+const perIp = createLimiter([{ max: 20, windowMs: 60_000 }]);
 const NO_STORE = { "cache-control": "no-store" };
 const hashOf = (secret: string) => createHash("sha256").update(secret).digest("hex");
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status, headers: NO_STORE });
@@ -21,7 +21,7 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
 export async function POST(req: Request) {
   if (!isDbConfigured()) return fail(PUSH_ERRORS.unavailable, 503);
   const now = Date.now();
-  if (!perIp(clientIp(req), now)) return fail(PUSH_ERRORS.tooFast, 429);
+  if (!perIp.take(clientIp(req), now)) return fail(PUSH_ERRORS.tooFast, 429);
 
   const parsed = pushRegisterSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return fail(PUSH_ERRORS.badRequest, 400);
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   if (!isDbConfigured()) return fail(PUSH_ERRORS.unavailable, 503);
   const now = Date.now();
-  if (!perIp(clientIp(req), now)) return fail(PUSH_ERRORS.tooFast, 429);
+  if (!perIp.take(clientIp(req), now)) return fail(PUSH_ERRORS.tooFast, 429);
 
   const parsed = pushUpdateSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return fail(PUSH_ERRORS.badRequest, 400);
