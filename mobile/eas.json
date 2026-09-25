@@ -12,13 +12,17 @@
       "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
-      "ios": { "simulator": true }
+      "ios": {
+        "simulator": true
+      }
     },
     "preview": {
       "extends": "base",
       "distribution": "internal",
       "channel": "preview",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "extends": "base",
@@ -27,6 +31,14 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6816116543",
+        "appleTeamId": "86C6ZFJ6V6",
+        "ascApiKeyPath": "/Users/abu/.config/agari/apple/AuthKey_852363VPL4.p8",
+        "ascApiKeyId": "852363VPL4",
+        "ascApiKeyIssuerId": "911e920f-cd28-49bb-b3fb-37e38abdb43e"
+      }
+    }
   }
 }
