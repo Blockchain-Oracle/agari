@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   note: { marginTop: 2, fontFamily: FONT.body, fontSize: 11, lineHeight: 15.1 },
   summaryAction: { marginTop: 8, flexDirection: "row" },
   actionLink: { flexDirection: "row", marginBottom: 12 },
-  action: { borderRadius: 6, borderWidth: 1, paddingVertical: 4, paddingHorizontal: 10, fontFamily: FONT.bodyStrong, fontSize: 11, lineHeight: 17.6, overflow: "hidden" },
+  action: { borderRadius: 6, borderWidth: 1, paddingVertical: 4, paddingHorizontal: 10, fontFamily: FONT.bodyBold, fontSize: 11, lineHeight: 17.6, overflow: "hidden" },
   amount: { flexShrink: 0, fontFamily: FONT.dataRegular, fontSize: 18, lineHeight: 28.8, fontVariant: ["tabular-nums"] },
   unit: { fontSize: 10 },
   panel: { paddingBottom: 16 },

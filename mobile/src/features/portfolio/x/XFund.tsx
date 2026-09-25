@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   legend: { marginBottom: 8, fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
   options: { flexDirection: "row", gap: 8 },
   option: { flex: 1, minWidth: 0, padding: 12, borderRadius: 10 },
-  optTitle: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 16.8 },
+  optTitle: { fontFamily: FONT.bodyBold, fontSize: 12, lineHeight: 16.8 },
   optSub: { marginTop: 4, fontFamily: FONT.body, fontSize: 10, lineHeight: 14 },
   half: { opacity: 0.5 },
   fund: { marginTop: 24, paddingTop: 20, gap: 10, borderTopWidth: 1 },
