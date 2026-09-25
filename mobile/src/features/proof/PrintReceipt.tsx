@@ -1,17 +1,15 @@
 import { etDateOf } from "@agari/core/market";
 import { shortHex } from "@agari/core/units";
 import type { PrintProof } from "@agari/markets";
-import { StyleSheet, Text, View } from "react-native";
 import { isPreStocksAsset, printSourceName } from "@/features/markets/price-source/source-label";
 import { PROOF } from "@/features/proof/copy";
 import { etClockSecText, integerText, replayDiff } from "@/features/proof/format";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { oraclePriceText } from "~/features/surface/parts";
-import { ReceiptRow } from "./ReceiptRow";
+import { oraclePriceText } from "./price";
+import { Receipt, ReceiptRow } from "./Receipt";
 
 const sourceWord = (print: PrintProof) => (print.source ? printSourceName(print.source, print.symbol) : PROOF.unknownSource);
 
-/** What the archive kept at T: when it was fetched and stored, how many signed bytes, their digest. */
+/** What the archive kept at T: when it was fetched and stored, how many signed bytes, and their digest. */
 function ArchiveRows({ print }: { print: PrintProof }) {
   const archive = print.archive;
   if (!archive) return <ReceiptRow label={PROOF.rows.bytes}>{PROOF.noArchive}</ReceiptRow>;
@@ -26,8 +24,8 @@ function ArchiveRows({ print }: { print: PrintProof }) {
   );
 }
 
-/** web's `PythReplayRows`: the stored PriceUpdateV2 decode beside the print it re-proves, and its post/close txs. */
-function PythRows({ print }: { print: PrintProof }) {
+/** web's PythReplayRows.tsx: the stored `PriceUpdateV2` decode beside the print it re-proves, kept after the close. */
+function PythReplayRows({ print }: { print: PrintProof }) {
   const replay = print.replay;
   if (!replay || replay.state === "posting" || (replay.state === "failed" && replay.price === null)) {
     return <ReceiptRow label={PROOF.rows.priceUpdate}>{replay ? PROOF.state[replay.state] : PROOF.state.none}</ReceiptRow>;
@@ -47,12 +45,12 @@ function PythRows({ print }: { print: PrintProof }) {
       {publishTimeSec !== null ? <ReceiptRow label={PROOF.rows.publishTime}>{`${publishTimeSec} · ${etClockSecText(publishTimeSec)}`}</ReceiptRow> : null}
       {diff !== null ? <ReceiptRow label={PROOF.rows.match}>{diff === 0n ? PROOF.matches : PROOF.differs(diff.toString())}</ReceiptRow> : null}
       {replay.postSignatures.map((signature, i) => (
-        <ReceiptRow key={signature} label={PROOF.rows.postTx(i, n)} explorer={{ kind: "tx", id: signature }}>
+        <ReceiptRow key={signature} label={PROOF.rows.postTx(i, n)} explorer={{ kind: "tx", id: signature }} hash>
           {shortHex(signature, 8, 4)}
         </ReceiptRow>
       ))}
       {replay.closeSignatures.map((signature) => (
-        <ReceiptRow key={signature} label={PROOF.rows.closeTx} explorer={{ kind: "tx", id: signature }}>
+        <ReceiptRow key={signature} label={PROOF.rows.closeTx} explorer={{ kind: "tx", id: signature }} hash>
           {shortHex(signature, 8, 4)}
         </ReceiptRow>
       ))}
@@ -60,7 +58,7 @@ function PythRows({ print }: { print: PrintProof }) {
   );
 }
 
-/** RedStone prints verify in the program at record; the archive names who signed. */
+/** RedStone prints verify in the program at record (signer set, threshold); the archive names who signed. */
 function RedStoneRows({ print }: { print: PrintProof }) {
   const addresses = print.archive?.signerAddresses ?? [];
   const packageTsMs = print.archive?.packageTsMs ?? null;
@@ -77,54 +75,31 @@ function RedStoneRows({ print }: { print: PrintProof }) {
   );
 }
 
-/**
- * web's `PrintProofReceipt` (features/proof/PrintProofReceipt.tsx): one recorded print on the cream receipt — the
- * source, the boundary, the record transaction, the archived bytes, and the source's own proof.
- */
+/** web's PrintProofReceipt.tsx: one recorded print as a cream receipt — source, boundary, record tx, archive, the source's own proof. */
 export function PrintReceipt({ print }: { print: PrintProof }) {
-  const { color } = useTheme();
   const source = sourceWord(print);
   const signers = print.source === "redstone" ? ` · ${PROOF.signerCount(print.signers)}` : "";
   return (
-    <View style={[styles.receipt, { backgroundColor: color.cream, borderColor: color.creamHairline, shadowColor: color.shadow }]}>
-      <Text style={[styles.title, { color: color.accent }]}>{PROOF.receiptTitle(PROOF.whichShort[print.which])}</Text>
-      <Text style={[TYPE.dataHero, styles.figure, { color: color.creamInk }]} adjustsFontSizeToFit numberOfLines={1}>
-        {oraclePriceText(print.priceE8, print.symbol ?? "")}
-      </Text>
-      <Text style={[TYPE.caption, { color: color.creamInk }]}>{PROOF.figure(source)}</Text>
-      <View style={styles.rows}>
-        <ReceiptRow label={PROOF.rows.source}>{`${source}${signers}${print.copied ? ` · ${PROOF.copied}` : ""}`}</ReceiptRow>
-        <ReceiptRow label={PROOF.rows.boundary}>{`${etClockSecText(print.boundarySec)} · ${etDateOf(print.boundarySec)}`}</ReceiptRow>
-        <ReceiptRow label={PROOF.rows.print}>{integerText(print.priceE8, -8)}</ReceiptRow>
-        <ReceiptRow label={PROOF.rows.recordTx} explorer={{ kind: "tx", id: print.recordSignature }}>
-          {shortHex(print.recordSignature, 10, 4)}
-        </ReceiptRow>
-        <ArchiveRows print={print} />
-        {print.source === "pyth" ? <PythRows print={print} /> : null}
-        {print.source === "redstone" ? <RedStoneRows print={print} /> : null}
-        {print.source === "switchboard" ? <ReceiptRow label={PROOF.rows.verification}>{PROOF.switchboard}</ReceiptRow> : null}
-        {print.source === "attested" ? (
-          <ReceiptRow label={PROOF.rows.verification}>{isPreStocksAsset(print.symbol) ? PROOF.attestedPreStocks : PROOF.attested}</ReceiptRow>
-        ) : null}
-      </View>
-      <Text style={[styles.footer, { color: color.creamInk, borderTopColor: color.creamHairline }]}>{PROOF.footer}</Text>
-    </View>
+    <Receipt
+      title={PROOF.receiptTitle(PROOF.whichShort[print.which])}
+      figure={oraclePriceText(print.priceE8, print.symbol ?? "")}
+      figureLabel={PROOF.figure(source)}
+      settledAtMs={print.boundarySec * 1000}
+      footer={PROOF.footer}
+    >
+      <ReceiptRow label={PROOF.rows.source}>{`${source}${signers}${print.copied ? ` · ${PROOF.copied}` : ""}`}</ReceiptRow>
+      <ReceiptRow label={PROOF.rows.boundary}>{`${etClockSecText(print.boundarySec)} · ${etDateOf(print.boundarySec)}`}</ReceiptRow>
+      <ReceiptRow label={PROOF.rows.print}>{integerText(print.priceE8, -8)}</ReceiptRow>
+      <ReceiptRow label={PROOF.rows.recordTx} explorer={{ kind: "tx", id: print.recordSignature }}>
+        {shortHex(print.recordSignature, 10, 4)}
+      </ReceiptRow>
+      <ArchiveRows print={print} />
+      {print.source === "pyth" ? <PythReplayRows print={print} /> : null}
+      {print.source === "redstone" ? <RedStoneRows print={print} /> : null}
+      {print.source === "switchboard" ? <ReceiptRow label={PROOF.rows.verification}>{PROOF.switchboard}</ReceiptRow> : null}
+      {print.source === "attested" ? (
+        <ReceiptRow label={PROOF.rows.verification}>{isPreStocksAsset(print.symbol) ? PROOF.attestedPreStocks : PROOF.attested}</ReceiptRow>
+      ) : null}
+    </Receipt>
   );
 }
-
-const styles = StyleSheet.create({
-  receipt: {
-    borderRadius: RADIUS.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 18,
-    gap: 6,
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
-  },
-  title: { fontFamily: FONT.dataStrong, fontSize: 10.5, letterSpacing: 1.6 },
-  figure: { fontSize: 36, lineHeight: 40 },
-  rows: { marginTop: 6 },
-  footer: { fontFamily: FONT.data, fontSize: 10, letterSpacing: 0.4, borderTopWidth: 1, borderStyle: "dashed", paddingTop: 10, textAlign: "center" },
-});

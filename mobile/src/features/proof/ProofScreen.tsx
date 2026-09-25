@@ -2,14 +2,14 @@ import { etDateOf, formatCadence, formatEtClock } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { MarketId } from "@agari/core/types";
 import { useMarket, useResolution } from "@agari/markets/react";
-import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { PROOF } from "@/features/proof/copy";
 import { useMarketProof } from "@/features/proof/useMarketProof";
-import { Button, EmptyState, LoadingState, Screen, SectionHeader } from "~/components/kit";
-import { AssetDisc } from "~/components/marks/AssetDisc";
-import { explorerUrl, openExternal } from "~/lib/external";
-import { FONT, TYPE, useTheme } from "~/theme";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { SectionHeader } from "~/features/explore/SectionHeader";
+import { FONT, useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { Holding } from "./Frame";
 import { PrintReceipt } from "./PrintReceipt";
 import { ProofTable } from "./ProofTable";
 import { ReverifyButton } from "./ReverifyButton";
@@ -17,9 +17,9 @@ import { ReverifyButton } from "./ReverifyButton";
 const index = (n: number) => String(n).padStart(2, "0");
 
 /**
- * `/proof/[id]` — web's ProofScreen (features/proof/ProofScreen.tsx): the Window's prints at a glance with the
- * cross-check, then one cream receipt per print (source, boundary, record tx, archived bytes, the source's own proof),
- * with Pyth's "Re-verify on devnet" above its receipt.
+ * `/proof/[id]` — web's ProofScreen.tsx: Masayume's `/status` frame (numbered header, holding states, the table) over
+ * the Window's prints, then one cream receipt per print under its own numbered header, Pyth's with "Re-verify on
+ * devnet" beside the title.
  */
 export function ProofScreen({ marketId }: { marketId: MarketId }) {
   const { color } = useTheme();
@@ -28,55 +28,51 @@ export function ProofScreen({ marketId }: { marketId: MarketId }) {
   const resolution = useResolution(marketId);
   const window = market && isOk(market) ? market.value : null;
   const singleSource = resolution && isOk(resolution) ? resolution.value.singleSource : false;
-  const asset = window?.asset ?? (reading?.ok ? (reading.value[0]?.symbol ?? null) : null);
   const desc = window ? PROOF.window(window.asset, formatCadence(window.intervalSec), `${formatEtClock(window.expirySec)} ET · ${etDateOf(window.expirySec)}`) : undefined;
 
   return (
-    <Screen title={PROOF.title} onRefresh={refresh}>
-      <View style={styles.head}>
-        {asset ? <AssetDisc asset={asset} size={40} /> : null}
-        <View style={styles.headText}>
-          <SectionHeader index={PROOF.section.index} title={PROOF.section.title} desc={desc} />
-        </View>
-      </View>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{PROOF.intro}</Text>
+    <ExplorePage title={PROOF.title} onRefresh={refresh} style={styles.page}>
+      <SectionHeader index={PROOF.section.index} title={PROOF.section.title} desc={desc} />
+      <Text style={[styles.intro, { color: color.inkSecondary }]}>{PROOF.intro}</Text>
 
-      {reading === null ? <LoadingState shape="plate" label={PROOF.loading} /> : null}
-      {reading !== null && !reading.ok ? <EmptyState why={PROOF.unreachable} action={{ label: "Try again", onPress: refresh }} /> : null}
-      {reading?.ok && reading.value.length === 0 ? <EmptyState why={PROOF.none} /> : null}
+      {reading === null ? <Holding kind="loading" text={PROOF.loading} /> : null}
+      {reading !== null && !reading.ok ? <Holding kind="alert" text={PROOF.unreachable} /> : null}
+      {reading?.ok && reading.value.length === 0 ? <Holding kind="plain" text={PROOF.none} /> : null}
+
       {reading?.ok && reading.value.length > 0 ? (
-        <>
+        <View style={styles.report}>
           <ProofTable prints={reading.value} singleSource={singleSource} />
-          {reading.value.map((print, i) => (
-            <View key={`${print.which}:${print.recordSignature}`} style={styles.print}>
-              <SectionHeader index={index(i + 1)} title={PROOF.which[print.which]} />
-              {print.source === "pyth" ? <ReverifyButton marketId={marketId} which={print.which} state={print.replay?.state ?? null} onStarted={refresh} /> : null}
-              <PrintReceipt print={print} />
-            </View>
-          ))}
-        </>
-      ) : null}
-
-      <View style={[styles.foot, { borderTopColor: color.hairline }]}>
-        <Text style={[styles.kicker, { color: color.inkMuted }]}>WINDOW ADDRESS</Text>
-        <Text selectable style={[TYPE.data, styles.id, { color: color.inkSecondary }]}>
-          {marketId}
-        </Text>
-        <View style={styles.actions}>
-          <Button label="Window account on Explorer" variant="outline" size="sm" icon={{ ios: "arrow.up.right", android: "north_east" }} onPress={() => void openExternal(explorerUrl("address", marketId))} />
-          <Button label="Open this Window" variant="ghost" size="sm" onPress={() => router.push({ pathname: "/markets/[id]", params: { id: marketId } })} />
+          <View style={styles.prints}>
+            {reading.value.map((print, i) => (
+              <View key={print.which} style={styles.print}>
+                <SectionHeader
+                  index={index(i + 1)}
+                  title={PROOF.which[print.which]}
+                  aside={
+                    print.source === "pyth" ? (
+                      <ReverifyButton marketId={marketId} which={print.which} state={print.replay?.state ?? null} onStarted={refresh} />
+                    ) : (
+                      <View style={styles.headFloor} />
+                    )
+                  }
+                />
+                <PrintReceipt print={print} />
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
-    </Screen>
+      ) : null}
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
-  headText: { flex: 1 },
-  print: { gap: 10 },
-  foot: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 14, gap: 8 },
-  kicker: { fontFamily: FONT.data, fontSize: 10, letterSpacing: 1.5 },
-  id: { fontSize: 12 },
-  actions: { gap: 8 },
+  // .status-page: 28 px under the header, 48 px over the dock's floor.
+  page: { paddingTop: 28, paddingBottom: 48 + CHROME.dockClearance },
+  intro: { marginTop: 12, fontFamily: FONT.body, fontSize: 15, lineHeight: 23.25 },
+  report: { marginTop: 24, gap: 24 },
+  prints: { gap: 32 },
+  print: { gap: 16 },
+  // `.proof-print > header > div { min-height: 2rem }`: headers with and without the button sit alike.
+  headFloor: { minHeight: 32 },
 });
