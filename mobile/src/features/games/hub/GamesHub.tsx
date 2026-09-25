@@ -1,16 +1,12 @@
-import type { Href } from "expo-router";
-import { useFocusEffect } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import { router, useFocusEffect, type Href } from "expo-router";
 import { useCallback } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { GAMES } from "@/features/games/copy";
-import { SectionHeader } from "~/components/kit";
+import { GamesPage, PageHero, Plate, PlateBody, PlateTitle, ResumeCta, SectionHead } from "~/features/games/frame";
 import { gameEntriesInGroup, useGames, useLastGame } from "~/features/games/shell";
 import { preloadGameAudio } from "~/games/audio";
-import { FONT, SPACE, TYPE, useTheme } from "~/theme";
 import { AchievementsPlate } from "./AchievementsPlate";
 import { GameCard } from "./GameCard";
-import { LinkPlate } from "./LinkPlate";
 import { MatchTile } from "./MatchTile";
 import { ProfileCard } from "./ProfileCard";
 import { SeasonBanner } from "./SeasonBanner";
@@ -19,95 +15,80 @@ import { useHubStatus } from "./useHubStatus";
 const GROUPS = ["prediction", "duel", "arcade"] as const;
 
 /**
- * web's `GamesHub` (`/games`): the season, the active match or the last game (resuming beats starting), every
- * mode in core's three groups with its live status and honest economic label, then the player's profile,
- * achievements, history and the ladder. Every fact is a read; nothing here is asserted.
+ * web's `GamesHub` (`/games`): the "Games." hero, the season banner, the active match or the last game (resuming
+ * beats starting), every mode in core's three groups with its live status and honest economic label, then the
+ * player's profile and achievements, and the two link plates to history and the ladder.
  */
 export function GamesHub() {
-  const { color } = useTheme();
-  const { activeMatchId, match, openSettings } = useGames();
+  const { activeMatchId, match, feedback } = useGames();
   const last = useLastGame();
   const { season, status, presence } = useHubStatus();
-
   // The first swipe in any mode should not be silent while its sample decodes.
   useFocusEffect(useCallback(() => preloadGameAudio(), []));
+  const go = (href: string) => () => {
+    feedback("tap");
+    router.push(href as Href);
+  };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: color.ground }}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.body}
-    >
-      <View style={styles.hero}>
-        <View style={styles.heroText}>
-          <Text style={[styles.eyebrow, { color: color.accent }]}>{GAMES.eyebrow.toUpperCase()}</Text>
-          <Text style={[TYPE.display, { color: color.ink }]} accessibilityRole="header">
-            {GAMES.title}
-            <Text style={{ color: color.accent }}>.</Text>
-          </Text>
-        </View>
-        <Pressable
-          onPress={openSettings}
-          accessibilityRole="button"
-          accessibilityLabel={GAMES.rail.settings}
-          style={({ pressed }) => [styles.settings, { borderColor: color.hairline, backgroundColor: pressed ? color.surface2 : color.surface1 }]}
-        >
-          <SymbolView name={{ ios: "slider.horizontal.3", android: "tune" }} size={20} tintColor={color.ink} />
-        </Pressable>
-      </View>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{GAMES.intro}</Text>
+    <GamesPage>
+      <PageHero eyebrow={GAMES.eyebrow} title={GAMES.title} intro={GAMES.intro} />
 
       {season ? <SeasonBanner season={season} /> : null}
 
       {activeMatchId ? (
         <MatchTile match={match} />
       ) : last ? (
-        <LinkPlate
-          tone="accent"
-          title={GAMES.lastGame.title}
-          body={GAMES.lastGame.body(last.name)}
-          cta={GAMES.lastGame.cta}
-          href={last.href as Href}
-        />
+        <Plate resume onPress={go(last.href)} style={styles.last} accessibilityLabel={GAMES.lastGame.title}>
+          <PlateTitle>{GAMES.lastGame.title}</PlateTitle>
+          <PlateBody>{GAMES.lastGame.body(last.name)}</PlateBody>
+          <ResumeCta>{GAMES.lastGame.cta}</ResumeCta>
+        </Plate>
       ) : null}
 
       {GROUPS.map((group) => {
         const head = GAMES.sections[group];
         return (
           <View key={group} style={styles.section} accessibilityLabel={head.title}>
-            <SectionHeader index={head.number} title={head.title} desc={head.desc} />
-            {gameEntriesInGroup(group).map((entry) => (
-              <GameCard key={entry.id} entry={entry} status={status(entry)} presence={presence(entry)} />
-            ))}
+            <SectionHead number={head.number} title={head.title} desc={head.desc} />
+            <View style={styles.grid}>
+              {gameEntriesInGroup(group).map((entry) => (
+                <GameCard key={entry.id} entry={entry} status={status(entry)} presence={presence(entry)} />
+              ))}
+            </View>
           </View>
         );
       })}
 
-      <View style={styles.section}>
-        <SectionHeader index={GAMES.sections.profile.number} title={GAMES.sections.profile.title} desc={GAMES.sections.profile.desc} />
-        <ProfileCard />
-        <AchievementsPlate />
+      <View style={styles.section} accessibilityLabel={GAMES.sections.profile.title}>
+        <SectionHead {...GAMES.sections.profile} />
+        <View style={styles.grid}>
+          <ProfileCard />
+          <AchievementsPlate />
+        </View>
       </View>
 
-      <View style={styles.section}>
-        <SectionHeader index={GAMES.sections.history.number} title={GAMES.sections.history.title} desc={GAMES.sections.history.desc} />
-        <LinkPlate title={GAMES.historyPage.title} body={GAMES.history.body} cta={GAMES.history.cta} href={"/games/history" as Href} />
-        <LinkPlate
-          title={GAMES.rankPage.title}
-          body={season ? GAMES.rankPage.introSeason : GAMES.rankPage.intro}
-          cta={GAMES.rank.cta}
-          href={"/games/rank" as Href}
-        />
+      <View style={styles.section} accessibilityLabel={GAMES.sections.history.title}>
+        <SectionHead {...GAMES.sections.history} />
+        <View style={styles.grid}>
+          <Plate onPress={go("/games/history")} accessibilityLabel={GAMES.historyPage.title}>
+            <PlateTitle>{GAMES.historyPage.title}</PlateTitle>
+            <PlateBody>{GAMES.history.body}</PlateBody>
+            <ResumeCta>{GAMES.history.cta}</ResumeCta>
+          </Plate>
+          <Plate onPress={go("/games/rank")} accessibilityLabel={GAMES.rankPage.title}>
+            <PlateTitle>{GAMES.rankPage.title}</PlateTitle>
+            <PlateBody>{season ? GAMES.rankPage.introSeason : GAMES.rankPage.intro}</PlateBody>
+            <ResumeCta>{GAMES.rank.cta}</ResumeCta>
+          </Plate>
+        </View>
       </View>
-    </ScrollView>
+    </GamesPage>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { padding: SPACE.gutter, paddingTop: 20, paddingBottom: 130, gap: 16 },
-  hero: { flexDirection: "row", alignItems: "flex-end", gap: 12 },
-  heroText: { flex: 1, gap: 6 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.8 },
-  settings: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: "center", justifyContent: "center" },
-  section: { gap: 12, marginTop: 8 },
+  last: { marginBottom: 32 },
+  section: { marginBottom: 32 },
+  grid: { gap: 12 },
 });

@@ -1,11 +1,7 @@
-export { AccentPicker } from "./AccentPicker";
 export { gameEntriesInGroup, gameEntry, gameIdFromPath, type GameEntry, type GameReadiness } from "./catalog";
 export { useGames, type GamesContextValue } from "./context";
-export { EconLabel } from "./EconLabel";
-export { GameHeaderActions } from "./GameHeaderActions";
 export { GamesProvider } from "./GamesProvider";
+export { GamesRail } from "./GamesRail";
 export { rememberGame, useLastGame, type LastGame } from "./last-game";
 export { BearMark, BullMark, CardBack, CoinMark, LockedInMark, SearchingBanner, TrophyMark } from "./PixelArt";
-export { SheetHeader } from "./SheetHeader";
 export { useGameScreen } from "./useGameScreen";
-export { VolumeSlider } from "./VolumeSlider";

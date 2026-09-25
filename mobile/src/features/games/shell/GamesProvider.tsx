@@ -1,9 +1,11 @@
 import { activeMatchId as activeMatchIdOf, IDLE, type GameId, type MatchState } from "@agari/core/games";
+import { useFonts } from "expo-font";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useReducedMotion } from "react-native-reanimated";
 import type { FeedbackCue } from "@/features/games/feedback";
 import { reducedMotionFrom, useGameSettingsStore } from "@/features/games/settings";
 import { fireFeedback } from "~/games/feedback";
+import { PIXEL_FONT, PIXEL_FONT_SOURCE } from "~/theme/web/games";
 import { GamesContext, type GamesContextValue } from "./context";
 import { GameSettingsSheet } from "./GameSettingsSheet";
 import { HowToSheet } from "./HowToSheet";
@@ -16,6 +18,8 @@ import { HowToSheet } from "./HowToSheet";
  */
 
 export function GamesProvider({ children }: { children: ReactNode }) {
+  // The frame's pixel face (web's "Agari Pixel"), loaded once for every mode; the mono face stands in until it is.
+  useFonts({ [PIXEL_FONT]: PIXEL_FONT_SOURCE });
   const store = useGameSettingsStore();
   const systemPrefersReduced = useReducedMotion();
   const [match, setMatch] = useState<MatchState>(IDLE);

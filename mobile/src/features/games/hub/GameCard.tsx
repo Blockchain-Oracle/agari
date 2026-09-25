@@ -1,115 +1,86 @@
 import { router, type Href } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { GAMES } from "@/features/games/copy";
 import { Skeleton } from "~/components/kit";
-import { EconLabel, useGames, type GameEntry } from "~/features/games/shell";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { Badge, Econ, Press, useGamesTokens } from "~/features/games/frame";
+import { useGames, type GameEntry } from "~/features/games/shell";
+import { FONT } from "~/theme";
 import type { CardStatus } from "./useHubStatus";
 
 /**
- * web's `GameCard`: one mode as the hub knows it right now. The symbol, the name and its status badge, the
- * blurb, the honest economic label, what it waits on (if anything), and who is in it. Only a playable mode
- * is a touch target; a pending or unavailable one says why and does not pretend to open.
+ * web's `GameCard` (`.gm-card`): the mode's icon, name and status badge, its blurb, the honest economic label
+ * and what it waits on, who is in it, and "Open". Only a playable mode is a touch target; a pending or
+ * unavailable one sits at 72 % and says why.
  */
 export function GameCard({ entry, status, presence }: { entry: GameEntry; status: CardStatus; presence: string | null }) {
-  const { color } = useTheme();
+  const { t, color } = useGamesTokens();
   const { feedback } = useGames();
   const openable = status.kind === "live" || status.kind === "loading" || status.kind === "after-hours";
   const note = status.kind === "pending" ? GAMES.card.waitingOn(status.dependency) : status.kind === "unavailable" ? status.why : status.kind === "after-hours" ? status.note : null;
-
   const Icon = entry.nav.icon;
+
   const body = (
     <>
       <View style={styles.head}>
-        <View style={[styles.icon, { backgroundColor: openable ? color.accentWash : color.surface2 }]}>
-          <Icon size={20} color={openable ? color.accent : color.inkMuted} strokeWidth={1.8} />
+        <View style={[styles.icon, { backgroundColor: t.iconWash }]}>
+          <Icon size={15} color={color.accent} strokeWidth={2} />
         </View>
-        <Text style={[TYPE.title, styles.name, { color: color.ink }]} numberOfLines={1}>
+        <Text style={[styles.name, { color: color.ink }]} numberOfLines={1}>
           {entry.nav.name}
         </Text>
         <StatusBadge status={status} />
       </View>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{entry.nav.description}</Text>
+      <Text style={[styles.blurb, { color: color.inkSecondary }]}>{entry.nav.description}</Text>
       <View style={styles.foot}>
-        <EconLabel kind={entry.descriptor.economicKind} label={entry.descriptor.economicLabel} />
+        <Econ kind={entry.descriptor.economicKind} label={entry.descriptor.economicLabel} />
+        {note ? <Text style={[styles.waiting, { color: color.inkMuted }]}>{note}</Text> : null}
         {status.kind === "loading" ? <Skeleton width={96} height={12} /> : null}
       </View>
-      {note ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{note}</Text> : null}
-      {presence ? (
-        <View style={styles.presence}>
-          <View style={[styles.presenceDot, { backgroundColor: presence === GAMES.card.roomDown ? color.loss : presence === GAMES.card.nobody ? color.inkMuted : color.profit }]} />
-          <Text style={[styles.presenceText, { color: color.inkSecondary }]}>{presence}</Text>
-        </View>
-      ) : null}
+      {presence ? <Text style={[styles.presence, { color: color.inkSecondary }]}>{presence}</Text> : null}
     </>
   );
 
+  const ground = { backgroundColor: t.cardBg, borderColor: t.cardBorder };
   if (!openable) {
     return (
-      <View style={[styles.card, { backgroundColor: color.surface1, borderColor: color.hairline, opacity: 0.72 }]} accessibilityState={{ disabled: true }}>
+      <View style={[styles.card, ground, styles.pending]} accessibilityState={{ disabled: true }}>
         {body}
       </View>
     );
   }
-
   return (
-    <Pressable
+    <Press
       onPress={() => {
         feedback("tap");
         router.push(entry.nav.href as Href);
       }}
-      accessibilityRole="button"
+      accessibilityRole="link"
       accessibilityLabel={`${entry.nav.name}. ${entry.nav.description} ${entry.descriptor.economicLabel}.${note ? ` ${note}.` : ""}`}
-      accessibilityHint={GAMES.card.open}
-      style={({ pressed }) => [
-        styles.card,
-        { backgroundColor: color.surface1, borderColor: pressed ? color.accentDim : color.hairline },
-        pressed && styles.pressed,
-      ]}
+      style={(pressed) => [styles.card, ground, pressed && { borderColor: t.cardHoverBorder }]}
     >
       {body}
-      <View style={styles.open}>
-        <Text style={[styles.openText, { color: color.accent }]}>{GAMES.card.open.toUpperCase()}</Text>
-        <SymbolView name={{ ios: "arrow.right", android: "arrow_forward" }} size={12} tintColor={color.accent} />
-      </View>
-    </Pressable>
+      <Text style={[styles.open, { color: color.accent }]}>{GAMES.card.open.toUpperCase()}</Text>
+    </Press>
   );
 }
 
-/** web's `.gm-badge`: live in the profit colour, 24/7-only in warning, the rest quiet. */
 function StatusBadge({ status }: { status: CardStatus }) {
-  const { color } = useTheme();
-  if (status.kind === "loading") return <Skeleton width={52} height={20} radius={RADIUS.full} />;
-  const [label, ink] =
-    status.kind === "live"
-      ? [GAMES.card.liveBadge, color.profit]
-      : status.kind === "after-hours"
-        ? [GAMES.card.afterHoursBadge, color.warning]
-        : status.kind === "unavailable"
-          ? [GAMES.card.unavailableBadge, color.inkMuted]
-          : [GAMES.card.pendingBadge, color.inkMuted];
-  return (
-    <View style={[styles.badge, { borderColor: ink }]}>
-      <Text style={[styles.badgeText, { color: ink }]} numberOfLines={1}>
-        {label.toUpperCase()}
-      </Text>
-    </View>
-  );
+  if (status.kind === "loading") return <View style={styles.push}><Skeleton width={56} height={16} radius={9999} /></View>;
+  if (status.kind === "live") return <Badge label={GAMES.card.liveBadge} tone="live" />;
+  if (status.kind === "after-hours") return <Badge label={GAMES.card.afterHoursBadge} tone="after" />;
+  return <Badge label={status.kind === "unavailable" ? GAMES.card.unavailableBadge : GAMES.card.pendingBadge} tone="quiet" />;
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.lg, padding: 14, gap: 10 },
-  pressed: { transform: [{ scale: 0.99 }] },
+  card: { gap: 10, borderRadius: 16, padding: 20, borderWidth: 1 },
+  pending: { opacity: 0.72 },
   head: { flexDirection: "row", alignItems: "center", gap: 10 },
-  icon: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  name: { flex: 1 },
-  badge: { borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
-  badgeText: { fontFamily: FONT.data, fontSize: 9.5, letterSpacing: 0.8 },
-  foot: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  presence: { flexDirection: "row", alignItems: "center", gap: 6 },
-  presenceDot: { width: 6, height: 6, borderRadius: 3 },
-  presenceText: { fontFamily: FONT.data, fontSize: 11.5 },
-  open: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-end" },
-  openText: { fontFamily: FONT.data, fontSize: 11, letterSpacing: 1.2 },
+  icon: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  name: { flexShrink: 1, fontFamily: FONT.heading, fontSize: 15, lineHeight: 24 },
+  push: { marginLeft: "auto" },
+  blurb: { fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
+  foot: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
+  waiting: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 15 },
+  presence: { marginTop: 6, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 15 },
+  open: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.8 },
 });
