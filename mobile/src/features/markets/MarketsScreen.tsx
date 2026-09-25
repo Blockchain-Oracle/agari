@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { AlertsWatcher } from "@/features/alerts/AlertsWatcher";
 import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
@@ -93,7 +92,6 @@ export function MarketsScreen() {
       </ScrollView>
       <SenseiDock laneSet={lanes.laneSet} nowMs={nowMs} />
       {/* web mounts the price-alert evaluator in its providers; the landing tab stays mounted, so it watches from here. */}
-      <AlertsWatcher />
       {roomMarket ? (
         <MarketRoomSheet
           visible
