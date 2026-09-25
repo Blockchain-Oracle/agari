@@ -30,5 +30,5 @@ export function ShareButton({ text, card, label = SHARE.shareCard, tone = "outli
       setBusy(false);
     }
   };
-  return <Button label={busy ? SHARE.rendering : label} variant={tone} size="sm" icon={{ ios: "square.and.arrow.up", android: "share" }} loading={busy} onPress={() => void share()} />;
+  return <Button label={busy ? SHARE.rendering : `${label} ↗`} variant={tone} size="sm" loading={busy} onPress={() => void share()} />;
 }

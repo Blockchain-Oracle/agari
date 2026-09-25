@@ -3,7 +3,7 @@ import type { EventMarket } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { useOpeningPrice } from "@agari/markets/react";
 import { router } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import { ArrowDown, ArrowUp, ArrowUpRight } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useReducedMotion, ZoomIn } from "react-native-reanimated";
@@ -72,7 +72,7 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
           <Text style={[TYPE.labelMicro, { color: ink, opacity: 0.6 }]}>#{shortCallId(card)}</Text>
         </View>
         <View style={styles.sideRow}>
-          <SymbolView name={booked.side === "up" ? { ios: "arrow.up", android: "arrow_upward" } : { ios: "arrow.down", android: "arrow_downward" }} size={22} tintColor={sideInk} />
+          {booked.side === "up" ? <ArrowUp size={22} color={sideInk} strokeWidth={2.25} /> : <ArrowDown size={22} color={sideInk} strokeWidth={2.25} />}
           <Text style={[styles.side, { color: sideInk }]}>{(booked.side === "up" ? SHARE.call.up : SHARE.call.down).replace(/^\S+\s/, "")}</Text>
         </View>
         <Text style={[TYPE.title, { color: ink }]}>{callBandLabel(card)}</Text>
@@ -90,7 +90,7 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
         </View>
         <Pressable onPress={() => openExternal(explorerUrl("tx", booked.txHash))} accessibilityRole="link" style={styles.tx} hitSlop={8}>
           <Text style={[TYPE.data, { color: LIGHT.accent }]}>{SHARE.call.tx(booked.txHash.slice(0, 10))}</Text>
-          <SymbolView name={{ ios: "arrow.up.right", android: "north_east" }} size={12} tintColor={LIGHT.accent} />
+          <ArrowUpRight size={12} color={LIGHT.accent} />
         </Pressable>
         <View style={styles.actions}>
           <Pressable

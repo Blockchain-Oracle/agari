@@ -1,4 +1,4 @@
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { FONT, RADIUS, useTheme, type Palette } from "~/theme";
@@ -15,8 +15,8 @@ interface Props {
   onPress?: () => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** A leading SF Symbol / Material Symbol. */
-  icon?: SymbolViewProps["name"];
+  /** A leading lucide icon, as web's buttons draw them (lucide-react). */
+  icon?: LucideIcon;
   /** A trailing glyph such as "→"; drawn in the label's colour. */
   trailing?: ReactNode;
   loading?: boolean;
@@ -46,7 +46,7 @@ function tones(variant: ButtonVariant, color: Palette) {
   }
 }
 
-export function Button({ label, onPress, variant = "primary", size = "md", icon, trailing, loading, disabled, block = true, accessibilityHint, style }: Props) {
+export function Button({ label, onPress, variant = "primary", size = "md", icon: Icon, trailing, loading, disabled, block = true, accessibilityHint, style }: Props) {
   const { color } = useTheme();
   const tone = tones(variant, color);
   const inert = disabled || loading;
@@ -69,7 +69,7 @@ export function Button({ label, onPress, variant = "primary", size = "md", icon,
         style,
       ]}
     >
-      {loading ? <ActivityIndicator color={tone.ink} /> : icon ? <SymbolView name={icon} size={17} tintColor={tone.ink} /> : null}
+      {loading ? <ActivityIndicator color={tone.ink} /> : Icon ? <Icon size={17} color={tone.ink} strokeWidth={2} /> : null}
       <Text style={[styles.label, size === "sm" && styles.labelSm, { color: tone.ink }]} numberOfLines={1}>
         {label}
       </Text>

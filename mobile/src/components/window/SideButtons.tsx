@@ -1,5 +1,5 @@
 import type { Side } from "@agari/core/types";
-import { SymbolView } from "expo-symbols";
+import { ArrowDown, ArrowUp } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { sidesInOrder, useBetAgainst } from "@/features/markets/bet-against";
 import { HERO_HEAD, MARKETS } from "@/lib/copy";
@@ -47,7 +47,7 @@ export function SideButtons({ upCents, downCents, onPick, disabled, hydrating = 
             ]}
           >
             <View style={styles.label}>
-              <SymbolView name={up ? { ios: "arrow.up", android: "arrow_upward" } : { ios: "arrow.down", android: "arrow_downward" }} size={17} tintColor={ink} />
+              {up ? <ArrowUp size={17} color={ink} strokeWidth={2.25} /> : <ArrowDown size={17} color={ink} strokeWidth={2.25} />}
               <Text style={[styles.word, height < 56 && styles.small, { color: ink }]}>{up ? MARKETS.up : MARKETS.down}</Text>
             </View>
             <Text style={[styles.price, height < 56 && styles.small, { color: ink }]}>{price(cents)}</Text>
