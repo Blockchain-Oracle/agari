@@ -52,9 +52,92 @@
   line-height: 1.55;
 }
 
-/* Ours: the status-bar band above the capture (PhoneShot.tsx) — 47 of a 390-wide screen. It
-   stays transparent so it takes the screen's own #050505 ground from part-18. */
-.dl-phone-bar { width: 100%; aspect-ratio: 390 / 47; }
+/* Ours (09-25): the launch film takes the stage. It is 16:9, so the hero gives it the wider column. */
+.dl-hero:has(.dl-film) { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); }
+.dl-film video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  background: #0c0a09;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Ours (09-25): the native downloads — Android's APK card beside the iPhone card. */
+.dl-native {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: clamp(18px, 2.4vw, 28px);
+  margin-top: clamp(56px, 8vw, 104px);
+}
+.dl-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: clamp(22px, 3vw, 36px);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.dl-card-head h2 {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: -0.03em;
+  color: var(--white);
+}
+.dl-card-meta { margin: 8px 0 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--gray-500); }
+.dl-card-body { display: flex; gap: clamp(20px, 3vw, 34px); align-items: center; }
+.dl-card-main { min-width: 0; }
+.dl-card-main .dl-cta { margin-top: 0; }
+.dl-card-line { margin: 0; max-width: 42ch; color: var(--gray-400); line-height: 1.6; }
+.dl-card-ios .dl-cta { align-self: flex-start; margin-top: 4px; }
+
+.dl-qr { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none; }
+.dl-qr img { display: block; width: 196px; height: 196px; padding: 12px; border-radius: 16px; background: #f4eee3; }
+.dl-qr figcaption { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-500); }
+
+.dl-sha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  min-width: 0;
+}
+.dl-sha-label { flex: none; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--vermilion); }
+.dl-sha-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: 12.5px; color: var(--gray-300, #d4d4d4); }
+.dl-sha-copy {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--gray-700);
+  background: transparent;
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.dl-card-foot { margin: 0; color: var(--gray-500); font-size: 0.86rem; }
+.dl-card-foot a { color: var(--white); text-underline-offset: 3px; }
+
+[data-theme="light"] .dl-card { background: rgba(20, 18, 16, 0.025); border-color: rgba(20, 18, 16, 0.11); }
+[data-theme="light"] .dl-sha { background: rgba(20, 18, 16, 0.045); }
+[data-theme="light"] .dl-sha-value { color: #453e33; }
+[data-theme="light"] .dl-film video { box-shadow: 0 30px 80px rgba(20, 18, 16, 0.18), 0 0 0 1px rgba(20, 18, 16, 0.08); }
+
+@media (max-width: 860px) {
+  .dl-hero:has(.dl-film) { grid-template-columns: 1fr; }
+  .dl-native { grid-template-columns: 1fr; }
+  /* On a phone the phone is the device: the button, not a code to scan with itself. */
+  .dl-qr { display: none; }
+  .dl-card-body { flex-direction: column; align-items: stretch; }
+}
 
 /* .dl-points { border-top: 1px solid rgba(255,255,255,0.08) } is invisible on cream:
    part-14's border-white/[0.08] light value. */

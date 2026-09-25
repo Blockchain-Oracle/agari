@@ -1,12 +1,11 @@
 import { AgariMark } from "@/components/shell";
 import { INSTALL } from "./copy";
-import { InstallCta } from "./InstallCta";
-import { PhoneShot } from "./PhoneShot";
+import { NativeDownloads } from "./NativeDownloads";
 
 /**
- * `/download` — the page the app strip lands on, ported from the reference's
- * `app/download/page.tsx` element for element (`.dl-*` in part-18.css). The words are
- * Agari's: an installable web app on Solana devnet, and no native build claimed.
+ * `/download` — the page the app strip lands on, from the reference's `app/download/page.tsx` (`.dl-*` in
+ * part-18.css), rebuilt for the native launch (09-25): the launch film beside the headline, then the Android APK (QR,
+ * button, SHA-256) and the iPhone path, then the three points. Solana devnet throughout.
  */
 export function DownloadPage() {
   return (
@@ -20,8 +19,6 @@ export function DownloadPage() {
           </h1>
           <p className="dl-line">{INSTALL.line}</p>
 
-          <InstallCta />
-
           <ul className="dl-meta">
             {INSTALL.meta.map((item) => (
               <li key={item.label}>
@@ -32,10 +29,12 @@ export function DownloadPage() {
           </ul>
         </div>
 
-        <div className="dl-stage" aria-hidden="false">
-          <PhoneShot />
+        <div className="dl-stage dl-film">
+          <video src={INSTALL.film.src} poster={INSTALL.film.poster} autoPlay muted loop playsInline controls preload="metadata" aria-label={INSTALL.film.label} />
         </div>
       </section>
+
+      <NativeDownloads />
 
       <section className="dl-points">
         {INSTALL.points.map((point) => (
