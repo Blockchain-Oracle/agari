@@ -53,8 +53,8 @@ export const INSTALL = {
   ios: {
     eyebrow: "iPhone",
     title: "Join the iOS beta",
-    body: "Open the TestFlight invitation to join Agari on iPhone. Apple's review of the first beta build may delay installation; the web app is available from your home screen while it processes.",
-    cta: "Join on TestFlight",
+    body: "The TestFlight invitation is ready. Apple may show it as unavailable until the first beta build is approved. You can install the web app from your home screen in the meantime.",
+    cta: "Open TestFlight invitation",
   },
   points: [
     { title: "Connect and go", body: "Any Solana wallet that speaks the Wallet Standard. The faucet hands you test tUSDC, and a little SOL for fees if you are short. There is nothing else to install." },
