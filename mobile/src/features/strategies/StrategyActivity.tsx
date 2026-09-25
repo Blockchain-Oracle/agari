@@ -1,60 +1,53 @@
 import type { RunnerHealth } from "@agari/core/strategies";
 import type { VaultGrant } from "@agari/core/vault";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { strategyActivityOf } from "@/features/strategies/activity";
 import type { CopyState } from "@/features/strategies/lifecycle";
 import { ago } from "@/features/strategies/names";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT } from "~/theme";
+import { Details, useStrat } from "./ui";
 
 /**
- * web's features/strategies/StrategyActivity.tsx: the runner's strategy-wide report (resting when the market is
- * closed, watching, held, filled) beside this wallet's own constraint, with the runner's words on request.
+ * web's features/strategies/StrategyActivity.tsx (copy-form.css `.copy-runner`): the strategy-wide runner report
+ * beside the separate consent label, with the runner's own words folded under "Runner report".
  */
-export function StrategyActivity({ state, grant, health, nowMs }: {
+export function StrategyActivity({ state, grant, health, nowMs, style }: {
   state: CopyState;
   grant: VaultGrant | null;
   health: RunnerHealth | null;
   nowMs: number;
+  style?: object;
 }) {
-  const { color } = useTheme();
-  const [open, setOpen] = useState(false);
+  const { color } = useStrat();
   const activity = strategyActivityOf({ state, grant, health, nowMs });
-  const resting = activity.label === "Resting";
+  const p = [styles.p, { color: color.inkSecondary }];
   return (
-    <View
-      accessibilityLabel="Strategy operation"
-      style={[styles.box, { borderColor: resting ? color.accentDim : color.hairline, backgroundColor: color.surface1 }]}
-    >
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>The runner · across every subscriber</Text>
-      <Text style={[TYPE.bodyStrong, { color: color.ink }]}>Operation · {activity.label}</Text>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{activity.detail}</Text>
-      {activity.positions ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{activity.positions}</Text> : null}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{activity.heartbeat}</Text>
+    <View accessibilityLabel="Strategy operation" style={[styles.box, { borderColor: color.hairline, backgroundColor: color.surface2 }, style]}>
+      <Text style={[styles.eyebrow, { color: color.inkMuted }]}>The runner · across every subscriber</Text>
+      <Text style={[styles.strong, { color: color.ink }]}>Operation · {activity.label}</Text>
+      <Text style={p}>{activity.detail}</Text>
+      {activity.positions ? <Text style={p}>{activity.positions}</Text> : null}
+      <Text style={[p, styles.mt12]}>{activity.heartbeat}</Text>
       {health?.why ? (
-        <>
-          <Pressable onPress={() => setOpen((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: open }} hitSlop={10} style={styles.toggle}>
-            <Text style={[TYPE.caption, { color: color.accent }]}>
-              {open ? "Hide" : "Show"} runner report
-              {health.lastTickMs !== null ? ` · ${ago(Math.min(health.lastTickMs, nowMs), nowMs)}` : ""}
-            </Text>
-          </Pressable>
-          {open ? (
-            <View style={styles.report}>
-              <Text style={[TYPE.data, { color: color.inkSecondary }]} selectable>
-                {health.why}
-              </Text>
-              <Text style={[TYPE.caption, { color: color.inkMuted }]}>This report covers the strategy across its subscribers.</Text>
-            </View>
-          ) : null}
-        </>
+        <Details
+          style={styles.mt8}
+          summaryStyle={[styles.summary, { color: color.ink }]}
+          summary={`Runner report${health.lastTickMs !== null ? ` · ${ago(Math.min(health.lastTickMs, nowMs), nowMs)}` : ""}`}
+        >
+          <Text style={[p, styles.mt8]}>{health.why}</Text>
+          <Text style={p}>This report covers the strategy across its subscribers.</Text>
+        </Details>
       ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  box: { borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 14, gap: 6 },
-  toggle: { minHeight: 32, justifyContent: "center" },
-  report: { gap: 6 },
+  box: { gap: 4, paddingVertical: 14, paddingHorizontal: 16, borderWidth: 1, borderRadius: 12 },
+  eyebrow: { fontFamily: FONT.dataRegular, fontSize: 9.5, lineHeight: 15.2, letterSpacing: 1.33, textTransform: "uppercase" },
+  strong: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 22.4 },
+  p: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
+  summary: { fontFamily: FONT.body, fontSize: 15, lineHeight: 24 },
+  mt12: { marginTop: 12 },
+  mt8: { marginTop: 8 },
 });
