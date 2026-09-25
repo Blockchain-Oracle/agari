@@ -6,15 +6,12 @@ import { StyleSheet, Text, View } from "react-native";
 import { ACTIVITY } from "@/features/activity/copy";
 import { useMoneyUnits, useTickerFeed } from "@/features/activity/useActivity";
 import { useVenue } from "@/features/markets/useVenue";
-import { NEWS } from "@/features/news/copy";
 import { TICKER_HUB } from "@/features/ticker-hub/copy";
 import { pythIndexRowOf, usePythIndex } from "@/features/ticker-hub/usePythIndex";
-import { useTickerNews } from "@/features/ticker-hub/useTickerNews";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { ActivityList } from "~/features/activity/ActivityList";
 import { ExplorePage } from "~/features/explore/ExplorePage";
 import { SectionHeader } from "~/features/explore/SectionHeader";
-import { WireRow } from "~/features/news/NewsWire";
 import { FONT, useTheme } from "~/theme";
 import { BasketHub } from "./BasketHub";
 import { LiveStatus, SessionChip } from "./HubParts";
@@ -23,8 +20,8 @@ import { NameFacts } from "./NameFacts";
 /**
  * `/tickers/[SYMBOL]` — web's `TickerHubScreen` on a phone, in /news's frame: the kind and the session (or "Trading
  * 24/7"), the mark and the name with its cashtag, the Japanese line and the intro, the figure bar (`NameFacts`, or
- * `BasketHub` for a basket), then 01 Calls, 02 Headlines and 03 Board. A basket drops the wire and the board and
- * numbers its calls 03.
+ * `BasketHub` for a basket), then 01 Calls and 02 Board — the app has no news wire (the owner removed News), so web's
+ * 02 Headlines is not drawn and the board takes its number. A basket drops the board and numbers its calls 03.
  */
 export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const { color } = useTheme();
@@ -34,10 +31,8 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const preIpo = ticker.kind === "preIpo";
   const units = useMoneyUnits();
   const feed = useTickerFeed(symbol);
-  const news = useTickerNews(basket ? null : symbol);
   const index = pythIndexRowOf(usePythIndex(preIpo && ticker.pythIndexFeedId !== null), symbol);
   const venue = useVenue();
-  const articles = news?.ok ? news.value : null;
 
   const intro = basket
     ? TICKER_HUB.basket.intro(ticker.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "))
@@ -52,7 +47,6 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ["agari", "social", "ticker", symbol] }),
-      queryClient.invalidateQueries({ queryKey: ["agari", "news", symbol] }),
       queryClient.invalidateQueries({ queryKey: ["agari", "prestocks"] }),
       queryClient.invalidateQueries({ queryKey: keys.lanes(venue.venueId) }),
     ]);
@@ -80,22 +74,7 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
 
         {basket ? null : (
           <>
-            <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.news.title} desc={TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} style={styles.head} />
-            {articles === null ? (
-              <Text style={quiet} accessibilityRole={news === null ? "progressbar" : "text"}>
-                {news === null ? ACTIVITY.loading : NEWS.quiet}
-              </Text>
-            ) : articles.length === 0 ? (
-              <Text style={quiet}>{NEWS.quiet}</Text>
-            ) : (
-              <View style={styles.wire}>
-                {articles.slice(0, 8).map((article, i) => (
-                  <WireRow key={article.url} article={article} index={i + 1} />
-                ))}
-              </View>
-            )}
-
-            <SectionHeader index={TICKER_HUB.board.number} title={TICKER_HUB.board.title} desc={TICKER_HUB.board.desc} style={[styles.head, styles.headGap]} />
+            <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.board.title} desc={TICKER_HUB.board.desc} style={[styles.head, styles.headGap]} />
             <Text style={[quiet, styles.pending]}>
               {TICKER_HUB.board.pending}{" "}
               <Text style={{ color: color.accent }} accessibilityRole="link" onPress={() => router.push("/leaderboard")}>
@@ -119,7 +98,6 @@ const styles = StyleSheet.create({
   intro: { fontFamily: FONT.body, fontSize: 14, lineHeight: 21.7 },
   head: { marginTop: 48 },
   headGap: { marginBottom: 24 },
-  wire: { marginTop: 24 },
   quiet: { marginTop: 64, fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2 },
   pending: { marginTop: 0, lineHeight: 20.4 },
 });
