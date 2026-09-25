@@ -25,7 +25,12 @@ import { ValueHero } from "./ValueHero";
  * The desk as a cockpit (web's DeskPage.tsx): the head, the owner's controls, the value chart, the next check, then
  * Overview · Holdings · Activity · Rules. A shared desk is the same screen read-only. Pull to refresh re-reads it.
  */
-export function DeskCockpit({ view, actions }: { view: DeskView; actions: DeskActions | null }) {
+export function DeskCockpit({ view, actions, visitorCta = null }: {
+  view: DeskView;
+  actions: DeskActions | null;
+  /** A visitor's way to their own desk, or into the studio when they have none. */
+  visitorCta?: { href: string; label: string; primary: boolean } | null;
+}) {
   const { color } = useTheme();
   const reduce = useReducedMotion();
   const { nowSec, zone } = useDeskClock();
@@ -48,6 +53,14 @@ export function DeskCockpit({ view, actions }: { view: DeskView; actions: DeskAc
         <CockpitHeader view={view} />
       </Animated.View>
       {owner ? <DeskControls view={view} actions={actions} nowSec={nowSec} zone={zone} /> : null}
+      {visitorCta ? (
+        <Button
+          label={visitorCta.label}
+          variant={visitorCta.primary ? "primary" : "outline"}
+          icon={visitorCta.primary ? { ios: "plus", android: "add" } : undefined}
+          onPress={() => router.push(visitorCta.href as Href)}
+        />
+      ) : null}
       <Animated.View entering={rise(1)} style={styles.stack}>
         <ValueHero view={view} nowSec={nowSec} />
         <CheckStrip view={view} zone={zone} nowSec={nowSec} onGoLive={owner ? () => setGoLive(true) : null} />

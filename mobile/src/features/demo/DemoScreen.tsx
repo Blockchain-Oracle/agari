@@ -1,9 +1,11 @@
 import { useRouter, type Href } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { DEMO } from "@/features/demo/copy";
 import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProof, txProofHref, txProofLabel } from "@/features/demo/proofs";
 import { Button, Card, Screen } from "~/components/kit";
+import { openExternal } from "~/lib/external";
 import { Pager, type Page } from "~/features/pitch/Pager";
 import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
 import { Headline, InlineLink, Kicker, ProofRow, Reveal, Traction } from "./Parts";
@@ -11,16 +13,30 @@ import { Headline, InlineLink, Kicker, ProofRow, Reveal, Traction } from "./Part
 const S = DEMO.sections;
 const shortAddress = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
-/** web DemoVideo.tsx with no recording on file (D-097): the honest notice in the video's 16:9 box, never a player. */
-function VideoPending() {
+const DEMO_VIDEO_ID = "iPtmue-eyIc";
+const DEMO_VIDEO_URL = `https://youtu.be/${DEMO_VIDEO_ID}`;
+
+/** web DemoVideo.tsx: the walkthrough hosted on YouTube, as its poster frame in the 16:9 box; a tap plays it on YouTube. */
+function DemoVideo() {
   const { color } = useTheme();
   return (
     <View style={styles.videoWrap}>
-      <View style={[styles.video, { borderColor: color.hairline, backgroundColor: color.surface1 }]} accessibilityRole="text">
-        <Text style={[styles.mono, { color: color.accent }]}>{DEMO.video.pendingEyebrow}</Text>
-        <Text style={[TYPE.title, styles.center, { color: color.ink }]}>{DEMO.video.pendingTitle}</Text>
-      </View>
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{DEMO.video.pendingCaption}</Text>
+      <Text style={[styles.mono, { color: color.accent }]}>{DEMO.hero.videoLabel}</Text>
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={DEMO.video.title}
+        onPress={() => void openExternal(DEMO_VIDEO_URL)}
+        style={[styles.video, { borderColor: color.hairline, backgroundColor: color.surface2 }]}
+      >
+        <Image source={{ uri: `https://i.ytimg.com/vi/${DEMO_VIDEO_ID}/hqdefault.jpg` }} style={StyleSheet.absoluteFill} contentFit="cover" />
+        <View style={[styles.play, { backgroundColor: color.accent }]}>
+          <SymbolView name={{ ios: "play.fill", android: "play_arrow" }} size={22} tintColor={color.onAccent} />
+        </View>
+      </Pressable>
+      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{DEMO.video.caption}</Text>
+      <Pressable accessibilityRole="link" onPress={() => void openExternal(DEMO_VIDEO_URL)} hitSlop={8}>
+        <Text style={[TYPE.caption, { color: color.accent }]}>{DEMO.video.watch}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -59,7 +75,7 @@ function pages(go: (href: Href) => void): Page[] {
             <Headline size="h1" lead={DEMO.hero.headline} accent={DEMO.hero.headlineSerif} />
           </Reveal>
           <Reveal i={1}>
-            <VideoPending />
+            <DemoVideo />
           </Reveal>
           <Reveal i={2}>
             <Body>{DEMO.hero.lead}</Body>
@@ -200,7 +216,7 @@ function Note({ children }: { children: string }) {
 }
 
 /**
- * `/demo` — web DemoPage.tsx, section for section, as a paged walkthrough: the hero (the honest video notice, the
+ * `/demo` — web DemoPage.tsx, section for section, as a paged walkthrough: the hero (the YouTube walkthrough, the
  * live traction line), the ritual, the reel, the Room, the depth with a proof per card, every devnet receipt, the
  * close. Web's screenshots of itself are left out: each section opens the native screen it describes instead.
  */
@@ -222,11 +238,10 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    padding: 20,
+    overflow: "hidden",
   },
+  play: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
   mono: { fontFamily: FONT.data, fontSize: 11, letterSpacing: 1.4 },
-  center: { textAlign: "center" },
   ctas: { gap: 10 },
   ctaRow: { flexDirection: "row", gap: 10 },
   flex: { flex: 1 },

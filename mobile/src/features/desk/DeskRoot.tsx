@@ -44,6 +44,9 @@ export function DeskRoot({ id = null, studio = false }: { id?: string | null; st
   const edit = params.edit !== undefined;
   const key = id ?? address;
   const reading = useDeskView(key, address);
+  // A visitor on someone else's desk: their own, to offer "Your desk" or "Create your desk" in its place.
+  const mine = useDeskView(id !== null ? address : null, address);
+  const mineExists = mine !== null && isOk(mine) && mine.value.desk !== null;
   const writes = useDeskWrites(key);
   const invalidate = useInvalidateDesk();
 
@@ -95,5 +98,6 @@ export function DeskRoot({ id = null, studio = false }: { id?: string | null; st
       />
     );
   }
-  return <DeskCockpit view={view} actions={own ? writes : null} />;
+  const visitorCta = view.isOwner ? null : mineExists ? { href: "/desk", label: ENTRY.yours, primary: false } : { href: "/desk/new", label: ENTRY.start, primary: true };
+  return <DeskCockpit view={view} actions={own ? writes : null} visitorCta={visitorCta} />;
 }

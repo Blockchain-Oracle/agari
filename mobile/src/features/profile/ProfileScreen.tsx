@@ -7,13 +7,10 @@ import { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useMoneyUnits } from "@/features/activity/useActivity";
 import { PROFILE } from "@/features/profile/copy";
-import { followsKey } from "@/features/social/protocol";
-import { useFollows } from "@/features/social/useFollows";
 import { useWalletSession } from "@/lib/wallet-session";
 import { Button, haptic, Screen } from "~/components/kit";
-import { FollowButton } from "~/features/social/FollowButton";
 import { HueAvatar } from "~/features/social/HueAvatar";
-import { Stat, StatBar } from "~/features/ticker-hub/HubParts";
+import { StatBar } from "~/features/ticker-hub/HubParts";
 import { explorerUrl, openExternal } from "~/lib/external";
 import { FONT, TYPE, useTheme } from "~/theme";
 import { ProfileCalls, ProfileRecord } from "./ProfileSections";
@@ -23,8 +20,8 @@ const LEAD = 6;
 
 /**
  * `/u/[address]` — web's `ProfileScreen` (features/profile/ProfileScreen.tsx): identity (the address and its hue),
- * followers and following, Follow, copy / Explorer / copy this trader, then the record, the edge excerpt, open calls
- * and takes. Every figure is public index data; only Follow's first press in an hour asks for a signature.
+ * copy / Explorer / copy this trader, then the record, the edge excerpt, open calls and takes. Every figure is public
+ * index data; nothing here needs a signature.
  */
 export function ProfileScreen({ address }: { address: Address }) {
   const { color } = useTheme();
@@ -32,11 +29,9 @@ export function ProfileScreen({ address }: { address: Address }) {
   const own = viewer === address;
   const units = useMoneyUnits();
   const history = useWalletHistory(address);
-  const follows = useFollows(address);
   const queryClient = useQueryClient();
   const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: keys.history(address) }), [address, queryClient]);
   const [copied, setCopied] = useState(false);
-  const counts = follows.data?.configured ? follows.data.counts : null;
 
   const copy = async () => {
     await Clipboard.setStringAsync(address);
@@ -48,7 +43,6 @@ export function ProfileScreen({ address }: { address: Address }) {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: keys.history(address) }),
       queryClient.invalidateQueries({ queryKey: keys.positions(address) }),
-      queryClient.invalidateQueries({ queryKey: followsKey(address) }),
       queryClient.invalidateQueries({ queryKey: ["agari", "takes", "authors", address] }),
     ]);
 
@@ -72,7 +66,6 @@ export function ProfileScreen({ address }: { address: Address }) {
       <StatBar
         actions={
           <View style={styles.actions}>
-            <FollowButton wallet={address} />
             <View style={styles.tabs}>
               <Button
                 label={copied ? PROFILE.copied : PROFILE.copy}
@@ -104,8 +97,7 @@ export function ProfileScreen({ address }: { address: Address }) {
           </View>
         }
       >
-        <Stat label={PROFILE.followers} value={counts ? counts.followers.toLocaleString() : PROFILE.dash} />
-        <Stat label={PROFILE.following} value={counts ? counts.following.toLocaleString() : PROFILE.dash} />
+        {null}
       </StatBar>
 
       <ProfileRecord address={address} reading={history} retry={retry} symbol={units.symbol} own={own} />

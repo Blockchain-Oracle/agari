@@ -7,8 +7,6 @@ import { haptic, Segmented } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
 
-export type BoardScope = "all" | "friends";
-
 /** The Regular lane's tickers, registry order — web's BOARD_TICKERS. */
 const BOARD_TICKERS = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].launch);
 
@@ -33,28 +31,13 @@ function TickerChip({ ticker, on, onPress }: { ticker: TickerSymbol | null; on: 
 }
 
 /**
- * web's `BoardFilters` (features/leaderboard/BoardFilters.tsx): whose calls (everyone or the people you follow), the
- * board period, the ticker picker `/markets` uses, and the meta line — closed calls and how much the scan covers.
+ * web's `BoardFilters` (features/leaderboard/BoardFilters.tsx): the board period, the ticker picker `/markets` uses, and the meta line — closed calls and how much the scan covers.
  */
-export function BoardFilters({ board, onBoard, scope, onScope, meta }: {
-  board: BoardQuery;
-  onBoard: (board: BoardQuery) => void;
-  scope: BoardScope;
-  onScope: (scope: BoardScope) => void;
-  meta: string;
-}) {
+export function BoardFilters({ board, onBoard, meta }: { board: BoardQuery; onBoard: (board: BoardQuery) => void; meta: string }) {
   const { color } = useTheme();
   const words = LEADERBOARD.hero;
   return (
     <View style={styles.wrap}>
-      <Segmented
-        label={words.scopeGroup}
-        value={scope}
-        onChange={onScope}
-        options={(["all", "friends"] as const).map((value) => ({ value, label: words.scopes[value] }))}
-      />
-      {scope === "all" ? (
-        <>
           <Segmented
             label={words.periodGroup}
             value={board.period}
@@ -68,8 +51,6 @@ export function BoardFilters({ board, onBoard, scope, onScope, meta }: {
             ))}
           </ScrollView>
           <Text style={[styles.meta, { color: color.inkMuted }]}>{meta}</Text>
-        </>
-      ) : null}
     </View>
   );
 }

@@ -32,7 +32,7 @@ export function StudioIdentity({ form, setForm }: { form: StudioDraft; setForm: 
         ))}
       </View>
       <Text style={[TYPE.caption, { color: color.inkSecondary }]}>
-        Market scope: every listed stock’s live Windows. The runner chooses eligible Windows and rests while the stock market is closed.
+        Market scope: every live Window, 24/7 lanes included. The runner chooses eligible Windows.
       </Text>
       <Button label="Choose another portrait" variant="ghost" size="sm" block={false} icon={{ ios: "shuffle", android: "shuffle" }} onPress={() => setForm((f) => ({ ...f, portraitSeed: newPortraitSeed() }))} />
     </View>

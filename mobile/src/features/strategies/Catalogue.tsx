@@ -3,30 +3,28 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { STRATEGIES } from "@/features/strategies/copy";
-import { strategyIdentity, STRATEGY_MARKETS } from "@/features/strategies/identity";
+import { STRATEGY_MARKETS } from "@/features/strategies/identity";
 import type { StrategiesPayload, StrategyWire } from "@/features/strategies/protocol";
 import { useDesk } from "@/features/strategies/useDesk";
-import { Chips, ConnectGate, EmptyState } from "~/components/kit";
+import { ConnectGate, EmptyState } from "~/components/kit";
 import { TYPE, useTheme } from "~/theme";
 import { LiveDesk } from "./LiveDesk";
-import { MemoryMarket } from "./MemoryMarket";
 import { RecentCopyTrades } from "./RecentCopyTrades";
 import { StrategyList } from "./StrategyList";
+import { StrategyPicker } from "./StrategyPicker";
 import type { DeskWrites } from "./useCopySetup";
 
 export const openStrategy = (card: { strategyId: string }) => router.push({ pathname: "/strategies/[id]", params: { id: card.strategyId } });
 
 /**
  * web's StrategiesScreen Catalogue: "Copy a strategy" lists every published strategy; "Your strategies" narrows to the
- * ones this wallet created or copies, with the selected one's live desk above. Recent copy-trades and the Memory
- * Market follow in both.
+ * ones this wallet created or copies, with the selected one's live desk above. Recent copy-trades follow in both.
  */
-export function Catalogue({ payload, writes, view, onCreate, refresh }: {
+export function Catalogue({ payload, writes, view, onCreate }: {
   payload: StrategiesPayload;
   writes: DeskWrites;
   view: "copy" | "yours";
   onCreate: () => void;
-  refresh: () => void;
 }) {
   const { color } = useTheme();
   const [selected, setSelected] = useState<string | null>(null);
@@ -56,14 +54,7 @@ export function Catalogue({ payload, writes, view, onCreate, refresh }: {
       {view === "yours" ? (
         <ConnectGate why="Connect the wallet that created or copied them.">
           {own.length > 0 ? (
-            <View style={styles.pick}>
-              <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Manage a strategy</Text>
-              <Chips
-                options={own.map((card) => ({ value: card.strategyId, label: `${strategyIdentity(card).name} · #${card.strategyId}` }))}
-                value={selected}
-                onPick={setSelected}
-              />
-            </View>
+            <StrategyPicker strategies={own} selected={selected} onSelect={setSelected} subscriptionOf={desk.subscriptionOf} wallet={writes.address} pendingId={writes.pending?.strategyId ?? null} />
           ) : null}
           {selected ? <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && openStrategy(desk.featured)} /> : null}
           {!desk.readable ? (
@@ -81,14 +72,6 @@ export function Catalogue({ payload, writes, view, onCreate, refresh }: {
         list
       )}
       <RecentCopyTrades fills={yourFills} strategies={strategies} storeConnected={payload.stores.fills} decimals={decimals} symbol={symbol} nowMs={nowMs} />
-      <MemoryMarket
-        strategies={strategies}
-        subscribed={(id) => desk.subscriptionOf(id)?.active === true}
-        decimals={decimals}
-        symbol={symbol}
-        onSubscribe={openStrategy}
-        onSealed={refresh}
-      />
       <Text style={[TYPE.caption, { color: color.inkMuted }]}>{STRATEGIES.disclosure(STRATEGY_MARKETS)}</Text>
     </View>
   );
@@ -96,5 +79,4 @@ export function Catalogue({ payload, writes, view, onCreate, refresh }: {
 
 const styles = StyleSheet.create({
   wrap: { gap: 20 },
-  pick: { gap: 8 },
 });

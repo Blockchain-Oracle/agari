@@ -1,6 +1,6 @@
 import { parseStrategyMetadata } from "@agari/core/strategies";
 import { isOk } from "@agari/core/schemas";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { STRATEGIES } from "@/features/strategies/copy";
@@ -12,7 +12,7 @@ import { ago } from "@/features/strategies/names";
 import type { StrategiesPayload, StrategyWire } from "@/features/strategies/protocol";
 import { useDesk } from "@/features/strategies/useDesk";
 import { useStrategyHealth } from "@/features/strategies/useStrategies";
-import { Button, Card, ConnectGate, Row, Rows } from "~/components/kit";
+import { Button, Card, ConnectGate, Row, Rows, Segmented } from "~/components/kit";
 import { explorerUrl, openExternal } from "~/lib/external";
 import { RADIUS, TYPE, useTheme } from "~/theme";
 import { AgentMemory } from "./AgentMemory";
@@ -24,10 +24,14 @@ import { StrategyActivity } from "./StrategyActivity";
 import { useCopySetup, type DeskWrites } from "./useCopySetup";
 
 const C = STRATEGIES.drawer.caps;
+const T = STRATEGIES.drawer.tabs;
+
+type DetailTab = "copy" | "decisions" | "playbook";
 
 /**
  * web's features/strategies/CopyDrawer.tsx as a pushed screen: who the strategy is, its performance, this wallet's
- * copy state and the runner's report, then copy / fade / resume, pause, budget and withdraw — every write reviewed.
+ * copy state and the runner's report, then copy / fade / resume, pause, budget and withdraw — every write reviewed. An
+ * agent's decisions and the playbook are tabs beside the copy; the decisions open first for someone not yet copying.
  */
 export function StrategyDetail({ payload, card, writes }: { payload: StrategiesPayload; card: StrategyWire; writes: DeskWrites }) {
   const { color } = useTheme();
@@ -45,6 +49,10 @@ export function StrategyDetail({ payload, card, writes }: { payload: StrategiesP
   const meta = parseStrategyMetadata(card.metadata);
   const fee = BigInt(card.feeBase);
   const result = setup.result;
+  const playbook = card.playbook ?? meta?.playbook ?? null;
+  const tabs: DetailTab[] = ["copy", ...(card.agent ? ["decisions" as const] : []), ...(playbook ? ["playbook" as const] : [])];
+  const pending = writes.pending?.strategyId === card.strategyId;
+  const [tab, setTab] = useState<DetailTab>(() => (card.agent && !sub && !pending ? "decisions" : "copy"));
 
   return (
     <View style={styles.wrap}>
@@ -74,63 +82,76 @@ export function StrategyDetail({ payload, card, writes }: { payload: StrategiesP
       </Rows>
       {card.record.settled < 3 ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{STRATEGIES.drawer.young}</Text> : null}
 
-      <Card tone={setup.state === "copying" ? "accent" : "plain"}>
-        {setup.state === "copying" ? (
-          <Text style={[TYPE.bodyStrong, { color: color.accent }]}>{sub?.fade ? COPY_FORM.fading : COPY_FORM.copying}</Text>
-        ) : null}
-        <Text style={[TYPE.labelMicro, { color: color.accent }]}>{COPY_STATE_LABEL[setup.state]}</Text>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{stateLine(setup.state)}</Text>
-        {setup.state === "replaced" && grant && !grant.revoked && sub && grant.grantId !== sub.grantId ? (
-          <Text style={[TYPE.caption, { color: color.loss }]}>{COPY_FORM.replaced}</Text>
-        ) : null}
-      </Card>
-      <StrategyActivity state={setup.state} grant={grant && sub?.grantId === grant.grantId ? grant : null} health={health} nowMs={nowMs} />
+      {tabs.length > 1 ? (
+        <Segmented
+          label={name}
+          value={tab}
+          onChange={setTab}
+          options={tabs.map((key) => ({
+            value: key,
+            label: key === "decisions" ? `${T.decisions} · ${card.agent?.decisions.length ?? 0}` : key === "playbook" ? T.playbook : sub ? T.manage : T.copy,
+          }))}
+        />
+      ) : null}
 
-      {result ? (
-        <View
-          accessibilityLiveRegion="polite"
-          style={[styles.result, { backgroundColor: result.ok ? color.profitWash : color.lossWash }]}
-        >
-          <Text style={[TYPE.bodyStrong, { color: result.ok ? color.profit : color.loss }]}>
-            {result.ok ? "Confirmed. Your balances and permissions are refreshing." : result.reason}
-          </Text>
-          {result.txHash ? (
-            <Button label="View transaction" variant="ghost" size="sm" block={false} icon={{ ios: "arrow.up.right", android: "north_east" }} onPress={() => void openExternal(explorerUrl("tx", result.txHash!))} />
+      {tab === "copy" ? (
+        <>
+          <Card tone={setup.state === "copying" ? "accent" : "plain"}>
+            {setup.state === "copying" ? (
+              <Text style={[TYPE.bodyStrong, { color: color.accent }]}>{sub?.fade ? COPY_FORM.fading : COPY_FORM.copying}</Text>
+            ) : null}
+            <Text style={[TYPE.labelMicro, { color: color.accent }]}>{COPY_STATE_LABEL[setup.state]}</Text>
+            <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{stateLine(setup.state)}</Text>
+            {setup.state === "replaced" && grant && !grant.revoked && sub && grant.grantId !== sub.grantId ? (
+              <Text style={[TYPE.caption, { color: color.loss }]}>{COPY_FORM.replaced}</Text>
+            ) : null}
+          </Card>
+          <StrategyActivity state={setup.state} grant={grant && sub?.grantId === grant.grantId ? grant : null} health={health} nowMs={nowMs} />
+
+          {result ? (
+            <View
+              accessibilityLiveRegion="polite"
+              style={[styles.result, { backgroundColor: result.ok ? color.profitWash : color.lossWash }]}
+            >
+              <Text style={[TYPE.bodyStrong, { color: result.ok ? color.profit : color.loss }]}>
+                {result.ok ? "Confirmed. Your balances and permissions are refreshing." : result.reason}
+              </Text>
+              {result.txHash ? (
+                <Button label="View transaction" variant="ghost" size="sm" block={false} icon={{ ios: "arrow.up.right", android: "north_east" }} onPress={() => void openExternal(explorerUrl("tx", result.txHash!))} />
+              ) : null}
+            </View>
           ) : null}
-        </View>
+
+          <ConnectGate why="Copying a strategy funds a bounded permission from your wallet. Reading never needs one.">
+            {setup.anotherPending ? (
+              <Text style={[TYPE.caption, { color: color.loss }]}>Finish or release strategy #{writes.pending?.strategyId} from Your strategies first.</Text>
+            ) : null}
+            {card.active ? (
+              <CopyForm
+                setup={setup}
+                writes={writes}
+                name={name}
+                strategyId={card.strategyId}
+                decimals={decimals}
+                symbol={symbol}
+                availableBase={availableBase}
+                hasSub={sub !== null}
+                hasOtherGrant={Boolean(grant && !grant.revoked && (!sub || sub.grantId !== grant.grantId))}
+              />
+            ) : null}
+            <ManageCopy setup={setup} writes={writes} sub={sub} strategyId={card.strategyId} availableBase={availableBase} decimals={decimals} symbol={symbol} />
+          </ConnectGate>
+
+        </>
       ) : null}
 
-      <ConnectGate why="Copying a strategy funds a bounded permission from your wallet. Reading never needs one.">
-        {setup.anotherPending ? (
-          <Text style={[TYPE.caption, { color: color.loss }]}>Finish or release strategy #{writes.pending?.strategyId} from Your strategies first.</Text>
-        ) : null}
-        {card.active ? (
-          <CopyForm
-            setup={setup}
-            writes={writes}
-            name={name}
-            strategyId={card.strategyId}
-            decimals={decimals}
-            symbol={symbol}
-            availableBase={availableBase}
-            hasSub={sub !== null}
-            hasOtherGrant={Boolean(grant && !grant.revoked && (!sub || sub.grantId !== grant.grantId))}
-          />
-        ) : null}
-        <ManageCopy setup={setup} writes={writes} sub={sub} strategyId={card.strategyId} availableBase={availableBase} decimals={decimals} symbol={symbol} />
-      </ConnectGate>
-
-      {card.agent ? (
-        <Disclosure title="Agent memory and decisions">
-          <AgentMemory agent={card.agent} storeConnected={payload.stores.decisions} nowMs={nowMs} />
-        </Disclosure>
+      {tab === "decisions" && card.agent ? (
+        <AgentMemory agent={card.agent} agentName={name} storeConnected={payload.stores.decisions} decimals={decimals} symbol={symbol} nowMs={nowMs} />
       ) : null}
-      {card.playbook || meta?.playbook ? (
-        <Disclosure title="Public playbook">
-          <Text style={[TYPE.body, { color: color.inkSecondary }]} selectable>
-            {card.playbook ?? meta?.playbook}
-          </Text>
-        </Disclosure>
+      {tab === "playbook" && playbook ? (
+        <Text style={[TYPE.body, { color: color.inkSecondary }]} selectable>
+          {playbook}
+        </Text>
       ) : null}
     </View>
   );
@@ -143,26 +164,9 @@ function stateLine(state: ReturnType<typeof useCopySetup>["state"]): string {
   return "Review a new permission to start or resume. Publishing alone does not fund or activate a copy.";
 }
 
-/** web's <details>: a labelled row that opens its body in place. */
-function Disclosure({ title, children }: { title: string; children: ReactNode }) {
-  const { color } = useTheme();
-  const [open, setOpen] = useState(false);
-  return (
-    <View style={[styles.disclosure, { borderColor: color.hairline }]}>
-      <Pressable onPress={() => setOpen((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.disclosureHead}>
-        <Text style={[TYPE.labelMicro, { color: color.inkSecondary }]}>{title}</Text>
-        <Text style={[TYPE.data, { color: color.accent }]}>{open ? "−" : "+"}</Text>
-      </Pressable>
-      {open ? children : null}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   wrap: { gap: 16 },
   hero: { flexDirection: "row", alignItems: "center", gap: 14 },
   heroText: { flex: 1, gap: 4 },
   result: { borderRadius: RADIUS.md, padding: 12, gap: 6 },
-  disclosure: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 4, gap: 10 },
-  disclosureHead: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
 });

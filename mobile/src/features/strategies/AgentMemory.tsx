@@ -1,22 +1,34 @@
 import { formatCadence } from "@agari/core/copy";
-import { StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
+import { DECISION } from "@/features/strategies/decision-copy";
 import { ago } from "@/features/strategies/names";
 import type { DecisionWire, StrategyWire } from "@/features/strategies/protocol";
 import { AssetDisc } from "~/components/marks/AssetDisc";
+import { haptic } from "~/components/kit";
 import { RADIUS, TYPE, useTheme } from "~/theme";
+import { DecisionDetail } from "./DecisionDetail";
 
 const M = STRATEGIES.drawer.memory;
 const H = STRATEGIES.drawer.agentHow;
 
-/** One Window the agent read: when, its call, the gate's ruling, the Window's own settlement. */
-function MemoryRow({ d, nowMs }: { d: DecisionWire; nowMs: number }) {
+/** One Window the agent read: when, its call, the gate's ruling, the Window's own settlement. It opens the decision. */
+function MemoryRow({ d, nowMs, onOpen }: { d: DecisionWire; nowMs: number; onOpen: () => void }) {
   const { color } = useTheme();
   const call = d.verdictSide === "none" ? M.noAnswer : M.call(d.verdictSide, d.confidence);
   const ruling = d.gate === "trade" && d.side ? M.sent(d.side, d.filled) : M.held;
   const outcomeInk = d.outcome === "won" ? color.accent : d.outcome === "lost" ? color.inkSecondary : color.inkMuted;
   return (
-    <View style={[styles.row, { borderTopColor: color.hairline }]}>
+    <Pressable
+      onPress={() => {
+        haptic.tap();
+        onOpen();
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`${DECISION.open}: ${ago(d.decidedAtMs, nowMs)}, ${call}`}
+      style={({ pressed }) => [styles.row, { borderTopColor: color.hairline, opacity: pressed ? 0.7 : 1 }]}
+    >
       <View style={styles.rowHead}>
         {d.asset ? <AssetDisc asset={d.asset} size={20} /> : null}
         <Text style={[TYPE.caption, styles.when, { color: color.inkMuted }]} numberOfLines={1}>
@@ -24,23 +36,32 @@ function MemoryRow({ d, nowMs }: { d: DecisionWire; nowMs: number }) {
           {d.intervalSec !== null ? ` · ${d.asset ?? "Window"} ${formatCadence(d.intervalSec)}` : ""}
         </Text>
         {d.outcome ? <Text style={[TYPE.labelMicro, { color: outcomeInk }]}>{M.outcome[d.outcome]}</Text> : null}
+        <Text style={[TYPE.data, { color: color.inkMuted }]}>→</Text>
       </View>
       <Text style={[TYPE.data, { color: d.gate === "failed" ? color.inkMuted : color.ink }]}>
         {call} <Text style={{ color: d.gate === "trade" ? color.accent : color.inkMuted }}>→ {ruling}</Text>
       </Text>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>“{d.why}”</Text>
+      <Text style={[TYPE.caption, { color: color.inkSecondary }]} numberOfLines={2}>“{d.why}”</Text>
       {d.gate !== "trade" ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{d.gateReason}</Text> : null}
-    </View>
+    </Pressable>
   );
 }
 
-/** web's features/strategies/AgentMemory.tsx: the model by name, then the last Windows it read with the gate's ruling. */
-export function AgentMemory({ agent, storeConnected, nowMs }: {
+/**
+ * web's features/strategies/AgentMemory.tsx: the model by name, then the last Windows it read with the gate's ruling
+ * and how each settled. Each row opens that decision in full.
+ */
+export function AgentMemory({ agent, agentName, storeConnected, decimals, symbol, nowMs }: {
   agent: NonNullable<StrategyWire["agent"]>;
+  agentName: string;
   storeConnected: boolean;
+  decimals: number;
+  symbol: string;
   nowMs: number;
 }) {
   const { color } = useTheme();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const open = agent.decisions.find((d) => d.marketId === openId) ?? null;
   return (
     <View style={[styles.box, { borderColor: color.accentDim }]}>
       <Text style={[TYPE.labelMicro, { color: color.accent }]}>{M.eyebrow}</Text>
@@ -51,8 +72,9 @@ export function AgentMemory({ agent, storeConnected, nowMs }: {
       {agent.decisions.length === 0 ? (
         <Text style={[TYPE.caption, { color: color.inkMuted }]}>{storeConnected ? M.empty : M.storeOff}</Text>
       ) : (
-        agent.decisions.map((d) => <MemoryRow key={d.marketId} d={d} nowMs={nowMs} />)
+        agent.decisions.map((d) => <MemoryRow key={d.marketId} d={d} nowMs={nowMs} onOpen={() => setOpenId(d.marketId)} />)
       )}
+      <DecisionDetail decision={open} agentName={agentName} decimals={decimals} symbol={symbol} nowMs={nowMs} onClose={() => setOpenId(null)} />
     </View>
   );
 }

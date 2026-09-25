@@ -2,48 +2,19 @@ import { router, type Href } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { dayKey, dayLabel, namesIn } from "@/features/desk/activity/activity-model";
+import { dayKey, dayLabel } from "@/features/desk/activity/activity-model";
+import { checkRows, groupChecks, type CheckRow } from "@/features/desk/activity/check-groups";
 import { ACTIVITY, FILTERS, type ActivityFilter } from "@/features/desk/activity/copy-activity";
-import { RECORD } from "@/features/desk/copy-record";
 import { ago, clock } from "@/features/desk/format";
 import type { RecordSummaryWire } from "@/features/desk/protocol";
-import { foldQuietRuns, type RecordRow } from "@/features/desk/record-rows";
 import { EmptyState, haptic } from "~/components/kit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { LogoStack, TimelineDay, TimelineNode, TONE, toneInk, type NodeTone } from "../kit";
+import { RADIUS, TYPE, useTheme } from "~/theme";
+import { TimelineDay, TimelineNode, TONE, type NodeTone } from "../kit";
+import { CheckCard, Figures } from "./CheckCard";
 
 const FILTER_TONES: Record<ActivityFilter, readonly NodeTone[] | null> = { all: null, acted: ["acted"], declined: ["declined"], asked: ["asked"], quiet: ["quiet"], problems: ["error", "stopped"] };
 
-function Entry({ record, base, nowSec }: { record: RecordSummaryWire; base: string; nowSec: number }) {
-  const { color } = useTheme();
-  const tone = TONE[record.outcome];
-  const names = namesIn(record.summary);
-  return (
-    <Pressable
-      onPress={() => {
-        haptic.tap();
-        router.push(`${base}/decision/${record.seq}` as Href);
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={`${RECORD.outcome[record.outcome]}, #${record.seq}, ${ago(record.decidedAtSec, nowSec)}. ${record.summary}`}
-      style={({ pressed }) => [styles.entry, { backgroundColor: pressed ? color.surface2 : color.surface1, borderColor: color.hairline }]}
-    >
-      <View style={styles.entryHead}>
-        <Text style={[TYPE.bodyStrong, { color: toneInk(tone, color) }]}>{RECORD.outcome[record.outcome]}</Text>
-        {record.mode === "practice" ? <Text style={[styles.tag, { color: color.accent, borderColor: color.accentDim }]}>{RECORD.list.practiceTag}</Text> : null}
-        <Text style={[TYPE.data, styles.meta, { color: color.inkMuted }]}>
-          #{record.seq} · {ago(record.decidedAtSec, nowSec)}
-        </Text>
-      </View>
-      <View style={styles.entryBody}>
-        {names.length > 0 ? <LogoStack symbols={names} size={18} max={3} /> : null}
-        <Text style={[TYPE.caption, styles.grow, { color: color.inkSecondary }]}>{record.summary}</Text>
-      </View>
-    </Pressable>
-  );
-}
-
-function QuietRun({ row, base, nowSec, zone }: { row: Extract<RecordRow, { kind: "quiet" }>; base: string; nowSec: number; zone: string | null }) {
+function QuietRun({ row, base, nowSec, zone }: { row: Extract<CheckRow, { kind: "quiet" }>; base: string; nowSec: number; zone: string | null }) {
   const { color } = useTheme();
   const [open, setOpen] = useState(false);
   return (
@@ -57,26 +28,29 @@ function QuietRun({ row, base, nowSec, zone }: { row: Extract<RecordRow, { kind:
         accessibilityState={{ expanded: open }}
         style={styles.quietHead}
       >
-        <Text style={[TYPE.caption, styles.grow, { color: color.inkSecondary }]}>{ACTIVITY.quietRun(row.records.length, clock(row.fromSec, zone), clock(row.toSec, zone))}</Text>
+        <Text style={[TYPE.caption, styles.grow, { color: color.inkSecondary }]}>{ACTIVITY.quietRun(row.groups.length, clock(row.fromSec, zone), clock(row.toSec, zone))}</Text>
         <SymbolView name={open ? { ios: "chevron.up", android: "expand_less" } : { ios: "chevron.down", android: "expand_more" }} size={14} tintColor={color.inkMuted} />
       </Pressable>
       {open
-        ? row.records.map((r) => (
-            <Pressable key={r.seq} onPress={() => router.push(`${base}/decision/${r.seq}` as Href)} accessibilityRole="button" style={[styles.quietLine, { borderTopColor: color.hairline }]}>
-              <Text style={[TYPE.caption, styles.grow, { color: color.inkSecondary }]}>{r.summary}</Text>
-              <Text style={[TYPE.data, { color: color.inkMuted, fontSize: 11 }]}>
-                #{r.seq} · {ago(r.decidedAtSec, nowSec)}
-              </Text>
-            </Pressable>
-          ))
+        ? row.groups.flatMap((g) =>
+            g.lines.map((l) => (
+              <Pressable key={l.record.seq} onPress={() => router.push(`${base}/decision/${l.record.seq}` as Href)} accessibilityRole="button" style={[styles.quietLine, { borderTopColor: color.hairline }]}>
+                <Figures text={l.lead} style={[TYPE.caption, styles.grow, { color: color.inkSecondary }]} />
+                <Text style={[TYPE.data, { color: color.inkMuted, fontSize: 11 }]}>
+                  {clock(g.atSec, zone)} · {ago(g.atSec, nowSec)}
+                </Text>
+              </Pressable>
+            )),
+          )
         : null}
     </View>
   );
 }
 
 /**
- * The desk's activity (web's activity/ActivityTimeline.tsx, 21st Activity Timeline #28340): every check a node with
- * its verdict's icon, the companies it named, the reason and its #seq; days headed; quiet runs fold into one node.
+ * The desk's activity (web's activity/ActivityTimeline.tsx, 21st Activity Timeline #28340): each check is one node (a
+ * check writes a record per company it looked at): its time, then a card with a line per company, verdict as a badge,
+ * the fact in one sentence, reasons folded. Days are headed; runs of quiet checks fold into one node that opens.
  * Shared by the cockpit's Activity tab and the whole record.
  */
 export function ActivityTimeline({ records, base, nowSec, zone, empty }: { records: readonly RecordSummaryWire[]; base: string; nowSec: number; zone: string | null; empty?: ReactNode }) {
@@ -95,13 +69,16 @@ export function ActivityTimeline({ records, base, nowSec, zone, empty }: { recor
     return tones ? records.filter((r) => tones.includes(TONE[r.outcome])) : records;
   }, [records, filter]);
   // Quiet runs fold only in the unfiltered view: a "Quiet" filter wants every quiet check as its own node.
-  const rows: RecordRow[] = filter === "all" ? foldQuietRuns(shown) : shown.map((record) => ({ kind: "entry", record }));
+  const rows: CheckRow[] = useMemo(() => {
+    const groups = groupChecks(shown);
+    return filter === "all" ? checkRows(groups) : groups.map((group) => ({ kind: "check", group }));
+  }, [shown, filter]);
 
   if (records.length === 0) return <>{empty ?? <EmptyState why={ACTIVITY.emptyTitle} detail={ACTIVITY.emptyBody} />}</>;
   const nodes: ReactNode[] = [];
   let lastDay = "";
   rows.forEach((row, i) => {
-    const atSec = row.kind === "entry" ? row.record.decidedAtSec : row.toSec;
+    const atSec = row.kind === "check" ? row.group.atSec : row.toSec;
     const key = dayKey(atSec, zone);
     if (key !== lastDay) {
       lastDay = key;
@@ -109,12 +86,12 @@ export function ActivityTimeline({ records, base, nowSec, zone, empty }: { recor
     }
     const last = i === rows.length - 1;
     nodes.push(
-      row.kind === "entry" ? (
-        <TimelineNode key={row.record.seq} tone={TONE[row.record.outcome]} index={i} last={last}>
-          <Entry record={row.record} base={base} nowSec={nowSec} />
+      row.kind === "check" ? (
+        <TimelineNode key={row.group.seqs[0]} tone={row.group.tone} index={i} last={last}>
+          <CheckCard group={row.group} base={base} nowSec={nowSec} zone={zone} />
         </TimelineNode>
       ) : (
-        <TimelineNode key={`q-${row.records[0]?.seq}`} tone="quiet" index={i} last={last} icon={{ ios: "moon", android: "bedtime" }}>
+        <TimelineNode key={`q-${row.groups[0]?.seqs[0]}`} tone="quiet" index={i} last={last} icon={{ ios: "moon", android: "bedtime" }}>
           <QuietRun row={row} base={base} nowSec={nowSec} zone={zone} />
         </TimelineNode>
       ),
@@ -152,11 +129,6 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   filters: { gap: 8 },
   filter: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 14, borderRadius: RADIUS.full, borderWidth: 1 },
-  entry: { borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.md, padding: 12, gap: 6 },
-  entryHead: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
-  tag: { fontFamily: FONT.data, fontSize: 10, letterSpacing: 0.6, borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 6, textTransform: "uppercase" },
-  meta: { marginLeft: "auto", fontSize: 11.5 },
-  entryBody: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   quiet: { paddingTop: 4 },
   quietHead: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 36 },
   quietLine: { flexDirection: "row", alignItems: "flex-start", gap: 8, borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 8 },

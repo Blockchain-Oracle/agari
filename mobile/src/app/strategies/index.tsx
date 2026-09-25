@@ -8,7 +8,6 @@ import { useDeskWrites } from "@/features/strategies/useDeskWrites";
 import { useRefreshStrategies, useStrategies } from "@/features/strategies/useStrategies";
 import { Button, Card, EmptyState, Hero, ReadingView, Screen, Segmented } from "~/components/kit";
 import { Catalogue, openStrategy } from "~/features/strategies/Catalogue";
-import { StrategyXBar } from "~/features/strategies/StrategyXBar";
 import { CreatorStudio } from "~/features/strategies/studio/CreatorStudio";
 import { HOUSE_RUNNER } from "~/features/strategies/studio/houseRunner";
 import { TYPE, useTheme } from "~/theme";
@@ -31,7 +30,6 @@ export default function StrategiesScreen() {
   return (
     <Screen title={STRATEGIES.title} onRefresh={refresh}>
       <Hero kicker="Agents · Solana devnet" title="Give your strategy a life." lead="Build an AI agent, a momentum or reversion rule, or a strategy that copies one trader's calls; test its thinking, and set the limits before it can trade." />
-      <StrategyXBar />
       <Segmented
         label="Strategy workspace"
         options={[
@@ -65,7 +63,7 @@ export default function StrategiesScreen() {
         <ReadingView reading={reading} loading="list" retry={refresh}>
           {(data) =>
             data.deployed ? (
-              <Catalogue payload={data} writes={writes} view={view} onCreate={() => setView("create")} refresh={refresh} />
+              <Catalogue payload={data} writes={writes} view={view} onCreate={() => setView("create")} />
             ) : (
               <EmptyState why={STRATEGIES.notDeployed.title} detail={STRATEGIES.notDeployed.body} />
             )
