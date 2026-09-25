@@ -2,7 +2,7 @@ import { isOk } from "@agari/core/schemas";
 import { useLanes } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LEADERBOARD } from "@/features/leaderboard/copy";
 import type { BoardQuery } from "@/features/leaderboard/leaderboard-client";
@@ -12,19 +12,27 @@ import { useVenue } from "@/features/markets/useVenue";
 import { TRACTION_KEY, useTraction } from "@/features/stats/useTraction";
 import { diagnosisCopy } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Button, EmptyState, haptic, LoadingState, Screen, SectionHeader } from "~/components/kit";
-import { SPACE, TYPE, useTheme } from "~/theme";
-import { fieldRows, podiumOrder, spanOf } from "./board";
+import { CONTAINER_GUTTER, ExplorePage } from "~/features/explore/ExplorePage";
+import { SectionHeader } from "~/features/explore/SectionHeader";
+import { FONT, useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { banzukeRows, podiumOrder, spanOf } from "./board";
 import { BoardActivity } from "./BoardActivity";
-import { BoardFilters } from "./BoardFilters";
 import { BoardHero } from "./BoardHero";
-import { FieldList } from "./FieldList";
+import { BoardEmpty, BoardReading } from "./BoardState";
+import { Banzuke } from "./Banzuke";
 import { Podium } from "./Podium";
 import { YouBar } from "./YouBar";
 
+/** web's `--claim-pill-offset` above the safe area: the dock's clearance plus 8. */
+const YOU_OFFSET = 72;
+/** The bar's own height on a phone, so the page can scroll its last row clear of it. */
+const YOU_HEIGHT = 140;
+
 /**
- * `/leaderboard` — web's LeaderboardScreen + LeaderboardBoard: the hero with the live next-close seal, the period and
- * ticker filters, the podium, the field of ranks four to fifty, live activity, and the sticky bar with your own rank.
+ * `/leaderboard` — web's LeaderboardScreen + LeaderboardBoard on a phone: the hero and filter bar, the freshness line,
+ * then every state (reading, failed, empty), 01 the podium, 02 the field, 03 live activity, and the sticky vermilion
+ * bar with your rank above the dock whenever a wallet is connected.
  */
 export function LeaderboardScreen() {
   const { color } = useTheme();
@@ -34,89 +42,64 @@ export function LeaderboardScreen() {
   const lanes = useLanes(venueId);
   const nowMs = useChainNowMs();
   const [board, setBoard] = useState<BoardQuery>({ period: "session", ticker: null });
-  const [refreshing, setRefreshing] = useState(false);
   const reading = useLeaderboard(board);
   const activity = useTraction();
   const client = useQueryClient();
-  const refetch = () => client.invalidateQueries({ queryKey: LEADERBOARD_KEY });
-  const refetchAll = () => Promise.all([refetch(), client.invalidateQueries({ queryKey: TRACTION_KEY })]);
+  const retry = () => void client.invalidateQueries({ queryKey: LEADERBOARD_KEY });
+  const refresh = () => Promise.all([client.invalidateQueries({ queryKey: LEADERBOARD_KEY }), client.invalidateQueries({ queryKey: TRACTION_KEY })]);
 
   const data = reading && isOk(reading) ? reading.value : null;
   const span = spanOf(data, board, nowMs);
   const podium = useMemo(() => (data ? podiumOrder(data.rankings) : []), [data]);
-  const field = useMemo(() => (data ? fieldRows(data.rankings) : []), [data]);
+  const field = useMemo(() => (data ? banzukeRows(data.rankings) : []), [data]);
   const nextExpirySec = useMemo(() => {
     if (!lanes || !isOk(lanes)) return null;
     const live = lanes.value.lanes.flatMap((lane) => lane.markets.map((market) => market.expirySec)).filter((expiry) => expiry * 1000 > nowMs);
     return live.length ? Math.min(...live) : null;
   }, [lanes, nowMs]);
-
-  const refresh = async () => {
-    setRefreshing(true);
-    haptic.select();
-    try {
-      await refetchAll();
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const words = LEADERBOARD.hero;
-  const meta = data ? words.closedCalls(data.meta.closedCalls, span, data.meta.complete, data.meta.ticker ?? null) : words.counting;
   const showYou = address !== null && data !== null;
 
   return (
-    <Screen title={LEADERBOARD.title} scroll={false}>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={[styles.body, { paddingBottom: showYou ? 170 + insets.bottom : 60 + insets.bottom }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} />}
-      >
-        <BoardHero data={data} board={board} span={span} nextExpirySec={nextExpirySec} nowMs={nowMs} />
-        <BoardFilters board={board} onBoard={setBoard} meta={meta} />
-
+    <View style={styles.fill}>
+      <ExplorePage title={LEADERBOARD.title} onRefresh={refresh} style={showYou ? { paddingBottom: CHROME.dockClearance + YOU_HEIGHT + 24 } : undefined}>
+        <BoardHero data={data} board={board} onBoard={setBoard} span={span} nextExpirySec={nextExpirySec} nowMs={nowMs} />
         {reading?.ok ? (
-          <Text style={[TYPE.caption, { color: reading.stale ? color.warning : color.inkMuted }]} accessibilityRole="text">
+          <Text style={[styles.freshness, { color: color.inkMuted }]} accessibilityLiveRegion="polite">
             {LEADERBOARD.updated(reading.asOfMs)}
             {reading.stale ? ` · ${reading.staleReason === "refresh-failed" ? LEADERBOARD.refreshFailed : LEADERBOARD.refreshing}` : ""}
           </Text>
         ) : null}
-
-        {reading === null ? <LoadingState shape="list" label={LEADERBOARD.loading} /> : null}
+        {reading === null ? <BoardReading text={LEADERBOARD.loading} /> : null}
         {reading !== null && !isOk(reading) ? (
-          <View style={[styles.failed, { backgroundColor: color.surface1, borderColor: color.hairline }]} accessibilityRole="alert">
-            <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{LEADERBOARD.failed}</Text>
-            <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{diagnosisCopy(reading.error.kind).headline}</Text>
-            <Button label={LEADERBOARD.retry} size="sm" block={false} onPress={() => void refetch()} />
-          </View>
+          <BoardEmpty headline={LEADERBOARD.failed} sub={diagnosisCopy(reading.error.kind).headline} retry={{ label: LEADERBOARD.retry, onPress: retry }} />
         ) : null}
-        {data && data.rankings.length === 0 ? <EmptyState why={LEADERBOARD.empty.headline} detail={LEADERBOARD.empty.body} /> : null}
+        {data && data.rankings.length === 0 ? <BoardEmpty headline={LEADERBOARD.empty.headline} sub={LEADERBOARD.empty.body} /> : null}
         {data && podium.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader index={LEADERBOARD.podium.number} title={LEADERBOARD.podium.title} desc={LEADERBOARD.podium.desc(span)} />
+          <View>
+            <SectionHeader index={LEADERBOARD.podium.number} title={LEADERBOARD.podium.title} desc={LEADERBOARD.podium.desc(span)} style={styles.head} />
             <Podium spots={podium} decimals={data.meta.decimals} symbol={data.meta.symbol} />
           </View>
         ) : null}
         {data && field.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader index={LEADERBOARD.field.number} title={LEADERBOARD.field.title} desc={LEADERBOARD.field.desc} aside={LEADERBOARD.field.meta(span)} />
-            <FieldList rows={field} decimals={data.meta.decimals} span={span} address={address} />
+          <View>
+            <SectionHeader index={LEADERBOARD.field.number} title={LEADERBOARD.field.title} desc={LEADERBOARD.field.desc} eyebrow={LEADERBOARD.field.meta(span)} style={styles.head} />
+            <Banzuke rows={field} decimals={data.meta.decimals} span={span} />
           </View>
         ) : null}
         <BoardActivity reading={activity} nowMs={nowMs} />
-      </ScrollView>
+      </ExplorePage>
       {showYou && data ? (
-        <View style={[styles.dock, { paddingBottom: insets.bottom + 8 }]} pointerEvents="box-none">
+        <View style={[styles.you, { bottom: insets.bottom + YOU_OFFSET }]} pointerEvents="box-none">
           <YouBar address={address} data={data} span={span} />
         </View>
       ) : null}
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { padding: SPACE.gutter, paddingTop: 12, gap: 18 },
-  section: { gap: 12 },
-  failed: { borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 10, alignItems: "flex-start" },
-  dock: { position: "absolute", left: SPACE.gutter, right: SPACE.gutter, bottom: 0 },
+  fill: { flex: 1 },
+  freshness: { marginTop: 16, fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+  head: { marginTop: 48, marginBottom: 24 },
+  you: { position: "absolute", left: CONTAINER_GUTTER, right: CONTAINER_GUTTER },
 });

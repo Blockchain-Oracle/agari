@@ -1,30 +1,54 @@
 import { StyleSheet, Text, View } from "react-native";
+import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from "react-native-svg";
 import { glyphFromAddress } from "@/features/leaderboard/glyph";
-import { addressHue } from "@/lib/address-hue";
-import { AVATAR_COLORS, FONT, useTheme } from "~/theme";
+import { useTheme } from "~/theme";
+import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
+
+interface Props {
+  address: string;
+  size: number;
+  /** The 135° stops: `.podium-portrait` gold, the champion's fire, or `.bz-portrait`'s two. */
+  stops: readonly string[];
+  border: string;
+  borderWidth: number;
+  ink: string;
+  fontFamily: string;
+  fontSize: number;
+  letterSpacing?: number;
+  /** web's id for the gradient defs — unique per disc on screen. */
+  id: string;
+}
 
 /**
- * web's `.podium-portrait` / `.bz-portrait`: the address's decorative glyph (`glyphFromAddress`) on a disc whose colour
- * the address picks (web's `addressHue`, mapped onto the app's avatar palette), so one trader is one colour everywhere.
+ * web's round glyph portrait (`.podium-portrait`, `.bz-portrait`): the address's `glyphFromAddress` letter on a 135°
+ * gradient disc under the `::after` highlight — a white radial at 30 % 25 % fading by half the radius.
  */
-export function Portrait({ address, size = 36, ring }: { address: string; size?: number; ring?: string }) {
-  const { color } = useTheme();
-  const fill = AVATAR_COLORS[addressHue(address) % AVATAR_COLORS.length];
+export function Portrait({ address, size, stops, border, borderWidth, ink, fontFamily, fontSize, letterSpacing, id }: Props) {
+  const { name } = useTheme();
+  const t = leaderboardTokens(name);
+  const step = stops.length > 1 ? 1 / (stops.length - 1) : 1;
   return (
-    <View
-      style={[
-        styles.disc,
-        { width: size, height: size, borderRadius: size / 2, backgroundColor: fill },
-        ring ? { borderWidth: 2, borderColor: ring } : null,
-      ]}
-      accessible={false}
-    >
-      <Text style={[styles.glyph, { color: color.creamInk, fontSize: Math.round(size * 0.42) }]}>{glyphFromAddress(address)}</Text>
+    <View style={[styles.disc, { width: size, height: size, borderRadius: size / 2, borderWidth, borderColor: border }]} accessible={false}>
+      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+        <Defs>
+          <LinearGradient id={`${id}-g`} x1="0" y1="0" x2="1" y2="1">
+            {stops.map((stop, i) => (
+              <Stop key={stop + i} offset={i * step} stopColor={stop} />
+            ))}
+          </LinearGradient>
+          <RadialGradient id={`${id}-h`} cx="30%" cy="25%" r="50%" fx="30%" fy="25%">
+            <Stop offset="0" stopColor={t.highlight} />
+            <Stop offset="1" stopColor={t.highlightClear} />
+          </RadialGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill={`url(#${id}-g)`} />
+        <Rect width="100%" height="100%" fill={`url(#${id}-h)`} />
+      </Svg>
+      <Text style={{ color: ink, fontFamily, fontSize, letterSpacing }}>{glyphFromAddress(address)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  disc: { alignItems: "center", justifyContent: "center" },
-  glyph: { fontFamily: FONT.headingHeavy },
+  disc: { alignItems: "center", justifyContent: "center", overflow: "hidden" },
 });

@@ -2,88 +2,70 @@ import { shortHex } from "@agari/core/units";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LEADERBOARD, type BoardSpan } from "@/features/leaderboard/copy";
+import { glyphFromAddress } from "@/features/leaderboard/glyph";
 import type { BoardData } from "@/features/leaderboard/protocol";
-import { haptic } from "~/components/kit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { signedPnl } from "./board";
-import { Portrait } from "./Portrait";
+import { FONT, useTheme } from "~/theme";
+import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
 
-function Stat({ label, value }: { label: string; value: string }) {
-  const { color } = useTheme();
+/**
+ * web's sticky vermilion `YouBar` (features/leaderboard/YouBar.tsx, part-09 `.you-bar`, part-14 ≤1100 px): your rank
+ * and "of N on the venue", your glyph, name and standing in two columns, the stats hidden as web hides them on a phone,
+ * and the cream "Your ledger →" pill under the rank.
+ */
+export function YouBar({ address, data, span }: { address: string; data: BoardData; span: BoardSpan }) {
+  const { name, color } = useTheme();
+  const t = leaderboardTokens(name);
+  const words = LEADERBOARD.you;
+  // Exact match: base58 is case-sensitive (D-010).
+  const index = data.rankings.findIndex((r) => r.owner === address);
+  const ranked = data.meta.rankedTraders;
+  const rankedText = ranked > 0 ? ranked.toLocaleString() : LEADERBOARD.dash;
+  const standing = index === -1 ? words.none(span) : words.top(Math.round(((index + 1) / Math.max(1, ranked)) * 100));
   return (
-    <View style={styles.stat}>
-      <Text style={[styles.label, { color: color.onAccent }]}>{label}</Text>
-      <Text style={[styles.value, { color: color.onAccent }]}>{value}</Text>
+    <View style={[styles.bar, { backgroundColor: color.accent, shadowColor: t.youShadow }]}>
+      <View style={styles.grid}>
+        <View style={styles.col}>
+          <Text style={[styles.lbl, { color: t.youSoft }]}>{words.rank}</Text>
+          <Text>
+            <Text style={[styles.val, { color: t.youInk }]}>{index === -1 ? words.unranked : `#${index + 1}`}</Text>
+            <Text style={[styles.of, { color: t.youSoft }]}> {words.of(rankedText)}</Text>
+          </Text>
+        </View>
+        <View style={[styles.col, styles.info]}>
+          <View style={[styles.portrait, { backgroundColor: t.youPortraitFill, borderColor: t.youPortraitBorder }]}>
+            <Text style={[styles.glyph, { color: t.youPortraitInk }]}>{glyphFromAddress(address)}</Text>
+          </View>
+          <View style={styles.text}>
+            <Text style={[styles.name, { color: t.youInk }]} numberOfLines={1}>
+              {words.name(shortHex(address))}
+            </Text>
+            <Text style={[styles.meta, { color: t.youInk }]}>{standing}</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.grid}>
+        <Pressable onPress={() => router.push("/portfolio")} accessibilityRole="link" style={[styles.col, styles.cta, { backgroundColor: t.youCtaFill }]}>
+          <Text style={[styles.ctaText, { color: color.accent }]}>{words.cta}</Text>
+        </Pressable>
+        <View style={styles.col} />
+      </View>
     </View>
   );
 }
 
-/**
- * web's sticky vermilion `YouBar` (features/leaderboard/YouBar.tsx): the connected wallet's rank, or Unranked, with its
- * net, win rate and streak, pinned above the tab bar. The bar opens Portfolio, web's "Your ledger →".
- */
-export function YouBar({ address, data, span }: { address: string; data: BoardData; span: BoardSpan }) {
-  const { color } = useTheme();
-  const words = LEADERBOARD.you;
-  const dash = LEADERBOARD.dash;
-  // Exact match: base58 is case-sensitive (D-010).
-  const index = data.rankings.findIndex((r) => r.owner === address);
-  const trader = index === -1 ? null : data.rankings[index];
-  const ranked = data.meta.rankedTraders;
-  const rankedText = ranked > 0 ? ranked.toLocaleString() : dash;
-  const standing = trader ? words.top(Math.round(((index + 1) / Math.max(1, ranked)) * 100)) : words.none(span);
-  return (
-    <Pressable
-      onPress={() => {
-        haptic.tap();
-        router.push("/portfolio");
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={`${words.rank}: ${trader ? `#${index + 1}` : words.unranked} ${words.of(rankedText)}. ${standing}. ${words.cta}`}
-      style={({ pressed }) => [styles.bar, { backgroundColor: pressed ? color.accentPressed : color.accent, shadowColor: color.shadow }]}
-    >
-      <View style={styles.top}>
-        <View style={styles.rankBlock}>
-          <Text style={[styles.label, { color: color.onAccent }]}>{words.rank}</Text>
-          <Text style={[styles.rank, { color: color.onAccent }]}>{trader ? `#${index + 1}` : words.unranked}</Text>
-        </View>
-        <Portrait address={address} size={34} ring={color.onAccent} />
-        <View style={styles.who}>
-          <Text style={[TYPE.bodyStrong, { color: color.onAccent }]} numberOfLines={1}>
-            {words.name(shortHex(address))}
-          </Text>
-          <Text style={[TYPE.caption, { color: color.onAccent }]} numberOfLines={2}>
-            {words.of(rankedText)} · {standing}
-          </Text>
-        </View>
-      </View>
-      <View style={[styles.stats, { borderTopColor: color.onAccent }]}>
-        <Stat label={words.net} value={trader ? signedPnl(trader.pnlBase, data.meta.decimals) : dash} />
-        <Stat label={words.winRate} value={trader ? `${trader.winRatePct}%` : dash} />
-        <Stat label={words.streak} value={trader ? String(trader.bestStreak).padStart(2, "0") : dash} />
-        <Text style={[TYPE.bodyStrong, styles.cta, { color: color.onAccent }]}>{words.cta}</Text>
-      </View>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  bar: {
-    borderRadius: RADIUS.lg,
-    padding: 12,
-    gap: 10,
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
-  },
-  top: { flexDirection: "row", alignItems: "center", gap: 10 },
-  rankBlock: { minWidth: 70 },
-  rank: { fontFamily: FONT.dataStrong, fontSize: 22, lineHeight: 26 },
-  who: { flex: 1 },
-  stats: { flexDirection: "row", alignItems: "flex-end", gap: 16, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 8 },
-  stat: { gap: 2 },
-  label: { fontFamily: FONT.data, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", opacity: 0.85 },
-  value: { fontFamily: FONT.dataStrong, fontSize: 14 },
-  cta: { marginLeft: "auto" },
+  bar: { borderRadius: 4, paddingVertical: 16, paddingHorizontal: 24, gap: 12, shadowOpacity: 1, shadowRadius: 30, shadowOffset: { width: 0, height: 18 }, elevation: 12 },
+  grid: { flexDirection: "row", alignItems: "center", gap: 12 },
+  col: { flex: 1, minWidth: 0 },
+  lbl: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.98, textTransform: "uppercase", marginBottom: 2 },
+  val: { fontFamily: FONT.headingHeavy, fontSize: 28, lineHeight: 28, letterSpacing: -0.84, fontVariant: ["tabular-nums"] },
+  of: { fontFamily: FONT.body, fontSize: 14 },
+  info: { flexDirection: "row", alignItems: "center", gap: 16 },
+  portrait: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  glyph: { fontFamily: FONT.heading, fontSize: 17, letterSpacing: 0.34 },
+  text: { flex: 1, minWidth: 0, gap: 2 },
+  name: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 24 },
+  meta: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.6, opacity: 0.8 },
+  cta: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 },
+  ctaText: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 19.2, letterSpacing: 0.48 },
 });

@@ -1,142 +1,131 @@
-import { shortHex } from "@agari/core/units";
-import { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
+import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { StyleSheet, Text, View } from "react-native";
+import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { LEADERBOARD } from "@/features/leaderboard/copy";
-import { haptic } from "~/components/kit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { openProfile, signedPnl, type Spot } from "./board";
+import { FONT, useTheme } from "~/theme";
+import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
+import type { Spot } from "./board";
 import { Portrait } from "./Portrait";
 
-/** Pedestal heights by place, and the order they rise in (third, second, then the champion). */
-const HEIGHT = { 1: 104, 2: 76, 3: 58 } as const;
-const RISE_DELAY = { 1: 260, 2: 130, 3: 0 } as const;
+/** part-08 sizes: the champion's card runs larger on every line. */
+const SIZE = {
+  first: { rank: 240, rankLh: 192, rankLs: -14.4, portrait: 112, glyph: 44, glyphLs: 0.88, name: 30, nameLh: 48, nameLs: -0.6, pnl: 56, pnlLs: -2.24 },
+  other: { rank: 180, rankLh: 144, rankLs: -10.8, portrait: 88, glyph: 34, glyphLs: 0.68, name: 22, nameLh: 35.2, nameLs: -0.44, pnl: 36, pnlLs: -1.44 },
+} as const;
 
-function Pedestal({ place, height }: { place: 1 | 2 | 3; height: number }) {
-  const { color } = useTheme();
-  const reduce = useReducedMotion();
-  const grow = useSharedValue(reduce ? 1 : 0);
-  useEffect(() => {
-    if (!reduce) grow.value = withDelay(RISE_DELAY[place], withTiming(1, { duration: 420 }));
-  }, [reduce, grow, place]);
-  const style = useAnimatedStyle(() => ({ height: height * grow.value }));
-  const champion = place === 1;
+function SpotCard({ spot, decimals, symbol }: { spot: Spot; decimals: number; symbol: string }) {
+  const { name, color } = useTheme();
+  const t = leaderboardTokens(name);
+  const words = LEADERBOARD.podium;
+  const first = spot.r === 1;
+  const s = first ? SIZE.first : SIZE.other;
+  const sign = spot.pnlBase >= 0n ? "+" : "";
+  const figure = formatBaseUnits(spot.pnlBase, decimals);
   return (
-    <Animated.View
-      style={[
-        styles.pedestal,
-        { backgroundColor: champion ? color.accent : color.surface2, borderColor: champion ? color.accentPressed : color.hairline },
-        style,
-      ]}
+    <View
+      style={[styles.spot, { borderColor: first ? t.firstBorder : t.spotBorder, backgroundColor: first ? t.firstFill : t.spotFill }]}
+      accessible
+      accessibilityLabel={`${words.ordinals[spot.r]}, ${shortHex(spot.owner)}, ${sign}${figure} ${symbol}`}
     >
-      <Text style={[styles.pedestalRank, { color: champion ? color.onAccent : color.inkMuted }]}>{place}</Text>
-    </Animated.View>
-  );
-}
-
-/** A place nobody holds yet on this board: the pedestal stands, the name stays blank. */
-function EmptySpot({ place }: { place: 1 | 2 | 3 }) {
-  const { color } = useTheme();
-  return (
-    <View style={styles.spot} accessible accessibilityLabel={`${LEADERBOARD.podium.ordinals[place]} place: nobody yet`}>
-      <View style={[styles.emptyDisc, { borderColor: color.hairline }]} />
-      <Text style={[styles.pnl, { color: color.inkMuted }]}>{LEADERBOARD.dash}</Text>
-      <View style={[styles.pedestal, styles.emptyPedestal, { height: HEIGHT[place], borderColor: color.hairline }]}>
-        <Text style={[styles.pedestalRank, { color: color.inkDisabled }]}>{place}</Text>
+      {first ? (
+        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+          <Defs>
+            <RadialGradient id="podium-glow" cx="100%" cy="0%" r="100%" fx="100%" fy="0%">
+              <Stop offset="0" stopColor={t.firstGlow} />
+              <Stop offset="0.6" stopColor={t.firstGlowClear} />
+            </RadialGradient>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#podium-glow)" />
+        </Svg>
+      ) : null}
+      <Text style={[styles.rank, { color: first ? t.firstRank : t.rank, fontSize: s.rank, lineHeight: s.rankLh, letterSpacing: s.rankLs }]}>{spot.r}</Text>
+      {first ? (
+        <View style={[styles.sash, { backgroundColor: color.accent, shadowColor: t.sashShadow }]}>
+          <Text style={[styles.sashText, { color: t.sashInk }]}>{words.sash}</Text>
+        </View>
+      ) : null}
+      <View style={styles.eyebrow}>
+        <Text style={[styles.ord, first ? { backgroundColor: color.accent, color: t.firstOrdInk } : { backgroundColor: t.ordFill, color: t.ordInk }]}>
+          {words.ordinals[spot.r]}
+        </Text>
+        <Text style={[styles.eyebrowText, { color: color.inkMuted }]}>
+          {first ? words.streak(spot.bestStreak) : spot.r === 2 ? words.challenger : words.contender}
+        </Text>
+      </View>
+      <View style={styles.portrait}>
+        <Portrait
+          id={`podium-${spot.r}`}
+          address={spot.owner}
+          size={s.portrait}
+          stops={first ? t.fire : t.gold}
+          border={first ? t.firstPortraitBorder : t.portraitBorder}
+          borderWidth={2}
+          ink={t.portraitInk}
+          fontFamily={FONT.heading}
+          fontSize={s.glyph}
+          letterSpacing={s.glyphLs}
+        />
+      </View>
+      <Text style={[styles.name, { color: color.ink, fontSize: s.name, lineHeight: s.nameLh, letterSpacing: s.nameLs }]} numberOfLines={1}>
+        {shortHex(spot.owner)}
+      </Text>
+      <View style={styles.pnl}>
+        {sign ? (
+          <Text style={[styles.pnlText, { color: color.accent, fontSize: s.pnl * 0.55, transform: [{ translateY: -s.pnl * 0.55 * 0.16 }], marginRight: s.pnl * 0.55 * 0.05 }]}>
+            {sign}
+          </Text>
+        ) : null}
+        <Text style={[styles.pnlText, { color: color.accent, fontSize: s.pnl, lineHeight: s.pnl, letterSpacing: s.pnlLs }]}>{figure}</Text>
+        <Text
+          style={[
+            styles.cur,
+            { color: color.inkMuted, fontSize: s.pnl * 0.32, letterSpacing: s.pnl * 0.32 * 0.06, marginLeft: s.pnl * 0.32 * 0.4, transform: [{ translateY: -s.pnl * 0.32 * 0.6 }] },
+          ]}
+        >
+          {symbol}
+        </Text>
       </View>
     </View>
   );
 }
 
-// 21st: trophyso/leaderboard-podium — 2nd · 1st · 3rd, avatar with its place badge, name and value over stepped pedestals.
 /**
- * web's `Podium` (features/leaderboard/Podium.tsx): the top three by profit in the podium's own order, the champion
- * under the sash with their streak, a challenger and a contender. Each spot opens the trader's profile.
+ * web's `Podium` (features/leaderboard/Podium.tsx, part-08 `.podium-*`) at phone width: one column, 12 apart, in the
+ * podium's own [2nd, 1st, 3rd] order — the champion's card with its sash, fire portrait and radial glow.
  */
 export function Podium({ spots, decimals, symbol }: { spots: readonly Spot[]; decimals: number; symbol: string }) {
-  const { color } = useTheme();
-  const words = LEADERBOARD.podium;
   return (
-    <View style={styles.podium} accessibilityRole="list" accessibilityLabel="Top three by profit">
-      {([2, 1, 3] as const).map((place) => {
-        const spot = spots.find((s) => s.r === place);
-        if (!spot) return <EmptySpot key={place} place={place} />;
-        const champion = spot.r === 1;
-        const pnl = signedPnl(spot.pnlBase, decimals);
-        const eyebrow = champion ? words.streak(spot.bestStreak) : spot.r === 2 ? words.challenger : words.contender;
-        return (
-          <Pressable
-            key={spot.r}
-            style={({ pressed }) => [styles.spot, pressed && styles.pressed]}
-            onPress={() => {
-              haptic.tap();
-              openProfile(spot.owner);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={`${words.ordinals[spot.r]} place, ${shortHex(spot.owner)}, ${pnl} ${symbol}. Open profile`}
-          >
-            {champion ? (
-              <View style={[styles.sash, { backgroundColor: color.accentWash, borderColor: color.accentDim }]}>
-                <Text style={[styles.sashText, { color: color.accent }]} numberOfLines={1}>
-                  {words.sash}
-                </Text>
-              </View>
-            ) : null}
-            <View>
-              <Portrait address={spot.owner} size={champion ? 60 : 48} ring={champion ? color.accent : color.borderStrong} />
-              <View style={[styles.badge, { backgroundColor: champion ? color.accent : color.surface3, borderColor: color.ground }]}>
-                <Text style={[styles.badgeText, { color: champion ? color.onAccent : color.ink }]}>{words.ordinals[spot.r]}</Text>
-              </View>
-            </View>
-            <Text style={[styles.eyebrow, { color: champion ? color.accent : color.inkMuted }]} numberOfLines={1}>
-              {eyebrow}
-            </Text>
-            <Text style={[TYPE.data, { color: color.ink }]} numberOfLines={1}>
-              {shortHex(spot.owner, 4, 4)}
-            </Text>
-            <Text style={[styles.pnl, { color: spot.pnlBase < 0n ? color.loss : color.profit }]} numberOfLines={1} adjustsFontSizeToFit>
-              {pnl}
-            </Text>
-            <Text style={[styles.cur, { color: color.inkMuted }]}>{symbol}</Text>
-            <Pedestal place={spot.r} height={HEIGHT[spot.r]} />
-          </Pressable>
-        );
-      })}
+    <View style={styles.podium}>
+      {spots.map((spot) => (
+        <SpotCard key={spot.r} spot={spot} decimals={decimals} symbol={symbol} />
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  podium: { flexDirection: "row", alignItems: "flex-end", gap: 8, paddingTop: 8 },
-  spot: { flex: 1, alignItems: "center", gap: 4 },
-  pressed: { opacity: 0.85 },
-  sash: { borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 4 },
-  sashText: { fontFamily: FONT.data, fontSize: 9, letterSpacing: 1.2 },
-  badge: {
+  podium: { gap: 12 },
+  spot: { borderWidth: 1, borderRadius: 4, paddingTop: 28, paddingHorizontal: 28, paddingBottom: 24, overflow: "hidden" },
+  rank: { position: "absolute", top: 14, right: 18, fontFamily: FONT.headingHeavy },
+  sash: {
     position: "absolute",
-    bottom: -6,
-    alignSelf: "center",
-    borderWidth: 2,
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    top: 22,
+    left: -36,
+    width: 160,
+    paddingVertical: 4,
+    transform: [{ rotate: "-32deg" }],
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    zIndex: 3,
   },
-  badgeText: { fontFamily: FONT.dataStrong, fontSize: 9.5, letterSpacing: 0.6 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 9.5, letterSpacing: 1, marginTop: 8 },
-  pnl: { fontFamily: FONT.dataStrong, fontSize: 17, lineHeight: 21 },
-  cur: { fontFamily: FONT.data, fontSize: 10, letterSpacing: 0.8, marginTop: -2 },
-  pedestal: {
-    alignSelf: "stretch",
-    marginTop: 6,
-    borderTopLeftRadius: RADIUS.md,
-    borderTopRightRadius: RADIUS.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: 0,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    overflow: "hidden",
-  },
-  emptyDisc: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderStyle: "dashed" },
-  emptyPedestal: { borderStyle: "dashed" },
-  pedestalRank: { fontFamily: FONT.headingHeavy, fontSize: 28, lineHeight: 40 },
+  sashText: { fontFamily: FONT.dataStrong, fontSize: 9, lineHeight: 14.4, letterSpacing: 2.16, textAlign: "center" },
+  eyebrow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  ord: { fontFamily: FONT.dataStrong, fontSize: 10, lineHeight: 16, letterSpacing: 1.8, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 2, overflow: "hidden" },
+  eyebrowText: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1.8, textTransform: "uppercase" },
+  portrait: { marginTop: 22, alignSelf: "flex-start" },
+  name: { marginTop: 18, fontFamily: FONT.heading },
+  pnl: { marginTop: 24, flexDirection: "row", alignItems: "baseline" },
+  pnlText: { fontFamily: FONT.headingHeavy },
+  cur: { fontFamily: FONT.dataRegular },
 });
