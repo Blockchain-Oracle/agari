@@ -2,7 +2,7 @@ import { computeTraderEdge } from "@agari/core/projection";
 import { isOk } from "@agari/core/schemas";
 import { router } from "expo-router";
 import { useMemo, useState, type ReactNode } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { EDGE } from "@/features/edge/copy";
 import { useHistoryReading } from "@/features/markets/history/useHistoryReading";
@@ -13,6 +13,7 @@ import { FONT, useTheme } from "~/theme";
 import { EdgeReport } from "./EdgeReport";
 import { EdgeEnter, EdgeSkeleton, EdgeState, EdgeStateAction } from "./EdgeState";
 import { useEdgeInk } from "./useEdgeInk";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /** `.edge-page`'s backdrop: #090909 under a vermilion glow at 82% / 8%, fading out over 27rem (405 px). */
 function Backdrop({ width, height }: { width: number; height: number }) {
@@ -72,6 +73,7 @@ export function EdgeScreen() {
   const value = history.reading?.ok ? history.reading.value : null;
   const report = useMemo(() => (value ? computeTraderEdge(value.rounds, value.openCount) : null), [value]);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const refreshControl = usePullRefresh(history.retry, Boolean(history.address));
 
   let body: ReactNode;
   if (!history.address) {
@@ -105,7 +107,7 @@ export function EdgeScreen() {
     <ScrollView
       style={{ backgroundColor: edge.bg }}
       contentContainerStyle={styles.scroll}
-      refreshControl={history.address ? <RefreshControl refreshing={false} onRefresh={history.retry} tintColor={color.accent} colors={[color.accent]} /> : undefined}
+      refreshControl={refreshControl}
     >
       <View style={styles.page} onLayout={(e: LayoutChangeEvent) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
         <Backdrop width={size.width} height={size.height} />

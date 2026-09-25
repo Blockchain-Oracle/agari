@@ -9,7 +9,7 @@ import { useGameKey } from "@/features/games/duel/useGameKey";
 import { useRoomToken } from "@/features/games/duel/useRoomToken";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Checker, Eyebrow, PAGE_PADDING } from "~/features/games/frame";
 import { useGameScreen, useGames } from "~/features/games/shell";
 import { FONT, useTheme } from "~/theme";
@@ -18,6 +18,7 @@ import { ArcadeFullScreen } from "./ArcadeFullScreen";
 import { ArcadeIsland } from "./ArcadeIsland";
 import { ArcadeNote, ArcadeReadout, CalmSwitch } from "./ArcadeNotes";
 import { hopCrashSfx, hopScoreSfx, milestoneSfx, preloadArcadeSfx, regainSfx, rideCrashSfx, rideStartSfx } from "./sfx";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /**
  * web's `ArcadeStage.tsx` (`/games/line-rider`, `/games/candle-hop`) — one stage, two engines, laid out as web's
@@ -56,7 +57,6 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
   const [end, setEnd] = useState<RunEnd | null>(null);
   const [postState, setPostState] = useState<PostState>({ kind: "local", why: null });
   const [sessionBest, setSessionBest] = useState<number | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   /** Gaps cleared in a row this run: the hop's "tuiing" climbs with it and it resets every run. */
   const streakRef = useRef(0);
 
@@ -138,16 +138,8 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
     setPhase("title");
   }, [feedback]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await refresh();
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refresh]);
-
   const playing = phase === "playing";
+  const refreshControl = usePullRefresh(refresh, !playing);
   const boardBest = board?.me?.best ?? null;
   const best = sessionBest === null ? boardBest : boardBest === null ? sessionBest : Math.max(sessionBest, boardBest);
   const liveBest = Math.max(best ?? 0, hud.score);
@@ -157,7 +149,7 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
       style={[styles.fill, { backgroundColor: color.ground }]}
       contentContainerStyle={PAGE_PADDING}
       scrollEnabled={!playing}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} enabled={!playing} tintColor={color.inkMuted} />}
+      refreshControl={refreshControl}
     >
       <Checker />
       <View style={styles.head}>

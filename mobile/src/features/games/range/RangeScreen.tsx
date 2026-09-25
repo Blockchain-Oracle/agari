@@ -1,7 +1,7 @@
 import { isOk } from "@agari/core/schemas";
 import { keys, useRangeReserve } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useVenue } from "@/features/markets/useVenue";
 import { RANGE } from "@/features/range/copy";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -15,12 +15,10 @@ import { RoundsList } from "./RoundsList";
 export function useReserveRefresh() {
   const queryClient = useQueryClient();
   const { address } = useWalletSession();
-  const [refreshing, setRefreshing] = useState(false);
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    void Promise.all([queryClient.invalidateQueries({ queryKey: keys.rangeReserve() }), queryClient.invalidateQueries({ queryKey: keys.ranges(address ?? null) })]).finally(() => setRefreshing(false));
-  }, [queryClient, address]);
-  return { refreshing, onRefresh };
+  return useCallback(
+    () => Promise.all([queryClient.invalidateQueries({ queryKey: keys.rangeReserve() }), queryClient.invalidateQueries({ queryKey: keys.ranges(address ?? null) })]),
+    [queryClient, address],
+  );
 }
 
 /**
@@ -36,7 +34,7 @@ export function RangeScreen() {
   useGameScreen("range");
 
   return (
-    <GamesPage {...refresh}>
+    <GamesPage onRefresh={refresh}>
       <ReadingBoundary reading={reading} shape="plate">
         {(reserve) =>
           reserve ? (

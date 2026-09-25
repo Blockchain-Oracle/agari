@@ -2,8 +2,8 @@ import { isOk } from "@agari/core/schemas";
 import { useClaimables, usePositions } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useState, type ReactNode } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import type { ReactNode } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useBalancePlate } from "@/features/markets/balance/useBalancePlate";
 import { useHistoryReading } from "@/features/markets/history/useHistoryReading";
 import { PLATE } from "@/features/markets/portfolio/plate/copy";
@@ -30,6 +30,7 @@ import { XWalletCard } from "~/features/portfolio/x/XWalletCard";
 import { YourStocks } from "~/features/portfolio/YourStocks";
 import { FONT, useTheme } from "~/theme";
 import { WEB_PAGE, WEB_TYPE } from "~/theme/web/portfolio";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /** web `PlateDisclosure` (`.plate-rows.lp-disclosure`): the plate's own disclosure row, Sora 14 over a top rule. */
 function PlateDisclosure({ title, children }: { title: string; children: ReactNode }) {
@@ -68,16 +69,7 @@ export default function PortfolioScreen() {
   const claimables = useClaimables(address, venue.venueId);
   const tiers = usePortfolioTiers([plate.kind === "connected" ? plate.reading : null, positions, claimables]);
   const history = useHistoryReading(tiers.criticalSettled);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const refresh = async () => {
-    setRefreshing(true);
-    try {
-      await queryClient.refetchQueries({ type: "active" });
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  const refreshControl = usePullRefresh(() => queryClient.refetchQueries({ type: "active" }), Boolean(address));
 
   const openBets = (positions && isOk(positions) ? positions.value.length : 0) + (vaultBets && isOk(vaultBets) ? vaultBets.value.length : 0);
   const settled = history.reading && isOk(history.reading) ? history.reading.value.rounds.length : 0;
@@ -123,7 +115,7 @@ export default function PortfolioScreen() {
         style={{ backgroundColor: color.ground }}
         contentContainerStyle={styles.body}
         keyboardShouldPersistTaps="handled"
-        refreshControl={address ? <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} /> : undefined}
+        refreshControl={refreshControl}
       >
         {body}
       </ScrollView>

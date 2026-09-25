@@ -1,6 +1,7 @@
 import { createContext, useContext, useRef, type ReactNode, type RefObject } from "react";
-import { RefreshControl, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 import { Checker, PAGE_PADDING, useGamesTokens } from "~/features/games/frame";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,8 +18,9 @@ export function useStageScroll(): ScrollRef | null {
  * active card is `touch-action: pan-x`: a vertical drag on it plays the card and never scrolls the page. Here the
  * deck's pan blocks this scroller for as long as it is active; everywhere else the page scrolls as usual.
  */
-export function StageScroll({ children, refreshing = false, onRefresh }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void }) {
+export function StageScroll({ children, onRefresh }: { children: ReactNode; onRefresh?: () => Promise<unknown> | void }) {
   const { color } = useGamesTokens();
+  const refreshControl = usePullRefresh(onRefresh);
   const ref = useRef(null);
   return (
     <StageScrollContext.Provider value={ref}>
@@ -27,7 +29,7 @@ export function StageScroll({ children, refreshing = false, onRefresh }: { child
         style={[styles.fill, { backgroundColor: color.ground }]}
         contentContainerStyle={PAGE_PADDING}
         keyboardShouldPersistTaps="handled"
-        refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={color.inkMuted} /> : undefined}
+        refreshControl={refreshControl}
       >
         <Checker />
         {children}

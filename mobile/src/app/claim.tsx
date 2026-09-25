@@ -1,8 +1,7 @@
 import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Stack } from "expo-router";
-import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { CLAIM } from "@/features/x/copy";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -10,6 +9,7 @@ import { ClaimFlow } from "~/features/recovery/ClaimFlow";
 import { useTheme } from "~/theme";
 import { CHROME } from "~/theme/chrome";
 import { activityTokens } from "~/theme/web/portfolio-activity";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /** x-card.css `.xc-wash--v` / `--g`: the two fixed radial washes behind the page. */
 function Washes({ v, g }: { v: string; g: string }) {
@@ -40,18 +40,9 @@ export default function ClaimScreen() {
   const t = activityTokens(name);
   const queryClient = useQueryClient();
   const { address } = useWalletSession();
-  const [refreshing, setRefreshing] = useState(false);
-  const refresh = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["agari", "x-status"] }),
-        address ? invalidateAfterWrite(queryClient, { wallet: address }) : null,
-      ]);
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  const refreshControl = usePullRefresh(() =>
+    Promise.all([queryClient.invalidateQueries({ queryKey: ["agari", "x-status"] }), address ? invalidateAfterWrite(queryClient, { wallet: address }) : null]),
+  );
   return (
     <View style={[styles.xc, { backgroundColor: color.ground }]}>
       <Stack.Screen options={{ title: CLAIM.title, headerShown: false }} />
@@ -59,7 +50,7 @@ export default function ClaimScreen() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.main}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} />}
+        refreshControl={refreshControl}
       >
         <ClaimFlow />
       </ScrollView>

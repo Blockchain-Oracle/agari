@@ -1,14 +1,14 @@
 import { Stack } from "expo-router";
-import { useState, type ReactNode } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import type { ReactNode } from "react";
+import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { SPACE, useTheme } from "~/theme";
-import { haptic } from "./haptics";
+import { usePullRefresh } from "./PullRefresh";
 
 interface Props {
   /** What VoiceOver reads on arrival. */
   title: string;
   children: ReactNode;
-  /** Pull to refresh: the screen's queries' refetch. The spinner holds until the promise settles. */
+  /** Pull to refresh: the screen's own refetch; without one, every query on screen refetches. */
   onRefresh?: () => Promise<unknown> | void;
   /** Header trailing control (a filter, a help button). */
   headerRight?: () => ReactNode;
@@ -23,18 +23,7 @@ interface Props {
  */
 export function Screen({ title, children, onRefresh, headerRight, scroll = true, contentStyle }: Props) {
   const { color } = useTheme();
-  const [refreshing, setRefreshing] = useState(false);
-  const refresh = onRefresh
-    ? async () => {
-        setRefreshing(true);
-        haptic.select();
-        try {
-          await onRefresh();
-        } finally {
-          setRefreshing(false);
-        }
-      }
-    : undefined;
+  const refreshControl = usePullRefresh(onRefresh);
 
   // web's pages carry no bar of their own under the site header: the title only names the screen for VoiceOver, and a
   // trailing control (a game's settings) sits at the top right of the content.
@@ -61,7 +50,7 @@ export function Screen({ title, children, onRefresh, headerRight, scroll = true,
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[styles.body, contentStyle]}
         keyboardShouldPersistTaps="handled"
-        refreshControl={refresh ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={color.accent} colors={[color.accent]} /> : undefined}
+        refreshControl={refreshControl}
       >
         {children}
       </ScrollView>

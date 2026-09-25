@@ -1,7 +1,8 @@
 import { Stack } from "expo-router";
-import { createContext, useContext, useRef, useState, type ReactNode } from "react";
-import { RefreshControl, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { createContext, useContext, useRef, type ReactNode } from "react";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, type SharedValue } from "react-native-reanimated";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 import { CHROME } from "~/theme/chrome";
 import { useStrat } from "./ui";
 
@@ -21,20 +22,10 @@ export function StickyPage({ title, onRefresh, children }: { title: string; onRe
   const { color } = useStrat();
   const scrollY = useSharedValue(0);
   const content = useRef<View>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const refreshControl = usePullRefresh(onRefresh);
   const onScroll = useAnimatedScrollHandler((e) => {
     scrollY.value = e.contentOffset.y;
   });
-  const refresh = onRefresh
-    ? async () => {
-        setRefreshing(true);
-        try {
-          await onRefresh();
-        } finally {
-          setRefreshing(false);
-        }
-      }
-    : undefined;
   return (
     <Ctx.Provider value={{ scrollY, content }}>
       <Stack.Screen options={{ title, headerShown: false }} />
@@ -44,7 +35,7 @@ export function StickyPage({ title, onRefresh, children }: { title: string; onRe
         keyboardShouldPersistTaps="handled"
         onScroll={onScroll}
         scrollEventThrottle={16}
-        refreshControl={refresh ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={color.accent} colors={[color.accent]} /> : undefined}
+        refreshControl={refreshControl}
       >
         <View ref={content} collapsable={false} style={styles.content}>
           {children}

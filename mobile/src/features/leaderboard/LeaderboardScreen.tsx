@@ -3,7 +3,7 @@ import { useLanes } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LEADERBOARD } from "@/features/leaderboard/copy";
 import type { BoardQuery } from "@/features/leaderboard/leaderboard-client";
@@ -13,7 +13,7 @@ import { useVenue } from "@/features/markets/useVenue";
 import { TRACTION_KEY, useTraction } from "@/features/stats/useTraction";
 import { diagnosisCopy } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { haptic, Screen } from "~/components/kit";
+import { Screen } from "~/components/kit";
 import { CONTAINER_GUTTER } from "~/features/explore/ExplorePage";
 import { SectionHeader } from "~/features/explore/SectionHeader";
 import { FONT, useTheme } from "~/theme";
@@ -27,6 +27,7 @@ import { Podium } from "./Podium";
 import { RankList } from "./RankList";
 import { BOARD_PHONE } from "./words";
 import { YOU_BAR_H, YouBar } from "./YouBar";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /** The floating dock's own height (BottomDock: 5 + 6.75 + icon and label + 6.75 + 5, its 1 pt ring) and a gap. */
 const DOCK_H = 60;
@@ -46,20 +47,13 @@ export function LeaderboardScreen() {
   const lanes = useLanes(venueId);
   const nowMs = useChainNowMs();
   const [board, setBoard] = useState<BoardQuery>({ period: "session", ticker: null });
-  const [refreshing, setRefreshing] = useState(false);
   const reading = useLeaderboard(board);
   const activity = useTraction();
   const client = useQueryClient();
   const retry = () => void client.invalidateQueries({ queryKey: LEADERBOARD_KEY });
-  const refresh = async () => {
-    setRefreshing(true);
-    haptic.select();
-    try {
-      await Promise.all([client.invalidateQueries({ queryKey: LEADERBOARD_KEY }), client.invalidateQueries({ queryKey: TRACTION_KEY })]);
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  const refreshControl = usePullRefresh(() =>
+    Promise.all([client.invalidateQueries({ queryKey: LEADERBOARD_KEY }), client.invalidateQueries({ queryKey: TRACTION_KEY })]),
+  );
 
   const data = reading && isOk(reading) ? reading.value : null;
   const span = spanOf(data, board, nowMs);
@@ -89,7 +83,7 @@ export function LeaderboardScreen() {
         style={styles.fill}
         contentContainerStyle={[styles.body, { paddingBottom: CHROME.dockClearance + (showYou ? YOU_BAR_H + GAP * 2 : 0) }]}
         stickyHeaderIndices={[1]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} />}
+        refreshControl={refreshControl}
       >
         <BoardHero data={data} board={board} span={span} nextExpirySec={nextExpirySec} nowMs={nowMs} />
         <BoardControls board={board} onBoard={setBoard} meta={meta} />

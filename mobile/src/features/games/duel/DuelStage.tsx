@@ -55,7 +55,6 @@ function RoomStage({ resumeMatchId, onStale }: { resumeMatchId: Hash32 | null; o
   const { color } = useGamesTokens();
   // Pull to refresh asks the room for this match's snapshot again (web's `resync`), or reconnects a dropped room.
   const refresh = () => {
-    haptic.select();
     if (room.status !== "open") onStale();
     else room.resync();
   };

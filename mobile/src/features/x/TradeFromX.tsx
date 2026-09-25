@@ -3,7 +3,7 @@ import { formatBaseUnits } from "@agari/core/units";
 import { router, type Href } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";
 import { TRADE_FROM_X } from "@/features/x/copy";
 import { useXReceipts } from "@/features/x/useXReceipts";
@@ -24,6 +24,7 @@ import { RelayStatus } from "./RelayStatus";
 import { Dot, IdentityChip, ProofLink, Step } from "./StepSpine";
 import { useXGrant } from "./useXGrant";
 import { useXLink } from "./useXLink";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /** x-card.css `scroll-margin-top: 8rem` for the page's two anchors. */
 const ANCHOR_MARGIN = 120;
@@ -43,7 +44,6 @@ export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> })
   const grant = useXGrant();
   const receipts = useXReceipts(address ?? null);
   const [amount, setAmount] = useState("5");
-  const [refreshing, setRefreshing] = useState(false);
   const scroll = useRef<ScrollView>(null);
   const flowY = useRef(0);
   const composerY = useRef(0);
@@ -55,10 +55,7 @@ export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> })
   const step = !address ? 1 : !funded ? 2 : !linked ? 3 : 4;
   const error = grant.error || link.error;
 
-  const refresh = async () => {
-    setRefreshing(true);
-    try { await onRefresh(); } finally { setRefreshing(false); }
-  };
+  const refreshControl = usePullRefresh(onRefresh);
   const recover = (href: string) => {
     const anchor = href.startsWith("/trade-from-x#") ? href.split("#")[1] : null;
     if (!anchor) return router.push(href as Href);
@@ -73,7 +70,7 @@ export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> })
         ref={scroll}
         stickyHeaderIndices={[0]}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={t.gray500} />}
+        refreshControl={refreshControl}
       >
         <IslandStrip />
         <Hero />

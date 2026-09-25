@@ -14,6 +14,7 @@ import { ReelHolding, ReelSlot } from "~/features/markets/reels/ReelFrame";
 import { TakeReelCard } from "~/features/markets/reels/TakeReelCard";
 import { useReelFeed } from "~/features/markets/reels/useReelFeed";
 import { TakeComposerSheet } from "~/features/takes/TakeComposerSheet";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 
 /** A real move, not the first stray pixel of momentum — the reference's own correction. */
 const SCROLLED_PX = 60;
@@ -43,6 +44,7 @@ export default function ReelsScreen() {
   const [scrolled, setScrolled] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const restored = useRef(false);
+  const refreshControl = usePullRefresh();
 
   const hasReel = reel.length > 0;
   const holding = waiting ? REELS.reading : venueId === null ? REELS.noVenue : !hasReel ? (closedLine ?? REELS.betweenRounds) : null;
@@ -120,6 +122,7 @@ export default function ReelsScreen() {
             scrollEventThrottle={100}
             windowSize={3}
             initialNumToRender={2}
+            refreshControl={refreshControl}
           />
         ) : null}
         {hasReel && holding === null && frame.height > 0 ? (

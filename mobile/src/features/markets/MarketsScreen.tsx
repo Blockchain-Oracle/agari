@@ -2,12 +2,12 @@ import { isMarketId, type EventMarket, type Side } from "@agari/core/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { SECTIONS } from "@/lib/copy";
-import { haptic } from "~/components/kit";
+import { usePullRefresh } from "~/components/kit";
 import { SectionHeader } from "~/features/explore/SectionHeader";
 import { LiveHedgeCard } from "~/features/hedge/LiveHedgeCard";
 import { MarketRoomSheet } from "~/features/room/MarketRoomSheet";
@@ -58,16 +58,7 @@ export function MarketsScreen() {
   }, [params.sensei]);
   // Held at the page, as web holds it: a cadence switch can never leave it open on a Window the page no longer shows.
   const [roomMarket, setRoomMarket] = useState<EventMarket | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const refresh = async () => {
-    setRefreshing(true);
-    haptic.select();
-    try {
-      await queryClient.invalidateQueries();
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  const refreshControl = usePullRefresh();
   const failure = lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure;
 
   return (
@@ -75,7 +66,7 @@ export function MarketsScreen() {
       <ScrollView
         ref={scroll}
         contentContainerStyle={styles.page}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} />}
+        refreshControl={refreshControl}
       >
         <MarketsHero selection={selection} lanes={lanes} onSelect={selectWindow} onOpenRoom={() => setRoomMarket(selection.market)} />
         <View style={styles.container}>

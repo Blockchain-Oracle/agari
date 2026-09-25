@@ -53,7 +53,6 @@ export function LuckyScreen() {
   const history = useLuckyHistory(address ?? null);
   const [stakeText, setStakeText] = usePersistedState(STAKE_KEY, "1", stakeCodec);
   const [skipping, setSkipping] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   useGameScreen("lucky");
 
   const decimals = boot && isOk(boot) ? boot.value.collateral.decimals : null;
@@ -106,16 +105,11 @@ export function LuckyScreen() {
     await draw.report("declined", null, null);
     setSkipping(false);
   };
-  const onRefresh = () => {
-    setRefreshing(true);
-    history.refresh();
-    setTimeout(() => setRefreshing(false), 600);
-  };
 
   const dealt = phase.kind === "dealt" ? phase.deal : null;
 
   return (
-    <GamesPage refreshing={refreshing} onRefresh={onRefresh}>
+    <GamesPage onRefresh={history.refresh}>
       <View style={styles.head}>
         <Eyebrow style={styles.eyebrow}>{LUCKY.eyebrow}</Eyebrow>
         <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">

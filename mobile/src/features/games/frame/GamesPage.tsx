@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { usePullRefresh } from "~/components/kit/PullRefresh";
 import { CHROME } from "~/theme/chrome";
 import { Checker } from "./Checker";
 import { useGamesTokens } from "./tokens";
@@ -8,8 +9,8 @@ interface Props {
   children: ReactNode;
   /** false for a stage that fills the screen and scrolls nothing (the arcade canvas). */
   scroll?: boolean;
-  refreshing?: boolean;
-  onRefresh?: () => void;
+  /** Pull to refresh: the page's own refetch; without one, every query on screen refetches. */
+  onRefresh?: () => Promise<unknown> | void;
   contentStyle?: StyleProp<ViewStyle>;
 }
 
@@ -17,8 +18,9 @@ interface Props {
  * One games page under the rail: web's `.container.gm-page` (28 px top, 18 px sides, 64 px bottom) over the
  * drifting checker, plus main's 112 px of clearance for the floating dock.
  */
-export function GamesPage({ children, scroll = true, refreshing = false, onRefresh, contentStyle }: Props) {
+export function GamesPage({ children, scroll = true, onRefresh, contentStyle }: Props) {
   const { color } = useGamesTokens();
+  const refreshControl = usePullRefresh(onRefresh);
   if (!scroll) {
     return (
       <View style={[styles.fill, { backgroundColor: color.ground }]}>
@@ -31,7 +33,7 @@ export function GamesPage({ children, scroll = true, refreshing = false, onRefre
     <ScrollView
       style={[styles.fill, { backgroundColor: color.ground }]}
       contentContainerStyle={[styles.page, contentStyle]}
-      refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={color.inkMuted} /> : undefined}
+      refreshControl={refreshControl}
       keyboardShouldPersistTaps="handled"
     >
       <Checker />

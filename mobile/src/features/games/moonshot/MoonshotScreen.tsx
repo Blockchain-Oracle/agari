@@ -22,7 +22,7 @@ export function MoonshotScreen() {
   useGameScreen("moonshot");
 
   return (
-    <GamesPage {...refresh}>
+    <GamesPage onRefresh={refresh}>
       <ReadingBoundary reading={reading} shape="plate">
         {(reserve) =>
           reserve ? (
