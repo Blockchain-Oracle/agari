@@ -32,7 +32,7 @@ function Tile({ label, value, unit }: { label: string; value: string; unit?: str
 }
 
 /**
- * The phone board's header (web's `.lb-hero` language at a phone size): the mono eyebrow with the tilted board stamp
+ * The phone board's header (web's `.lb-hero` language at a phone size): the mono eyebrow with the tilted date stamp
  * at its right, "The house of names." on one line at 32 pt with the vermilion middle word, then traders, total staked
  * and the next close as one row of compact tiles.
  */
@@ -51,9 +51,7 @@ export function BoardHero({ data, board, span, nextExpirySec, nowMs }: Props) {
           {BOARD_PHONE.eyebrow}
         </Text>
         <View style={[styles.stamp, { borderColor: color.accent }]} accessible accessibilityLabel={`${words.stamp(board.period)}, ${words.stampSub(span)}`}>
-          <Text style={[styles.stampText, { color: color.accent }]}>
-            {words.stamp(board.period)} · {words.stampSub(span)}
-          </Text>
+          <Text style={[styles.stampText, { color: color.accent }]}>{words.stampSub(span)}</Text>
         </View>
       </View>
       <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>

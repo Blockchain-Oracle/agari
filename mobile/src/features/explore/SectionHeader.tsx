@@ -27,10 +27,14 @@ export function SectionHeader({ index, title, eyebrow, desc, aside, style }: Pro
           <Text style={[styles.dot, { color: color.inkMuted }]} accessibilityElementsHidden importantForAccessibility="no">
             ·
           </Text>
-          <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+          <Text style={[styles.title, styles.shrink, { color: color.ink }]} accessibilityRole="header" numberOfLines={1}>
             {title}
           </Text>
-          {eyebrow ? <Text style={[styles.micro, { color: color.inkSecondary }]}>{eyebrow}</Text> : null}
+          {eyebrow ? (
+            <Text style={[styles.micro, styles.shrink, { color: color.inkSecondary }]} numberOfLines={1}>
+              {eyebrow}
+            </Text>
+          ) : null}
         </View>
         {aside}
       </View>
@@ -42,7 +46,9 @@ export function SectionHeader({ index, title, eyebrow, desc, aside, style }: Pro
 const styles = StyleSheet.create({
   header: { paddingBottom: 8, borderBottomWidth: 1 },
   top: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
-  left: { flexDirection: "row", alignItems: "baseline", gap: 8, flexShrink: 1, flexWrap: "wrap" },
+  // One row, never wrapped: the title and eyebrow shrink and truncate before the index leaves the line.
+  left: { flexDirection: "row", alignItems: "baseline", gap: 8, flexShrink: 1 },
+  shrink: { flexShrink: 1 },
   micro: { fontFamily: FONT.bodyMedium, fontSize: 11, lineHeight: 13.2, letterSpacing: 1.76, textTransform: "uppercase" },
   dot: { fontFamily: FONT.body, fontSize: 15, lineHeight: 24 },
   title: { fontFamily: FONT.heading, fontSize: 18, lineHeight: 23.4 },

@@ -1,50 +1,21 @@
 import type { ThemeName } from "../../index";
 
 /**
- * `/leaderboard` as web computes it at 402 px: yosuku part-08/09 (hero, podium, banzuke, you bar), part-15's phone
+ * `/leaderboard` as web computes it at 402 px: yosuku part-08/09 (podium, rows, you bar), part-15's phone
  * rules and leaderboard-theme.css's light twins, which win over part-17 on production. The phone board (owner's
  * mobile-first pass) adds part-08's `.pill-tabs` segment, chip rings, the pedestals and the win-rate track.
  */
 const DARK = {
-  heroRule: "rgba(255, 255, 255, 0.08)",
-  filterRule: "rgba(255, 255, 255, 0.06)",
   // .podium-spot
   spotBorder: "rgba(255, 255, 255, 0.08)",
   spotFill: "rgba(255, 255, 255, 0.012)",
   firstBorder: "rgba(224, 77, 38, 0.3)",
-  firstFill: "rgba(255, 255, 255, 0.02)",
-  firstGlow: "rgba(224, 77, 38, 0.08)",
-  firstGlowClear: "rgba(224, 77, 38, 0)",
-  rank: "rgba(255, 255, 255, 0.04)",
-  firstRank: "rgba(224, 77, 38, 0.18)",
-  ordFill: "#FFFFFF",
-  ordInk: "#000000",
   firstOrdInk: "#FFFFFF",
-  sashInk: "#FFFFFF",
-  sashShadow: "rgba(224, 77, 38, 0.3)",
-  // .podium-portrait: the gold disc, the champion's fire disc, the ::after highlight
+  // .podium-portrait's ring
   portraitBorder: "rgba(255, 255, 255, 0.12)",
-  firstPortraitBorder: "rgba(224, 77, 38, 0.4)",
-  portraitInk: "rgba(255, 255, 255, 0.62)",
-  gold: ["#2A2418", "#5A4730", "#C9B78A"] as const,
-  fire: ["#1A1612", "#6B3520", "#E04D26"] as const,
-  highlight: "rgba(255, 255, 255, 0.3)",
-  highlightClear: "rgba(255, 255, 255, 0)",
-  // .banzuke-*
-  wrapBorder: "rgba(255, 255, 255, 0.06)",
-  wrapLine: "rgba(255, 255, 255, 0.012)",
-  stripFill: "rgba(255, 255, 255, 0.02)",
-  stripBorder: "rgba(255, 255, 255, 0.06)",
-  headBorder: "rgba(255, 255, 255, 0.08)",
-  centerBorder: "rgba(255, 255, 255, 0.06)",
-  centerFill: "rgba(0, 0, 0, 0.2)",
+  // .banzuke-row, as the phone list's rows
   rowBorder: "rgba(255, 255, 255, 0.04)",
   rowPressed: "rgba(255, 255, 255, 0.02)",
-  dividerFill: "rgba(0, 0, 0, 0.3)",
-  dividerBorder: "rgba(255, 255, 255, 0.06)",
-  bzPortrait: ["#2A2418", "#6B5630"] as const,
-  bzPortraitBorder: "rgba(255, 255, 255, 0.1)",
-  bzPortraitInk: "rgba(255, 255, 255, 0.55)",
   // .you-bar
   youInk: "#FFFFFF",
   youSoft: "rgba(255, 255, 255, 0.7)",
@@ -64,42 +35,13 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
-  heroRule: "rgba(20, 18, 16, 0.11)",
-  filterRule: "rgba(20, 18, 16, 0.07)",
   spotBorder: "rgba(20, 18, 16, 0.11)",
   spotFill: "rgba(20, 18, 16, 0.02)",
   firstBorder: "rgba(224, 77, 38, 0.3)",
-  firstFill: "rgba(20, 18, 16, 0.02)",
-  firstGlow: "rgba(224, 77, 38, 0.08)",
-  firstGlowClear: "rgba(224, 77, 38, 0)",
-  rank: "rgba(20, 18, 16, 0.05)",
-  firstRank: "rgba(224, 77, 38, 0.18)",
-  ordFill: "#141210",
-  ordInk: "#F4EEE3",
   firstOrdInk: "#141210",
-  sashInk: "#141210",
-  sashShadow: "rgba(224, 77, 38, 0.3)",
   portraitBorder: "rgba(20, 18, 16, 0.16)",
-  firstPortraitBorder: "rgba(224, 77, 38, 0.4)",
-  portraitInk: "rgba(255, 255, 255, 0.62)",
-  gold: ["#2A2418", "#5A4730", "#C9B78A"] as const,
-  fire: ["#1A1612", "#6B3520", "#E04D26"] as const,
-  highlight: "rgba(255, 255, 255, 0.3)",
-  highlightClear: "rgba(255, 255, 255, 0)",
-  wrapBorder: "rgba(20, 18, 16, 0.07)",
-  wrapLine: "rgba(20, 18, 16, 0.02)",
-  stripFill: "rgba(20, 18, 16, 0.03)",
-  stripBorder: "rgba(20, 18, 16, 0.07)",
-  headBorder: "rgba(20, 18, 16, 0.11)",
-  centerBorder: "rgba(20, 18, 16, 0.07)",
-  centerFill: "rgba(20, 18, 16, 0.04)",
   rowBorder: "rgba(20, 18, 16, 0.07)",
   rowPressed: "rgba(20, 18, 16, 0.03)",
-  dividerFill: "rgba(20, 18, 16, 0.04)",
-  dividerBorder: "rgba(20, 18, 16, 0.07)",
-  bzPortrait: ["#2A2418", "#6B5630"] as const,
-  bzPortraitBorder: "rgba(20, 18, 16, 0.16)",
-  bzPortraitInk: "rgba(255, 255, 255, 0.8)",
   youInk: "#FBF7EE",
   youSoft: "rgba(255, 255, 255, 0.7)",
   youShadow: "rgba(224, 77, 38, 0.4)",

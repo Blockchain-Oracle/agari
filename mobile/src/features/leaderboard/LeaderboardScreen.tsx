@@ -76,6 +76,12 @@ export function LeaderboardScreen() {
   const showYou = address !== null && data !== null;
   const dockTop = Math.max(12.8, insets.bottom - 8) + DOCK_H;
   const count = data?.rankings.length ?? 0;
+  // Only the sections on screen are numbered, in order: 01 podium, 02 the field when it shows, then live activity.
+  const showPodium = data !== null && podium.length > 0;
+  const showField = data !== null && field.length > 0;
+  const shown = [showPodium && "podium", showField && "field", "activity"].filter(Boolean) as string[];
+  const numberOf = (section: string) => String(shown.indexOf(section) + 1).padStart(2, "0");
+  const numbers = { podium: numberOf("podium"), field: numberOf("field"), activity: numberOf("activity") };
 
   return (
     <Screen title={LEADERBOARD.title} scroll={false}>
@@ -89,9 +95,9 @@ export function LeaderboardScreen() {
         <BoardControls board={board} onBoard={setBoard} meta={meta} />
         <View>
           {reading?.ok ? (
-            <Text style={[styles.freshness, { color: reading.stale ? color.warning : color.inkMuted }]} accessibilityLiveRegion="polite">
-              {LEADERBOARD.updated(reading.asOfMs)}
-              {reading.stale ? ` · ${reading.staleReason === "refresh-failed" ? LEADERBOARD.refreshFailed : LEADERBOARD.refreshing}` : ""}
+            <Text style={[styles.freshness, { color: color.inkDisabled }]} numberOfLines={1} accessibilityLiveRegion="polite">
+              {BOARD_PHONE.updated(reading.asOfMs)}
+              {reading.stale ? ` · ${BOARD_PHONE.retrying}` : ""}
             </Text>
           ) : null}
           {reading === null ? <BoardSkeleton label={LEADERBOARD.loading} /> : null}
@@ -101,20 +107,20 @@ export function LeaderboardScreen() {
           {data && count === 0 ? (
             <BoardEmpty headline={LEADERBOARD.empty.headline} sub={LEADERBOARD.empty.body} action={{ label: BOARD_PHONE.placeCall, onPress: () => router.navigate("/markets") }} />
           ) : null}
-          {data && podium.length > 0 ? (
+          {data && showPodium ? (
             <View>
-              <SectionHeader index={LEADERBOARD.podium.number} title={LEADERBOARD.podium.title} style={styles.head} />
+              <SectionHeader index={numbers.podium} title={LEADERBOARD.podium.title} style={styles.head} />
               <Podium spots={podium} decimals={data.meta.decimals} symbol={data.meta.symbol} />
             </View>
           ) : null}
           {data && count > 0 && count <= 3 ? <BoardSparse headline={BOARD_PHONE.sparse(count, span)} /> : null}
-          {data && field.length > 0 ? (
+          {data && showField ? (
             <View>
-              <SectionHeader index={BOARD_PHONE.field.number} title={BOARD_PHONE.field.title} desc={BOARD_PHONE.field.desc} eyebrow={LEADERBOARD.field.meta(span)} style={styles.head} />
+              <SectionHeader index={numbers.field} title={BOARD_PHONE.field.title} desc={BOARD_PHONE.field.desc} eyebrow={LEADERBOARD.field.meta(span)} style={styles.head} />
               <RankList rows={field} decimals={data.meta.decimals} address={address} />
             </View>
           ) : null}
-          <BoardActivity reading={activity} nowMs={nowMs} />
+          <BoardActivity reading={activity} nowMs={nowMs} index={numbers.activity} />
         </View>
       </ScrollView>
       {showYou && data ? (
@@ -129,7 +135,7 @@ export function LeaderboardScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   body: { paddingHorizontal: CONTAINER_GUTTER },
-  freshness: { marginTop: 12, fontFamily: FONT.dataRegular, fontSize: 10.5, lineHeight: 16 },
+  freshness: { marginTop: 10, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 14, letterSpacing: 0.6 },
   head: { marginTop: 24, marginBottom: 16 },
   you: { position: "absolute", left: CONTAINER_GUTTER, right: CONTAINER_GUTTER },
 });

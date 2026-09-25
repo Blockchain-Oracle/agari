@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { FONT, useTheme } from "~/theme";
 import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
 import { openProfile, record, type FieldRow } from "./board";
-import { Portrait } from "./Portrait";
+import { HueAvatar } from "~/features/social/HueAvatar";
 import { BOARD_PHONE } from "./words";
 
 function Row({ row, decimals, mine }: { row: FieldRow; decimals: number; mine: boolean }) {
@@ -21,17 +21,7 @@ function Row({ row, decimals, mine }: { row: FieldRow; decimals: number; mine: b
       style={({ pressed }) => [styles.row, { borderBottomColor: t.rowBorder }, mine && { backgroundColor: color.accentWash }, pressed && { backgroundColor: t.rowPressed }]}
     >
       <Text style={[styles.rank, { color: mine ? color.accent : color.inkMuted }]}>{String(rank).padStart(2, "0")}</Text>
-      <Portrait
-        id={`rank-${trader.owner}`}
-        address={trader.owner}
-        size={34}
-        stops={t.bzPortrait}
-        border={t.bzPortraitBorder}
-        borderWidth={1}
-        ink={t.bzPortraitInk}
-        fontFamily={FONT.heading}
-        fontSize={13}
-      />
+      <HueAvatar address={trader.owner} size={34} />
       <View style={styles.who}>
         <Text style={[styles.name, { color: color.ink }]} numberOfLines={1}>
           {shortHex(trader.owner)}
@@ -53,7 +43,7 @@ function Row({ row, decimals, mine }: { row: FieldRow; decimals: number; mine: b
 }
 
 /**
- * The phone field: ranks four to fifty as dense 62 pt rows — rank, portrait, name over the win–loss record, profit in
+ * The phone field: ranks four to fifty as dense 62 pt rows — rank, hue portrait, name over the win–loss record, profit in
  * green or red over a win-rate bar. Your own row takes the vermilion wash; a row opens that trader's record.
  */
 export function RankList({ rows, decimals, address }: { rows: readonly FieldRow[]; decimals: number; address: string | null }) {

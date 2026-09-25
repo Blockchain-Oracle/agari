@@ -13,13 +13,13 @@ const ROWS = 6;
  * web's `BoardActivity`, compact for a phone: the section head, the latest six calls and cash-outs on web's stats
  * rows, each opening its transaction.
  */
-export function BoardActivity({ reading, nowMs }: { reading: Reading<TractionData> | null; nowMs: number }) {
+export function BoardActivity({ reading, nowMs, index }: { reading: Reading<TractionData> | null; nowMs: number; index: string }) {
   const words = LEADERBOARD.activity;
   const traction = reading?.ok ? reading.value : null;
   const updated = traction && nowMs > 0 ? words.updated(ago(traction.meta.computedAtMs, nowMs)) : undefined;
   return (
     <View>
-      <SectionHeader index={words.number} title={words.title} eyebrow={updated} style={styles.head} />
+      <SectionHeader index={index} title={words.title} eyebrow={updated} style={styles.head} />
       {traction && nowMs > 0 ? (
         <ActivityList events={traction.recent.slice(0, ROWS)} decimals={traction.meta.decimals} symbol={traction.meta.symbol} nowMs={nowMs} />
       ) : (

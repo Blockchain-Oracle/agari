@@ -4,7 +4,7 @@ import { LEADERBOARD } from "@/features/leaderboard/copy";
 import { FONT, useTheme } from "~/theme";
 import { leaderboardTokens } from "~/theme/web/explore/leaderboard";
 import { openProfile, record, type Spot } from "./board";
-import { Portrait } from "./Portrait";
+import { HueAvatar } from "~/features/social/HueAvatar";
 
 /** Pedestal heights, 2-1-3, and portrait sizes: the champion stands tallest. */
 const PEDESTAL = { 1: 64, 2: 44, 3: 32 } as const;
@@ -29,17 +29,9 @@ function Step({ spot, decimals, symbol }: { spot: Spot; decimals: number; symbol
           <Text style={[styles.crownText, { color: t.firstOrdInk }]}>{words.ordinals[1]}</Text>
         </View>
       ) : null}
-      <Portrait
-        id={`podium-${spot.r}`}
-        address={spot.owner}
-        size={AVATAR[spot.r]}
-        stops={first ? t.fire : t.gold}
-        border={first ? t.firstPortraitBorder : t.portraitBorder}
-        borderWidth={2}
-        ink={t.portraitInk}
-        fontFamily={FONT.heading}
-        fontSize={Math.round(AVATAR[spot.r] * 0.4)}
-      />
+      <View style={[styles.ring, { borderColor: first ? color.accent : t.portraitBorder, borderRadius: AVATAR[spot.r] / 2 + 3 }]}>
+        <HueAvatar address={spot.owner} size={AVATAR[spot.r]} />
+      </View>
       <Text style={[styles.name, { color: color.ink }]} numberOfLines={1}>
         {shortHex(spot.owner, 4, 4)}
       </Text>
@@ -63,8 +55,8 @@ function Step({ spot, decimals, symbol }: { spot: Spot; decimals: number; symbol
 }
 
 /**
- * The phone podium: the top three side by side on 2-1-3 pedestals (web's podium order), each with its gradient
- * portrait, short name, profit in green or red and win–loss record; ~200 pt tall. A spot opens that trader's record.
+ * The phone podium: the top three side by side on 2-1-3 pedestals (web's podium order), each with its hue
+ * portrait (the same one the profile and activity draw), short name, profit in green or red and win–loss record; ~200 pt tall. A spot opens that trader's record.
  */
 export function Podium({ spots, decimals, symbol }: { spots: readonly Spot[]; decimals: number; symbol: string }) {
   return (
@@ -82,6 +74,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   crown: { borderRadius: 2, paddingVertical: 2, paddingHorizontal: 6, marginBottom: 6 },
   crownText: { fontFamily: FONT.dataStrong, fontSize: 9, lineHeight: 12, letterSpacing: 1.6 },
+  ring: { borderWidth: 2, padding: 1 },
   name: { marginTop: 6, fontFamily: FONT.heading, fontSize: 13, lineHeight: 18, letterSpacing: -0.13 },
   pnl: { fontFamily: FONT.headingHeavy, fontSize: 16, lineHeight: 20, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
   rec: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 14, letterSpacing: 0.6, marginBottom: 6 },
