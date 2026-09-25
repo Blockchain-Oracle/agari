@@ -109,7 +109,8 @@ function RoomBody({ roomId, ticker, onClose, onBet }: Omit<RoomSheetProps, "visi
  * One Room — web's `RoomSheet` + `CommentRoom` on a phone: a bottom sheet (rounded 24 at the top, up to 88 % of the
  * screen) over a 70 % black scrim, the vermilion hairline across its top edge, the head (the locked-bubble mark, the
  * call, the "bettors only" badge, the Window/ticker switch, ✕), then the gate states or the thread. web's gate
- * machine (`useRoom`) drives it; it follows the theme and claims no encryption, as web's does.
+ * machine (`useRoom`) drives it; it follows the theme and claims no encryption, as web's does. web's Dialog has no enter
+ * transition on `.room-sheet` or `.room-scrim` (room.css), so the sheet appears in place, as it does there.
  */
 export function RoomSheet({ visible, callLabel, switcher, onClose, ...body }: RoomSheetProps) {
   const { name } = useTheme();
@@ -119,7 +120,7 @@ export function RoomSheet({ visible, callLabel, switcher, onClose, ...body }: Ro
     onClose();
   };
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={close}>
+    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={close}>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: V.scrim }]} onPress={close} accessibilityLabel={ROOM.close} />
         <View style={[styles.sheet, { borderColor: t.hairline }]}>
