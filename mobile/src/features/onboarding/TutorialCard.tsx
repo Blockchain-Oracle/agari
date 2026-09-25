@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   /* Button default size with `rounded-lg text-sm font-bold tracking-wider uppercase` */
   next: { height: 48, paddingHorizontal: 16, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  nextText: { fontFamily: FONT.bodyStrong, fontSize: 13.125, lineHeight: 18.75, letterSpacing: 0.656, textTransform: "uppercase" },
+  nextText: { fontFamily: FONT.bodyBold, fontSize: 13.125, lineHeight: 18.75, letterSpacing: 0.656, textTransform: "uppercase" },
   down: { transform: [{ translateY: 1 }] },
 });

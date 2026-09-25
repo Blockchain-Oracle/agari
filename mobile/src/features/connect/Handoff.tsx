@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   main: { flex: 1, alignItems: "center", justifyContent: "center" },
   stack: { alignItems: "center", gap: 8 },
   text: { alignItems: "center", gap: 4, paddingHorizontal: 32 },
-  title: { fontFamily: FONT.bodyStrong, fontSize: 18, lineHeight: 24, textAlign: "center" },
+  title: { fontFamily: FONT.bodyBold, fontSize: 18, lineHeight: 24, textAlign: "center" },
   t14m: { fontFamily: FONT.bodyMedium, fontSize: 14, lineHeight: 18, textAlign: "center" },
   status: { flexDirection: "row", alignItems: "center", height: 32, marginTop: 8 },
   install: { paddingTop: 20 },

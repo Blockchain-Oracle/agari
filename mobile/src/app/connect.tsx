@@ -104,6 +104,6 @@ const styles = StyleSheet.create({
   head: { paddingTop: 14, paddingBottom: 4 },
   headRow: { justifyContent: "center", paddingHorizontal: 20, paddingBottom: 6 },
   back: { position: "absolute", left: 0, top: 0, zIndex: 1 },
-  title: { width: "100%", marginTop: 4, textAlign: "center", fontFamily: FONT.bodyStrong, fontSize: 20, lineHeight: 24 },
+  title: { width: "100%", marginTop: 4, textAlign: "center", fontFamily: FONT.bodyBold, fontSize: 20, lineHeight: 24 },
   close: { position: "absolute", right: 14, top: 0, height: 32, justifyContent: "center" },
 });

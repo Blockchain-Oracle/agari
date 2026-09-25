@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   id: { alignItems: "center", justifyContent: "center", gap: 16, margin: 8 },
   avatar: { width: 82, height: 82, borderRadius: 9999, marginTop: 24, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   emoji: { fontSize: 45, lineHeight: 54 },
-  name: { fontFamily: FONT.bodyStrong, fontSize: 20, lineHeight: 24, textAlign: "center" },
+  name: { fontFamily: FONT.bodyHeavy, fontSize: 20, lineHeight: 24, textAlign: "center" },
   actions: { flexDirection: "row", gap: 8, margin: 2, marginTop: 16 },
   action: { flex: 1, padding: 6, paddingTop: 8, borderRadius: 8, alignItems: "center", justifyContent: "center", gap: 1 },
   actionIcon: { height: 16, justifyContent: "center" },

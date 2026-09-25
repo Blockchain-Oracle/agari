@@ -113,6 +113,6 @@ const styles = StyleSheet.create({
   action: { height: 28, borderWidth: 1, borderRadius: 8, paddingVertical: 4, paddingHorizontal: 12, alignItems: "center", justifyContent: "center" },
   actionLarge: { height: "auto", paddingVertical: 10, paddingHorizontal: 24 },
   actionSmall: { height: "auto", paddingVertical: 5, paddingHorizontal: 10, borderWidth: 0 },
-  actionText: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 18 },
+  actionText: { fontFamily: FONT.bodyBold, fontSize: 14, lineHeight: 18 },
   actionTextLarge: { fontSize: 16, lineHeight: 20 },
 });
