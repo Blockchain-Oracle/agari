@@ -1,104 +1,137 @@
+import { ArrowRight } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
-import { ARCHITECTURE, BASKETS, DESK_NEVER, DESK_PROGRAM_ENFORCES, DESK_STEPS, SETTLEMENT_STEPS, type DeskStepKind } from "@/features/how-it-works/content";
+import { ARCHITECTURE, BASKETS, DESK_NEVER, DESK_PROGRAM_ENFORCES, DESK_STEPS, SETTLEMENT_STEPS } from "@/features/how-it-works/content";
 import { HOW_IT_WORKS } from "@/features/how-it-works/copy";
 import { ASIDES } from "@/features/how-it-works/sessions";
 import { useTheme } from "~/theme";
-import { Body, CardHead, Definitions, FeeTitle, HiwCard, Rise, SectionLabel, Tag, VStepper, type HiwTone } from "./Blocks";
-import { ARCH_GLYPHS, ASIDE_GLYPHS, GLYPH } from "./symbols";
+import { hiwTokens } from "~/theme/web/explore/how-it-works";
+import { Body, Card, CardHead, FeeTitle, Label, Params, Rise, Section, StepLabel, Steps, Tag } from "./Blocks";
+import { ARCH_ICONS, ASIDE_ICONS, LABEL_ICONS } from "./symbols";
 
-const S = HOW_IT_WORKS.sections;
+const W = HOW_IT_WORKS;
 
-/** web Settlement.tsx: the settlement process as a stepper, then the on-chain architecture cards in blue. */
+/** web Settlement.tsx: the settlement process steps and the three blue architecture cards. */
 export function SettlementSection() {
   return (
     <>
-      <SectionLabel title={S.settlement} />
-      <Rise>
-        <HiwCard>
-          <VStepper steps={SETTLEMENT_STEPS.map((item) => ({ key: item.step, label: item.label, body: item.desc }))} />
-        </HiwCard>
-      </Rise>
-
-      <SectionLabel title={S.architecture} glyph={GLYPH.shield} blue />
-      {ARCHITECTURE.map((card, index) => (
-        <Rise key={card.title} i={index}>
-          <HiwCard tone="blue">
-            <CardHead glyph={ARCH_GLYPHS[card.title]} title={card.title} tone="blue" />
-            <Body>{card.body}</Body>
-          </HiwCard>
+      <Section>
+        <Label title={W.sections.settlement} />
+        <Rise baseMs={550}>
+          <Card>
+            <Steps
+              items={SETTLEMENT_STEPS.map((item) => ({
+                key: item.step,
+                num: item.step,
+                body: (
+                  <>
+                    <StepLabel>{item.label}</StepLabel>
+                    <Body>{item.desc}</Body>
+                  </>
+                ),
+              }))}
+            />
+          </Card>
         </Rise>
-      ))}
+      </Section>
+
+      <Section>
+        <Label title={W.sections.architecture} icon={LABEL_ICONS.architecture} blue />
+        <View style={styles.grid}>
+          {ARCHITECTURE.map((card, index) => (
+            <Rise key={card.title} index={index} baseMs={500}>
+              <Card tone="blue">
+                <CardHead icon={ARCH_ICONS[card.title] ?? ArrowRight} title={card.title} blue />
+                <Body>{card.body}</Body>
+              </Card>
+            </Rise>
+          ))}
+        </View>
+      </Section>
     </>
   );
 }
 
-/** web SessionLanes.tsx `Asides`: halts, voids and your money, in one card. */
+/** web SessionLanes.tsx `Asides`: halts, voids and your money in one card, ruled between. */
 export function AsidesSection() {
-  const { color } = useTheme();
+  const { name } = useTheme();
+  const t = hiwTokens(name);
   return (
-    <>
-      <SectionLabel title={S.asides} />
-      <Rise>
-        <HiwCard>
+    <Section>
+      <Label title={W.sections.asides} />
+      <Rise baseMs={600}>
+        <Card>
           {ASIDES.map((aside, index) => (
-            <View key={aside.title} style={[styles.aside, index > 0 && { borderTopColor: color.hairline, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 14 }]}>
-              <CardHead glyph={ASIDE_GLYPHS[aside.title]} title={aside.title} />
+            <View key={aside.title} style={index > 0 ? [styles.next, { borderTopColor: t.line }] : null}>
+              <CardHead icon={ASIDE_ICONS[aside.title] ?? ArrowRight} title={aside.title} fee />
               <Body>{aside.body}</Body>
             </View>
           ))}
-        </HiwCard>
+        </Card>
       </Rise>
-    </>
+    </Section>
   );
 }
 
-const KIND_TONE: Record<DeskStepKind, HiwTone> = { arithmetic: "plain", ai: "mint", program: "blue" };
-
-/** web BasketsAndDesk.tsx: Baskets as a definition list, then how the desk decides, step by step, and its two lists. */
+/** web BasketsAndDesk.tsx: "Baskets" as a definition list, then "How the Desk Decides" step by step. */
 export function BasketsDeskSection() {
   return (
     <>
-      <SectionLabel title={S.baskets} glyph={GLYPH.layers} />
-      <Rise>
-        <HiwCard>
-          <Body>{BASKETS.body}</Body>
-          <Definitions rows={BASKETS.uses} />
-        </HiwCard>
-      </Rise>
+      <Section>
+        <Label title={W.sections.baskets} icon={LABEL_ICONS.baskets} />
+        <Rise baseMs={650}>
+          <Card>
+            <Body style={styles.bodyGap}>{BASKETS.body}</Body>
+            <Params rows={BASKETS.uses} />
+          </Card>
+        </Rise>
+      </Section>
 
-      <SectionLabel title={S.desk} glyph={GLYPH.listChecks} blue />
-      <Body>{HOW_IT_WORKS.deskLead}</Body>
-      <Rise>
-        <HiwCard tone="blue">
-          <VStepper
-            tone="blue"
-            steps={DESK_STEPS.map((item) => ({
-              key: item.step,
-              label: item.label,
-              tag: HOW_IT_WORKS.deskKinds[item.kind],
-              tagTone: KIND_TONE[item.kind],
-              body: item.desc,
-            }))}
-          />
-        </HiwCard>
-      </Rise>
-      <Rise i={1}>
-        <HiwCard tone="blue">
-          <FeeTitle>{HOW_IT_WORKS.deskEnforcesTitle}</FeeTitle>
-          <Definitions rows={DESK_PROGRAM_ENFORCES} />
-        </HiwCard>
-      </Rise>
-      <Rise i={2}>
-        <HiwCard>
-          <FeeTitle>{HOW_IT_WORKS.deskNeverTitle}</FeeTitle>
-          <Definitions rows={DESK_NEVER} />
-        </HiwCard>
-      </Rise>
-      <Tag>{HOW_IT_WORKS.deskNetwork}</Tag>
+      <Section>
+        <Label title={W.sections.desk} icon={LABEL_ICONS.desk} blue />
+        <Body style={styles.leadGap}>{W.deskLead}</Body>
+        <Rise index={1} baseMs={650}>
+          <Card tone="blue">
+            <Steps
+              items={DESK_STEPS.map((item) => ({
+                key: item.step,
+                num: item.step,
+                body: (
+                  <>
+                    <StepLabel>{item.label}</StepLabel>
+                    <Tag style={styles.kindTag}>{W.deskKinds[item.kind]}</Tag>
+                    <Body>{item.desc}</Body>
+                  </>
+                ),
+              }))}
+            />
+          </Card>
+        </Rise>
+        <View style={[styles.grid, styles.top]}>
+          <Rise index={2} baseMs={650}>
+            <Card tone="blue">
+              <FeeTitle>{W.deskEnforcesTitle}</FeeTitle>
+              <Params rows={DESK_PROGRAM_ENFORCES} />
+            </Card>
+          </Rise>
+          <Rise index={3} baseMs={650}>
+            <Card>
+              <FeeTitle>{W.deskNeverTitle}</FeeTitle>
+              <Params rows={DESK_NEVER} />
+            </Card>
+          </Rise>
+        </View>
+        <Tag style={styles.networkTag}>{W.deskNetwork}</Tag>
+      </Section>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  aside: { gap: 8 },
+  grid: { gap: 16 },
+  top: { marginTop: 16 },
+  next: { marginTop: 24, paddingTop: 24, borderTopWidth: 1 },
+  bodyGap: { marginBottom: 24 },
+  leadGap: { marginBottom: 16 },
+  kindTag: { marginBottom: 8 },
+  networkTag: { marginTop: 16, marginBottom: 0 },
 });

@@ -1,177 +1,213 @@
-import { SymbolView } from "expo-symbols";
+import { ArrowRight } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { FEES, MECHANICS, QUOTE_FIELDS, STEPS } from "@/features/how-it-works/content";
 import { HOW_IT_WORKS } from "@/features/how-it-works/copy";
 import { LANES, PRE_OPEN, SESSION_WORDS } from "@/features/how-it-works/sessions";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { Body, CardHead, FeeTitle, Definitions, HiwCard, Rise, SectionLabel, Tag, toneInk, VStepper } from "./Blocks";
-import { Formula, PayoutSplit, WeekStrip } from "./Diagrams";
-import { GLYPH, LANE_GLYPHS, MECHANIC_GLYPHS, STEP_GLYPHS } from "./symbols";
+import { FONT, useTheme } from "~/theme";
+import { hiwTokens } from "~/theme/web/explore/how-it-works";
+import { Body, Card, CardHead, FeeTitle, HIW_FONT, Label, Params, Rise, Section, Steps, StepTitle, Tag } from "./Blocks";
+import { LABEL_ICONS, LANE_ICONS, MECHANIC_ICONS, STEP_ICONS } from "./symbols";
 
-const S = HOW_IT_WORKS.sections;
-const EX = HOW_IT_WORKS.example;
+const W = HOW_IT_WORKS;
 
-/** web Steps.tsx: the four "Getting Started" tiles, each a numbered step in its tone, then the payout example. */
-export function StepsSection() {
-  const { color } = useTheme();
-  return (
-    <>
-      <SectionLabel title={S.steps} />
-      {STEPS.map((step, index) => (
-        <Rise key={step.number} i={index}>
-          <HiwCard>
-            <View style={styles.step}>
-              <Text style={[styles.num, { color: toneInk(step.tone, color), borderColor: toneInk(step.tone, color) }]}>{step.number}</Text>
-              <View style={styles.stepBody}>
-                <View style={styles.stepTitle}>
-                  <SymbolView name={STEP_GLYPHS[step.number] ?? GLYPH.target} size={16} tintColor={toneInk(step.tone, color)} />
-                  <Text style={[TYPE.title, { color: color.ink }]}>{step.title}</Text>
-                </View>
-                <Body>{step.description}</Body>
-              </View>
-            </View>
-          </HiwCard>
-        </Rise>
-      ))}
-
-      <SectionLabel title={S.example} />
-      <Rise i={4}>
-        <HiwCard tone="mint">
-          <Tag tone="mint">{HOW_IT_WORKS.exampleTag}</Tag>
-          <PayoutSplit />
-          <View style={[styles.flow, { borderTopColor: color.hairline }]}>
-            <FlowLine lead={EX.buy} chip={EX.contracts} />
-            <FlowLine lead={EX.outcome} arrow />
-            <FlowLine lead={EX.get} chip={EX.payout} arrow />
-            <Text style={[TYPE.caption, { color: color.profit }]}>{EX.profit}</Text>
-          </View>
-        </HiwCard>
-      </Rise>
-    </>
-  );
-}
-
-/** One step of web's `hiw-example-row` (You buy [100 UP @ 64¢] → … → You get [100 tUSDC]), one per line on a phone. */
-function FlowLine({ lead, chip, arrow }: { lead: string; chip?: string; arrow?: boolean }) {
-  const { color } = useTheme();
-  return (
-    <View style={styles.flowLine}>
-      {arrow ? <SymbolView name={GLYPH.arrowRight} size={12} tintColor={color.inkMuted} /> : null}
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{lead}</Text>
-      {chip ? (
-        <View style={[styles.chip, { backgroundColor: color.surface2 }]}>
-          <Text style={[TYPE.data, styles.chipText, { color: color.ink }]}>{chip}</Text>
-        </View>
-      ) : null}
+/** The payout example card (web Steps.tsx): three figures, then the buy → outcome → get row. */
+function Example() {
+  const { name, color } = useTheme();
+  const t = hiwTokens(name);
+  const figures = [
+    { value: "64¢", label: W.example.up, ink: t.mint },
+    { value: "36¢", label: W.example.down, ink: color.loss },
+    { value: "1.00", label: W.example.max, ink: color.ink },
+  ];
+  const arrow = <ArrowRight size={16} color={color.inkDisabled} />;
+  const chip = (text: string) => (
+    <View style={[styles.chip, { backgroundColor: t.mintWash }]}>
+      <Text style={[styles.chipText, { color: t.mint }]}>{text}</Text>
     </View>
   );
+  return (
+    <Rise index={4} style={styles.exampleGap}>
+      <Card tone="mint">
+        <Label title={W.sections.example} />
+        <Tag>{W.exampleTag}</Tag>
+        <View style={styles.figures}>
+          {figures.map((f) => (
+            <View key={f.label} style={styles.figure}>
+              <Text style={[styles.figureValue, { color: f.ink }]}>{f.value}</Text>
+              <Text style={[styles.figureLabel, { color: color.inkMuted }]}>{f.label}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={[styles.exampleRow, { borderTopColor: t.line }]}>
+          <Text style={[styles.rowText, { color: color.inkSecondary }]}>{W.example.buy}</Text>
+          {chip(W.example.contracts)}
+          {arrow}
+          <Text style={[styles.rowText, { color: color.inkSecondary }]}>{W.example.outcome}</Text>
+          {arrow}
+          <Text style={[styles.rowText, { color: color.inkSecondary }]}>{W.example.get}</Text>
+          {chip(W.example.payout)}
+          <Text style={[styles.note, { color: color.inkDisabled }]}>{W.example.profit}</Text>
+        </View>
+      </Card>
+    </Rise>
+  );
 }
 
-/** web SessionLanes.tsx: the lead, the three lanes (with the week drawn), what the clock says, calls before the bell. */
-export function SessionsSection() {
+/** web Steps.tsx: "Getting Started" — four numbered tiles in their mint/blue tones — and the payout example. */
+export function StepsSection() {
+  const { name } = useTheme();
+  const t = hiwTokens(name);
   return (
     <>
-      <SectionLabel title={S.sessions} glyph={GLYPH.calendarClock} />
-      <Body>{HOW_IT_WORKS.sessionsLead}</Body>
-      <Rise>
-        <HiwCard>
-          <WeekStrip />
-        </HiwCard>
-      </Rise>
-      {LANES.map((lane, index) => (
-        <Rise key={lane.name} i={index + 1}>
-          <HiwCard>
-            <CardHead glyph={LANE_GLYPHS[lane.name]} title={lane.name} />
-            <Tag>{lane.clock}</Tag>
-            <Body>{lane.body}</Body>
-          </HiwCard>
-        </Rise>
-      ))}
-      <Rise i={4}>
-        <HiwCard>
-          <FeeTitle>{HOW_IT_WORKS.sessionWordsTitle}</FeeTitle>
-          <Body>{HOW_IT_WORKS.sessionWordsBody}</Body>
-          <Definitions rows={SESSION_WORDS} />
-        </HiwCard>
-      </Rise>
-      <Rise i={5}>
-        <HiwCard tone="mint">
-          <FeeTitle>{PRE_OPEN.title}</FeeTitle>
-          <Body>{PRE_OPEN.body}</Body>
-          <VStepper tone="mint" steps={PRE_OPEN.points.map((point) => ({ key: point, body: point }))} />
-        </HiwCard>
-      </Rise>
+      <Section>
+        <Label title={W.sections.steps} />
+        <View style={styles.grid}>
+          {STEPS.map((step, index) => (
+            <Rise key={step.number} index={index}>
+              <Card>
+                <View style={styles.step}>
+                  <View style={[styles.num, { backgroundColor: step.tone === "mint" ? t.mintWash : t.blueWash }]}>
+                    <Text style={[styles.numText, { color: step.tone === "mint" ? t.mint : t.blue }]}>{step.number}</Text>
+                  </View>
+                  <View style={styles.flex}>
+                    <StepTitle icon={STEP_ICONS[step.number] ?? ArrowRight} tone={step.tone}>
+                      {step.title}
+                    </StepTitle>
+                    <Body>{step.description}</Body>
+                  </View>
+                </View>
+              </Card>
+            </Rise>
+          ))}
+        </View>
+      </Section>
+      <Example />
     </>
   );
 }
 
-/** web Mechanics.tsx: Key Mechanics, How a Price Is Made (the formula and the quote's fields), the Fee Structure. */
+/** web SessionLanes.tsx: the three lanes, what the clock says, and calls before the bell. */
+export function SessionsSection() {
+  return (
+    <Section>
+      <Label title={W.sections.sessions} icon={LABEL_ICONS.sessions} />
+      <Body style={styles.leadGap}>{W.sessionsLead}</Body>
+      <View style={[styles.grid, styles.archGap]}>
+        {LANES.map((lane, index) => (
+          <Rise key={lane.name} index={index} baseMs={250}>
+            <Card>
+              <CardHead icon={LANE_ICONS[lane.name] ?? ArrowRight} title={lane.name} />
+              <Tag>{lane.clock}</Tag>
+              <Body>{lane.body}</Body>
+            </Card>
+          </Rise>
+        ))}
+      </View>
+      <Rise index={3} baseMs={250}>
+        <Card>
+          <FeeTitle>{W.sessionWordsTitle}</FeeTitle>
+          <Body style={styles.bodyGap}>{W.sessionWordsBody}</Body>
+          <Params rows={SESSION_WORDS} />
+        </Card>
+      </Rise>
+      <Rise index={4} baseMs={250} style={styles.archTop}>
+        <Card tone="mint">
+          <FeeTitle>{PRE_OPEN.title}</FeeTitle>
+          <Body style={styles.bodyGap}>{PRE_OPEN.body}</Body>
+          <Steps items={PRE_OPEN.points.map((point, index) => ({ key: point, num: String(index + 1), body: <Body>{point}</Body> }))} />
+        </Card>
+      </Rise>
+    </Section>
+  );
+}
+
+/** web Mechanics.tsx: "Key Mechanics", "How a Price Is Made" and "Fee Structure". */
 export function MechanicsSection() {
-  const { color } = useTheme();
-  const ink = { color: color.ink, fontFamily: FONT.bodyStrong };
+  const { name, color } = useTheme();
+  const t = hiwTokens(name);
+  const ink = { color: color.ink };
   return (
     <>
-      <SectionLabel title={S.mechanics} />
-      {MECHANICS.map((item, index) => (
-        <Rise key={item.title} i={index}>
-          <HiwCard>
-            <CardHead glyph={MECHANIC_GLYPHS[item.title]} title={item.title} />
-            <Body>{item.description}</Body>
-          </HiwCard>
-        </Rise>
-      ))}
-
-      <SectionLabel title={S.pricing} />
-      <Rise>
-        <HiwCard>
-          <Body>
-            Nothing here is modelled. The price of <Text style={ink}>UP</Text> is the best offer resting on the book, in
-            cents — which is also the market&apos;s probability. <Text style={ink}>DOWN</Text> is the same book seen from the
-            other side. A UP buy and a DOWN buy that add up to one dollar can match into a freshly minted pair, so a quote
-            exists from the first second without a market maker.
-          </Body>
-          <Formula />
-          <Definitions rows={QUOTE_FIELDS} />
-          <Body dim>
-            Every quote is read off the live book for your exact stake, so the cost you see is the cost the book would
-            charge now. Orders go in immediate-or-cancel at a protective limit: what crosses fills, the rest is cancelled,
-            and the escrow locked at that limit is the most a fill can ever cost.
-          </Body>
-        </HiwCard>
-      </Rise>
-
-      <SectionLabel title={S.fees} />
-      <Rise>
-        <HiwCard>
-          {FEES.map((fee, index) => (
-            <View key={fee.title} style={[styles.fee, index > 0 && { borderTopColor: color.hairline, borderTopWidth: StyleSheet.hairlineWidth }]}>
-              <FeeTitle>{fee.title}</FeeTitle>
-              <Body>{fee.body}</Body>
-            </View>
+      <Section>
+        <Label title={W.sections.mechanics} />
+        <View style={styles.grid}>
+          {MECHANICS.map((item, index) => (
+            <Rise key={item.title} index={index} baseMs={400}>
+              <Card>
+                <CardHead icon={MECHANIC_ICONS[item.title] ?? ArrowRight} title={item.title} />
+                <Body>{item.description}</Body>
+              </Card>
+            </Rise>
           ))}
-        </HiwCard>
-      </Rise>
+        </View>
+      </Section>
+
+      <Section>
+        <Label title={W.sections.pricing} />
+        <Rise baseMs={450}>
+          <Card>
+            <Body style={styles.bodyGap}>
+              Nothing here is modelled. The price of <Text style={ink}>UP</Text> is the best offer resting on the book, in cents — which is
+              also the market&apos;s probability. <Text style={ink}>DOWN</Text> is the same book seen from the other side. A UP buy and a DOWN
+              buy that add up to one dollar can match into a freshly minted pair, so a quote exists from the first second without a market
+              maker.
+            </Body>
+            <View style={[styles.formula, { backgroundColor: t.formula, borderColor: t.line }]} accessibilityRole="image" accessibilityLabel={W.sections.pricing}>
+              {[W.formula.identity, W.formula.cost, W.formula.payout].map((line) => (
+                <Text key={line} style={[styles.formulaText, { color: color.accent }]} numberOfLines={1}>
+                  {line}
+                </Text>
+              ))}
+            </View>
+            <Params rows={QUOTE_FIELDS} />
+            <Body dim style={styles.foot}>
+              Every quote is read off the live book for your exact stake, so the cost you see is the cost the book would charge now. Orders go
+              in immediate-or-cancel at a protective limit: what crosses fills, the rest is cancelled, and the escrow locked at that limit is
+              the most a fill can ever cost.
+            </Body>
+          </Card>
+        </Rise>
+      </Section>
+
+      <Section>
+        <Label title={W.sections.fees} />
+        <Rise baseMs={500}>
+          <Card>
+            {FEES.map((fee, index) => (
+              <View key={fee.title} style={index > 0 ? [styles.feeNext, { borderTopColor: t.line }] : null}>
+                <FeeTitle>{fee.title}</FeeTitle>
+                <Body>{fee.body}</Body>
+              </View>
+            ))}
+          </Card>
+        </Rise>
+      </Section>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  step: { flexDirection: "row", gap: 14 },
-  num: {
-    fontFamily: FONT.dataStrong,
-    fontSize: 18,
-    width: 36,
-    height: 36,
-    lineHeight: 34,
-    textAlign: "center",
-    borderWidth: 1.5,
-    borderRadius: RADIUS.md,
-  },
-  stepBody: { flex: 1, gap: 6 },
-  stepTitle: { flexDirection: "row", alignItems: "center", gap: 8 },
-  flow: { gap: 8, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12 },
-  flowLine: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  chip: { borderRadius: RADIUS.sm, paddingHorizontal: 8, paddingVertical: 3 },
-  chipText: { fontSize: 12.5 },
-  fee: { gap: 6, paddingTop: 12 },
+  grid: { gap: 16 },
+  flex: { flex: 1, minWidth: 0 },
+  step: { flexDirection: "row", alignItems: "flex-start", gap: 16 },
+  num: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  numText: { fontFamily: HIW_FONT.black, fontSize: 14, lineHeight: 22.4 },
+  exampleGap: { marginBottom: 80 },
+  figures: { flexDirection: "row", gap: 12, marginBottom: 24 },
+  figure: { flex: 1, alignItems: "center" },
+  figureValue: { fontFamily: HIW_FONT.monoHeavy, fontSize: 20, lineHeight: 32 },
+  figureLabel: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2, marginTop: 4, textAlign: "center" },
+  exampleRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12, paddingTop: 24, borderTopWidth: 1 },
+  rowText: { fontFamily: FONT.body, fontSize: 14, lineHeight: 22.4 },
+  chip: { borderRadius: 8, paddingVertical: 4, paddingHorizontal: 12 },
+  chipText: { fontFamily: HIW_FONT.monoBold, fontSize: 14, lineHeight: 22.4 },
+  note: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
+  leadGap: { marginBottom: 16 },
+  bodyGap: { marginBottom: 24 },
+  archGap: { marginBottom: 16 },
+  archTop: { marginTop: 16 },
+  formula: { gap: 6, marginBottom: 24, borderWidth: 1, borderRadius: 12, padding: 16 },
+  formulaText: { fontFamily: FONT.dataRegular, fontSize: 14, lineHeight: 22.4 },
+  foot: { marginTop: 24 },
+  feeNext: { marginTop: 24, paddingTop: 24, borderTopWidth: 1 },
 });
