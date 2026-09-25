@@ -1,5 +1,7 @@
 import type { ArcadePalette, Rgb } from "@/features/games/arcade/palette";
+import { useTheme } from "~/theme";
 import { DARK } from "~/theme/palette";
+import { arcadeTokens, type ArcadeTokens } from "~/theme/web/games-arcade";
 
 /**
  * web's `arcade/palette.ts` source on the phone. Web reads the screen's colours off `.ar-screen`, which
@@ -33,3 +35,9 @@ export const ISLAND = {
   screw: DARK.borderStrong,
   onAccent: DARK.onAccent,
 } as const;
+
+/** The arcade's computed web colours for the current theme (theme/web/games-arcade.ts). */
+export function useArcadeTokens(): ArcadeTokens {
+  const { name } = useTheme();
+  return arcadeTokens(name);
+}

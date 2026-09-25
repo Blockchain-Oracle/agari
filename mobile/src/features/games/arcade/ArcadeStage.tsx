@@ -10,16 +10,17 @@ import { useRoomToken } from "@/features/games/duel/useRoomToken";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Screen } from "~/components/kit";
-import { GameHeaderActions, useGameScreen, useGames } from "~/features/games/shell";
-import { SPACE, TYPE, useTheme } from "~/theme";
+import { Checker, Eyebrow, PAGE_PADDING } from "~/features/games/frame";
+import { useGameScreen, useGames } from "~/features/games/shell";
+import { FONT, useTheme } from "~/theme";
 import { ArcadeBoard } from "./ArcadeBoard";
 import { ArcadeIsland } from "./ArcadeIsland";
 import { ArcadeNote, ArcadeReadout, CalmSwitch } from "./ArcadeNotes";
 import { hopCrashSfx, hopScoreSfx, milestoneSfx, preloadArcadeSfx, regainSfx, rideCrashSfx, rideStartSfx } from "./sfx";
 
 /**
- * web's `ArcadeStage.tsx` (`/games/line-rider`, `/games/candle-hop`) — one stage, two engines.
+ * web's `ArcadeStage.tsx` (`/games/line-rider`, `/games/candle-hop`) — one stage, two engines, laid out as web's
+ * phone column: the eyebrow and title, the CRT with its readout, then the board, the calm switch and the note.
  *
  * Phase is Pips's three: title, playing, over. A run is a seed and the calm flag — the seed from the board's GET
  * when it answered, the phone's own entropy when it did not — and what ends a run is the engine, never the player:
@@ -143,60 +144,58 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
   const liveBest = Math.max(best ?? 0, hud.score);
 
   return (
-    <Screen title={words.title} scroll={false} headerRight={() => <GameHeaderActions id={game} />}>
-      <ScrollView
-        style={styles.fill}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.body}
-        scrollEnabled={!playing}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            enabled={!playing}
-            tintColor={color.accent}
-            colors={[color.accent]}
+    <ScrollView
+      style={[styles.fill, { backgroundColor: color.ground }]}
+      contentContainerStyle={PAGE_PADDING}
+      scrollEnabled={!playing}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} enabled={!playing} tintColor={color.inkMuted} />}
+    >
+      <Checker />
+      <View style={styles.head}>
+        <Eyebrow style={styles.eyebrow}>{ARCADE.eyebrow}</Eyebrow>
+        <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+          {words.title}
+          <Text style={{ color: color.accent }}>.</Text>
+        </Text>
+      </View>
+
+      <View style={styles.layout}>
+        <View style={styles.column}>
+          <ArcadeIsland
+            game={game}
+            phase={phase}
+            run={run}
+            reduced={reducedMotion}
+            hud={hud}
+            liveBest={liveBest}
+            best={best}
+            end={end}
+            post={postState}
+            onPlay={start}
+            onRideHud={onRideHud}
+            onFlapHud={onFlapHud}
+            onEnd={onEnd}
+            onRideCue={onRideCue}
+            onFlapCue={onFlapCue}
           />
-        }
-      >
-        <View style={styles.head}>
-          <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{ARCADE.eyebrow}</Text>
-          <Text style={[TYPE.headline, styles.title, { color: color.ink }]} accessibilityRole="header">
-            {words.title}
-            <Text style={{ color: color.accent }}>.</Text>
-          </Text>
+          <ArcadeReadout game={game} />
         </View>
 
-        <ArcadeIsland
-          game={game}
-          phase={phase}
-          run={run}
-          reduced={reducedMotion}
-          hud={hud}
-          liveBest={liveBest}
-          best={best}
-          end={end}
-          post={postState}
-          onPlay={start}
-          onRideHud={onRideHud}
-          onFlapHud={onFlapHud}
-          onEnd={onEnd}
-          onRideCue={onRideCue}
-          onFlapCue={onFlapCue}
-        />
-
-        <ArcadeReadout game={game} />
-        <ArcadeBoard board={board} you={address} post={postState} ability={ability} />
-        <CalmSwitch calm={calm} disabled={playing} onChange={setCalm} />
-        <ArcadeNote />
-      </ScrollView>
-    </Screen>
+        <View style={styles.column}>
+          <ArcadeBoard board={board} you={address} post={postState} ability={ability} />
+          <CalmSwitch calm={calm} disabled={playing} onChange={setCalm} />
+          <ArcadeNote />
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  body: { padding: SPACE.gutter, paddingTop: 12, paddingBottom: 120, gap: 16 },
-  head: { gap: 6 },
-  title: { fontSize: 32, lineHeight: 34, letterSpacing: -1.2 },
+  head: { marginBottom: 20 },
+  eyebrow: { marginBottom: 12 },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 30, lineHeight: 31, letterSpacing: -1.2 },
+  layout: { gap: 16 },
+  column: { gap: 12 },
 });

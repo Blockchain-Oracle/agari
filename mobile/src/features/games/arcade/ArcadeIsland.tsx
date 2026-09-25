@@ -5,18 +5,20 @@ import type { RideCue, RideHud } from "@/features/games/arcade/RideCanvas";
 import type { ArcadePhase, ArcadeRun, RunEnd } from "@/features/games/arcade/run";
 import { useRef } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { useTheme } from "~/theme";
 import { ArcadeHud } from "./ArcadeHud";
 import { OverOverlay, TitleOverlay } from "./ArcadeOverlays";
 import { ARCADE_NATIVE } from "./copy";
+import { CrtGlass, CrtGround } from "./Crt";
 import { FlapField } from "./FlapField";
-import { ISLAND } from "./palette";
+import { ISLAND, useArcadeTokens } from "./palette";
 import { RideField } from "./RideField";
 import { FRESH_STATS, type FrameStats } from "./useArcadeFrames";
 
 /**
- * web's `.ar-screen`: the one dark island under /games — a 16:9 field with a hairline bezel and four screws,
- * the engine's picture, the HUD while a run is live, and the title or game-over plate over it. It keeps the dark
- * theme's values whatever the app wears, because its ground is part of the mechanic.
+ * web's `.ar-screen.crt-screen`: the one dark island under /games — a 16:9 CRT with pillow corners, the theme's
+ * hairline bezel and four screws, the engine's picture, the HUD while a run is live, and the title or game-over
+ * plate over it. Its ground and ink stay the dark theme's whatever the app wears: they are part of the mechanic.
  */
 interface Props {
   game: ArcadeGame;
@@ -37,9 +39,12 @@ interface Props {
 }
 
 const statsLine = (s: FrameStats) => ` [frame ${s.frameMs.toFixed(1)} ms, js ${s.workMs.toFixed(2)} ms, ${s.targetFps} fps]`;
+const CORNERS = [{ top: 4, left: 4 }, { top: 4, right: 4 }, { bottom: 4, left: 4 }, { bottom: 4, right: 4 }] as const;
 
 export function ArcadeIsland(props: Props) {
   const { game, phase, run, reduced, hud, liveBest, best, end, post, onPlay } = props;
+  const { color } = useTheme();
+  const a = useArcadeTokens();
   const statsRef = useRef<FrameStats>(FRESH_STATS);
   const { width } = useWindowDimensions();
   // web drops the pitch only on screens narrower than 360 px.
@@ -49,31 +54,19 @@ export function ArcadeIsland(props: Props) {
   const label = ARCADE_NATIVE.stageA11y[game] + (__DEV__ ? statsLine(statsRef.current) : "");
 
   return (
-    <View style={[styles.screen, { backgroundColor: ISLAND.ground, borderColor: ISLAND.hairline }]}>
+    <View style={[styles.screen, { backgroundColor: ISLAND.ground, borderColor: color.hairline }]}>
+      <CrtGround />
       <View style={StyleSheet.absoluteFill} accessible={playing} accessibilityLabel={label}>
         {game === "line-rider" ? (
-          <RideField
-            run={run}
-            reduced={reduced}
-            onHud={props.onRideHud}
-            onEnd={props.onEnd}
-            onCue={props.onRideCue}
-            statsRef={statsRef}
-          />
+          <RideField run={run} reduced={reduced} onHud={props.onRideHud} onEnd={props.onEnd} onCue={props.onRideCue} statsRef={statsRef} />
         ) : (
-          <FlapField
-            run={run}
-            reduced={reduced}
-            onHud={props.onFlapHud}
-            onEnd={props.onEnd}
-            onCue={props.onFlapCue}
-            statsRef={statsRef}
-          />
+          <FlapField run={run} reduced={reduced} onHud={props.onFlapHud} onEnd={props.onEnd} onCue={props.onFlapCue} statsRef={statsRef} />
         )}
       </View>
+      <CrtGlass reduced={reduced} />
 
-      {[styles.tl, styles.tr, styles.bl, styles.br].map((corner, i) => (
-        <View key={i} pointerEvents="none" style={[styles.screw, corner, { backgroundColor: ISLAND.screw }]} />
+      {CORNERS.map((corner, i) => (
+        <View key={i} pointerEvents="none" style={[styles.screw, corner, { backgroundColor: a.screw }]} />
       ))}
 
       {playing ? <ArcadeHud score={hud.score} best={liveBest} combo={game === "line-rider" ? hud.combo : null} /> : null}
@@ -85,11 +78,8 @@ export function ArcadeIsland(props: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { width: "100%", aspectRatio: 16 / 9, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
-  screw: { position: "absolute", width: 5, height: 5 },
-  tl: { top: 4, left: 4 },
-  tr: { top: 4, right: 4 },
-  bl: { bottom: 4, left: 4 },
-  br: { bottom: 4, right: 4 },
+  // web's pillow corner is 22 px / 14 px (elliptical); React Native draws circular corners, so 16.
+  screen: { width: "100%", aspectRatio: 16 / 9, borderWidth: 1, borderRadius: 16, overflow: "hidden" },
+  screw: { position: "absolute", width: 6, height: 6, zIndex: 4 },
   devProbe: { position: "absolute", right: 0, bottom: 0, width: 1, height: 1 },
 });
