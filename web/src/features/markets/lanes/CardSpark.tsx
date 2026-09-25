@@ -11,6 +11,11 @@ interface CardSparkProps {
 
 const VIEW_W = 100;
 const VIEW_H = 40;
+/** Half the `.strike-tick` chip (15px): the plot band keeps this clear of the box's top and bottom so the rule and its
+ *  "line" chip never land on an edge the box clips (`.mc-spark` is overflow: hidden). */
+const PAD_PX = 8;
+/** A top-down position inside the padded band, as CSS. */
+const bandTop = (pct: number): string => `calc(${PAD_PX}px + (100% - ${2 * PAD_PX}px) * ${(pct / 100).toFixed(4)})`;
 
 interface Plot {
   path: string;
@@ -77,15 +82,15 @@ export function CardSpark({ points, openingRaw }: CardSparkProps) {
 
   return (
     <>
-      <svg className="mc-spark-svg" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="none" aria-hidden focusable="false">
+      <svg className="mc-spark-svg" style={{ top: PAD_PX, height: `calc(100% - ${2 * PAD_PX}px)` }} viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="none" aria-hidden focusable="false">
         <path className={shape.winning ? "mc-spark-line up" : "mc-spark-line down"} d={shape.path} />
       </svg>
       {shape.strikeTopPct !== null && (
         <>
-          <div className="strike-line" style={{ top: `${shape.strikeTopPct}%` }} aria-hidden />
+          <div className="strike-line" style={{ top: bandTop(shape.strikeTopPct) }} aria-hidden />
           {/* `.strike-tick` is already styled in part-06.css; without it the dashed
               rule is an unlabelled line rather than the level being asked about. */}
-          <div className="strike-tick" style={{ top: `${shape.strikeTopPct}%` }} aria-hidden>
+          <div className="strike-tick" style={{ top: bandTop(shape.strikeTopPct) }} aria-hidden>
             {LANE_CARD.line}
           </div>
         </>
