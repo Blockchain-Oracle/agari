@@ -14,11 +14,12 @@
 - **Android:** APK on GitHub release `android-v0.1.0` (EAS build ece6a36d, preview profile, remote keystore);
   SHA-256 `96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447`, 178.7 MB. The first EAS build failed
   on `babel-preset-expo` not being a direct dependency (fixed 5f353d09). QR: `~/dev/hackathon/agari-release/`.
-- **iOS:** ASC API key at `~/.config/agari/apple/AuthKey_852363VPL4.p8` (key 852363VPL4, issuer
-  911e920f-cd28-49bb-b3fb-37e38abdb43e, team 86C6ZFJ6V6 Individual). EAS capability sync fails (Apple API rejects its
-  request; App Groups cannot be set by API). The owner (via Codex) is registering `group.xyz.useagari.app` and ticking
-  Push + App Groups on `xyz.useagari.app` and `.ExpoWidgetsTarget`; then build with `EXPO_NO_CAPABILITY_SYNC=1` and
-  the three `EXPO_ASC_*` vars + `EXPO_APPLE_TEAM_ID`, then submit to TestFlight. APNs key still to add for push.
+- **iOS:** App Store Connect app "Agari – Call the Close" (6816116543). Build 9 (0.1.0) uploaded with `xcrun altool`
+  (EAS's submit queue stalled; key copied to `~/.appstoreconnect/private_keys/`), VALID, internal testing ready.
+  Public group "Agari Beta" (`https://testflight.apple.com/join/g3MnDrr7`) holds build 9, beta review submitted
+  09-25 (WAITING_FOR_REVIEW); the link is live on /download. Signing: ASC key `~/.config/agari/apple/AuthKey_852363VPL4.p8`
+  (issuer 911e920f-…, team 86C6ZFJ6V6); builds need `EXPO_NO_CAPABILITY_SYNC=1` (App Groups + Push set by hand).
+  APNs key 9XH4KQF4M5 made but not yet on EAS (the file is macl-locked to Codex's browser; Codex must copy it).
 - **Films** (outside the repo, `~/dev/hackathon/agari-video`, HyperFrames): `agari-launch` (20 s 16:9 launch film,
   real simulator footage, ElevenLabs music + SFX, 240 fps render blended to 60) is on /download; `agari-loop` (14 s
   square UI morph loop, 1440², loops seamlessly) done. Both MP4s: `~/dev/hackathon/agari-release/films/`.
