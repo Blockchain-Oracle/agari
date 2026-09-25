@@ -1,5 +1,29 @@
 # Mobile takeover status
 
+## 2026-09-25 (afternoon) — pass done, onboarding, release, films (READ THIS FIRST)
+
+- **Side-by-side pass done** (every route, both themes, web vs app). Fixed classes, each gated by an invariant:
+  gradient stop alpha (`stopPaint`, `mobile-svg-stop`), SVG never repaints on prop change (`useSvgClock`/`useSvgTween`
+  + a 0.001 width nudge, `mobile-svg-motion`), iOS clips lineHeight < fontSize (`mobile-tight-leading`). Also: an
+  arcade run drops on blur, the status bar is owned by the root, leaderboard "refreshing" vs "retrying", the hedge
+  card compact, section heads wrap, More is an 82 % side panel, pull to refresh everywhere (`usePullRefresh`).
+- **Onboarding** (`/onboarding`, first launch): brand intro (mark, AGARI, 上がり hanko + chime), four swipeable pages,
+  ElevenLabs sounds (`assets/sounds/onboard-*.mp3`).
+- **Deployed 09-25:** web + ops at 04579d2b (push-clock and switchboard-spot live; `PUSH_DRAIN_SECRET` set on both),
+  then web + docs again with /download and the docs page.
+- **Android:** APK on GitHub release `android-v0.1.0` (EAS build ece6a36d, preview profile, remote keystore);
+  SHA-256 `96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447`, 178.7 MB. The first EAS build failed
+  on `babel-preset-expo` not being a direct dependency (fixed 5f353d09). QR: `~/dev/hackathon/agari-release/`.
+- **iOS:** ASC API key at `~/.config/agari/apple/AuthKey_852363VPL4.p8` (key 852363VPL4, issuer
+  911e920f-cd28-49bb-b3fb-37e38abdb43e, team 86C6ZFJ6V6 Individual). EAS capability sync fails (Apple API rejects its
+  request; App Groups cannot be set by API). The owner (via Codex) is registering `group.xyz.useagari.app` and ticking
+  Push + App Groups on `xyz.useagari.app` and `.ExpoWidgetsTarget`; then build with `EXPO_NO_CAPABILITY_SYNC=1` and
+  the three `EXPO_ASC_*` vars + `EXPO_APPLE_TEAM_ID`, then submit to TestFlight. APNs key still to add for push.
+- **Films** (outside the repo, `~/dev/hackathon/agari-video`, HyperFrames): `agari-launch` (20 s 16:9 launch film,
+  real simulator footage, ElevenLabs music + SFX, 240 fps render blended to 60) is on /download; `agari-loop` (14 s
+  square UI morph loop) rendering.
+- **Next:** iOS TestFlight + its link on /download, marketing.
+
 ## 2026-09-25 — web's phone layout, mobile UX, tap-trading proven (READ THIS FIRST)
 
 - **Direction (owner, 09-25):** the app is web's phone layout (useagari.xyz at 402 px) ported literally — not a native reinterpretation — with real mobile UX where a phone does better. Source per screen: `node mobile/scripts/webdump.mjs <url> dark|light main --shot x.png` plus the web component and its CSS. Icons are lucide (`lucide-react-native` pinned to web's 1.38.0); every web font weight is loaded.
