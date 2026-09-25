@@ -13,6 +13,7 @@ import { useAppFonts } from "~/theme/fonts";
 import { AppChrome } from "~/components/shell/AppChrome";
 import { BottomDock } from "~/components/shell/BottomDock";
 import { FundingHost } from "~/components/funding/CreditWelcome";
+import { LifecycleWatcher } from "~/features/activity/LifecycleWatcher";
 import { Toaster } from "~/components/toast/Toaster";
 import { AlertsHost } from "~/features/alerts/AlertsHost";
 import { DeskWatcher } from "~/features/desk/DeskWatcher";
@@ -84,6 +85,8 @@ function RootStack() {
       <FundingHost />
       <Toaster />
       <DeskWatcher />
+      {/* web's LifecycleWatcher: in-app toasts for fills, verdicts and payouts (system notifications come from push). */}
+      <LifecycleWatcher />
       {/* web mounts the drop alert's watcher app-wide (AppProviders), so an armed bell fires on any screen. */}
       <DropBellWatcher />
       <WriteRecovery />
