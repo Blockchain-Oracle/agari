@@ -1,13 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Animated, { Easing, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
+import { Easing, StyleSheet, Text, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
+import { useSvgTween } from "~/components/ui/svg-clock";
 import Svg, { Circle, Path } from "react-native-svg";
 import { FONT } from "~/theme";
 import { useDeskTheme } from "./theme";
 
 /**
  * The desk kit's small charts, ported from web/src/components/ui/desk-kit/charts.tsx (21st Traffic Source Donut
- * #29204, Partition Bar #26545, Progress radial #3424, Mini Chart #9613) to react-native-svg and Reanimated.
+ * #29204, Partition Bar #26545, Progress radial #3424, Mini Chart #9613) to react-native-svg; their motion runs on `useSvgTween`.
  */
 export interface Slice {
   id: string;
@@ -17,19 +18,17 @@ export interface Slice {
   color: string;
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 const EASE = Easing.bezier(0.22, 1, 0.36, 1);
 
-/** One arc of a ring, drawing in from zero on mount and gliding when its length changes. */
+/** One arc of a ring in its own Svg over the track, drawing in from zero on mount and gliding when its length changes. */
 function Arc({ size, r, stroke, color, length, start, circumference, round, ms }: { size: number; r: number; stroke: number; color: string; length: number; start: number; circumference: number; round?: boolean; ms: number }) {
   const reduce = useReducedMotion();
-  const drawn = useSharedValue(reduce ? length : 0);
-  useEffect(() => {
-    drawn.value = reduce ? length : withTiming(length, { duration: ms, easing: EASE });
-  }, [length, reduce, drawn, ms]);
-  const props = useAnimatedProps(() => ({ strokeDasharray: [Math.max(0.001, drawn.value), circumference] }));
-  return <AnimatedCircle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap={round ? "round" : "butt"} strokeDashoffset={-start} animatedProps={props} />;
+  const drawn = useSvgTween(length, reduce ? 0 : ms, EASE);
+  return (
+    <Svg width={size - drawn.repaint} height={size} style={[StyleSheet.absoluteFill, styles.turn]}>
+      <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap={round ? "round" : "butt"} strokeDashoffset={-start} strokeDasharray={[Math.max(0.001, drawn.value), circumference]} />
+    </Svg>
+  );
 }
 
 /** `.dkit-donut`: a ring of slices with a figure (or another ring) in the middle. */
@@ -50,8 +49,8 @@ export function Donut({ slices, size = 160, thickness = 16, children, label }: {
     <View style={{ width: size, height: size }} accessible accessibilityRole="image" accessibilityLabel={label}>
       <Svg width={size} height={size} style={[StyleSheet.absoluteFill, styles.turn]}>
         <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color.hairline} strokeWidth={thickness} />
-        {total > 0 ? arcs.filter((a) => a.length > 0).map((a) => <Arc key={a.id} size={size} r={r} stroke={thickness} color={a.color} length={a.length} start={a.start} circumference={c} ms={600} />) : null}
       </Svg>
+      {total > 0 ? arcs.filter((a) => a.length > 0).map((a) => <Arc key={a.id} size={size} r={r} stroke={thickness} color={a.color} length={a.length} start={a.start} circumference={c} ms={600} />) : null}
       {children ? <View style={[StyleSheet.absoluteFill, styles.center]}>{children}</View> : null}
     </View>
   );
@@ -69,8 +68,8 @@ export function RadialGauge({ value, size = 64, stroke = 6, tone, children, labe
     <View style={{ width: size, height: size }} accessible accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped) }}>
       <Svg width={size} height={size} style={[StyleSheet.absoluteFill, styles.turn]}>
         <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color.hairline} strokeWidth={stroke} />
-        {clamped > 0 ? <Arc size={size} r={r} stroke={stroke} color={ink} length={(clamped / 100) * c} start={0} circumference={c} round ms={800} /> : null}
       </Svg>
+      {clamped > 0 ? <Arc size={size} r={r} stroke={stroke} color={ink} length={(clamped / 100) * c} start={0} circumference={c} round ms={800} /> : null}
       {children !== undefined ? (
         <View style={[StyleSheet.absoluteFill, styles.center]}>
           {typeof children === "string" ? <Text style={[styles.gaugeText, { color: color.ink }]}>{children}</Text> : children}
@@ -109,11 +108,7 @@ export function FillSparkline({ values, height = 44 }: { values: readonly number
 export function Sparkline({ values, width = 96, height = 28, tone }: { values: readonly number[]; width?: number; height?: number; tone?: "up" | "down" | "flat" }) {
   const { color, t } = useDeskTheme();
   const reduce = useReducedMotion();
-  const drawn = useSharedValue(reduce ? 1 : 0);
-  useEffect(() => {
-    drawn.value = reduce ? 1 : withTiming(1, { duration: 900, easing: EASE });
-  }, [reduce, drawn]);
-  const lineProps = useAnimatedProps(() => ({ strokeDasharray: [drawn.value * 4000, 4000] }));
+  const drawn = useSvgTween(1, reduce ? 0 : 900, EASE);
   if (values.length < 2) return <View style={{ width, height, borderBottomWidth: 1, borderStyle: "dashed", borderColor: color.hairline }} />;
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -127,9 +122,9 @@ export function Sparkline({ values, width = 96, height = 28, tone }: { values: r
   const ink = tn === "up" ? color.profit : tn === "down" ? color.loss : color.inkSecondary;
   const fill = tn === "up" ? color.profitWash : tn === "down" ? color.lossWash : t.sparkFlat;
   return (
-    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+    <Svg width={width - drawn.repaint} height={height} viewBox={`0 0 ${width} ${height}`}>
       <Path d={area} fill={fill} />
-      <AnimatedPath d={line} fill="none" stroke={ink} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" animatedProps={lineProps} />
+      <Path d={line} fill="none" stroke={ink} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={[drawn.value * 4000, 4000]} />
     </Svg>
   );
 }

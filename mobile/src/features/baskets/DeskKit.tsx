@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Animated as RNAnimated, Easing as RNEasing, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { Easing, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
+import { useReducedMotion } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
 import { AssetDisc } from "~/components/marks/AssetDisc";
+import { useSvgTween } from "~/components/ui/svg-clock";
 import { FONT, useTheme } from "~/theme";
 import { basketsShortTokens } from "~/theme/web/products/baskets-short";
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 /** desk-kit charts.tsx's EASE. */
-const EASE = Easing.bezier(0.22, 1, 0.36, 1);
+const EASE = RNEasing.bezier(0.22, 1, 0.36, 1);
 
 /**
  * web's desk-kit `Sparkline` (`components/ui/desk-kit/charts.tsx`, `.dkit-spark`): the line in its direction's ink
@@ -24,11 +24,8 @@ export function Sparkline({ values, width = 96, height = 28, boxWidth }: {
 }) {
   const { color } = useTheme();
   const reduce = useReducedMotion();
-  const drawn = useSharedValue(reduce ? 1 : 0);
   const ready = values.length >= 2;
-  useEffect(() => {
-    if (ready) drawn.value = withTiming(1, { duration: reduce ? 0 : 900, easing: EASE });
-  }, [ready, reduce, drawn]);
+  const drawn = useSvgTween(ready ? 1 : 0, reduce ? 0 : 900, EASE);
   const min = ready ? Math.min(...values) : 0;
   const max = ready ? Math.max(...values) : 0;
   const span = max - min || 1;
@@ -39,7 +36,6 @@ export function Sparkline({ values, width = 96, height = 28, boxWidth }: {
     const [bx, by] = pts[i] ?? [0, 0];
     length += Math.hypot(bx - ax, by - ay);
   }
-  const animatedProps = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - drawn.value) }));
   if (!ready) return <View style={{ width: boxWidth ?? width, height, borderBottomWidth: 1, borderStyle: "dashed", borderColor: color.hairline }} />;
   const line = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   const area = `${line} L${width},${height} L0,${height} Z`;
@@ -49,9 +45,9 @@ export function Sparkline({ values, width = 96, height = 28, boxWidth }: {
   const ink = tone === "up" ? color.profit : tone === "down" ? color.loss : color.inkSecondary;
   const wash = tone === "up" ? color.profitWash : tone === "down" ? color.lossWash : null;
   return (
-    <Svg width={boxWidth ?? width} height={height} viewBox={`0 0 ${width} ${height}`} style={styles.spark} accessibilityElementsHidden importantForAccessibility="no">
+    <Svg width={(boxWidth ?? width) - drawn.repaint} height={height} viewBox={`0 0 ${width} ${height}`} style={styles.spark} accessibilityElementsHidden importantForAccessibility="no">
       <Path d={area} fill={wash ?? ink} fillOpacity={wash ? 1 : 0.12} />
-      <AnimatedPath
+      <Path
         d={line}
         stroke={ink}
         strokeWidth={1.75}
@@ -59,7 +55,7 @@ export function Sparkline({ values, width = 96, height = 28, boxWidth }: {
         strokeLinejoin="round"
         strokeLinecap="round"
         strokeDasharray={[length, length]}
-        animatedProps={animatedProps}
+        strokeDashoffset={length * (1 - drawn.value)}
       />
     </Svg>
   );

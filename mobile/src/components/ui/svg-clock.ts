@@ -54,3 +54,29 @@ export function onceAt(ms: number, duration: number, delay: number, easing: (t: 
 export function loopAt(ms: number, duration: number): number {
   return (ms % duration) / duration;
 }
+
+/**
+ * A value that eases from wherever it is to `target` over `duration` whenever `target` changes (a CSS transition),
+ * drawn the `useSvgClock` way: `repaint` goes off the `<Svg>`'s width while it moves. `duration` 0 jumps.
+ */
+export function useSvgTween(target: number, duration: number, easing: (t: number) => number, from = 0): { value: number; repaint: number } {
+  const [frame, setFrame] = useState(0);
+  const run = useRef({ from, to: from, start: 0 });
+  const current = useRef(from);
+  useEffect(() => {
+    run.current = { from: current.current, to: target, start: Date.now() };
+    if (duration <= 0) {
+      current.current = target;
+      setFrame((f) => f + 1);
+      return;
+    }
+    const id = setInterval(() => {
+      const t = Math.min(1, (Date.now() - run.current.start) / duration);
+      current.current = run.current.from + (run.current.to - run.current.from) * easing(t);
+      setFrame((f) => f + 1);
+      if (t >= 1) clearInterval(id);
+    }, 33);
+    return () => clearInterval(id);
+  }, [target, duration, easing]);
+  return { value: current.current, repaint: (frame % 2) * 0.001 };
+}

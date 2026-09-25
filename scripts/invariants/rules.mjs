@@ -102,6 +102,13 @@ export const rules = [
   },
   { id: "mobile-tight-leading", description: "no app text with a lineHeight under its fontSize — iOS clips the glyph tops; use lineHeight = fontSize and a negative margin (S26)", check: mobileTightLeading },
   {
+    id: "mobile-svg-motion",
+    description: "SVG motion runs on ~/components/ui/svg-clock — react-native-svg repaints on layout, so Animated/Reanimated props on an SVG element never draw a frame (S26)",
+    scopes: ["mobile/src"],
+    exts: TS,
+    pattern: /(useAnimatedProps|createAnimatedComponent\((Path|Circle|G|Rect|Line|Ellipse|Polygon|Polyline|Svg|SvgText)\))/,
+  },
+  {
     id: "mobile-svg-stop",
     description: "a gradient stop is painted with {...stopPaint(colour)} from ~/components/ui/SvgStop — react-native-svg swaps an rgba() alpha for stopOpacity and paints the wash solid (S26)",
     scopes: ["mobile/src"],
