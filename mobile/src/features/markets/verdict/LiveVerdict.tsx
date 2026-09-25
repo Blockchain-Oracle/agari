@@ -2,19 +2,20 @@ import { SETTLING } from "@agari/core/copy";
 import type { MarketId } from "@agari/core/types";
 import { collateralOrNull } from "@agari/markets";
 import { useQueryClient } from "@tanstack/react-query";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { useVerdict } from "@/features/markets/verdict/useVerdict";
 import { VERDICT_UI } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { ConnectGate, EmptyState, ReadingView } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
+import { ReadingView } from "~/components/kit";
+import { FONT, useTheme } from "~/theme";
+import { WordsEmptyState } from "../words/parts";
 import { VerdictCard } from "./VerdictCard";
 
-const FALLBACK_SYMBOL = "tUSDC";
+const FALLBACK_SYMBOL = "";
 
 /**
- * web's LiveVerdict: mounted for a Window at or past its bell. "Settling…" until the chain resolves it, then this
- * wallet's one verdict — stamp, P&L, claim, receipt — or the plain fact that it held nothing there.
+ * web's LiveVerdict: mounted for a Window at or past its bell. "Settling…" as a plain line until the chain resolves it,
+ * then this wallet's one verdict — stamp, P&L, claim, receipt — or web's empty state saying why there is none.
  */
 export function LiveVerdict({ marketId }: { marketId: MarketId }) {
   const { color } = useTheme();
@@ -22,31 +23,27 @@ export function LiveVerdict({ marketId }: { marketId: MarketId }) {
   const state = useVerdict({ marketId, wallet: address });
   const symbol = collateralOrNull()?.symbol ?? FALLBACK_SYMBOL;
   const queryClient = useQueryClient();
-  // A failed read (a rate-limited RPC) is asked again, not left standing: the holdings read does not poll on its own.
   const retry = () => void queryClient.invalidateQueries();
 
   if (state.phase === "open") return null;
-  if (!address) return <ConnectGate why={VERDICT_UI.connect.why} />;
+  if (!address) return <WordsEmptyState why={VERDICT_UI.connect.why} />;
   if (state.phase === "settling") {
     return (
-      <View style={[styles.settling, { borderColor: color.hairline, backgroundColor: color.surface1 }]} accessibilityLiveRegion="polite">
-        <ActivityIndicator color={color.accent} />
-        <Text style={[TYPE.body, styles.settlingText, { color: color.inkSecondary }]}>
-          <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{SETTLING}</Text> {VERDICT_UI.settling}
-        </Text>
-      </View>
+      <Text style={[styles.body, { color: color.inkSecondary }]} accessibilityLiveRegion="polite">
+        <Text style={[styles.strong, { color: color.ink }]}>{SETTLING}</Text> {VERDICT_UI.settling}
+      </Text>
     );
   }
   return (
     <ReadingView reading={state.market} loading="plate" retry={retry}>
       {(market) =>
         market === null ? (
-          <EmptyState why={VERDICT_UI.notFound.why} />
+          <WordsEmptyState why={VERDICT_UI.notFound.why} />
         ) : (
           <ReadingView reading={state.verdict} loading="plate" retry={retry}>
             {(verdict) =>
               verdict === null ? (
-                <EmptyState why={VERDICT_UI.noPosition.why} />
+                <WordsEmptyState why={VERDICT_UI.noPosition.why} />
               ) : (
                 <VerdictCard key={verdict.marketId} verdict={verdict} market={market} resolution={state.resolution?.ok ? state.resolution.value : null} symbol={symbol} />
               )
@@ -59,6 +56,6 @@ export function LiveVerdict({ marketId }: { marketId: MarketId }) {
 }
 
 const styles = StyleSheet.create({
-  settling: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth },
-  settlingText: { flex: 1 },
+  body: { fontFamily: FONT.body, fontSize: 15, lineHeight: 23.25 },
+  strong: { fontFamily: FONT.bodyStrong, fontSize: 15, lineHeight: 23.25 },
 });

@@ -1,7 +1,7 @@
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import { marketsProvider } from "@agari/markets";
 import { useAssetPrice } from "@agari/markets/react";
-import { SymbolView } from "expo-symbols";
+import { Bell, BellRing } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { bpsToPctText, DROP_BPS, dropBps, hourHigh, keepHour, type PriceSample } from "@/features/hedge/drop-bell";
@@ -9,18 +9,20 @@ import { HEDGE } from "@/features/hedge/copy";
 import { assetPriceLine, basisRaw, feedRawToOracleRaw } from "@/features/markets/hero/units";
 import { haptic } from "~/components/kit";
 import { pushToast } from "~/components/toast/store";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT, useTheme } from "~/theme";
 import { setBell, useBells } from "./bells";
 
 /**
- * web's `DropBellToggle`: "Tell me if OpenAI falls 3% within an hour". A device-local switch; the phone rings it as
- * an in-app message with a haptic (web's fallback when no system notification is allowed).
+ * web's `DropBellToggle` (`.ys-bell`): "Tell me if OpenAI falls 3% within an hour" in 10 pt mono caps at 60 % until it
+ * is on. A device-local switch; the phone rings it as an in-app message with a haptic (web's fallback when no system
+ * notification is allowed).
  */
 export function DropBellToggle({ asset }: { asset: TickerSymbol }) {
   const { color } = useTheme();
   const bells = useBells();
   const on = bells.includes(asset);
   const name = TICKERS[asset].name;
+  const Icon = on ? BellRing : Bell;
   return (
     <Pressable
       onPress={() => {
@@ -30,19 +32,12 @@ export function DropBellToggle({ asset }: { asset: TickerSymbol }) {
       accessibilityRole="switch"
       accessibilityState={{ checked: on }}
       accessibilityLabel={HEDGE.bell.off(name)}
-      style={({ pressed }) => [
-        styles.bell,
-        { borderColor: on ? color.accentDim : color.hairline, backgroundColor: on ? color.accentWash : pressed ? color.surface2 : "transparent" },
-      ]}
+      accessibilityHint={HEDGE.bell.foot}
+      hitSlop={10}
+      style={({ pressed }) => [styles.bell, { opacity: on || pressed ? 1 : 0.6 }]}
     >
-      <SymbolView
-        name={on ? { ios: "bell.and.waves.left.and.right.fill", android: "notifications_active" } : { ios: "bell", android: "notifications" }}
-        size={14}
-        tintColor={on ? color.accent : color.inkSecondary}
-      />
-      <Text style={[TYPE.caption, styles.text, { color: on ? color.accent : color.inkSecondary }]}>
-        {on ? HEDGE.bell.on(name) : HEDGE.bell.off(name)}
-      </Text>
+      <Icon size={12} color={color.inkSecondary} />
+      <Text style={[styles.text, { color: color.inkSecondary }]}>{on ? HEDGE.bell.on(name) : HEDGE.bell.off(name)}</Text>
     </Pressable>
   );
 }
@@ -98,6 +93,6 @@ export function DropBellWatcher() {
 }
 
 const styles = StyleSheet.create({
-  bell: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: 12, borderRadius: RADIUS.md, borderWidth: 1, alignSelf: "flex-start" },
-  text: { flexShrink: 1 },
+  bell: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, alignSelf: "flex-start" },
+  text: { flexShrink: 1, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.8, textTransform: "uppercase" },
 });

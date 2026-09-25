@@ -1,125 +1,126 @@
-import { formatCadence } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE, type EventMarket, type Resolution, type Verdict } from "@agari/core/types";
+import { formatCadence, verdictStrings } from "@agari/core/copy";
+import { OUTCOME_TO_SIDE, type ClaimLeg, type EventMarket, type Resolution, type Verdict } from "@agari/core/types";
 import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
 import { router } from "expo-router";
 import { useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { oraclePriceText } from "../parts/format";
+import { StyleSheet, Text, View } from "react-native";
 import { printSourceText } from "@/features/markets/verdict/print-source";
 import { buildTradeTweetText, type TradeCard } from "@/features/share/trade-card";
 import { MARKETS, VERDICT_UI } from "@/lib/copy";
 import { explorerUrl, openExternal } from "~/lib/external";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { ShareButton } from "../share/ShareButton";
+import { FONT, useTheme } from "~/theme";
+import { oraclePriceText } from "../parts/format";
 import { ClaimWinnings } from "./ClaimWinnings";
+import { Receipt, ReceiptRow } from "./Receipt";
+import { ShareLink } from "./ShareLink";
 import { VerdictStamp } from "./VerdictStamp";
 
+/** A settled round from the fill projection carries its asset as plain text, so a verdict takes any asset name. */
 type VerdictMarket = Pick<EventMarket, "marketId" | "intervalSec" | "expirySec" | "openingPriceRaw"> & { asset: string };
-
-const SIDE_WORD = { up: MARKETS.up, down: MARKETS.down } as const;
 
 interface Props {
   verdict: Verdict;
   market: VerdictMarket;
+  /** null while the settlement record is still landing; the receipt then shows its proof rows as pending. */
   resolution: Resolution | null;
   symbol: string;
 }
 
+const SIDE_WORD = { up: MARKETS.up, down: MARKETS.down } as const;
+
 /**
- * web's VerdictCard: the pressed stamp (上がり vermilion, 放銃 a fact, 無効 with its reason) beside the net P&L, every
- * leg the wallet held, the claim, and the cream settlement receipt to audit it — then the share.
+ * web's VerdictCard: the pressed stamp beside the net P&L, every leg the wallet held, the claim, the cream settlement
+ * receipt to audit it, and the "Share card ↗" link — in the market card's frame (12 radius, hairline, surface 1).
  */
 export function VerdictCard({ verdict, market, resolution, symbol }: Props) {
   const { color } = useTheme();
+  const strings = verdictStrings(verdict.outcome);
   const settledAtMs = verdict.settledAtMs ?? resolution?.settledAtMs ?? secToMs(market.expirySec);
   const settlementTx = resolution?.settlementTxHash ?? null;
   const source = printSourceText(resolution, market.expirySec, market.asset);
-  const costKnown = verdict.costBasisBase !== null;
-  const pnlInk = verdict.pnlBase > 0n ? color.profit : verdict.pnlBase < 0n ? color.loss : color.ink;
-  const paper = useRef<View>(null);
   const sides = verdict.legs.map((leg) => SIDE_WORD[OUTCOME_TO_SIDE[leg.outcomeIdx]]).join(" + ");
+  const paper = useRef<View>(null);
 
   return (
-    <View style={styles.wrap}>
-      <View style={styles.head}>
-        <VerdictStamp outcome={verdict.outcome} press />
-        <View style={styles.pnl}>
-          <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{costKnown ? VERDICT_UI.netPnl : VERDICT_UI.paidOut}</Text>
-          <Text style={[TYPE.dataHero, { color: pnlInk }]} adjustsFontSizeToFit numberOfLines={1}>
-            {formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })}
-          </Text>
-          <Text style={[TYPE.data, { color: color.inkMuted }]}>{symbol}</Text>
-          {!costKnown ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{VERDICT_UI.costUnknown}</Text> : null}
-        </View>
+    <View style={[styles.card, { borderColor: color.hairline, backgroundColor: color.surface1 }]} accessibilityLabel={`${VERDICT_UI.title}: ${strings.line}`}>
+      <View style={styles.header}>
+        <VerdictStamp outcome={verdict.outcome} />
+        <PnlFigure verdict={verdict} symbol={symbol} />
       </View>
-
-      <View accessibilityLabel={VERDICT_UI.legs}>
-        {verdict.legs.map((leg) => (
-          <View key={leg.outcomeIdx} style={[styles.leg, { borderBottomColor: color.hairline }]}>
-            <Text style={[TYPE.bodyStrong, { color: color.ink }]}>
-              {SIDE_WORD[OUTCOME_TO_SIDE[leg.outcomeIdx]]}{" "}
-              <Text style={[TYPE.data, { color: color.inkSecondary }]}>
-                {formatBaseUnits(leg.amountRaw, verdict.decimals)} {VERDICT_UI.contracts}
-              </Text>
-            </Text>
-            <Text style={[TYPE.data, { color: color.inkSecondary }]}>
-              {VERDICT_UI.payout} <Text style={{ color: color.ink }}>{formatBaseUnits(leg.payoutBase, verdict.decimals)}</Text>
-            </Text>
-          </View>
-        ))}
-      </View>
-
+      {verdict.outcome === "void" ? <Text style={[styles.body, { color: color.inkSecondary }]}>{strings.line}</Text> : null}
+      <VerdictLegs legs={verdict.legs} decimals={verdict.decimals} symbol={symbol} />
       <ClaimWinnings verdict={verdict} marketId={market.marketId} symbol={symbol} />
-
-      <View ref={paper} collapsable={false} style={[styles.paper, { backgroundColor: color.cream, shadowColor: color.shadow }]}>
-        <View style={styles.paperHead}>
-          <View>
-            <Text style={[TYPE.labelMicro, { color: color.creamInk, opacity: 0.6 }]}>{VERDICT_UI.receiptTitle}</Text>
-            <Text style={[TYPE.dataLg, { color: color.creamInk }]}>
-              {formatBaseUnits(verdict.payoutBase, verdict.decimals)} {symbol}
+      <View ref={paper} collapsable={false}>
+        <Receipt
+          figure={
+            <Text style={[styles.hero, { color: color.creamInk }]}>
+              {formatBaseUnits(verdict.payoutBase, verdict.decimals)}
+              <Text style={{ color: color.inkSecondary }}> {symbol}</Text>
             </Text>
-            <Text style={[TYPE.caption, { color: color.creamInk, opacity: 0.6 }]}>{VERDICT_UI.paidOut}</Text>
-          </View>
-          <VerdictStamp outcome={verdict.outcome} size="compact" onPaper />
-        </View>
-        <View style={[styles.rule, { borderColor: color.creamHairline }]} />
-        <PaperRow label={VERDICT_UI.window} value={`${market.asset} · ${formatCadence(market.intervalSec)} · ${sides}`} />
-        <PaperRow label={VERDICT_UI.openingPrint} value={oraclePriceText(resolution?.openingRaw ?? market.openingPriceRaw, market.asset)} />
-        <PaperRow label={VERDICT_UI.closingPrint} value={oraclePriceText(resolution?.closingRaw ?? null, market.asset)} />
-        <PaperRow
-          label={VERDICT_UI.settlementTx}
-          value={settlementTx ? shortHex(settlementTx, 10, 4) : VERDICT_UI.pendingTx}
-          onPress={settlementTx ? () => openExternal(explorerUrl("tx", settlementTx)) : undefined}
-        />
-        <PaperRow
-          label={VERDICT_UI.oracleGraph}
-          value={source ? VERDICT_UI.question(source) : VERDICT_UI.noQuestion}
-          onPress={source ? () => router.push({ pathname: "/proof/[id]", params: { id: market.marketId } }) : undefined}
-        />
-        <Text style={[TYPE.caption, { color: color.creamInk, opacity: 0.55 }]}>{new Date(settledAtMs).toUTCString()}</Text>
+          }
+          figureLabel={VERDICT_UI.paidOut}
+          settledAtMs={settledAtMs}
+          stamp={<VerdictStamp outcome={verdict.outcome} size="compact" />}
+        >
+          <ReceiptRow label={VERDICT_UI.window} value={`${market.asset} · ${formatCadence(market.intervalSec)} · ${sides}`} />
+          <ReceiptRow label={VERDICT_UI.openingPrint} value={oraclePriceText(resolution?.openingRaw ?? market.openingPriceRaw, market.asset)} />
+          <ReceiptRow label={VERDICT_UI.closingPrint} value={oraclePriceText(resolution?.closingRaw ?? null, market.asset)} />
+          <ReceiptRow
+            label={VERDICT_UI.settlementTx}
+            value={settlementTx ? shortHex(settlementTx, 10, 4) : "—"}
+            onPress={settlementTx ? () => void openExternal(explorerUrl("tx", settlementTx)) : null}
+            degradedLabel={VERDICT_UI.pendingTx}
+          />
+          <ReceiptRow
+            label={VERDICT_UI.oracleGraph}
+            value={source ? VERDICT_UI.question(source) : "—"}
+            onPress={source ? () => router.push({ pathname: "/proof/[id]", params: { id: market.marketId } }) : null}
+            degradedLabel={VERDICT_UI.noQuestion}
+          />
+        </Receipt>
       </View>
-
-      <ShareButton card={paper} text={buildTradeTweetText(toTradeCard(verdict, market, resolution, symbol, settledAtMs))} />
+      <View style={styles.share}>
+        <ShareLink card={paper} text={buildTradeTweetText(toTradeCard(verdict, market, resolution, symbol, settledAtMs))} />
+      </View>
     </View>
   );
 }
 
-function PaperRow({ label, value, onPress }: { label: string; value: string; onPress?: () => void }) {
+/** web's PnlFigure: the one figure allowed profit/loss ink; without an entry cost on record it reads as a payout. */
+function PnlFigure({ verdict, symbol }: { verdict: Verdict; symbol: string }) {
   const { color } = useTheme();
-  const body = (
-    <View style={styles.paperRow}>
-      <Text style={[TYPE.caption, { color: color.creamInk, opacity: 0.65 }]}>{label}</Text>
-      <Text style={[TYPE.data, styles.paperValue, { color: onPress ? color.accent : color.creamInk }]} numberOfLines={2}>
-        {value}
+  const costKnown = verdict.costBasisBase !== null;
+  const ink = verdict.pnlBase > 0n ? color.profit : verdict.pnlBase < 0n ? color.loss : color.inkSecondary;
+  return (
+    <View style={styles.pnl}>
+      <Text style={[styles.micro, { color: color.inkMuted }]}>{costKnown ? VERDICT_UI.netPnl : VERDICT_UI.paidOut}</Text>
+      <Text style={[styles.hero, styles.right, { color: ink }]}>
+        {formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })}
+        <Text style={{ color: color.inkSecondary }}> {symbol}</Text>
       </Text>
+      {costKnown ? null : <Text style={[styles.caption, { color: color.inkMuted }]}>{VERDICT_UI.costUnknown}</Text>}
     </View>
   );
-  return onPress ? (
-    <Pressable onPress={onPress} accessibilityRole="link" hitSlop={6}>
-      {body}
-    </Pressable>
-  ) : (
-    body
+}
+
+/** web's VerdictLegs: every side the wallet held, in words — a losing leg is listed at payout 0 rather than hidden. */
+function VerdictLegs({ legs, decimals, symbol }: { legs: readonly ClaimLeg[]; decimals: number; symbol: string }) {
+  const { color } = useTheme();
+  return (
+    <View style={styles.legs} accessibilityLabel={VERDICT_UI.legs}>
+      {legs.map((leg) => (
+        <View key={leg.outcomeIdx} style={[styles.leg, { borderBottomColor: color.hairline }]}>
+          <Text style={[styles.data, { color: color.inkSecondary }]}>
+            <Text style={[styles.strong, { color: color.ink }]}>{SIDE_WORD[OUTCOME_TO_SIDE[leg.outcomeIdx]]}</Text>
+            {"  "}
+            {formatBaseUnits(leg.amountRaw, decimals)} {VERDICT_UI.contracts}
+          </Text>
+          <Text style={[styles.data, { color: color.inkSecondary }]}>
+            {VERDICT_UI.payout} <Text style={{ color: color.ink }}>{formatBaseUnits(leg.payoutBase, decimals)}</Text> {symbol}
+          </Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -148,13 +149,18 @@ function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolu
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 16 },
-  head: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
-  pnl: { alignItems: "flex-end", flexShrink: 1 },
-  leg: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 8 },
-  paper: { borderRadius: RADIUS.lg, padding: 18, gap: 8, shadowOpacity: 0.25, shadowRadius: 18, shadowOffset: { width: 0, height: 10 } },
-  paperHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  rule: { borderTopWidth: 1, borderStyle: "dashed", marginVertical: 4 },
-  paperRow: { flexDirection: "row", justifyContent: "space-between", gap: 12, minHeight: 30, alignItems: "center" },
-  paperValue: { flexShrink: 1, textAlign: "right", fontFamily: FONT.data },
+  card: { gap: 20, borderWidth: 1, borderRadius: 12, padding: 16 },
+  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 16 },
+  pnl: { flexShrink: 1, alignItems: "flex-end", gap: 4 },
+  micro: { fontFamily: FONT.bodyMedium, fontSize: 11, lineHeight: 13.2, letterSpacing: 1.76, textTransform: "uppercase" },
+  // type-data-hero at 402 px: clamp(28, 9vw, 40) → 36; the data face does not resolve there, so it is Inter 600.
+  hero: { fontFamily: FONT.bodyStrong, fontSize: 36, lineHeight: 38, letterSpacing: -0.36, fontVariant: ["tabular-nums"] },
+  right: { textAlign: "right" },
+  caption: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18.85 },
+  body: { fontFamily: FONT.body, fontSize: 15, lineHeight: 23.25 },
+  legs: { gap: 8 },
+  leg: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 16, borderBottomWidth: 1, paddingBottom: 8 },
+  data: { flexShrink: 1, fontFamily: FONT.bodyMedium, fontSize: 14, lineHeight: 18.2, fontVariant: ["tabular-nums"] },
+  strong: { fontFamily: FONT.bodyStrong, fontSize: 15, lineHeight: 23.25 },
+  share: { flexDirection: "row", justifyContent: "flex-end" },
 });
