@@ -1,41 +1,36 @@
-import { formatSeasonCountdown, seasonRemainingMs, type PrizeTier } from "@agari/core/games";
+import type { PrizeTier } from "@agari/core/games";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { StyleSheet, Text, View } from "react-native";
-import { useNowMs } from "@/components/data/useNowMs";
 import { GAMES } from "@/features/games/copy";
 import type { SeasonView } from "@/features/games/duel/useSeason";
-import { FONT, useTheme } from "~/theme";
-import { TrophyMark } from "../shell/PixelArt";
-import { Foot, Key, Plate } from "./parts";
+import { FONT } from "~/theme";
+import { PIXEL_FONT } from "~/theme/web/games";
+import { Foot, Key, Plate, useDuelTokens } from "./parts";
 
 /**
- * The season pieces of web's ladder: the banner (`SeasonBanner.tsx`), the per-rank prize panel with what the pool
- * escrows on chain, and the prize chip on a rung — lit when the player is eligible, muted with the floor when not.
+ * The ladder's parts from web's `DuelRank.tsx` (duel.css): the rung's place — gold, silver and bronze medallions for
+ * the top three as tints of the venue's own inks — the per-rank prize panel with what the pool escrows on chain, and
+ * Flicky's `PrizeChip`, lit when the player is eligible, muted with the distance to the floor when not.
  */
 
-export function SeasonStrip({ season }: { season: SeasonView }) {
-  const { color } = useTheme();
-  const nowMs = useNowMs();
-  const remaining = nowMs === 0 ? null : seasonRemainingMs(season, nowMs);
-  const words = GAMES.rankPage;
-  const pool = words.pool(String(season.prizePool.totalUnits), season.prizePool.currency);
-  return (
-    <View style={[styles.banner, { backgroundColor: color.surface1, borderColor: color.accentDim }]} accessible accessibilityLabel={`${season.name}: ${pool}`}>
-      <TrophyMark size={52} />
-      <View style={styles.bannerText}>
-        <Text style={[styles.eyebrow, { color: color.accent }]}>{GAMES.seasonBanner.eyebrow.toUpperCase()}</Text>
-        <Text style={[styles.name, { color: color.ink }]}>{season.name}</Text>
-        <Text style={[styles.line, { color: color.inkSecondary }]}>
-          {pool}
-          {remaining !== null ? ` · ${remaining > 0 ? words.endsIn(formatSeasonCountdown(remaining)) : words.ended}` : ""}
-        </Text>
+/** `.du-rung-place`: mono 12 in a 28 px column; `medal` draws the top three as 28 px radius-8 medallions. */
+export function Place({ place, medal }: { place: number | null; medal?: boolean }) {
+  const { d, color } = useDuelTokens();
+  if (medal && place !== null && place <= 3) {
+    const fill = place === 1 ? d.medal1 : place === 2 ? d.medal2 : d.medal3;
+    const ink = place === 3 ? d.medal3Ink : d.medalInk;
+    return (
+      <View style={[styles.medal, { backgroundColor: fill }]}>
+        <Text style={[styles.place, styles.medalText, { color: ink }]}>{place}</Text>
       </View>
-    </View>
-  );
+    );
+  }
+  return <Text style={[styles.place, styles.plain, { color: color.inkMuted }]}>{place ?? "—"}</Text>;
 }
 
+/** `.du-plate.du-prizes`: the season's pool in the pixel face, a row per rank, the eligibility floor and the escrow line. */
 export function PrizePanel({ season }: { season: SeasonView }) {
-  const { color } = useTheme();
+  const { color } = useDuelTokens();
   const words = GAMES.rankPage;
   const { prizeSplit, prizePool, minStakedDuels, eligibilityNote, escrow } = season;
   const escrowLine = !escrow
@@ -48,59 +43,79 @@ export function PrizePanel({ season }: { season: SeasonView }) {
           return short ? words.escrowShort(have, String(prizePool.totalUnits), escrow.symbol) : words.escrowed(have, escrow.symbol);
         })();
   return (
-    <Plate>
+    <Plate style={styles.prizes}>
       <View style={styles.head}>
         <Key>{words.prizes(season.name)}</Key>
-        <Text style={[styles.total, { color: color.ink }]}>
+        <Text style={[styles.total, { color: color.accent }]}>
           {prizePool.totalUnits} {prizePool.currency}
         </Text>
       </View>
-      {prizeSplit.map((tier: PrizeTier) => (
-        <View key={`${tier.rankStart}-${tier.rankEnd}`} style={[styles.prizeRow, { borderTopColor: color.hairline }]}>
-          <Text style={[styles.rank, { color: tier.rankStart <= 3 && tier.rankStart === tier.rankEnd ? color.accent : color.inkSecondary }]}>
-            {tier.rankStart === tier.rankEnd ? words.ordinal(tier.rankStart) : `${words.ordinal(tier.rankStart)}–${words.ordinal(tier.rankEnd)}`}
-          </Text>
-          <Text style={[styles.amount, { color: color.ink }]}>
-            {tier.amountUnits} {prizePool.currency}
-            {tier.rankStart !== tier.rankEnd ? ` ${words.each}` : ""}
-          </Text>
-        </View>
-      ))}
+      <View style={styles.list}>
+        {prizeSplit.map((tier: PrizeTier) => {
+          const medal = tier.rankStart === tier.rankEnd && tier.rankStart <= 3;
+          return (
+            <View key={`${tier.rankStart}-${tier.rankEnd}`} style={styles.row}>
+              <Text style={[styles.rank, { color: medal ? color.ink : color.inkSecondary }]}>
+                {(tier.rankStart === tier.rankEnd ? words.ordinal(tier.rankStart) : `${words.ordinal(tier.rankStart)}–${words.ordinal(tier.rankEnd)}`).toUpperCase()}
+              </Text>
+              <Text style={[styles.amount, { color: color.ink }]}>
+                {tier.amountUnits} {prizePool.currency}
+                {tier.rankStart !== tier.rankEnd ? <Text style={[styles.each, { color: color.inkMuted }]}> {words.each.toUpperCase()}</Text> : null}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
       <Foot>
         {words.eligible(minStakedDuels)} · {eligibilityNote}
       </Foot>
-      <Foot>
-        {escrowLine}
-        {escrow && !escrow.distributed ? ` · ${shortHex(escrow.address, 6, 4)}` : ""}
-      </Foot>
+      <View style={[styles.escrow, { borderTopColor: color.hairline }]}>
+        <Foot>
+          {escrowLine}
+          {escrow && !escrow.distributed ? ` · ${shortHex(escrow.address, 6, 4)}` : ""}
+        </Foot>
+      </View>
     </Plate>
   );
 }
 
 export function PrizeChip({ prize, season, row }: { prize: number; season: SeasonView; row: { eligible: boolean; stakedDuels: number } }) {
-  const { color } = useTheme();
+  const { d, color } = useDuelTokens();
   const words = GAMES.rankPage;
   return (
-    <View style={[styles.chip, { backgroundColor: row.eligible ? color.accentWash : color.surface2 }]}>
+    <View style={[styles.chip, { borderColor: row.eligible ? d.chipOnBorder : d.chipBorder, backgroundColor: row.eligible ? d.chipOnBg : d.chipBg }]}>
       <Text style={[styles.chipText, { color: row.eligible ? color.accent : color.inkMuted }]}>
-        {words.prize(prize, season.prizePool.currency)}
-        {!row.eligible ? ` · ${words.locked(row.stakedDuels, season.minStakedDuels)}` : ""}
+        {words.prize(prize, season.prizePool.currency).toUpperCase()}
+        {!row.eligible ? ` · ${words.locked(row.stakedDuels, season.minStakedDuels).toUpperCase()}` : ""}
       </Text>
     </View>
   );
 }
 
+/** `.du-rung` and its parts, shared by the board and the pinned standing. */
+export const rungStyles = StyleSheet.create({
+  rung: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1 },
+  main: { flex: 1, minWidth: 0, gap: 2 },
+  side: { alignItems: "flex-end", gap: 2 },
+  addr: { fontFamily: FONT.dataRegular, fontSize: 14, lineHeight: 22.4 },
+  tags: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 6, columnGap: 10 },
+  rating: { fontFamily: FONT.headingHeavy, fontSize: 18, lineHeight: 28.8, fontVariant: ["tabular-nums"] },
+});
+
 const styles = StyleSheet.create({
-  banner: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 16, borderWidth: 1, padding: 14 },
-  bannerText: { flex: 1, gap: 2 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 10, letterSpacing: 2 },
-  name: { fontFamily: FONT.heading, fontSize: 18 },
-  line: { fontFamily: FONT.data, fontSize: 11 },
+  place: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2, fontVariant: ["tabular-nums"] },
+  plain: { minWidth: 28 },
+  medal: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  medalText: { fontFamily: FONT.dataStrong },
+  prizes: { gap: 8, marginBottom: 12 },
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  total: { fontFamily: FONT.dataStrong, fontSize: 16 },
-  prizeRow: { flexDirection: "row", justifyContent: "space-between", paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth },
-  rank: { fontFamily: FONT.dataStrong, fontSize: 13 },
-  amount: { fontFamily: FONT.data, fontSize: 13 },
-  chip: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  chipText: { fontFamily: FONT.data, fontSize: 10 },
+  total: { fontFamily: PIXEL_FONT, fontSize: 22, lineHeight: 22, fontVariant: ["tabular-nums"] },
+  list: { gap: 4 },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  rank: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2, letterSpacing: 0.96 },
+  amount: { fontFamily: FONT.dataRegular, fontSize: 13, lineHeight: 20.8, fontVariant: ["tabular-nums"] },
+  each: { fontSize: 9, letterSpacing: 1.08 },
+  escrow: { borderTopWidth: 1, paddingTop: 8 },
+  chip: { flexDirection: "row", alignItems: "center", paddingVertical: 1, paddingHorizontal: 8, borderRadius: 6, borderWidth: 1 },
+  chipText: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1, fontVariant: ["tabular-nums"] },
 });

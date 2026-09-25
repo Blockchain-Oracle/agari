@@ -4,29 +4,31 @@ import type { Hash32 } from "@agari/core/types";
 import { shortHex } from "@agari/core/units";
 import { useArenaMatch } from "@agari/markets/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AppState, RefreshControl, ScrollView, StyleSheet } from "react-native";
+import { AppState, StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";
 import { DUEL } from "@/features/games/duel/copy";
 import { useDuelRoom, type DuelRoom } from "@/features/games/duel/useDuelRoom";
 import { useRoomOccupancy, type RoomOccupancy } from "@/features/games/duel/useRoomOccupancy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { haptic, Hero } from "~/components/kit";
-import { useTheme } from "~/theme";
+import { haptic } from "~/components/kit";
+import { useGamesTokens } from "~/features/games/frame";
+import { FONT } from "~/theme";
 import { useGames } from "../shell/context";
-import { useStageFeel } from "../stage";
+import { StageHead, StageScroll, useStageFeel } from "../stage";
 import { DuelEntry } from "./DuelEntry";
-import { DuelHistory } from "./DuelHistory";
 import { DuelLobby } from "./DuelLobby";
 import { DuelPicking } from "./DuelPicking";
 import { DuelPublicResult } from "./DuelPublicResult";
 import { DuelQueue } from "./DuelQueue";
 import { DuelResult } from "./DuelResult";
-import { Body, Facts, Foot, Plate, PlateTitle, Quiet, Refusal } from "./parts";
+import { Body, Facts, Foot, Plate, PlateTitle, Quiet } from "./parts";
 import { Connection, Gate, Rekey } from "./StageGate";
 
 /**
  * web's `DuelStage.tsx`: `/games/duel`, drawn from whatever phase the reducer is in — one branch per phase and no
- * screen state beside it, so a reconnect that lands on a snapshot draws the right thing.
+ * screen state beside it, so a reconnect that lands on a snapshot draws the right thing. The page is web's: the
+ * `.du-head`, the phase's plate with the room's error under it, then the intro and the socket's own line. Picking
+ * happens in the same page (the rail steps aside for it); the deck holds the page still while a card is dragged.
  *
  * On the phone the socket must also survive the app going to the background: iOS suspends it, and web's backoff
  * could leave a returning player waiting up to fifteen seconds. So when the app comes back active with the room not
@@ -50,7 +52,7 @@ function RoomStage({ resumeMatchId, onStale }: { resumeMatchId: Hash32 | null; o
   const { state, auth } = room;
   const [tierId, setTierId] = useState<StakeTierId>("free");
   const occupancy = useRoomOccupancy();
-  const { color } = useTheme();
+  const { color } = useGamesTokens();
   // Pull to refresh asks the room for this match's snapshot again (web's `resync`), or reconnects a dropped room.
   const refresh = () => {
     haptic.select();
@@ -76,36 +78,32 @@ function RoomStage({ resumeMatchId, onStale }: { resumeMatchId: Hash32 | null; o
     return () => sub.remove();
   }, [onStale]);
 
-  if (state.phase === "picking" && auth.kind === "ready" && !spectator && room.error?.code !== "wrong-key") {
-    return <DuelPicking state={state} wallet={you} room={room} />;
-  }
-
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.body}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} tintColor={color.accent} colors={[color.accent]} />}
-    >
-      <Hero kicker={DUEL.eyebrow} title={`${DUEL.title}.`} />
-      {auth.kind === "ready" ? <Connection status={room.status} /> : null}
-      {spectator && resumeMatchId ? (
-        <DuelPublicResult matchId={resumeMatchId} />
-      ) : auth.kind !== "ready" ? (
-        <Gate room={room} occupancy={occupancy} />
-      ) : (
-        <Match room={room} wallet={you} tierId={tierId} onTier={setTierId} occupancy={occupancy} />
-      )}
-      {room.error ? (
-        <Refusal>
-          <Body>{room.error.message}</Body>
-          <Foot>{room.error.retryable ? DUEL.error.retryable : DUEL.error.terminal}</Foot>
-          <Quiet label={DUEL.error.dismiss} onPress={room.dismissError} />
-        </Refusal>
-      ) : null}
-      <Body>{DUEL.intro}</Body>
-      {!spectator && (state.phase === "idle" || state.phase === "readiness" || isTerminal(state.phase)) ? <DuelHistory compact /> : null}
-    </ScrollView>
+    <StageScroll onRefresh={refresh}>
+      <StageHead eyebrow={DUEL.eyebrow} title={DUEL.title} />
+      <View style={styles.layout}>
+        <View>
+          {spectator && resumeMatchId ? (
+            <DuelPublicResult matchId={resumeMatchId} />
+          ) : auth.kind !== "ready" ? (
+            <Gate room={room} occupancy={occupancy} />
+          ) : (
+            <Match room={room} wallet={you} tierId={tierId} onTier={setTierId} occupancy={occupancy} />
+          )}
+          {room.error ? (
+            <Plate tone="error">
+              <Body>{room.error.message}</Body>
+              <Foot>{room.error.retryable ? DUEL.error.retryable : DUEL.error.terminal}</Foot>
+              <Quiet label={DUEL.error.dismiss} onPress={room.dismissError} />
+            </Plate>
+          ) : null}
+        </View>
+        <View style={styles.side}>
+          <Text style={[styles.intro, { color: color.inkSecondary }]}>{DUEL.intro}</Text>
+          {auth.kind === "ready" ? <Connection status={room.status} /> : null}
+        </View>
+      </View>
+    </StageScroll>
   );
 }
 
@@ -148,6 +146,8 @@ function Match({ room, wallet, tierId, onTier, occupancy }: {
     case "committed":
     case "revealed":
       return <DuelLobby state={state} wallet={wallet} dealing={room.dealing} />;
+    case "picking":
+      return <DuelPicking state={state} wallet={wallet} room={room} />;
     case "locked":
     case "settling":
     case "finalized":
@@ -200,5 +200,7 @@ function Beyond({ state }: { state: MatchState }) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, paddingTop: 12, paddingBottom: 120, gap: 16 },
+  layout: { gap: 16 },
+  side: { gap: 12 },
+  intro: { fontFamily: FONT.body, fontSize: 13, lineHeight: 21.45 },
 });

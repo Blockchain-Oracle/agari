@@ -4,15 +4,16 @@ import type { Address, Hash32, MarketId } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { useArenaCredit, useArenaState, useMarketsLite } from "@agari/markets/react";
 import { useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import type { DuelCard } from "@/features/games/duel/duel-card";
 import { useArenaWrites } from "@/features/games/duel/useArenaWrites";
 import { useVenue } from "@/features/markets/useVenue";
-import { Button, SignReview } from "~/components/kit";
+import { Cta } from "~/features/games/frame";
 import { LockedInMark } from "../shell/PixelArt";
 import { useStageFeel } from "../stage";
 import { DuelResultModal } from "./DuelResultModal";
-import { Body, Foot, Key, Plate, PlateTitle, Quiet, Value } from "./parts";
+import { Body, Foot, Key, Plate, PlateTitle, Quiet, useDuelTokens, Value } from "./parts";
 import { ReceiptRows, Verdict } from "./ResultParts";
 
 type ResultState = Extract<MatchState, { phase: "locked" | "settling" | "finalized" | "forfeited" }>;
@@ -27,8 +28,8 @@ export function DuelResult({ state, wallet }: { state: ResultState; wallet: stri
   const credit = useArenaCredit((wallet as Address | null) ?? null);
   const { claim, settleCard, finalize, busy, canSign } = useArenaWrites();
   const { feedback } = useStageFeel();
+  const { d } = useDuelTokens();
   const arena = useArenaState();
-  const [claiming, setClaiming] = useState(false);
 
   const decimals = boot && isOk(boot) ? boot.value.collateral.decimals : null;
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "";
@@ -98,10 +99,12 @@ export function DuelResult({ state, wallet }: { state: ResultState; wallet: stri
       : null;
 
   return (
-    <>
+    <View style={styles.result}>
       {state.phase === "locked" ? (
-        <Plate style={{ alignItems: "center" }}>
-          <LockedInMark size={56} />
+        <Plate style={styles.locked}>
+          <View style={[styles.mark, { shadowColor: d.lockedGlow }]}>
+            <LockedInMark size={48} />
+          </View>
           <PlateTitle>{DUEL.settling.lockedTitle}</PlateTitle>
           <Body>{DUEL.settling.lockedBody}</Body>
         </Plate>
@@ -133,6 +136,7 @@ export function DuelResult({ state, wallet }: { state: ResultState; wallet: stri
         <Plate>
           <Key>{DUEL.settling.crankTitle}</Key>
           <Body>{DUEL.settling.crankBody}</Body>
+          <View style={styles.cranks}>
           {outstanding.map((c) => (
             <Quiet
               key={c.index}
@@ -144,6 +148,7 @@ export function DuelResult({ state, wallet }: { state: ResultState; wallet: stri
           {canFinalize ? (
             <Quiet label={busy === "finalize" ? DUEL.settling.finalizing : DUEL.settling.finalize} disabled={busy !== null} onPress={() => void finalize(state.matchId as Hash32)} />
           ) : null}
+          </View>
         </Plate>
       ) : null}
 
@@ -151,25 +156,20 @@ export function DuelResult({ state, wallet }: { state: ResultState; wallet: stri
         <Key>{DUEL.result.credit}</Key>
         <Value>{owed === null ? DUEL.result.unsettled : `${money(owed)} ${symbol}`}</Value>
         {owed !== null && owed > 0n && canSign && wallet ? (
-          claiming || busy === "claim" ? (
-            <SignReview
-              title={DUEL.result.claim}
-              lines={[{ label: DUEL.result.credit, value: `${money(owed)} ${symbol}`, tone: "profit" }]}
-              maxLoss={null}
-              confirmLabel="Slide to claim"
-              tone="profit"
-              phase={busy === "claim" ? "signing" : "review"}
-              onConfirm={() => void claim(wallet as Address).then(() => setClaiming(false))}
-            />
-          ) : (
-            <Button label={DUEL.result.claim} variant="profit" onPress={() => setClaiming(true)} disabled={busy !== null} />
-          )
+          <Cta label={busy === "claim" ? DUEL.result.claiming : DUEL.result.claim} disabled={busy !== null} onPress={() => void claim(wallet as Address)} />
         ) : null}
         {owed === 0n ? <Body>{DUEL.result.nothingToClaim}</Body> : null}
         <Foot>{DUEL.result.claimNote}</Foot>
       </Plate>
 
       {picksComplete(cards, receipts) && !everyCardSettled(cards, receipts) && state.phase !== "finalized" ? <Foot>{DUEL.settling.waitingCard}</Foot> : null}
-    </>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  result: { gap: 12 },
+  locked: { alignItems: "flex-start" },
+  mark: { shadowOpacity: 1, shadowRadius: 12, shadowOffset: { width: 0, height: 0 } },
+  cranks: { flexDirection: "row", flexWrap: "wrap", rowGap: 8, columnGap: 16 },
+});

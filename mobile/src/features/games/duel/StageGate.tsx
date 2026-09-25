@@ -6,10 +6,10 @@ import { useArenaWrites } from "@/features/games/duel/useArenaWrites";
 import type { DuelRoom, RoomStatus } from "@/features/games/duel/useDuelRoom";
 import { MATCH_AGENT_TTL_SEC } from "@/features/games/duel/useGameSession";
 import { searchingNow, type RoomOccupancy } from "@/features/games/duel/useRoomOccupancy";
-import { Button, ConnectGate } from "~/components/kit";
-import { FONT, useTheme } from "~/theme";
+import { Cta, PulseDot } from "~/features/games/frame";
+import { FONT } from "~/theme";
 import { RefusalPlate } from "./DuelWaiting";
-import { Body, DeckLine, Facts, Foot, Plate, PlateTitle, Refusal } from "./parts";
+import { Body, DeckLine, Facts, Foot, Plate, PlateTitle, Refusal, useDuelTokens } from "./parts";
 
 /**
  * web's `DuelStage.tsx` Gate, Rekey, Occupancy and Connection. The gate is everything before the socket: no room,
@@ -29,10 +29,11 @@ export function Gate({ room, occupancy }: { room: DuelRoom; occupancy: RoomOccup
   }
   if (auth.kind === "connect") {
     return (
-      <>
-        <ConnectGate why={DUEL.auth.connectBody} />
-        <Plate>{here}</Plate>
-      </>
+      <Plate>
+        <PlateTitle>{DUEL.auth.connectTitle}</PlateTitle>
+        <Body>{DUEL.auth.connectBody}</Body>
+        {here}
+      </Plate>
     );
   }
   if (auth.kind === "refused") {
@@ -42,7 +43,7 @@ export function Gate({ room, occupancy }: { room: DuelRoom; occupancy: RoomOccup
         <Body>{DUEL.auth.openingBody}</Body>
         {here}
         <Refusal>{auth.why}</Refusal>
-        <Button label={DUEL.auth.retry} onPress={() => void authorize()} />
+        <Cta label={DUEL.auth.retry} onPress={() => void authorize()} />
       </Plate>
     );
   }
@@ -89,7 +90,7 @@ export function Rekey({ matchId, room, wallet }: { matchId: Hash32; room: DuelRo
       {!canSign || !game.key ? (
         <Refusal>{words.noSigner}</Refusal>
       ) : (
-        <Button label={busy === "authorize" ? words.naming : words.cta} loading={busy === "authorize"} disabled={busy !== null} onPress={name} />
+        <Cta label={busy === "authorize" ? words.naming : words.cta} disabled={busy !== null} onPress={name} />
       )}
       <Foot>{words.note}</Foot>
       {refusal ? <RefusalPlate diagnosis={refusal.diagnosis} gasShort={refusal.gasShort} wallet={wallet as Address | null} /> : null}
@@ -97,22 +98,22 @@ export function Rekey({ matchId, room, wallet }: { matchId: Hash32; room: DuelRo
   );
 }
 
-/** The socket's state as a small live dot, shown once the room is authorised. */
+/** web's `.du-conn`: the socket's state as a 6 px dot (profit open, pulsing vermilion reconnecting, loss closed) and a mono line. */
 export function Connection({ status }: { status: RoomStatus }) {
-  const { color } = useTheme();
+  const { color } = useDuelTokens();
   const label =
     status === "open" ? DUEL.status.open : status === "reconnecting" ? DUEL.status.reconnecting : status === "closed" ? DUEL.status.closed : DUEL.status.connecting;
-  const dot = status === "open" ? color.profit : status === "closed" ? color.loss : color.warning;
+  const dot = status === "open" ? color.profit : status === "reconnecting" ? color.accent : status === "closed" ? color.loss : color.inkDisabled;
   return (
     <View style={styles.conn} accessibilityRole="text" accessibilityLiveRegion="polite">
-      <View style={[styles.dot, { backgroundColor: dot }]} />
+      {status === "reconnecting" ? <PulseDot color={dot} /> : <View style={[styles.dot, { backgroundColor: dot }]} />}
       <Text style={[styles.connText, { color: color.inkSecondary }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  conn: { flexDirection: "row", alignItems: "center", gap: 8 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  connText: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 0.6 },
+  conn: { flexDirection: "row", alignItems: "center", gap: 6 },
+  dot: { width: 6, height: 6, borderRadius: 9999 },
+  connText: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
 });

@@ -1,16 +1,17 @@
 import { formatSeasonCountdown, prizeForRank, seasonRemainingMs } from "@agari/core/games";
 import { shortHex } from "@agari/core/units";
-import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";
 import { GAMES } from "@/features/games/copy";
 import { useSeason, type SeasonView } from "@/features/games/duel/useSeason";
 import { useWalletSession } from "@/lib/wallet-session";
-import { EmptyState, Hero, LoadingState } from "~/components/kit";
-import { FONT, useTheme } from "~/theme";
-import { Avatar, Foot, Key, Refusal } from "./parts";
-import { PrizeChip, PrizePanel, SeasonStrip } from "./RankParts";
+import { FONT } from "~/theme";
+import { PIXEL_FONT } from "~/theme/web/games";
+import { SeasonBanner } from "../hub/SeasonBanner";
+import { StageHead } from "../stage";
+import { Avatar, Body, Key, Refusal, useDuelTokens } from "./parts";
+import { Place, PrizeChip, PrizePanel, rungStyles } from "./RankParts";
 
 export interface LadderRow {
   wallet: string;
@@ -45,104 +46,105 @@ export function useLadder(): { feed: Feed; reload: () => Promise<void> } {
 }
 
 /**
- * web's `DuelRank.tsx` (`/games/rank`): the season banner when there is one, the ladder ranked by the settler's own
- * rating, the connected wallet's standing pinned above it, and — with a season — the prize breakdown and what the
- * pool actually escrows on chain. Ranking is the rating alone; eligibility only gates prizes.
+ * web's `DuelRank.tsx` (`/games/rank`, Flicky's `rank.tsx`): the season banner, the `.du-head` with its intro and —
+ * in a season — the pool and countdown in the pixel face, the connected wallet's own standing pinned above the board,
+ * the prize panel with what the pool escrows on chain, then the ladder of `.du-rung`s with medals on the top three.
+ * Ranking is the rating alone; eligibility only gates prizes.
  */
 export function DuelRank({ feed }: { feed: Feed }) {
+  const { color } = useDuelTokens();
   const { address } = useWalletSession();
   const season = useSeason();
   const nowMs = useNowMs();
   const words = GAMES.rankPage;
   const remaining = season && nowMs > 0 ? seasonRemainingMs(season, nowMs) : null;
+  const you = address ?? null;
 
   return (
     <>
-      {season ? <SeasonStrip season={season} /> : null}
-      <Hero kicker={GAMES.eyebrow} title={`${words.title}.`} lead={season ? words.introSeason : words.intro}>
-        {season && remaining !== null ? (
-          <Foot tone="accent">
-            {words.pool(String(season.prizePool.totalUnits), season.prizePool.currency)} · {remaining > 0 ? words.endsIn(formatSeasonCountdown(remaining)) : words.ended}
-          </Foot>
-        ) : null}
-      </Hero>
+      {season ? <SeasonBanner season={season} /> : null}
+      <View style={styles.head}>
+        <StageHead eyebrow={GAMES.eyebrow} title={words.title} />
+        <View style={styles.headBody}>
+          <Body>{season ? words.introSeason : words.intro}</Body>
+          {season && remaining !== null ? (
+            <Text style={[styles.seasonLine, { color: color.accent }]}>
+              {`${words.pool(String(season.prizePool.totalUnits), season.prizePool.currency)} · ${remaining > 0 ? words.endsIn(formatSeasonCountdown(remaining)) : words.ended}`.toUpperCase()}
+            </Text>
+          ) : null}
+        </View>
+      </View>
 
       {feed?.me ? <MyRank me={feed.me} season={season ?? null} /> : null}
       {season ? <PrizePanel season={season} /> : null}
 
       {feed === null ? (
-        <LoadingState shape="list" label={words.loading} />
+        <Body>{words.loading}</Body>
       ) : !feed.configured ? (
         <Refusal>{words.notConfigured}</Refusal>
       ) : feed.rows.length === 0 ? (
-        <EmptyState why={words.empty} />
+        <Body>{words.empty}</Body>
       ) : (
-        <Ladder rows={feed.rows} you={address ?? null} season={season ?? null} />
+        <View style={styles.ladder} accessibilityRole="list" accessibilityLabel={words.title}>
+          {feed.rows.map((row, i) => (
+            <Rung key={row.wallet} place={i + 1} row={row} you={row.wallet === you} season={season ?? null} />
+          ))}
+        </View>
       )}
 
-      {feed?.configured && feed.rows.length > 0 && !feed.me ? <Foot>{address ? words.finishToEnter : words.connectToSee}</Foot> : null}
+      {feed?.configured && feed.rows.length > 0 && !feed.me ? (
+        <Text style={[styles.center, { color: color.inkSecondary }]}>{you ? words.finishToEnter : words.connectToSee}</Text>
+      ) : null}
     </>
   );
 }
 
-// 21st: trophyso/leaderboard-rankings — one bordered list, hairline-divided rows, a crown on the top three.
-
-function Ladder({ rows, you, season }: { rows: readonly LadderRow[]; you: string | null; season: SeasonView | null }) {
-  const { color } = useTheme();
-  return (
-    <View style={[styles.board, { borderColor: color.hairline, backgroundColor: color.surface1 }]} accessibilityRole="list" accessibilityLabel={GAMES.rankPage.title}>
-      {rows.map((row, i) => (
-        <Rung key={row.wallet} place={i + 1} row={row} you={row.wallet === you} season={season} first={i === 0} />
-      ))}
-    </View>
-  );
-}
-
-function Rung({ place, row, you, season, first }: { place: number; row: LadderRow; you: boolean; season: SeasonView | null; first: boolean }) {
-  const { color } = useTheme();
+/** `.du-rung`: the place (a medallion for the top three), the hue avatar, the address over its tags, the rating. */
+function Rung({ place, row, you, season }: { place: number; row: LadderRow; you: boolean; season: SeasonView | null }) {
+  const { color } = useDuelTokens();
   const words = GAMES.rankPage;
   const prize = season ? prizeForRank(season.prizeSplit, place) : null;
-  const medal = place === 1 ? color.accent : place === 2 ? color.ink : place === 3 ? color.inkSecondary : null;
   return (
     <View
-      style={[styles.rung, !first && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.hairline }, you && { backgroundColor: color.accentWash }]}
+      style={[rungStyles.rung, { borderColor: you ? color.accent : color.hairline, backgroundColor: color.surface1 }]}
       accessible
       accessibilityLabel={`${place}. ${shortHex(row.wallet, 6, 4)}${you ? `, ${words.you}` : ""}. Rating ${row.rating}. ${words.matches(row.verifiedMatches)}`}
     >
-      <View style={styles.place}>
-        {medal ? <SymbolView name={{ ios: "crown.fill", android: "workspace_premium" }} size={12} tintColor={medal} /> : null}
-        <Text style={[styles.placeText, { color: medal ?? color.inkMuted }]}>{place}</Text>
-      </View>
-      <Avatar address={row.wallet} size={28} />
-      <View style={styles.main}>
-        <Text style={[styles.addr, { color: color.ink }]} numberOfLines={1}>
+      <Place place={place} medal />
+      <Avatar address={row.wallet} />
+      <View style={rungStyles.main}>
+        <Text style={[rungStyles.addr, { color: color.ink }]} numberOfLines={1}>
           {shortHex(row.wallet, 6, 4)}
           {you ? ` · ${words.you}` : ""}
         </Text>
-        <View style={styles.tags}>
+        <View style={rungStyles.tags}>
           <Key>{words.matches(row.verifiedMatches)}</Key>
           {prize !== null && season ? <PrizeChip prize={prize} season={season} row={row} /> : null}
         </View>
       </View>
-      <Text style={[styles.rating, { color: color.ink }]}>{row.rating}</Text>
+      <Text style={[rungStyles.rating, { color: color.ink }]}>{row.rating}</Text>
     </View>
   );
 }
 
-/** The connected player's own standing, pinned above the board. */
+/** The connected player's own standing (Flicky's `MyRankCard`), pinned above the board in the accent edge. */
 function MyRank({ me, season }: { me: LadderRow & { rank: number | null }; season: SeasonView | null }) {
-  const { color } = useTheme();
+  const { color } = useDuelTokens();
   const words = GAMES.rankPage;
   const prize = season && me.rank !== null ? prizeForRank(season.prizeSplit, me.rank) : null;
   return (
-    <View style={[styles.mine, { borderColor: color.accent, backgroundColor: color.accentWash }]} accessible accessibilityLabel={`${me.rank === null ? words.unranked : `${words.yourRank} ${me.rank}`}. Rating ${me.rating}`}>
-      <Text style={[styles.mineRank, { color: color.accent }]}>{me.rank ?? "—"}</Text>
-      <View style={styles.main}>
+    <View
+      style={[rungStyles.rung, styles.mine, { borderColor: color.accent, backgroundColor: color.surface1 }]}
+      accessible
+      accessibilityLabel={`${me.rank === null ? words.unranked : `${words.yourRank} ${me.rank}`}. Rating ${me.rating}`}
+    >
+      <Place place={me.rank} />
+      <View style={rungStyles.main}>
         <Key>{me.rank === null ? words.unranked : words.yourRank}</Key>
         {prize !== null && season ? <PrizeChip prize={prize} season={season} row={me} /> : null}
       </View>
-      <View style={styles.mineSide}>
-        <Text style={[styles.rating, { color: color.ink }]}>{me.rating}</Text>
+      <View style={rungStyles.side}>
+        <Text style={[rungStyles.rating, { color: color.ink }]}>{me.rating}</Text>
         <Key>{words.matches(me.verifiedMatches)}</Key>
       </View>
     </View>
@@ -150,15 +152,10 @@ function MyRank({ me, season }: { me: LadderRow & { rank: number | null }; seaso
 }
 
 const styles = StyleSheet.create({
-  board: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
-  rung: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 60, paddingHorizontal: 14, paddingVertical: 10 },
-  place: { width: 30, alignItems: "center", gap: 1 },
-  placeText: { fontFamily: FONT.dataStrong, fontSize: 14, fontVariant: ["tabular-nums"] },
-  main: { flex: 1, gap: 3 },
-  addr: { fontFamily: FONT.data, fontSize: 13 },
-  tags: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
-  rating: { fontFamily: FONT.dataStrong, fontSize: 18, fontVariant: ["tabular-nums"] },
-  mine: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1, padding: 14 },
-  mineRank: { fontFamily: FONT.dataStrong, fontSize: 26, minWidth: 36, textAlign: "center" },
-  mineSide: { alignItems: "flex-end", gap: 2 },
+  head: { marginBottom: 20 },
+  headBody: { marginTop: -20 },
+  seasonLine: { marginTop: 6, fontFamily: PIXEL_FONT, fontSize: 16, lineHeight: 25.6, letterSpacing: 2.24, fontVariant: ["tabular-nums"] },
+  ladder: { gap: 8 },
+  mine: { marginBottom: 12 },
+  center: { marginTop: 12, textAlign: "center", fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
 });

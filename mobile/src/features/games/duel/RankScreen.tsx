@@ -1,14 +1,12 @@
-import { GAMES } from "@/features/games/copy";
-import { Screen } from "~/components/kit";
-import { GameHeaderActions } from "../shell";
+import { GamesPage } from "~/features/games/frame";
 import { DuelRank, useLadder } from "./DuelRank";
 
-/** `/games/rank`: the ladder, pull to refresh re-reads it. */
+/** `/games/rank`: web's ladder page under the games rail; pull to refresh re-reads it. */
 export function RankScreen() {
   const { feed, reload } = useLadder();
   return (
-    <Screen title={GAMES.rankPage.title} onRefresh={reload} headerRight={() => <GameHeaderActions />}>
+    <GamesPage onRefresh={() => void reload()}>
       <DuelRank feed={feed} />
-    </Screen>
+    </GamesPage>
   );
 }

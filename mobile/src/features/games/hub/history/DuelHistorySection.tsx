@@ -8,8 +8,9 @@ import { GAMES } from "@/features/games/copy";
 import { timeAgo } from "@/features/markets/history/time-ago";
 import { useVenue } from "@/features/markets/useVenue";
 import { usePager } from "@/lib/use-pager";
-import { EmptyState, LoadingState } from "~/components/kit";
-import { HistoryHead, HistoryPager, HistoryRow } from "./HistoryParts";
+import { StageHead } from "~/features/games/stage";
+import { Body, Refusal } from "../../duel/parts";
+import { HistoryPager, HistoryRow, historyStyles } from "./HistoryParts";
 
 /** The fields of `@agari/db`'s DuelHistoryRow this list reads, as `/api/games/history` sends them. */
 interface DuelRow {
@@ -35,9 +36,9 @@ const NO_ROWS: readonly DuelRow[] = [];
 /**
  * web's `DuelHistory`: every duel this wallet has played, newest first — the mode and stake, the opponent, how
  * it ended, the PnL the arena measured, and when — polled every eight seconds, eight to a page. A row opens
- * that match. `reload` bumps on pull-to-refresh.
+ * that match. Without a wallet it says so. `reload` bumps on pull-to-refresh.
  */
-export function DuelHistorySection({ address, reload }: { address: string; reload: number }) {
+export function DuelHistorySection({ address, reload }: { address: string | null; reload: number }) {
   const { boot } = useVenue();
   const nowMs = useNowMs();
   const [feed, setFeed] = useState<Feed>(null);
@@ -46,6 +47,10 @@ export function DuelHistorySection({ address, reload }: { address: string; reloa
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "";
 
   useEffect(() => {
+    if (!address) {
+      setFeed(null);
+      return;
+    }
     let alive = true;
     const load = () =>
       fetch(`/api/games/history?address=${address}`)
@@ -66,16 +71,19 @@ export function DuelHistorySection({ address, reload }: { address: string; reloa
   const money = (base: string | null) => (base === null || decimals === null ? "—" : formatBaseUnits(BigInt(base), decimals, { maxDp: 2, minDp: 2 }));
 
   return (
-    <View style={{ gap: 10 }}>
-      <HistoryHead eyebrow={GAMES.eyebrow} title={words.title} />
-      {feed === null ? (
-        <LoadingState shape="list" label={words.loading} />
+    <View>
+      <StageHead eyebrow={GAMES.eyebrow} title={words.title} />
+      {!address ? (
+        <Body>{words.connect}</Body>
+      ) : feed === null ? (
+        <Body>{words.loading}</Body>
       ) : !feed.configured ? (
-        <EmptyState why={words.notConfigured} />
+        <Refusal>{words.notConfigured}</Refusal>
       ) : feed.rows.length === 0 ? (
-        <EmptyState why={words.empty} action={{ label: "Find a duel", onPress: () => router.push("/games/duel" as Href) }} />
+        <Body>{words.empty}</Body>
       ) : (
         <>
+          <View style={historyStyles.list}>
           {pager.slice.map((row) => {
             const creator = row.creator === address;
             const opponent = creator ? row.challenger : row.creator;
@@ -103,6 +111,7 @@ export function DuelHistorySection({ address, reload }: { address: string; reloa
               />
             );
           })}
+          </View>
           <HistoryPager pager={pager} />
         </>
       )}

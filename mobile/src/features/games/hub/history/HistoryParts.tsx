@@ -1,31 +1,15 @@
-import type { PagerState } from "@/lib/use-pager";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Button } from "~/components/kit";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { PAGER } from "@/lib/copy";
+import type { PagerState } from "@/lib/use-pager";
+import { FONT } from "~/theme";
+import { useDuelTokens } from "../../duel/parts";
 
 export type Verdict = "won" | "lost" | "live" | "tied" | "neutral";
 
-/** A history section's opening (web's `du-head`): the eyebrow, the title with its accent period, an aside. */
-export function HistoryHead({ eyebrow, title, aside }: { eyebrow: string; title: string; aside?: ReactNode }) {
-  const { color } = useTheme();
-  return (
-    <View style={styles.head}>
-      <View style={styles.headText}>
-        <Text style={[styles.eyebrow, { color: color.accent }]}>{eyebrow.toUpperCase()}</Text>
-        <Text style={[TYPE.headline, { color: color.ink }]} accessibilityRole="header">
-          {title}
-          <Text style={{ color: color.accent }}>.</Text>
-        </Text>
-      </View>
-      {aside}
-    </View>
-  );
-}
-
 /**
- * web's `du-history-row`: the verdict word in its colour, the main line and its detail, and the right-hand
- * figure over the time. `onPress` makes the row one touch target.
+ * duel.css `.du-history-row`: the verdict word (mono 10, its side's colour) in a 52 px column, the main line over
+ * its detail, and the right-hand figure over the time; one touch target when it opens something.
  */
 export function HistoryRow({ verdict, word, main, detail, value, valueTone, time, onPress, label }: {
   verdict: Verdict;
@@ -38,30 +22,28 @@ export function HistoryRow({ verdict, word, main, detail, value, valueTone, time
   onPress?: () => void;
   label: string;
 }) {
-  const { color } = useTheme();
+  const { color } = useDuelTokens();
   const ink = verdict === "won" ? color.profit : verdict === "lost" ? color.loss : verdict === "live" ? color.accent : color.inkMuted;
   const body = (
     <>
-      <View style={[styles.verdict, { borderColor: ink }]}>
-        <Text style={[styles.verdictText, { color: ink }]} numberOfLines={1}>
-          {word.toUpperCase()}
-        </Text>
-      </View>
+      <Text style={[styles.verdict, { color: ink }]} numberOfLines={1}>
+        {word.toUpperCase()}
+      </Text>
       <View style={styles.main}>
-        <Text style={[TYPE.data, { color: color.ink }]} numberOfLines={1}>
+        <Text style={[styles.v, { color: color.ink }]} numberOfLines={1}>
           {main}
         </Text>
-        <Text style={[styles.detail, { color: color.inkMuted }]}>{detail}</Text>
+        <Text style={[styles.k, { color: color.inkMuted }]}>{detail.toUpperCase()}</Text>
       </View>
       <View style={styles.side}>
         {typeof value === "string" ? (
-          <Text style={[TYPE.data, { color: valueTone === "profit" ? color.profit : valueTone === "loss" ? color.loss : color.ink }]} numberOfLines={1}>
+          <Text style={[styles.v, { color: valueTone === "profit" ? color.profit : valueTone === "loss" ? color.loss : color.ink }]} numberOfLines={1}>
             {value}
           </Text>
         ) : (
           value
         )}
-        <Text style={[styles.detail, { color: color.inkMuted }]}>{time}</Text>
+        <Text style={[styles.k, { color: color.inkMuted }]}>{time.toUpperCase()}</Text>
       </View>
     </>
   );
@@ -74,45 +56,45 @@ export function HistoryRow({ verdict, word, main, detail, value, valueTone, time
     );
   }
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [style, pressed && { opacity: 0.8 }]}>
+    <Pressable onPress={onPress} accessibilityRole="link" accessibilityLabel={label} style={({ pressed }) => [style, pressed && { borderColor: color.accent, transform: [{ scale: 0.97 }] }]}>
       {body}
     </Pressable>
   );
 }
 
-/** web's `Pager`: "1–8 of 23" between previous and next. */
+/** web's `Pager` under a paged list (`.pager` as `.du-pager`): "← Prev", "1–8 of 23", "Next →" in mono caps; nothing while one page fits. */
 export function HistoryPager<T>({ pager }: { pager: PagerState<T> }) {
-  const { color } = useTheme();
-  if (pager.pageCount <= 1) return null;
+  const { color } = useDuelTokens();
+  if (pager.total <= pager.pageSize) return null;
+  const button = (label: string, onPress: () => void, enabled: boolean) => (
+    <Pressable onPress={onPress} disabled={!enabled} accessibilityRole="button" hitSlop={10} style={!enabled && styles.off}>
+      <Text style={[styles.pager, { color: color.accent }]}>{label.toUpperCase()}</Text>
+    </Pressable>
+  );
   return (
-    <View style={styles.pager}>
-      <Button label="Previous" variant="outline" size="sm" block={false} disabled={!pager.canPrev} onPress={pager.prev} />
-      <Text style={[TYPE.data, { color: color.inkMuted }]}>
-        {pager.from}–{pager.to} of {pager.total}
+    <View style={styles.pagerRow} accessibilityLabel={PAGER.aria}>
+      {button(PAGER.prev, pager.prev, pager.canPrev)}
+      <Text style={[styles.pager, styles.range, { color: color.inkMuted }]} accessibilityLiveRegion="polite">
+        {PAGER.range(pager.from, pager.to, pager.total).toUpperCase()}
       </Text>
-      <Button label="Next" variant="outline" size="sm" block={false} disabled={!pager.canNext} onPress={pager.next} />
+      {button(PAGER.next, pager.next, pager.canNext)}
     </View>
   );
 }
 
+export const historyStyles = StyleSheet.create({
+  list: { gap: 8 },
+});
+
 const styles = StyleSheet.create({
-  head: { flexDirection: "row", alignItems: "flex-end", gap: 12 },
-  headText: { flex: 1, gap: 4 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.6 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    minHeight: 64,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  verdict: { width: 74, borderWidth: 1, borderRadius: RADIUS.full, paddingVertical: 3, alignItems: "center" },
-  verdictText: { fontFamily: FONT.data, fontSize: 9.5, letterSpacing: 0.6 },
-  main: { flex: 1, gap: 2 },
-  detail: { fontFamily: FONT.body, fontSize: 11.5, lineHeight: 16 },
-  side: { alignItems: "flex-end", gap: 2, maxWidth: 120 },
-  pager: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  row: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1 },
+  verdict: { minWidth: 52, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1.2 },
+  main: { flex: 1, minWidth: 0, gap: 2 },
+  side: { alignItems: "flex-end", gap: 2 },
+  v: { fontFamily: FONT.dataRegular, fontSize: 14, lineHeight: 22.4, fontVariant: ["tabular-nums"] },
+  k: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.08 },
+  pagerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingVertical: 10, marginTop: 8 },
+  pager: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1.4 },
+  range: { fontVariant: ["tabular-nums"] },
+  off: { opacity: 0.35 },
 });

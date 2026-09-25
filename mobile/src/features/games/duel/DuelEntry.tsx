@@ -2,17 +2,18 @@ import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@agari/
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { useArenaState, useBalanceSheet } from "@agari/markets/react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import { useArenaGas } from "@/features/games/duel/useArenaGas";
 import { useGameSponsor } from "@/features/games/duel/useGameSponsor";
 import { waitingIn, type RoomOccupancy } from "@/features/games/duel/useRoomOccupancy";
 import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Button, haptic } from "~/components/kit";
-import { FONT, useTheme } from "~/theme";
+import { haptic } from "~/components/kit";
+import { Cta, Press } from "~/features/games/frame";
+import { FONT } from "~/theme";
 import { GasRoutes } from "./DuelWaiting";
-import { Body, Foot, Key, onPhone, Plate, Refusal } from "./parts";
+import { Blurb, Body, Foot, Key, onPhone, Plate, Refusal, useDuelTokens } from "./parts";
 
 export interface DuelEntryProps {
   onFind: (mode: DuelMode, tier: StakeTierId) => void;
@@ -29,7 +30,7 @@ export interface DuelEntryProps {
  * the sponsor when it is ready, the player otherwise. An empty SOL tank blocks the search itself.
  */
 export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelEntryProps) {
-  const { color } = useTheme();
+  const { d, color } = useDuelTokens();
   const { address } = useWalletSession();
   const { boot } = useVenue();
   const arena = useArenaState();
@@ -66,7 +67,7 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
             const name = t.mode === "free" ? DUEL.entry.free : DUEL.entry.ranked;
             const amount = t.potUnits === 0 ? DUEL.entry.tierFree : DUEL.entry.tierUnits(t.potUnits, symbol);
             return (
-              <Pressable
+              <Press
                 key={t.id}
                 onPress={() => {
                   if (on) return;
@@ -76,30 +77,31 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
                 accessibilityRole="radio"
                 accessibilityState={{ checked: on }}
                 accessibilityLabel={`${name}, ${amount}`}
-                style={[styles.tier, { borderColor: on ? color.accent : color.hairline, backgroundColor: on ? color.accentWash : "transparent" }]}
+                style={[styles.tier, { borderColor: on ? color.accent : color.hairline, backgroundColor: on ? d.tierOnBg : "transparent" }]}
               >
                 <Text style={[styles.tierName, { color: color.inkMuted }]}>{name.toUpperCase()}</Text>
                 <Text style={[styles.tierAmount, { color: color.ink }]}>{amount}</Text>
-              </Pressable>
+              </Press>
             );
           })}
         </View>
-        <Body>{tier.mode === "free" ? DUEL.entry.freeBlurb : DUEL.entry.rankedBlurb}</Body>
+        <Blurb>{tier.mode === "free" ? DUEL.entry.freeBlurb : DUEL.entry.rankedBlurb}</Blurb>
         {occupancy?.reachable ? <Foot>{DUEL.entry.queueHere(waitingIn(occupancy, tier.mode, tierId))}</Foot> : null}
       </View>
 
       <View style={styles.cost}>
         <Key>{DUEL.entry.cost}</Key>
+        <View style={styles.costList}>
         {[
           tier.potUnits === 0 ? DUEL.entry.costNoPot : DUEL.entry.costPot(money(potBase), symbol),
           DUEL.entry.costCards(money(capBase), symbol),
           sponsor.ready ? DUEL.entry.costGasSponsored : DUEL.entry.costGas,
         ].map((line) => (
-          <View key={line} style={styles.bullet}>
-            <View style={[styles.dot, { backgroundColor: color.accent }]} />
-            <Text style={[styles.costLine, { color: color.inkSecondary }]}>{onPhone(line)}</Text>
-          </View>
+          <Text key={line} style={[styles.costLine, { color: color.inkSecondary }]}>
+            {onPhone(line)}
+          </Text>
         ))}
+        </View>
       </View>
 
       {notDeployed ? <Refusal>{DUEL.entry.notDeployed}</Refusal> : null}
@@ -112,16 +114,7 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
           <GasRoutes onRecheck={() => void recheck()} />
         </Refusal>
       ) : null}
-      {gas.kind === "checking" ? <Foot>{DUEL.entry.gasCheck}</Foot> : null}
-
-      <Button
-        label={roomOpen ? DUEL.entry.find : DUEL.entry.waitingRoom}
-        size="lg"
-        disabled={blocked}
-        loading={!roomOpen}
-        onPress={() => onFind(tier.mode, tierId)}
-        icon={{ ios: "person.2.fill", android: "group" }}
-      />
+      <Cta label={roomOpen ? DUEL.entry.find : DUEL.entry.waitingRoom} disabled={blocked} onPress={() => onFind(tier.mode, tierId)} />
     </Plate>
   );
 }
@@ -129,11 +122,10 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
 const styles = StyleSheet.create({
   choices: { gap: 8 },
   tiers: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  tier: { flexGrow: 1, flexBasis: "46%", minHeight: 56, gap: 2, borderRadius: 12, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 12 },
-  tierName: { fontFamily: FONT.data, fontSize: 9.5, letterSpacing: 1 },
-  tierAmount: { fontFamily: FONT.heading, fontSize: 14 },
+  tier: { width: "48.5%", flexGrow: 1, alignItems: "flex-start", gap: 2, borderRadius: 12, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 12 },
+  tierName: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 0.9 },
+  tierAmount: { fontFamily: FONT.heading, fontSize: 14, lineHeight: 22.4 },
   cost: { gap: 6 },
-  bullet: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
-  dot: { width: 4, height: 4, borderRadius: 2, marginTop: 8 },
-  costLine: { flex: 1, fontFamily: FONT.body, fontSize: 12.5, lineHeight: 19 },
+  costList: { gap: 6, paddingLeft: 16 },
+  costLine: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
 });

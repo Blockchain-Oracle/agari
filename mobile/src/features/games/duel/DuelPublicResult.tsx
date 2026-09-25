@@ -8,17 +8,19 @@ import { StyleSheet, Text, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import type { DuelCard } from "@/features/games/duel/duel-card";
 import { useVenue } from "@/features/markets/useVenue";
-import { Button, LoadingState } from "~/components/kit";
-import { FONT, useTheme } from "~/theme";
+import { LoadingState } from "~/components/kit";
+import { Cta } from "~/features/games/frame";
+import { FONT } from "~/theme";
 import { DuelResultModal } from "./DuelResultModal";
-import { Body, Foot, Key, Plate, Refusal, Seat } from "./parts";
+import { Avatar, Body, Foot, Key, Plate, Refusal, useDuelTokens } from "./parts";
 
 /**
- * web's `DuelPublicResult.tsx`: `/games/duel/[matchId]` for anyone not seated in it — both seats, the verdict,
- * every card's two picks and the share, read straight off the arena with no wallet and no room.
+ * web's `DuelPublicResult.tsx` (`.du-result.du-public`): `/games/duel/[matchId]` for anyone not seated in it — both
+ * seats with their PnL, the verdict, the read-only line and the share, then every card's two picks, read straight
+ * off the arena with no wallet and no room.
  */
 export function DuelPublicResult({ matchId }: { matchId: Hash32 }) {
-  const { color } = useTheme();
+  const { color } = useDuelTokens();
   const reading = useArenaMatch(matchId);
   const { boot } = useVenue();
   const [modalOpen, setModalOpen] = useState(false);
@@ -55,53 +57,74 @@ export function DuelPublicResult({ matchId }: { matchId: Hash32 }) {
       : null;
 
   return (
-    <>
+    <View style={styles.result} accessibilityLabel={words.title}>
       <Plate>
         <Key>{words.title}</Key>
         <View style={styles.seats}>
-          <Seat address={match.creator} line={done ? signed(view.creatorPnlBase) : null} won={winner === match.creator} />
+          <PublicSeat address={match.creator} pnl={done ? signed(view.creatorPnlBase) : null} won={winner === match.creator} />
           <Text style={[styles.vs, { color: color.inkMuted }]}>vs</Text>
-          <Seat address={match.challenger} line={done ? signed(view.challengerPnlBase) : null} won={winner === match.challenger} />
+          <PublicSeat address={match.challenger} pnl={done ? signed(view.challengerPnlBase) : null} won={winner === match.challenger} />
         </View>
         <Body>{done ? (winner === null ? words.tied : words.wonBy(shortHex(winner, 6, 4))) : (words.status[match.status] ?? match.status)}</Body>
         <Foot>{words.readOnly}</Foot>
-        {card ? <Button label={DUEL.result.modal.share} onPress={() => setModalOpen(true)} icon={{ ios: "square.and.arrow.up", android: "share" }} /> : null}
+        {card ? <Cta label={DUEL.result.modal.share} onPress={() => setModalOpen(true)} /> : null}
       </Plate>
 
       <Plate>
         <Key>{words.cards}</Key>
-        {cardsInMask((1 << match.deckSize) - 1, match.deckSize).map((cardIndex) => {
-          const picks = view.picks.filter((p) => p.cardIndex === cardIndex);
-          return (
-            <View key={cardIndex} style={[styles.row, { borderTopColor: color.hairline }]}>
-              <Text style={[styles.cardName, { color: color.ink }]}>
-                {words.card(cardIndex + 1)} <Text style={{ color: color.inkMuted }}>{shortHex(view.cards[cardIndex] ?? "", 8, 4)}</Text>
-              </Text>
-              {picks.length === 0 ? <Foot>{words.unplayed}</Foot> : null}
-              {picks.map((p) => (
-                <View key={p.seat} style={styles.pickRow}>
-                  <View style={[styles.dot, { backgroundColor: p.pick === "up" ? color.profit : color.loss }]} />
-                  <Text style={[styles.pick, { color: color.inkSecondary }]}>
-                    {p.seat === 0 ? shortHex(match.creator, 4, 3) : shortHex(match.challenger, 4, 3)} · {p.pick} · {p.settled ? `${signed(p.payoutBase - p.costBase)} ${symbol}` : words.open}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          );
-        })}
+        <View style={styles.list}>
+          {cardsInMask((1 << match.deckSize) - 1, match.deckSize).map((cardIndex) => {
+            const picks = view.picks.filter((p) => p.cardIndex === cardIndex);
+            return (
+              <View key={cardIndex} style={styles.row}>
+                <Text style={[styles.v, { color: color.ink }]}>{words.card(cardIndex + 1)}</Text>
+                <Key>{shortHex(view.cards[cardIndex] ?? "", 8, 4)}</Key>
+                {picks.length === 0 ? <Text style={[styles.foot, { color: color.inkSecondary }]}>{words.unplayed}</Text> : null}
+                {picks.map((p) => (
+                  <View key={p.seat} style={styles.pick}>
+                    <View style={[styles.dot, { backgroundColor: p.pick === "up" ? color.profit : color.loss }]} />
+                    <Text style={[styles.foot, { color: color.inkSecondary }]}>
+                      {p.seat === 0 ? shortHex(match.creator, 4, 3) : shortHex(match.challenger, 4, 3)} · {p.pick} · {p.settled ? `${signed(p.payoutBase - p.costBase)} ${symbol}` : words.open}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })}
+        </View>
       </Plate>
 
       {card ? <DuelResultModal open={modalOpen} onClose={() => setModalOpen(false)} card={card} /> : null}
-    </>
+    </View>
+  );
+}
+
+/** The public page's `.du-seat`: the avatar, the short address, and the seat's PnL at 11 (profit ink for the winner). */
+function PublicSeat({ address, pnl, won }: { address: string; pnl: string | null; won: boolean }) {
+  const { color } = useDuelTokens();
+  return (
+    <View style={styles.seat}>
+      <Avatar address={address} />
+      <View style={styles.seatName}>
+        <Text style={[styles.addr, { color: color.ink }]}>{shortHex(address, 6, 4)}</Text>
+        {pnl ? <Text style={[styles.pnl, { color: won ? color.profit : color.inkMuted }]}>{pnl}</Text> : null}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  seats: { flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" },
-  vs: { fontFamily: FONT.data, fontSize: 10, letterSpacing: 1 },
-  row: { gap: 4, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  cardName: { fontFamily: FONT.dataStrong, fontSize: 13 },
-  pickRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  pick: { fontFamily: FONT.data, fontSize: 11 },
+  result: { gap: 12 },
+  seats: { flexDirection: "row", alignItems: "center", gap: 14 },
+  seat: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 },
+  seatName: { gap: 2 },
+  addr: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2 },
+  pnl: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.32 },
+  vs: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1 },
+  list: { gap: 6 },
+  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, borderRadius: 10, paddingVertical: 6, paddingHorizontal: 8 },
+  v: { fontFamily: FONT.dataRegular, fontSize: 13, lineHeight: 20.8 },
+  pick: { flexDirection: "row", alignItems: "center", gap: 4 },
+  dot: { width: 7, height: 7, borderRadius: 9999 },
+  foot: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
 });

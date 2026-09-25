@@ -5,10 +5,10 @@ import { useNowMs } from "@/components/data/useNowMs";
 import { DUEL } from "@/features/games/duel/copy";
 import type { DealingView } from "@/features/games/duel/useDuelRoom";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
-import { Button } from "~/components/kit";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { openExternal } from "~/lib/external";
-import { openFunds } from "~/web-shims/credited";
-import { Body, DeckLine, Foot, Quiet, Refusal } from "./parts";
+import { FONT } from "~/theme";
+import { Body, DeckLine, Foot, Quiet, Refusal, useDuelTokens } from "./parts";
 
 /**
  * web's `DuelWaiting.tsx`: the two things a duel used to do silently — wait, and refuse. The countdown runs off the
@@ -43,14 +43,18 @@ export function DealingPlate({ dealing }: { dealing: DealingView }) {
   );
 }
 
-/** The route out of an empty SOL tank: the app's own funding sheet, then the public devnet faucets. */
+/** web's `.du-faucets`: the public devnet faucets as underlined mono links (and the recheck, where the entry offers it). */
 export function GasRoutes({ onRecheck }: { onRecheck?: () => void }) {
+  const { color } = useDuelTokens();
   return (
     <>
-      <Button label="Get test funds" size="sm" block={false} onPress={openFunds} icon={{ ios: "drop.fill", android: "water_drop" }} />
-      {SOL_FAUCETS.map((faucet) => (
-        <Quiet key={faucet.url} label={`${faucet.name} →`} onPress={() => void openExternal(faucet.url)} />
-      ))}
+      <View style={styles.faucets}>
+        {SOL_FAUCETS.map((faucet) => (
+          <Pressable key={faucet.url} onPress={() => void openExternal(faucet.url)} accessibilityRole="link" hitSlop={6}>
+            <Text style={[styles.faucet, { color: color.ink, textDecorationColor: color.hairline }]}>{faucet.name} →</Text>
+          </Pressable>
+        ))}
+      </View>
       {onRecheck ? <Quiet label={DUEL.entry.gasRecheck} onPress={onRecheck} /> : null}
     </>
   );
@@ -72,3 +76,8 @@ export function RefusalPlate({ diagnosis, gasShort, wallet }: { diagnosis: Diagn
     </Refusal>
   );
 }
+
+const styles = StyleSheet.create({
+  faucets: { gap: 4, marginTop: 8 },
+  faucet: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, textDecorationLine: "underline" },
+});

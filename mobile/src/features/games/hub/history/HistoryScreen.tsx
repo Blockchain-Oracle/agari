@@ -1,37 +1,25 @@
 import { useState } from "react";
-import { GAMES } from "@/features/games/copy";
-import { LUCKY } from "@/features/games/lucky/copy";
+import { StyleSheet, View } from "react-native";
 import { useWalletSession } from "@/lib/wallet-session";
-import { EmptyState, Screen } from "~/components/kit";
-import { GameHeaderActions } from "~/features/games/shell";
+import { GamesPage } from "~/features/games/frame";
 import { DuelHistorySection } from "./DuelHistorySection";
 import { LuckyHistorySection } from "./LuckyHistorySection";
 
 /**
- * web's `/games/history` ("Your games"): the duels first, then the spins, each from its own record. Without a
- * wallet there is nothing to read, and the screen says so with the one action that changes it.
+ * web's `/games/history` ("Your games"): the duels first, then the spins, each its own `.gm-page` section from its own
+ * record — so the second opens 64 + 28 below the first, as the two stacked pages do on web. Pull to refresh re-reads both.
  */
 export function HistoryScreen() {
-  const { address, connect } = useWalletSession();
+  const { address } = useWalletSession();
   const [reload, setReload] = useState(0);
   return (
-    <Screen
-      title="Your games"
-      headerRight={() => <GameHeaderActions />}
-      onRefresh={address ? () => setReload((n) => n + 1) : undefined}
-    >
-      {address ? (
-        <>
-          <DuelHistorySection address={address} reload={reload} />
-          <LuckyHistorySection address={address} reload={reload} />
-        </>
-      ) : (
-        <EmptyState
-          why={GAMES.historyPage.connect}
-          detail={LUCKY.history.connect}
-          action={{ label: "Connect a wallet", onPress: connect }}
-        />
-      )}
-    </Screen>
+    <GamesPage onRefresh={address ? () => setReload((n) => n + 1) : undefined}>
+      <DuelHistorySection address={address ?? null} reload={reload} />
+      <View style={styles.next}>
+        <LuckyHistorySection address={address ?? null} reload={reload} />
+      </View>
+    </GamesPage>
   );
 }
+
+const styles = StyleSheet.create({ next: { marginTop: 92 } });
