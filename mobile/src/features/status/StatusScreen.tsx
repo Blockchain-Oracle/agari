@@ -1,77 +1,77 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { RefreshCw, TriangleAlert } from "lucide-react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { STATUS } from "@/features/status/copy";
-import { lagTone } from "@/features/status/protocol";
 import { STATUS_KEY, useStatus } from "@/features/status/useStatus";
-import { EmptyState, LoadingState, Screen, SectionHeader, Segmented } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
-import { useCheckHistory } from "./history";
-import { PipelineRow, StatusBanner } from "./Parts";
-
-type Show = "all" | "issues";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { SectionHeader } from "~/features/explore/SectionHeader";
+import { FONT, useTheme } from "~/theme";
+import { statusTokens } from "~/theme/web/explore/status";
+import { StatusBanner, StatusTable } from "./StatusRows";
 
 /**
  * `/status` — web StatusScreen.tsx: web's own `useStatus` (the `/api/status` probe, every 30 s), in its three states
- * — loading, unreachable, the report — with the verdict banner, one row per pipeline, and the time it was checked.
- * The phone adds a strip of the checks seen while the screen is open, and a filter to the rows that need a look.
+ * — loading (the spinning refresh glyph), unreachable (the amber triangle) and the report: the verdict banner, the
+ * pipeline table and the time it was checked.
  */
 export function StatusScreen() {
-  const { color } = useTheme();
+  const { name, color } = useTheme();
+  const t = statusTokens(name);
   const client = useQueryClient();
   const reading = useStatus();
-  const checks = useCheckHistory(reading);
-  const [show, setShow] = useState<Show>("all");
   const refresh = () => client.invalidateQueries({ queryKey: STATUS_KEY });
 
-  const report = () => {
-    if (reading === null) return <LoadingState shape="list" label={STATUS.loading} />;
-    if (!reading.ok) {
-      return <EmptyState why={STATUS.unreachable} detail={reading.error.technical} action={{ label: "Check again", onPress: () => void refresh() }} />;
-    }
-    const payload = reading.value;
-    const issues = payload.pipelines.filter((pipeline) => {
-      const tone = lagTone(pipeline);
-      return tone === "bad" || tone === "warn";
-    });
-    const rows = show === "all" ? payload.pipelines : issues;
-    return (
-      <>
-        <StatusBanner payload={payload} checks={checks} />
-        <Segmented
-          label="Which pipelines"
-          value={show}
-          onChange={setShow}
-          options={[
-            { value: "all", label: STATUS.tableTitle(payload.pipelines.length).replace(/ \(\d+\)$/, ""), count: payload.pipelines.length },
-            { value: "issues", label: "Needs a look", count: issues.length },
-          ]}
-        />
-        {rows.length === 0 ? (
-          <EmptyState why="Nothing needs a look right now." detail="Every required pipeline answered inside its thresholds on the last check." />
-        ) : (
-          <View>
-            {rows.map((pipeline) => (
-              <PipelineRow key={pipeline.id} pipeline={pipeline} sessionLabel={payload.session?.label ?? null} checks={checks} />
-            ))}
-          </View>
-        )}
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{STATUS.lastChecked(new Date(payload.checkedAtMs).toLocaleTimeString())}</Text>
-      </>
-    );
-  };
-
   return (
-    <Screen title={STATUS.title} onRefresh={refresh}>
+    <ExplorePage title={STATUS.title} onRefresh={refresh} style={styles.page}>
       <SectionHeader index={STATUS.section.index} title={STATUS.section.title} />
-      {reading?.ok && reading.stale ? (
-        <Text style={[TYPE.caption, styles.stale, { color: color.warning }]}>Showing the last good read; the latest check failed.</Text>
+
+      {reading === null ? (
+        <View style={styles.holding} accessibilityRole="progressbar" accessibilityLabel={STATUS.loading}>
+          <Spinner ink={color.inkMuted} />
+          <Text style={[styles.holdingText, { color: color.inkMuted }]}>{STATUS.loading}</Text>
+        </View>
       ) : null}
-      {report()}
-    </Screen>
+
+      {reading !== null && !reading.ok ? (
+        <View style={styles.holding} accessibilityRole="alert">
+          <TriangleAlert size={32} color={t.amber} style={styles.holdingIcon} />
+          <Text style={[styles.holdingText, { color: color.inkSecondary }]}>{STATUS.unreachable}</Text>
+        </View>
+      ) : null}
+
+      {reading?.ok ? (
+        <View style={styles.report}>
+          <StatusBanner payload={reading.value} />
+          <StatusTable pipelines={reading.value.pipelines} sessionLabel={reading.value.session?.label ?? null} />
+          <Text style={[styles.checked, { color: color.inkDisabled }]}>{STATUS.lastChecked(new Date(reading.value.checkedAtMs).toLocaleTimeString())}</Text>
+        </View>
+      ) : null}
+    </ExplorePage>
+  );
+}
+
+/** `animate-spin` on the refresh glyph. */
+function Spinner({ ink }: { ink: string }) {
+  const turn = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.timing(turn, { toValue: 1, duration: 1000, easing: Easing.linear, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [turn]);
+  const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
+  return (
+    <Animated.View style={[styles.holdingIcon, { transform: [{ rotate }] }]}>
+      <RefreshCw size={20} color={ink} />
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  stale: { marginTop: -4 },
+  page: { paddingTop: 28, paddingBottom: 48 + 112 },
+  holding: { paddingVertical: 48, alignItems: "center" },
+  holdingIcon: { marginBottom: 12 },
+  holdingText: { fontFamily: FONT.body, fontSize: 14, lineHeight: 22.4, textAlign: "center" },
+  report: { gap: 24, marginTop: 24 },
+  checked: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2, textAlign: "center" },
 });
