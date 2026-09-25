@@ -66,16 +66,6 @@ export const TONE_LUCIDE: Record<NodeTone, LucideIcon> = {
   neutral: CircleDashed,
 };
 
-/** Kept for callers that still draw the tone with a platform symbol; new code uses TONE_LUCIDE. */
-export const TONE_ICON: Record<NodeTone, { ios: string; android: string }> = {
-  acted: { ios: "checkmark", android: "check" },
-  declined: { ios: "nosign", android: "block" },
-  quiet: { ios: "circle.dashed", android: "radio_button_unchecked" },
-  asked: { ios: "hand.raised", android: "front_hand" },
-  stopped: { ios: "exclamationmark.octagon", android: "report" },
-  error: { ios: "exclamationmark.octagon", android: "report" },
-  neutral: { ios: "circle.dashed", android: "radio_button_unchecked" },
-};
 
 function channels(hex: string): [number, number, number] {
   const n = Number.parseInt(hex.replace("#", "").slice(0, 6), 16);

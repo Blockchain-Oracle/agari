@@ -7,8 +7,6 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { FONT, useTheme } from "~/theme";
 import { basketsShortTokens } from "~/theme/web/products/baskets-short";
 
-export { Note, TitleHero } from "./LegacyParts";
-
 /**
  * web's `components/shell/SectionHead.tsx` (`.section-head`, part-05 + part-15 at ≤ 720 px): the mono index at the
  * foot of its column, the 22 px Sora title, the 12 px caption, the rule with its 46 px vermilion tick.

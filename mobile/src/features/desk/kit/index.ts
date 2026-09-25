@@ -6,5 +6,5 @@ export { StepProgress, Timeline, TimelineDay, TimelineNode, type StepItem } from
 export { Slider } from "./Slider";
 export { DkLink } from "./links";
 export { DT, useDeskTheme } from "./theme";
-export { brandColor, mixHex, segColor, TONE, TONE_ICON, TONE_LUCIDE, toneInk, toneWash, type NodeTone } from "./tone";
+export { brandColor, mixHex, segColor, TONE, TONE_LUCIDE, toneInk, toneWash, type NodeTone } from "./tone";
 export { LinearWash, RadialWash } from "./wash";
