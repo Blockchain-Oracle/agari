@@ -29,3 +29,15 @@ Dated, selected proof for the README and [track notes](../submission/tracks.md),
 On **22 September 2026**, the [desk rehearsal drive](../../scripts/drive/desk-rehearsal.ts) exercised program deployment, owner limits, two Jupiter buys, a sell, nine forced refusals, a decision hash chain and owner withdrawal on a **Surfpool fork of Solana mainnet**. The recorded drive completed 31 checks. Fork signatures are local to that run and have no public Explorer receipt. This is evidence of a rehearsal, not of a mainnet deployment or user funds in a live desk.
 
 A production **paper** desk reads current PreStocks prices and Jupiter quotes but makes no real swap. The desk program has not been deployed on mainnet at this review.
+
+## Native app: tap-trading with a phone session key (devnet, 25 September 2026)
+
+The iOS app (simulator, practice wallet `CCmMaK7VninWM9tPxaktDfS5tnyYSEiJWwCyo3EjGuJn`) armed tap-trading and placed a tap trade that the owner's wallet did not sign.
+
+| Time (UTC) | Transaction | What it proves |
+| --- | --- | --- |
+| 10:03:09 | `4AXUbwQsJbhCx8kAR8peHuMuiEn7X5XH2TDBXhKpqULbbVSiroBXBiYzCudeAHrSoy1wEuowsPco5TPhFTfMPTeL` | Arm: `OwnerOpenAccount` + `OwnerDepositAndGrant`, signed once by the owner; caps 5 tUSDC a tap, 25 a day, one day. |
+| 10:23:24 | `2WM5bbSt6bDpM9JDUZVnaFPZqr43v9ezaKBeGWFZsu6MPKBoYdKr7fyGHe1e3TefGPjKMpQ4MCjmQkZgw15Xiukv` | A defect, since fixed: the ticket fell back to the owner's `UserPlaceOrder` because a 5m quote's padded limit exceeded the grant's 95¢ price cap (fix `99a0b67f`, `capQuoteToGrant`). |
+| 10:33:05 | `5sR3h6kfHz9JxrkAGUi1JNNPUACiQzXAioxuWjkGCuz3zeNVCGMcKVJXpobY8LpEe5of5f5JNxnnD2PSfC7W2rxu` | Tap trade: `ActorPlaceFor` → `UserPlaceOrder`, signed by the phone's session key `4q2niNbpBGPRQf2UnPp4Ee9uSrFHV2oYhs3Br6BKuyiJ` with fees paid by the sponsor `5kKwdNLoxTX8vVaR4ekL9Pgtnc2vkTLeWawsaTdDfrru`; the owner is not a signer. 12.82 UP contracts on a QQQx 5m 24/7 Window at 5¢. |
+
+Also on this wallet at 10:08:19, `65m4au8v6mNLcMBrVThMqJUrMfYTKMA9v3NryZdaR5L17CKTkDdCTswjWJ4fB1eWnTWxPoLEi21NPgd2A1nLiGtc` (`OwnerDepositAndGrant`) funded and authorised the X-trade balance with 5 tUSDC: an unintended tap during the drive, not a feature test.
