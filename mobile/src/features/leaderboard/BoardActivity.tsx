@@ -10,7 +10,7 @@ import { ActivityCard, ActivityList, ActivityNote } from "~/features/stats/Activ
 const ROWS = 6;
 
 /**
- * web's `BoardActivity`, compact for a phone: the section head, the latest six calls and cash-outs on `/stats`' own
+ * web's `BoardActivity`, compact for a phone: the section head, the latest six calls and cash-outs on web's stats
  * rows, each opening its transaction.
  */
 export function BoardActivity({ reading, nowMs }: { reading: Reading<TractionData> | null; nowMs: number }) {
