@@ -5,6 +5,10 @@ import type { ThemeName } from "../../index";
  * read off useagari.xyz/markets?sensei=1 per theme. Vermilion, profit and loss are the palette's own roles.
  */
 const DARK = {
+  /** part-02 `.sensei-drawer-scrim` and the panel's left edge and shadow. */
+  scrim: "rgba(6, 5, 4, 0.5)",
+  panelEdge: "rgba(255, 255, 255, 0.08)",
+  panelShadow: "rgba(0, 0, 0, 0.7)",
   panel: "#000000",
   rule: "rgba(255, 255, 255, 0.07)",
   title: "#FFFFFF",
@@ -40,6 +44,9 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
+  scrim: "rgba(6, 5, 4, 0.5)",
+  panelEdge: "rgba(20, 18, 16, 0.1)",
+  panelShadow: "rgba(0, 0, 0, 0.7)",
   panel: "#F7F1E6",
   rule: "rgba(20, 18, 16, 0.08)",
   title: "#1A1613",

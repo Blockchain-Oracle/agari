@@ -3,7 +3,6 @@ import { countdown } from "@agari/core/lifecycle";
 import type { TickerSymbol } from "@agari/core/market";
 import type { LaneSet } from "@agari/core/types";
 import { useLanes } from "@agari/markets/react";
-import { router } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,12 +31,12 @@ function focusLanes(laneSet: LaneSet | null, asset: TickerSymbol | null): LaneSe
 }
 
 /**
- * web's `SenseiDrawer` as the app's Sensei sheet, top to bottom as web stacks it: the head (eyebrow, title, beta, ✕),
+ * web's `SenseiDrawer` panel content, top to bottom as web stacks it: the head (eyebrow, title, beta, ✕),
  * the meter over the nearest Window, the thread with its typewriter reveal and follow-up chips, the trade cards once a
  * read exists, the starters on the first turn, the pill composer and the advice line. Chat is web's own
  * `useSenseiChat` posting to `/api/sensei`.
  */
-export function SenseiScreen({ focus }: { focus: TickerSymbol | null }) {
+export function SenseiScreen({ focus, onClose }: { focus: TickerSymbol | null; onClose: () => void }) {
   const { name, color } = useTheme();
   const t = senseiTokens(name);
   const insets = useSafeAreaInsets();
@@ -69,7 +68,7 @@ export function SenseiScreen({ focus }: { focus: TickerSymbol | null }) {
   };
 
   return (
-    <KeyboardAvoidingView style={[styles.fill, { backgroundColor: t.panel }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={[styles.head, { borderBottomColor: t.rule }]}>
         <View>
           <Text style={[styles.eyebrow, { color: color.accent }]}>{SENSEI_UI.eyebrow}</Text>
@@ -80,7 +79,7 @@ export function SenseiScreen({ focus }: { focus: TickerSymbol | null }) {
             <Text style={[styles.beta, { color: color.accent, borderColor: t.betaBorder }]}>{SENSEI_UI.beta}</Text>
           </View>
         </View>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel={SENSEI_UI.close} style={styles.close}>
+        <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel={SENSEI_UI.close} style={styles.close}>
           <Text style={[styles.closeText, { color: color.inkMuted }]}>✕</Text>
         </Pressable>
       </View>
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 4 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   title: { fontFamily: FONT.headingHeavy, fontSize: 22, lineHeight: 35.2 },
-  beta: { fontFamily: FONT.dataRegular, fontSize: 8, lineHeight: 12.8, letterSpacing: 1.12, textTransform: "uppercase", borderWidth: 1, borderRadius: 999, paddingVertical: 1, paddingHorizontal: 6, overflow: "hidden" },
+  beta: { fontFamily: FONT.dataStrong, fontSize: 8, lineHeight: 12.8, letterSpacing: 1.12, textTransform: "uppercase", borderWidth: 1, borderRadius: 999, paddingVertical: 1, paddingHorizontal: 6, overflow: "hidden" },
   close: { padding: 4 },
   closeText: { fontSize: 15, lineHeight: 15 },
   msgs: { padding: 18, gap: 14 },
