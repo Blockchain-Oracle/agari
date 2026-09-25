@@ -16,6 +16,7 @@ export const ARCADE_NATIVE = {
     "line-rider": "Drag anywhere to steer",
     "candle-hop": "Tap anywhere to hop",
   } satisfies Record<ArcadeGame, string>,
+  turn: "Turn your phone sideways",
   pause: "Pause the run",
   paused: "Paused",
   pausedNote: "The run holds where it is. Ending it here throws it away: only a run that ends on its own can be posted.",

@@ -131,7 +131,7 @@ export function FlapField({ run, reduced, onHud, onEnd, onCue, statsRef, band = 
       <View style={StyleSheet.absoluteFill}>
         {band ? (
           <View pointerEvents="none" style={[styles.band, { top: band.top, height: band.height }]}>
-            <ArcadeSurface ref={surfaceRef} x0={band.x0} />
+            <ArcadeSurface ref={surfaceRef} fit x0={band.x0} />
           </View>
         ) : (
           <ArcadeSurface ref={surfaceRef} />

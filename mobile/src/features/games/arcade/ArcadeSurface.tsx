@@ -15,8 +15,11 @@ export interface SurfaceHandle {
 
 const EMPTY: Frame = { ops: [], gradients: [] };
 
-/** `x0`: field units trimmed off the left edge, behind the player (the full-screen stage uses it to draw bigger). */
-export function ArcadeSurface({ ref, x0 = 0 }: { ref: Ref<SurfaceHandle>; x0?: number }) {
+/**
+ * `fit`: the full-screen stage shows the whole field, centred, as large as its band allows; `x0` trims field units
+ * off the left edge, behind the player. The page's 16:9 screen fills exactly, as web's canvas does.
+ */
+export function ArcadeSurface({ ref, fit = false, x0 = 0 }: { ref: Ref<SurfaceHandle>; fit?: boolean; x0?: number }) {
   const [frame, setFrame] = useState<Frame>(EMPTY);
   useImperativeHandle(ref, () => ({ paint: setFrame }), []);
 
@@ -24,7 +27,7 @@ export function ArcadeSurface({ ref, x0 = 0 }: { ref: Ref<SurfaceHandle>; x0?: n
     <Svg
       style={StyleSheet.absoluteFill}
       viewBox={`${x0} 0 ${FIELD_W - x0} ${FIELD_H}`}
-      preserveAspectRatio={x0 > 0 ? "xMidYMid meet" : "xMinYMin slice"}
+      preserveAspectRatio={fit ? "xMidYMid meet" : "xMinYMin slice"}
       pointerEvents="none"
     >
       {frame.gradients.length > 0 ? (

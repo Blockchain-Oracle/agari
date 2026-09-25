@@ -1,12 +1,13 @@
-import { FIELD_H, FIELD_W, type ArcadeGame } from "@agari/core/games/arcade";
+import type { ArcadeGame } from "@agari/core/games/arcade";
 import { ARCADE } from "@/features/games/arcade/copy";
 import type { FlapCue, FlapHud } from "@/features/games/arcade/FlapCanvas";
 import type { RideCue, RideHud } from "@/features/games/arcade/RideCanvas";
 import type { ArcadeRun, RunEnd } from "@/features/games/arcade/run";
-import { Pause, X } from "lucide-react-native";
+import { Pause, Smartphone, X } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Pressable, StatusBar, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, { Easing, FadeOut, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { setImmersive } from "~/components/shell/immersive";
 import { Cta } from "~/features/games/frame";
@@ -18,8 +19,8 @@ import { ISLAND, useArcadeTokens } from "./palette";
 import { RideField } from "./RideField";
 import { FRESH_STATS, type FieldBand, type FrameStats } from "./useArcadeFrames";
 
-/** Field units trimmed behind the player (the rider sits at 32 %, the coin at 28 %): the rest is drawn wider. */
-const X0 = FIELD_W * 0.1;
+/** How long the "turn your phone" cue holds the run before the first tick. */
+const CUE_MS = 1500;
 
 interface Props {
   game: ArcadeGame;
@@ -37,11 +38,13 @@ interface Props {
 }
 
 /**
- * A run in play takes the whole phone (the app's own addition to web's `ArcadeStage`; the page before Play and after
- * the run stays web's). The dark island fills the screen edge to edge; the field is drawn as wide as the phone, in the
- * middle band, with everything above and below it the same ground; the whole screen takes the finger — tap anywhere
- * to hop, drag anywhere to steer (the dot moves with the drag, so a thumb never covers the line). The HUD sits over
- * the top in the pixel face, a pause in the corner. The chrome steps aside through the shell's immersive flag.
+ * A run in play takes the whole phone, sideways (the app's own addition to web's `ArcadeStage`; the page before Play
+ * and after the run stays web's). The stage is turned 90° by a transform — no native orientation change — so the
+ * 640×360 world's long axis runs down the phone's height: about 715 × 402 on a 402 × 874 screen. The HUD, pause and
+ * hint turn with it and read upright with the phone held landscape (its top to the left); a "turn your phone" cue
+ * holds the run for 1.5 s at the start. The whole stage takes the finger — tap anywhere to hop, drag anywhere to
+ * steer — and gestures arrive in the stage's own turned frame, so dragging up in landscape steers up. The trace is
+ * by tick, untouched by the turn, the cue or a pause. The chrome steps aside through the shell's immersive flag.
  */
 export function ArcadeFullScreen(props: Props) {
   const { game, run, reduced, hud, best, onQuit } = props;
@@ -49,24 +52,34 @@ export function ArcadeFullScreen(props: Props) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const [paused, setPaused] = useState(false);
+  const [cue, setCue] = useState(true);
   const statsRef = useRef<FrameStats>(FRESH_STATS);
 
   useEffect(() => {
     setImmersive(true);
     return () => setImmersive(false);
   }, []);
-  useEffect(() => setPaused(false), [run]);
+  useEffect(() => {
+    setPaused(false);
+    setCue(true);
+    const timer = setTimeout(() => setCue(false), CUE_MS);
+    return () => clearTimeout(timer);
+  }, [run]);
 
-  const band = useMemo<FieldBand>(() => {
-    const h = (width * FIELD_H) / (FIELD_W - X0);
-    return { top: Math.round((height - h) / 2), height: Math.round(h), x0: X0 };
-  }, [width, height]);
-  const field = { run, reduced, band, paused, statsRef, onEnd: props.onEnd };
+  // The turned stage: landscape `long × short`, centred on the screen and rotated a quarter turn clockwise, so the
+  // portrait top (the notch) is its left edge and the portrait bottom its right.
+  const long = Math.max(width, height);
+  const short = Math.min(width, height);
+  const stage = { width: long, height: short, left: (short - long) / 2, top: (long - short) / 2 };
+  const inset = { left: insets.top, right: insets.bottom };
+  const band = useMemo<FieldBand>(() => ({ top: 0, height: short, x0: 0 }), [short]);
+  const field = { run, reduced, band, paused: paused || cue, statsRef, onEnd: props.onEnd };
 
   return (
     <Modal visible transparent={false} animationType="fade" statusBarTranslucent onRequestClose={() => setPaused(true)} supportedOrientations={["portrait"]}>
       <StatusBar hidden />
       <GestureHandlerRootView style={[styles.root, { backgroundColor: ISLAND.ground }]}>
+        <View style={[styles.stage, stage]}>
         <View style={StyleSheet.absoluteFill} accessible accessibilityLabel={ARCADE_NATIVE.stageA11y[game]}>
           {game === "line-rider" ? (
             <RideField {...field} onHud={props.onRideHud} onCue={props.onRideCue} />
@@ -75,7 +88,7 @@ export function ArcadeFullScreen(props: Props) {
           )}
         </View>
 
-        <View pointerEvents="none" style={[styles.hud, { top: insets.top + 12 }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View pointerEvents="none" style={[styles.hud, { left: inset.left + 16 }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Text style={[styles.k, { color: a.ink55 }]}>{ARCADE.hud.score.toUpperCase()}</Text>
           <Text style={styles.score}>{ARCADE.fmt(hud.score)}</Text>
           <Text style={[styles.k, { color: a.ink55 }]}>
@@ -89,18 +102,18 @@ export function ArcadeFullScreen(props: Props) {
           accessibilityRole="button"
           accessibilityLabel={ARCADE_NATIVE.pause}
           hitSlop={12}
-          style={({ pressed }) => [styles.corner, { top: insets.top + 12, borderColor: ISLAND.hairline }, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.corner, { right: inset.right + 16, borderColor: ISLAND.hairline }, pressed && styles.pressed]}
         >
           <Pause size={16} color={ISLAND.inkSoft} />
         </Pressable>
 
-        <Text pointerEvents="none" style={[styles.hint, { bottom: insets.bottom + 24, color: a.ink55 }]}>
+        <Text pointerEvents="none" style={[styles.hint, { color: a.ink55 }]}>
           {ARCADE_NATIVE.fullHint[game].toUpperCase()}
         </Text>
 
         {paused ? (
           <View style={[StyleSheet.absoluteFill, styles.pause, { backgroundColor: a.overlay }]}>
-            <Pressable onPress={onQuit} accessibilityRole="button" accessibilityLabel={ARCADE_NATIVE.quit} hitSlop={12} style={[styles.corner, { top: insets.top + 12, borderColor: ISLAND.hairline }]}>
+            <Pressable onPress={onQuit} accessibilityRole="button" accessibilityLabel={ARCADE_NATIVE.quit} hitSlop={12} style={[styles.corner, { right: inset.right + 16, borderColor: ISLAND.hairline }]}>
               <X size={16} color={ISLAND.inkSoft} />
             </Pressable>
             <Text style={styles.pausedTitle}>{ARCADE_NATIVE.paused.toUpperCase()}</Text>
@@ -113,20 +126,43 @@ export function ArcadeFullScreen(props: Props) {
             </View>
           </View>
         ) : null}
+        </View>
+        {cue ? <TurnCue /> : null}
       </GestureHandlerRootView>
     </Modal>
   );
 }
 
+/** "Turn your phone sideways", upright in portrait: the phone glyph tips a quarter turn, then the cue fades. */
+function TurnCue() {
+  const a = useArcadeTokens();
+  const turn = useSharedValue(0);
+  useEffect(() => {
+    turn.value = withDelay(200, withTiming(-90, { duration: 700, easing: Easing.inOut(Easing.cubic) }));
+  }, [turn]);
+  const tip = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.value}deg` }] }));
+  return (
+    <Animated.View exiting={FadeOut.duration(200)} pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cue, { backgroundColor: a.overlay }]} accessibilityLiveRegion="polite">
+      <Animated.View style={tip}>
+        <Smartphone size={44} color={ISLAND.ink} strokeWidth={1.6} />
+      </Animated.View>
+      <Text style={styles.cueText}>{ARCADE_NATIVE.turn.toUpperCase()}</Text>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  hud: { position: "absolute", left: 20, gap: 2 },
+  stage: { position: "absolute", transform: [{ rotate: "90deg" }] },
+  cue: { alignItems: "center", justifyContent: "center", gap: 18 },
+  cueText: { fontFamily: PIXEL_FONT, fontSize: 22, lineHeight: 26, letterSpacing: 2.2, color: ISLAND.ink, textAlign: "center" },
+  hud: { position: "absolute", top: 12, gap: 2 },
   k: { fontFamily: PIXEL_FONT, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.54 },
   score: { fontFamily: PIXEL_FONT, fontSize: 44, lineHeight: 44, color: ISLAND.ink, fontVariant: ["tabular-nums"] },
   combo: { fontFamily: PIXEL_FONT, fontSize: 22, lineHeight: 26, letterSpacing: 2.2, color: ISLAND.accent },
-  corner: { position: "absolute", right: 20, width: 40, height: 40, borderRadius: 9999, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  corner: { position: "absolute", top: 12, width: 40, height: 40, borderRadius: 9999, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   pressed: { transform: [{ scale: 0.97 }] },
-  hint: { position: "absolute", left: 20, right: 20, textAlign: "center", fontFamily: PIXEL_FONT, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.54 },
+  hint: { position: "absolute", left: 20, right: 20, bottom: 12, textAlign: "center", fontFamily: PIXEL_FONT, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.54 },
   pause: { alignItems: "center", justifyContent: "center", paddingHorizontal: 32, gap: 12 },
   pausedTitle: { fontFamily: PIXEL_FONT, fontSize: 44, lineHeight: 44, letterSpacing: 7, color: ISLAND.ink },
   pausedNote: { fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8, textAlign: "center" },
