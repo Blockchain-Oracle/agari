@@ -2,12 +2,11 @@ import { isTickerSymbol } from "@agari/core/market";
 import type { MarketId } from "@agari/core/types";
 import { useMarket } from "@agari/markets/react";
 import { useState } from "react";
-import { View } from "react-native";
 import { ROOM } from "@/features/room/copy";
 import { tickerRoomId } from "@/features/room/room-id";
 import type { RoomScope } from "@/features/room/RoomSwitch";
-import { Segmented } from "~/components/kit";
 import { RoomSheet } from "./RoomSheet";
+import { RoomSwitch } from "./RoomSwitch";
 
 interface MarketRoomSheetProps {
   visible: boolean;
@@ -31,19 +30,7 @@ export function MarketRoomSheet({ visible, marketId, callLabel, onClose, onBet, 
   const ticker = isTickerSymbol(symbol) ? symbol : null;
   const [scope, setScope] = useState<RoomScope>("window");
   const inTicker = scope === "ticker" && ticker !== null;
-  const switcher = ticker ? (
-    <View style={{ marginTop: 6 }}>
-      <Segmented
-        label={ROOM.ticker.switchLabel}
-        value={scope}
-        onChange={setScope}
-        options={[
-          { value: "window", label: ROOM.ticker.window },
-          { value: "ticker", label: ROOM.ticker.room(ticker) },
-        ]}
-      />
-    </View>
-  ) : null;
+  const switcher = ticker ? <RoomSwitch symbol={ticker} scope={scope} onScope={setScope} /> : null;
   return (
     <RoomSheet
       visible={visible}

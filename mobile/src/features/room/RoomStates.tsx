@@ -1,12 +1,12 @@
 import type { TickerSymbol } from "@agari/core/market";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { ArrowRight, Lock, ShieldCheck, Unplug } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Svg, { Path, Rect } from "react-native-svg";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import Svg, { Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 import { ROOM } from "@/features/room/copy";
 import type { RoomGate } from "@/features/room/protocol";
-import { Button } from "~/components/kit";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT, useTheme } from "~/theme";
+import { ROOM_VERMILION as V, roomTokens } from "~/theme/web/explore/room";
 
 /** web's `RoomMark`: a locked speech bubble — "a private conversation" in one glyph. */
 export function RoomMark({ size = 22, tint }: { size?: number; tint?: string }) {
@@ -26,24 +26,48 @@ export function RoomMark({ size = 22, tint }: { size?: number; tint?: string }) 
   );
 }
 
-/** web's `StateIcon`: the haloed mark that carries each onboarding state. */
+/** web's `StateIcon` (`.room-state-icon`): a 56 px rounded tile on a 64 px radial halo. */
 function StateIcon({ children, tone = "muted" }: { children: ReactNode; tone?: "vermilion" | "muted" }) {
-  const { color } = useTheme();
+  const { name } = useTheme();
+  const t = roomTokens(name);
   const vermilion = tone === "vermilion";
   return (
-    <View
-      style={[
-        styles.icon,
-        { backgroundColor: vermilion ? color.accentWash : color.surface2, borderColor: vermilion ? color.accentDim : color.hairline },
-      ]}
-    >
-      {children}
+    <View style={styles.icon}>
+      <Svg style={StyleSheet.absoluteFill} accessible={false}>
+        <Defs>
+          <RadialGradient id={`halo-${tone}`} cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={vermilion ? V.halo : t.ink10} />
+            <Stop offset="0.7" stopColor={vermilion ? V.clear : t.inset} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect width="100%" height="100%" rx={16} fill={`url(#halo-${tone})`} />
+      </Svg>
+      <View style={[styles.tile, { borderColor: vermilion ? V.iconBorder : t.hairline }]}>{children}</View>
     </View>
   );
 }
 
-function Glyph({ name, tint }: { name: SymbolViewProps["name"]; tint: string }) {
-  return <SymbolView name={name} size={24} tintColor={tint} />;
+/** web's `.room-cta`: the vermilion pill. */
+function Cta({ label, onPress, disabled, busy, arrow }: { label: string; onPress: () => void; disabled?: boolean; busy?: boolean; arrow?: boolean }) {
+  const { color } = useTheme();
+  return (
+    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={[styles.cta, { backgroundColor: color.accent, opacity: disabled ? 0.6 : 1 }]}>
+      {busy ? <ActivityIndicator size="small" color={color.onAccent} /> : null}
+      <Text style={[styles.ctaText, { color: color.onAccent }]}>{label}</Text>
+      {arrow ? <ArrowRight size={15} color={color.onAccent} /> : null}
+    </Pressable>
+  );
+}
+
+/** web's `.room-error`: the failure line, read before the next attempt. */
+export function ErrorLine({ text }: { text: string }) {
+  const { name, color } = useTheme();
+  const t = roomTokens(name);
+  return (
+    <Text style={[styles.error, { color: color.loss, borderTopColor: t.lossRule, backgroundColor: t.lossFill }]} accessibilityRole="alert">
+      {text}
+    </Text>
+  );
 }
 
 interface RoomStatesProps {
@@ -56,21 +80,25 @@ interface RoomStatesProps {
 
 /**
  * web's `RoomStates` (features/room/RoomStates.tsx): everything before the thread. Each state says what this is, why
- * you cannot speak yet, and what would change that — in web's own words.
+ * you cannot speak yet, and what would change that — in web's own words, in `.room-state`'s centred column.
  */
 export function RoomStates({ gate, onJoin, onConnect, onBet, ticker = null }: RoomStatesProps) {
-  const { color } = useTheme();
-  const title = (text: string) => <Text style={[TYPE.title, styles.center, { color: color.ink }]}>{text}</Text>;
-  const body = (text: string) => <Text style={[TYPE.body, styles.center, { color: color.inkSecondary }]}>{text}</Text>;
+  const { name, color } = useTheme();
+  const t = roomTokens(name);
+  const words = (title: string, body: string) => (
+    <>
+      <Text style={[styles.title, { color: t.ink }]}>{title}</Text>
+      <Text style={[styles.body, { color: t.ink50 }]}>{body}</Text>
+    </>
+  );
 
   if (gate === "unavailable") {
     return (
       <View style={styles.state}>
         <StateIcon>
-          <Glyph name={{ ios: "powerplug", android: "power_off" }} tint={color.inkSecondary} />
+          <Unplug size={24} strokeWidth={1.8} color={t.ink50} />
         </StateIcon>
-        {title(ROOM.states.unavailable.title)}
-        {body(ROOM.states.unavailable.body)}
+        {words(ROOM.states.unavailable.title, ROOM.states.unavailable.body)}
       </View>
     );
   }
@@ -79,11 +107,10 @@ export function RoomStates({ gate, onJoin, onConnect, onBet, ticker = null }: Ro
     return (
       <View style={styles.state}>
         <StateIcon>
-          <RoomMark size={26} tint={color.inkSecondary} />
+          <RoomMark size={26} tint={t.ink50} />
         </StateIcon>
-        {title(ROOM.states.connect.title)}
-        {body(ROOM.states.connect.body)}
-        <Button label={ROOM.connect} onPress={onConnect} block={false} style={styles.cta} />
+        {words(ROOM.states.connect.title, ROOM.states.connect.body)}
+        <Cta label={ROOM.connect} onPress={onConnect} />
       </View>
     );
   }
@@ -92,11 +119,10 @@ export function RoomStates({ gate, onJoin, onConnect, onBet, ticker = null }: Ro
     return (
       <View style={styles.state}>
         <StateIcon>
-          <Glyph name={{ ios: "lock.fill", android: "lock" }} tint={color.inkSecondary} />
+          <Lock size={24} strokeWidth={1.8} color={t.ink50} />
         </StateIcon>
-        {title(ticker ? ROOM.ticker.locked.title(ticker) : ROOM.states.locked.title)}
-        {body(ticker ? ROOM.ticker.locked.body : ROOM.states.locked.body)}
-        {onBet ? <Button label={ROOM.bet} onPress={onBet} block={false} trailing="→" style={styles.cta} /> : null}
+        {words(ticker ? ROOM.ticker.locked.title(ticker) : ROOM.states.locked.title, ticker ? ROOM.ticker.locked.body : ROOM.states.locked.body)}
+        {onBet ? <Cta label={ROOM.bet} onPress={onBet} arrow /> : null}
       </View>
     );
   }
@@ -104,25 +130,21 @@ export function RoomStates({ gate, onJoin, onConnect, onBet, ticker = null }: Ro
   return (
     <View style={styles.state}>
       <StateIcon tone="vermilion">
-        <Glyph name={{ ios: "checkmark.shield.fill", android: "verified_user" }} tint={color.accent} />
+        <ShieldCheck size={26} strokeWidth={1.8} color={color.accent} />
       </StateIcon>
-      {title(ticker ? ROOM.ticker.joinable.title(ticker) : ROOM.states.joinable.title)}
-      {body(ticker ? ROOM.ticker.joinable.body : ROOM.states.joinable.body)}
-      <Button
-        label={gate === "joining" ? ROOM.joining : ROOM.join}
-        loading={gate === "joining"}
-        onPress={onJoin}
-        block={false}
-        style={styles.cta}
-        icon={{ ios: "signature", android: "draw" }}
-      />
+      {words(ticker ? ROOM.ticker.joinable.title(ticker) : ROOM.states.joinable.title, ticker ? ROOM.ticker.joinable.body : ROOM.states.joinable.body)}
+      <Cta label={gate === "joining" ? ROOM.joining : ROOM.join} onPress={onJoin} disabled={gate === "joining"} busy={gate === "joining"} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  state: { alignItems: "center", gap: 12, paddingHorizontal: 24, paddingVertical: 32 },
-  icon: { width: 64, height: 64, borderRadius: RADIUS.full, borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 4 },
-  center: { textAlign: "center" },
-  cta: { alignSelf: "center", marginTop: 4 },
+  state: { alignItems: "center", gap: 16, padding: 36 },
+  icon: { width: 64, height: 64, alignItems: "center", justifyContent: "center" },
+  tile: { width: 56, height: 56, borderRadius: 16, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  title: { fontFamily: FONT.heading, fontSize: 17, lineHeight: 24, textAlign: "center" },
+  body: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, textAlign: "center" },
+  cta: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, borderRadius: 999, paddingVertical: 12, paddingHorizontal: 24 },
+  ctaText: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 20 },
+  error: { borderTopWidth: 1, paddingVertical: 9, paddingHorizontal: 16, fontFamily: FONT.dataRegular, fontSize: 10.5, lineHeight: 15.75 },
 });
