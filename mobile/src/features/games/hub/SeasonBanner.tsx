@@ -1,7 +1,8 @@
 import { formatSeasonCountdown, seasonRemainingMs } from "@agari/core/games";
 import { router, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { useNowMs } from "@/components/data/useNowMs";
 import { GAMES } from "@/features/games/copy";
 import type { SeasonView } from "@/features/games/duel/useSeason";
@@ -35,8 +36,8 @@ export function SeasonBanner({ season }: { season: SeasonView }) {
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
           <LinearGradient id="gm-season" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor={t.seasonWash} />
-            <Stop offset="0.7" stopColor={color.surface1} />
+            <Stop offset="0" {...stopPaint(t.seasonWash)} />
+            <Stop offset="0.7" {...stopPaint(color.surface1)} />
           </LinearGradient>
         </Defs>
         <Rect x={0} y={0} width="100%" height="100%" fill="url(#gm-season)" />

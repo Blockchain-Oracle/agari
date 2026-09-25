@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
-import Svg, { Defs, Pattern, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, Pattern, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { useArcadeTokens } from "./palette";
 
 /**
@@ -14,13 +15,13 @@ export function CrtGround() {
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <RadialGradient id="ar-gleam" cx="28%" cy="22%" rx="65%" ry="45%" fx="28%" fy="22%">
-          <Stop offset="0" stopColor={a.gleam} />
-          <Stop offset="0.7" stopColor={a.gleam} stopOpacity={0} />
+          <Stop offset="0" {...stopPaint(a.gleam)} />
+          <Stop offset="0.7" {...stopPaint(a.gleam, 0)} />
         </RadialGradient>
         <RadialGradient id="ar-vignette" cx="50%" cy="50%" rx="56%" ry="60%" fx="50%" fy="50%">
-          <Stop offset="0.72" stopColor={a.vignetteFar} stopOpacity={0} />
-          <Stop offset="0.9" stopColor={a.vignetteFar} />
-          <Stop offset="1" stopColor={a.vignetteNear} />
+          <Stop offset="0.72" {...stopPaint(a.vignetteFar, 0)} />
+          <Stop offset="0.9" {...stopPaint(a.vignetteFar)} />
+          <Stop offset="1" {...stopPaint(a.vignetteNear)} />
         </RadialGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#ar-gleam)" />

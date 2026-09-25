@@ -3,7 +3,8 @@ import { isOk } from "@agari/core/schemas";
 import { router } from "expo-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { EDGE } from "@/features/edge/copy";
 import { useHistoryReading } from "@/features/markets/history/useHistoryReading";
 import { useVenue } from "@/features/markets/useVenue";
@@ -23,8 +24,8 @@ function Backdrop({ width, height }: { width: number; height: number }) {
     <Svg style={StyleSheet.absoluteFill} width={width} height={height} pointerEvents="none">
       <Defs>
         <RadialGradient id="edge-glow" cx={width * 0.82} cy={height * 0.08} r={405} gradientUnits="userSpaceOnUse">
-          <Stop offset="0" stopColor={edge.glow} />
-          <Stop offset="1" stopColor={edge.glowClear} />
+          <Stop offset="0" {...stopPaint(edge.glow)} />
+          <Stop offset="1" {...stopPaint(edge.glowClear)} />
         </RadialGradient>
       </Defs>
       <Rect width={width} height={height} fill={edge.bg} />

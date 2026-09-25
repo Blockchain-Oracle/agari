@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { View, type LayoutChangeEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
-import Svg, { Defs, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from "react-native-svg";
+import Svg, { Defs, Line, LinearGradient, Path, Rect, Text as SvgText } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { haptic } from "~/components/kit";
 import { FONT } from "~/theme";
 import { useDeskTheme } from "./theme";
@@ -106,8 +107,8 @@ export function AreaChart({ points, baseline, tone, height = 224, label }: { poi
           <Svg width={width} height={height}>
             <Defs>
               <LinearGradient id="desk-area" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={ink} stopOpacity={0.28} />
-                <Stop offset="1" stopColor={ink} stopOpacity={0} />
+                <Stop offset="0" {...stopPaint(ink, 0.28)} />
+                <Stop offset="1" {...stopPaint(ink, 0)} />
               </LinearGradient>
             </Defs>
             {geo.ticks.map((v) => (

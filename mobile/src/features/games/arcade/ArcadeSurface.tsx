@@ -1,7 +1,8 @@
 import { FIELD_H, FIELD_W } from "@agari/core/games/arcade";
 import { useImperativeHandle, useState, type Ref } from "react";
 import { StyleSheet } from "react-native";
-import Svg, { Defs, Path, RadialGradient, Stop } from "react-native-svg";
+import Svg, { Defs, Path, RadialGradient } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import type { Frame } from "./recorder";
 
 /**
@@ -47,8 +48,7 @@ export function ArcadeSurface({ ref, fit = false, x0 = 0 }: { ref: Ref<SurfaceHa
                 <Stop
                   key={i}
                   offset={stop.offset}
-                  stopColor={stop.color}
-                  stopOpacity={stop.opacity}
+                  {...stopPaint(stop.color, stop.opacity)}
                 />
               ))}
             </RadialGradient>

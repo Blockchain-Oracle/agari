@@ -2,7 +2,8 @@ import type { EquityPoint } from "@agari/core/projection";
 import { formatBaseUnits } from "@agari/core/units";
 import { useId } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, Line, LinearGradient, Path } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { HISTORY } from "@/features/markets/history/copy";
 import { usePortfolioTokens } from "~/components/portfolio/web";
 import { WEB_TYPE } from "~/theme/web/portfolio";
@@ -53,8 +54,8 @@ export function EquitySparkline({ points, decimals }: { points: readonly EquityP
       <Svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
         <Defs>
           <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={t.vermilion} stopOpacity={0.22} />
-            <Stop offset="1" stopColor={t.vermilion} stopOpacity={0} />
+            <Stop offset="0" {...stopPaint(t.vermilion, 0.22)} />
+            <Stop offset="1" {...stopPaint(t.vermilion, 0)} />
           </LinearGradient>
         </Defs>
         <Line x1={PAD} x2={WIDTH - PAD} y1={zeroY} y2={zeroY} stroke={t.equityZero} strokeWidth={1} strokeDasharray="2 3" />

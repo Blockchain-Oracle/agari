@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
-import Svg, { Defs, LinearGradient, Pattern, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Pattern, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { DECISION } from "@/features/desk/decision/copy-decision";
 import { pct, usdText } from "@/features/desk/format";
 import { FONT } from "~/theme";
@@ -74,8 +75,8 @@ export function PriceStrip({ spot, mark, mean30m, index, ceilingBps }: StripInpu
         <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
           <Defs>
             <LinearGradient id="strip" x1="0" y1="0" x2="1" y2="0">
-              <Stop offset="0" stopColor={t.stripFrom} />
-              <Stop offset="1" stopColor={t.stripTo} />
+              <Stop offset="0" {...stopPaint(t.stripFrom)} />
+              <Stop offset="1" {...stopPaint(t.stripTo)} />
             </LinearGradient>
           </Defs>
           <Rect x="0" y="0" width="100%" height="100%" rx={5} fill="url(#strip)" />

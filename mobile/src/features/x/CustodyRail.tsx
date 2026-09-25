@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Defs, G, Line, Marker, Path, RadialGradient, Rect, Stop, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Defs, G, Line, Marker, Path, RadialGradient, Rect, Text as SvgText } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { FONT, useTheme } from "~/theme";
 import { tradeXTokens } from "~/theme/web/products/trade-x";
 import { E_DRAW, useLoop, useOnce } from "./motion";
@@ -67,8 +68,8 @@ export function CustodyRail({ handle }: { handle: string }) {
           <Svg width="100%" height="100%" viewBox="0 0 440 300">
             <Defs>
               <RadialGradient id="xtGlow" cx="50%" cy="42%" r="55%">
-                <Stop offset="0" stopColor={t.v} stopOpacity={0.1} />
-                <Stop offset="1" stopColor={t.v} stopOpacity={0} />
+                <Stop offset="0" {...stopPaint(t.v, 0.1)} />
+                <Stop offset="1" {...stopPaint(t.v, 0)} />
               </RadialGradient>
               <Marker id="xtArrM" markerWidth={7} markerHeight={7} refX={5.5} refY={3} orient="auto">
                 <Path d="M0,0 L6,3 L0,6 Z" fill={t.m} />

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, RadialGradient } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { addressHue } from "@/lib/address-hue";
 import { FONT, useTheme } from "~/theme";
 
@@ -17,8 +18,8 @@ export function HueAvatar({ address, size = 32, initials = false }: { address: s
       <Svg width={size} height={size} viewBox="0 0 32 32">
         <Defs>
           <RadialGradient id={id} cx="30%" cy="20%" r="120%" fx="30%" fy="20%">
-            <Stop offset="0" stopColor={`hsl(${hue}, 55%, 55%)`} />
-            <Stop offset="1" stopColor={`hsl(${(hue + 40) % 360}, 45%, 28%)`} />
+            <Stop offset="0" {...stopPaint(`hsl(${hue}, 55%, 55%)`)} />
+            <Stop offset="1" {...stopPaint(`hsl(${(hue + 40) % 360}, 45%, 28%)`)} />
           </RadialGradient>
         </Defs>
         <Circle cx={16} cy={16} r={16} fill={`url(#${id})`} />

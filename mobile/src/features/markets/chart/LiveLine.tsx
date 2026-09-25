@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 import Animated, { Easing, useAnimatedProps, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
-import Svg, { Circle, ClipPath, Defs, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { Circle, ClipPath, Defs, Line, LinearGradient, Path, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import type { ChartPoint } from "@/features/markets/hero/useChartSeries";
 import { assetPriceLine } from "@/features/markets/hero/units";
 import { HERO } from "@/lib/copy";
@@ -52,12 +53,12 @@ export function LiveLine({ points, strikeRaw, asset, height = 220, domain = null
       <Svg width={width} height={height}>
         <Defs>
           <LinearGradient id={`up${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={color.profit} stopOpacity={0.28} />
-            <Stop offset="1" stopColor={color.profit} stopOpacity={0.02} />
+            <Stop offset="0" {...stopPaint(color.profit, 0.28)} />
+            <Stop offset="1" {...stopPaint(color.profit, 0.02)} />
           </LinearGradient>
           <LinearGradient id={`down${uid}`} x1="0" y1="1" x2="0" y2="0">
-            <Stop offset="0" stopColor={color.loss} stopOpacity={0.28} />
-            <Stop offset="1" stopColor={color.loss} stopOpacity={0.02} />
+            <Stop offset="0" {...stopPaint(color.loss, 0.28)} />
+            <Stop offset="1" {...stopPaint(color.loss, 0.02)} />
           </LinearGradient>
           {strikeY !== null ? (
             <>

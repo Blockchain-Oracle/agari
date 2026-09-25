@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import type { AccentChoice } from "@/features/games/settings";
 import { FONT } from "~/theme";
 import { Press } from "../frame/Press";
@@ -23,12 +24,12 @@ export function Segment({ label, on, onPress, accent }: { label: string; on: boo
         <Svg width={12} height={12} viewBox="0 0 12 12" style={styles.round}>
           <Defs>
             <LinearGradient id="gm-sw" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor={color.accent} />
-              <Stop offset="0.34" stopColor={color.accent} />
-              <Stop offset="0.34" stopColor={color.profit} />
-              <Stop offset="0.67" stopColor={color.profit} />
-              <Stop offset="0.67" stopColor={color.loss} />
-              <Stop offset="1" stopColor={color.loss} />
+              <Stop offset="0" {...stopPaint(color.accent)} />
+              <Stop offset="0.34" {...stopPaint(color.accent)} />
+              <Stop offset="0.34" {...stopPaint(color.profit)} />
+              <Stop offset="0.67" {...stopPaint(color.profit)} />
+              <Stop offset="0.67" {...stopPaint(color.loss)} />
+              <Stop offset="1" {...stopPaint(color.loss)} />
             </LinearGradient>
           </Defs>
           <Rect x={0} y={0} width={12} height={12} rx={6} fill="url(#gm-sw)" />

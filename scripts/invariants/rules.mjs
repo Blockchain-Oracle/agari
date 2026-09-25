@@ -83,8 +83,16 @@ export const rules = [
     description: "no raw colours in the app's component code — every colour is a mobile/src/theme token (AD-12, D-128)",
     scopes: ["mobile/src"],
     exts: TS,
-    exclude: ["mobile/src/theme"],
+    exclude: ["mobile/src/theme", "mobile/src/components/ui/SvgStop.tsx"],
     pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
+  },
+  {
+    id: "mobile-svg-stop",
+    description: "a gradient stop is painted with {...stopPaint(colour)} from ~/components/ui/SvgStop — react-native-svg swaps an rgba() alpha for stopOpacity and paints the wash solid (S26)",
+    scopes: ["mobile/src"],
+    exts: TS,
+    exclude: ["mobile/src/components/ui/SvgStop.tsx"],
+    pattern: /(import[^;]*\bStop\b[^;]*from "react-native-svg"|\bstopColor=)/,
   },
   {
     id: "mobile-no-web-handoff",

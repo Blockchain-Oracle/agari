@@ -3,7 +3,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ArrowRight, Check, Loader2 } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, Ellipse, RadialGradient, Stop } from "react-native-svg";
+import Svg, { Defs, Ellipse, RadialGradient } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { VERDICT_UI } from "@/lib/copy";
 import { explorerUrl, openExternal } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
@@ -25,9 +26,9 @@ export function WinGlow() {
       <Svg style={styles.glow} width={416} height={288}>
         <Defs>
           <RadialGradient id="cw-glow" cx="50%" cy="50%" rx="50%" ry="50%">
-            <Stop offset="0" stopColor={t.cwGlow} stopOpacity={1} />
-            <Stop offset="0.45" stopColor={t.cwGlow} stopOpacity={0.8} />
-            <Stop offset="1" stopColor={t.cwGlow} stopOpacity={0} />
+            <Stop offset="0" {...stopPaint(t.cwGlow, 1)} />
+            <Stop offset="0.45" {...stopPaint(t.cwGlow, 0.8)} />
+            <Stop offset="1" {...stopPaint(t.cwGlow, 0)} />
           </RadialGradient>
         </Defs>
         <Ellipse cx={208} cy={144} rx={208} ry={144} fill="url(#cw-glow)" />

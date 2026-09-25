@@ -2,7 +2,8 @@ import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { CLAIM } from "@/features/x/copy";
 import { useWalletSession } from "@/lib/wallet-session";
 import { ClaimFlow } from "~/features/recovery/ClaimFlow";
@@ -17,12 +18,12 @@ function Washes({ v, g }: { v: string; g: string }) {
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
       <Defs>
         <RadialGradient id="xc-v" cx="80%" cy="30%" rx="58%" ry="44%">
-          <Stop offset="0" stopColor={v} stopOpacity={1} />
-          <Stop offset="0.68" stopColor={v} stopOpacity={0} />
+          <Stop offset="0" {...stopPaint(v, 1)} />
+          <Stop offset="0.68" {...stopPaint(v, 0)} />
         </RadialGradient>
         <RadialGradient id="xc-g" cx="14%" cy="90%" rx="46%" ry="40%">
-          <Stop offset="0" stopColor={g} stopOpacity={1} />
-          <Stop offset="0.72" stopColor={g} stopOpacity={0} />
+          <Stop offset="0" {...stopPaint(g, 1)} />
+          <Stop offset="0.72" {...stopPaint(g, 0)} />
         </RadialGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#xc-v)" />

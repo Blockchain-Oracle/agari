@@ -7,7 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { assetPriceLine, assetPriceParts } from "@/features/markets/hero/units";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";
 import { TAKES } from "@/features/takes/copy";
@@ -211,9 +212,9 @@ function Ground() {
     <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" accessible={false}>
       <Defs>
         <RadialGradient id="take" cx="50%" cy="-10%" rx="130%" ry="90%" fx="50%" fy="-10%">
-          <Stop offset="0" stopColor={a} />
-          <Stop offset="0.46" stopColor={b} />
-          <Stop offset="1" stopColor={c} />
+          <Stop offset="0" {...stopPaint(a)} />
+          <Stop offset="0.46" {...stopPaint(b)} />
+          <Stop offset="1" {...stopPaint(c)} />
         </RadialGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#take)" />

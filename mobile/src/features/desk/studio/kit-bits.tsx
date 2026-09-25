@@ -2,7 +2,8 @@ import type { OutcomeColumn } from "@agari/core/desk";
 import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
-import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, LinearGradient, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { RECORD } from "@/features/desk/copy-record";
 import { FONT, useTheme } from "~/theme";
 import { deskEntryTokens } from "~/theme/web/products/desk-entry";
@@ -33,13 +34,13 @@ export function Wash({ id, kind, color, fade }: { id: string; kind: "corner" | "
         <Defs>
           {kind === "corner" ? (
             <RadialGradient id={id} cx="100%" cy="0%" rx="120%" ry="80%" fx="100%" fy="0%" gradientUnits="objectBoundingBox">
-              <Stop offset="0" stopColor={color} stopOpacity={1} />
-              <Stop offset={String(fade)} stopColor={color} stopOpacity={0} />
+              <Stop offset="0" {...stopPaint(color, 1)} />
+              <Stop offset={String(fade)} {...stopPaint(color, 0)} />
             </RadialGradient>
           ) : (
             <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={color} stopOpacity={1} />
-              <Stop offset={String(fade)} stopColor={color} stopOpacity={0} />
+              <Stop offset="0" {...stopPaint(color, 1)} />
+              <Stop offset={String(fade)} {...stopPaint(color, 0)} />
             </LinearGradient>
           )}
         </Defs>

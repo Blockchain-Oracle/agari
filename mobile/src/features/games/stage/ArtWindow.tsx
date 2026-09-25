@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { BearMark, BullMark, CoinMark } from "../shell/PixelArt";
 import { useLean } from "./lean";
 import { useStageTokens } from "./tokens";
@@ -49,8 +50,8 @@ export function ArtWindow() {
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
           <RadialGradient id="st-gleam" cx="28%" cy="22%" rx="65%" ry="45%" fx="28%" fy="22%">
-            <Stop offset="0" stopColor={s.artGleam} />
-            <Stop offset="0.7" stopColor={s.artGleam} stopOpacity={0} />
+            <Stop offset="0" {...stopPaint(s.artGleam)} />
+            <Stop offset="0.7" {...stopPaint(s.artGleam, 0)} />
           </RadialGradient>
         </Defs>
         <Rect x={0} y={0} width="100%" height="100%" fill="url(#st-gleam)" />

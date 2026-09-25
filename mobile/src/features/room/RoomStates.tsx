@@ -2,7 +2,8 @@ import type { TickerSymbol } from "@agari/core/market";
 import { ArrowRight, Lock, ShieldCheck, Unplug } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, Path, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { ROOM } from "@/features/room/copy";
 import type { RoomGate } from "@/features/room/protocol";
 import { FONT, useTheme } from "~/theme";
@@ -36,8 +37,8 @@ function StateIcon({ children, tone = "muted" }: { children: ReactNode; tone?: "
       <Svg style={StyleSheet.absoluteFill} accessible={false}>
         <Defs>
           <RadialGradient id={`halo-${tone}`} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={vermilion ? V.halo : t.ink10} />
-            <Stop offset="0.7" stopColor={vermilion ? V.clear : t.inset} stopOpacity={0} />
+            <Stop offset="0" {...stopPaint(vermilion ? V.halo : t.ink10)} />
+            <Stop offset="0.7" {...stopPaint(vermilion ? V.clear : t.inset, 0)} />
           </RadialGradient>
         </Defs>
         <Rect width="100%" height="100%" rx={16} fill={`url(#halo-${tone})`} />

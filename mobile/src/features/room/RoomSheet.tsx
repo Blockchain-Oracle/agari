@@ -4,7 +4,8 @@ import { router } from "expo-router";
 import { Lock, X } from "lucide-react-native";
 import React, { type ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { ROOM } from "@/features/room/copy";
 import type { RoomId } from "@/features/room/room-id";
 import { useRoom } from "@/features/room/useRoom";
@@ -48,9 +49,9 @@ function Ground() {
     <Svg style={StyleSheet.absoluteFill} accessible={false}>
       <Defs>
         <RadialGradient id="room" cx="50%" cy="-10%" rx="130%" ry="90%" fx="50%" fy="-10%">
-          <Stop offset="0" stopColor={a} />
-          <Stop offset="0.46" stopColor={b} />
-          <Stop offset="1" stopColor={c} />
+          <Stop offset="0" {...stopPaint(a)} />
+          <Stop offset="0.46" {...stopPaint(b)} />
+          <Stop offset="1" {...stopPaint(c)} />
         </RadialGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#room)" />

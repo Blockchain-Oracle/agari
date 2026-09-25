@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Svg, { Defs, G, Line, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { Defs, G, Line, LinearGradient, Path, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import type { ChartPoint } from "@/features/markets/hero/useChartSeries";
 import { LANE_CARD } from "@/lib/copy";
 import { FONT, useTheme } from "~/theme";
@@ -57,8 +58,8 @@ export function CardSpark({ points, openingRaw }: { points: readonly ChartPoint[
       <Svg style={StyleSheet.absoluteFill} width={width} height={height}>
         <Defs>
           <LinearGradient id="mcSparkWash" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={t.sparkWash} />
-            <Stop offset="1" stopColor={t.sparkWashEnd} />
+            <Stop offset="0" {...stopPaint(t.sparkWash)} />
+            <Stop offset="1" {...stopPaint(t.sparkWashEnd)} />
           </LinearGradient>
         </Defs>
         <Rect x={0} y={0} width={width} height={height} fill="url(#mcSparkWash)" />

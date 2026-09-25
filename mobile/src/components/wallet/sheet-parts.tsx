@@ -1,7 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
-import Svg, { ClipPath, Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
+import Svg, { ClipPath, Defs, LinearGradient, Path, Rect } from "react-native-svg";
+import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { WALLET_MODAL } from "@/providers/wallet/copy";
 import { haptic } from "~/components/kit";
 import { FONT, useTheme } from "~/theme";
@@ -84,8 +85,8 @@ export function Spinner({ size = 21, tint }: { size?: number; tint?: string }) {
             <Path d={SPIN} />
           </ClipPath>
           <LinearGradient id="wm-sweep" x1="0" y1="1" x2="1" y2="0">
-            <Stop offset="0" stopColor={ink} stopOpacity={0} />
-            <Stop offset="0.8" stopColor={ink} stopOpacity={1} />
+            <Stop offset="0" {...stopPaint(ink, 0)} />
+            <Stop offset="0.8" {...stopPaint(ink, 1)} />
           </LinearGradient>
         </Defs>
         <Rect x={0} y={0} width={21} height={21} fill="url(#wm-sweep)" clipPath="url(#wm-spin)" />
