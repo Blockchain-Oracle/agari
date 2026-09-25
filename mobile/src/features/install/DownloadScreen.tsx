@@ -1,35 +1,24 @@
-import { Platform, Pressable, Share, StyleSheet, Text, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { ExplorePage } from "~/features/explore/ExplorePage";
 import { AgariMark } from "~/components/shell/AgariMark";
-import { SITE_URL } from "~/lib/env";
 import { FONT, useTheme } from "~/theme";
 import { downloadTokens } from "~/theme/web/explore/download";
 import { APP_INSTALL } from "./copy";
+import { InstallCta } from "./InstallCta";
 import { PhoneShot } from "./PhoneShot";
 
 /** `ui-serif` italic under web's title `em`: Georgia on iOS, the system serif on Android. */
 const SERIF = Platform.select({ ios: "Georgia", default: "serif" });
 
-/** web's TrayArrow: an arrow descending into a tray. */
-function TrayArrow({ ink }: { ink: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" accessible={false}>
-      <Path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke={ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 /**
  * `/download` — web DownloadPage.tsx as it draws at 402 px (`.dl-*`, part-18.css): the phone capture, then the
  * eyebrow, the title with its serif italic, the line, the pill CTA and the meta row; the three points over a rule and
- * the foot. The app is already installed, so the CTA sends the web app's link to another device and the meta row
- * names where Agari runs.
+ * the foot. The app is already installed, so the CTA expands, as web's does, into where else Agari installs, and the
+ * meta row names where Agari runs.
  */
 export function DownloadScreen() {
   const { name, color } = useTheme();
   const t = downloadTokens(name);
-  const share = () => void Share.share({ message: APP_INSTALL.shareMessage(SITE_URL), url: SITE_URL });
 
   return (
     <ExplorePage title={APP_INSTALL.title} style={styles.dl}>
@@ -43,14 +32,7 @@ export function DownloadScreen() {
         </Text>
         <Text style={[styles.line, { color: color.inkSecondary }]}>{APP_INSTALL.line}</Text>
 
-        <Pressable
-          onPress={share}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.cta, { backgroundColor: pressed ? color.accentPressed : color.accent }]}
-        >
-          <Text style={[styles.ctaText, { color: color.onAccent }]}>{APP_INSTALL.cta}</Text>
-          <TrayArrow ink={color.onAccent} />
-        </Pressable>
+        <InstallCta />
 
         <View style={styles.meta}>
           {APP_INSTALL.meta.map((item) => (
@@ -85,8 +67,6 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONT.headingHeavy, fontSize: 39, lineHeight: 40, letterSpacing: -1.365, marginTop: 14 },
   titleEm: { fontFamily: SERIF, fontStyle: "italic", fontWeight: "500", letterSpacing: -1.365 },
   line: { fontFamily: FONT.body, fontSize: 14.7, lineHeight: 24.255, marginTop: 22 },
-  cta: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 12, marginTop: 34, paddingVertical: 15, paddingHorizontal: 30, borderRadius: 999 },
-  ctaText: { fontFamily: FONT.heading, fontSize: 16, lineHeight: 25.6, letterSpacing: -0.15 },
   meta: { flexDirection: "row", flexWrap: "wrap", gap: 20, marginTop: 40 },
   metaItem: { gap: 5 },
   metaLabel: { fontFamily: FONT.data, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.54, textTransform: "uppercase" },
