@@ -1,137 +1,102 @@
-import { betweenRoundsLine } from "@agari/core/copy";
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
+import type { Reading } from "@agari/core/schemas";
 import { isOk } from "@agari/core/schemas";
-import type { Lane } from "@agari/core/types";
+import type { Address, EventMarket, LaneBasis, LaneSet, MarketId, Side } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
+import { marketsProvider } from "@agari/markets";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import { laneAssetLabel, laneCadenceLabel, laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";
+import { laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";
 import { configuredLaneKeys, configuredTickers } from "@/features/markets/lanes/next-window";
 import { useLaneNextStart, type LanesState } from "@/features/markets/lanes/useLanes";
-import { laneTickers, tickerMarkets } from "@/features/markets/lanes/useTickerPin";
-import { laneState, useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
+import { useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
 import { useVenue } from "@/features/markets/useVenue";
-import { MARKETS } from "@/lib/copy";
+import { betweenRoundsLine, MARKETS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { useSessionPhrase } from "@/lib/when";
-import { Button, EmptyState, LoadingState, ReadingView } from "~/components/kit";
-import { LaneTabs, TickerPicker } from "./LaneTabs";
-import { PausedCard } from "./ListedCard";
-import { MarketCard } from "./MarketCard";
-import { NextWindowCard } from "./NextWindowCard";
+import { EmptyState, LoadingState, ReadingBoundary } from "~/components/portfolio/web/states";
+import { LaneTabs } from "./LaneTabs";
+import { openTicket } from "./MarketCard";
+import { NextWindowRail, TickerLane } from "./TickerLane";
 
-/** web's lane page: two rows of the four-up rail; a phone shows as many and offers the rest. */
-const PAGE = 8;
-const NO_PAUSES: ReadonlyMap<TickerSymbol, string> = new Map();
+export interface LaneBoardProps {
+  state: LanesState;
+  /** The boot reading, when the venue could not even be resolved; defaults to `useVenue()`'s. */
+  boot?: Reading<unknown> | null;
+  venueId?: Address | null;
+  nowMs: number;
+  selectedMarketId?: MarketId | null;
+  /** Selects a Window (with a side from a card's UP/DOWN). Absent: the ticket opens over the page. */
+  onSelect?: (marketId: MarketId, side?: Side) => void;
+  /** Opens a Window's Room. Absent: each card mounts its own Room sheet. */
+  onOpenRoom?: (market: EventMarket) => void;
+}
 
-/** The roller's paused tickers in a lane (a closed Regular lane says nothing: every ticker is closed, not paused). */
-function pausedIn(session: MarketSession | null, lane: Lane): Map<TickerSymbol, string> {
-  const paused = new Map<TickerSymbol, string>();
-  if (!session || (lane.basis === "regular" && !session.open)) return paused;
-  for (const symbol of TICKER_SYMBOLS) {
-    const state = laneState(session, symbol, lane.basis, lane.intervalSec);
-    if (state?.startsWith("paused")) paused.set(symbol, state);
-  }
-  return paused;
+function laneReading(state: LanesState, boot: Reading<unknown> | null): Reading<LaneSet> | null {
+  if (boot && !boot.ok) return boot;
+  return state.reading;
+}
+
+/** A closed Regular lane with tickers configured lists what opens next (D-086); anything else is between rounds. */
+function listsNext(session: MarketSession | null, key: LaneTabKey | null): session is MarketSession {
+  return session !== null && !session.open && key !== null && laneTabParts(key).basis === "regular" && configuredTickers(session, key).length > 0;
 }
 
 /**
- * web's CadenceLanes: the lane tabs (live lanes, and ops' configured lanes while none is live), the ticker picker, and
- * the rail — live cards and paused slots; on a closed Regular lane, the next-Window cards; on an empty lane, when the
- * next Window opens.
+ * web's CadenceLanes (§01 below the section header): the lane tabs — live lanes, and ops' configured lanes while none
+ * is live — then the active lane's rail (ticker picker, cards, pager), a closed Regular lane's next-Window cards, or
+ * the between-rounds line; loading, broken and empty as web's ReadingBoundary says them.
  */
-export function LaneBoard({ state, nowMs }: { state: LanesState; nowMs: number }) {
+export function LaneBoard({ state, boot: bootProp, venueId: venueProp, nowMs, selectedMarketId = null, onSelect = openTicket, onOpenRoom }: LaneBoardProps) {
+  const venue = useVenue();
+  const boot = bootProp === undefined ? venue.boot : bootProp;
+  const venueId = venueProp === undefined ? venue.venueId : venueProp;
   const session = useMarketSession();
+  const phrase = useSessionPhrase();
   const configured = useMemo(() => configuredLaneKeys(session), [session]);
   const activeKey = state.activeKey ?? configured[0] ?? null;
-  const nowSec = Math.floor(nowMs / 1000);
-  const lane = state.activeLane;
-  const listsNext = session !== null && !session.open && activeKey !== null && laneTabParts(activeKey).basis === "regular" && configuredTickers(session, activeKey).length > 0;
-
+  const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
+  const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(phrase(session.status, nowSec)), nextAction: { label: SESSION_COPY.ticket.readWire, onPress: () => router.push("/news") } } : null;
+  const live = state.activeLane !== null && state.activeLane.markets.length > 0;
   return (
-    <ReadingView reading={state.reading} loading="list" retry={state.retry}>
-      {(laneSet) =>
-        laneSet.lanes.length === 0 && !state.pinnedMissing && configured.length === 0 ? (
-          <EmptyState why={MARKETS.noLiveWindows.why} />
-        ) : (
-          <View style={styles.stack}>
-            <LaneTabs lanes={laneSet.lanes} activeKey={activeKey} pinnedMissingKey={state.pinnedMissing ? state.activeKey : null} extraKeys={configured} onPin={state.pin} />
-            {lane !== null && lane.markets.length > 0 ? (
-              <TickerRail lane={lane} ticker={state.ticker} onPick={state.pinTicker} session={session} nowMs={nowMs} />
-            ) : listsNext && session && activeKey ? (
-              <NextRail laneKey={activeKey} session={session} nowSec={nowSec} ticker={state.ticker} onPick={state.pinTicker} />
-            ) : (
-              <BetweenRounds activeKey={activeKey} nowMs={nowMs} session={session} />
-            )}
-          </View>
-        )
-      }
-    </ReadingView>
-  );
-}
-
-/** web's TickerLane: the picker over every listed, paused or pinned ticker, then the live cards and the paused slots. */
-function TickerRail({ lane, ticker, onPick, session, nowMs }: { lane: Lane; ticker: TickerSymbol | null; onPick: (t: TickerSymbol | null) => void; session: MarketSession | null; nowMs: number }) {
-  const [shown, setShown] = useState(PAGE);
-  const paused = pausedIn(session, lane);
-  const listed = laneTickers(lane);
-  const tickers = TICKER_SYMBOLS.filter((symbol) => listed.includes(symbol) || paused.has(symbol) || symbol === ticker);
-  const markets = tickerMarkets(lane, ticker);
-  const pausedShown = [...paused].filter(([symbol]) => ticker === null || symbol === ticker);
-  return (
-    <View style={styles.stack}>
-      {tickers.length > 1 || ticker !== null ? <TickerPicker tickers={tickers} basis={lane.basis} paused={paused} ticker={ticker} onPick={onPick} /> : null}
-      {markets.length === 0 && pausedShown.length === 0 ? (
-        <EmptyState why={MARKETS.tickers.none(ticker ? laneAssetLabel(ticker, lane.basis) : "", laneCadenceLabel(lane.basis, lane.intervalSec))} />
-      ) : (
-        <>
-          {markets.slice(0, shown).map((market, index) => (
-            <MarketCard key={market.marketId} market={market} nowMs={nowMs} index={index} />
-          ))}
-          {markets.length > shown ? <Button label={`Show ${Math.min(PAGE, markets.length - shown)} more`} variant="secondary" onPress={() => setShown((n) => n + PAGE)} /> : null}
-          {markets.length <= shown
-            ? pausedShown.map(([symbol, laneWord]) => <PausedCard key={symbol} asset={symbol} basis={lane.basis} intervalSec={lane.intervalSec} state={laneWord} />)
-            : null}
-        </>
+    <ReadingBoundary
+      reading={laneReading(state, boot)}
+      shape="row"
+      retry={state.retry}
+      isEmpty={(laneSet) => laneSet.lanes.length === 0 && !state.pinnedMissing && configured.length === 0}
+      empty={closedEmpty ?? MARKETS.noLiveWindows}
+    >
+      {(laneSet) => (
+        <View style={styles.stack}>
+          <LaneTabs lanes={laneSet.lanes} activeKey={activeKey} pinnedMissingKey={state.pinnedMissing ? state.activeKey : null} extraKeys={configured} onPin={state.pin} />
+          {live && state.activeLane ? (
+            <TickerLane lane={state.activeLane} ticker={state.ticker} onPick={state.pinTicker} session={session} nowMs={nowMs} selectedMarketId={selectedMarketId} onSelect={onSelect} onOpenRoom={onOpenRoom} />
+          ) : listsNext(session, activeKey) ? (
+            <NextWindowRail laneKey={activeKey as LaneTabKey} session={session} nowSec={nowSec} ticker={state.ticker} onPick={state.pinTicker} onSelect={onSelect} />
+          ) : (
+            <BetweenRounds venueId={venueId} basis={activeKey ? laneTabParts(activeKey).basis : "regular"} intervalSec={activeKey ? laneTabParts(activeKey).intervalSec : 0} nowMs={nowMs} session={session} />
+          )}
+        </View>
       )}
-    </View>
-  );
-}
-
-/** web's NextWindowRail: a closed Regular lane, one next-Window card per configured ticker. */
-function NextRail({ laneKey, session, nowSec, ticker, onPick }: { laneKey: LaneTabKey; session: MarketSession; nowSec: number; ticker: TickerSymbol | null; onPick: (t: TickerSymbol | null) => void }) {
-  const { basis, intervalSec } = laneTabParts(laneKey);
-  const tickers = configuredTickers(session, laneKey);
-  const shown = ticker === null ? tickers : tickers.filter((symbol) => symbol === ticker);
-  return (
-    <View style={styles.stack}>
-      {tickers.length > 1 || ticker !== null ? <TickerPicker tickers={tickers} basis={basis} paused={NO_PAUSES} ticker={ticker} onPick={onPick} /> : null}
-      {shown.length === 0 ? (
-        <EmptyState why={MARKETS.tickers.none(ticker ? laneAssetLabel(ticker, basis) : "", laneCadenceLabel(basis, intervalSec))} />
-      ) : (
-        shown.map((symbol) => <NextWindowCard key={symbol} asset={symbol} basis={basis} intervalSec={intervalSec} session={session} nowSec={nowSec} />)
-      )}
-    </View>
+    </ReadingBoundary>
   );
 }
 
 /** web's BetweenRounds: an empty lane says when its next Window opens — an estimate from the last expiry, never a timetable. */
-function BetweenRounds({ activeKey, nowMs, session }: { activeKey: LaneTabKey | null; nowMs: number; session: MarketSession | null }) {
+function BetweenRounds({ venueId, basis, intervalSec, nowMs, session }: { venueId: Address | null; basis: LaneBasis; intervalSec: number; nowMs: number; session: MarketSession | null }) {
   const phrase = useSessionPhrase();
-  const { venueId } = useVenue();
-  const parts = activeKey ? laneTabParts(activeKey) : null;
-  const closed = parts?.basis === "regular" && session !== null && !session.open;
-  const next = useLaneNextStart(closed ? null : venueId, parts?.intervalSec ?? null);
-  if (closed && session) {
-    return <EmptyState why={SESSION_COPY.lanes.closed(phrase(session.status, Math.floor(nowMs / 1000)))} action={{ label: SESSION_COPY.ticket.readWire, onPress: () => router.push("/news") }} />;
+  const closed = basis === "regular" && session !== null && !session.open;
+  const next = useLaneNextStart(closed ? null : venueId, intervalSec);
+  if (closed) {
+    const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
+    return <EmptyState why={SESSION_COPY.lanes.closed(phrase(session.status, nowSec))} nextAction={{ label: SESSION_COPY.ticket.readWire, onPress: () => router.push("/news") }} />;
   }
-  if (next === null || nowMs === 0 || !parts) return <LoadingState shape="line" />;
+  if (next === null || nowMs === 0) return <LoadingState shape="line" />;
   const nextStartMs = isOk(next) && next.value !== null && secToMs(next.value) > nowMs ? secToMs(next.value) : null;
-  const line = betweenRoundsLine(nextStartMs, nowMs, parts.intervalSec);
+  const line = betweenRoundsLine(nextStartMs, nowMs, intervalSec);
   return <EmptyState why={nextStartMs === null ? line : `${line} (${MARKETS.estimated})`} />;
 }
 
 const styles = StyleSheet.create({
-  stack: { gap: 12 },
+  stack: { gap: 16 },
 });

@@ -1,12 +1,12 @@
 import type { TickerSymbol } from "@agari/core/market";
 import type { Lane, LaneBasis } from "@agari/core/types";
-import { useRef } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { compareLaneTabKeys, laneAssetLabel, laneTabKey, laneTabLabel, laneTabParts, pausedCopy, type LaneTabKey } from "@/features/markets/lanes/lane-view";
 import { MARKETS } from "@/lib/copy";
 import { haptic } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT, useTheme } from "~/theme";
+import { lanesTokens } from "~/theme/web/markets-lanes";
 
 interface Tab {
   key: LaneTabKey;
@@ -14,7 +14,7 @@ interface Tab {
   count: number;
 }
 
-/** web's LaneTabs `buildTabs`: every live lane, the pinned one with no Window, and the lanes ops configures, board order. */
+/** web LaneTabs' `buildTabs`: every live lane, the pinned one with no Window, and the lanes ops configures, in board order. */
 function buildTabs(lanes: readonly Lane[], pinnedMissing: LaneTabKey | null, extraKeys: readonly LaneTabKey[]): Tab[] {
   const tabs: Tab[] = lanes.map((lane) => ({ key: laneTabKey(lane.basis, lane.intervalSec), label: laneTabLabel(lane.basis, lane.intervalSec), count: lane.markets.length }));
   for (const key of [...(pinnedMissing === null ? [] : [pinnedMissing]), ...extraKeys]) {
@@ -25,41 +25,41 @@ function buildTabs(lanes: readonly Lane[], pinnedMissing: LaneTabKey | null, ext
   return tabs.sort((a, b) => compareLaneTabKeys(a.key, b.key));
 }
 
-/**
- * web's LaneTabs: one tab per (basis, cadence) lane — `5m`, `15m`, `Gap`, `5m · 24/7` — with its live count, scrolling
- * sideways under the thumb. The choice is pinned (`agari.lane`) and survives a reload.
- */
-export function LaneTabs({ lanes, activeKey, pinnedMissingKey, extraKeys, onPin }: {
+interface LaneTabsProps {
   lanes: readonly Lane[];
   activeKey: LaneTabKey | null;
   pinnedMissingKey: LaneTabKey | null;
-  extraKeys: readonly LaneTabKey[];
+  extraKeys?: readonly LaneTabKey[];
   onPin: (key: LaneTabKey) => void;
-}) {
-  const { color } = useTheme();
+}
+
+/**
+ * web's LaneTabs — ui/tabs' `line` list at `h-touch`: one trigger per (basis, cadence) lane with its live count in the
+ * micro label, the active one in full ink and the rest in the secondary ink, scrolling sideways past the gutter.
+ */
+export function LaneTabs({ lanes, activeKey, pinnedMissingKey, extraKeys = [], onPin }: LaneTabsProps) {
+  const { name } = useTheme();
+  const t = lanesTokens(name);
   const tabs = buildTabs(lanes, pinnedMissingKey, extraKeys);
-  const scroller = useRef<ScrollView>(null);
   return (
-    <ScrollView ref={scroller} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} accessibilityRole="tablist" accessibilityLabel="Cadence">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.list} contentContainerStyle={styles.listInner} accessibilityRole="tablist" accessibilityLabel="Cadence">
       {tabs.map((tab) => {
         const on = tab.key === activeKey;
         return (
           <Pressable
             key={tab.key}
             onPress={() => {
-              if (on) return;
               haptic.select();
               onPin(tab.key);
             }}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
-            accessibilityLabel={`${tab.label}, ${MARKETS.live(tab.count)}`}
-            // The pinned lane may sit past the edge (a 24/7 lane): bring it into view once laid out.
-            onLayout={on ? (event) => scroller.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 16), animated: false }) : undefined}
-            style={[styles.tab, { borderBottomColor: on ? color.accent : "transparent" }]}
+            style={styles.trigger}
           >
-            <Text style={[styles.label, { color: on ? color.ink : color.inkSecondary }]}>{tab.label}</Text>
-            <Text style={[TYPE.data, styles.count, { color: on ? color.accent : color.inkMuted }]}>{tab.count}</Text>
+            <Text style={[styles.label, { color: on ? t.ink : t.inkSecondary }]}>{tab.label}</Text>
+            <Text style={[styles.count, { color: t.inkMuted }]} accessibilityLabel={MARKETS.live(tab.count)}>
+              {tab.count}
+            </Text>
           </Pressable>
         );
       })}
@@ -67,19 +67,22 @@ export function LaneTabs({ lanes, activeKey, pinnedMissingKey, extraKeys, onPin 
   );
 }
 
-/**
- * web's TickerPicker: narrows the lane to one ticker (`agari.ticker`, kept across cadences). A paused ticker keeps its
- * chip and says why when chosen.
- */
-export function TickerPicker({ tickers, basis, paused, ticker, onPick }: {
+interface TickerPickerProps {
   tickers: readonly TickerSymbol[];
   basis: LaneBasis;
   paused: ReadonlyMap<TickerSymbol, string>;
   ticker: TickerSymbol | null;
   onPick: (ticker: TickerSymbol | null) => void;
-}) {
-  const { color } = useTheme();
-  const chip = (key: string, on: boolean, label: string, onPress: () => void, symbol?: TickerSymbol, hint?: string) => (
+}
+
+/**
+ * web's TickerPicker (`.asset-tabs.tkp`, the leaderboard's `.asset-tab`): "All" and one mono-caps tab per ticker with
+ * its 16 px disc, a vermilion underline under the pinned one, a paused ticker a step quieter; it scrolls sideways.
+ */
+export function TickerPicker({ tickers, basis, paused, ticker, onPick }: TickerPickerProps) {
+  const { name } = useTheme();
+  const t = lanesTokens(name);
+  const tab = (key: string, on: boolean, quiet: boolean, label: string, onPress: () => void, glyph?: string, hint?: string) => (
     <Pressable
       key={key}
       onPress={() => {
@@ -89,32 +92,36 @@ export function TickerPicker({ tickers, basis, paused, ticker, onPick }: {
       accessibilityRole="button"
       accessibilityState={{ selected: on }}
       accessibilityHint={hint}
-      style={[styles.chip, { borderColor: on ? color.ink : color.hairline, backgroundColor: on ? color.surface3 : color.surface1 }]}
+      style={[styles.assetTab, { borderBottomColor: on ? t.vermilion : "transparent" }]}
     >
-      {symbol ? <AssetDisc asset={symbol} size={20} /> : null}
-      <Text style={[styles.chipText, { color: on ? color.ink : color.inkSecondary }]}>{label}</Text>
-      {symbol && paused.has(symbol) ? <View style={[styles.pausedDot, { backgroundColor: color.warning }]} /> : null}
+      {glyph ? (
+        <View style={styles.glyph}>
+          <AssetDisc asset={glyph} size={14} />
+        </View>
+      ) : null}
+      <Text style={[styles.assetLabel, { color: on ? t.ink : quiet ? t.gray600 : t.inkMuted }]}>{label}</Text>
     </Pressable>
   );
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} accessibilityLabel={MARKETS.tickers.group}>
-      {chip("all", ticker === null, MARKETS.tickers.all, () => onPick(null))}
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.picker} accessibilityLabel={MARKETS.tickers.group}>
+      {tab("all", ticker === null, false, MARKETS.tickers.all, () => onPick(null))}
       {tickers.map((symbol) => {
         const state = paused.get(symbol);
         const label = laneAssetLabel(symbol, basis);
-        return chip(symbol, ticker === symbol, label, () => onPick(symbol), symbol, state ? pausedCopy(state, label, basis, 0).headline : undefined);
+        return tab(symbol, ticker === symbol, state !== undefined, label, () => onPick(symbol), symbol, state === undefined ? undefined : pausedCopy(state, label, basis, 0).headline);
       })}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { gap: 4 },
-  tab: { flexDirection: "row", alignItems: "center", gap: 6, height: 44, paddingHorizontal: 12, borderBottomWidth: 2 },
-  label: { fontFamily: FONT.bodyStrong, fontSize: 15 },
-  count: { fontSize: 11 },
-  chips: { gap: 8 },
-  chip: { flexDirection: "row", alignItems: "center", gap: 6, height: 44, paddingHorizontal: 12, borderRadius: RADIUS.full, borderWidth: 1 },
-  chipText: { fontFamily: FONT.bodyStrong, fontSize: 13 },
-  pausedDot: { width: 6, height: 6, borderRadius: 3 },
+  list: { height: 44, flexGrow: 0 },
+  listInner: { alignItems: "center", gap: 4, padding: 3 },
+  trigger: { height: 37, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 2, paddingHorizontal: 12, borderRadius: 8 },
+  label: { fontFamily: FONT.bodyMedium, fontSize: 13.125, lineHeight: 18.75 },
+  count: { fontFamily: FONT.bodyMedium, fontSize: 11, lineHeight: 13.2, letterSpacing: 1.76, textTransform: "uppercase", fontVariant: ["tabular-nums"] },
+  picker: { flexDirection: "row", alignItems: "center", gap: 18 },
+  assetTab: { minHeight: 32, flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, borderBottomWidth: 1 },
+  glyph: { width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  assetLabel: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.1, textTransform: "uppercase" },
 });
