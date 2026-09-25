@@ -1,79 +1,60 @@
-import { DEVNET_WALLET_STEP } from "@agari/core/copy";
-import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withTiming } from "react-native-reanimated";
-import { Button } from "~/components/kit";
-import { Logo } from "~/components/logos/Logo";
-import type { BrandLogo } from "~/components/logos/brand-logos";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { WALLET_MODAL } from "@/providers/wallet/copy";
+import { ActionButton, Spinner } from "~/components/wallet/sheet-parts";
+import { FONT, useTheme } from "~/theme";
+import type { WalletChoice } from "~/wallet/choices";
+import { ChoiceArt } from "./Choose";
 
-const MARK = 76;
-
-/** 21st: "Breathe Ring" (id 28403) — two rings breathing out of the wallet's mark while the wallet app has the turn. */
-function BreatheRing({ delayMs }: { delayMs: number }) {
-  const { color } = useTheme();
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withDelay(delayMs, withRepeat(withTiming(1, { duration: 1_800, easing: Easing.out(Easing.quad) }), -1, false));
-  }, [t, delayMs]);
-  const style = useAnimatedStyle(() => ({ opacity: 0.55 * (1 - t.value), transform: [{ scale: 1 + t.value * 0.7 }] }));
-  return <Animated.View style={[styles.ring, { borderColor: color.accent }, style]} />;
-}
+const T = WALLET_MODAL;
 
 /**
- * The hand-off: Agari has sent the person to their wallet app and is waiting for it to send them back. Says which app,
- * what to do there, the one setting that makes a devnet request fail (the wallet on mainnet), and a way out.
+ * web `ConnectStep` (RainbowKit's `ConnectDetail`): the wallet's 44 pt icon, "Opening X..." with the confirm line and
+ * a spinner, RETRY once it failed (the wallet's own reason in place of the confirm line); "X is not installed" with
+ * INSTALL for a wallet app this phone does not have. Shown when a hand-off to the wallet app did not come back connected.
  */
-export function Handoff({ name, logo, stage, error, onCancel, onRetry }: {
-  name: string;
-  logo: BrandLogo | null;
-  stage: "opening" | "waiting" | "failed";
+export function Handoff({ choice, failed, error, missingUrl, onRetry, onInstall }: {
+  choice: WalletChoice;
+  failed: boolean;
   error: string | null;
-  onCancel: () => void;
+  missingUrl: string | null;
   onRetry: () => void;
+  onInstall: () => void;
 }) {
   const { color } = useTheme();
-  const reduce = useReducedMotion();
-  const headline = stage === "failed" ? `${name} did not connect` : stage === "opening" ? `Opening ${name}…` : `Approve in ${name}`;
+  const installed = missingUrl === null;
   return (
-    <View style={styles.wrap} accessibilityLiveRegion="polite">
-      <View style={styles.stage}>
-        {stage !== "failed" && !reduce ? (
-          <>
-            <BreatheRing delayMs={0} />
-            <BreatheRing delayMs={900} />
-          </>
-        ) : null}
-        <View style={[styles.mark, { borderColor: stage === "failed" ? color.loss : color.hairline, backgroundColor: color.surface1 }]}>
-          {logo ? <Logo brand={logo} size={MARK - 12} radius={RADIUS.lg} /> : null}
+    <View style={styles.detail} accessibilityLiveRegion="polite">
+      <View style={styles.main}>
+        <View style={styles.stack}>
+          <ChoiceArt choice={choice} size={44} />
+          <View style={styles.text}>
+            <Text style={[styles.title, { color: color.ink }]}>{installed ? T.status.opening(choice.name) : T.status.notInstalled(choice.name)}</Text>
+            {installed ? (
+              <>
+                <Text style={[styles.t14m, { color: color.inkSecondary }]}>{failed && error ? error : T.status.confirm}</Text>
+                <View style={styles.status}>{failed ? <ActionButton label={T.status.retry} onPress={onRetry} /> : <Spinner />}</View>
+              </>
+            ) : (
+              <View style={styles.install}>
+                <ActionButton secondary label={T.status.install} onPress={onInstall} />
+              </View>
+            )}
+          </View>
         </View>
       </View>
-      <Text style={[TYPE.headline, styles.center, { color: color.ink }]}>{headline}</Text>
-      {stage === "failed" ? (
-        <Text style={[TYPE.body, styles.center, { color: color.loss }]}>{error ?? "The wallet did not return an answer."}</Text>
-      ) : (
-        <Text style={[TYPE.body, styles.center, { color: color.inkSecondary }]}>
-          {name} asks you to connect to Agari on Solana devnet. Approve it there and you come straight back here.
-        </Text>
-      )}
-      <View style={[styles.tip, { backgroundColor: color.surface1, borderColor: color.hairline }]}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>If it says “network mismatch”</Text>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{DEVNET_WALLET_STEP}</Text>
-      </View>
-      <View style={styles.actions}>
-        {stage === "failed" ? <Button label="Try again" onPress={onRetry} /> : null}
-        <Button label={stage === "failed" ? "Choose another wallet" : "Cancel"} variant="secondary" onPress={onCancel} />
-      </View>
+      <View style={styles.foot} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: "center", gap: 14, paddingTop: 12 },
-  stage: { width: MARK * 2, height: MARK * 2, alignItems: "center", justifyContent: "center" },
-  ring: { position: "absolute", width: MARK, height: MARK, borderRadius: RADIUS.xl, borderWidth: 2 },
-  mark: { width: MARK, height: MARK, borderRadius: RADIUS.xl, borderWidth: 1, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  center: { textAlign: "center" },
-  tip: { alignSelf: "stretch", borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 14, gap: 6 },
-  actions: { alignSelf: "stretch", gap: 10 },
+  detail: { minHeight: 396, paddingHorizontal: 16 },
+  main: { flex: 1, alignItems: "center", justifyContent: "center" },
+  stack: { alignItems: "center", gap: 8 },
+  text: { alignItems: "center", gap: 4, paddingHorizontal: 32 },
+  title: { fontFamily: FONT.bodyStrong, fontSize: 18, lineHeight: 24, textAlign: "center" },
+  t14m: { fontFamily: FONT.bodyMedium, fontSize: 14, lineHeight: 18, textAlign: "center" },
+  status: { flexDirection: "row", alignItems: "center", height: 32, marginTop: 8 },
+  install: { paddingTop: 20 },
+  foot: { height: 28, marginTop: 12 },
 });

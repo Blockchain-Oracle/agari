@@ -1,14 +1,14 @@
-import { SymbolView } from "expo-symbols";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { Smartphone } from "lucide-react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { WALLET_MODAL } from "@/providers/wallet/copy";
-import { Button, haptic } from "~/components/kit";
+import { haptic } from "~/components/kit";
 import { Logo } from "~/components/logos/Logo";
 import type { BrandLogo } from "~/components/logos/brand-logos";
 import { AgariMark } from "~/components/shell/AgariMark";
+import { ActionButton, Spinner, WalletIcon } from "~/components/wallet/sheet-parts";
 import { openExternal } from "~/lib/external";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { WALLET_CHOICES, type WalletKind } from "~/wallet/choices";
+import { FONT, useTheme } from "~/theme";
+import { WALLET_CHOICES, type WalletChoice, type WalletKind } from "~/wallet/choices";
 
 const T = WALLET_MODAL;
 
@@ -26,116 +26,121 @@ export const GET_WALLETS: readonly { name: string; logo: BrandLogo; url: string 
   ],
 })!;
 
-/**
- * web's WalletPickerPhone (RainbowKit's MobileOptions): the wallet apps as a strip of app icons with a "Recent" tag,
- * then the practice wallet for anyone without one, then "What is a Wallet?" with Get a Wallet / Learn More.
- */
-export function Choose({ recent, onChoose, onGet }: { recent: WalletKind | null; onChoose: (kind: WalletKind) => void; onGet: () => void }) {
+/** A wallet's 60 pt art: its brand mark, Android's chooser glyph, or the Agari mark for the practice key. */
+export function ChoiceArt({ choice, size }: { choice: WalletChoice; size: 44 | 60 }) {
   const { color } = useTheme();
-  const apps = WALLET_CHOICES.filter((choice) => choice.kind !== "practice");
+  if (choice.logo) return <Logo brand={choice.logo} size={size} radius={size === 60 ? 13 : 10} />;
   return (
-    <View style={styles.wrap}>
-      <View style={styles.strip}>
-        {apps.map((choice, index) => (
-          <Animated.View key={choice.kind} entering={FadeInDown.delay(70 * index).springify().damping(18)} style={styles.tileWrap}>
-            <Pressable
-              onPress={() => {
-                haptic.tap();
-                onChoose(choice.kind);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={`Connect with ${choice.name}`}
-              accessibilityHint={choice.line}
-              style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
-            >
-              <View style={[styles.art, { borderColor: color.hairline, backgroundColor: color.surface1 }]}>
-                {choice.logo ? (
-                  <Logo brand={choice.logo} size={60} radius={RADIUS.lg} />
-                ) : (
-                  <SymbolView name={{ ios: "iphone", android: "phone_android" }} size={28} tintColor={color.accent} />
-                )}
-              </View>
-              <Text style={[TYPE.bodyStrong, styles.tileName, { color: color.ink }]} numberOfLines={1}>
-                {choice.name}
-              </Text>
-              {recent === choice.kind ? <Text style={[styles.recent, { color: color.accent }]}>{T.recent}</Text> : null}
-            </Pressable>
-          </Animated.View>
+    <View style={[styles.glyph, { width: size, height: size, borderRadius: size === 60 ? 13 : 10, backgroundColor: color.surface2 }]}>
+      {choice.kind === "practice" ? <AgariMark width={size * 0.45} height={size * 0.45} /> : <Smartphone size={size * 0.45} color={color.accent} />}
+    </View>
+  );
+}
+
+/**
+ * web `WalletPickerPhone` (RainbowKit's `MobileOptions`), the connect step: the wallets as a strip of 60 pt app icons
+ * ("Recent" under the last one used; a spinner rings the one connecting), the divider, "What is a Wallet?", and
+ * Get a Wallet / Learn More. The app's wallets are the ones a phone can reach: the apps by link, and a practice key.
+ */
+export function Choose({ recent, connecting, onChoose, onGet }: { recent: WalletKind | null; connecting: WalletKind | null; onChoose: (kind: WalletKind) => void; onGet: () => void }) {
+  const { color } = useTheme();
+  return (
+    <View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
+        {WALLET_CHOICES.map((choice) => (
+          <Pressable
+            key={choice.kind}
+            disabled={connecting !== null}
+            onPress={() => {
+              haptic.tap();
+              onChoose(choice.kind);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={choice.name}
+            accessibilityHint={choice.line}
+            style={({ pressed }) => [styles.tile, pressed && styles.shrink]}
+          >
+            <View style={styles.tileArt}>
+              {connecting === choice.kind ? (
+                <View style={styles.tileSpin}>
+                  <Spinner size={72} tint={color.accent} />
+                </View>
+              ) : null}
+              <ChoiceArt choice={choice} size={60} />
+            </View>
+            {connecting !== choice.kind ? (
+              <>
+                <Text style={[styles.tileName, { color: color.ink }]} numberOfLines={2}>
+                  {choice.name}
+                </Text>
+                {recent === choice.kind ? <Text style={[styles.recent, { color: color.accent }]}>{T.recent}</Text> : null}
+              </>
+            ) : null}
+          </Pressable>
         ))}
-      </View>
-
-      <Animated.View entering={FadeInDown.delay(70 * apps.length).springify().damping(18)}>
-        <Pressable
-          onPress={() => {
-            haptic.tap();
-            onChoose("practice");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Use a practice wallet"
-          style={({ pressed }) => [styles.practice, { backgroundColor: pressed ? color.surface2 : color.surface1, borderColor: color.hairline }]}
-        >
-          <View style={[styles.practiceMark, { backgroundColor: color.ground, borderColor: color.hairline }]}>
-            <AgariMark width={20} height={20} />
-          </View>
-          <View style={styles.practiceCopy}>
-            <Text style={[TYPE.bodyStrong, { color: color.ink }]}>
-              No wallet app? Use a practice wallet{recent === "practice" ? <Text style={[styles.recent, { color: color.accent }]}>  {T.recent}</Text> : null}
-            </Text>
-            <Text style={[TYPE.caption, { color: color.inkSecondary }]}>A devnet-only key kept on this phone. Test funds, no real value.</Text>
-          </View>
-          <SymbolView name={{ ios: "arrow.right", android: "arrow_forward" }} size={15} tintColor={color.inkMuted} />
-        </Pressable>
-      </Animated.View>
-
+      </ScrollView>
       <View style={[styles.divider, { backgroundColor: color.hairline }]} />
       <View style={styles.intro}>
-        <Text style={[TYPE.bodyStrong, styles.center, { color: color.ink }]}>{T.intro.title}</Text>
-        <Text style={[TYPE.caption, styles.center, { color: color.inkSecondary }]}>{T.intro.description}</Text>
+        <Text style={[styles.introTitle, { color: color.ink }]}>{T.intro.title}</Text>
+        <Text style={[styles.introBody, { color: color.inkSecondary }]}>{T.intro.description}</Text>
       </View>
-      <View style={styles.row}>
-        <Button label={T.intro.get} variant="secondary" onPress={onGet} style={styles.flex} />
-        <Button label={T.learnMore} variant="secondary" onPress={() => void openExternal(T.learnMoreUrl)} style={styles.flex} />
+      <View style={styles.actions}>
+        <ActionButton secondary size="large" label={T.intro.get} onPress={onGet} />
+        <ActionButton secondary size="large" label={T.learnMore} onPress={() => void openExternal(T.learnMoreUrl)} />
       </View>
     </View>
   );
 }
 
-/** web's "Get a Wallet" step: where to download each supported wallet, with GET. */
+/** web's phone "Get a Wallet" step (`.wm-m-get`): 48 pt icon, the name at 18, a small GET, hairlines between. */
 export function GetWallet() {
   const { color } = useTheme();
   return (
-    <View style={styles.wrap}>
-      {GET_WALLETS.map((wallet) => (
-        <View key={wallet.name} style={[styles.getRow, { borderBottomColor: color.hairline }]}>
-          <Logo brand={wallet.logo} size={48} radius={RADIUS.md} />
-          <Text style={[TYPE.bodyStrong, styles.flex, { color: color.ink }]}>{wallet.name}</Text>
-          <Button label={T.get.action} size="sm" variant="secondary" block={false} onPress={() => void openExternal(wallet.url)} />
-        </View>
-      ))}
-      <View style={styles.intro}>
-        <Text style={[TYPE.bodyStrong, styles.center, { color: color.ink }]}>{T.get.lookingTitle}</Text>
-        <Text style={[TYPE.caption, styles.center, { color: color.inkSecondary }]}>{T.get.lookingBody}</Text>
+    <View>
+      <View style={styles.get}>
+        {GET_WALLETS.map((wallet, index) => (
+          <View key={wallet.name} style={styles.getRow}>
+            <WalletIcon size={48}>
+              <Logo brand={wallet.logo} size={48} />
+            </WalletIcon>
+            <View style={styles.getMain}>
+              <View style={styles.getLine}>
+                <Text style={[styles.getName, { color: color.ink }]}>{wallet.name}</Text>
+                <ActionButton secondary size="small" label={T.get.action} onPress={() => void openExternal(wallet.url)} />
+              </View>
+              {index < GET_WALLETS.length - 1 ? <View style={[styles.getSep, { backgroundColor: color.hairline }]} /> : null}
+            </View>
+          </View>
+        ))}
+      </View>
+      <View style={styles.looking}>
+        <Text style={[styles.introTitle, { color: color.ink }]}>{T.get.lookingTitle}</Text>
+        <Text style={[styles.introBody, { color: color.inkSecondary }]}>{T.get.lookingBody}</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 16 },
-  strip: { flexDirection: "row", justifyContent: "center", gap: 8 },
-  tileWrap: { flex: 1, maxWidth: 110 },
-  tile: { alignItems: "center", gap: 6, paddingVertical: 8, borderRadius: RADIUS.lg },
-  pressed: { opacity: 0.7, transform: [{ scale: 0.96 }] },
-  art: { width: 64, height: 64, borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  tileName: { fontSize: 13.5 },
-  recent: { fontFamily: FONT.bodyStrong, fontSize: 11 },
-  practice: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth },
-  practiceMark: { width: 40, height: 40, borderRadius: RADIUS.md, borderWidth: StyleSheet.hairlineWidth, alignItems: "center", justifyContent: "center" },
-  practiceCopy: { flex: 1, gap: 2 },
-  divider: { height: StyleSheet.hairlineWidth },
-  intro: { gap: 6, paddingHorizontal: 8 },
-  center: { textAlign: "center" },
-  row: { flexDirection: "row", gap: 10 },
-  flex: { flex: 1 },
-  getRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth },
+  // .wm-m-strip: padding 6 20 20, gap (100% − 40 − 240 + 47) / 4 ≈ 42 at 402 pt
+  strip: { flexDirection: "row", justifyContent: "flex-start", paddingTop: 6, paddingHorizontal: 20, paddingBottom: 20, gap: 42 },
+  tile: { width: 60, alignItems: "center" },
+  shrink: { transform: [{ scale: 0.95 }] },
+  tileArt: { alignItems: "center", justifyContent: "center", paddingTop: 10, paddingBottom: 8 },
+  tileSpin: { position: "absolute", top: 4, left: -6, width: 72, height: 72 },
+  tileName: { fontFamily: FONT.bodyMedium, fontSize: 13, textAlign: "center", width: 60 },
+  recent: { fontFamily: FONT.bodyMedium, fontSize: 12, lineHeight: 12, marginTop: 1 },
+  glyph: { alignItems: "center", justifyContent: "center" },
+  divider: { height: 1, marginTop: -1, marginBottom: 32 },
+  intro: { alignItems: "center", gap: 8, paddingHorizontal: 32 },
+  introTitle: { fontFamily: FONT.bodyStrong, fontSize: 16, lineHeight: 20, textAlign: "center" },
+  introBody: { fontFamily: FONT.body, fontSize: 16, lineHeight: 20, textAlign: "center" },
+  actions: { flexDirection: "row", justifyContent: "center", gap: 14, paddingTop: 32, paddingHorizontal: 20 },
+  get: { alignItems: "center", marginTop: 5, marginBottom: 36, paddingTop: 12 },
+  getRow: { flexDirection: "row", gap: 16, alignSelf: "stretch", paddingHorizontal: 20 },
+  getMain: { flex: 1 },
+  getLine: { flexDirection: "row", alignItems: "center", height: 48 },
+  getName: { flex: 1, fontFamily: FONT.bodyStrong, fontSize: 18 },
+  getSep: { height: 1, marginVertical: 10 },
+  looking: { gap: 12, marginTop: 42 - 36, paddingHorizontal: 36 },
 });

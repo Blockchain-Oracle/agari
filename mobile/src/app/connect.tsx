@@ -1,16 +1,14 @@
-import { router, Stack } from "expo-router";
 import { useRef, useState } from "react";
-import { AppState, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { WALLET_MODAL } from "@/providers/wallet/copy";
-import { useWalletSession } from "@/lib/wallet-session";
-import { Button, haptic } from "~/components/kit";
-import { Logo } from "~/components/logos/Logo";
+import { haptic } from "~/components/kit";
+import { BackButton, CloseButton } from "~/components/wallet/sheet-parts";
+import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
 import { Choose, GetWallet } from "~/features/connect/Choose";
-import { Connected } from "~/features/connect/Connected";
 import { Handoff } from "~/features/connect/Handoff";
 import { openExternal } from "~/lib/external";
 import { storage } from "~/lib/storage";
-import { SPACE, TYPE, useTheme } from "~/theme";
+import { FONT, useTheme } from "~/theme";
 import { WALLET_CHOICES, type WalletKind } from "~/wallet/choices";
 import { cancelWalletRequest } from "~/wallet/link-port";
 import { useConnectWallet, WalletNotInstalledError } from "~/wallet/WalletProvider";
@@ -18,109 +16,94 @@ import { useConnectWallet, WalletNotInstalledError } from "~/wallet/WalletProvid
 const RECENT_KEY = "agari.wallet.recent";
 
 type Phase =
-  | { kind: "choose" }
+  | { kind: "connect"; connecting: WalletKind | null }
   | { kind: "get" }
-  | { kind: "handoff"; wallet: WalletKind; stage: "opening" | "waiting" | "failed"; error: string | null }
-  | { kind: "missing"; wallet: WalletKind; storeUrl: string }
-  | { kind: "connected"; wallet: WalletKind };
+  | { kind: "detail"; wallet: WalletKind; error: string | null; missingUrl: string | null };
 
-const nameOf = (kind: WalletKind) => WALLET_CHOICES.find((c) => c.kind === kind)?.name ?? kind;
-const logoOf = (kind: WalletKind) => WALLET_CHOICES.find((c) => c.kind === kind)?.logo ?? null;
+const choiceOf = (kind: WalletKind) => WALLET_CHOICES.find((c) => c.kind === kind) ?? WALLET_CHOICES[0]!;
 
 /**
- * Connecting a wallet on a phone, as its own small journey: pick a wallet app (or the practice key), go to that app
- * and come back, land on the account with a next step. Every wait says what is happening and has a way out.
+ * web's connect modal as it draws at 402 px: RainbowKit's bottom sheet holding `WalletPickerPhone`. A wallet tile
+ * rings with the spinner while its app has the turn; a connect closes the sheet, as web's does. A refusal or a
+ * missing app lands on web's `ConnectStep` (RETRY / INSTALL), with Back to the strip.
  */
 export default function ConnectSheet() {
   const { color } = useTheme();
   const connect = useConnectWallet();
-  const session = useWalletSession();
-  const [phase, setPhase] = useState<Phase>({ kind: "choose" });
+  const [phase, setPhase] = useState<Phase>({ kind: "connect", connecting: null });
   const attempt = useRef(0);
   const recent = (storage.getString(RECENT_KEY) as WalletKind | undefined) ?? null;
 
   const choose = async (kind: WalletKind) => {
     const id = ++attempt.current;
-    const handsOff = kind === "phantom" || kind === "solflare" || kind === "mwa";
-    if (handsOff) setPhase({ kind: "handoff", wallet: kind, stage: "opening", error: null });
-    // Once the wallet app is in front, the wait is the person's approval, not the app opening.
-    const sub = AppState.addEventListener("change", (state) => {
-      if (state !== "active" && attempt.current === id) setPhase((p) => (p.kind === "handoff" ? { ...p, stage: "waiting" } : p));
-    });
+    setPhase({ kind: "connect", connecting: kind });
     try {
       await connect(kind);
       if (attempt.current !== id) return;
       storage.set(RECENT_KEY, kind);
       haptic.success();
-      setPhase({ kind: "connected", wallet: kind });
+      dismiss();
     } catch (error) {
       if (attempt.current !== id) return;
       haptic.error();
-      if (error instanceof WalletNotInstalledError) setPhase({ kind: "missing", wallet: kind, storeUrl: error.storeUrl });
-      else setPhase({ kind: "handoff", wallet: kind, stage: "failed", error: error instanceof Error ? error.message : String(error) });
-    } finally {
-      sub.remove();
+      if (error instanceof WalletNotInstalledError) setPhase({ kind: "detail", wallet: kind, error: null, missingUrl: error.storeUrl });
+      else setPhase({ kind: "detail", wallet: kind, error: error instanceof Error ? error.message : String(error), missingUrl: null });
     }
   };
 
-  const cancel = () => {
+  const close = () => {
     attempt.current += 1;
     cancelWalletRequest();
-    setPhase({ kind: "choose" });
+    dismiss();
+  };
+  const toStrip = () => {
+    attempt.current += 1;
+    cancelWalletRequest();
+    setPhase({ kind: "connect", connecting: null });
   };
 
-  const title = phase.kind === "get" ? WALLET_MODAL.get.title : phase.kind === "connected" ? "" : WALLET_MODAL.title;
+  const title = phase.kind === "get" ? WALLET_MODAL.get.title : WALLET_MODAL.title;
   return (
-    <>
-      <Stack.Screen options={{ title: title || "Connected" }} />
-      <ScrollView style={{ backgroundColor: color.ground }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View style={styles.head}>
-          {phase.kind === "get" ? (
-            <Pressable onPress={() => setPhase({ kind: "choose" })} accessibilityRole="button" accessibilityLabel={WALLET_MODAL.back} hitSlop={12}>
-              <Text style={[TYPE.bodyStrong, { color: color.accent }]}>‹ {WALLET_MODAL.back}</Text>
-            </Pressable>
-          ) : (
-            <View />
-          )}
-        </View>
-        {title ? <Text style={[TYPE.title, styles.center, { color: color.ink }]} accessibilityRole="header">{title}</Text> : null}
-
-        {phase.kind === "choose" ? <Choose recent={recent} onChoose={(kind) => void choose(kind)} onGet={() => setPhase({ kind: "get" })} /> : null}
-        {phase.kind === "get" ? <GetWallet /> : null}
-        {phase.kind === "handoff" ? (
-          <Handoff name={nameOf(phase.wallet)} logo={logoOf(phase.wallet)} stage={phase.stage} error={phase.error} onCancel={cancel} onRetry={() => void choose(phase.wallet)} />
-        ) : null}
-        {phase.kind === "missing" ? (
-          <View style={styles.missing}>
-            {logoOf(phase.wallet) ? <Logo brand={logoOf(phase.wallet)!} size={64} radius={16} /> : null}
-            <Text style={[TYPE.title, styles.center, { color: color.ink }]}>{WALLET_MODAL.status.notInstalled(nameOf(phase.wallet))}</Text>
-            <Text style={[TYPE.body, styles.center, { color: color.inkSecondary }]}>
-              Install it, set it to Solana devnet, then come back and choose it again. Or use the practice wallet now.
+    <WalletSheet onClose={close}>
+      <View style={styles.mobile}>
+        <View style={[styles.head, { backgroundColor: color.surface1 }]}>
+          <View style={styles.headRow}>
+            {phase.kind !== "connect" ? (
+              <View style={styles.back}>
+                <BackButton onPress={toStrip} />
+              </View>
+            ) : null}
+            <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+              {title}
             </Text>
-            <Button label={`Get ${nameOf(phase.wallet)}`} onPress={() => void openExternal(phase.storeUrl)} />
-            <Button label="Use the practice wallet" variant="secondary" onPress={() => void choose("practice")} />
-            <Button label={WALLET_MODAL.back} variant="ghost" onPress={() => setPhase({ kind: "choose" })} />
+            <View style={styles.close}>
+              <CloseButton onPress={close} />
+            </View>
           </View>
-        ) : null}
-        {phase.kind === "connected" && session.address ? (
-          <Connected
-            address={session.address}
-            walletName={nameOf(phase.wallet)}
-            onFunds={() => {
-              router.back();
-              router.push("/funds");
-            }}
-            onDone={() => router.back()}
+        </View>
+        {phase.kind === "connect" ? <Choose recent={recent} connecting={phase.connecting} onChoose={(kind) => void choose(kind)} onGet={() => setPhase({ kind: "get" })} /> : null}
+        {phase.kind === "get" ? <GetWallet /> : null}
+        {phase.kind === "detail" ? (
+          <Handoff
+            choice={choiceOf(phase.wallet)}
+            failed={phase.error !== null}
+            error={phase.error}
+            missingUrl={phase.missingUrl}
+            onRetry={() => void choose(phase.wallet)}
+            onInstall={() => (phase.missingUrl ? void openExternal(phase.missingUrl) : undefined)}
           />
         ) : null}
-      </ScrollView>
-    </>
+      </View>
+    </WalletSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { padding: SPACE.gutter, paddingTop: 14, paddingBottom: 40, gap: 16 },
-  head: { minHeight: 22, flexDirection: "row" },
-  center: { textAlign: "center" },
-  missing: { alignItems: "center", gap: 12, alignSelf: "stretch" },
+  // .wm-mobile: padding-bottom 36 + the safe area (the sheet adds the inset)
+  mobile: { paddingBottom: 36 },
+  head: { paddingTop: 14, paddingBottom: 4 },
+  headRow: { justifyContent: "center", paddingHorizontal: 20, paddingBottom: 6 },
+  back: { position: "absolute", left: 0, top: 0, zIndex: 1 },
+  title: { width: "100%", marginTop: 4, textAlign: "center", fontFamily: FONT.bodyStrong, fontSize: 20, lineHeight: 24 },
+  close: { position: "absolute", right: 14, top: 0, height: 32, justifyContent: "center" },
 });

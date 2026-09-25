@@ -1,59 +1,74 @@
 import type { Address } from "@agari/core/types";
-import { openExternal } from "~/lib/external";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFundingProgress, type FundingLink } from "@/features/funding/useFundingProgress";
 import type { useFaucet } from "@/features/markets/faucet/useFaucet";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { openExternal } from "~/lib/external";
+import { FONT, useTheme } from "~/theme";
+import { walletTokens } from "~/theme/web/portfolio-wallet";
 
-/** web's FundingProgress facts: both balances, the SOL policy, the live step, and the claims with their receipts. */
+/** web `FundingProgress` (`.fund-progress`): the two balance cells, the SOL policy, the live step, and each claim's receipt. */
 export function FundingFacts({ address, faucet }: { address: Address; faucet: ReturnType<typeof useFaucet> }) {
-  const { color } = useTheme();
+  const { color, name } = useTheme();
+  const t = walletTokens(name);
   const p = useFundingProgress(address, faucet);
-  const line = (text: string | null, tone: "muted" | "ink" | "loss" = "muted") =>
-    text ? <Text style={[TYPE.caption, { color: tone === "loss" ? color.loss : tone === "ink" ? color.ink : color.inkMuted }]}>{text}</Text> : null;
+  const cell = (label: string, value: string) => (
+    <View style={[styles.cell, { borderColor: t.fundCell }]}>
+      <Text style={[styles.dt, { color: color.inkMuted }]}>{label}</Text>
+      <Text style={[styles.dd, { color: color.ink }]}>{value}</Text>
+    </View>
+  );
   return (
-    <View style={styles.wrap}>
-      <View style={[styles.card, { backgroundColor: color.surface1, borderColor: color.hairline }]}>
-        <Row label="SOL for network fees" value={p.solText} />
-        <View style={[styles.rule, { backgroundColor: color.hairline }]} />
-        <Row label="tUSDC for trading" value={p.tokenText} />
+    <View style={styles.progress} accessibilityLiveRegion="polite">
+      <View style={styles.balances}>
+        {cell("SOL for network fees", p.solText)}
+        {cell("tUSDC for trading", p.tokenText)}
       </View>
-      {line(p.policy)}
-      {line(p.gasLine)}
-      {line(p.mintNote)}
-      {line(p.busyLabel, "ink")}
-      {line(p.error, "loss")}
-      <Receipt link={p.solLink} />
-      {line(p.solNext)}
-      <Receipt link={p.mintLink} />
-      {line(p.mintNext)}
+      <FootLine text={p.policy} />
+      <FootLine text={p.gasLine} />
+      <FootLine text={p.mintNote} />
+      {p.busyLabel ? <Text style={[fundStyles.msg, { color: color.ink }]}>{p.busyLabel}</Text> : null}
+      {p.error ? (
+        <Text style={[fundStyles.msg, { color: color.loss }]} accessibilityRole="alert">
+          {p.error}
+        </Text>
+      ) : null}
+      <FootLink link={p.solLink} />
+      <FootLine text={p.solNext} />
+      <FootLink link={p.mintLink} />
+      <FootLine text={p.mintNext} />
     </View>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+/** `.fund-foot-line`: mono 11, gray-500. */
+export function FootLine({ text }: { text: string | null | undefined }) {
   const { color } = useTheme();
-  return (
-    <View style={styles.row}>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{label}</Text>
-      <Text style={[TYPE.data, { color: color.ink }]}>{value}</Text>
-    </View>
-  );
+  return text ? <Text style={[fundStyles.foot, { color: color.inkMuted }]}>{text}</Text> : null;
 }
 
-function Receipt({ link }: { link: FundingLink | null }) {
+/** `.fund-foot-link`: mono 11, gray-500, vermilion while pressed. */
+export function FootText({ label, onPress }: { label: string; onPress: () => void }) {
   const { color } = useTheme();
-  if (!link) return null;
   return (
-    <Pressable onPress={() => openExternal(link.href)} accessibilityRole="link">
-      <Text style={[TYPE.caption, { color: color.accent }]}>{link.label}</Text>
+    <Pressable onPress={onPress} accessibilityRole="link" hitSlop={6}>
+      {({ pressed }) => <Text style={[fundStyles.foot, { color: pressed ? color.accent : color.inkMuted }]}>{label}</Text>}
     </Pressable>
   );
 }
 
+function FootLink({ link }: { link: FundingLink | null }) {
+  return link ? <FootText label={link.label} onPress={() => void openExternal(link.href)} /> : null;
+}
+
+export const fundStyles = StyleSheet.create({
+  foot: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+  msg: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2, marginTop: 12, textAlign: "center" },
+});
+
 const styles = StyleSheet.create({
-  wrap: { gap: 8 },
-  card: { borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 14, gap: 10 },
-  rule: { height: StyleSheet.hairlineWidth },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  progress: { gap: 10, marginVertical: 16 },
+  balances: { flexDirection: "row", gap: 12 },
+  cell: { flex: 1, minWidth: 0, padding: 10, borderWidth: 1, borderRadius: 8 },
+  dt: { fontFamily: FONT.body, fontSize: 11, lineHeight: 17.6 },
+  dd: { fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8, marginTop: 5 },
 });
