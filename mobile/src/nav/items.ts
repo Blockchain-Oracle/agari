@@ -1,5 +1,5 @@
 import {
-  Activity, BadgeCheck, BarChart3, Bell, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartNoAxesCombined, CircleHelp, CirclePlus,
+  Activity, BadgeCheck, BarChart3, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartNoAxesCombined, CircleHelp, CirclePlus,
   Clapperboard, Coins, Dices, Download, Gamepad2, Goal, Handshake, Inbox, KeyRound, Layers3, MessageSquare, Mountain, Newspaper, Presentation,
   Rocket, ScanSearch, TrendingDown, Trophy, type LucideIcon,
 } from "lucide-react-native";
@@ -7,7 +7,7 @@ import type { BrandLogo } from "~/components/logos/brand-logos";
 
 /**
  * Web's phone drawer (web/src/components/shell/header/nav-items.ts MOBILE_DRAWER_SECTIONS): the same sections, names,
- * lines, routes and lucide icons. The app adds one row web has no page for: Notifications (this phone's pushes).
+ * lines, routes and lucide icons.
  */
 export interface NavItem {
   name: string;
@@ -76,8 +76,7 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
     item("Demo", "/demo", "Walk through the complete product story.", Clapperboard),
     item("Pitch", "/pitch", "Read the concise Agari thesis.", Presentation),
   ] },
-  { id: "account", name: "Account", description: "Notifications and recovery", items: [
-    item("Notifications", "/notifications", "Choose what this phone hears about your calls.", Bell),
+  { id: "account", name: "Account", description: "Recovery", items: [
     item("X recovery", "/claim", "Recover a trade created from X.", KeyRound),
   ] },
 ];

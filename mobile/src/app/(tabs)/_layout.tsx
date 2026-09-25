@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { useTheme } from "~/theme";
 
 /**
- * The five tab stacks behind web's phone dock. The dock itself (components/shell/BottomDock) is web's floating pill,
+ * The four tab stacks behind web's phone dock (its fifth cell, More, opens the drawer — web has no /more page). The dock itself (components/shell/BottomDock) is web's floating pill,
  * drawn at the root over every screen, so the system tab bar is not shown.
  */
 export default function TabsLayout() {
@@ -16,7 +16,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="reels" />
       <Tabs.Screen name="games" />
       <Tabs.Screen name="portfolio" />
-      <Tabs.Screen name="more" />
     </Tabs>
   );
 }
