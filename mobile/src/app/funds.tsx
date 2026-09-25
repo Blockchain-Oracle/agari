@@ -2,15 +2,16 @@ import { FAUCET_UNITS, SOL_FAUCETS } from "@agari/core/constants";
 import { collateralOrNull } from "@agari/markets";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { X } from "lucide-react-native";
 import { FUNDING } from "@/features/funding/copy";
 import { useFaucet } from "@/features/markets/faucet/useFaucet";
 import { CONNECT, diagnosisCopy } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
 import { CreditWelcome } from "~/components/funding/CreditWelcome";
 import { FootLine, FootText, FundingFacts, fundStyles } from "~/components/funding/FundingFacts";
-import { FundModal } from "~/components/funding/FundModal";
+import { BottomDrawer, type DrawerClose } from "~/components/drawer/BottomDrawer";
 import { TUsdcMark } from "~/components/marks/TUsdcMark";
 import { WebButton } from "~/components/portfolio/web";
 import { dismiss } from "~/components/wallet/WalletSheet";
@@ -21,7 +22,8 @@ import { walletTokens } from "~/theme/web/portfolio-wallet";
 const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-6)}`;
 
 /**
- * web `AddFunds` as it draws at 402 px: the centred card over the blurred scrim — the glowing eyebrow, "Get test
+ * web `AddFunds` in the app's bottom drawer (the owner's call, 09-25: Add funds rises from the bottom on a phone) — web's
+ * card paper, border, 28 of padding and gray-600 X, over the blurred scrim — the glowing eyebrow, "Get test
  * funds", the fee paragraph, the account row that copies, `FundingProgress`, the white mint pill (then "Trade from
  * wallet →"), and the SOL faucet foot. One free signature covers the SOL top-up and the tUSDC mint (D-034).
  */
@@ -38,10 +40,24 @@ export default function FundsModal() {
   const diagnosis = faucet.state.diagnosis;
   const minting = faucet.busy;
   const connecting = session.isConnecting || session.connecting;
+  const drawer = useRef<DrawerClose | null>(null);
+  const close = (after?: () => void) => (drawer.current ? drawer.current(after) : (dismiss(), after?.()));
 
   return (
     <View style={styles.fill}>
-      <FundModal label={FUNDING.modal.close} onClose={dismiss}>
+      <BottomDrawer
+        onClose={dismiss}
+        closeRef={drawer}
+        closeLabel={FUNDING.modal.close}
+        background={t.fundPaper}
+        border={t.fundBorder}
+        contentStyle={styles.sheet}
+        corner={
+          <Pressable onPress={() => close()} accessibilityRole="button" accessibilityLabel={FUNDING.modal.close} hitSlop={8} style={({ pressed }) => [styles.x, pressed && { backgroundColor: t.fundLine }]}>
+            <X size={16} color={color.inkDisabled} />
+          </Pressable>
+        }
+      >
         <View style={styles.eyebrowRow}>
           <View style={[styles.dot, { backgroundColor: t.vermilion, shadowColor: t.vermilion }]} />
           <Text style={[styles.eyebrow, { color: color.inkMuted }]}>{FUNDING.modal.eyebrow}</Text>
@@ -78,10 +94,7 @@ export default function FundsModal() {
 
             {done ? (
               <Pressable
-                onPress={() => {
-                  dismiss();
-                  router.navigate("/markets");
-                }}
+                onPress={() => close(() => router.navigate("/markets"))}
                 accessibilityRole="link"
                 style={({ pressed }) => [styles.pill, { backgroundColor: pressed ? color.accentPressed : t.vermilion }]}
               >
@@ -124,7 +137,7 @@ export default function FundsModal() {
             </View>
           </>
         )}
-      </FundModal>
+      </BottomDrawer>
       <CreditWelcome local />
     </View>
   );
@@ -132,6 +145,8 @@ export default function FundsModal() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  sheet: { paddingHorizontal: 28, paddingTop: 12, paddingBottom: 28 },
+  x: { borderRadius: 999, padding: 8 },
   eyebrowRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
   dot: { width: 6, height: 6, borderRadius: 999, shadowOpacity: 1, shadowRadius: 6, shadowOffset: { width: 0, height: 0 } },
   eyebrow: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 2, textTransform: "uppercase" },

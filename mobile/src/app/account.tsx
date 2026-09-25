@@ -1,5 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { WALLET_MODAL } from "@/providers/wallet/copy";
 import { emojiAvatarFor, formatAccountAddress } from "@/providers/wallet/emoji-avatar";
@@ -7,6 +7,7 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { haptic } from "~/components/kit";
 import { CopiedIcon, CopyIcon, DisconnectIcon } from "~/components/wallet/profile-icons";
 import { CloseButton } from "~/components/wallet/sheet-parts";
+import type { DrawerClose } from "~/components/drawer/BottomDrawer";
 import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
 import { AVATAR_COLORS, FONT, useTheme } from "~/theme";
 
@@ -21,6 +22,8 @@ export default function AccountSheet() {
   const { color } = useTheme();
   const session = useWalletSession();
   const [copied, setCopied] = useState(false);
+  const drawer = useRef<DrawerClose | null>(null);
+  const close = (after?: () => void) => (drawer.current ? drawer.current(after) : (dismiss(), after?.()));
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), COPIED_MS);
@@ -30,11 +33,11 @@ export default function AccountSheet() {
   const avatar = address ? emojiAvatarFor(address) : null;
 
   return (
-    <WalletSheet>
+    <WalletSheet closeRef={drawer}>
       {address && avatar ? (
         <View style={[styles.profile, { backgroundColor: color.surface1 }]}>
           <View style={styles.close}>
-            <CloseButton onPress={dismiss} />
+            <CloseButton onPress={() => close()} />
           </View>
           <View style={styles.id}>
             <View style={[styles.avatar, { backgroundColor: AVATAR_COLORS[Number(avatar.colorClass.slice("wm-ava-".length))] ?? AVATAR_COLORS[0] }]} accessibilityElementsHidden>
@@ -57,8 +60,7 @@ export default function AccountSheet() {
               label={T.disconnect}
               icon={<DisconnectIcon color={color.ink} />}
               onPress={() => {
-                dismiss();
-                void session.disconnect();
+                close(() => void session.disconnect());
               }}
             />
           </View>

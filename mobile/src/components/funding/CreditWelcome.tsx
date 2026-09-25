@@ -1,9 +1,9 @@
-import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import { Sparkles, X } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DeviceEventEmitter, Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut, useReducedMotion, ZoomIn } from "react-native-reanimated";
+import Animated, { useReducedMotion, ZoomIn } from "react-native-reanimated";
+import { BottomDrawer, type DrawerClose } from "~/components/drawer/BottomDrawer";
 import { CREDITED_EVENT, FUNDING, OPEN_FUNDS_EVENT } from "@/features/funding/copy";
 import { haptic } from "~/components/kit";
 import type { CreditedDetail } from "~/web-shims/credited";
@@ -14,7 +14,7 @@ import { walletTokens } from "~/theme/web/portfolio-wallet";
 let localHosts = 0;
 
 /**
- * web `CreditWelcome`: the one-time card when an address is credited for the first time — the profit-ringed badge
+ * web `CreditWelcome` in the app's bottom drawer (the owner's call, 09-25): the one-time card when an address is credited for the first time — the profit-ringed badge
  * with Sparkles, "You're funded", the amount, and "Let's go →" — gone by itself after eight seconds. `local` marks the
  * copy drawn inside the Add-money modal, which a native modal would otherwise cover.
  */
@@ -38,27 +38,31 @@ export function CreditWelcome({ local = false }: { local?: boolean }) {
     };
   }, [local]);
 
+  const drawer = useRef<DrawerClose | null>(null);
   useEffect(() => {
     if (!credit) return;
-    const timer = setTimeout(() => setCredit(null), 8_000);
+    const timer = setTimeout(() => (drawer.current ? drawer.current() : setCredit(null)), 8_000);
     return () => clearTimeout(timer);
   }, [credit]);
 
   if (!credit) return null;
-  const close = () => setCredit(null);
+  const close = () => (drawer.current ? drawer.current() : setCredit(null));
   return (
-    <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.root}>
-      <BlurView intensity={12} tint="dark" style={StyleSheet.absoluteFill} />
-      <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: t.creditScrim }]} onPress={close} accessibilityLabel={FUNDING.welcome.close} />
-      <Animated.View
-        entering={reduce ? FadeIn : ZoomIn.springify().damping(20).stiffness(280)}
-        accessibilityViewIsModal
-        style={[styles.card, { backgroundColor: t.creditPaper, borderColor: t.creditBorder, shadowColor: color.profit }]}
+    <View style={styles.root}>
+      <BottomDrawer
+        onClose={() => setCredit(null)}
+        closeRef={drawer}
+        closeLabel={FUNDING.welcome.close}
+        background={t.creditPaper}
+        border={t.creditBorder}
+        contentStyle={styles.card}
+        corner={
+          <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={FUNDING.welcome.close} hitSlop={8} style={styles.close}>
+            <X size={16} color={color.inkDisabled} />
+          </Pressable>
+        }
       >
-        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={FUNDING.welcome.close} hitSlop={8} style={styles.close}>
-          <X size={16} color={color.inkDisabled} />
-        </Pressable>
-        <Animated.View entering={reduce ? undefined : ZoomIn.delay(50).springify().damping(12).stiffness(240)} style={[styles.badge, { borderColor: t.creditBadgeRing, backgroundColor: t.creditBadgeFill, shadowColor: color.profit }]}>
+        <Animated.View entering={reduce ? undefined : ZoomIn.delay(120).springify().damping(12).stiffness(240)} style={[styles.badge, { borderColor: t.creditBadgeRing, backgroundColor: t.creditBadgeFill, shadowColor: color.profit }]}>
           <Sparkles size={24} color={color.profit} />
         </Animated.View>
         <Text style={[styles.eyebrow, { color: t.creditEyebrow }]}>{FUNDING.welcome.eyebrow}</Text>
@@ -69,8 +73,8 @@ export function CreditWelcome({ local = false }: { local?: boolean }) {
         <Pressable onPress={close} accessibilityRole="button" style={({ pressed }) => [styles.cta, { backgroundColor: pressed ? color.accentPressed : t.vermilion }]}>
           <Text style={[styles.ctaText, { color: t.vermilionInk }]}>{FUNDING.welcome.cta}</Text>
         </Pressable>
-      </Animated.View>
-    </Animated.View>
+      </BottomDrawer>
+    </View>
   );
 }
 
@@ -91,11 +95,8 @@ export function FundingHost() {
 }
 
 const styles = StyleSheet.create({
-  root: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, zIndex: 20, alignItems: "center", justifyContent: "center", padding: 16 },
-  card: {
-    width: "100%", maxWidth: 384, borderRadius: 16, borderWidth: 1, alignItems: "center",
-    paddingTop: 28, paddingHorizontal: 24, paddingBottom: 24, shadowOpacity: 0.18, shadowRadius: 45, shadowOffset: { width: 0, height: 24 },
-  },
+  root: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, zIndex: 20 },
+  card: { alignItems: "center", paddingTop: 12, paddingHorizontal: 24, paddingBottom: 24 },
   close: { position: "absolute", top: 14, right: 14, borderRadius: 999, padding: 4 },
   badge: {
     width: 56, height: 56, borderRadius: 999, borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 16,

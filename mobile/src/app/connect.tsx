@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { WALLET_MODAL } from "@/providers/wallet/copy";
 import { haptic } from "~/components/kit";
 import { BackButton, CloseButton } from "~/components/wallet/sheet-parts";
+import type { DrawerClose } from "~/components/drawer/BottomDrawer";
 import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
 import { Choose, GetWallet } from "~/features/connect/Choose";
 import { Handoff } from "~/features/connect/Handoff";
@@ -42,7 +43,8 @@ export default function ConnectSheet() {
       if (attempt.current !== id) return;
       storage.set(RECENT_KEY, kind);
       haptic.success();
-      dismiss();
+      if (drawer.current) drawer.current();
+      else dismiss();
     } catch (error) {
       if (attempt.current !== id) return;
       haptic.error();
@@ -51,11 +53,14 @@ export default function ConnectSheet() {
     }
   };
 
-  const close = () => {
+  const drawer = useRef<DrawerClose | null>(null);
+  // The drawer's own close (drag, scrim, back) lands here once it has slid away; the X slides it first.
+  const leave = () => {
     attempt.current += 1;
     cancelWalletRequest();
     dismiss();
   };
+  const close = () => (drawer.current ? drawer.current() : leave());
   const toStrip = () => {
     attempt.current += 1;
     cancelWalletRequest();
@@ -64,7 +69,7 @@ export default function ConnectSheet() {
 
   const title = phase.kind === "get" ? WALLET_MODAL.get.title : WALLET_MODAL.title;
   return (
-    <WalletSheet onClose={close}>
+    <WalletSheet onClose={leave} closeRef={drawer}>
       <View style={styles.mobile}>
         <View style={[styles.head, { backgroundColor: color.surface1 }]}>
           <View style={styles.headRow}>
