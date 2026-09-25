@@ -78,7 +78,7 @@ function RootStack() {
         <Stack.Screen name="ticket" options={{ presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 24 }} />
         <Stack.Screen name="funds" options={dialog} />
         <Stack.Screen name="account" options={dialog} />
-        <Stack.Screen name="sensei" options={{ presentation: "modal", gestureEnabled: true }} />
+        <Stack.Screen name="sensei" options={dialog} />
       </Stack>
       {deck ? null : <BottomDock />}
       <FundingHost />
