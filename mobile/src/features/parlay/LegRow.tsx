@@ -1,22 +1,18 @@
 import { formatCadence } from "@agari/core/market";
-import type { EventMarket, Side } from "@agari/core/types";
+import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
-import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { ChevronDown, TrendingDown, TrendingUp, X } from "lucide-react-native";
+import { useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInLeft, useReducedMotion } from "react-native-reanimated";
 import { PARLAY } from "@/features/parlay/copy";
 import { formatBpsPct, formatLine, type ThinBook } from "@/features/parlay/format";
-import { EmptyState, haptic } from "~/components/kit";
-import { AssetDisc } from "~/components/marks/AssetDisc";
-import { Clock } from "~/features/short/Clock";
-import { FONT, RADIUS, SPACE, TYPE, useTheme } from "~/theme";
-
-const B = PARLAY.builder;
+import { FONT } from "~/theme";
+import { useEarnParlay } from "~/features/earn/EarnKit";
+import { Countdown, Rise } from "./ParlayKit";
 
 export interface DraftLeg {
   key: string;
-  marketId: EventMarket["marketId"];
+  marketId: MarketId;
   /** The lane the leg lives on, so it can follow the lane when its Window rolls. */
   asset: string;
   intervalSec: number;
@@ -26,9 +22,11 @@ export interface DraftLeg {
 interface LegRowProps {
   index: number;
   leg: DraftLeg;
+  /** The Window the leg names, or null once it has left the live set. */
   market: EventMarket | null;
   windows: readonly EventMarket[];
   legProbBps: number | null;
+  /** The reserve's `ThinBook` for this leg's Window, when that is why the ticket has no price. */
   thin: ThinBook | null;
   decimals: number;
   nowMs: number;
@@ -36,170 +34,164 @@ interface LegRowProps {
   onRemove: (key: string) => void;
 }
 
-// 21st: isaiahbjork/prediction-market-card — the spring-in row, the Up/Down pair and the live clock beside the call.
+interface Anchor {
+  x: number;
+  y: number;
+  width: number;
+}
+
 /**
- * web's `features/parlay/LegRow.tsx`: the numbered stamp, the Window picker (a native sheet here), remove, the Up/Down
- * pair, the line (the Window's opening print — not a choice on this venue) and the live per-leg probability.
+ * web's `features/parlay/LegRow.tsx` (`.pl-leg`): the numbered stamp, the Window picker and its menu, remove, the
+ * Up/Down pair, the read-only line (the Window's opening print), the live per-leg probability. The menu drops under
+ * the picker as web's absolute `.pl-menu` does, drawn in a transparent Modal so it can overhang the leg.
  */
 export function LegRow({ index, leg, market, windows, legProbBps, thin, decimals, nowMs, onPatch, onRemove }: LegRowProps) {
-  const { color } = useTheme();
-  const reduce = useReducedMotion();
-  const [picking, setPicking] = useState(false);
-  const contracts = (raw: bigint) => formatBaseUnits(raw, decimals, { minDp: 0, maxDp: 2 });
+  const { color, t } = useEarnParlay();
+  const { builder } = PARLAY;
+  const picker = useRef<View>(null);
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const open = anchor !== null;
+
+  const toggle = () => {
+    if (open) return setAnchor(null);
+    picker.current?.measureInWindow((x, y, width, height) => setAnchor({ x, y: y + height + 4, width }));
+  };
+  const choose = (next: EventMarket) => {
+    onPatch(leg.key, { marketId: next.marketId, asset: next.asset, intervalSec: next.intervalSec });
+    setAnchor(null);
+  };
+  const upOn = leg.side === "up";
 
   return (
-    <Animated.View
-      entering={reduce ? undefined : FadeInLeft.springify().damping(28)}
-      style={[styles.leg, { backgroundColor: color.surface1, borderColor: color.hairline }]}
-    >
-      <View style={styles.row}>
-        <View style={[styles.stamp, { borderColor: color.accent }]}>
-          <Text style={[TYPE.data, { color: color.accent }]}>{index + 1}</Text>
+    <Rise style={[styles.leg, { borderColor: t.legBorder, backgroundColor: t.legBg }]}>
+      <View style={styles.inner}>
+        <View style={[styles.stamp, { borderRightColor: t.legBorder, backgroundColor: t.stampBg }]}>
+          <Text style={[styles.num, { color: color.accent }]}>{index + 1}</Text>
         </View>
-        <Pressable
-          onPress={() => {
-            haptic.tap();
-            setPicking(true);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={B.pickWindow}
-          style={[styles.picker, { backgroundColor: color.surface2 }]}
-        >
-          {market ? <AssetDisc asset={market.asset} size={22} /> : null}
-          <Text style={[TYPE.bodyStrong, styles.pickerText, { color: market ? color.ink : color.warning }]} numberOfLines={1}>
-            {market ? `${market.asset} ${formatCadence(market.intervalSec)}` : B.settled}
-          </Text>
-          {market ? <Clock expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} /> : null}
-          <SymbolView name={{ ios: "chevron.down", android: "expand_more" }} size={14} tintColor={color.inkMuted} />
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            haptic.tap();
-            onRemove(leg.key);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={B.remove}
-          style={styles.remove}
-        >
-          <SymbolView name={{ ios: "xmark", android: "close" }} size={16} tintColor={color.inkSecondary} />
-        </Pressable>
-      </View>
 
-      <View style={styles.row}>
-        <SideButton side="up" on={leg.side === "up"} onPress={() => onPatch(leg.key, { side: "up" })} />
-        <SideButton side="down" on={leg.side === "down"} onPress={() => onPatch(leg.key, { side: "down" })} />
-        <View style={styles.line}>
-          <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{B.line}</Text>
-          <Text style={[TYPE.data, { color: market?.openingPriceRaw != null ? color.ink : color.inkMuted }]} numberOfLines={1}>
-            {market?.openingPriceRaw != null ? formatLine(market.openingPriceRaw, market.asset) : market ? B.linePending : "···"}
-          </Text>
-        </View>
-        <Text style={[TYPE.dataLg, { color: color.ink }]}>{thin ? "" : legProbBps !== null ? formatBpsPct(legProbBps) : "·"}</Text>
-      </View>
-      {thin ? <Text style={[TYPE.caption, { color: color.loss }]}>{B.thin(contracts(thin.filledRaw), contracts(thin.depthRaw))}</Text> : null}
-
-      <WindowSheet
-        visible={picking}
-        windows={windows}
-        chosen={leg.marketId}
-        nowMs={nowMs}
-        onClose={() => setPicking(false)}
-        onChoose={(next) => {
-          onPatch(leg.key, { marketId: next.marketId, asset: next.asset, intervalSec: next.intervalSec });
-          setPicking(false);
-        }}
-      />
-    </Animated.View>
-  );
-}
-
-function SideButton({ side, on, onPress }: { side: Side; on: boolean; onPress: () => void }) {
-  const { color } = useTheme();
-  const ink = side === "up" ? color.profit : color.loss;
-  const wash = side === "up" ? color.profitWash : color.lossWash;
-  return (
-    <Pressable
-      onPress={() => {
-        haptic.select();
-        onPress();
-      }}
-      accessibilityRole="button"
-      accessibilityState={{ selected: on }}
-      accessibilityLabel={side === "up" ? B.up : B.down}
-      style={[styles.side, { backgroundColor: on ? wash : "transparent", borderColor: on ? ink : color.hairline }]}
-    >
-      <SymbolView
-        name={side === "up" ? { ios: "arrow.up.right", android: "trending_up" } : { ios: "arrow.down.right", android: "trending_down" }}
-        size={14}
-        tintColor={on ? ink : color.inkSecondary}
-      />
-      <Text style={[styles.sideText, { color: on ? ink : color.inkSecondary }]}>{side === "up" ? B.up : B.down}</Text>
-    </Pressable>
-  );
-}
-
-/** The leg's Window menu (web's `.pl-menu` listbox) as a page sheet: every live Window, soonest first. */
-function WindowSheet({ visible, windows, chosen, nowMs, onClose, onChoose }: {
-  visible: boolean;
-  windows: readonly EventMarket[];
-  chosen: string;
-  nowMs: number;
-  onClose: () => void;
-  onChoose: (market: EventMarket) => void;
-}) {
-  const { color } = useTheme();
-  return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={[styles.sheet, { backgroundColor: color.ground }]}>
-        <View style={styles.sheetHead}>
-          <Text style={[TYPE.title, { color: color.ink }]}>{B.pickWindow}</Text>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done" hitSlop={12} style={styles.done}>
-            <Text style={[TYPE.bodyStrong, { color: color.accent }]}>Done</Text>
-          </Pressable>
-        </View>
-        <ScrollView contentContainerStyle={styles.sheetBody}>
-          {windows.length === 0 ? <EmptyState why={B.noMarkets} /> : null}
-          {windows.map((w) => {
-            const on = w.marketId === chosen;
-            return (
+        <View style={styles.main}>
+          <View style={styles.row}>
+            <View ref={picker} collapsable={false} style={styles.picker}>
               <Pressable
-                key={w.marketId}
-                onPress={() => {
-                  haptic.select();
-                  onChoose(w);
-                }}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={`${w.asset} ${formatCadence(w.intervalSec)}`}
-                style={[styles.option, { backgroundColor: on ? color.accentWash : color.surface1, borderColor: on ? color.accent : color.hairline }]}
+                onPress={toggle}
+                accessibilityRole="button"
+                accessibilityLabel={builder.pickWindow}
+                accessibilityState={{ expanded: open }}
+                style={[styles.pickerBtn, { backgroundColor: t.inputBg, borderColor: open ? t.inputFocus : t.inputBorder }]}
               >
-                <AssetDisc asset={w.asset} size={28} />
-                <Text style={[TYPE.bodyStrong, styles.pickerText, { color: color.ink }]}>
-                  {w.asset} {formatCadence(w.intervalSec)}
+                <Text numberOfLines={1} style={[styles.label, { color: color.ink }]}>
+                  {market ? (
+                    <>
+                      {market.asset} {formatCadence(market.intervalSec)} · <Countdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />
+                    </>
+                  ) : (
+                    builder.settled
+                  )}
                 </Text>
-                <Clock expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
+                <View style={open ? styles.chevronOpen : null}>
+                  <ChevronDown size={12} color={color.inkMuted} />
+                </View>
               </Pressable>
-            );
-          })}
-        </ScrollView>
+            </View>
+            <Pressable onPress={() => onRemove(leg.key)} accessibilityRole="button" accessibilityLabel={builder.remove} style={({ pressed }) => [styles.remove, pressed ? { backgroundColor: t.removeHover } : null]}>
+              {({ pressed }) => <X size={14} color={pressed ? color.loss : color.inkDisabled} />}
+            </Pressable>
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.sides, { borderColor: t.toggleBorder }]}>
+              <Pressable onPress={() => onPatch(leg.key, { side: "up" })} accessibilityRole="button" accessibilityState={{ selected: upOn }} style={[styles.side, upOn ? { backgroundColor: t.upOnBg } : null]}>
+                <TrendingUp size={12} color={upOn ? color.profit : color.inkMuted} />
+                <Text style={[styles.sideText, { color: upOn ? color.profit : color.inkMuted }]}>{builder.up}</Text>
+              </Pressable>
+              <Pressable onPress={() => onPatch(leg.key, { side: "down" })} accessibilityRole="button" accessibilityState={{ selected: !upOn }} style={[styles.side, !upOn ? { backgroundColor: t.downOnBg } : null]}>
+                <TrendingDown size={12} color={!upOn ? color.loss : color.inkMuted} />
+                <Text style={[styles.sideText, { color: !upOn ? color.loss : color.inkMuted }]}>{builder.down}</Text>
+              </Pressable>
+            </View>
+
+            <View style={[styles.line, { backgroundColor: t.inputBg, borderColor: t.inputBorder }]}>
+              <Text style={[styles.lineLabel, { color: color.inkDisabled }]}>{builder.line}</Text>
+              {market?.openingPriceRaw != null ? (
+                <Text numberOfLines={1} style={[styles.label, styles.bold, { color: color.ink }]}>
+                  {formatLine(market.openingPriceRaw, market.asset)}
+                </Text>
+              ) : (
+                <Text numberOfLines={1} style={[styles.pending, { color: color.inkMuted }]}>
+                  {market ? builder.linePending : "···"}
+                </Text>
+              )}
+            </View>
+
+            {thin ? (
+              <Text style={[styles.prob, styles.probThin, { color: color.accent }]}>
+                {builder.thin(formatBaseUnits(thin.filledRaw, decimals, { minDp: 0, maxDp: 2 }), formatBaseUnits(thin.depthRaw, decimals, { minDp: 0, maxDp: 2 }))}
+              </Text>
+            ) : (
+              <Text style={[styles.prob, { color: t.vermilion80 }]}>{legProbBps !== null ? formatBpsPct(legProbBps) : "·"}</Text>
+            )}
+          </View>
+        </View>
       </View>
-    </Modal>
+
+      <Modal visible={open} transparent statusBarTranslucent animationType="none" onRequestClose={() => setAnchor(null)}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => setAnchor(null)} accessibilityLabel="Close" />
+        {anchor ? (
+          <Rise drop style={[styles.menu, { top: anchor.y, left: anchor.x, width: anchor.width, backgroundColor: t.menuBg, borderColor: t.menuBorder, boxShadow: t.menuShadow }]}>
+            <ScrollView style={styles.menuScroll} showsVerticalScrollIndicator={false} accessibilityRole="list">
+              {windows.length === 0 ? <Text style={[styles.menuEmpty, { color: color.inkDisabled }]}>{builder.noMarkets}</Text> : null}
+              {windows.map((w) => {
+                const on = w.marketId === leg.marketId;
+                return (
+                  <Pressable
+                    key={w.marketId}
+                    onPress={() => choose(w)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    style={({ pressed }) => [styles.menuItem, on ? { backgroundColor: t.menuOn } : pressed ? { backgroundColor: t.pillBg } : null]}
+                  >
+                    <Text style={[styles.menuText, { color: on ? color.ink : color.inkSecondary }]}>
+                      {w.asset} {formatCadence(w.intervalSec)}
+                    </Text>
+                    <Text style={[styles.menuWhen, { color: color.inkMuted }]}>
+                      <Countdown expirySec={w.expirySec} intervalSec={w.intervalSec} nowMs={nowMs} />
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </Rise>
+        ) : null}
+      </Modal>
+    </Rise>
   );
 }
 
 const styles = StyleSheet.create({
-  leg: { borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 12, gap: 10 },
+  leg: { borderRadius: 12, borderWidth: 1, overflow: "hidden" },
+  inner: { flexDirection: "row", alignItems: "stretch" },
+  stamp: { width: 40, alignItems: "center", justifyContent: "center", borderRightWidth: 1 },
+  num: { fontFamily: FONT.headingHeavy, fontSize: 16, lineHeight: 16 },
+  main: { flex: 1, minWidth: 0, padding: 12, gap: 10 },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  stamp: { width: 28, height: 28, borderRadius: RADIUS.full, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
-  picker: { flex: 1, minHeight: 44, borderRadius: RADIUS.md, paddingHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 8 },
-  pickerText: { flex: 1 },
-  remove: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
-  side: { minHeight: 44, paddingHorizontal: 12, borderRadius: RADIUS.md, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 4 },
-  sideText: { fontFamily: FONT.bodyStrong, fontSize: 14 },
-  line: { flex: 1, alignItems: "flex-end", gap: 2 },
-  sheet: { flex: 1 },
-  sheetHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: SPACE.gutter, paddingTop: 18, paddingBottom: 8 },
-  done: { minHeight: 44, justifyContent: "center" },
-  sheetBody: { padding: SPACE.gutter, gap: 8, paddingBottom: 48 },
-  option: { minHeight: 56, borderRadius: RADIUS.md, borderWidth: 1, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 10 },
+  picker: { flex: 1, minWidth: 0 },
+  pickerBtn: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1 },
+  label: { flexShrink: 1, fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 18 },
+  bold: { fontFamily: FONT.dataStrong },
+  chevronOpen: { transform: [{ rotate: "180deg" }] },
+  remove: { padding: 6, borderRadius: 8 },
+  sides: { flexDirection: "row", borderRadius: 8, borderWidth: 1, overflow: "hidden" },
+  side: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 6, paddingHorizontal: 10 },
+  sideText: { fontFamily: FONT.bodyStrong, fontSize: 11, lineHeight: 16.5 },
+  line: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1 },
+  lineLabel: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 13.5, letterSpacing: 1.44, textTransform: "uppercase" },
+  pending: { flexShrink: 1, fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 18 },
+  prob: { width: 36, textAlign: "right", fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 16.5 },
+  probThin: { width: "auto" },
+  menu: { position: "absolute", borderRadius: 8, borderWidth: 1, overflow: "hidden" },
+  menuScroll: { maxHeight: 176 },
+  menuEmpty: { paddingVertical: 8, paddingHorizontal: 12, fontFamily: FONT.body, fontSize: 11 },
+  menuItem: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8, paddingHorizontal: 12 },
+  menuText: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 16 },
+  menuWhen: { fontFamily: FONT.dataRegular, fontSize: 10 },
 });

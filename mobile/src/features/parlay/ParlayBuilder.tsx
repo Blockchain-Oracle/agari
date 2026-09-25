@@ -1,53 +1,55 @@
 import { diagnosisCopy } from "@agari/core/copy";
-import { formatCadence } from "@agari/core/market";
-import { PARLAY_MAX_LEGS, PARLAY_STAKE_HEADROOM_BPS, type ParlayLegInput, type ParlayMode, type ParlayQuote, type ParlayReserveState } from "@agari/core/parlay";
+import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@agari/core/parlay";
 import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
 import { isOk } from "@agari/core/schemas";
-import type { EventMarket } from "@agari/core/types";
+import type { EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import { PARLAY } from "@/features/parlay/copy";
-import { formatBpsPct, formatMultiplier, parseThinBook } from "@/features/parlay/format";
+import { parseThinBook } from "@/features/parlay/format";
 import { useParlayQuote } from "@/features/parlay/useParlayQuote";
 import { useParlayWindows } from "@/features/parlay/useParlayWindows";
 import { useParlayWrites } from "@/features/parlay/useParlayWrites";
 import { notify } from "@/lib/toast";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Button, ConnectGate, EmptyState, LoadingState } from "~/components/kit";
-import type { ReviewRequest } from "~/features/short/ReviewSheet";
-import { TYPE, useTheme } from "~/theme";
 import { LegRow, type DraftLeg } from "./LegRow";
+import { LegPlate, ParlayConnect } from "./LegPlate";
 import { ParlayTicket, type SolveMode } from "./ParlayTicket";
+import type { PlaceStep } from "./TicketParts";
 
 let legSeq = 0;
 const newKey = () => `leg-${++legSeq}-${Date.now()}`;
-const B = PARLAY.builder;
-const T = PARLAY.ticket;
+const SUCCESS_RESET_MS = 3_500;
 
 /**
  * web's `features/parlay/ParlayBuilder.tsx`: the leg plate and the combined ticket. Legs name live Windows of any
- * listed asset and follow their lane when a Window rolls; the quote is the reserve's own `previewOpen`, so the figure
- * on the review is the figure the chain charges — or a requote, never more.
+ * listed asset and follow their lane when a Window rolls; the quote is the reserve's own `previewOpen`. Place calls
+ * web's write hook straight away — the wallet's prompt is the confirmation, as on web.
  */
-export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: ParlayReserveState; symbol: string; nowMs: number; onReview: (r: ReviewRequest) => void }) {
-  const { color } = useTheme();
+export function ParlayBuilder({ reserve, symbol, nowMs }: { reserve: ParlayReserveState; symbol: string; nowMs: number }) {
   const { address } = useWalletSession();
   const { windows, byId, loading: windowsLoading } = useParlayWindows(nowMs);
   const sheet = useBalanceSheet(address);
   const writes = useParlayWrites();
   const { decimals, params } = reserve;
   const maxLegs = Math.min(params.maxLegs, PARLAY_MAX_LEGS);
+
   const [legs, setLegs] = useState<DraftLeg[]>([]);
   const [solveMode, setSolveMode] = useState<SolveMode>("fixStake");
-  // web's opening figures: a leg is priced over rested depth no smaller than the payout (the house rests 5 tUSDC).
+  // A leg is priced over rested depth no smaller than the payout, and the house maker rests 5 tUSDC of payout a side.
   const [stakeInput, setStakeInput] = useState("1");
   const [payoutInput, setPayoutInput] = useState("4");
+  const [step, setStep] = useState<PlaceStep>("idle");
+  const [errorTitle, setErrorTitle] = useState("");
+  const [errorDetail, setErrorDetail] = useState("");
+  const [txHash, setTxHash] = useState<Signature | null>(null);
 
   const addLeg = useCallback(() => {
     setLegs((prev) => {
       if (prev.length >= maxLegs) return prev;
+      // Default to the next un-used Window (a fresh expiry → a real streak), else the soonest.
       const used = new Set(prev.map((l) => l.marketId));
       const pick = windows.find((w) => !used.has(w.marketId)) ?? windows[0];
       if (!pick) return prev;
@@ -57,7 +59,7 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
   const removeLeg = useCallback((key: string) => setLegs((prev) => prev.filter((l) => l.key !== key)), []);
   const patchLeg = useCallback((key: string, patch: Partial<DraftLeg>) => setLegs((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l))), []);
 
-  // web's rule: a leg whose Window left the live set moves to the soonest live Window of its asset and lane.
+  // A leg whose Window has left the live set moves to the soonest live Window of the same asset and lane.
   useEffect(() => {
     setLegs((prev) => {
       let changed = false;
@@ -82,13 +84,16 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
     for (const [asset, list] of byAsset) if (list.length >= 2 && (best === null || list.length > best.windows.length)) best = { asset, windows: list };
     return best;
   }, [windows]);
-  const loadStreak = () => {
+  const loadStreakPreset = useCallback(() => {
     const picks = streak?.windows.slice(0, maxLegs) ?? [];
-    if (picks.length < 2) return notify.warning(B.presetNeedTwo);
+    if (picks.length < 2) {
+      notify.warning(PARLAY.builder.presetNeedTwo);
+      return;
+    }
     setLegs(picks.map((w) => ({ key: newKey(), marketId: w.marketId, asset: w.asset, intervalSec: w.intervalSec, side: "up" })));
     setSolveMode("fixStake");
     setStakeInput("5");
-  };
+  }, [streak, maxLegs]);
 
   const legInputs: ParlayLegInput[] = useMemo(() => legs.map((l) => ({ marketId: l.marketId, side: l.side })), [legs]);
   const stakeBase = parseDecimalToBaseUnits(stakeInput || "0", decimals) ?? 0n;
@@ -97,90 +102,81 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
   const quoteState = useParlayQuote({ legs: legInputs, mode, params, enabled: legs.length >= 2 && !reserve.paused });
   const { quote } = quoteState;
   const thin = useMemo(() => parseThinBook(quoteState.error), [quoteState.error]);
+  const walletSpendableBase = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
   const marketOf = useCallback((leg: DraftLeg) => byId.get(leg.marketId) ?? null, [byId]);
 
-  const place = async (frozen: ParlayQuote, frozenLegs: ParlayLegInput[], maxStakeBase: bigint): Promise<boolean> => {
-    const outcome = await writes.open(frozenLegs, frozen.maxPayoutBase, maxStakeBase);
-    if (!outcome) return false;
-    if (outcome.status === "confirmed") {
-      notify.neutral(T.toast(frozenLegs.length, formatBaseUnits(outcome.stakeBase, decimals), formatBaseUnits(frozen.maxPayoutBase, decimals, { maxDp: 0, minDp: 0 }), symbol));
-      setLegs([]);
-      return true;
+  const reset = useCallback(() => {
+    setStep("idle");
+    setErrorTitle("");
+    setErrorDetail("");
+  }, []);
+
+  const handlePlace = useCallback(async () => {
+    if (!address || !quote) return;
+    setErrorTitle("");
+    setErrorDetail("");
+    setTxHash(null);
+    setStep("placing");
+    // The Range lane's headroom: a quote that drifts a fraction before it lands is still the deal shown.
+    const outcome = await writes.open(legInputs, quote.maxPayoutBase, mulBpsCeil(quote.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS));
+    if (!outcome) {
+      setStep("idle");
+      return;
     }
+    if (outcome.status === "confirmed") {
+      setTxHash(outcome.txHash);
+      setStep("success");
+      notify.neutral(PARLAY.ticket.toast(legs.length, formatBaseUnits(outcome.stakeBase, decimals), formatBaseUnits(quote.maxPayoutBase, decimals, { maxDp: 0, minDp: 0 }), symbol));
+      setTimeout(() => {
+        setStep("idle");
+        setLegs([]);
+      }, SUCCESS_RESET_MS);
+      return;
+    }
+    setStep("error");
     if (outcome.status === "requote") {
-      notify.warning(T.requote(formatBaseUnits(outcome.stakeBase, decimals), symbol));
+      setErrorTitle(PARLAY.ticket.requote(formatBaseUnits(outcome.stakeBase, decimals), symbol));
+      setErrorDetail("");
       quoteState.retry();
-      return false;
+      return;
     }
     const copy = diagnosisCopy(outcome.diagnosis.kind);
-    notify.warning(copy.headline, outcome.diagnosis.technical);
-    return false;
-  };
+    setErrorTitle(copy.headline);
+    setErrorDetail(outcome.diagnosis.technical);
+    if ("txHash" in outcome && outcome.txHash) setTxHash(outcome.txHash);
+  }, [address, quote, writes, legInputs, legs.length, decimals, symbol, quoteState]);
 
-  const review = () => {
-    if (!quote) return;
-    const frozen = quote;
-    const frozenLegs = legInputs;
-    const maxStakeBase = mulBpsCeil(frozen.stakeBase, 10_000 + RANGE_STAKE_HEADROOM_BPS);
-    // What the program is actually handed: the lane (`packages/markets/src/parlay/writes.ts`) widens web's cap once
-    // more by PARLAY_STAKE_HEADROOM_BPS, floored. The review names that figure, not web's, as the most it can charge.
-    const sentCapBase = (maxStakeBase * BigInt(10_000 + PARLAY_STAKE_HEADROOM_BPS)) / 10_000n;
-    const money = (base: bigint) => `${formatBaseUnits(base, decimals)} ${symbol}`;
-    onReview({
-      title: `Place a ${legs.length}-leg parlay · ${formatMultiplier(frozen.multiplierMilli)}`,
-      lines: [
-        ...legs.map((leg, i) => {
-          const m = marketOf(leg);
-          return {
-            label: `Leg ${i + 1} · ${m ? `${m.asset} ${formatCadence(m.intervalSec)}` : leg.asset}`,
-            value: `${leg.side === "up" ? "UP" : "DOWN"} · ${frozen.legProbBps[i] !== undefined ? formatBpsPct(frozen.legProbBps[i] as number) : "·"}`,
-            tone: (leg.side === "up" ? "profit" : "loss") as "profit" | "loss",
-          };
-        }),
-        { label: T.ifLands, value: money(frozen.maxPayoutBase), tone: "profit" as const, hint: "Sent exactly: the payout is fixed" },
-        { label: "Priced now", value: money(frozen.stakeBase), hint: "The chain prices every leg again as it lands and charges that price" },
-        { label: "Most it can charge", value: money(sentCapBase), hint: "Sent exactly: a higher price is refused, not charged" },
-      ],
-      maxLoss: money(sentCapBase),
-      confirmLabel: "Slide to place",
-      send: () => place(frozen, frozenLegs, maxStakeBase),
-    });
-  };
+  if (!address) return <ParlayConnect />;
 
   return (
-    <ConnectGate why={PARLAY.connect.sub}>
-      <View style={styles.plate}>
-        <View style={styles.plateHead}>
-          <Text style={[TYPE.bodyStrong, { color: color.ink }]}>
-            {B.yourLegs} <Text style={[TYPE.data, { color: color.inkMuted }]}>{legs.length}/{maxLegs}</Text>
-          </Text>
-          <Button label={B.preset(streak?.asset ?? null)} variant="ghost" size="sm" block={false} icon={{ ios: "bolt.fill", android: "bolt" }} disabled={streak === null} onPress={loadStreak} />
-        </View>
-        {windowsLoading && legs.length === 0 ? (
-          <LoadingState shape="list" label={B.loading} />
-        ) : legs.length === 0 ? (
-          <EmptyState why={B.noLegs} detail={windows.length === 0 ? B.noMarkets : B.noLegsBody} action={windows.length > 0 ? { label: B.addFirst, onPress: addLeg } : undefined} />
-        ) : (
-          legs.map((leg, i) => (
-            <LegRow
-              key={leg.key}
-              index={i}
-              leg={leg}
-              market={marketOf(leg)}
-              windows={windows}
-              legProbBps={quote?.legProbBps[i] ?? null}
-              thin={thin && thin.marketId === leg.marketId ? thin : null}
-              decimals={decimals}
-              nowMs={nowMs}
-              onPatch={patchLeg}
-              onRemove={removeLeg}
-            />
-          ))
-        )}
-        {legs.length > 0 && legs.length < maxLegs ? (
-          <Button label={B.addAnother} variant="outline" icon={{ ios: "plus", android: "add" }} onPress={addLeg} />
-        ) : null}
-      </View>
+    <View style={{ gap: 24 }}>
+      <LegPlate
+        count={legs.length}
+        maxLegs={maxLegs}
+        presetAsset={streak?.asset ?? null}
+        presetDisabled={streak === null}
+        onPreset={loadStreakPreset}
+        loading={windowsLoading && legs.length === 0}
+        noWindows={windows.length === 0}
+        onAdd={addLeg}
+      >
+        {legs.map((leg, i) => (
+          <LegRow
+            key={leg.key}
+            index={i}
+            leg={leg}
+            market={marketOf(leg)}
+            windows={windows}
+            legProbBps={quote?.legProbBps[i] ?? null}
+            thin={thin && thin.marketId === leg.marketId ? thin : null}
+            decimals={decimals}
+            nowMs={nowMs}
+            onPatch={patchLeg}
+            onRemove={removeLeg}
+          />
+        ))}
+      </LegPlate>
+
       <ParlayTicket
         legs={legs}
         marketOf={marketOf}
@@ -197,15 +193,14 @@ export function ParlayBuilder({ reserve, symbol, nowMs, onReview }: { reserve: P
         onStakeInput={setStakeInput}
         payoutInput={payoutInput}
         onPayoutInput={setPayoutInput}
-        walletSpendableBase={sheet && isOk(sheet) ? sheet.value.spendableBase : null}
-        placing={writes.busy === "open"}
-        onReview={review}
+        walletSpendableBase={walletSpendableBase}
+        step={step}
+        errorTitle={errorTitle}
+        errorDetail={errorDetail}
+        txHash={txHash}
+        onPlace={() => void handlePlace()}
+        onReset={reset}
       />
-    </ConnectGate>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  plate: { gap: 10 },
-  plateHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-});
