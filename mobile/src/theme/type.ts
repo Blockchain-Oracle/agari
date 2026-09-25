@@ -2,11 +2,15 @@ import type { TextStyle } from "react-native";
 
 /** Loaded font family names (expo-font keys); faces as web's lib/fonts.ts: Sora display, Inter body, JetBrains Mono data, Noto Serif JP stamp. */
 export const FONT = {
+  headingRegular: "Sora_400Regular",
+  headingSemi: "Sora_600SemiBold",
   heading: "Sora_700Bold",
   headingHeavy: "Sora_800ExtraBold",
   body: "Inter_400Regular",
   bodyMedium: "Inter_500Medium",
   bodyStrong: "Inter_600SemiBold",
+  bodyBold: "Inter_700Bold",
+  bodyHeavy: "Inter_800ExtraBold",
   dataRegular: "JetBrainsMono_400Regular",
   data: "JetBrainsMono_500Medium",
   dataStrong: "JetBrainsMono_600SemiBold",

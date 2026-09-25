@@ -1,6 +1,6 @@
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from "@expo-google-fonts/inter";
 import { JetBrainsMono_400Regular, JetBrainsMono_500Medium, JetBrainsMono_600SemiBold } from "@expo-google-fonts/jetbrains-mono";
-import { Sora_700Bold, Sora_800ExtraBold } from "@expo-google-fonts/sora";
+import { Sora_400Regular, Sora_600SemiBold, Sora_700Bold, Sora_800ExtraBold } from "@expo-google-fonts/sora";
 import { useFonts } from "expo-font";
 
 /**
@@ -8,11 +8,15 @@ import { useFonts } from "expo-font";
  * (Latin, kana and the 36 kanji web renders) as web's `subsets: ["latin"]` does; the full face is 7.6 MB a weight.
  */
 const FACES = {
+  Sora_400Regular,
+  Sora_600SemiBold,
   Sora_700Bold,
   Sora_800ExtraBold,
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
   JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,
   JetBrainsMono_600SemiBold,
