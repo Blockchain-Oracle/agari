@@ -1,5 +1,16 @@
 # Mobile takeover status
 
+## 2026-09-25 — web's phone layout, mobile UX, tap-trading proven (READ THIS FIRST)
+
+- **Direction (owner, 09-25):** the app is web's phone layout (useagari.xyz at 402 px) ported literally — not a native reinterpretation — with real mobile UX where a phone does better. Source per screen: `node mobile/scripts/webdump.mjs <url> dark|light main --shot x.png` plus the web component and its CSS. Icons are lucide (`lucide-react-native` pinned to web's 1.38.0); every web font weight is loaded.
+- **Shell:** web's marquee + header (mark, AGARI 上がり, theme ring, Connect / balance pill + address menu) above every screen, web's floating pill dock, More → web's right drawer. No iOS glass header or system tab bar. Tokens `mobile/src/theme/chrome.ts`.
+- **Mobile UX decisions:** ticket, Add funds, connect, account rise as one shared `components/drawer/BottomDrawer.tsx`; the placed call's receipt shows in the drawer; Sensei is web's right drawer; arcade runs are full-screen and sideways (the 640×360 replay world stays fixed); the leaderboard is mobile-first (sticky filters, podium, dense tappable rows, rank bar above the dock).
+- **Removed from the app (owner):** web's install strip, News, Pitch, Demo, Print proof, Stats, Market Surface, Download, and the /more and /notifications nav entries (notifications are enabled in place on Activity).
+- **Tap-trading (S26.2 session key):** seed in the Keychain (`mobile/src/wallet/session-key-store.ts`), signer in `packages/markets/src/sessions/mobile/`. Proven on devnet 10:33Z: `5sR3h6kf…` is `ActorPlaceFor` signed by the phone key + sponsor, owner not a signer (rows in `docs/evidence/acceptance.md`). Web shared the cap bug fixed in `99a0b67f` (`capQuoteToGrant`).
+- **Web fixes made on the way (need a web deploy to reach useagari.xyz):** X card readable in dark theme (`eae85fae`), Sensei/card strike chip never clipped (`95f7fe45`), failed claim no longer says Paid (`05d31758`), fallback reason shown (`d4faca28`), X handle fallback @useagari (`20da4501`), Activity nav copy.
+- **Next:** a full side-by-side pass of every remaining screen in both themes on the simulator; more mobile-UX improvements where a phone deserves them; then S26.8 (TestFlight, APK). Simulator tips: turn off Expo's "Tools button" (it sits over the ticket's +1), tap by accessibility label (`idb ui describe-all`), 24/7 5m quotes land ≈2.5 min after open.
+
+
 Updated 2026-09-23 on `codex/mobile-takeover`. This is an implementation and verification record, not a release claim. The checkout is shared with other mobile work, so rerun the checks after the final changes settle.
 The web/docs `main` checkout was checked clean at `03b30abb`; no push, deployment, store submission, or publication was performed.
 
