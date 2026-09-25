@@ -4,7 +4,8 @@ import { useId } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from "react-native-svg";
 import { HISTORY } from "@/features/markets/history/copy";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { usePortfolioTokens } from "~/components/portfolio/web";
+import { WEB_TYPE } from "~/theme/web/portfolio";
 
 const WIDTH = 300;
 const HEIGHT = 72;
@@ -16,13 +17,13 @@ const PAD = 3;
  * so a loss reads as a fact, not a scare.
  */
 export function EquitySparkline({ points, decimals }: { points: readonly EquityPoint[]; decimals: number }) {
-  const { color } = useTheme();
+  const t = usePortfolioTokens();
   const gradientId = `eq${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const series = points.length < 2 ? [] : points;
   if (series.length === 0) {
     return (
-      <View style={[styles.empty, { borderColor: color.hairline }]}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{HISTORY.summary.curveEmpty}</Text>
+      <View style={[styles.empty, { borderColor: t.equityEmptyBorder, backgroundColor: t.equityEmptyFill }]}>
+        <Text style={[WEB_TYPE.labelMicro, styles.emptyText, { color: t.equityEmptyInk }]}>{HISTORY.summary.curveEmpty}</Text>
       </View>
     );
   }
@@ -43,7 +44,8 @@ export function EquitySparkline({ points, decimals }: { points: readonly EquityP
   const area = `${line} L ${x(count - 1).toFixed(2)},${zeroY.toFixed(2)} L ${x(0).toFixed(2)},${zeroY.toFixed(2)} Z`;
   const last = series[count - 1] as EquityPoint;
   const up = last.cumulativeBase >= 0n;
-  const ink = up ? color.accent : color.inkMuted;
+  const ink = up ? t.vermilion : t.equityDown;
+  const dot = up ? t.vermilion : t.equityDot;
   const amount = formatBaseUnits(last.cumulativeBase < 0n ? -last.cumulativeBase : last.cumulativeBase, decimals);
 
   return (
@@ -51,20 +53,21 @@ export function EquitySparkline({ points, decimals }: { points: readonly EquityP
       <Svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
         <Defs>
           <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={ink} stopOpacity={0.28} />
-            <Stop offset="1" stopColor={ink} stopOpacity={0} />
+            <Stop offset="0" stopColor={t.vermilion} stopOpacity={0.22} />
+            <Stop offset="1" stopColor={t.vermilion} stopOpacity={0} />
           </LinearGradient>
         </Defs>
-        <Line x1={PAD} x2={WIDTH - PAD} y1={zeroY} y2={zeroY} stroke={color.hairline} strokeDasharray="2 3" />
+        <Line x1={PAD} x2={WIDTH - PAD} y1={zeroY} y2={zeroY} stroke={t.equityZero} strokeWidth={1} strokeDasharray="2 3" />
         <Path d={area} fill={`url(#${gradientId})`} />
-        <Path d={line} fill="none" stroke={ink} strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" />
-        <Circle cx={x(count - 1)} cy={y(last.cumulativeBase)} r={2.6} fill={ink} />
-        <Circle cx={x(count - 1)} cy={y(last.cumulativeBase)} r={5} fill="none" stroke={ink} strokeOpacity={0.4} />
+        <Path d={line} fill="none" stroke={ink} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+        <Circle cx={x(count - 1)} cy={y(last.cumulativeBase)} r={2.6} fill={dot} />
+        <Circle cx={x(count - 1)} cy={y(last.cumulativeBase)} r={5} fill="none" stroke={dot} strokeWidth={1} strokeOpacity={0.3} />
       </Svg>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  empty: { height: HEIGHT, borderRadius: RADIUS.md, borderWidth: StyleSheet.hairlineWidth, borderStyle: "dashed", alignItems: "center", justifyContent: "center" },
+  empty: { minHeight: HEIGHT, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  emptyText: { letterSpacing: 1.76 },
 });

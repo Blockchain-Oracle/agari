@@ -1,4 +1,4 @@
-import { useTheme } from "~/theme";
+import { usePortfolioTokens } from "~/components/portfolio/web";
 
 export interface PlateInk {
   paper: string;
@@ -12,21 +12,11 @@ export interface PlateInk {
 }
 
 /**
- * web `ledger-plate.css`: the plate owns four tokens — paper, ink, muted ink, line — and follows the theme (the owner's
- * 2026-09-05 ruling): the theme's surface and inks in dark, the reference's light paper in light. Everything on the
- * plate (pool rows, the X card, the Trading Balance panel) reads these, so one card never shows two backgrounds.
+ * web `ledger-plate.css` --lp-*: the plate owns four tokens — paper, ink, muted ink, line — the theme's surface-1 and
+ * inks in dark, the reference's cream (#FAF8F5, #1A1612, #6B6353) in light. Everything on the plate (pool rows, the
+ * X card, the Trading Balance panel) reads these, so one card never shows two backgrounds.
  */
 export function usePlateInk(): PlateInk {
-  const { name, color } = useTheme();
-  const dark = name === "dark";
-  return {
-    paper: dark ? color.surface1 : color.surface3,
-    raised: dark ? color.surface2 : color.cream,
-    ink: color.ink,
-    mute: color.inkSecondary,
-    line: color.hairline,
-    figure: color.accent,
-    wallet: color.accent,
-    account: color.accentDim,
-  };
+  const t = usePortfolioTokens();
+  return { paper: t.lpPaper, raised: t.lpPaperRaised, ink: t.lpInk, mute: t.lpMute, line: t.lpLine, figure: t.vermilion, wallet: t.vermilion, account: t.barAccount };
 }
