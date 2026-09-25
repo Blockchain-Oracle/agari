@@ -14,6 +14,9 @@ const VIEW_W = 100;
 const VIEW_H = 40;
 /** `.sensei-meter .mc-spark` on a phone. */
 const SPARK_H = 70;
+/** web CardSpark's PAD_PX: half the "line" chip, kept clear top and bottom so the rule and chip never clip. */
+const PAD = 8;
+const BAND_H = SPARK_H - 2 * PAD;
 
 /** web CardSpark's `plot`: the series fitted to the box, the band widened to hold the opening print. */
 function plot(points: readonly ChartPoint[], openingRaw: bigint | null) {
@@ -31,7 +34,7 @@ function plot(points: readonly ChartPoint[], openingRaw: bigint | null) {
   const latest = points.at(-1)?.valueRaw ?? 0n;
   return {
     path: points.map((point, index) => `${index === 0 ? "M" : "L"}${x(index).toFixed(2)},${y(point.valueRaw).toFixed(2)}`).join(" "),
-    strikeTop: openingRaw === null ? null : (y(openingRaw) / VIEW_H) * SPARK_H,
+    strikeTop: openingRaw === null ? null : PAD + (y(openingRaw) / VIEW_H) * BAND_H,
     winning: openingRaw === null ? latest >= (points[0]?.valueRaw ?? 0n) : latest >= openingRaw,
   };
 }
@@ -45,7 +48,7 @@ function Spark({ points, openingRaw }: { points: readonly ChartPoint[]; openingR
     <LinearGradient colors={[t.sparkTop, t.sparkBottom]} style={styles.spark}>
       {shape ? (
         <>
-          <Svg style={StyleSheet.absoluteFill} viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="none" accessible={false}>
+          <Svg style={styles.band} viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="none" accessible={false}>
             <Path d={shape.path} fill="none" stroke={shape.winning ? color.profit : color.loss} strokeWidth={1.25} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
           </Svg>
           {shape.strikeTop !== null ? (
@@ -122,6 +125,7 @@ const styles = StyleSheet.create({
   time: { flexDirection: "row", alignItems: "baseline", gap: 4, paddingBottom: 4 },
   timeNum: { fontFamily: FONT.dataStrong, fontSize: 13, lineHeight: 13, fontVariant: ["tabular-nums"] },
   spark: { height: SPARK_H, borderRadius: 3, overflow: "hidden", marginBottom: 38 },
+  band: { position: "absolute", left: 0, right: 0, top: PAD, height: BAND_H },
   strike: { position: "absolute", left: 0, right: 0 },
   tick: { position: "absolute", right: 6, paddingVertical: 1, paddingHorizontal: 4, borderRadius: 2 },
   tickText: { fontFamily: FONT.dataRegular, fontSize: 8, lineHeight: 12.8, letterSpacing: 0.48 },
