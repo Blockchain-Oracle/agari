@@ -19,7 +19,7 @@
   Public group "Agari Beta" (`https://testflight.apple.com/join/g3MnDrr7`) holds build 9, beta review submitted
   09-25 (WAITING_FOR_REVIEW); the link is live on /download. Signing: ASC key `~/.config/agari/apple/AuthKey_852363VPL4.p8`
   (issuer 911e920f-…, team 86C6ZFJ6V6); builds need `EXPO_NO_CAPABILITY_SYNC=1` (App Groups + Push set by hand).
-  APNs key 9XH4KQF4M5 made but not yet on EAS (the file is macl-locked to Codex's browser; Codex must copy it).
+  APNs key 9XH4KQF4M5 (Sandbox & Production) is the project's push key on EAS; copy in `~/.config/agari/apple/`.
 - **Films** (outside the repo, `~/dev/hackathon/agari-video`, HyperFrames): `agari-launch` (20 s 16:9 launch film,
   real simulator footage, ElevenLabs music + SFX, 240 fps render blended to 60) is on /download; `agari-loop` (14 s
   square UI morph loop, 1440², loops seamlessly) done. Both MP4s: `~/dev/hackathon/agari-release/films/`.
