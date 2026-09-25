@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   wrap: { position: "absolute", right: 16, zIndex: 900, alignItems: "flex-end", gap: 10 },
   teaserWrap: { marginRight: 5 },
   teaser: { borderTopLeftRadius: 15, borderTopRightRadius: 15, borderBottomRightRadius: 4, borderBottomLeftRadius: 15, paddingVertical: 9, paddingHorizontal: 14, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.55, shadowRadius: 14 },
-  teaserText: { fontFamily: FONT.heading, fontSize: 13, lineHeight: 16 },
+  teaserText: { fontFamily: FONT.headingSemi, fontSize: 13, lineHeight: 16 },
   tail: { position: "absolute", right: 15, bottom: -4, width: 9, height: 9, borderBottomRightRadius: 3, transform: [{ rotate: "45deg" }] },
   dock: { padding: 7, borderRadius: 999, shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.45, shadowRadius: 16 },
   ring: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: 999, borderWidth: 1 },

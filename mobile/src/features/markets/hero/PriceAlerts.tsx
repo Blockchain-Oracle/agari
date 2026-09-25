@@ -137,11 +137,11 @@ const styles = StyleSheet.create({
   // `.alerts-pop`: bottom calc(100% + 8px) of the 18 px `.mh-foot-actions`, left 0, 280 wide.
   pop: { position: "absolute", bottom: 26, left: 0, width: 280, zIndex: 900, gap: 12, borderWidth: 1, borderRadius: 12, padding: 16 },
   popHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 18, letterSpacing: 0.6, textTransform: "uppercase" },
+  title: { fontFamily: FONT.bodyBold, fontSize: 12, lineHeight: 18, letterSpacing: 0.6, textTransform: "uppercase" },
   form: { gap: 8 },
   dir: { flexDirection: "row", gap: 4 },
   dirBtn: { flex: 1, paddingVertical: 6, borderRadius: 8, borderWidth: 1, alignItems: "center" },
-  dirText: { fontFamily: FONT.bodyStrong, fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase" },
+  dirText: { fontFamily: FONT.bodyBold, fontSize: 10, lineHeight: 15, letterSpacing: 0.5, textTransform: "uppercase" },
   disabled: { opacity: 0.5 },
   add: { flexDirection: "row", gap: 8 },
   input: { flex: 1, minWidth: 0, borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontFamily: FONT.dataRegular, fontSize: 12 },

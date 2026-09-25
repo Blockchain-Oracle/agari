@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
   grid: { gap: 16 },
   closed: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 10, rowGap: 6, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 18, borderWidth: 1, borderRadius: 12 },
   closedDot: { width: 8, height: 8, borderRadius: 9999 },
-  closedStrong: { fontFamily: FONT.bodyStrong, fontSize: 13, lineHeight: 20.8 },
+  closedStrong: { fontFamily: FONT.bodyBold, fontSize: 13, lineHeight: 20.8 },
   closedText: { fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
 });

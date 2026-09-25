@@ -122,10 +122,10 @@ const styles = StyleSheet.create({
   flow: { marginTop: 12, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   flowText: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, fontVariant: ["tabular-nums"] },
   paid: { marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, borderWidth: 1, paddingVertical: 12 },
-  paidText: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 16, letterSpacing: 1.2, textTransform: "uppercase" },
+  paidText: { fontFamily: FONT.bodyBold, fontSize: 12, lineHeight: 16, letterSpacing: 1.2, textTransform: "uppercase" },
   foot: { marginTop: 8, textAlign: "center", fontFamily: FONT.body, fontSize: 10, lineHeight: 15 },
   hash: { fontFamily: FONT.dataRegular, textDecorationLine: "underline" },
   collect: { marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, paddingVertical: 14 },
   collectGlow: { shadowOpacity: 1, shadowRadius: 30, shadowOffset: { width: 0, height: 0 } },
-  collectText: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 20, letterSpacing: 1.4, textTransform: "uppercase" },
+  collectText: { fontFamily: FONT.bodyBold, fontSize: 14, lineHeight: 20, letterSpacing: 1.4, textTransform: "uppercase" },
 });
