@@ -21,7 +21,7 @@
   the three `EXPO_ASC_*` vars + `EXPO_APPLE_TEAM_ID`, then submit to TestFlight. APNs key still to add for push.
 - **Films** (outside the repo, `~/dev/hackathon/agari-video`, HyperFrames): `agari-launch` (20 s 16:9 launch film,
   real simulator footage, ElevenLabs music + SFX, 240 fps render blended to 60) is on /download; `agari-loop` (14 s
-  square UI morph loop) rendering.
+  square UI morph loop, 1440², loops seamlessly) done. Both MP4s: `~/dev/hackathon/agari-release/films/`.
 - **Next:** iOS TestFlight + its link on /download, marketing.
 
 ## 2026-09-25 — web's phone layout, mobile UX, tap-trading proven (READ THIS FIRST)
