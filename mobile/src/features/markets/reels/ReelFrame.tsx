@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   shadow: { flex: 1, width: "100%", maxWidth: 460, borderRadius: 26 },
   card: { flex: 1, borderRadius: 26, borderWidth: 1, overflow: "hidden" },
   fill: { width: "100%", height: "100%" },
-  grain: { ...StyleSheet.absoluteFillObject, zIndex: 30, opacity: 0.05 },
+  grain: { ...StyleSheet.absoluteFill, zIndex: 30, opacity: 0.05 },
   heat: { position: "absolute", left: 0, right: 0, top: 0, height: 1, zIndex: 20 },
   holding: { alignItems: "center", justifyContent: "center", gap: 14, paddingLeft: 28, paddingRight: 88 },
   holdingTitle: { fontFamily: FONT.heading, fontSize: 20, lineHeight: 26, textAlign: "center" },

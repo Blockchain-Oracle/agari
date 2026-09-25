@@ -1,4 +1,8 @@
+import type { ViewStyle } from "react-native";
 import type { ThemeName } from "../index";
+
+/** RN renders both of web's grain blends natively (iOS / new architecture). */
+type Blend = NonNullable<ViewStyle["mixBlendMode"]>;
 
 /**
  * web's /reels as the browser computes it at 402 px, per theme (styles/reel.css, reel-theme.css, reel-chrome.css,
@@ -21,7 +25,7 @@ const DARK = {
   surfaceFlat: "#0a0807",
   shadow: "0px 30px 120px -30px rgba(0, 0, 0, 0.9)",
   heat: "linear-gradient(to right, rgba(224, 77, 38, 0), rgba(224, 77, 38, 0.5), rgba(224, 77, 38, 0))",
-  grainBlend: "overlay" as const,
+  grainBlend: "overlay" as Blend,
   // vermilion steps (color-mix over transparent)
   v60: "rgba(224, 77, 38, 0.6)", v50: "rgba(224, 77, 38, 0.5)", v45: "rgba(224, 77, 38, 0.45)", v40: "rgba(224, 77, 38, 0.4)",
   v25: "rgba(224, 77, 38, 0.25)", v10: "rgba(224, 77, 38, 0.1)", v08: "rgba(224, 77, 38, 0.08)", v05: "rgba(224, 77, 38, 0.05)",
@@ -40,7 +44,7 @@ const LIGHT: typeof DARK = {
   surfaceFlat: "#fffaf2",
   shadow: "inset 0px 1px 0px rgba(255, 255, 255, 0.7), 0px 30px 90px -50px rgba(80, 45, 24, 0.45)",
   heat: "linear-gradient(to right, rgba(217, 62, 31, 0), rgba(217, 62, 31, 0.5), rgba(217, 62, 31, 0))",
-  grainBlend: "soft-light" as const,
+  grainBlend: "soft-light" as Blend,
   v60: "rgba(217, 62, 31, 0.6)", v50: "rgba(217, 62, 31, 0.5)", v45: "rgba(217, 62, 31, 0.45)", v40: "rgba(217, 62, 31, 0.4)",
   v25: "rgba(217, 62, 31, 0.25)", v10: "rgba(217, 62, 31, 0.1)", v08: "rgba(217, 62, 31, 0.08)", v05: "rgba(217, 62, 31, 0.05)",
   onVermilion: "#FFFFFF",
