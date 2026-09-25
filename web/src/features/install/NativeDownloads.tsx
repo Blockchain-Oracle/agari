@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ANDROID_RELEASE, INSTALL } from "./copy";
+import { ANDROID_RELEASE, INSTALL, IOS_TESTFLIGHT } from "./copy";
 import { InstallCta } from "./InstallCta";
 
 const A = INSTALL.android;
@@ -28,8 +28,8 @@ function ShaRow() {
 
 /**
  * The two native ways in (S26, 09-25). Android: the signed APK from the GitHub release — a QR for the phone on a
- * desktop, the button on the phone itself, the SHA-256 to check it, three steps. iPhone: TestFlight is next, and the
- * installable web app is offered in its place until the invite link exists.
+ * desktop, the button on the phone itself, the SHA-256 to check it, three steps. iPhone: the TestFlight invitation
+ * and the installable web app while Apple reviews the first beta build.
  */
 export function NativeDownloads() {
   return (
@@ -71,6 +71,12 @@ export function NativeDownloads() {
           <h2>{INSTALL.ios.title}</h2>
         </div>
         <p className="dl-card-line">{INSTALL.ios.body}</p>
+        <a className="dl-cta" href={IOS_TESTFLIGHT.url} data-cursor="hover">
+          {INSTALL.ios.cta}
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="dl-cta-arrow">
+            <path d="M5 12h14m0 0-5-5m5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
         <InstallCta />
       </article>
     </section>

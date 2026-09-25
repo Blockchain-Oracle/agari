@@ -1,6 +1,6 @@
 /**
  * `/download` — the reference's `app/download/page.tsx`, its words truth-corrected. Since 09-25 Agari ships a native
- * Android build (the APK on the GitHub release below) and an iOS build headed for TestFlight; the web app still
+ * Android build (the APK on the GitHub release below) and an iOS TestFlight beta; the web app still
  * installs from the browser. Every sentence is about what exists on Solana devnet today.
  */
 
@@ -12,6 +12,9 @@ export const ANDROID_RELEASE = {
   sha256: "96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447",
   sizeMb: 170,
   qr: "/download/agari-android-qr.svg",
+} as const;
+export const IOS_TESTFLIGHT = {
+  url: "https://testflight.apple.com/join/g3MnDrr7",
 } as const;
 export const INSTALL = {
   title: "Get Agari",
@@ -30,7 +33,7 @@ export const INSTALL = {
   manualHint: "Chrome and Edge show an install icon at the right end of the address bar. Other browsers keep “Install” or “Add to Home Screen” under their menu.",
   meta: [
     { label: "Android", note: "the APK, signed, from our GitHub release" },
-    { label: "iPhone", note: "TestFlight next · the web app installs today" },
+    { label: "iPhone", note: "TestFlight beta · the web app installs today" },
     { label: "Solana devnet", note: "practice money, real mechanics" },
   ],
   film: { label: "The launch film", poster: "/media/agari-launch-poster.jpg", src: "/media/agari-launch.mp4" },
@@ -49,8 +52,9 @@ export const INSTALL = {
   },
   ios: {
     eyebrow: "iPhone",
-    title: "TestFlight is next",
-    body: "The iOS build is on its way to TestFlight. Until the invite link is here, install the web app: it is the same Agari, from your home screen.",
+    title: "Join the iOS beta",
+    body: "Open the TestFlight invitation to join Agari on iPhone. Apple's review of the first beta build may delay installation; the web app is available from your home screen while it processes.",
+    cta: "Join on TestFlight",
   },
   points: [
     { title: "Connect and go", body: "Any Solana wallet that speaks the Wallet Standard. The faucet hands you test tUSDC, and a little SOL for fees if you are short. There is nothing else to install." },
