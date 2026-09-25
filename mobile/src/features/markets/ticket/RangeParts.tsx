@@ -1,21 +1,16 @@
-import { formatBaseUnits } from "@agari/core/units";
 import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import type { TicketComposer } from "@/features/markets/ticket/useTicketComposer";
 import { RANGE } from "@/features/range/copy";
-import { formatProbE6, usdBand } from "@/features/range/format";
-import { Button } from "~/components/kit";
+import { usdBand } from "@/features/range/format";
 import { BandControl } from "~/features/games/range/BandControl";
 import { explorerUrl, openExternal } from "~/lib/external";
-import { RADIUS, TYPE, useTheme } from "~/theme";
-import type { TicketReview } from "./review";
-
-/** RANGE's labels carry web's trailing arrow; a native button draws none. */
-const plain = (label: string) => label.replace(/\s*→$/, "");
+import { FONT } from "~/theme";
+import { useTk } from "./tk";
 
 /**
- * web's Ticket in Range mode: the band control in the side block's place (the app's own native BandControl), inside
- * only as the reference ticket offers it — "Outside" is the Range page's, so choosing it opens that page.
+ * web's Ticket in Range mode: the band control in the side block's place (the app's BandControl, the Range page's
+ * own), inside only as the reference ticket offers it — "Outside" is the Range page's, so choosing it opens that page.
  */
 export function RangeBand({ c }: { c: TicketComposer }) {
   return (
@@ -31,48 +26,43 @@ export function RangeBand({ c }: { c: TicketComposer }) {
   );
 }
 
-/** The CTA's words for a band: "Place RANGE $412.50 to $418.00". */
+/** The CTA's words for a band: "Place RANGE $412.50 to $418.00 →", as web's button reads. */
 export function rangeCtaLabel(c: TicketComposer): string {
   const { lowPrint, highPrint } = c.range.draft;
-  return plain(lowPrint !== null && highPrint !== null ? RANGE.cta.place(usdBand(lowPrint), usdBand(highPrint)) : RANGE.cta.placePlain);
-}
-
-/** The review before a band's slide: the stake (the most it can lose), what it pays at most, the chance inside. */
-export function rangeReview(c: TicketComposer): TicketReview | null {
-  const q = c.range.quote;
-  const { lowPrint, highPrint } = c.range.draft;
-  if (!q || lowPrint === null || highPrint === null) return null;
-  const money = (base: bigint) => `${formatBaseUnits(base, c.decimals)} ${c.symbol}`;
-  return {
-    title: `RANGE ${usdBand(lowPrint)} – ${usdBand(highPrint)} · ${c.market.asset}`,
-    lines: [
-      { label: "Stake", value: money(q.stakeBase) },
-      { label: "Pays at most", value: money(q.maxPayoutBase), tone: "profit" },
-      { label: "Chance inside", value: formatProbE6(q.insideProbE6), tone: "accent" },
-    ],
-    maxLoss: money(q.stakeBase),
-    confirmLabel: "Slide to place the band",
-    cta: rangeCtaLabel(c),
-  };
+  return lowPrint !== null && highPrint !== null ? RANGE.cta.place(usdBand(lowPrint), usdBand(highPrint)) : RANGE.cta.placePlain;
 }
 
 /** web's RangePlaced: the receipt line, the transaction, the rounds page, and "another". */
-export function RangePlacedCard({ placed, onAnother }: { placed: { txHash: string; band: string }; onAnother: () => void }) {
-  const { color } = useTheme();
+export function RangePlaced({ placed, onAnother }: { placed: { txHash: string; band: string }; onAnother: () => void }) {
+  const tk = useTk();
   return (
-    <View style={[styles.card, { backgroundColor: color.cream }]} accessibilityRole="summary">
-      <Text style={[TYPE.bodyStrong, { color: color.creamInk }]}>{RANGE.cta.placed(placed.band)}</Text>
-      <Button label={RANGE.ticket.viewTx} variant="ghost" size="sm" onPress={() => openExternal(explorerUrl("tx", placed.txHash))} />
+    <View style={styles.stack} accessibilityLiveRegion="polite">
+      <Text style={[styles.body, { color: tk.ink }]}>{RANGE.cta.placed(placed.band)}</Text>
+      <Text style={[styles.link, { color: tk.inkSecondary }]} accessibilityRole="link" onPress={() => void openExternal(explorerUrl("tx", placed.txHash))}>
+        {RANGE.ticket.viewTx}
+      </Text>
       <View style={styles.row}>
-        <Button label={RANGE.cta.rounds} variant="secondary" style={styles.grow} onPress={() => router.push("/games/range")} />
-        <Button label={RANGE.cta.another} variant="outline" style={styles.grow} onPress={onAnother} />
+        <Text
+          style={[styles.link, { color: tk.vermilion }]}
+          accessibilityRole="link"
+          onPress={() => {
+            router.back();
+            router.navigate("/games/range");
+          }}
+        >
+          {RANGE.cta.rounds}
+        </Text>
+        <Text style={[styles.link, { color: tk.inkSecondary }]} accessibilityRole="button" onPress={onAnother}>
+          {RANGE.cta.another}
+        </Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: RADIUS.lg, padding: 18, gap: 10 },
-  row: { flexDirection: "row", gap: 10 },
-  grow: { flex: 1 },
+  stack: { gap: 12 },
+  body: { fontFamily: FONT.body, fontSize: 15, lineHeight: 23 },
+  link: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18.85, textDecorationLine: "underline" },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
 });

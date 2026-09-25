@@ -9,18 +9,20 @@ import { defaultSide, useBetAgainst } from "@/features/markets/bet-against";
 import { useWindowPhase } from "@/features/markets/ticket/useTicket";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { EmptyState, ErrorState, LoadingState } from "~/components/kit";
-import { NATIVE_MARKETS } from "~/features/markets/copy";
 import { ScheduleTicket } from "~/features/markets/ticket/ScheduleTicket";
-import { TakerTicket } from "~/features/markets/ticket/TakerTicket";
-import { SPACE, useTheme } from "~/theme";
+import { Ticket } from "~/features/markets/ticket/Ticket";
+import { useTk } from "~/features/markets/ticket/tk";
+
+/** A deep link to a Window the index no longer holds: said, with the way back. */
+const GONE = { why: "Window not found", back: "Back to Markets" } as const;
 
 /**
- * The Ticket as a sheet over whatever opened it (web's TicketDock drawer): `?m=<marketId>&dir=up|down`. A Regular or
- * Gap Window listed before its bell takes a scheduled call at the user's own price (the limit order, D-088); anything
- * else is the taker's ticket at the live book.
+ * web's TicketDock below 1024 px — the drawer over whatever opened it: `?m=<marketId>&dir=up|down`. A Regular or Gap
+ * Window listed before its bell takes a scheduled call at the user's own price (D-088); anything else is the taker's
+ * Ticket at the live book.
  */
 export default function TicketSheet() {
-  const { color } = useTheme();
+  const tk = useTk();
   const { m, dir } = useLocalSearchParams<{ m: string; dir?: Side }>();
   const reading = useMarket(m as MarketId);
   // A Window the ticket advances to (no-entry buffer) is read afresh; the one in hand stays mounted meanwhile, so the
@@ -31,26 +33,27 @@ export default function TicketSheet() {
   const market = read ?? held.current;
   if (!market) {
     return (
-      <View collapsable={false} style={[styles.holding, { backgroundColor: color.ground }]}>
-        {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={NATIVE_MARKETS.windowGone} action={{ label: NATIVE_MARKETS.backToMarkets, onPress: () => router.navigate("/markets") }} />}
+      <View collapsable={false} style={[styles.holding, { backgroundColor: tk.drawerBg }]}>
+        {reading === null ? <LoadingState shape="plate" /> : !reading.ok ? <ErrorState diagnosis={reading.error} /> : <EmptyState why={GONE.why} action={{ label: GONE.back, onPress: () => router.navigate("/markets") }} />}
       </View>
     );
   }
   return <TicketBody market={market} dir={dir ?? null} />;
 }
 
+/** web's TicketBody: which composer the Window takes; the token lane lists two minutes ahead and keeps the taker's words. */
 function TicketBody({ market, dir }: { market: EventMarket; dir: Side | null }) {
   const nowMs = useChainNowMs();
   const betAgainst = useBetAgainst();
-  // Every opening of the sheet is a new session (web's `sessionId`): a stake preset left for this Window is taken once.
+  // Every opening of the drawer is a new session (web's `sessionId`): a stake preset left for this Window is taken once.
   const [sessionId] = useState(() => Date.now());
   const phase = useWindowPhase(market, nowMs);
   const side = dir ?? defaultSide(betAgainst) ?? null;
   const selection = { marketId: market.marketId, side, market, nowMs, resolving: false, sessionId };
   const schedules = phase !== null && isRestable(phase) && market.lane !== "token";
-  return schedules ? <ScheduleTicket selection={selection} /> : <TakerTicket selection={selection} />;
+  return schedules ? <ScheduleTicket selection={selection} /> : <Ticket selection={selection} />;
 }
 
 const styles = StyleSheet.create({
-  holding: { flex: 1, padding: SPACE.gutter, paddingTop: 28 },
+  holding: { flex: 1, padding: 24 },
 });

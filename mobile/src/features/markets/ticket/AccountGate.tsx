@@ -1,15 +1,26 @@
-import { ownCentsOf } from "@agari/core/orders";
-import { SUBMITTED_UNKNOWN } from "@agari/core/copy";
+import { FAUCET_UNITS } from "@agari/core/constants";
 import { formatBaseUnits } from "@agari/core/units";
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import type { PlaceBetState } from "@/features/markets/ticket/usePlaceBet";
-import { SIDE_WORD } from "@/features/markets/side-styles";
-import { PREOPEN, TICKET } from "@/lib/copy";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useFaucet } from "@/features/markets/faucet/useFaucet";
+import { SESSION } from "@/features/session/copy";
+import type { FundingSource } from "@/features/session/useTicketRoute";
+import { diagnosisCopy, FAUCET, TICKET } from "@/lib/copy";
 import type { WalletSession } from "@/lib/wallet-session";
-import { Button, ErrorState } from "~/components/kit";
-import { explorerUrl, openExternal } from "~/lib/external";
-import { RADIUS, TYPE, useTheme } from "~/theme";
+import { useSessionKey } from "~/web-shims/session-key-provider";
+import { FONT } from "~/theme";
+import { ModeTile } from "./Controls";
+import { ConnectButton, GateCta } from "./TicketButton";
+import { tkType, useTk } from "./tk";
+
+export interface RouteChoice {
+  show: boolean;
+  source: FundingSource;
+  onChange: (source: FundingSource) => void;
+  vaultAvailableBase: bigint | null;
+  armed: boolean;
+  deployed: boolean;
+}
 
 interface GateProps {
   session: WalletSession;
@@ -20,89 +31,124 @@ interface GateProps {
   decimals: number;
   symbol: string;
   balanceSource: "wallet" | "vault" | "private";
+  route: RouteChoice | null;
 }
 
 /**
- * web's AccountGate, inline in the ticket: connect when there is no wallet; "Top up to place this" when the stake and
- * seat deposit are more than the chosen source holds, with the fix right there (the funds sheet carries the faucet).
+ * web's AccountGate, inline: connect when there is no wallet; "Top up to place this" when the stake and seat deposit
+ * are more than the chosen source holds, with the fix right there (the funds sheet carries the faucet); connected, the
+ * row with where a public bet is paid from and the tap-trading chip.
  */
-export function AccountGate({ session, availableBase, stakeBase, depositBase, decimals, symbol, balanceSource }: GateProps) {
-  const { color } = useTheme();
+export function AccountGate({ session, availableBase, stakeBase, depositBase, decimals, symbol, balanceSource, route }: GateProps) {
+  const tk = useTk();
+  const faucet = useFaucet();
   const connected = session.isConnected;
   const requiredBase = stakeBase > 0n ? stakeBase + depositBase : 0n;
   const short = connected && availableBase !== null && (availableBase === 0n || (stakeBase > 0n && requiredBase > availableBase));
   const needBase = availableBase !== null && requiredBase > availableBase ? requiredBase - availableBase : null;
   const wallet = balanceSource === "wallet";
-  const label = wallet ? "Wallet" : balanceSource === "private" ? "Private balance" : "Trading Balance";
-
-  if (!connected) {
-    return (
-      <View style={[styles.gate, { borderColor: color.hairline, backgroundColor: color.surface1 }]}>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{TICKET.gate.connect}</Text>
-        <Button label={session.isConnecting ? "Reconnecting…" : "Connect"} loading={session.isConnecting} onPress={() => router.push("/connect")} />
-      </View>
-    );
-  }
-  if (!short) return null;
-  const line = wallet
+  const balanceLabel = wallet ? "Wallet" : balanceSource === "private" ? "Private balance" : "Trading Balance";
+  const openFunds = () => router.push("/funds");
+  const tail = wallet
     ? needBase !== null
-      ? depositBase > 0n
-        ? TICKET.gate.needWithDeposit(formatBaseUnits(needBase, decimals), symbol, formatBaseUnits(depositBase, decimals))
-        : TICKET.gate.need(formatBaseUnits(needBase, decimals), symbol)
-      : TICKET.gate.empty
+      ? ` ${depositBase > 0n ? TICKET.gate.needWithDeposit(formatBaseUnits(needBase, decimals), symbol, formatBaseUnits(depositBase, decimals)) : TICKET.gate.need(formatBaseUnits(needBase, decimals), symbol)}`
+      : ` ${TICKET.gate.empty}`
     : balanceSource === "private"
-      ? "Fund and authorize your private balance on Portfolio before placing a private bet."
-      : "Add funds to your Trading Balance on Portfolio, or switch to Wallet.";
+      ? " Fund and authorize your private balance on Portfolio before placing a private bet."
+      : " Add funds to your Trading Balance on Portfolio, or switch to Wallet.";
+
   return (
-    <View style={[styles.gate, { borderColor: color.warning, backgroundColor: color.surface1 }]} accessibilityRole="alert">
-      <Text style={[TYPE.labelMicro, { color: color.warning }]}>{TICKET.gate.topUp}</Text>
-      <Text style={[TYPE.body, { color: color.ink }]}>
-        {TICKET.gate.holds(formatBaseUnits(availableBase ?? 0n, decimals), symbol, label)} {line}
-      </Text>
-      {wallet ? (
-        <Button label={TICKET.gate.addMoney} size="sm" onPress={() => router.push("/funds")} />
-      ) : (
-        <Button label={balanceSource === "private" ? "Manage private balance" : "Manage Trading Balance"} size="sm" variant="secondary" onPress={() => router.push("/portfolio")} />
-      )}
+    <>
+      {!connected ? (
+        <View style={[styles.gate, { borderColor: tk.gateBorder, backgroundColor: tk.gateBg }]}>
+          <Text style={[styles.body, { color: tk.gateBody }]}>{TICKET.gate.connect}</Text>
+          <ConnectButton label={session.isConnecting ? "Reconnecting…" : "Connect"} busy={session.isConnecting} onPress={() => router.push("/connect")} />
+        </View>
+      ) : null}
+      {short ? (
+        <View style={[styles.gate, { borderColor: tk.warnBorder, backgroundColor: tk.warnBg }]} accessibilityRole="alert">
+          <Text style={[styles.eyebrow, { color: tk.vermilion }]}>{TICKET.gate.topUp}</Text>
+          <Text style={[styles.line, { color: tk.gateLine }]}>
+            {TICKET.gate.holds(formatBaseUnits(availableBase ?? 0n, decimals), symbol, balanceLabel)}
+            {tail}
+          </Text>
+          {faucet.state.diagnosis ? <Text style={[styles.line, { color: tk.gateLine }]}>{diagnosisCopy(faucet.state.diagnosis.kind).headline}</Text> : null}
+          <View style={styles.actions}>
+            {wallet ? (
+              <GateCta label={TICKET.gate.addMoney} onPress={openFunds} />
+            ) : (
+              <GateCta label={balanceSource === "private" ? "Manage private balance" : "Manage Trading Balance"} onPress={() => router.navigate("/portfolio")} />
+            )}
+            {wallet && faucet.hasSigner ? <Quiet label={faucet.busy ? faucet.label : FAUCET.cta(String(FAUCET_UNITS))} disabled={faucet.busy} onPress={openFunds} /> : null}
+          </View>
+        </View>
+      ) : null}
+      {connected ? (
+        <View style={styles.gateRow}>
+          {route?.show ? <RouteControl route={route} decimals={decimals} symbol={symbol} /> : <View />}
+          {balanceSource !== "private" ? <SessionChip /> : null}
+        </View>
+      ) : null}
+    </>
+  );
+}
+
+/** web's `.tk-gate-quiet`: the small mono secondary action. */
+export function Quiet({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) {
+  const tk = useTk();
+  return (
+    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" hitSlop={8} style={disabled && styles.half}>
+      <Text style={[tkType.label, styles.quiet, { color: tk.gateQuiet }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+/** web's RouteControl: "Pay from" and the Wallet / Trading Balance tiles; armed, the Vault is shown, not offered. */
+function RouteControl({ route, decimals, symbol }: { route: RouteChoice; decimals: number; symbol: string }) {
+  const tk = useTk();
+  const { source, onChange, vaultAvailableBase, armed, deployed } = route;
+  const vaultEmpty = (vaultAvailableBase ?? 0n) === 0n;
+  const effective: FundingSource = armed && source !== "private" ? "vault" : source;
+  // web's title on the Vault tile: why it cannot be chosen, or what it holds — the tray's hint here.
+  const vaultWhy = !deployed ? SESSION.notDeployed : vaultEmpty && !armed ? SESSION.route.vaultEmpty : `${formatBaseUnits(vaultAvailableBase ?? 0n, decimals)} ${symbol}`;
+  return (
+    <View style={styles.route}>
+      <Text style={[tkType.label, { color: tk.label }]}>{SESSION.route.label}</Text>
+      <View style={[styles.tray, { borderColor: tk.modesBorder, backgroundColor: tk.modesBg }]} accessibilityLabel={SESSION.route.label} accessibilityHint={vaultWhy}>
+        <ModeTile label={SESSION.route.wallet} on={effective === "wallet"} disabled={armed} onPress={() => onChange("wallet")} />
+        <ModeTile label={SESSION.route.vault} on={effective === "vault"} disabled={(armed && source !== "private") || !deployed || (vaultEmpty && !armed)} onPress={() => onChange("vault")} />
+      </View>
     </View>
   );
 }
 
-/** web's OutcomeNote: what the chain said about the last send — never a revert shown as success. */
-export function OutcomeNote({ state, decimals, symbol, onDismiss }: { state: PlaceBetState; decimals: number; symbol: string; onDismiss: () => void }) {
-  const { color } = useTheme();
-  const { outcome, txHash } = state;
-  const contracts = (raw: bigint) => formatBaseUnits(raw, decimals, { minDp: 0 });
-  const line = (text: string, tx: string | null | undefined) => (
-    <View style={[styles.note, { borderColor: color.hairline, backgroundColor: color.surface2 }]} accessibilityRole="text" accessibilityLiveRegion="polite">
-      <Text style={[TYPE.caption, { color: color.ink }]}>{text}</Text>
-      {tx ? (
-        <Text style={[TYPE.caption, { color: color.accent }]} onPress={() => openExternal(explorerUrl("tx", tx))} accessibilityRole="link">
-          {TICKET.txLabel}
-        </Text>
-      ) : null}
+/**
+ * web's SessionChip in the leverage-chip grammar. The phone holds no session key yet (the web-shim's honest
+ * "disarmed"), and there is no arming sheet here, so the chip is shown and disabled — web's own face for a wallet
+ * that cannot arm.
+ */
+function SessionChip() {
+  const tk = useTk();
+  const { view } = useSessionKey();
+  const armed = view.status === "armed";
+  return (
+    <View accessibilityRole="button" accessibilityState={{ disabled: !armed }} accessibilityLabel={`${armed ? SESSION.chip.on : SESSION.chip.off} — ${SESSION.chip.titleOff}`} style={[styles.chip, { borderColor: armed ? tk.levOnBorder : tk.levBorder, backgroundColor: armed ? tk.levOnBg : "transparent" }, !armed && styles.dim]}>
+      <Text style={[tkType.chip, { color: armed ? tk.levOnInk : tk.lev }]}>{armed ? SESSION.chip.on : SESSION.chip.off}</Text>
     </View>
   );
-  if (state.phase === "unknown") return line(SUBMITTED_UNKNOWN, txHash);
-  if (!outcome) return null;
-  switch (outcome.status) {
-    case "confirmed":
-      return line(`${TICKET.bookedPrefix} ${contracts(outcome.booked.contractsRaw)} ${SIDE_WORD[outcome.booked.side]} ${TICKET.bookedAt} ${Math.round(outcome.booked.avgPriceBps / 100)}¢ · ${formatBaseUnits(outcome.booked.costBase, decimals)} ${symbol}`, outcome.booked.txHash);
-    case "resting":
-      return line(PREOPEN.ticket.resting(contracts(outcome.rested.contractsRaw), SIDE_WORD[outcome.rested.side], ownCentsOf(outcome.rested.side, outcome.rested.priceTicks)), outcome.rested.txHash);
-    case "nothingFilled":
-      return line(TICKET.nothingFilled, outcome.txHash);
-    case "requote":
-      return line(`${TICKET.requotePrefix} ${formatBaseUnits(outcome.quote.maxCostBase, decimals)} ${symbol}. ${TICKET.requoteSuffix}`, null);
-    case "reverted":
-    case "refused":
-      return <ErrorState diagnosis={outcome.diagnosis} retry={onDismiss} />;
-    case "unknown":
-      return line(SUBMITTED_UNKNOWN, outcome.txHash ?? null);
-  }
 }
 
 const styles = StyleSheet.create({
-  gate: { borderWidth: 1, borderRadius: RADIUS.lg, padding: 14, gap: 10 },
-  note: { borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.md, padding: 10, gap: 4 },
+  gate: { borderWidth: 1, padding: 16 },
+  body: { marginBottom: 12, fontFamily: FONT.body, fontSize: 12.5, lineHeight: 17.2 },
+  eyebrow: { marginBottom: 6, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 2, textTransform: "uppercase" },
+  line: { marginBottom: 10, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 15 },
+  actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 },
+  quiet: { letterSpacing: 1.26 },
+  half: { opacity: 0.5 },
+  gateRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  route: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 12 },
+  tray: { flex: 1, flexDirection: "row", gap: 4, borderRadius: 6, borderWidth: 1, padding: 4 },
+  chip: { minWidth: 40, borderRadius: 4, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
+  dim: { opacity: 0.35 },
 });
