@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   state: { alignItems: "center", gap: 16, padding: 36 },
   icon: { width: 64, height: 64, alignItems: "center", justifyContent: "center" },
   tile: { width: 56, height: 56, borderRadius: 16, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  title: { fontFamily: FONT.heading, fontSize: 17, lineHeight: 24, textAlign: "center" },
+  title: { fontFamily: FONT.headingSemi, fontSize: 17, lineHeight: 24, textAlign: "center" },
   body: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, textAlign: "center" },
   cta: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, borderRadius: 999, paddingVertical: 12, paddingHorizontal: 24 },
   ctaText: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 20 },

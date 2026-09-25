@@ -67,5 +67,5 @@ const styles = StyleSheet.create({
   name: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 24 },
   meta: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.6, opacity: 0.8 },
   cta: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 999 },
-  ctaText: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 19.2, letterSpacing: 0.48 },
+  ctaText: { fontFamily: FONT.bodyBold, fontSize: 12, lineHeight: 19.2, letterSpacing: 0.48 },
 });
