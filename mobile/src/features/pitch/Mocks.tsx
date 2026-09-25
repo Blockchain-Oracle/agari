@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   phoneBrandText: { color: MK.cream, fontFamily: FONT.headingHeavy, fontSize: 15 },
   phoneBalance: { color: MK.white50, fontSize: 11, fontFamily: mono },
   phoneCard: { marginVertical: 6, marginHorizontal: 14, backgroundColor: MK.white04, borderRadius: 18, padding: 15 },
-  phoneQ: { color: MK.cream, fontSize: 13.5, lineHeight: 17.55, fontFamily: FONT.heading },
+  phoneQ: { color: MK.cream, fontSize: 13.5, lineHeight: 17.55, fontFamily: FONT.headingSemi },
   phoneChart: { marginTop: 10 },
   phoneMeta: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
   phoneMetaText: { fontSize: 11, fontFamily: mono, color: MK.white50 },

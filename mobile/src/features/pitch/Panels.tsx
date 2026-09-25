@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   glanceHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: 11 },
   glanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24, paddingVertical: 11, minHeight: 42 },
   glanceRule: { borderBottomWidth: 1, borderBottomColor: PP.hair },
-  glanceVal: { fontFamily: FONT.heading, fontSize: 22, lineHeight: 24.2, letterSpacing: -0.33, color: PP.ink, textAlign: "right", flexShrink: 1 },
+  glanceVal: { fontFamily: FONT.headingSemi, fontSize: 22, lineHeight: 24.2, letterSpacing: -0.33, color: PP.ink, textAlign: "right", flexShrink: 1 },
   statValue: { fontFamily: FONT.headingHeavy, fontSize: 28.5, lineHeight: 25.65, letterSpacing: -1, color: PP.ink, paddingTop: 3 },
   statHolding: { fontFamily: FONT.dataRegular, fontSize: 14, letterSpacing: 0, color: PP.mute },
   statDots: { width: "46%", marginTop: 14, marginBottom: 12 },

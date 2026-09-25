@@ -127,5 +127,6 @@ const styles = StyleSheet.create({
   name: { marginTop: 18, fontFamily: FONT.heading },
   pnl: { marginTop: 24, flexDirection: "row", alignItems: "baseline" },
   pnlText: { fontFamily: FONT.headingHeavy },
-  cur: { fontFamily: FONT.dataRegular },
+  // web: 800, the pnl's weight inherited; the heaviest mono loaded.
+  cur: { fontFamily: FONT.dataStrong },
 });

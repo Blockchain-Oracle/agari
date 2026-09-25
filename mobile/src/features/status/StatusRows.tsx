@@ -94,7 +94,7 @@ export function StatusTable({ pipelines, sessionLabel }: { pipelines: StatusPipe
 const styles = StyleSheet.create({
   banner: { flexDirection: "row", alignItems: "center", gap: 16, padding: 20, borderRadius: 12, borderWidth: 1 },
   bannerText: { flex: 1 },
-  bannerTitle: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 22.4 },
+  bannerTitle: { fontFamily: FONT.bodyBold, fontSize: 14, lineHeight: 22.4 },
   bannerSub: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2, marginTop: 2 },
   checkpoint: { alignItems: "flex-end" },
   mono9: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.44, textTransform: "uppercase" },

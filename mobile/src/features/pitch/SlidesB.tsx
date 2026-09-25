@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   teamAvatar: { width: 58, height: 58, borderRadius: 29, backgroundColor: PP.paper2, borderWidth: 1, borderColor: PP.hair, alignItems: "center", justifyContent: "center" },
   teamText: { flex: 1 },
   teamName: { fontFamily: FONT.heading, fontSize: 22, lineHeight: 28, color: PP.ink },
-  teamRole: { fontFamily: FONT.body, fontSize: 15, color: PP.mute },
+  teamRole: { fontFamily: FONT.headingRegular, fontSize: 15, color: PP.mute },
   teamBody: { marginTop: 6, fontFamily: FONT.dataRegular, fontSize: 13.5, lineHeight: 20.25, color: PP.body },
   roadmapFoot: { marginTop: 28, alignSelf: "flex-start", borderTopWidth: 2, borderTopColor: PP.green, paddingTop: 12 },
   askWrap: { marginTop: 24 },
