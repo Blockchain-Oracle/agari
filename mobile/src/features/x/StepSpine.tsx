@@ -5,11 +5,10 @@ import Svg, { Path } from "react-native-svg";
 import { TRADE_FROM_X } from "@/features/x/copy";
 import { FONT, useTheme } from "~/theme";
 import { mixHex, tradeXTokens } from "~/theme/web/products/trade-x";
-import { E_DRAW, E_EMPH, E_OUT, useLoop, useOnce } from "./motion";
+import { E_DRAW, E_EMPH, E_OUT, onceAt, svgRepaint, useLoop, useSvgClock } from "./motion";
 
 export type StepState = "idle" | "active" | "done";
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 /** web's StepSpine.tsx `Step`: a step on the focus-follows-step spine; the segment below fills once the flow passes it. */
 export function Step({ n, title, state, spine, isLast, children }: {
@@ -64,11 +63,11 @@ export function Dot({ v }: { v?: boolean }) {
 /** web's `Tick` (`.xt-check`): the mint check, stroke drawn in over 0.42 s. */
 export function Tick() {
   const t = tradeXTokens(useTheme().name);
-  const draw = useOnce(420, 50, E_DRAW, false);
-  const offset = draw.interpolate({ inputRange: [0, 1], outputRange: [24, 0] });
+  const ms = useSvgClock(30, 470);
+  const draw = onceAt(ms, 420, 50, E_DRAW);
   return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-      <AnimatedPath d="M5 13l4 4L19 7" stroke={t.m} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="24" strokeDashoffset={offset} />
+    <Svg width={14 - svgRepaint(ms)} height={14} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 13l4 4L19 7" stroke={t.m} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="24 24" strokeDashoffset={24 * (1 - draw)} />
     </Svg>
   );
 }
