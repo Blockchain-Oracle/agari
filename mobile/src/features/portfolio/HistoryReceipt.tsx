@@ -3,6 +3,7 @@ import { isOk } from "@agari/core/schemas";
 import { useMarket, useResolution } from "@agari/markets/react";
 import { X } from "lucide-react-native";
 import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Animated, { Easing, FadeIn, useReducedMotion, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HISTORY } from "@/features/markets/history/copy";
 import { VerdictCard } from "~/features/markets/verdict/VerdictCard";
@@ -30,11 +31,15 @@ function ReceiptBody({ round, symbol }: { round: SettledRound; symbol: string })
 export function HistoryReceipt({ round, symbol, onClose }: { round: SettledRound | null; symbol: string; onClose: () => void }) {
   const { color } = useTheme();
   const insets = useSafeAreaInsets();
+  const reduce = useReducedMotion();
   return (
-    <Modal visible={round !== null} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={round !== null} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.root}>
-        <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: color.scrim }]} onPress={onClose} accessibilityLabel="Close" />
-        <View
+        <Animated.View entering={reduce ? undefined : FadeIn.duration(150)} style={StyleSheet.absoluteFill}>
+          <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: color.scrim }]} onPress={onClose} accessibilityLabel="Close" />
+        </Animated.View>
+        <Animated.View
+          entering={reduce ? undefined : slideUp}
           style={[styles.sheet, { backgroundColor: color.ground, borderTopColor: color.hairline, paddingBottom: 20 + insets.bottom }]}
           accessibilityViewIsModal
           accessibilityLabel={round ? `${HISTORY.receiptTitle}. ${round.asset} · ${HISTORY.outcome[round.outcome]}` : HISTORY.receiptTitle}
@@ -45,10 +50,20 @@ export function HistoryReceipt({ round, symbol, onClose }: { round: SettledRound
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={styles.close} hitSlop={4}>
             <X size={16} color={color.ink} />
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
+}
+
+/** The sheet's `data-starting-style:translate-y-[2.5rem] opacity-0` over `duration-200 ease-in-out`: 40 pt up, fading in. */
+function slideUp() {
+  "worklet";
+  const timing = { duration: 200, easing: Easing.inOut(Easing.ease) };
+  return {
+    initialValues: { opacity: 0, transform: [{ translateY: 40 }] },
+    animations: { opacity: withTiming(1, timing), transform: [{ translateY: withTiming(0, timing) }] },
+  };
 }
 
 const styles = StyleSheet.create({
