@@ -4,7 +4,7 @@ import Svg, { Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import type { ChartPoint } from "@/features/markets/hero/useChartSeries";
 import { HERO } from "@/lib/copy";
 import { FONT } from "~/theme";
-import { layoutChart, toValue } from "../ticket/chart-scale";
+import { clearTicks, layoutChart, toValue } from "../ticket/chart-scale";
 import { useTk } from "../ticket/tk";
 
 /** web's `.hero-chart-canvas` on a phone: 230 px — a 202 px pane over lightweight-charts' 28 px time axis, a 62 px price scale. */
@@ -45,7 +45,7 @@ export function PriceChart({ points, openingRaw, lineLabel = HERO.openingPrint, 
           {chart.ticks.map((tick) => (
             <Line key={`g${tick.value}`} x1={0} x2={plotW} y1={tick.y} y2={tick.y} stroke={tk.chartGrid} strokeWidth={1} />
           ))}
-          {chart.ticks.map((tick) => (
+          {clearTicks(chart, LABEL_H).map((tick) => (
             <SvgText key={`t${tick.value}`} x={plotW + 8} y={tick.y + 4} fill={tk.chartText} {...text}>
               {tick.value.toFixed(2)}
             </SvgText>

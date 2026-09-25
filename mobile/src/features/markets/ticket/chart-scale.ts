@@ -75,3 +75,12 @@ export function layoutChart(points: readonly ChartPoint[], refRaw: bigint | null
   const lastValue = values.at(-1)!;
   return { path, last: { x: x(points.at(-1)!.timeSec), y: y(lastValue), value: lastValue }, refY: ref === null ? null : y(ref), ticks, times };
 }
+
+/**
+ * The scale's round-price labels that stay clear of the boxed tags (the last value, the reference line): as
+ * lightweight-charts does, a tick label a tag would overlap is not drawn — the tag wins.
+ */
+export function clearTicks(chart: ChartLayout, labelH: number): ChartLayout["ticks"] {
+  const tags = [chart.last.y, ...(chart.refY === null ? [] : [chart.refY])];
+  return chart.ticks.filter((tick) => tags.every((y) => Math.abs(tick.y - y) >= labelH));
+}

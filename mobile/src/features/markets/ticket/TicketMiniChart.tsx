@@ -8,7 +8,7 @@ import { useChartSeries } from "@/features/markets/hero/useChartSeries";
 import { HERO } from "@/lib/copy";
 import { ErrorState, LoadingState } from "~/components/kit";
 import { FONT } from "~/theme";
-import { layoutChart, toValue } from "./chart-scale";
+import { clearTicks, layoutChart, toValue } from "./chart-scale";
 import { useTk } from "./tk";
 
 /** web's `.tk-mini-chart-canvas` is 128 px: a 100 px pane over lightweight-charts' 28 px time axis, a 62 px price scale. */
@@ -58,7 +58,7 @@ function Canvas({ points, openingRaw }: { points: readonly ChartPoint[]; opening
           {chart.ticks.map((tick) => (
             <Line key={`g${tick.value}`} x1={0} x2={plotW} y1={tick.y} y2={tick.y} stroke={tk.chartGrid} strokeWidth={1} />
           ))}
-          {chart.ticks.map((tick) => (
+          {clearTicks(chart, LABEL_H).map((tick) => (
             <SvgText key={`t${tick.value}`} x={plotW + 8} y={tick.y + 4} fill={tk.chartText} {...text}>
               {tick.value.toFixed(2)}
             </SvgText>

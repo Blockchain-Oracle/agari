@@ -1,7 +1,7 @@
 import { neededMove } from "@agari/core/market";
 import type { Lane } from "@agari/core/types";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { assetPairUnit, assetPriceLine } from "@/features/markets/hero/units";
 import { compareLaneTabKeys, laneTabKey, laneTabLabel, laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";
 import { HERO, HERO_HEAD } from "@/lib/copy";
@@ -39,28 +39,42 @@ interface Tab {
   onPress: () => void;
 }
 
-/** `.mh-cadence-tabs`: type alone carries the state — idle at 35 %, a dead slot at 15 %, the one on screen vermilion and underlined. */
-export function CadenceRow({ tabs, accessibilityLabel }: { tabs: readonly Tab[]; accessibilityLabel: string }) {
+/**
+ * `.mh-cadence-tabs`: type alone carries the state — idle at 35 %, a dead slot at 15 %, the one on screen vermilion and
+ * underlined. Labels never break; the lane set takes its own line under the asset (as it wraps on web at 402 px) and
+ * scrolls sideways when it outruns the head.
+ */
+export function CadenceRow({ tabs, accessibilityLabel, block = false }: { tabs: readonly Tab[]; accessibilityLabel: string; block?: boolean }) {
   const mk = useMk();
+  const row = tabs.map((tab) => (
+    <Pressable
+      key={tab.key}
+      disabled={!tab.live}
+      onPress={() => {
+        haptic.select();
+        tab.onPress();
+      }}
+      accessibilityRole="radio"
+      accessibilityState={{ selected: tab.on, disabled: !tab.live }}
+      style={styles.tab}
+    >
+      <Text numberOfLines={1} style={[mkType.cadence, { color: tab.on ? mk.vermilion : tab.live ? mk.cadence : mk.cadenceOff }]}>
+        {tab.label}
+      </Text>
+      {tab.on ? <View style={[styles.underline, { backgroundColor: mk.vermilion }]} /> : null}
+    </Pressable>
+  ));
+  if (!block) {
+    return (
+      <View style={styles.tabs} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
+        {row}
+      </View>
+    );
+  }
   return (
-    <View style={styles.tabs} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
-      {tabs.map((tab) => (
-        <Pressable
-          key={tab.key}
-          disabled={!tab.live}
-          onPress={() => {
-            haptic.select();
-            tab.onPress();
-          }}
-          accessibilityRole="radio"
-          accessibilityState={{ selected: tab.on, disabled: !tab.live }}
-          style={styles.tab}
-        >
-          <Text style={[mkType.cadence, { color: tab.on ? mk.vermilion : tab.live ? mk.cadence : mk.cadenceOff }]}>{tab.label}</Text>
-          {tab.on ? <View style={[styles.underline, { backgroundColor: mk.vermilion }]} /> : null}
-        </Pressable>
-      ))}
-    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.block} contentContainerStyle={styles.tabs} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
+      {row}
+    </ScrollView>
   );
 }
 
@@ -72,7 +86,7 @@ export function HeroCadenceTabs({ lanes, activeKey, pinnedMissingKey, onPin }: {
     slots.push({ key: pinnedMissingKey, label: laneTabLabel(basis, intervalSec), live: false });
   }
   slots.sort((a, b) => compareLaneTabKeys(a.key, b.key));
-  return <CadenceRow accessibilityLabel={HERO_HEAD.cadenceGroup} tabs={slots.map((slot) => ({ ...slot, on: slot.key === activeKey, onPress: () => onPin(slot.key) }))} />;
+  return <CadenceRow block accessibilityLabel={HERO_HEAD.cadenceGroup} tabs={slots.map((slot) => ({ ...slot, on: slot.key === activeKey, onPress: () => onPin(slot.key) }))} />;
 }
 
 /** web's HeroQuestion: the headline against the opening print (vermilion), then how far the live price sits from it, about UP. */
@@ -132,8 +146,9 @@ const styles = StyleSheet.create({
   head: { flexDirection: "row", justifyContent: "space-between", gap: 10, paddingVertical: 12, paddingHorizontal: 14 },
   left: { flex: 1, minWidth: 0 },
   assetRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 10 },
-  tabs: { flexDirection: "row", alignItems: "flex-end", gap: 12, flexShrink: 1 },
-  tab: { paddingBottom: 4, flexShrink: 1 },
+  tabs: { flexDirection: "row", alignItems: "flex-end", gap: 12 },
+  block: { width: "100%", flexGrow: 0 },
+  tab: { paddingBottom: 4 },
   underline: { position: "absolute", left: 0, right: 0, bottom: 0, height: 1 },
   distance: headStyles.distance,
   settles: { flexShrink: 0 },
