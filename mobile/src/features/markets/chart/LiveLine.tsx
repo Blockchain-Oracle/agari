@@ -1,15 +1,15 @@
-import { useEffect, useId, useState } from "react";
-import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
-import Animated, { Easing, useAnimatedProps, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import { useId, useState } from "react";
+import { Easing, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import Svg, { Circle, ClipPath, Defs, Line, LinearGradient, Path, Rect } from "react-native-svg";
 import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import type { ChartPoint } from "@/features/markets/hero/useChartSeries";
 import { assetPriceLine } from "@/features/markets/hero/units";
 import { HERO } from "@/lib/copy";
 import { FONT, RADIUS, useTheme } from "~/theme";
+import { loopAt, svgRepaint, useSvgClock } from "~/components/ui/svg-clock";
 import { plotSeries } from "./plot";
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface Props {
   points: readonly ChartPoint[];
@@ -35,6 +35,7 @@ export function LiveLine({ points, strikeRaw, asset, height = 220, domain = null
   const { color } = useTheme();
   const [width, setWidth] = useState(0);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const reduce = useReducedMotion();
   const onLayout = (event: LayoutChangeEvent) => setWidth(Math.round(event.nativeEvent.layout.width));
   const plot = plotSeries(points, strikeRaw, { width, height, padY: bare ? 4 : 14, domain });
 
@@ -84,6 +85,7 @@ export function LiveLine({ points, strikeRaw, asset, height = 220, domain = null
         )}
         <PulseHead x={plot.last.x} y={plot.last.y} ink={strikeY === null ? color.ink : tone} />
       </Svg>
+      {reduce ? null : <PulseRing x={plot.last.x} y={plot.last.y} ink={strikeY === null ? color.ink : tone} />}
       {!bare && strikeY !== null && strikeRaw !== null ? (
         <View style={[styles.strikeTag, { top: Math.min(Math.max(strikeY - 22, 0), height - 20), backgroundColor: color.ground, borderColor: color.hairline }]}>
           <Text style={[styles.tagText, { color: color.inkSecondary }]}>
@@ -100,23 +102,30 @@ export function LiveLine({ points, strikeRaw, asset, height = 220, domain = null
   );
 }
 
-/** The newest print: a solid dot and a ring that breathes out from it. */
+/** The newest print: a solid dot inside the chart. */
 function PulseHead({ x, y, ink }: { x: number; y: number; ink: string }) {
-  const reduce = useReducedMotion();
-  const pulse = useSharedValue(0);
-  useEffect(() => {
-    if (!reduce) pulse.value = withRepeat(withTiming(1, { duration: 1400, easing: Easing.out(Easing.quad) }), -1, false);
-  }, [reduce, pulse]);
-  const ring = useAnimatedProps(() => ({ r: 4 + pulse.value * 10, opacity: 0.45 * (1 - pulse.value) }));
+  return <Circle cx={x} cy={y} r={4} fill={ink} />;
+}
+
+const RING = 28;
+const PULSE_OUT = Easing.out(Easing.quad);
+
+/**
+ * The ring that breathes out from the newest print, in its own small Svg over the chart so only it redraws each frame
+ * (react-native-svg repaints on layout, not on a child's prop change: see `useSvgClock`).
+ */
+function PulseRing({ x, y, ink }: { x: number; y: number; ink: string }) {
+  const ms = useSvgClock();
+  const p = PULSE_OUT(loopAt(ms, 1400));
   return (
-    <>
-      {reduce ? null : <AnimatedCircle cx={x} cy={y} fill={ink} animatedProps={ring} />}
-      <Circle cx={x} cy={y} r={4} fill={ink} />
-    </>
+    <Svg pointerEvents="none" width={RING - svgRepaint(ms)} height={RING} style={[styles.ring, { left: x - RING / 2, top: y - RING / 2 }]}>
+      <Circle cx={RING / 2} cy={RING / 2} r={4 + p * 10} fill={ink} opacity={0.45 * (1 - p)} />
+    </Svg>
   );
 }
 
 const styles = StyleSheet.create({
+  ring: { position: "absolute" },
   strikeTag: { position: "absolute", left: 0, paddingHorizontal: 6, height: 20, borderRadius: RADIUS.sm, borderWidth: StyleSheet.hairlineWidth, justifyContent: "center" },
   lastTag: { position: "absolute", right: 0, paddingHorizontal: 6, height: 20, borderRadius: RADIUS.sm, justifyContent: "center" },
   tagText: { fontFamily: FONT.data, fontSize: 11, fontVariant: ["tabular-nums"] },
