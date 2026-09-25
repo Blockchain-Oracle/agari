@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   presets: { marginTop: 8, flexDirection: "row", gap: 4 },
   preset: { flex: 1, borderRadius: 4, borderWidth: 1, paddingVertical: 6, paddingHorizontal: 8 },
   pressed: { transform: [{ scale: 0.98 }] },
-  presetName: { fontFamily: FONT.bodyStrong, fontSize: 11, lineHeight: 11 },
+  presetName: { fontFamily: FONT.headingSemi, fontSize: 11, lineHeight: 11 },
   presetSpan: { marginTop: 4, fontFamily: FONT.dataRegular, fontSize: 7.5, fontVariant: ["tabular-nums"] },
   center: { marginTop: 8, minHeight: 40, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: 1, paddingTop: 8 },
   centerText: { flex: 1, minWidth: 0 },

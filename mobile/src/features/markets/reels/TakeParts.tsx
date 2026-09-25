@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   chip: { flexShrink: 1, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 9999, borderWidth: 1, paddingVertical: 6, paddingHorizontal: 14 },
   voice: { zIndex: 10, flex: 1, minHeight: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: 24 },
   caption: { flex: 1, fontFamily: FONT.heading, fontSize: 30, lineHeight: 33.6, letterSpacing: -0.6 },
-  quiet: { flex: 1, fontFamily: FONT.heading, fontSize: 24, lineHeight: 33, fontStyle: "italic" },
+  quiet: { flex: 1, fontFamily: FONT.headingRegular, fontSize: 24, lineHeight: 33, fontStyle: "italic" },
   cta: { borderRadius: 16, borderWidth: 1, paddingVertical: 14, alignItems: "center" },
   ctaText: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 24 },
   footNote: { marginTop: 10, fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 0.36 },
