@@ -1,0 +1,55 @@
+---
+title: "Get the app"
+description: "Agari on Android and iPhone: the APK, TestFlight, and what the phone app does differently."
+---
+
+Agari has a native app for Android and iPhone. It is the same product as the website, on the same Solana devnet
+Windows, laid out for a phone.
+
+## Android
+
+<img src="/captures/agari-android-qr.svg" alt="QR code that downloads the Agari APK" width="180" height="180" />
+
+Scan the code with your phone's camera, or download the APK directly:
+[agari-0.1.0.apk](https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.0/agari-0.1.0.apk)
+(version 0.1.0, 170 MB, from the [GitHub release](https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.0)).
+
+1. Download the file on your Android phone.
+2. Open it, and allow installs from this source when Android asks.
+3. Open Agari and connect a wallet, or practise first.
+
+To check the file, compare its SHA-256 with:
+
+```
+96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447
+```
+
+Run `sha256sum agari-0.1.0.apk` on Linux, `shasum -a 256 agari-0.1.0.apk` on a Mac, or
+`certutil -hashfile agari-0.1.0.apk SHA256` on Windows.
+
+## iPhone
+
+The iOS build is on its way to TestFlight. Until the invite link is published on
+[useagari.xyz/download](https://useagari.xyz/download), open the website in Safari and add it to your Home Screen:
+it is the same Agari.
+
+## Connecting a wallet
+
+| Choice | How it works |
+| --- | --- |
+| Phantom, Solflare | The app opens the wallet to approve, then returns to Agari. |
+| Android wallet | Android's Mobile Wallet Adapter lets you choose any installed Solana wallet. |
+| Practice wallet | A devnet-only key created on this phone and kept in its secure storage. It never leaves the device and is not restored from a backup onto another phone. |
+
+Set your wallet to Solana devnet first; [Wallet](/start/wallet) explains why and how.
+
+## What is different on a phone
+
+- **A first-run walkthrough.** Four short screens explain a Window, how it settles, the games and test funds.
+- **Bottom drawers.** The Up/Down ticket, Add funds and your account rise from the bottom of the screen, and the
+  ticket shows its receipt in place.
+- **One-tap trading.** Arm tap trading once with a wallet signature, and the app signs calls within your limits from a
+  key kept on the phone. [Tap trading](/trading/tap-trading) covers the limits.
+- **Notifications.** Turn them on from Activity to hear about fills, results and payouts, with a Live Activity for a
+  Window you are in.
+- **Pull to refresh** on every page, and full-screen, sideways arcade runs.

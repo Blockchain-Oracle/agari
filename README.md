@@ -4,9 +4,20 @@
 
 **Agari is an on-chain stock prediction exchange (DEX) on Solana.** Make an Up or Down call on a short price window, cover a tokenized stock you already hold, and inspect the price prints that settled the result. PreStocks powers an around-the-clock pre-IPO lane, five baskets, and a separate portfolio desk you can try with paper money.
 
-[**Open Agari**](https://useagari.xyz) · [**Watch the demo**](https://youtu.be/iPtmue-eyIc) · [**See settlement proof**](https://useagari.xyz/proof) · [**Read the guides**](https://docs.useagari.xyz)
+[**Open Agari**](https://useagari.xyz) · [**Watch the demo**](https://youtu.be/iPtmue-eyIc) · [**Get the Android app**](https://useagari.xyz/download) · [**See settlement proof**](https://useagari.xyz/proof) · [**Read the guides**](https://docs.useagari.xyz)
 
 **Stocklana tracks:** [Main, Best Use of PreStocks, Best use of Pyth market data](https://hackathons.solana.com/hackathons/stocklana).
+
+## Get the app
+
+<img src="docs/assets/readme/android-qr.png" alt="QR code that downloads the Agari Android APK" width="150" align="right" />
+
+Agari runs on Android and iPhone as well as the web, on the same Solana devnet Windows.
+
+- **Android:** scan the code or download [agari-0.1.0.apk](https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.0/agari-0.1.0.apk) (170 MB) from the [GitHub release](https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.0). SHA-256 `96f512678f289a0c0ce201c303d7f663d46e67e9d365654bf4151e4113af6447`.
+- **iPhone:** TestFlight is next. Until then, add [useagari.xyz](https://useagari.xyz) to your Home Screen from Safari.
+
+The app source is in [mobile](mobile); [Get the app](https://docs.useagari.xyz/start/mobile-app) covers wallets on a phone, one-tap trading and notifications.
 
 ## The idea
 
