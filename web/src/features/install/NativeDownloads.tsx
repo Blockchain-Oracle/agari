@@ -28,8 +28,8 @@ function ShaRow() {
 
 /**
  * The two native ways in (S26, 09-25). Android: the signed APK from the GitHub release — a QR for the phone on a
- * desktop, the button on the phone itself, the SHA-256 to check it, three steps. iPhone: the TestFlight invitation
- * and the installable web app while Apple reviews the first beta build.
+ * desktop, the button on the phone itself, the SHA-256 to check it, three steps. iPhone: the public TestFlight
+ * invitation opens only after Apple approves the first external beta build; the web app remains installable.
  */
 export function NativeDownloads() {
   return (
@@ -71,12 +71,16 @@ export function NativeDownloads() {
           <h2>{INSTALL.ios.title}</h2>
         </div>
         <p className="dl-card-line">{INSTALL.ios.body}</p>
-        <a className="dl-cta" href={IOS_TESTFLIGHT.url} data-cursor="hover">
-          {INSTALL.ios.cta}
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="dl-cta-arrow">
-            <path d="M5 12h14m0 0-5-5m5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
+        {IOS_TESTFLIGHT.publicOpen ? (
+          <a className="dl-cta" href={IOS_TESTFLIGHT.url} data-cursor="hover">
+            {INSTALL.ios.cta}
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="dl-cta-arrow">
+              <path d="M5 12h14m0 0-5-5m5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+        ) : (
+          <span className="dl-cta is-inert" role="status">{INSTALL.ios.pending}</span>
+        )}
         <InstallCta />
       </article>
     </section>

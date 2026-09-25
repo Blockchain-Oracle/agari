@@ -21,9 +21,14 @@
 - **iOS:** App Store Connect app "Agari – Call the Close" (6816116543). Build 9 (0.1.0) uploaded with `xcrun altool`
   (EAS's submit queue stalled; key copied to `~/.appstoreconnect/private_keys/`), VALID, internal testing ready.
   Public group "Agari Beta" (`https://testflight.apple.com/join/g3MnDrr7`) holds build 9, beta review submitted
-  09-25 (WAITING_FOR_REVIEW); the link is live on /download. Signing: ASC key `~/.config/agari/apple/AuthKey_852363VPL4.p8`
+  09-25 (WAITING_FOR_REVIEW); the link was shown on /download before it accepted testers. Signing: ASC key `~/.config/agari/apple/AuthKey_852363VPL4.p8`
   (issuer 911e920f-…, team 86C6ZFJ6V6); builds need `EXPO_NO_CAPABILITY_SYNC=1` (App Groups + Push set by hand).
   APNs key 9XH4KQF4M5 (Sandbox & Production) is the project's push key on EAS; copy in `~/.config/agari/apple/`.
+- **TestFlight correction (09-25):** App Store Connect API confirms the public link is correct, enabled, and has no
+  tester cap, but build 9 is `WAITING_FOR_REVIEW` / `WAITING_FOR_BETA_REVIEW`. The link itself currently says
+  "This beta isn't accepting any new testers right now." Build 9 is `READY_FOR_BETA_TESTING` internally; the sole
+  existing App Store Connect account holder was added to the Agari Internal group at the owner's request. The
+  internal group now has one tester and build 9. Its invitation email and iPhone installation are not yet verified.
 - **Films** (outside the repo, `~/dev/hackathon/agari-video`, HyperFrames): `agari-launch` (20 s 16:9 launch film,
   real simulator footage, ElevenLabs music + SFX, 240 fps render blended to 60) is on /download; `agari-loop` (14 s
   square UI morph loop, 1440², loops seamlessly) done. Both MP4s: `~/dev/hackathon/agari-release/films/`.
