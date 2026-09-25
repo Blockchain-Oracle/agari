@@ -1,150 +1,98 @@
-import * as Clipboard from "expo-clipboard";
-import Constants from "expo-constants";
-import { SymbolView } from "expo-symbols";
-import { Platform, Share, StyleSheet, Text, View } from "react-native";
-import { INSTALL } from "@/features/install/copy";
-import { Button, Card, haptic, Row, Rows, Screen, SectionHeader } from "~/components/kit";
+import { Platform, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { ExplorePage } from "~/features/explore/ExplorePage";
 import { AgariMark } from "~/components/shell/AgariMark";
-import { pushToast } from "~/components/toast/store";
-import { marketsEnv, SITE_URL } from "~/lib/env";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { SITE_URL } from "~/lib/env";
+import { FONT, useTheme } from "~/theme";
+import { downloadTokens } from "~/theme/web/explore/download";
+import { APP_INSTALL } from "./copy";
+import { PhoneShot } from "./PhoneShot";
 
-const WEB_HOST = new URL(SITE_URL).host;
-const [WEB_META, DEVNET_META] = INSTALL.meta;
+/** `ui-serif` italic under web's title `em`: Georgia on iOS, the system serif on Android. */
+const SERIF = Platform.select({ ios: "Georgia", default: "serif" });
 
-/** web DownloadPage.tsx's head, from the phone: the eyebrow says where Agari also runs; the title and line are web's. */
-function Head() {
-  const { color } = useTheme();
+/** web's TrayArrow: an arrow descending into a tray. */
+function TrayArrow({ ink }: { ink: string }) {
   return (
-    <View style={styles.head}>
-      <Text style={[styles.eyebrow, { color: color.accent }]}>AGARI ON YOUR OTHER DEVICES</Text>
-      <Text style={[TYPE.display, { color: color.ink }]} accessibilityRole="header">
-        {INSTALL.titleLead}
-        <Text style={{ color: color.accent }}>{INSTALL.titleEm}</Text>
-      </Text>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{INSTALL.line}</Text>
-    </View>
-  );
-}
-
-/** What this install is: the app's own version and platform, and the network it trades on. */
-function ThisPhone() {
-  const version = Constants.expoConfig?.version ?? "—";
-  const os = `${Platform.OS === "ios" ? "iOS" : "Android"} ${String(Platform.Version)}`;
-  return (
-    <>
-      <SectionHeader index="01" title="This phone" desc="You are in the native app — every screen here is drawn on the phone." />
-      <Rows>
-        <Row label="App" value={`Agari ${version}`} />
-        <Row label="Platform" value={os} />
-        <Row label="Network" value={`Solana ${marketsEnv.cluster}`} tone="accent" hint={DEVNET_META?.note} />
-      </Rows>
-    </>
-  );
-}
-
-/** The web app for a computer: the address to type, copy or send to yourself, and web's own install note. */
-function OnAComputer() {
-  const { color } = useTheme();
-  const copy = async () => {
-    await Clipboard.setStringAsync(SITE_URL);
-    haptic.success();
-    pushToast({ tone: "neutral", title: "Link copied", description: SITE_URL });
-  };
-  return (
-    <>
-      <SectionHeader index="02" title="On a computer" desc={WEB_META ? `${WEB_META.label} · ${WEB_META.note}` : undefined} />
-      <Card>
-        <View style={styles.urlRow}>
-          <SymbolView name={{ ios: "desktopcomputer", android: "computer" }} size={22} tintColor={color.accent} />
-          <Text style={[TYPE.dataLg, styles.url, { color: color.ink }]} selectable>
-            {WEB_HOST}
-          </Text>
-        </View>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{INSTALL.manualHint}</Text>
-        <View style={styles.actions}>
-          <Button label="Copy link" icon={{ ios: "doc.on.doc", android: "content_copy" }} onPress={() => void copy()} variant="secondary" style={styles.action} />
-          <Button
-            label="Send to…"
-            icon={{ ios: "square.and.arrow.up", android: "share" }}
-            onPress={() => void Share.share({ message: `Agari — ${SITE_URL}`, url: SITE_URL })}
-            variant="outline"
-            style={styles.action}
-          />
-        </View>
-      </Card>
-    </>
-  );
-}
-
-/** Another phone: an invite build from the team (no store listing), or web's own install path — Safari's Add to Home Screen, or the browser menu. */
-function OnAnotherPhone() {
-  const { color } = useTheme();
-  return (
-    <>
-      <SectionHeader index="03" title="On another phone" desc="The native app has no store listing: ask the team for an invite build. Or open the web app there and install it from the browser." />
-      <Card>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>iPhone · {INSTALL.cta.ios}</Text>
-        {INSTALL.iosSteps.map((step, index) => (
-          <View key={step} style={styles.stepRow}>
-            <Text style={[styles.stepNum, { color: color.accent, borderColor: color.accentDim }]}>{index + 1}</Text>
-            <Text style={[TYPE.body, styles.stepText, { color: color.ink }]}>{step}</Text>
-          </View>
-        ))}
-        <View style={[styles.rule, { backgroundColor: color.hairline }]} />
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Android · {INSTALL.cta.manual}</Text>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{INSTALL.manualHint}</Text>
-      </Card>
-    </>
+    <Svg width={18} height={18} viewBox="0 0 24 24" accessible={false}>
+      <Path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke={ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
 /**
- * `/download` — web features/install, turned round for the phone: the app is already here, so the page is about
- * Agari's other doors (the web app on a computer, another phone), then web's three points and its foot, word for word.
+ * `/download` — web DownloadPage.tsx as it draws at 402 px (`.dl-*`, part-18.css): the phone capture, then the
+ * eyebrow, the title with its serif italic, the line, the pill CTA and the meta row; the three points over a rule and
+ * the foot. The app is already installed, so the CTA sends the web app's link to another device and the meta row
+ * names where Agari runs.
  */
 export function DownloadScreen() {
-  const { color } = useTheme();
+  const { name, color } = useTheme();
+  const t = downloadTokens(name);
+  const share = () => void Share.share({ message: APP_INSTALL.shareMessage(SITE_URL), url: SITE_URL });
+
   return (
-    <Screen title={INSTALL.title}>
-      <Head />
-      <ThisPhone />
-      <OnAComputer />
-      <OnAnotherPhone />
-      <SectionHeader index="04" title="Everywhere Agari runs" />
-      {INSTALL.points.map((point) => (
-        <Card key={point.title}>
-          <View style={styles.point}>
-            <AgariMark width={22} height={22} />
-            <Text style={[TYPE.title, { color: color.ink }]}>{point.title}</Text>
+    <ExplorePage title={APP_INSTALL.title} style={styles.dl}>
+      <PhoneShot />
+
+      <View style={styles.copy}>
+        <Text style={[styles.eyebrow, { color: color.inkMuted }]}>{APP_INSTALL.eyebrow}</Text>
+        <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+          {APP_INSTALL.titleLead}
+          <Text style={[styles.titleEm, { color: color.accent }]}>{APP_INSTALL.titleEm}</Text>
+        </Text>
+        <Text style={[styles.line, { color: color.inkSecondary }]}>{APP_INSTALL.line}</Text>
+
+        <Pressable
+          onPress={share}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.cta, { backgroundColor: pressed ? color.accentPressed : color.accent }]}
+        >
+          <Text style={[styles.ctaText, { color: color.onAccent }]}>{APP_INSTALL.cta}</Text>
+          <TrayArrow ink={color.onAccent} />
+        </Pressable>
+
+        <View style={styles.meta}>
+          {APP_INSTALL.meta.map((item) => (
+            <View key={item.label} style={styles.metaItem}>
+              <Text style={[styles.metaLabel, { color: color.accent }]}>{item.label}</Text>
+              <Text style={[styles.metaNote, { color: color.inkMuted }]}>{item.note}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={[styles.points, { borderTopColor: t.pointsRule }]}>
+        {APP_INSTALL.points.map((point) => (
+          <View key={point.title}>
+            <AgariMark width={22} height={22} figure={color.accent} />
+            <Text style={[styles.pointTitle, { color: color.ink }]}>{point.title}</Text>
+            <Text style={[styles.pointBody, { color: color.inkMuted }]}>{point.body}</Text>
           </View>
-          <Text style={[TYPE.body, { color: color.inkSecondary }]}>{point.body}</Text>
-        </Card>
-      ))}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{INSTALL.foot}</Text>
-    </Screen>
+        ))}
+      </View>
+
+      <Text style={[styles.foot, { color: color.inkDisabled }]}>{APP_INSTALL.foot}</Text>
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { gap: 10 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.8 },
-  urlRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  url: { flexShrink: 1 },
-  actions: { flexDirection: "row", gap: 8 },
-  action: { flex: 1 },
-  stepRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  stepNum: {
-    fontFamily: FONT.dataStrong,
-    fontSize: 12,
-    width: 24,
-    height: 24,
-    lineHeight: 22,
-    textAlign: "center",
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-  },
-  stepText: { flex: 1 },
-  rule: { height: StyleSheet.hairlineWidth },
-  point: { flexDirection: "row", alignItems: "center", gap: 10 },
+  // .dl (28 20.1 90) around .dl-hero's 20.1 top; the page frame adds the dock floor under the 90.
+  dl: { paddingHorizontal: 20, paddingTop: 48, paddingBottom: 202 },
+  copy: { marginTop: 44 },
+  eyebrow: { fontFamily: FONT.bodyStrong, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.98, marginBottom: 12 },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 39, lineHeight: 40, letterSpacing: -1.365, marginTop: 14 },
+  titleEm: { fontFamily: SERIF, fontStyle: "italic", fontWeight: "500", letterSpacing: -1.365 },
+  line: { fontFamily: FONT.body, fontSize: 14.7, lineHeight: 24.255, marginTop: 22 },
+  cta: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 12, marginTop: 34, paddingVertical: 15, paddingHorizontal: 30, borderRadius: 999 },
+  ctaText: { fontFamily: FONT.heading, fontSize: 16, lineHeight: 25.6, letterSpacing: -0.15 },
+  meta: { flexDirection: "row", flexWrap: "wrap", gap: 20, marginTop: 40 },
+  metaItem: { gap: 5 },
+  metaLabel: { fontFamily: FONT.data, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.54, textTransform: "uppercase" },
+  metaNote: { fontFamily: FONT.body, fontSize: 12.9, lineHeight: 20.64 },
+  points: { gap: 22, marginTop: 60, paddingTop: 30, borderTopWidth: 1 },
+  pointTitle: { fontFamily: FONT.heading, fontSize: 16.2, lineHeight: 25.92, letterSpacing: -0.162, marginTop: 16, marginBottom: 8 },
+  pointBody: { fontFamily: FONT.body, fontSize: 13.8, lineHeight: 22.08, maxWidth: 296 },
+  foot: { fontFamily: FONT.body, fontSize: 12.6, lineHeight: 21.42, marginTop: 46 },
 });
