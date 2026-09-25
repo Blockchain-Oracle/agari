@@ -1,13 +1,12 @@
 import {
-  Activity, BadgeCheck, BarChart3, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartNoAxesCombined, CircleHelp, CirclePlus,
-  Clapperboard, Coins, Dices, Download, Gamepad2, Goal, Handshake, Inbox, KeyRound, Layers3, MessageSquare, Mountain, Newspaper, Presentation,
-  Rocket, ScanSearch, TrendingDown, Trophy, type LucideIcon,
+  Activity, BookOpen, Bot, Boxes, Briefcase, ChartCandlestick, ChartNoAxesCombined, CircleHelp, CirclePlus, Coins, Dices, Gamepad2, Goal, Handshake, Inbox, KeyRound, Layers3, MessageSquare, Mountain, Rocket, TrendingDown, Trophy, type LucideIcon,
 } from "lucide-react-native";
 import type { BrandLogo } from "~/components/logos/brand-logos";
 
 /**
  * Web's phone drawer (web/src/components/shell/header/nav-items.ts MOBILE_DRAWER_SECTIONS): the same sections, names,
- * lines, routes and lucide icons.
+ * lines, routes and lucide icons, less what an installed app has no use for (the owner, 09-25): the judge and
+ * marketing pages (Print proof, Stats, Market Surface, News, Demo, Pitch) and Download.
  */
 export interface NavItem {
   name: string;
@@ -60,21 +59,14 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
     item("Sensei", "/sensei", "Ask the market assistant.", MessageSquare),
   ] },
   { id: "proof", name: "Proof", description: "Records and market evidence", items: [
-    item("Print proof", "/proof", "Every settled Window and the signed prints that decided it.", BadgeCheck),
     item("Leaderboard", "/leaderboard", "See the strongest verified records.", Trophy),
     item("Activity", "/activity", "Your fills, verdicts and payouts.", Inbox),
-    item("Stats", "/stats", "Inspect protocol and market activity.", BarChart3),
-    item("Market Surface", "/surface", "Read the market structure at a glance.", ScanSearch),
     item("Trader Edge", "/portfolio/edge", "Review your trading edge report.", ChartCandlestick),
   ] },
   { id: "learn", name: "Learn", description: "Guidance and context", items: [
-    item("News", "/news", "Follow the stories moving markets.", Newspaper),
     item("How it works", "/how-it-works", "Understand the product from end to end.", CircleHelp),
     item("Docs", "https://docs.useagari.xyz", "Read step-by-step guides and product documentation.", BookOpen, { external: true }),
     item("Status", "/status", "Check connected services and contracts.", Activity),
-    item("Download", "/download", "Get Agari on your other devices.", Download),
-    item("Demo", "/demo", "Walk through the complete product story.", Clapperboard),
-    item("Pitch", "/pitch", "Read the concise Agari thesis.", Presentation),
   ] },
   { id: "account", name: "Account", description: "Recovery", items: [
     item("X recovery", "/claim", "Recover a trade created from X.", KeyRound),

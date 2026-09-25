@@ -62,8 +62,6 @@ function RootStack() {
   // one island (its own top edge, the dock kept). Dialogs (welcome, connect, funds, account) are transparent modals
   // over it, each drawing web's own scrim and card or sheet.
   const island = pathname.startsWith("/trade-from-x");
-  // web's pitch deck is full-screen: no strip, header or dock (pitch.css hides the dock under .pitch-deck).
-  const deck = pathname.startsWith("/pitch");
   const { welcome } = useGlobalSearchParams<{ welcome?: string }>();
   useEffect(() => {
     if (welcome === "1") router.push("/welcome");
@@ -71,7 +69,7 @@ function RootStack() {
   return (
     <>
       <StatusBar style={name === "dark" ? "light" : "dark"} />
-      {island || deck ? null : <AppChrome />}
+      {island ? null : <AppChrome />}
       <Stack screenOptions={{ headerShown: false, headerStyle: { backgroundColor: color.ground }, headerTintColor: color.ink, headerBackTitle: "Back", contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="welcome" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
         <Stack.Screen name="(tabs)" />
@@ -81,7 +79,7 @@ function RootStack() {
         <Stack.Screen name="account" options={dialog} />
         <Stack.Screen name="sensei" options={dialog} />
       </Stack>
-      {deck ? null : <BottomDock />}
+      <BottomDock />
       <FundingHost />
       <Toaster />
       <DeskWatcher />

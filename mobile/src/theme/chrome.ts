@@ -5,7 +5,7 @@ import type { ThemeName } from "./index";
  * drawer): yosuku part-02/03/14/15, shell.css, navigation.css and tokens.css --nav-*. Read off useagari.xyz, per theme.
  */
 const DARK = {
-  stripBg: "#000000", connectInk: "#FFFFFF", logoInk: "#FFFFFF", stripBorder: "rgba(224, 77, 38, 0.3)", stripText: "#A3A3A3", stripGo: "#E04D26", stripX: "#525252",
+  connectInk: "#FFFFFF", logoInk: "#FFFFFF",
   marqueeBg: "#000000", marqueeBorder: "rgba(255, 255, 255, 0.06)", marqueeLabel: "#525252", marqueeValue: "#FFFFFF",
   headerBg: "rgba(5, 5, 5, 0.96)", headerBorder: "rgba(255, 255, 255, 0.06)", logoJp: "rgba(224, 77, 38, 0.55)",
   toggleBorder: "rgba(255, 255, 255, 0.1)", toggleInk: "#A3A3A3",
@@ -20,7 +20,7 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
-  stripBg: "#F4EEE3", connectInk: "#FBF7EE", logoInk: "#141210", stripBorder: "rgba(224, 77, 38, 0.3)", stripText: "#5E574B", stripGo: "#D93E1F", stripX: "#9A9080",
+  connectInk: "#FBF7EE", logoInk: "#141210",
   marqueeBg: "#F4EEE3", marqueeBorder: "rgba(255, 255, 255, 0.06)", marqueeLabel: "#9A9080", marqueeValue: "#141210",
   headerBg: "rgba(244, 238, 227, 0.96)", headerBorder: "rgba(255, 255, 255, 0.06)", logoJp: "rgba(217, 62, 31, 0.65)",
   toggleBorder: "rgba(20, 18, 16, 0.14)", toggleInk: "#5E574B",
@@ -37,5 +37,5 @@ const LIGHT: typeof DARK = {
 export type ChromeTokens = typeof DARK;
 export const chromeTokens = (name: ThemeName): ChromeTokens => (name === "dark" ? DARK : LIGHT);
 
-/** Heights of the fixed chrome (px = pt): strip 28, marquee 20, header 46 — web's main padding-top 94. */
-export const CHROME = { strip: 28, marquee: 20, header: 46, dockClearance: 112 } as const;
+/** Heights of the fixed chrome (px = pt): marquee 20, header 46 (web's strip is not drawn in the app). */
+export const CHROME = { marquee: 20, header: 46, dockClearance: 112 } as const;

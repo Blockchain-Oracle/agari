@@ -3,7 +3,6 @@ import { isOk } from "@agari/core/schemas";
 import type { Address, EventMarket, LaneBasis, LaneSet, MarketId, Side } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
 import { marketsProvider } from "@agari/markets";
-import { router } from "expo-router";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";
@@ -56,7 +55,7 @@ export function LaneBoard({ state, boot: bootProp, venueId: venueProp, nowMs, se
   const configured = useMemo(() => configuredLaneKeys(session), [session]);
   const activeKey = state.activeKey ?? configured[0] ?? null;
   const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
-  const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(phrase(session.status, nowSec)), nextAction: { label: SESSION_COPY.ticket.readWire, onPress: () => router.push("/news") } } : null;
+  const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(phrase(session.status, nowSec)) } : null;
   const live = state.activeLane !== null && state.activeLane.markets.length > 0;
   return (
     <ReadingBoundary
@@ -89,7 +88,7 @@ function BetweenRounds({ venueId, basis, intervalSec, nowMs, session }: { venueI
   const next = useLaneNextStart(closed ? null : venueId, intervalSec);
   if (closed) {
     const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
-    return <EmptyState why={SESSION_COPY.lanes.closed(phrase(session.status, nowSec))} nextAction={{ label: SESSION_COPY.ticket.readWire, onPress: () => router.push("/news") }} />;
+    return <EmptyState why={SESSION_COPY.lanes.closed(phrase(session.status, nowSec))} />;
   }
   if (next === null || nowMs === 0) return <LoadingState shape="line" />;
   const nextStartMs = isOk(next) && next.value !== null && secToMs(next.value) > nowMs ? secToMs(next.value) : null;
