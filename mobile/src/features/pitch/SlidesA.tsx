@@ -1,18 +1,22 @@
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
+import Svg, { Line } from "react-native-svg";
 import { PITCH } from "@/features/pitch/copy";
 import { marketsEnv } from "~/lib/env";
-import { FONT, TYPE } from "~/theme";
-import { CountUp, H1, Kicker, Lead, Mono, PAPER, Pills, Rise, Sheet, SpecPanel } from "./Folio";
+import { FONT } from "~/theme";
+import { PITCH_PAPER as PP } from "~/theme/web/explore/pitch";
+import type { Slide } from "./Deck";
+import { CountUp, H1, Ink, Kicker, Lead, Mono, Pills, Rise } from "./Folio";
+import { LogoCard, SolanaMark } from "./Marks";
 import { FrozenPhone, PhoneMock, XBetCard } from "./Mocks";
-import type { Page } from "./Pager";
+import { Glance, GlanceVal, SpecPanel } from "./Panels";
 
 /**
- * Slides 01–08 — web pitch/slides-a.tsx, slide for slide, in web's words (`PITCH`). The phone stacks what web sets
- * side by side: the headline and lead first, the panel or the mock under them.
+ * Slides 01–08 — web pitch/slides-a.tsx as pitch-slides.css stacks it under 900 px: the words first, the panel or
+ * the mock under them, the cell strips as one column.
  *
- * Only the lines that describe where Agari runs are the phone's own: web's deck says "no native build", which the
- * native app itself cannot truthfully repeat (`NATIVE` below).
+ * Only the lines that say where Agari runs are the app's own: web's deck says "no native build", which the native app
+ * itself cannot truthfully repeat (`NATIVE`).
  */
 const C = PITCH.cover;
 const E = PITCH.engine;
@@ -33,36 +37,35 @@ export const NATIVE = {
 const shortAddr = (address: string) => address.slice(0, 10);
 const EVENTS_PROGRAM = marketsEnv.eventsProgramId ?? "not deployed";
 
-function Cells({ cells, note, i = 3 }: { cells: readonly (readonly [string, string, string?])[]; note?: string; i?: number }) {
+/** web `.pitch-cells` under 900 px: one bordered card, the cells stacked with hairlines between. */
+function Cells({ children, note, i = 3 }: { children: React.ReactNode; note?: string; i?: number }) {
   return (
-    <Rise i={i}>
-      <View style={styles.cells}>
-        {cells.map(([name, label, state]) => (
-          <View key={name} style={[styles.cell, { borderColor: PAPER.creamHairline }]}>
-            <Text style={[TYPE.bodyStrong, { color: PAPER.ink }]}>{name}</Text>
-            {state ? <Mono tone={state === "LIVE" ? "live" : "verm"}>{state}</Mono> : null}
-            <Text style={[TYPE.caption, { color: PAPER.inkSecondary }]}>{label}</Text>
-          </View>
-        ))}
-        {note ? <Mono tone="live">{note}</Mono> : null}
-      </View>
+    <Rise i={i} style={styles.cellsWrap}>
+      <View style={styles.cells}>{children}</View>
+      {note ? (
+        <Mono tone="live" size={11} style={styles.cellsNote}>
+          {note}
+        </Mono>
+      ) : null}
     </Rise>
   );
 }
 
-export const SLIDES_A: Page[] = [
+export const SLIDES_A: Slide[] = [
   {
     id: "glance",
     section: C.section,
     render: () => (
-      <Sheet>
-        <H1 lines={[C.h1a, C.h1b]} emph={C.emph} />
-        <Lead>
-          {C.lead} <Text style={{ color: PAPER.ink, fontFamily: FONT.bodyStrong }}>{C.leadStrong}</Text>
-        </Lead>
-        <Pills items={[[C.pills[0], "live"], [NATIVE.pill, "ink"], [C.pills[2], "verm"]]} />
-        <SpecPanel
-          i={4}
+      <View style={styles.row}>
+        <View>
+          <H1 size="cover" lines={[C.h1a]} inline={C.h1b} emph={C.emph} i={0} />
+          <Lead i={1}>
+            {C.lead} <Ink>{C.leadStrong}</Ink>
+          </Lead>
+          <Pills i={2} items={[[C.pills[0], "live"], [NATIVE.pill, "ink"], [C.pills[2], "verm"]]} />
+        </View>
+        <Glance
+          i={3}
           title={C.glanceTitle}
           badge={C.glanceBadge}
           rows={[
@@ -71,130 +74,197 @@ export const SLIDES_A: Page[] = [
             [C.rows.engine[0], C.rows.engine[1], true],
             [C.rows.custody[0], C.rows.custody[1], true],
             C.rows.onboarding,
-            [C.rows.builtOn, C.rows.chain],
+            [
+              C.rows.builtOn,
+              <View key="bo" style={styles.marks}>
+                <SolanaMark s={20} />
+                <GlanceVal>{C.rows.chain}</GlanceVal>
+              </View>,
+            ],
           ]}
         />
-      </Sheet>
+      </View>
     ),
   },
   {
     id: "engine",
     section: E.section,
+    paper: 2,
     render: () => (
-      <Sheet paper={2}>
-        <Kicker>{E.kicker}</Kicker>
-        <H1 lines={[E.h1a, E.h1b]} emph={E.emph} />
-        <Lead>{E.lead}</Lead>
-        <SpecPanel
-          title={E.panelTitle}
-          badge={E.panelBadge}
-          rows={[E.rows[0], [E.rows[1][0], E.rows[1][1], true], E.rows[2], [E.rows[3][0], E.rows[3][1], true], E.rows[4], E.rows[5]]}
-        />
-      </Sheet>
+      <View style={styles.row}>
+        <View>
+          <Kicker>{E.kicker}</Kicker>
+          <H1 size="dense" lines={[E.h1a]} inline={E.h1b} emph={E.emph} />
+          <Lead>{E.lead}</Lead>
+        </View>
+        <SpecPanel i={3} title={E.panelTitle} badge={E.panelBadge} rows={[E.rows[0], [E.rows[1][0], E.rows[1][1], true], E.rows[2], [E.rows[3][0], E.rows[3][1], true], E.rows[4], E.rows[5]]} />
+      </View>
     ),
   },
   {
     id: "gap",
     section: G.section,
     render: () => (
-      <Sheet>
-        <Kicker>{G.kicker}</Kicker>
-        <H1 lines={[G.h1a, G.h1b]} emph={G.emph} />
-        <Lead>{G.lead}</Lead>
-        <FrozenPhone />
-      </Sheet>
+      <View style={styles.row}>
+        <View>
+          <Kicker>{G.kicker}</Kicker>
+          <H1 size="art" lines={[G.h1a]} inline={G.h1b} emph={G.emph} />
+          <Lead>{G.lead}</Lead>
+        </View>
+        <FrozenPhone tilt={4} i={3} />
+      </View>
     ),
   },
   {
     id: "edge",
     section: D.section,
+    paper: 2,
     render: () => (
-      <Sheet paper={2}>
+      <View>
         <Kicker>{D.kicker}</Kicker>
-        <H1 lines={[D.h1a]} emph={D.emph} />
+        <H1 size="art" lines={[D.h1a]} emph={D.emph} />
         <Lead>{D.lead}</Lead>
-        <Cells cells={D.cells} note={D.live} />
-      </Sheet>
+        <Cells note={D.live}>
+          {D.cells.map(([name, label], index) => (
+            <View key={name} style={[styles.cell, index > 0 && styles.cellRule]}>
+              <Text style={styles.cellName}>{name}</Text>
+              <Text style={styles.cellLabel}>{label}</Text>
+            </View>
+          ))}
+        </Cells>
+      </View>
     ),
   },
   {
     id: "x",
     section: X.section,
     render: () => (
-      <Sheet>
-        <Kicker>{X.kicker}</Kicker>
-        <H1 lines={[X.h1a, X.h1b]} emph={X.emph} />
-        <Lead>{X.lead}</Lead>
-        <Pills items={[[X.pills[0], "verm"], [X.pills[1], "ink"], [X.pills[2], "ink"]]} />
-        <XBetCard />
-      </Sheet>
+      <View style={styles.row}>
+        <View>
+          <Kicker>{X.kicker}</Kicker>
+          <H1 size="art" lines={[X.h1a]} inline={X.h1b} emph={X.emph} />
+          <Lead>{X.lead}</Lead>
+          <Pills items={[[X.pills[0], "verm"], [X.pills[1], "ink"], [X.pills[2], "ink"]]} />
+        </View>
+        <XBetCard tilt={-1.5} i={4} />
+      </View>
     ),
   },
   {
     id: "proof",
     section: P.section,
+    paper: 2,
     render: () => (
-      <Sheet paper={2}>
+      <View>
         <Kicker>{P.kicker}</Kicker>
-        <H1 lines={[P.h1a, P.h1b]} emph={P.emph} />
-        <Lead>{P.lead}</Lead>
-        <Rise i={3}>
-          <View style={styles.proofGrid}>
-            <View style={[styles.proofCell, { borderColor: PAPER.creamHairline }]}>
-              <Mono tone="faint">{P.leftLabel}</Mono>
-              <Text style={[styles.figure, { color: PAPER.ink }]}>
-                <CountUp to={137} /> <Text style={[TYPE.caption, { color: PAPER.inkSecondary }]}>on devnet</Text>
-              </Text>
-              <Text style={[TYPE.caption, { color: PAPER.inkSecondary }]}>{P.leftSub}</Text>
-            </View>
-            <View style={[styles.proofCell, { borderColor: PAPER.creamHairline }]}>
-              <Mono tone="faint">{P.rightLabel}</Mono>
-              <Text style={[styles.figure, { color: PAPER.profit }]}>0</Text>
-              <Text style={[TYPE.caption, { color: PAPER.inkSecondary }]}>{P.rightSub}</Text>
-            </View>
-          </View>
-        </Rise>
-        <SpecPanel i={4} title={P.rowsTitle} badge={P.rowsBadge} rows={[P.rows[0], [P.rows[1][0], P.rows[1][1], true], P.rows[2], [P.rows[3][0], P.rows[3][1], true]]} />
-        <Mono tone="mute">
-          {P.provenance} {shortAddr(EVENTS_PROGRAM)} ·{" "}
-          <Link href="/status" style={{ color: PAPER.accent }}>
+        <H1 size="proof" lines={[P.h1a]} inline={P.h1b} emph={P.emph} />
+        <Lead mute>{P.lead}</Lead>
+        <View style={styles.proofGrid}>
+          <Rise i={3}>
+            <Mono tone="faint" size={11}>
+              {P.leftLabel}
+            </Mono>
+            <Text style={styles.proofFigure}>
+              <CountUp to={137} /> <Text style={styles.proofUnit}>on devnet</Text>
+            </Text>
+            <Text style={styles.proofSub}>{P.leftSub}</Text>
+            <Svg width="100%" height={2} style={styles.proofDash}>
+              <Line x1={0} y1={1} x2="100%" y2={1} stroke={PP.verm} strokeWidth={2} strokeDasharray="6 6" />
+            </Svg>
+          </Rise>
+          <Rise i={4}>
+            <Mono tone="faint" size={11}>
+              {P.rightLabel}
+            </Mono>
+            <Text style={[styles.proofFigure, styles.proofZero]}>0</Text>
+            <Text style={styles.proofSub}>{P.rightSub}</Text>
+          </Rise>
+        </View>
+        <View style={styles.proofSpec}>
+          <SpecPanel i={5} title={P.rowsTitle} badge={P.rowsBadge} rows={[P.rows[0], [P.rows[1][0], P.rows[1][1], true], P.rows[2], [P.rows[3][0], P.rows[3][1], true]]} />
+        </View>
+        <Rise i={6} style={styles.provenance}>
+          <Mono tone="mute" size={11}>
+            {P.provenance} {shortAddr(EVENTS_PROGRAM)}
+          </Mono>
+          <Text style={styles.faint}>·</Text>
+          <Text style={styles.linkVerm} onPress={() => router.push("/status")} accessibilityRole="link">
             {P.status}
-          </Link>
-        </Mono>
-      </Sheet>
+          </Text>
+        </Rise>
+      </View>
     ),
   },
   {
     id: "onboard",
     section: O.section,
     render: () => (
-      <Sheet>
+      <View>
         <Kicker>{O.kicker}</Kicker>
-        <H1 lines={[O.h1a, O.h1b]} emph={O.emph} />
+        <H1 size="art" lines={[O.h1a]} inline={O.h1b} emph={O.emph} />
         <Lead>{O.lead}</Lead>
-        <Cells cells={O.cells.map(([name, label, state]) => [name, label, state] as const)} />
-      </Sheet>
+        <Cells>
+          {O.cells.map(([name, label, state], index) => (
+            <View key={name} style={[styles.cell3, index > 0 && styles.cellRule, state !== "LIVE" && styles.cellSoft]}>
+              <View style={styles.cellHead}>
+                {index === 2 ? <LogoCard s={26} /> : null}
+                <Text style={styles.cellName}>{name}</Text>
+              </View>
+              <View style={styles.cellSub}>
+                <Mono tone={state === "LIVE" ? "live" : "verm"} size={10}>
+                  {state}
+                </Mono>
+                <Mono tone="mute" size={10}>
+                  {label}
+                </Mono>
+              </View>
+            </View>
+          ))}
+        </Cells>
+      </View>
     ),
   },
   {
     id: "mobile",
     section: M.section,
+    paper: 2,
     render: () => (
-      <Sheet paper={2}>
-        <Kicker>{M.kicker}</Kicker>
-        <H1 lines={[M.h1a]} emph={M.emph} />
-        <Lead>{NATIVE.mobileLead}</Lead>
-        <Pills items={[[M.pills[0], "verm"], [M.pills[1], "ink"], [NATIVE.pill, "live"]]} />
-        <PhoneMock i={4} />
-      </Sheet>
+      <View style={styles.row}>
+        <View>
+          <Kicker>{M.kicker}</Kicker>
+          <H1 size="art" lines={[M.h1a]} emph={M.emph} />
+          <Lead>{NATIVE.mobileLead}</Lead>
+          <Pills items={[[M.pills[0], "verm"], [M.pills[1], "ink"], [NATIVE.pill, "live"]]} />
+        </View>
+        <PhoneMock tilt={-1.5} i={4} />
+      </View>
     ),
   },
 ];
 
 const styles = StyleSheet.create({
-  cells: { gap: 8 },
-  cell: { borderWidth: 1, borderRadius: 8, padding: 12, gap: 4 },
-  proofGrid: { gap: 10 },
-  proofCell: { borderWidth: 1, borderRadius: 8, padding: 14, gap: 6 },
-  figure: { ...TYPE.dataHero },
+  // .pitch-row under 900 px: a column, 28 px apart, the art centred.
+  row: { gap: 28 },
+  marks: { flexDirection: "row", alignItems: "center", gap: 12 },
+  cellsWrap: { marginTop: 36 },
+  cells: { borderWidth: 1, borderColor: PP.hair, borderRadius: 12, overflow: "hidden", backgroundColor: PP.card },
+  cell: { paddingVertical: 18, paddingHorizontal: 20 },
+  cell3: { paddingVertical: 18, paddingHorizontal: 22 },
+  cellRule: { borderTopWidth: 1, borderTopColor: PP.hair },
+  cellSoft: { backgroundColor: PP.soft },
+  cellHead: { flexDirection: "row", alignItems: "center", gap: 10 },
+  cellName: { fontFamily: FONT.heading, fontSize: 18, lineHeight: 22, letterSpacing: -0.36, color: PP.ink },
+  cellLabel: { marginTop: 6, fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 18, color: PP.body },
+  cellSub: { marginTop: 6, flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  cellsNote: { marginTop: 12 },
+  proofGrid: { marginTop: 32, gap: 20 },
+  proofDash: { marginTop: 20 },
+  proofFigure: { marginTop: 8, fontFamily: FONT.headingHeavy, fontSize: 28.8, lineHeight: 36, letterSpacing: -0.58, color: PP.ink },
+  proofZero: { color: PP.green, alignSelf: "flex-start" },
+  proofUnit: { fontSize: 14.4, color: PP.mute },
+  proofSub: { marginTop: 8, fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 18, color: PP.mute },
+  proofSpec: { marginTop: 28 },
+  provenance: { marginTop: 32, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 },
+  faint: { color: PP.faint, fontFamily: FONT.dataRegular, fontSize: 11 },
+  linkVerm: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, color: PP.verm },
 });
