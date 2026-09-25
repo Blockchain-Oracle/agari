@@ -110,7 +110,7 @@ export function SlipEmpty({ text }: { text: string }) {
 const styles = StyleSheet.create({
   hero: { paddingBottom: 12, borderBottomWidth: 1 },
   grid: { paddingHorizontal: 18, paddingBottom: 14, gap: 20 },
-  title: { fontFamily: FONT.headingHeavy, fontSize: 34.5, lineHeight: 32.43, letterSpacing: -1.725, paddingTop: 4 },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 34.5, lineHeight: 34.5, marginVertical: -1.035, letterSpacing: -1.725, paddingTop: 4 },
   blurb: { marginTop: 20, fontFamily: FONT.body, fontSize: 13, lineHeight: 19.5 },
   container: { paddingHorizontal: 18 },
   cp: { paddingVertical: 48 },

@@ -36,6 +36,20 @@ function fileLength(rule, ctx) {
   return findings;
 }
 
+/** iOS clips a glyph that overflows a line box shorter than its font; web's tight `line-height` is ported as a negative margin. */
+const STYLE_OBJECT = /\{[^{}]*\}/g;
+function mobileTightLeading(rule, ctx) {
+  const findings = [];
+  for (const { rel, abs } of walkFiles(ctx.root, "mobile/src", TS, ["mobile/src/theme"])) {
+    for (const block of readText(abs).match(STYLE_OBJECT) ?? []) {
+      const size = /\bfontSize:\s*([\d.]+)/.exec(block);
+      const leading = /\blineHeight:\s*([\d.]+)/.exec(block);
+      if (size && leading && Number(leading[1]) < Number(size[1])) findings.push(finding(rule, `fontSize ${size[1]} over lineHeight ${leading[1]}`, rel));
+    }
+  }
+  return findings;
+}
+
 /** tap-trading.md §2 (D-066): the session key's secret never exists as bytes in the page. */
 const EXTRACTABLE_KEY = /\bexportKey\s*\(|\bextractable\s*:\s*true\b|\bgenerateKeyPair(?:Signer)?\s*\(\s*true\b/;
 /** The S1 port's PKCS#8 export, which lane 7c replaces with `generateSessionKey` from `@agari/markets` and the v2 store. */
@@ -86,6 +100,7 @@ export const rules = [
     exclude: ["mobile/src/theme", "mobile/src/components/ui/SvgStop.tsx"],
     pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
   },
+  { id: "mobile-tight-leading", description: "no app text with a lineHeight under its fontSize — iOS clips the glyph tops; use lineHeight = fontSize and a negative margin (S26)", check: mobileTightLeading },
   {
     id: "mobile-svg-stop",
     description: "a gradient stop is painted with {...stopPaint(colour)} from ~/components/ui/SvgStop — react-native-svg swaps an rgba() alpha for stopOpacity and paints the wash solid (S26)",

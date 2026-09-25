@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   hero: { paddingTop: 64, paddingHorizontal: 20, paddingBottom: 56, gap: 40 },
   eyebrow: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 3.74, textTransform: "uppercase" },
   h1: { marginTop: 20 },
-  headline: { fontFamily: FONT.headingHeavy, fontSize: 40.5, lineHeight: 38.88, letterSpacing: -1.215 },
+  headline: { fontFamily: FONT.headingHeavy, fontSize: 40.5, lineHeight: 40.5, marginVertical: -0.81, letterSpacing: -1.215 },
   payoff: { alignSelf: "flex-start", marginTop: 12 },
   italic: { transform: [{ skewX: "-12deg" }] },
   payoffText: { fontFamily: FONT.stamp, fontSize: 42.12, lineHeight: 44 },

@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   tagBrand: { letterSpacing: 1.8 },
   priceRow: { flexDirection: "row", alignItems: "flex-end", gap: 12 },
   price: { flexDirection: "row", alignItems: "baseline" },
-  priceText: { fontFamily: FONT.headingHeavy, fontSize: 42, lineHeight: 37, letterSpacing: -1.05, fontVariant: ["tabular-nums"] },
+  priceText: { fontFamily: FONT.headingHeavy, fontSize: 42, lineHeight: 42, marginVertical: -2.5, letterSpacing: -1.05, fontVariant: ["tabular-nums"] },
   priceUnit: { marginLeft: 4, fontFamily: FONT.dataRegular, fontSize: 13.5, lineHeight: 18 },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 4, paddingHorizontal: 10, marginBottom: 4, borderRadius: 9999, borderWidth: 1 },
   chipText: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },

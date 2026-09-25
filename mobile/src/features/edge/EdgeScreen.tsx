@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   backPressed: { transform: [{ translateX: -2 }, { translateY: 1 }] },
   backText: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 0.8 },
   intro: { marginTop: 28, paddingTop: 30, paddingBottom: 26, gap: 30, borderTopWidth: 1, borderBottomWidth: 1 },
-  title: { marginTop: 17, fontFamily: FONT.headingHeavy, fontSize: 42, lineHeight: 41.16, letterSpacing: -2.52 },
+  title: { marginTop: 17, fontFamily: FONT.headingHeavy, fontSize: 42, lineHeight: 42, marginVertical: -0.42, letterSpacing: -2.52 },
   lede: { marginTop: 18, fontFamily: FONT.body, fontSize: 12, lineHeight: 19.8 },
   meta: { flexDirection: "row", borderTopWidth: 1, paddingTop: 24 },
   metaItem: { flex: 1, gap: 7 },
