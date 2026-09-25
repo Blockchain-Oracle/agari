@@ -1,7 +1,6 @@
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { router, type Href } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";
@@ -65,7 +64,6 @@ export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> })
 
   return (
     <View style={[styles.page, { backgroundColor: t.bg }]}>
-      <StatusBar style="light" />
       <ScrollView
         ref={scroll}
         stickyHeaderIndices={[0]}

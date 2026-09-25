@@ -72,7 +72,8 @@ function RootStack() {
   }, [welcome]);
   return (
     <>
-      <StatusBar style={name === "dark" ? "light" : "dark"} />
+      {/* The one status bar: /trade-from-x is always web's dark island. A page's own StatusBar outlives it in the stack. */}
+      <StatusBar style={island || name === "dark" ? "light" : "dark"} />
       {island || immersive ? null : <AppChrome />}
       <Stack screenOptions={{ headerShown: false, headerStyle: { backgroundColor: color.ground }, headerTintColor: color.ink, headerBackTitle: "Back", contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="welcome" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
