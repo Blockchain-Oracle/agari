@@ -18,8 +18,8 @@ const SHARES_DP = 8;
 const SHARES_SHOWN_DP = 4;
 const USD_DP = 6;
 /** hedge.css under 480 px: the 44 px mark column and its 14 px gap, which the CTA row indents past. */
-const MARK = 44;
-const COLUMN_GAP = 14;
+const MARK = 36;
+const COLUMN_GAP = 12;
 
 /** "12.5 TSLAx + 3 TSLAon": every verified token of the underlying, in shares (web's `holdingTokens`). */
 export function holdingTokens(pick: HedgePick): string {
@@ -29,7 +29,8 @@ export function holdingTokens(pick: HedgePick): string {
 type Kind = "offer" | "teaser";
 
 /**
- * web's `.hg-banner` at phone width: mark | eyebrow · name · line, the CTA under the text, the foot across both. The
+ * web's `.hg-banner` at phone width, compacted for a phone (the owner, 09-25: it was too big): mark | stamp · eyebrow ·
+ * name · line, the CTA under the text, the foot across both; the example stamp sits in the flow, never over the eyebrow. The
  * offer wears the vermilion wash and rim; the teaser is the plain surface. Web's inset bevel is drawn as two 2 pt bands.
  */
 function Banner({ kind, mark, eyebrow, name, line, cta, foot, stamp, onPress, label }: {
@@ -55,14 +56,14 @@ function Banner({ kind, mark, eyebrow, name, line, cta, foot, stamp, onPress, la
       <View style={styles.row}>
         {mark}
         <View style={styles.text}>
-          <Text style={[styles.eyebrow, { color: color.inkMuted }]}>{eyebrow}</Text>
+          {stamp ? <Text style={[styles.stamp, { color: t.hgStampInk, backgroundColor: color.accent }]}>{stamp}</Text> : null}
+          <Text style={[styles.eyebrow, { color: color.inkMuted }]} numberOfLines={1}>{eyebrow}</Text>
           <Text style={[styles.name, { color: color.ink }]}>{name}</Text>
           <Text style={[styles.line, { color: offer ? color.accent : color.inkSecondary }]}>{line}</Text>
         </View>
       </View>
-      <View style={[styles.cta, stamp ? styles.ctaExample : null]}>{cta}</View>
+      <View style={styles.cta}>{cta}</View>
       <Text style={[styles.foot, { color: color.inkMuted }]}>{foot}</Text>
-      {stamp ? <Text style={[styles.stamp, { color: t.hgStampInk, backgroundColor: color.accent }]}>{stamp}</Text> : null}
     </>
   );
   const frame = [styles.banner, { backgroundColor: color.surface1, borderColor: offer ? t.hgOfferBorder : color.hairline }];
@@ -179,22 +180,21 @@ export function HedgeTeaser({ state, onExample }: { state: Exclude<HedgeCardStat
 }
 
 const styles = StyleSheet.create({
-  banner: { minHeight: 96, marginBottom: 20, paddingVertical: 12, paddingHorizontal: 14, rowGap: 10, borderWidth: 1, borderRadius: 16, overflow: "hidden" },
+  banner: { marginBottom: 16, paddingVertical: 12, paddingHorizontal: 14, rowGap: 8, borderWidth: 1, borderRadius: 16, overflow: "hidden" },
   bevel: { position: "absolute", left: 0, right: 0, height: 2 },
   bevelTop: { top: 0 },
   bevelBottom: { bottom: 0 },
   row: { flexDirection: "row", alignItems: "center", columnGap: COLUMN_GAP },
   text: { flex: 1, gap: 2 },
   eyebrow: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 2.2 },
-  name: { fontFamily: FONT.heading, fontSize: 22, lineHeight: 23.1, letterSpacing: -0.22 },
-  line: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2, letterSpacing: 0.48, fontVariant: ["tabular-nums"] },
+  name: { fontFamily: FONT.heading, fontSize: 18, lineHeight: 22, letterSpacing: -0.18 },
+  line: { fontFamily: FONT.dataRegular, fontSize: 11.5, lineHeight: 17, letterSpacing: 0.48, fontVariant: ["tabular-nums"] },
   cta: { marginLeft: MARK + COLUMN_GAP },
-  ctaExample: { marginTop: 18 },
   ctaText: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1.2, textTransform: "uppercase" },
-  exampleText: { fontFamily: FONT.body, fontSize: 15, lineHeight: 24, letterSpacing: 1.8, textTransform: "uppercase", textAlign: "center" },
+  exampleText: { fontFamily: FONT.dataRegular, fontSize: 10.5, lineHeight: 16, letterSpacing: 1.2, textTransform: "uppercase" },
   foot: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 0.36 },
-  stamp: { position: "absolute", top: 10, right: 14, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 4, overflow: "hidden", fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.62 },
+  stamp: { alignSelf: "flex-start", marginBottom: 4, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 4, overflow: "hidden", fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.62 },
   glow: { borderRadius: 9999, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
   arrow: { width: MARK, height: MARK, borderRadius: 9999, alignItems: "center", justifyContent: "center" },
-  arrowGlyph: { fontFamily: FONT.headingHeavy, fontSize: 20, lineHeight: 22 },
+  arrowGlyph: { fontFamily: FONT.headingHeavy, fontSize: 17, lineHeight: 20 },
 });
