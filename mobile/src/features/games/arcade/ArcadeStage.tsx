@@ -8,6 +8,7 @@ import { useArcadeScore, type PostAbility } from "@/features/games/arcade/useArc
 import { useGameKey } from "@/features/games/duel/useGameKey";
 import { useRoomToken } from "@/features/games/duel/useRoomToken";
 import { useWalletSession } from "@/lib/wallet-session";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Checker, Eyebrow, PAGE_PADDING } from "~/features/games/frame";
@@ -139,6 +140,18 @@ export function ArcadeStage({ game }: { game: ArcadeGame }) {
   }, [feedback]);
 
   const playing = phase === "playing";
+  // The run's full-screen modal belongs to this screen: leaving it (a tab, a deep link, a tapped notification) throws
+  // the run away, or the modal would stay over whatever screen the app went to.
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        setRun(null);
+        setHud(HUD_ZERO);
+        setPhase((held) => (held === "playing" ? "title" : held));
+      },
+      [],
+    ),
+  );
   const refreshControl = usePullRefresh(refresh, !playing);
   const boardBest = board?.me?.best ?? null;
   const best = sessionBest === null ? boardBest : boardBest === null ? sessionBest : Math.max(sessionBest, boardBest);
