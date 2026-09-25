@@ -2,9 +2,9 @@ import { Redirect } from "expo-router";
 import { storage } from "~/lib/storage";
 
 /**
- * web opens on the markets page and, on a first visit, lays the "Welcome to Agari" tutorial over it: the app lands on
- * /markets with /welcome pushed on top as a modal (the walkthrough is local to this installation).
+ * First launch opens the app's own onboarding (brand intro, four pages, connect or look around); every launch after
+ * lands on /markets. The flag is local to this installation.
  */
 export default function Index() {
-  return <Redirect href={storage.getBoolean("agari.mobile.onboarded.v1") ? "/markets" : "/markets?welcome=1"} />;
+  return <Redirect href={storage.getBoolean("agari.mobile.onboarded.v1") ? "/markets" : "/onboarding"} />;
 }

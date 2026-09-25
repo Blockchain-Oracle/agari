@@ -64,6 +64,8 @@ function RootStack() {
   // one island (its own top edge, the dock kept). Dialogs (welcome, connect, funds, account) are transparent modals
   // over it, each drawing web's own scrim and card or sheet.
   const island = pathname.startsWith("/trade-from-x");
+  // The first run owns the whole screen: no chrome, no dock.
+  const onboarding = pathname.startsWith("/onboarding");
   // An arcade run in play takes the whole phone: the chrome and the dock step out (and the marquee stops scrolling).
   const immersive = useImmersive();
   const { welcome } = useGlobalSearchParams<{ welcome?: string }>();
@@ -74,7 +76,7 @@ function RootStack() {
     <>
       {/* The one status bar: /trade-from-x is always web's dark island. A page's own StatusBar outlives it in the stack. */}
       <StatusBar style={island || name === "dark" ? "light" : "dark"} />
-      {island || immersive ? null : <AppChrome />}
+      {island || immersive || onboarding ? null : <AppChrome />}
       <Stack screenOptions={{ headerShown: false, headerStyle: { backgroundColor: color.ground }, headerTintColor: color.ink, headerBackTitle: "Back", contentStyle: { backgroundColor: color.ground } }}>
         <Stack.Screen name="welcome" options={{ presentation: "transparentModal", animation: "fade", contentStyle: { backgroundColor: "transparent" } }} />
         <Stack.Screen name="(tabs)" />
@@ -84,7 +86,7 @@ function RootStack() {
         <Stack.Screen name="account" options={dialog} />
         <Stack.Screen name="sensei" options={dialog} />
       </Stack>
-      {immersive ? null : <BottomDock />}
+      {immersive || onboarding ? null : <BottomDock />}
       <FundingHost />
       <Toaster />
       <DeskWatcher />
