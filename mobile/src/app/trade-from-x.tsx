@@ -1,11 +1,12 @@
 import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { TRADE_FROM_X } from "@/features/x/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Screen } from "~/components/kit";
 import { TradeFromX } from "~/features/x/TradeFromX";
 
-/** `/trade-from-x` — web's X-trade: fund a bounded executor, link X, and post calls it places for you. */
+/**
+ * `/trade-from-x` — web's app/trade-from-x/page.tsx: the one island route. The app shell hides its strip, marquee and
+ * header here (keeping the floating dock), so the screen paints its own top edge from the status bar down.
+ */
 export default function TradeFromXScreen() {
   const queryClient = useQueryClient();
   const { address } = useWalletSession();
@@ -14,9 +15,5 @@ export default function TradeFromXScreen() {
       queryClient.invalidateQueries({ queryKey: ["agari"] }),
       address ? invalidateAfterWrite(queryClient, { wallet: address }) : null,
     ]);
-  return (
-    <Screen title={TRADE_FROM_X.title} onRefresh={refresh}>
-      <TradeFromX />
-    </Screen>
-  );
+  return <TradeFromX onRefresh={refresh} />;
 }

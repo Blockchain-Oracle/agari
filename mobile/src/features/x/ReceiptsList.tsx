@@ -1,62 +1,75 @@
 import { shortHex } from "@agari/core/units";
 import { xReceiptRecovery, xRefusalCopy, type XReceipt } from "@agari/core/x";
-import { router, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { TRADE_FROM_X } from "@/features/x/copy";
 import { receiptDisplay } from "@/features/x/receipt-display";
-import { Button, Card, EmptyState, Pill, SectionHeader, type PillTone } from "~/components/kit";
 import { explorerUrl, openExternal } from "~/lib/external";
-import { TYPE, useTheme } from "~/theme";
+import { FONT, useTheme } from "~/theme";
+import { tradeXTokens, type TradeXTokens } from "~/theme/web/products/trade-x";
 
-const TONE: Record<string, PillTone> = { filled: "profit", submitted: "neutral", unknown: "warning", refused: "loss", reverted: "loss", "nothing-filled": "neutral" };
+const statusInk = (t: TradeXTokens, status: string) =>
+  status === "filled" ? t.m : status === "refused" || status === "reverted" ? t.errInk : status === "unknown" || status === "submitted" ? t.warnInk : t.gray500;
 
-/** web's features/x/XReceiptsList.tsx: each mention, what became of it, the transaction, and a refusal's reason. */
-export function ReceiptsList({ receipts, configured, decimals, symbol }: {
-  receipts: readonly XReceipt[];
-  configured: boolean;
-  decimals: number;
-  symbol: string;
+/**
+ * web's XReceiptsList.tsx (`.xt-receipts`, one column under 640 px): every mention linked to what became of it; a
+ * refusal carries its reason and its recovery link (`onRecover` follows web's href: an anchor on this page or a route).
+ */
+export function ReceiptsList({ receipts, configured, decimals, symbol, onRecover }: {
+  receipts: readonly XReceipt[]; configured: boolean; decimals: number; symbol: string; onRecover: (href: string) => void;
 }) {
-  const { color } = useTheme();
+  const t = tradeXTokens(useTheme().name);
   return (
-    <View style={styles.wrap}>
-      <SectionHeader title={TRADE_FROM_X.receipts.title} aside={configured ? String(receipts.length) : undefined} />
-      {!configured ? <EmptyState why={TRADE_FROM_X.receipts.none} /> : receipts.length === 0 ? <EmptyState why={TRADE_FROM_X.receipts.empty} /> : null}
-      {receipts.map((r) => {
-        const display = receiptDisplay(r, decimals, symbol);
-        // A recovery that points at this screen (build again, check X trading) is the section above: no button.
-        const found = display.status === "refused" ? xReceiptRecovery(r.refusalCode) : null;
-        const recovery = found && !found.href.startsWith("/trade-from-x") ? found : null;
-        const refusal = display.status === "refused" && r.refusalCode ? xRefusalCopy(r) : null;
-        const reason = refusal?.detail ?? r.reason;
-        return (
-          <Card key={r.mentionId}>
-            <Pill label={refusal?.title ?? display.label} tone={TONE[display.status] ?? "neutral"} dot />
-            <Text style={[TYPE.data, { color: color.ink }]}>{r.instruction}</Text>
-            {display.summary ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{display.summary}</Text> : null}
-            {reason ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{reason}</Text> : null}
-            <View style={styles.actions}>
-              {display.txHash ? (
-                <Button label={shortHex(display.txHash)} variant="ghost" size="sm" block={false} icon={{ ios: "arrow.up.right", android: "north_east" }} onPress={() => void openExternal(explorerUrl("tx", display.txHash!))} />
-              ) : null}
-              {recovery ? (
-                <Button
-                  label={recovery.label}
-                  variant="secondary"
-                  size="sm"
-                  block={false}
-                  onPress={() => router.push(recovery.href as Href)}
-                />
+    <View style={styles.wrap} accessibilityLabel={TRADE_FROM_X.receipts.title}>
+      <Text style={[styles.label, { color: t.gray500 }]}>{TRADE_FROM_X.receipts.title}</Text>
+      {!configured ? (
+        <Text style={[styles.note, { color: t.gray500 }]}>{TRADE_FROM_X.receipts.none}</Text>
+      ) : receipts.length === 0 ? (
+        <Text style={[styles.note, { color: t.gray500 }]}>{TRADE_FROM_X.receipts.empty}</Text>
+      ) : (
+        receipts.map((r) => {
+          const display = receiptDisplay(r, decimals, symbol);
+          const recovery = display.status === "refused" ? xReceiptRecovery(r.refusalCode) : null;
+          const refusal = display.status === "refused" && r.refusalCode ? xRefusalCopy(r) : null;
+          const reason = refusal?.detail ?? r.reason;
+          const txHash = display.txHash;
+          return (
+            <View key={r.mentionId} style={[styles.receipt, { borderColor: t.cardBorder }]}>
+              <Text style={[styles.text, styles.status, { color: statusInk(t, display.status) }]}>{refusal?.title ?? display.label}</Text>
+              <Text style={[styles.text, { color: t.gray200 }]}>{r.instruction}</Text>
+              <Text style={[styles.text, { color: t.gray400 }]}>
+                {display.summary}
+                {txHash ? (
+                  <>
+                    {display.summary ? " · " : ""}
+                    <Text style={{ color: t.v }} accessibilityRole="link" onPress={() => void openExternal(explorerUrl("tx", txHash))}>{shortHex(txHash)}</Text>
+                  </>
+                ) : null}
+              </Text>
+              {reason ? (
+                <Text style={[styles.text, styles.reason, { color: t.gray500 }]}>
+                  {reason}
+                  {recovery ? (
+                    <>
+                      {" "}
+                      <Text style={{ color: t.v }} accessibilityRole="link" onPress={() => onRecover(recovery.href)}>{recovery.label} ↗</Text>
+                    </>
+                  ) : null}
+                </Text>
               ) : null}
             </View>
-          </Card>
-        );
-      })}
+          );
+        })
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
-  actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  wrap: { marginTop: 32, gap: 8 },
+  label: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 3.3, textTransform: "uppercase", marginBottom: 28 - 8 },
+  note: { marginTop: 12, fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+  receipt: { gap: 8, borderWidth: 1, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
+  text: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 18 },
+  status: { fontSize: 10, lineHeight: 15, letterSpacing: 1.6, textTransform: "uppercase" },
+  reason: { fontSize: 11, lineHeight: 16.5 },
 });

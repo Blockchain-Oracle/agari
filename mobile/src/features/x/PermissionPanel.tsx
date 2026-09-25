@@ -1,15 +1,16 @@
 import { formatBaseUnits, formatUtc } from "@agari/core/units";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X_CARD } from "@/features/x/copy";
-import { Button } from "~/components/kit";
 import { explorerUrl, openExternal } from "~/lib/external";
-import { RADIUS, TYPE, useTheme } from "~/theme";
-import { ReviewGate } from "../strategies/ReviewGate";
+import { FONT, useTheme } from "~/theme";
+import { tradeXTokens } from "~/theme/web/products/trade-x";
 import type { XGrantState } from "./useXGrant";
 
-/** web's features/x/XPermissionPanel.tsx: the X permission's state and, when it needs it, the reviewed update. */
-export function PermissionPanel({ grant, executor, symbol, disabled = false }: { grant: XGrantState; executor: string | null; symbol: string; disabled?: boolean }) {
-  const { color } = useTheme();
+/** web's XPermissionPanel.tsx (`.xt .xw-permission`): the permission's state and its recovery action on the X setup page. */
+export function PermissionPanel({ grant, executor, symbol, disabled = false }: {
+  grant: XGrantState; executor: string | null; symbol: string; disabled?: boolean;
+}) {
+  const t = tradeXTokens(useTheme().name);
   const state = grant.permission(executor);
   const needsUpdate = ["update", "expired", "mismatch"].includes(state);
   const pending = grant.pendingUpdate;
@@ -28,44 +29,57 @@ export function PermissionPanel({ grant, executor, symbol, disabled = false }: {
     : state === "unavailable" ? "We could not verify your balance and trading permission. Try again shortly."
     : state === "checking" ? "Reading your balance and permission."
     : X_CARD.budgetPolicy;
-  const cta = pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading";
+  const updateOff = disabled || !grant.readable || Boolean(grant.busy) || !executor;
+  const txHash = pending?.txHash;
   return (
-    <View style={[styles.panel, { borderColor: needsUpdate ? color.accentDim : color.hairline }]} accessibilityLiveRegion="polite">
-      <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{title}</Text>
-      <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{detail}</Text>
+    <View style={[styles.panel, { borderColor: t.xwLine }, needsUpdate && { borderColor: t.v, backgroundColor: t.xwActionBg }]} accessibilityLiveRegion="polite">
+      <Text style={[styles.title, { color: t.ink }]}>{title}</Text>
+      <Text style={[styles.body, { color: t.muted }]}>{detail}</Text>
       {needsUpdate ? (
         <>
-          <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{X_CARD.budgetPolicy}</Text>
-          <Text style={[TYPE.caption, { color: color.inkMuted }]}>
+          <Text style={[styles.body, { color: t.muted }]}>{X_CARD.budgetPolicy}</Text>
+          <Text style={[styles.note, { color: t.muted }]}>
             {pending ? "No additional deposit. Existing positions stay yours." : "Two wallet confirmations. Reuse your remaining X funds; no additional deposit."}
           </Text>
-          <ReviewGate
-            cta={grant.busy === "update" ? "Confirm in your wallet…" : cta}
-            title={cta}
-            lines={[
-              { label: "Step 1", value: "pause the old permission" },
-              { label: "Step 2", value: "grant it again, same funds" },
-              { label: "New deposit", value: `0 ${symbol}`, tone: "muted" },
-            ]}
-            maxLoss={grant.balanceBase === null ? "—" : `${formatBaseUnits(grant.balanceBase, grant.decimals)} ${symbol}`}
-            confirmLabel="Slide to update"
-            busy={grant.busy === "update"}
-            disabled={disabled || !grant.readable || Boolean(grant.busy) || !executor}
-            onConfirm={() => grant.update(executor)}
-          />
-          {pending?.stage === "grant-ready" ? <Button label="Keep funds in Trading Balance" variant="secondary" size="sm" disabled={Boolean(grant.busy)} onPress={grant.keepReturnedFunds} /> : null}
+          <Pressable
+            disabled={updateOff}
+            onPress={() => void grant.update(executor)}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.btnV, { borderColor: t.xwBtnBorder }, pressed && { backgroundColor: t.nodeActiveBg }, updateOff && styles.btnVOff]}
+          >
+            <Text style={[styles.btnVText, { color: t.v }]}>
+              {grant.busy === "update" ? "Confirm in your wallet…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
+            </Text>
+          </Pressable>
+          {pending?.stage === "grant-ready" ? (
+            <Pressable disabled={Boolean(grant.busy)} onPress={grant.keepReturnedFunds} accessibilityRole="button" style={({ pressed }) => [styles.btnInk, { borderColor: t.xwLine }, pressed && { backgroundColor: t.xwActionBg }]}>
+              <Text style={[styles.btnInkText, { color: t.ink }]}>Keep funds in Trading Balance</Text>
+            </Pressable>
+          ) : null}
         </>
       ) : null}
       {state === "ready" && grant.grant ? (
-        <Text style={[TYPE.data, { color: color.inkMuted }]}>
+        <Text style={[styles.note, { color: t.muted }]}>
           {grant.grant.openPositions}/{grant.grant.caps.maxOpenPositions} open Windows · expires {formatUtc(grant.grant.expiresAtSec * 1000, { withSeconds: false, withDate: true })}
         </Text>
       ) : null}
-      {pending?.txHash ? <Button label="View update transaction" variant="ghost" size="sm" block={false} onPress={() => void openExternal(explorerUrl("tx", pending.txHash!))} /> : null}
+      {txHash ? (
+        <Pressable onPress={() => void openExternal(explorerUrl("tx", txHash))} accessibilityRole="link" style={({ pressed }) => [styles.btnInk, { borderColor: t.xwLine }, pressed && { backgroundColor: t.xwActionBg }]}>
+          <Text style={[styles.btnInkText, { color: t.ink }]}>View update transaction ↗</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  panel: { borderWidth: 1, borderRadius: RADIUS.md, padding: 12, gap: 8 },
+  panel: { marginTop: 12, marginBottom: 16, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderRadius: 8 },
+  title: { fontFamily: FONT.bodyStrong, fontSize: 13, lineHeight: 20.8 },
+  body: { marginTop: 4, fontFamily: FONT.body, fontSize: 12, lineHeight: 16.5 },
+  note: { marginTop: 8, fontFamily: FONT.body, fontSize: 11, lineHeight: 15.125 },
+  btnV: { alignSelf: "flex-start", marginTop: 10, borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 16 },
+  btnVOff: { opacity: 0.6 },
+  btnVText: { fontFamily: FONT.bodyStrong, fontSize: 14, lineHeight: 20 },
+  btnInk: { alignSelf: "flex-start", marginTop: 10, borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 16 },
+  btnInkText: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 18 },
 });

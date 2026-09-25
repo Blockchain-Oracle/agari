@@ -1,179 +1,179 @@
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
-import { useBalanceSheet } from "@agari/markets/react";
-import { router } from "expo-router";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { router, type Href } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useRef, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";
-import { TRADE_FROM_X, X_CARD, X_HANDLE } from "@/features/x/copy";
+import { TRADE_FROM_X } from "@/features/x/copy";
 import { useXReceipts } from "@/features/x/useXReceipts";
 import { docsUrl } from "@/lib/docs-url";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Button, Card, Hero } from "~/components/kit";
-import { Avatar } from "~/components/wallet/Avatar";
 import { openExternal } from "~/lib/external";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { Glyph } from "../strategies/Glyph";
-import { ReviewGate } from "../strategies/ReviewGate";
-import { CustodyRail } from "./CustodyRail";
+import { FONT, useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { tradeXTokens } from "~/theme/web/products/trade-x";
 import { FundReceipt } from "./FundReceipt";
+import { Hero } from "./Hero";
 import { InstructionBuilder } from "./InstructionBuilder";
+import { IslandStrip } from "./IslandStrip";
 import { LinkStep } from "./LinkStep";
 import { PermissionPanel } from "./PermissionPanel";
 import { ReceiptsList } from "./ReceiptsList";
 import { RelayStatus } from "./RelayStatus";
-import { Step } from "./StepRail";
+import { Dot, IdentityChip, ProofLink, Step } from "./StepSpine";
 import { useXGrant } from "./useXGrant";
 import { useXLink } from "./useXLink";
 
+/** x-card.css `scroll-margin-top: 8rem` for the page's two anchors. */
+const ANCHOR_MARGIN = 120;
+
 /**
- * web's features/x/TradeFromXScreen.tsx: connect → fund and authorise the bounded executor → link X → post your call.
- * The custody rail is the argument; every money step is a reviewed transaction the wallet signs.
+ * web's features/x/TradeFromXScreen.tsx — "X-trade", the dark island: its own strip, the hero with the custody rail,
+ * then connect → fund + authorize → link X, the instruction builder, the trust footer and the receipts. Every money
+ * button submits straight to the wallet, which is the confirmation, as on web.
  */
-export function TradeFromX() {
-  const { color } = useTheme();
+export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> }) {
+  const { name, color } = useTheme();
+  const t = tradeXTokens(name);
   const { address } = useWalletSession();
   const { boot } = useVenue();
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
   const link = useXLink();
   const grant = useXGrant();
   const receipts = useXReceipts(address ?? null);
-  const sheet = useBalanceSheet(address);
-  const walletBase = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
   const [amount, setAmount] = useState("5");
+  const [refreshing, setRefreshing] = useState(false);
+  const scroll = useRef<ScrollView>(null);
+  const flowY = useRef(0);
+  const composerY = useRef(0);
+
   const executor = link.status?.executor ?? null;
   const permission = grant.permission(executor);
   const funded = permission === "ready";
-  const step = !address ? 1 : !funded ? 2 : !link.linked ? 3 : 4;
+  const linked = Boolean(link.status?.binding) && !link.needsLink && !link.walletMismatch;
+  const step = !address ? 1 : !funded ? 2 : !linked ? 3 : 4;
   const error = grant.error || link.error;
-  const okLine = grant.ok || link.ok;
-  const handle = link.status?.binding?.handle ?? link.status?.session?.handle ?? null;
-  const money = (base: bigint) => `${formatBaseUnits(base, grant.decimals)} ${symbol}`;
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try { await onRefresh(); } finally { setRefreshing(false); }
+  };
+  const recover = (href: string) => {
+    const anchor = href.startsWith("/trade-from-x#") ? href.split("#")[1] : null;
+    if (!anchor) return router.push(href as Href);
+    const y = anchor === "x-instruction" ? flowY.current + composerY.current : flowY.current;
+    scroll.current?.scrollTo({ y: Math.max(0, y - ANCHOR_MARGIN), animated: true });
+  };
 
   return (
-    <View style={styles.wrap}>
-      <Hero kicker={TRADE_FROM_X.eyebrow} title={`${TRADE_FROM_X.headline} ${TRADE_FROM_X.payoff.replace(/⁠/g, "")}`}>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>
-          {TRADE_FROM_X.lede(X_HANDLE)[0]}
-          <Text style={{ color: color.ink, fontFamily: FONT.bodyStrong }}>{X_HANDLE}</Text>
-          {TRADE_FROM_X.lede(X_HANDLE)[2]}
-          <Text style={{ color: color.ink, fontFamily: FONT.bodyStrong }}>{TRADE_FROM_X.lede(X_HANDLE)[3]}</Text>
-          {TRADE_FROM_X.lede(X_HANDLE)[4]}
-        </Text>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>
-          {TRADE_FROM_X.yourKeys} · {TRADE_FROM_X.venue}
-        </Text>
-      </Hero>
-      <CustodyRail handle={X_HANDLE} />
+    <View style={[styles.page, { backgroundColor: t.bg }]}>
+      <StatusBar style="light" />
+      <ScrollView
+        ref={scroll}
+        stickyHeaderIndices={[0]}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={t.gray500} />}
+      >
+        <IslandStrip />
+        <Hero />
+        <View style={styles.flow} onLayout={(e) => { flowY.current = e.nativeEvent.layout.y; }}>
+          <Text style={[styles.flowLabel, { color: t.gray500 }]}>{TRADE_FROM_X.setup}</Text>
+          <Step n="1" title={TRADE_FROM_X.steps.connect} state={step > 1 ? "done" : "active"} spine={{ from: 1, cur: step }}>
+            {address ? (
+              <IdentityChip addr={address} />
+            ) : (
+              <Pressable onPress={() => router.push("/connect")} accessibilityRole="button" style={({ pressed }) => [styles.connect, { backgroundColor: pressed ? color.accentPressed : color.accent }]}>
+                <Text style={[styles.connectText, { color: t.white }]}>Connect</Text>
+              </Pressable>
+            )}
+          </Step>
+          <Step n="2" title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 2 ? "active" : "idle"} spine={{ from: 2, cur: step }}>
+            {!address ? <Text style={[styles.lede, { color: t.gray400 }]}>Connect your wallet to check your X balance and permission.</Text> : null}
+            {address && (grant.grant || grant.pendingUpdate || !["ready", "unfunded"].includes(permission)) ? (
+              <View>
+                {grant.balanceBase !== null ? (
+                  <Text style={[styles.lede, { color: t.gray400 }]}>
+                    X balance · <Text style={styles.strong}>{formatBaseUnits(grant.balanceBase, grant.decimals)} {symbol}</Text>
+                  </Text>
+                ) : null}
+                <PermissionPanel grant={grant} executor={executor} symbol={symbol} disabled={link.walletMismatch || Boolean(link.busy)} />
+              </View>
+            ) : null}
+            {funded ? (
+              <Text style={[styles.portfolio, { color: t.v }]} accessibilityRole="link" onPress={() => router.navigate("/portfolio")}>
+                Manage X balance in Portfolio ↗
+              </Text>
+            ) : grant.deployed === false ? (
+              <Text style={[styles.lede, { color: t.gray400 }]}>{TRADE_FROM_X.receipt.notDeployed}</Text>
+            ) : permission === "unfunded" ? (
+              <FundReceipt
+                amount={amount}
+                setAmount={setAmount}
+                disabled={!address || !grant.readable || Boolean(grant.busy) || link.walletMismatch}
+                depositing={grant.busy === "fund"}
+                firstTime={grant.grant === null}
+                decimals={grant.decimals}
+                symbol={symbol}
+                onDeposit={(amountBase) => void grant.fund(amountBase, executor)}
+              />
+            ) : null}
+          </Step>
+          <Step n="3" title={TRADE_FROM_X.steps.link} state={linked ? "done" : step === 3 ? "active" : "idle"} spine={{ from: 3, cur: step }} isLast>
+            <LinkStep link={link} enabled={Boolean(address) && funded} />
+          </Step>
 
-      <Text style={[TYPE.labelMicro, { color: color.accent }]}>{TRADE_FROM_X.setup}</Text>
-      <View>
-        <Step n={1} title={TRADE_FROM_X.steps.connect} state={step > 1 ? "done" : "active"} filled={step > 1}>
-          {address ? (
-            <View style={[styles.chip, { borderColor: color.hairline }]}>
-              <Avatar address={address} size={24} />
-              <Text style={[TYPE.data, styles.flex, { color: color.ink }]}>{`${address.slice(0, 4)}…${address.slice(-4)}`}</Text>
-              <Text style={[TYPE.labelMicro, { color: color.profit }]}>{TRADE_FROM_X.connected}</Text>
+          {error ? (
+            <View style={[styles.err, { borderColor: t.errBorder, backgroundColor: t.errBg }]} accessibilityRole="alert">
+              <Text style={[styles.errText, { color: t.errInk }]}>{error}</Text>
             </View>
-          ) : (
-            <Button label="Connect" onPress={() => router.push("/connect")} />
-          )}
-        </Step>
-        <Step n={2} title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 2 ? "active" : "idle"} filled={step > 2}>
-          {!address ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>Connect your wallet to check your X balance and permission.</Text> : null}
-          {address && (grant.grant || grant.pendingUpdate || !["ready", "unfunded"].includes(permission)) ? (
-            <>
-              {grant.balanceBase !== null ? (
-                <Text style={[TYPE.caption, { color: color.inkSecondary }]}>
-                  X balance · <Text style={[TYPE.data, { color: color.ink }]}>{money(grant.balanceBase)}</Text>
-                </Text>
-              ) : null}
-              <PermissionPanel grant={grant} executor={executor} symbol={symbol} disabled={link.walletMismatch || Boolean(link.busy)} />
-            </>
           ) : null}
-          {funded && grant.grant ? (
-            <ReviewGate
-              cta={grant.busy === "cashout" ? `${X_CARD.cashingOut}…` : X_CARD.cashOut}
-              variant="outline"
-              title="Cash out your X balance"
-              lines={[
-                { label: "Returns to Trading Balance", value: money(grant.grant.budgetBase) },
-                { label: "X trading", value: "stops until you fund again", tone: "muted" },
-              ]}
-              maxLoss={null}
-              confirmLabel="Slide to cash out"
-              busy={grant.busy === "cashout"}
-              disabled={Boolean(grant.busy)}
-              onConfirm={grant.cashOut}
-            />
-          ) : grant.deployed === false ? (
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>{TRADE_FROM_X.receipt.notDeployed}</Text>
-          ) : address && permission === "unfunded" ? (
-            <FundReceipt
-              amount={amount}
-              setAmount={setAmount}
-              disabled={!grant.readable || Boolean(grant.busy) || link.walletMismatch}
-              depositing={grant.busy === "fund"}
-              firstTime={grant.grant === null}
-              decimals={grant.decimals}
-              symbol={symbol}
-              walletBase={walletBase}
-              onDeposit={(amountBase) => grant.fund(amountBase, executor)}
-            />
+          {grant.ok || link.ok ? <Text style={[styles.ok, { color: t.m }]} accessibilityLiveRegion="polite">{grant.ok || link.ok}</Text> : null}
+
+          <View
+            style={[styles.composer, step === 4 ? { borderColor: t.liveBorder, backgroundColor: t.liveBg } : { borderColor: t.cardBorder, backgroundColor: t.cardBg }]}
+            onLayout={(e) => { composerY.current = e.nativeEvent.layout.y; }}
+          >
+            <Text style={[styles.eyebrow, { color: t.gray500 }]}>Trade from X</Text>
+            <InstructionBuilder enabled={step === 4} balanceBase={grant.balanceBase} decimals={grant.decimals} symbol={symbol} />
+            <RelayStatus health={link.status?.relay} />
+          </View>
+
+          <View style={[styles.trust, { borderTopColor: t.cardBorder }]}>
+            <View style={styles.meta}>
+              <Dot v />
+              <Text style={[styles.metaText, { color: t.gray500 }]}>{TRADE_FROM_X.noWithdraw}</Text>
+            </View>
+            <ProofLink onPress={() => void openExternal(docsUrl("architecture/programs"))}>{TRADE_FROM_X.proofs.contract}</ProofLink>
+            <ProofLink onPress={() => void openExternal(docsUrl("trading/tap-trading"))}>{TRADE_FROM_X.proofs.caps}</ProofLink>
+            <Text style={[styles.trustNote, { color: t.gray600 }]}>{TRADE_FROM_X.testnetNote}</Text>
+          </View>
+
+          {address ? (
+            <ReceiptsList receipts={receipts?.receipts ?? []} configured={receipts?.configured ?? false} decimals={grant.decimals} symbol={symbol} onRecover={recover} />
           ) : null}
-        </Step>
-        <Step n={3} title={TRADE_FROM_X.steps.link} state={link.linked ? "done" : step === 3 ? "active" : "idle"} filled={step > 3} last>
-          <LinkStep link={link} enabled={Boolean(address) && funded} />
-        </Step>
-      </View>
-
-      {error ? (
-        <View style={[styles.note, { backgroundColor: color.lossWash }]} accessibilityRole="alert">
-          <Text style={[TYPE.bodyStrong, { color: color.loss }]}>{error}</Text>
         </View>
-      ) : null}
-      {okLine ? (
-        <View style={[styles.note, { backgroundColor: color.profitWash }]} accessibilityLiveRegion="polite">
-          <Text style={[TYPE.bodyStrong, { color: color.profit }]}>{okLine}</Text>
-        </View>
-      ) : null}
-
-      <Card tone={step === 4 ? "accent" : "plain"}>
-        <Text style={[TYPE.labelMicro, { color: color.accent }]}>Trade from X</Text>
-        <InstructionBuilder enabled={step === 4} balanceBase={grant.balanceBase} decimals={grant.decimals} symbol={symbol} handle={handle} />
-        <RelayStatus health={link.status?.relay} />
-      </Card>
-
-      <View style={styles.trust}>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{TRADE_FROM_X.noWithdraw}</Text>
-        <ProofLink label={TRADE_FROM_X.proofs.contract} href={docsUrl("architecture/programs")} />
-        <ProofLink label={TRADE_FROM_X.proofs.caps} href={docsUrl("trading/tap-trading")} />
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{TRADE_FROM_X.testnetNote}</Text>
-      </View>
-
-      {address ? (
-        <ReceiptsList receipts={receipts?.receipts ?? []} configured={receipts?.configured ?? false} decimals={grant.decimals} symbol={symbol} />
-      ) : null}
+      </ScrollView>
     </View>
   );
 }
 
-/** web's ProofLink: a claim with the docs page that shows it. */
-function ProofLink({ label, href }: { label: string; href: string }) {
-  const { color } = useTheme();
-  return (
-    <Pressable onPress={() => void openExternal(href)} accessibilityRole="link" style={styles.proof}>
-      <Glyph name="external" size={12} />
-      <Text style={[TYPE.caption, styles.flex, { color: color.accent }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  wrap: { gap: 16 },
-  chip: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: StyleSheet.hairlineWidth, borderRadius: RADIUS.full, paddingHorizontal: 8, minHeight: 40 },
-  flex: { flex: 1 },
-  note: { borderRadius: RADIUS.md, padding: 12 },
-  trust: { gap: 4 },
-  proof: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44 },
+  page: { flex: 1 },
+  flow: { paddingHorizontal: 20, paddingBottom: CHROME.dockClearance },
+  flowLabel: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 3.3, textTransform: "uppercase", marginBottom: 28 },
+  connect: { alignSelf: "flex-start", height: 48, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  connectText: { fontFamily: FONT.bodyMedium, fontSize: 15, lineHeight: 22.5 },
+  lede: { fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8, marginBottom: 16 },
+  strong: { fontFamily: FONT.bodyStrong },
+  portfolio: { fontFamily: FONT.body, fontSize: 15, lineHeight: 24 },
+  err: { marginTop: 20, borderRadius: 12, borderWidth: 1, paddingVertical: 12, paddingHorizontal: 16 },
+  errText: { fontFamily: FONT.dataRegular, fontSize: 13, lineHeight: 20.8 },
+  ok: { marginTop: 12, fontFamily: FONT.dataRegular, fontSize: 13, lineHeight: 20.8 },
+  composer: { marginTop: 40, borderRadius: 16, borderWidth: 1, padding: 24 },
+  eyebrow: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 2.64, textTransform: "uppercase", marginBottom: 12 },
+  trust: { marginTop: 32, borderTopWidth: 1, paddingTop: 24, gap: 10 },
+  meta: { flexDirection: "row", alignItems: "center", gap: 12 },
+  metaText: { flexShrink: 1, fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
+  trustNote: { marginTop: 4, fontFamily: FONT.dataRegular, fontSize: 10.5, lineHeight: 16.8 },
 });

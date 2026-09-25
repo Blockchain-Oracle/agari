@@ -2,36 +2,36 @@ import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
 import { noEntryCutoffSec } from "@agari/core/lifecycle";
 import { LAUNCH_TICKERS, TICKERS } from "@agari/core/market";
 import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
-import { describeRefusal, parseInstruction, selectXWindow, X_CADENCES, xRefusalCopy, type XAsset, type XCadence } from "@agari/core/x";
+import { selectXWindow, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
 import { marketsProvider } from "@agari/markets";
 import { useLanes, useTick } from "@agari/markets/react";
 import * as Clipboard from "expo-clipboard";
+import { ArrowDownRight, ArrowUpRight, Check } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";
 import { X_HANDLE } from "@/features/x/copy";
-import { Button, Chips, Field, haptic, Segmented } from "~/components/kit";
-import { AssetDisc } from "~/components/marks/AssetDisc";
-import { openExternal } from "~/lib/external";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
-import { AmountInput } from "../strategies/AmountInput";
-import { PostCard } from "./PostCard";
+import { FONT, useTheme } from "~/theme";
+import { tradeXTokens } from "~/theme/web/products/trade-x";
+import { AmountField, Cadences, Legend, PostPreview, XI } from "./InstructionParts";
 
-const AMOUNTS = ["5", "10", "25"] as const;
+type Cadence = keyof typeof X_CADENCES;
+
+/** CSS grid-cols-2 as rows of two; an odd last cell keeps its half width. */
+function pairs<T>(list: readonly T[]): (T | null)[][] {
+  const rows: (T | null)[][] = [];
+  for (let i = 0; i < list.length; i += 2) rows.push([list[i], list[i + 1] ?? null]);
+  return rows;
+}
 
 /**
- * web's features/x/XInstructionBuilder.tsx: pick asset, side, timeframe and amount against the relay's own Window
- * rule, then copy the post or open it in X. Pasting a post fills the builder through the relay's own parser, so what
- * you see is what the relay will read. Nothing here sends an order: the relay executes the mention under your grant.
+ * web's XInstructionBuilder.tsx (`.xi`): asset, direction, timeframe and amount against the relay's exact Window rule,
+ * then the cream post preview and "Copy instruction". Copying never sends an order.
  */
-export function InstructionBuilder({ enabled, balanceBase, decimals, symbol, handle }: {
-  enabled: boolean;
-  balanceBase: bigint | null;
-  decimals: number;
-  symbol: string;
-  handle: string | null;
+export function InstructionBuilder({ enabled, balanceBase, decimals, symbol }: {
+  enabled: boolean; balanceBase: bigint | null; decimals: number; symbol: string;
 }) {
-  const { color } = useTheme();
+  const t = tradeXTokens(useTheme().name);
   const { venueId } = useVenue();
   const lanes = useLanes(venueId);
   useTick(1000);
@@ -41,145 +41,95 @@ export function InstructionBuilder({ enabled, balanceBase, decimals, symbol, han
   const [asset, setAsset] = useState<XAsset>("TSLA");
   const [side, setSide] = useState<"up" | "down">("up");
   const [amount, setAmount] = useState("5");
-  const [cadence, setCadence] = useState<XCadence>("5m");
-  const [pasted, setPasted] = useState("");
-  const [parseNote, setParseNote] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [cadence, setCadence] = useState<Cadence>("5m");
+  const [copied, setCopied] = useState("");
 
   const selection = markets ? selectXWindow(markets, { asset, intervalSec: X_CADENCES[cadence] }, nowMs) : null;
   const stake = parseDecimalToBaseUnits(amount, decimals);
-  const amountError = !stake || stake <= 0n
-    ? "Enter a positive amount."
-    : balanceBase !== null && stake > balanceBase
-      ? `Your X balance is ${formatBaseUnits(balanceBase, decimals)} ${symbol}. Use a smaller amount or add funds.`
-      : "";
+  const amountError = !stake || stake <= 0n ? "Enter a positive amount." : balanceBase !== null && stake > balanceBase
+    ? `Your X balance is ${formatBaseUnits(balanceBase, decimals)} ${symbol}. Use a smaller amount or add funds.` : "";
   const instruction = `${X_HANDLE} ${asset} ${side.toUpperCase()} ${amount} ${cadence}`;
-  const canPost = enabled && Boolean(selection?.ok) && !amountError;
+  const canCopy = Boolean(enabled && selection?.ok && !amountError);
   const maxAmount = balanceBase === null ? null : formatBaseUnits(balanceBase, decimals, { maxDp: decimals, minDp: 0, group: false });
-  const status = selection?.ok
-    ? `Entries close at ${formatUtc(noEntryCutoffSec(selection.market) * 1000, { withSeconds: true })}.`
-    : selection
-      ? xRefusalCopy({
-          refusalCode: selection.code,
-          entryClosesAtSec: selection.market ? noEntryCutoffSec(selection.market) : null,
-          nextWindowAtSec: selection.code === "window-not-started" ? selection.market?.tradingStartSec : null,
-        }).detail
-      : unavailable
-        ? "Live Windows could not be checked. Try again shortly."
-        : "Checking live Windows…";
-
-  const readPost = (text: string) => {
-    setPasted(text);
-    if (!text.trim()) return setParseNote(null);
-    const parsed = parseInstruction(text, { decimals });
-    if (!parsed.ok) return setParseNote(`Not readable: ${describeRefusal(parsed.reason, parsed.token)}.`);
-    const i = parsed.instruction;
-    setAsset(i.asset);
-    setSide(i.side);
-    setCadence(i.cadence);
-    setAmount(formatBaseUnits(i.stakeBase, decimals, { maxDp: decimals, minDp: 0, group: false }));
-    setParseNote("Read as below. Check the Window is open before posting.");
-    haptic.select();
-  };
+  const status = selection?.ok ? `Entries close at ${formatUtc(noEntryCutoffSec(selection.market) * 1000, { withSeconds: true })}.`
+    : selection ? xRefusalCopy({ refusalCode: selection.code, entryClosesAtSec: selection.market ? noEntryCutoffSec(selection.market) : null,
+      nextWindowAtSec: selection.code === "window-not-started" ? selection.market?.tradingStartSec : null }).detail
+    : unavailable ? "Live Windows could not be checked. Try again shortly." : "Checking live Windows…";
+  const cadences = (Object.entries(X_CADENCES) as [Cadence, number][]).map(([name, intervalSec]) => {
+    const w = markets ? selectXWindow(markets, { asset, intervalSec }, nowMs) : null;
+    const label = w?.ok ? "Open" : w?.code === "window-not-started" ? "Soon" : w?.code === "opening-price-pending" ? "Starting" : w ? "Closed" : unavailable ? "Unavailable" : "Checking";
+    return { name, label, open: Boolean(w?.ok) };
+  });
   const copy = async () => {
-    if (!canPost) return;
-    await Clipboard.setStringAsync(instruction);
-    setCopied(true);
-    haptic.success();
-  };
-  const post = () => {
-    if (!canPost) return;
-    void openExternal(`https://x.com/intent/post?text=${encodeURIComponent(instruction)}`);
+    if (!canCopy) return;
+    try { await Clipboard.setStringAsync(instruction); setCopied(instruction); }
+    catch { setCopied("Copy failed. Select the instruction text and copy it."); }
   };
 
   return (
-    <View style={styles.wrap} accessibilityLabel="Build an X instruction">
-      <View>
-        <Text style={[TYPE.headline, { color: color.ink }]}>Make your call.</Text>
-        <Text style={[TYPE.caption, { color: color.inkSecondary }]}>Choose. Copy. Post on X.</Text>
+    <View accessibilityLabel="Build an X instruction">
+      <View style={styles.heading}>
+        <Text style={[styles.h2, { color: t.ink }]}>Make your call.</Text>
+        <Text style={[styles.sub, { color: t.xiMute }]}>Choose. Copy. Post on X.</Text>
       </View>
-
-      <Field label="Or paste a post" value={pasted} onChangeText={readPost} placeholder={`${X_HANDLE} tsla up 5 15m`} error={parseNote?.startsWith("Not") ? parseNote : null} />
-      {parseNote && !parseNote.startsWith("Not") ? <Text style={[TYPE.caption, { color: color.profit }]}>{parseNote}</Text> : null}
-
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Asset</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.assets}>
-        {LAUNCH_TICKERS.map((name) => {
-          const on = asset === name;
-          return (
-            <Pressable
-              key={name}
-              onPress={() => {
-                haptic.select();
-                setAsset(name);
-              }}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              accessibilityLabel={`${name}, ${TICKERS[name].name}`}
-              style={[styles.asset, { borderColor: on ? color.accent : color.hairline, backgroundColor: on ? color.accentWash : color.surface1 }]}
-            >
-              <AssetDisc asset={name} size={28} />
-              <View>
-                <Text style={[TYPE.data, { color: color.ink }]}>{name}</Text>
-                <Text style={[TYPE.caption, styles.small, { color: color.inkMuted }]} numberOfLines={1}>
-                  {TICKERS[name].name}
-                </Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Direction</Text>
-      <View style={styles.sides}>
-        {(["up", "down"] as const).map((s) => (
-          <Button
-            key={s}
-            label={s === "up" ? "UP · Long" : "DOWN · Short"}
-            variant={side === s ? (s === "up" ? "profit" : "loss") : "outline"}
-            icon={s === "up" ? { ios: "arrow.up.right", android: "north_east" } : { ios: "arrow.down.right", android: "south_east" }}
-            onPress={() => setSide(s)}
-            style={styles.flex}
-          />
-        ))}
+      <View style={styles.choices}>
+        <View>
+          <Legend label="Asset" />
+          <View style={styles.grid}>
+            {pairs(LAUNCH_TICKERS).map((row) => (
+            <View key={row.join()} style={styles.pair}>
+            {row.map((name) => {
+              if (!name) return <View key="spacer" style={styles.cell} />;
+              const on = asset === name;
+              return (
+                <Pressable key={name} onPress={() => setAsset(name)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={name}
+                  style={({ pressed }) => [styles.choice, { borderColor: on ? t.xiAssetOn : t.xiLine, backgroundColor: on ? t.xiAssetOn : pressed ? t.xiHover : t.clear }, pressed && styles.down]}>
+                  <Text style={[styles.mark, { color: on ? t.xiAssetOnInk : t.ink }]}>{TICKERS[name].monogram}</Text>
+                  <View style={styles.shrink}>
+                    <Text style={[styles.assetName, { color: on ? t.xiAssetOnInk : t.ink }]}>{name}</Text>
+                    <Text style={[styles.small, styles.dim, { color: on ? t.xiAssetOnInk : t.ink }]} numberOfLines={1}>{TICKERS[name].name}</Text>
+                  </View>
+                  {on ? <Check size={13} color={t.xiAssetOnInk} strokeWidth={2} style={styles.check} /> : null}
+                </Pressable>
+              );
+            })}
+            </View>
+            ))}
+          </View>
+        </View>
+        <View>
+          <Legend label="Direction" />
+          <View style={styles.pair}>
+            {(["up", "down"] as const).map((s) => {
+              const on = side === s;
+              const Icon = s === "up" ? ArrowUpRight : ArrowDownRight;
+              const ink = on ? (s === "up" ? t.xiUp : t.xiDown) : t.xiMute;
+              return (
+                <Pressable key={s} onPress={() => setSide(s)} accessibilityRole="button" accessibilityState={{ selected: on }} accessibilityLabel={s === "up" ? "UP / LONG" : "DOWN / SHORT"}
+                  style={({ pressed }) => [styles.choice, styles.side, { borderColor: on ? (s === "up" ? t.xiUpBorder : t.xiDownBorder) : t.xiLine, backgroundColor: on ? (s === "up" ? t.xiUpWash : t.xiDownWash) : t.clear }, pressed && styles.down]}>
+                  <Icon size={22.5} color={ink} strokeWidth={2} />
+                  <View>
+                    <Text style={[styles.sideName, { color: ink }]}>{s === "up" ? "UP" : "DOWN"}</Text>
+                    <Text style={[styles.small, { color: ink }]}>{s === "up" ? "Long" : "Short"}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       </View>
-
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>Timeframe · live availability</Text>
-      <Segmented
-        label="Timeframe"
-        options={(Object.keys(X_CADENCES) as XCadence[]).map((name) => {
-          const w = markets ? selectXWindow(markets, { asset, intervalSec: X_CADENCES[name] }, nowMs) : null;
-          const label = w?.ok ? "open" : w?.code === "window-not-started" ? "soon" : w?.code === "opening-price-pending" ? "starting" : w ? "closed" : "…";
-          return { value: name, label: `${name} · ${label}` };
-        })}
-        value={cadence}
-        onChange={setCadence}
-      />
-      <Text style={[TYPE.caption, { color: selection?.ok ? color.profit : color.inkSecondary }]} accessibilityLiveRegion="polite">
-        {status}
-      </Text>
-
-      <AmountInput
-        label={`Amount · X balance ${maxAmount ?? "—"}`}
-        symbol={symbol}
-        value={amount}
-        onChange={setAmount}
-        error={amountError || null}
-        onMax={maxAmount && balanceBase ? () => setAmount(maxAmount) : undefined}
-      />
-      <Chips options={AMOUNTS.map((v) => ({ value: v, label: v }))} value={amount} onPick={setAmount} />
-
-      <PostCard handle={handle}>
-        <Text style={[styles.post, { color: color.ink }]}>
-          <Text style={{ color: color.accent }}>{X_HANDLE}</Text> {asset} <Text style={{ color: side === "up" ? color.profit : color.loss }}>{side.toUpperCase()}</Text> {stake && stake > 0n ? amount : "…"} {cadence}
-        </Text>
-      </PostCard>
-      <View style={styles.sides}>
-        <Button label={copied ? "Copied" : "Copy"} variant="secondary" icon={{ ios: copied ? "checkmark" : "doc.on.doc", android: copied ? "check" : "content_copy" }} disabled={!canPost} onPress={() => void copy()} style={styles.flex} />
-        <Button label="Post on X" disabled={!canPost} icon={{ ios: "paperplane.fill", android: "send" }} onPress={post} style={styles.flex} />
+      <View style={styles.field}>
+        <Legend label="Timeframe" aside="Live availability" />
+        <Cadences items={cadences} value={cadence} onPick={setCadence} />
+        <Text style={[styles.status, { color: selection?.ok ? t.xiUp : t.xiMute }]} accessibilityLiveRegion="polite">{status}</Text>
       </View>
-      {!enabled ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>Complete wallet, funding and X setup above to enable posting.</Text> : null}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>
+      <View style={styles.field}>
+        <Legend label="Amount" aside={`X balance · ${maxAmount ?? "—"} ${symbol}`} />
+        <AmountField amount={amount} setAmount={setAmount} symbol={symbol} decimals={decimals} balanceBase={balanceBase} maxAmount={maxAmount} error={amountError} />
+      </View>
+      <PostPreview side={side} asset={asset} amount={!stake || stake <= 0n ? "…" : amount} cadence={cadence} canCopy={canCopy} copied={copied === instruction} enabled={enabled}
+        failed={copied.startsWith("Copy failed") ? copied : ""} onCopy={() => void copy()} />
+      <Text style={[styles.timing, { color: t.xiMute }]}>
         Entries close {ENTRY_BUFFER_SEC}s before the Window ends. Post early enough for X delivery; availability is checked again on arrival.
       </Text>
     </View>
@@ -187,11 +137,24 @@ export function InstructionBuilder({ enabled, balanceBase, decimals, symbol, han
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
-  assets: { gap: 8, paddingVertical: 2 },
-  asset: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, paddingHorizontal: 12, borderRadius: RADIUS.md, borderWidth: 1, maxWidth: 170 },
-  small: { fontSize: 11, lineHeight: 14 },
-  sides: { flexDirection: "row", gap: 8 },
-  flex: { flex: 1 },
-  post: { fontFamily: FONT.data, fontSize: 17, lineHeight: 24 },
+  heading: { marginBottom: XI(1.5) },
+  h2: { fontFamily: FONT.headingHeavy, fontSize: XI(1.5), lineHeight: XI(1.725), letterSpacing: -0.9 },
+  sub: { marginTop: 6, fontFamily: FONT.body, fontSize: XI(0.8125), lineHeight: 19.5 },
+  choices: { gap: XI(1.25) },
+  grid: { gap: XI(0.5) },
+  pair: { flexDirection: "row", gap: XI(0.5) },
+  cell: { flex: 1 },
+  choice: { flex: 1, flexDirection: "row", alignItems: "center", gap: XI(0.625), minHeight: XI(3.5), paddingVertical: XI(0.65), paddingHorizontal: XI(0.85), borderWidth: 1, borderRadius: XI(0.75) },
+  side: { gap: XI(0.5) },
+  down: { transform: [{ translateY: 1 }] },
+  mark: { width: XI(1.75), fontFamily: FONT.body, fontSize: 15, lineHeight: XI(1.75) },
+  shrink: { flexShrink: 1 },
+  assetName: { fontFamily: FONT.bodyStrong, fontSize: XI(0.9375), lineHeight: 22.5, letterSpacing: -0.28 },
+  sideName: { fontFamily: FONT.bodyStrong, fontSize: 15, lineHeight: 24, letterSpacing: -0.375 },
+  small: { marginTop: 1.5, fontFamily: FONT.body, fontSize: XI(0.625), lineHeight: 15 },
+  dim: { opacity: 0.68 },
+  check: { marginLeft: "auto" },
+  field: { marginTop: XI(1.5) },
+  status: { marginTop: XI(0.7), fontFamily: FONT.body, fontSize: XI(0.6875), lineHeight: 15.47 },
+  timing: { marginTop: XI(0.85), fontFamily: FONT.body, fontSize: XI(0.6875), lineHeight: 16.5 },
 });
