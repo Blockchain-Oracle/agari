@@ -1,7 +1,6 @@
 import { diagnosisCopy } from "@agari/core/copy";
 import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@agari/core/market";
 import type { Diagnosis, EventMarket, LaneSet } from "@agari/core/types";
-import { router } from "expo-router";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
@@ -51,7 +50,7 @@ export function WordBoard({ laneSet: allLanes, failure, ticker, nowMs }: WordBoa
   if (laneSet === null && failure) return <WordsQuiet text={diagnosisCopy(failure.kind).body} />;
   if (laneSet === null || nowMs === 0) return <WordsQuiet text={WORD_BOARD.reading} />;
   if (groups.length === 0 && session && !session.open) {
-    return <WordsEmptyState why={SESSION_COPY.board.closed(phrase(session.status, Math.floor(nowMs / 1000)))} action={{ label: SESSION_COPY.board.nextAction, onPress: () => router.push("/news") }} />;
+    return <WordsEmptyState why={SESSION_COPY.board.closed(phrase(session.status, Math.floor(nowMs / 1000)))} />;
   }
   if (groups.length === 0) return <WordsQuiet text={WORD_BOARD.between} />;
 

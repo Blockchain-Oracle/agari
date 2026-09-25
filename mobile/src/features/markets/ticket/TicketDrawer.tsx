@@ -1,36 +1,27 @@
 import { countdown, type MarketPhase } from "@agari/core/lifecycle";
 import type { EventMarket } from "@agari/core/types";
 import { formatClock } from "@agari/core/units";
-import { X } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { laneAssetLabel, laneTabLabel } from "@/features/markets/lanes/lane-view";
 import { HERO, SETTLING, TICKET } from "@/lib/copy";
 import { FONT } from "~/theme";
-import { useCloseTicket } from "./TicketFrame";
 import { TicketMiniChart } from "./TicketMiniChart";
 import { useTk } from "./tk";
 
 /**
- * web's `.tk-drawer` holding a `.tk-ticket--drawer` (TicketDock below 1024 px): the panel is the surface, 24 px in, one
- * column at a 12 px gap; the close in the corner, the head (which Window, its phase, the clock) and the mini chart,
- * then the composer's blocks. It scrolls inside TicketFrame's panel, whose slide-out the ✕ runs.
+ * web's `.tk-ticket--drawer` (TicketDock below 1024 px) in web's paper, one column at a 12 px gap: the head (which
+ * Window, its phase, the clock, clear of the corner ✕) and the mini chart, then the composer's blocks. It rises in the
+ * app's bottom drawer (the owner's call for a phone), which scrolls it and carries the ✕.
  */
 export function TicketDrawer({ market, phase, nowMs, children }: { market: EventMarket; phase: MarketPhase | null; nowMs: number; children: ReactNode }) {
-  const tk = useTk();
-  const close = useCloseTicket();
   return (
-    <View style={styles.fill}>
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-        <View style={styles.head}>
-          <TicketHeader market={market} phase={phase} nowMs={nowMs} />
-        </View>
-        <TicketMiniChart market={market} />
-        {children}
-        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={TICKET.close} hitSlop={6} style={styles.close}>
-          <X size={16} color={tk.close} />
-        </Pressable>
-      </ScrollView>
+    <View style={styles.body}>
+      <View style={styles.head}>
+        <TicketHeader market={market} phase={phase} nowMs={nowMs} />
+      </View>
+      <TicketMiniChart market={market} />
+      {children}
     </View>
   );
 }
@@ -55,9 +46,7 @@ function TicketHeader({ market, phase, nowMs }: { market: EventMarket; phase: Ma
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  body: { padding: 24, paddingBottom: 40, gap: 12 },
-  close: { position: "absolute", top: 40, right: 40, padding: 8, borderRadius: 999 },
+  body: { gap: 12 },
   head: { paddingRight: 48, marginBottom: 8 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   names: { flexShrink: 1, gap: 2 },

@@ -8,7 +8,7 @@ import type { ThemeName } from "../index";
  * Where web's light rule out-ranks a pressed state (the 1× chip, the pressed mode tile), the computed value is kept.
  */
 const DARK = {
-  drawerBg: "#0B0B0E", close: "#525252", drawerEdge: "rgba(255, 255, 255, 0.1)", scrim: "rgba(0, 0, 0, 0.7)", drawerShadow: "#000000",
+  drawerBg: "#0B0B0E", close: "#525252", drawerEdge: "rgba(255, 255, 255, 0.1)",
   ink: "#FFFFFF", inkSecondary: "#A3A3A3", inkMuted: "#737373", vermilion: "#E04D26",
   // .tk-mini-chart and the lightweight-charts canvas inside it
   miniBorder: "rgba(255, 255, 255, 0.08)", miniBg: "rgba(255, 255, 255, 0.016)",
@@ -47,7 +47,7 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
-  drawerBg: "#F4EEE3", close: "#9A9080", drawerEdge: "rgba(20, 18, 16, 0.1)", scrim: "rgba(0, 0, 0, 0.7)", drawerShadow: "#000000",
+  drawerBg: "#F4EEE3", close: "#9A9080", drawerEdge: "rgba(20, 18, 16, 0.1)",
   ink: "#141210", inkSecondary: "#5E574B", inkMuted: "#7C7466", vermilion: "#D93E1F",
   miniBorder: "rgba(20, 18, 16, 0.11)", miniBg: "rgba(20, 18, 16, 0.02)",
   chartGrid: "rgba(20, 18, 16, 0.12)", chartText: "#7C7466", chartLine: "#141210", chartLineLabelInk: "#FFFFFF",

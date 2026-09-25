@@ -7,6 +7,7 @@ import { BandControl } from "~/features/games/range/BandControl";
 import { explorerUrl, openExternal } from "~/lib/external";
 import { FONT } from "~/theme";
 import { useTk } from "./tk";
+import { useDrawerClose } from "~/components/drawer/BottomDrawer";
 
 /**
  * web's Ticket in Range mode: the band control in the side block's place (the app's BandControl, the Range page's
@@ -34,6 +35,7 @@ export function rangeCtaLabel(c: TicketComposer): string {
 
 /** web's RangePlaced: the receipt line, the transaction, the rounds page, and "another". */
 export function RangePlaced({ placed, onAnother }: { placed: { txHash: string; band: string }; onAnother: () => void }) {
+  const close = useDrawerClose();
   const tk = useTk();
   return (
     <View style={styles.stack} accessibilityLiveRegion="polite">
@@ -46,8 +48,7 @@ export function RangePlaced({ placed, onAnother }: { placed: { txHash: string; b
           style={[styles.link, { color: tk.vermilion }]}
           accessibilityRole="link"
           onPress={() => {
-            router.back();
-            router.navigate("/games/range");
+            close(() => router.navigate("/games/range"));
           }}
         >
           {RANGE.cta.rounds}

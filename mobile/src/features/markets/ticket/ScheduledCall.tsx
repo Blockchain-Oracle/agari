@@ -16,6 +16,7 @@ import { TxHash } from "./OutcomeNote";
 import { ReadoutCell, ReadoutRow } from "./Readout";
 import { GateCta } from "./TicketButton";
 import { useTk } from "./tk";
+import { useDrawerClose } from "~/components/drawer/BottomDrawer";
 
 /**
  * web's ScheduledCall (D-088): the receipt a scheduled call leaves where the composer was, in the gate's block — what
@@ -23,6 +24,7 @@ import { useTk } from "./tk";
  * (`user_cancel_orders` on the call's own handle; the escrow returns to venue credit).
  */
 export function ScheduledCall({ rested, market, decimals, onAnother }: { rested: RestedOrder; market: EventMarket; decimals: number; onAnother: () => void }) {
+  const close = useDrawerClose();
   const tk = useTk();
   const when = useWhen();
   const cancel = useCancelResting();
@@ -60,8 +62,7 @@ export function ScheduledCall({ rested, market, decimals, onAnother }: { rested:
         <Quiet
           label={PREOPEN.receipt.portfolio}
           onPress={() => {
-            router.back();
-            router.navigate("/portfolio");
+            close(() => router.navigate("/portfolio"));
           }}
         />
         <Quiet label={PREOPEN.receipt.another} onPress={onAnother} />
