@@ -2,17 +2,21 @@ import { canonicalJson, hashRecord } from "@agari/core/desk";
 import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
 import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
+import { File, Paths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { Code, Download, ShieldCheck } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { RECORD } from "@/features/desk/copy-record";
 import { shortHash } from "@/features/desk/format";
 import type { ProofWire } from "@/features/desk/protocol";
 import { MAINNET_RPC_PATH } from "@/providers/wallet/mainnet-signer";
-import { Button, haptic } from "~/components/kit";
+import { haptic } from "~/components/kit";
 import { openExternal } from "~/lib/external";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT } from "~/theme";
+import { DkControl, DT, useDeskTheme } from "../kit";
 
-/** web's Check it words, which speak of "your browser"; on the phone the same check runs on the phone. */
+/** web's Check it words speak of "your browser"; in the app the same check runs on this phone. */
 const onPhone = (text: string): string => text.replace(/Your browser/g, "This phone").replace(/your browser/g, "this phone");
 const C = Object.fromEntries(Object.entries(RECORD.checkIt).map(([k, v]) => [k, typeof v === "string" ? onPhone(v) : v])) as typeof RECORD.checkIt;
 type KitSignature = Parameters<typeof readSealsOf>[1];
@@ -56,24 +60,54 @@ async function checkRecord(body: unknown, recordHash: string, proof: ProofWire):
   return { ...base, chain: links.every((l) => l.ok) && same(match.decisionHash, expected) ? "ok" : "mismatch", eventHash: match.decisionHash };
 }
 
-function Hash({ label, value }: { label: string; value: string }) {
-  const { color } = useTheme();
+/** The verdict as web's `.dk-card` with a `.dk-receipt` of the fingerprints. */
+function Verdict({ result, recordHash, proof, explorer }: { result: CheckResult; recordHash: string; proof: ProofWire; explorer: string | null }) {
+  const { color } = useDeskTheme();
+  const good = result.storedOk && (result.chain === "ok" || result.chain === "practice" || result.chain === "unsealed");
+  const bad = !result.storedOk || result.chain === "mismatch" || result.chain === "no_event";
+  const sentence = !result.storedOk ? C.storedMismatch : result.chain === "ok" ? C.matches : result.chain === "mismatch" ? C.mismatch : result.chain === "no_event" ? C.noEvent : result.chain === "unreachable" ? C.unreachable : C.storedMatches;
+  const rows: [string, string][] = [[C.computed, result.computed], [C.stored, recordHash], ...(result.eventHash ? [[C.onChain, result.eventHash] as [string, string]] : [])];
   return (
-    <View style={styles.hash}>
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{label}</Text>
-      <Text style={[styles.mono, { color: color.ink }]} selectable>
-        {value}
-      </Text>
+    <View style={[styles.verdict, { backgroundColor: color.surface1, borderColor: good ? color.profit : bad ? color.loss : color.hairline }]} accessibilityLiveRegion="polite">
+      <Text style={[DT.body, { color: good ? color.ink : bad ? color.warning : color.inkSecondary }]}>{sentence}</Text>
+      {proof.kind === "later" ? (
+        <>
+          <Text style={[DT.caption, { color: color.inkSecondary }]}>{C.links(result.links.length, proof.sealingSeq)}</Text>
+          <View>
+            {result.links.map((l, i) => (
+              <Text key={l.seq} style={[DT.caption, styles.linkRow, i > 0 && { borderTopWidth: 1, borderTopColor: color.hairline }, { color: l.ok ? color.inkMuted : color.warning }]}>
+                {l.ok ? C.linkOk(l.seq) : C.linkBroken(l.seq)}
+              </Text>
+            ))}
+          </View>
+        </>
+      ) : null}
+      <View style={styles.receipt}>
+        {rows.map(([dt, dd]) => (
+          <View key={dt} style={styles.receiptRow}>
+            <Text style={[styles.dt, { color: color.inkMuted }]}>{dt}</Text>
+            <Text style={[styles.hash, { color: color.ink }]} selectable>
+              {dd}
+              {dt === C.onChain && explorer ? (
+                <Text style={{ color: color.accent }} accessibilityRole="link" onPress={() => void openExternal(explorer)}>
+                  {" "}({C.seeTx})
+                </Text>
+              ) : null}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
 /**
- * "Check it" (web's CheckIt.tsx): this phone rebuilds the record's fingerprint from its canonical bytes, compares it
- * with the one stored beside it, then asks Solana mainnet for the fingerprint the sealing transaction carries.
+ * "Check it" (web's CheckIt.tsx): this phone rebuilds the record's fingerprint from its canonical bytes, compares it with
+ * the one stored beside it, then asks Solana mainnet for the fingerprint the sealing transaction carries. The exact
+ * bytes can be shown, and saved as the same JSON file web downloads (through the phone's share sheet).
  */
 export function CheckIt({ body, recordHash, proof }: { body: unknown; recordHash: string; proof: ProofWire }) {
-  const { color } = useTheme();
+  const { color } = useDeskTheme();
   const [result, setResult] = useState<CheckResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [bytes, setBytes] = useState(false);
@@ -82,50 +116,38 @@ export function CheckIt({ body, recordHash, proof }: { body: unknown; recordHash
     const r = await checkRecord(body, recordHash, proof);
     setResult(r);
     setBusy(false);
-    const good = r.storedOk && (r.chain === "ok" || r.chain === "practice" || r.chain === "unsealed");
-    if (good) haptic.success();
+    if (r.storedOk && (r.chain === "ok" || r.chain === "practice" || r.chain === "unsealed")) haptic.success();
     else haptic.error();
   };
-  const share = () => void Share.share({ title: `desk-record-${recordHash.slice(2, 12)}.json`, message: `${canonicalJson(body)}\n` });
+  const download = async () => {
+    const file = new File(Paths.cache, `desk-record-${recordHash.slice(2, 12)}.json`);
+    file.create({ overwrite: true });
+    file.write(`${canonicalJson(body)}\n`);
+    await Sharing.shareAsync(file.uri, { mimeType: "application/json", UTI: "public.json", dialogTitle: C.download });
+  };
   const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, "mainnet-beta") : null;
-  const r = result;
-  const good = r ? r.storedOk && (r.chain === "ok" || r.chain === "practice" || r.chain === "unsealed") : false;
-  const bad = r ? !r.storedOk || r.chain === "mismatch" || r.chain === "no_event" : false;
-  const sentence = !r ? null : !r.storedOk ? C.storedMismatch : r.chain === "ok" ? C.matches : r.chain === "mismatch" ? C.mismatch : r.chain === "no_event" ? C.noEvent : r.chain === "unreachable" ? C.unreachable : C.storedMatches;
   return (
     <View style={styles.wrap}>
-      <Button label={busy ? C.checking : C.check} loading={busy} icon={{ ios: "checkmark.shield", android: "verified_user" }} onPress={() => void check()} />
-      <Button label="Share the record" size="sm" variant="secondary" icon={{ ios: "square.and.arrow.up", android: "share" }} onPress={share} />
-      <Button label={bytes ? C.hideBytes : C.showBytes} size="sm" variant="secondary" icon={{ ios: "chevron.left.forwardslash.chevron.right", android: "code" }} onPress={() => setBytes((b) => !b)} />
-      {r && sentence ? (
-        <View style={[styles.verdict, { borderColor: good ? color.profit : bad ? color.loss : color.hairline }]} accessibilityLiveRegion="polite">
-          <Text style={[TYPE.body, { color: good ? color.ink : bad ? color.loss : color.inkSecondary }]}>{sentence}</Text>
-          {proof.kind === "later" ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{onPhone(C.links(r.links.length, proof.sealingSeq))}</Text> : null}
-          {r.links.map((l) => (
-            <Text key={l.seq} style={[TYPE.caption, { color: l.ok ? color.inkMuted : color.loss }]}>
-              {l.ok ? C.linkOk(l.seq) : C.linkBroken(l.seq)}
-            </Text>
-          ))}
-          <Hash label={C.computed} value={r.computed} />
-          <Hash label={C.stored} value={recordHash} />
-          {r.eventHash ? <Hash label={C.onChain} value={r.eventHash} /> : null}
-          {r.eventHash && explorer ? (
-            <Pressable onPress={() => void openExternal(explorer)} accessibilityRole="link" hitSlop={8}>
-              <Text style={[TYPE.bodyStrong, { color: color.accent }]}>{C.seeTx} ↗</Text>
-            </Pressable>
-          ) : null}
-        </View>
+      <View style={styles.actions}>
+        <DkControl tone="primary" icon={ShieldCheck} label={busy ? C.checking : C.check} disabled={busy} onPress={() => void check()} />
+        <DkControl icon={Download} label={C.download} onPress={() => void download()} />
+        <DkControl icon={Code} label={bytes ? C.hideBytes : C.showBytes} onPress={() => setBytes((b) => !b)} />
+      </View>
+      {result ? (
+        <Verdict result={result} recordHash={recordHash} proof={proof} explorer={explorer} />
       ) : (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>{proof.kind === "practice" ? C.beforePractice : proof.kind === "unsealed" ? C.beforeUnsealed : C.before}</Text>
+        <Text style={[DT.caption, { color: color.inkMuted }]}>{proof.kind === "practice" ? C.beforePractice : proof.kind === "unsealed" ? C.beforeUnsealed : C.before}</Text>
       )}
       {bytes ? (
-        <Text style={[styles.mono, styles.bytes, { color: color.inkSecondary, backgroundColor: color.surface2 }]} selectable>
-          {canonicalJson(body)}
-        </Text>
+        <ScrollView style={[styles.bytes, { borderColor: color.hairline }]} nestedScrollEnabled>
+          <Text style={[styles.bytesText, { color: color.inkSecondary }]} selectable>
+            {canonicalJson(body)}
+          </Text>
+        </ScrollView>
       ) : null}
-      {!bytes && r?.storedOk ? (
-        <Text style={[TYPE.caption, { color: color.inkMuted }]}>
-          {RECORD.decision.proof.fingerprint} {shortHash(r.computed)}
+      {!bytes && result?.storedOk ? (
+        <Text style={[DT.caption, { color: color.inkMuted }]}>
+          {RECORD.decision.proof.fingerprint} {shortHash(result.computed)}
         </Text>
       ) : null}
     </View>
@@ -133,9 +155,14 @@ export function CheckIt({ body, recordHash, proof }: { body: unknown; recordHash
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10 },
-  verdict: { borderWidth: 1, borderRadius: RADIUS.md, padding: 12, gap: 8 },
-  hash: { gap: 2 },
-  mono: { fontFamily: FONT.data, fontSize: 11.5, lineHeight: 16 },
-  bytes: { borderRadius: RADIUS.md, padding: 10 },
+  wrap: { gap: 12 },
+  actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
+  verdict: { gap: 12, padding: 16, borderWidth: 1, borderRadius: 12 },
+  linkRow: { paddingVertical: 8 },
+  receipt: { gap: 6 },
+  receiptRow: { flexDirection: "row", gap: 16 },
+  dt: { width: 110, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
+  hash: { flex: 1, minWidth: 0, fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2 },
+  bytes: { maxHeight: 260, padding: 12, borderWidth: 1, borderRadius: 10 },
+  bytesText: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 16.5 },
 });

@@ -1,206 +1,154 @@
-import { SymbolView } from "expo-symbols";
+import {
+  Bell, Check, Circle, CircleDashed, FlaskConical, Gauge, Hand, Hourglass, OctagonAlert, RefreshCw, Rocket, Send, ShieldCheck, Wallet, Wind, type LucideIcon,
+} from "lucide-react-native";
 import { useEffect, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
-import { haptic } from "~/components/kit";
+import { StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { AssetDisc } from "~/components/marks/AssetDisc";
-import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
+import { FONT } from "~/theme";
+import { DT, useDeskTheme } from "./theme";
 
 /**
- * The desk kit's small pieces, from web/src/components/ui/desk-kit/primitives.tsx and charts.tsx: Status Dot
- * (21st #24882), Avatar Stack as a logo stack (#28355), Icon Card Radio Group (#28351), Underline Tabs (#24956) and
- * the titled panel every cockpit tab is built from.
+ * The desk kit's small pieces, ported from web/src/components/ui/desk-kit (desk-kit.css): Status Dot (21st #24882),
+ * the logo stack (#28355), the titled card every cockpit tab is built from (DeskPanels `Panel`), the eyebrow, the
+ * studio's icon tile and the empty state (#1435).
  */
 export type DotTone = "live" | "practice" | "warn" | "stopped" | "quiet";
+export type LegacyIcon = { ios: string; android: string };
 
-/** A state pill with its dot; "live" pulses, the rest hold still. */
-export function StatusDot({ tone, label }: { tone: DotTone; label: string }) {
-  const { color } = useTheme();
+/** Older callers name platform symbols; each maps to the lucide mark web draws in the same place. */
+const LEGACY: Record<string, LucideIcon> = {
+  flask: FlaskConical, paperplane: Send, "checkmark.shield": ShieldCheck, "gauge.with.dots.needle.50percent": Gauge, wind: Wind,
+  "wallet.bifold": Wallet, bell: Bell, hourglass: Hourglass, checkmark: Check, "circle.dashed": CircleDashed, "hand.raised": Hand,
+  "exclamationmark.octagon": OctagonAlert, "arrow.triangle.2.circlepath": RefreshCw, rocket: Rocket,
+};
+
+export function lucideOf(icon: LucideIcon | LegacyIcon): LucideIcon {
+  return typeof icon === "object" && "ios" in icon ? (LEGACY[icon.ios] ?? Circle) : icon;
+}
+
+/** `.dkit-status`: a state pill with its dot; "live" pulses (dkit-ping), the rest hold still. */
+export function StatusDot({ tone, label, children }: { tone: DotTone; label?: string; children?: ReactNode }) {
+  const { color, t } = useDeskTheme();
   const reduce = useReducedMotion();
-  const ink = { live: color.profit, practice: color.accent, warn: color.warning, stopped: color.loss, quiet: color.inkMuted }[tone];
+  const [ink, border, dot] = {
+    live: [color.profit, t.statusLive, color.profit],
+    practice: [color.accent, color.accentDim, color.accent],
+    warn: [color.warning, t.statusWarn, color.warning],
+    stopped: [color.loss, t.statusStopped, color.loss],
+    quiet: [color.inkSecondary, color.hairline, color.inkMuted],
+  }[tone];
   const ping = useSharedValue(0);
   useEffect(() => {
-    if (tone === "live" && !reduce) ping.value = withRepeat(withTiming(1, { duration: 1600 }), -1, false);
+    if (tone === "live" && !reduce) ping.value = withRepeat(withTiming(1, { duration: 1600, easing: Easing.bezier(0, 0, 0.2, 1) }), -1, false);
   }, [tone, reduce, ping]);
-  const ring = useAnimatedStyle(() => ({ opacity: 0.6 * (1 - ping.value), transform: [{ scale: 1 + ping.value * 1.4 }] }));
+  const ring = useAnimatedStyle(() => ({ opacity: ping.value < 0.75 ? 1 - ping.value / 0.75 : 0, transform: [{ scale: 1 + Math.min(1, ping.value / 0.75) * 1.2 }] }));
+  const text = label ?? children;
   return (
-    <View style={[styles.status, { borderColor: ink }]} accessible accessibilityLabel={label}>
-      <View style={styles.dotWrap}>
-        {tone === "live" ? <Animated.View style={[styles.dot, styles.ping, { backgroundColor: ink }, ring]} /> : null}
-        <View style={[styles.dot, { backgroundColor: ink }]} />
+    <View style={[styles.status, { borderColor: border }]} accessible accessibilityLabel={typeof text === "string" ? text : undefined}>
+      <View style={styles.dotBox}>
+        {tone === "live" ? <Animated.View style={[styles.dot, styles.ping, { backgroundColor: dot }, ring]} /> : null}
+        <View style={[styles.dot, { backgroundColor: dot }]} />
       </View>
-      <Text style={[styles.statusText, { color: ink }]} numberOfLines={1}>
-        {label}
-      </Text>
+      {typeof text === "string" ? <Text style={[styles.statusText, { color: ink }]} numberOfLines={1}>{text}</Text> : text}
     </View>
   );
 }
 
-/** Overlapping company marks with a "+N" cell. */
-export function LogoStack({ symbols, max = 4, size = 22, names }: { symbols: readonly string[]; max?: number; size?: number; names?: readonly string[] }) {
-  const { color } = useTheme();
+const LOGO = { sm: 20, md: 28, lg: 36 } as const;
+
+/** `.dkit-logos`: overlapping company marks, each ringed in the card's surface, with a "+N" cell. */
+export function LogoStack({ symbols, max = 4, size = "md", names }: { symbols: readonly string[]; max?: number; size?: number | keyof typeof LOGO; names?: readonly string[] }) {
+  const { color } = useDeskTheme();
+  const px = typeof size === "number" ? size : LOGO[size];
   const shown = symbols.slice(0, max);
   const more = symbols.length - shown.length;
+  const cell = (i: number) => ({ width: px + 4, height: px + 4, borderRadius: px, margin: -2, marginLeft: i === 0 ? -2 : -2 - px * 0.3, backgroundColor: color.surface1, zIndex: shown.length - i });
   return (
-    <View style={styles.logos} accessible accessibilityRole="image" accessibilityLabel={(names ?? symbols).join(", ")}>
+    <View style={[styles.logos, { marginHorizontal: 2 }]} accessible accessibilityRole="image" accessibilityLabel={(names ?? symbols).join(", ")}>
       {shown.map((s, i) => (
-        <View key={s} style={[styles.logo, { marginLeft: i === 0 ? 0 : -size * 0.3, zIndex: shown.length - i, borderColor: color.ground, borderRadius: size }]}>
-          <AssetDisc asset={s} size={size} />
+        <View key={s} style={[styles.logoRing, cell(i)]}>
+          <View style={{ width: px, height: px, borderRadius: px, overflow: "hidden", backgroundColor: color.surface2 }}>
+            <AssetDisc asset={s} size={px} />
+          </View>
         </View>
       ))}
       {more > 0 ? (
-        <View style={[styles.more, { width: size + 4, height: size + 4, borderRadius: size, marginLeft: -size * 0.3, backgroundColor: color.surface2, borderColor: color.ground }]}>
-          <Text style={[styles.moreText, { color: color.inkSecondary, fontSize: size * 0.42 }]}>+{more}</Text>
+        <View style={[styles.logoRing, cell(shown.length), { zIndex: 0 }]}>
+          <View style={[styles.more, { width: px, height: px, borderRadius: px, backgroundColor: color.surface2 }]}>
+            <Text style={[styles.moreText, { color: color.ink, fontSize: px * 0.36 }]}>+{more}</Text>
+          </View>
         </View>
       ) : null}
     </View>
   );
 }
 
-export interface RadioCardItem<T extends string> {
-  value: T;
-  title: string;
-  body?: ReactNode;
-  media?: ReactNode;
-  footer?: ReactNode;
-}
-
-/** Cards that behave as one radio group; the media slot takes logos or an icon tile. */
-export function RadioCards<T extends string>({ value, onChange, items, label, columns = 1 }: { value: T | null; onChange: (v: T) => void; items: readonly RadioCardItem<T>[]; label: string; columns?: 1 | 2 }) {
-  const { color } = useTheme();
+/** `.st-icon-tile`: a 40 px rounded square, tinted by level. Takes a lucide mark (or an older platform symbol). */
+export function IconTile({ icon, level }: { icon: LucideIcon | LegacyIcon; level?: "careful" | "balanced" | "loose" }) {
+  const { color, t } = useDeskTheme();
+  const Icon = lucideOf(icon);
+  const [bg, ink] =
+    level === "careful" ? [color.profitWash, color.profit] : level === "balanced" ? [color.accentWash, color.accent] : level === "loose" ? [t.badgeAsked, color.warning] : [color.surface2, color.inkSecondary];
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={[styles.radios, columns === 2 && styles.radiosTwo]}>
-      {items.map((item) => {
-        const on = item.value === value;
-        return (
-          <Pressable
-            key={item.value}
-            onPress={() => {
-              haptic.select();
-              onChange(item.value);
-            }}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: on }}
-            accessibilityLabel={item.title}
-            style={({ pressed }) => [
-              styles.radio,
-              columns === 2 && styles.radioHalf,
-              { backgroundColor: on ? color.accentWash : color.surface1, borderColor: on ? color.accent : color.hairline },
-              pressed && styles.pressed,
-            ]}
-          >
-            <View style={styles.radioHead}>
-              {item.media ? <View style={styles.radioMedia}>{item.media}</View> : null}
-              <View style={[styles.radioDot, { borderColor: on ? color.accent : color.borderStrong }]}>
-                {on ? <View style={[styles.radioDotOn, { backgroundColor: color.accent }]} /> : null}
-              </View>
-            </View>
-            <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{item.title}</Text>
-            {typeof item.body === "string" ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{item.body}</Text> : item.body}
-            {item.footer ? <View style={styles.radioFoot}>{item.footer}</View> : null}
-          </Pressable>
-        );
-      })}
+    <View style={[styles.tile, { backgroundColor: bg }]}>
+      <Icon size={20} color={ink} />
     </View>
   );
 }
 
-/** A square icon tile for a radio card (web's `.st-icon-tile`), tinted by level. */
-export function IconTile({ icon, level }: { icon: { ios: string; android: string }; level: "careful" | "balanced" | "loose" }) {
-  const { color } = useTheme();
-  const ink = level === "careful" ? color.profit : level === "balanced" ? color.accent : color.warning;
-  const wash = level === "careful" ? color.profitWash : level === "balanced" ? color.accentWash : color.surface2;
+/** web's DeskPanels `Panel` (`.cp-card` with `.dk-panel-head`): a titled card; `aside` sits on the title's baseline. */
+export function Panel({ title, aside, children, borderColor }: { title: string; aside?: ReactNode; children: ReactNode; borderColor?: string }) {
+  const { color } = useDeskTheme();
   return (
-    <View style={[styles.tile, { backgroundColor: wash }]}>
-      <SymbolView name={icon as never} size={20} tintColor={ink} />
-    </View>
-  );
-}
-
-export interface TabItem<T extends string> {
-  value: T;
-  label: string;
-  count?: number;
-}
-
-/** Underline tabs that scroll sideways on a small phone; the accent bar sits under the chosen one. */
-export function UnderlineTabs<T extends string>({ value, onChange, items, label }: { value: T; onChange: (v: T) => void; items: readonly TabItem<T>[]; label: string }) {
-  const { color } = useTheme();
-  return (
-    <View accessibilityRole="tablist" accessibilityLabel={label} style={[styles.tabs, { borderBottomColor: color.hairline }]}>
-      {items.map((t) => {
-        const on = t.value === value;
-        return (
-          <Pressable
-            key={t.value}
-            onPress={() => {
-              if (on) return;
-              haptic.select();
-              onChange(t.value);
-            }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: on }}
-            style={[styles.tab, { borderBottomColor: on ? color.accent : "transparent" }]}
-          >
-            <Text style={[styles.tabText, { color: on ? color.ink : color.inkSecondary }]} numberOfLines={1}>
-              {t.label}
-            </Text>
-            {t.count !== undefined ? <Text style={[TYPE.data, styles.tabCount, { color: on ? color.accent : color.inkMuted }]}>{t.count}</Text> : null}
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-/** A titled card (web's DeskPanels `Panel`). */
-export function Panel({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
-  const { color } = useTheme();
-  return (
-    <View style={[styles.panel, { backgroundColor: color.surface1, borderColor: color.hairline }]} accessibilityLabel={title}>
+    <View style={[styles.card, { backgroundColor: color.surface1, borderColor: borderColor ?? color.hairline }]} accessibilityLabel={title}>
       <View style={styles.panelHead}>
-        <Text style={[TYPE.labelMicro, { color: color.inkMuted }]} accessibilityRole="header">
+        <Text style={[DT.panelTitle, { color: color.inkMuted }]} accessibilityRole="header">
           {title}
         </Text>
-        {typeof aside === "string" ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{aside}</Text> : aside}
+        {typeof aside === "string" ? <Text style={[DT.caption, { color: color.inkMuted }]}>{aside}</Text> : aside}
       </View>
       {children}
     </View>
   );
 }
 
-/** web's `.dk-eyebrow`: the mono caps line naming whose desk and which network; live desks read in the profit ink. */
+/** `.dk-eyebrow`: the mono caps line naming whose desk and which network; a live desk's reads in the accent. */
 export function Eyebrow({ text, live }: { text: string; live?: boolean }) {
-  const { color } = useTheme();
-  return <Text style={[styles.eyebrow, { color: live ? color.profit : color.accent }]}>{text}</Text>;
+  const { color } = useDeskTheme();
+  return <Text style={[DT.eyebrow, { color: live ? color.accent : color.inkMuted }]}>{text}</Text>;
+}
+
+/** `.dkit-empty`: a calm empty state, a mark in a tile, a line, a sentence and an optional action. */
+export function EmptyState({ icon: Icon, title, body, action }: { icon: LucideIcon; title: string; body?: string; action?: ReactNode }) {
+  const { color } = useDeskTheme();
+  return (
+    <View style={[styles.empty, { borderColor: color.hairline }]}>
+      <View style={[styles.emptyIcon, { backgroundColor: color.surface2 }]}>
+        <Icon size={24} color={color.inkSecondary} />
+      </View>
+      <Text style={[styles.emptyTitle, { color: color.ink }]}>{title}</Text>
+      {body ? <Text style={[styles.emptyBody, { color: color.inkSecondary }]}>{body}</Text> : null}
+      {action}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  status: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 9, height: 24 },
-  dotWrap: { width: 7, height: 7 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
+  status: { flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", borderWidth: 1, borderRadius: 9999, paddingTop: 4, paddingBottom: 4, paddingLeft: 8, paddingRight: 10 },
+  dotBox: { width: 8, height: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
   ping: { position: "absolute" },
-  statusText: { fontFamily: FONT.data, fontSize: 11, letterSpacing: 0.4 },
+  statusText: { fontFamily: FONT.body, fontSize: 11, lineHeight: 17.6, letterSpacing: 0.66, textTransform: "uppercase" },
   logos: { flexDirection: "row", alignItems: "center" },
-  logo: { borderWidth: 2 },
-  more: { alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  moreText: { fontFamily: FONT.dataStrong },
-  radios: { gap: 10 },
-  radiosTwo: { flexDirection: "row", flexWrap: "wrap" },
-  radio: { borderWidth: 1, borderRadius: RADIUS.lg, padding: 14, gap: 6, minHeight: 44 },
-  radioHalf: { flexBasis: "47%", flexGrow: 1 },
-  pressed: { opacity: 0.86 },
-  radioHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  radioMedia: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 },
-  radioDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, alignItems: "center", justifyContent: "center", marginLeft: "auto" },
-  radioDotOn: { width: 10, height: 10, borderRadius: 5 },
-  radioFoot: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
-  tile: { width: 38, height: 38, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center" },
-  tabs: { flexDirection: "row", borderBottomWidth: StyleSheet.hairlineWidth },
-  tab: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, borderBottomWidth: 2, paddingHorizontal: 2 },
-  tabText: { fontFamily: FONT.bodyStrong, fontSize: 13.5 },
-  tabCount: { fontSize: 11 },
-  panel: { borderRadius: RADIUS.lg, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 12 },
-  panelHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.4 },
+  logoRing: { alignItems: "center", justifyContent: "center" },
+  more: { alignItems: "center", justifyContent: "center" },
+  moreText: { fontFamily: FONT.bodyStrong },
+  tile: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  card: { borderWidth: 1, borderRadius: 16, padding: 16, gap: 14 },
+  panelHead: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 12 },
+  empty: { alignItems: "center", gap: 8, paddingVertical: 32, paddingHorizontal: 16, borderWidth: 1, borderStyle: "dashed", borderRadius: 14 },
+  emptyIcon: { width: 48, height: 48, marginBottom: 4, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  emptyTitle: { fontFamily: FONT.heading, fontSize: 15, lineHeight: 24, textAlign: "center" },
+  emptyBody: { maxWidth: 260, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8, textAlign: "center" },
 });

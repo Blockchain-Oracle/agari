@@ -7,11 +7,11 @@ import { RECORD } from "@/features/desk/copy-record";
 import type { RecordSummaryWire } from "@/features/desk/protocol";
 import { useDeskRecords, useDeskView, useInvalidateDesk } from "@/features/desk/useDesk";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Button, ErrorState, LoadingState, Screen } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
-import { Eyebrow } from "../kit";
+import { ExplorePage } from "~/features/explore/ExplorePage";
+import { DkControl, DkLink, DT, Eyebrow, useDeskTheme } from "../kit";
 import { useDeskClock } from "../useDeskClock";
 import { ActivityTimeline } from "./ActivityTimeline";
+import { DeskErrorState, PlateSkeleton } from "./states";
 
 const L = RECORD.list;
 
@@ -24,12 +24,46 @@ function useMarkOpened(id: string, owner: Address | null, needed: boolean) {
   }, [id, owner, needed, invalidate]);
 }
 
+interface ViewProps {
+  records: readonly RecordSummaryWire[];
+  base: string;
+  nowSec: number;
+  zone: string | null;
+  isOwner: boolean;
+  isLive: boolean;
+  /** Present when an older page exists. */
+  older: (() => void) | null;
+}
+
+/** web's RecordList.tsx `RecordListView`: the hero, then every check in one panel, newest first, and Older →. */
+function RecordListView({ records, base, nowSec, zone, isOwner, isLive, older }: ViewProps) {
+  const { color } = useDeskTheme();
+  return (
+    <>
+      <View style={styles.hero}>
+        <Eyebrow text={isOwner ? (isLive ? DESK.eyebrow.live : DESK.eyebrow.practice) : isLive ? DESK.eyebrow.visitorLive : DESK.eyebrow.visitorPractice} live={isLive} />
+        <DkLink label={L.back} href={base} />
+        <Text style={[DT.title, { color: color.ink }]} accessibilityRole="header">
+          {L.title}
+        </Text>
+        <Text style={[DT.caption, { color: color.inkSecondary }]}>{L.intro}</Text>
+        {!isOwner ? <Text style={[DT.caption, { color: color.inkMuted }]}>{DESK.visitor}</Text> : null}
+      </View>
+      <View style={[styles.panel, { backgroundColor: color.surface1, borderColor: color.hairline }]} accessibilityLabel={L.title}>
+        <ActivityTimeline records={records} base={base} nowSec={nowSec} zone={zone} />
+        {older ? <DkControl label={L.older} onPress={older} /> : null}
+      </View>
+      <Text style={[DT.caption, { color: color.inkMuted }]}>{DESK_ADVICE}</Text>
+    </>
+  );
+}
+
 /**
  * `/desk/[id]/record` (web's RecordList.tsx `RecordScreen`): every check the desk made, newest first, quiet runs
- * folded, older pages on demand. The owner's first visit marks the record opened.
+ * folded, older pages on demand. The owner's first visit marks the record opened. Loading is web's plate skeleton; a
+ * failed read is web's error state.
  */
 export function RecordScreen({ id }: { id: string }) {
-  const { color } = useTheme();
   const { address } = useWalletSession();
   const { nowSec, zone } = useDeskClock();
   const invalidate = useInvalidateDesk();
@@ -44,45 +78,42 @@ export function RecordScreen({ id }: { id: string }) {
     if (page && isOk(page)) setPages((p) => (before === null ? [page.value.records] : [...p.slice(0, -1), page.value.records]));
   }, [page, before]);
 
-  if (view === null || page === null) {
+  const body = (() => {
+    if (view === null || page === null) return <PlateSkeleton />;
+    if (!isOk(view)) return <DeskErrorState diagnosis={view.error} />;
+    if (!isOk(page)) return <DeskErrorState diagnosis={page.error} />;
+    const records = before === null ? page.value.records : pages.flat();
+    const next = page.value.nextBefore;
     return (
-      <Screen title={L.title}>
-        <LoadingState shape="list" />
-      </Screen>
+      <RecordListView
+        records={records}
+        base={`/desk/${desk?.id ?? id}`}
+        nowSec={nowSec}
+        zone={zone}
+        isOwner={isOwner}
+        isLive={desk?.address !== null && desk?.address !== undefined}
+        older={
+          next === null
+            ? null
+            : () => {
+                setPages((p) => (before === null ? [page.value.records, []] : [...p, []]));
+                setBefore(next);
+              }
+        }
+      />
     );
-  }
-  if (!isOk(view) || !isOk(page)) {
-    const error = !isOk(view) ? view.error : !isOk(page) ? page.error : null;
-    return (
-      <Screen title={L.title} onRefresh={invalidate}>
-        {error ? <ErrorState diagnosis={error} retry={() => void invalidate()} /> : null}
-      </Screen>
-    );
-  }
-  const records = before === null ? page.value.records : pages.flat();
-  const next = page.value.nextBefore;
-  const isLive = desk?.address !== null && desk?.address !== undefined;
-  const older = () => {
-    setPages((p) => (before === null ? [page.value.records, []] : [...p, []]));
-    setBefore(next);
-  };
+  })();
+  const ready = view !== null && page !== null && isOk(view) && isOk(page);
   return (
-    <Screen title={L.title} onRefresh={invalidate}>
-      <View style={styles.hero}>
-        <Eyebrow text={isOwner ? (isLive ? DESK.eyebrow.live : DESK.eyebrow.practice) : isLive ? DESK.eyebrow.visitorLive : DESK.eyebrow.visitorPractice} live={isLive} />
-        <Text style={[TYPE.headline, { color: color.ink }]} accessibilityRole="header">
-          {L.title}
-        </Text>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{L.intro}</Text>
-        {!isOwner ? <Text style={[TYPE.caption, { color: color.inkMuted }]}>{DESK.visitor}</Text> : null}
-      </View>
-      <ActivityTimeline records={records} base={`/desk/${desk?.id ?? id}`} nowSec={nowSec} zone={zone} />
-      {next !== null ? <Button label={L.older.replace(" →", "")} variant="outline" trailing="→" onPress={older} /> : null}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{DESK_ADVICE}</Text>
-    </Screen>
+    <ExplorePage title={L.title} onRefresh={invalidate} style={ready ? styles.page : styles.state}>
+      {body}
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
+  page: { paddingTop: 28, gap: 20 },
+  state: { paddingTop: 32 },
   hero: { gap: 8 },
+  panel: { gap: 12, padding: 18, borderWidth: 1, borderRadius: 12 },
 });

@@ -1,19 +1,21 @@
-import { router, type Href } from "expo-router";
-import { useState } from "react";
-import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, useReducedMotion } from "react-native-reanimated";
-import { COCKPIT, type CockpitTab } from "@/features/desk/cockpit/copy-cockpit";
+import { router, useLocalSearchParams, type Href } from "expo-router";
+import { Plus } from "lucide-react-native";
+import { useState, type ReactNode } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import Animated, { Easing, FadeInDown, useReducedMotion } from "react-native-reanimated";
+import { COCKPIT, COCKPIT_TABS, type CockpitTab } from "@/features/desk/cockpit/copy-cockpit";
 import { DESK, DESK_ADVICE } from "@/features/desk/copy";
+import { GO_LIVE } from "@/features/desk/copy-controls";
 import { useInvalidateDesk } from "@/features/desk/useDesk";
 import type { DeskActions } from "@/features/desk/useDeskWrites";
+import { ExplorePage } from "~/features/explore/ExplorePage";
 import type { NativeDeskView as DeskView } from "../native-view";
-import { Button, Screen } from "~/components/kit";
-import { SPACE, TYPE, useTheme } from "~/theme";
 import { DeskControls } from "../controls/DeskControls";
+import { DeskDialog } from "../controls/DeskDialog";
 import { GoLive } from "../controls/GoLive";
-import { UnderlineTabs, type TabItem } from "../kit";
-import { ActivityTimeline } from "../record/ActivityTimeline";
+import { DkControl, DT, UnderlineTabs, useDeskTheme, type TabItem } from "../kit";
 import { useDeskClock } from "../useDeskClock";
+import { ActivityTab } from "../record/ActivityTimeline";
 import { CheckStrip } from "./CheckStrip";
 import { CockpitHeader } from "./CockpitHeader";
 import { HoldingsTab } from "./HoldingsTab";
@@ -21,9 +23,16 @@ import { OverviewTab } from "./OverviewTab";
 import { RulesTab } from "./RulesTab";
 import { ValueHero } from "./ValueHero";
 
+/** web's `Rise`: each block fades up 12 px, 70 ms after the one before. */
+function Rise({ i, children }: { i: number; children: ReactNode }) {
+  const reduce = useReducedMotion();
+  return <Animated.View entering={reduce ? undefined : FadeInDown.duration(400).delay(i * 70).easing(Easing.bezier(0.22, 1, 0.36, 1))}>{children}</Animated.View>;
+}
+
 /**
- * The desk as a cockpit (web's DeskPage.tsx): the head, the owner's controls, the value chart, the next check, then
- * Overview · Holdings · Activity · Rules. A shared desk is the same screen read-only. Pull to refresh re-reads it.
+ * The desk page as a cockpit (web's DeskPage.tsx at 402 px): the head with the owner's toolbar (or a visitor's way to
+ * their own desk), the value hero and the next check, then Overview · Holdings · Activity · Rules, and the advice line.
+ * A shared desk is the same page read-only. Pull to refresh re-reads it.
  */
 export function DeskCockpit({ view, actions, visitorCta = null }: {
   view: DeskView;
@@ -31,66 +40,64 @@ export function DeskCockpit({ view, actions, visitorCta = null }: {
   /** A visitor's way to their own desk, or into the studio when they have none. */
   visitorCta?: { href: string; label: string; primary: boolean } | null;
 }) {
-  const { color } = useTheme();
-  const reduce = useReducedMotion();
+  const { color } = useDeskTheme();
   const { nowSec, zone } = useDeskClock();
   const invalidate = useInvalidateDesk();
-  const [tab, setTab] = useState<CockpitTab>("overview");
+  // web keeps the tab in `?tab=`; so does the route here, so a shared link opens on the same tab.
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTabState] = useState<CockpitTab>(() => ((COCKPIT_TABS as readonly string[]).includes(params.tab ?? "") ? (params.tab as CockpitTab) : "overview"));
+  const setTab = (t: CockpitTab) => {
+    setTabState(t);
+    router.setParams({ tab: t === "overview" ? undefined : t });
+  };
   const [goLive, setGoLive] = useState(false);
   const base = `/desk/${view.wire.desk?.id ?? ""}`;
   const owner = view.isOwner && actions !== null;
-  const needs = view.approvals.open.length;
-  const tabs: TabItem<CockpitTab>[] = [
-    { value: "overview", label: COCKPIT.tabs.overview, ...(needs > 0 ? { count: needs } : {}) },
-    { value: "holdings", label: COCKPIT.tabs.holdings, ...(view.holdings.length > 0 ? { count: view.holdings.length } : {}) },
-    { value: "activity", label: COCKPIT.tabs.activity, ...(view.wire.recent.length > 0 ? { count: view.wire.recent.length } : {}) },
-    { value: "rules", label: COCKPIT.tabs.rules },
-  ];
-  const rise = (i: number) => (reduce ? undefined : FadeInDown.duration(400).delay(i * 70));
+  const tabs: TabItem<CockpitTab>[] = COCKPIT_TABS.map((value) => ({ value, label: COCKPIT.tabs[value] }));
   return (
-    <Screen title={view.isOwner ? DESK.title : DESK.visitorTitle} onRefresh={invalidate}>
-      <Animated.View entering={rise(0)}>
-        <CockpitHeader view={view} />
-      </Animated.View>
-      {owner ? <DeskControls view={view} actions={actions} nowSec={nowSec} zone={zone} /> : null}
-      {visitorCta ? (
-        <Button
-          label={visitorCta.label}
-          variant={visitorCta.primary ? "primary" : "outline"}
-          icon={visitorCta.primary ? { ios: "plus", android: "add" } : undefined}
-          onPress={() => router.push(visitorCta.href as Href)}
+    <ExplorePage title={view.isOwner ? DESK.title : DESK.visitorTitle} onRefresh={invalidate} style={styles.page}>
+      <Rise i={0}>
+        <CockpitHeader
+          view={view}
+          actions={
+            visitorCta ? (
+              <DkControl label={visitorCta.label} tone={visitorCta.primary ? "primary" : undefined} icon={visitorCta.primary ? Plus : undefined} onPress={() => router.push(visitorCta.href as Href)} style={styles.cta} />
+            ) : (
+              <DeskControls view={view} actions={owner ? actions : null} zone={zone} nowSec={nowSec} />
+            )
+          }
         />
-      ) : null}
-      <Animated.View entering={rise(1)} style={styles.stack}>
-        <ValueHero view={view} nowSec={nowSec} />
-        <CheckStrip view={view} zone={zone} nowSec={nowSec} onGoLive={owner ? () => setGoLive(true) : null} />
-      </Animated.View>
-      <Animated.View entering={rise(2)} style={styles.stack}>
-        <UnderlineTabs value={tab} onChange={setTab} items={tabs} label={COCKPIT.tabsAria} />
-        {tab === "overview" ? <OverviewTab view={view} actions={owner ? actions : null} base={base} zone={zone} nowSec={nowSec} /> : null}
-        {tab === "holdings" ? <HoldingsTab view={view} /> : null}
-        {tab === "activity" ? (
-          <View style={styles.stack}>
-            <ActivityTimeline records={view.wire.recent} base={base} nowSec={nowSec} zone={zone} />
-            <Button label={COCKPIT.activity.whole.replace(" →", "")} variant="outline" trailing="→" onPress={() => router.push(`${base}/record` as Href)} />
-          </View>
-        ) : null}
-        {tab === "rules" ? <RulesTab view={view} /> : null}
-      </Animated.View>
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{DESK_ADVICE}</Text>
+      </Rise>
+      <Rise i={1}>
+        <View style={styles.top}>
+          <ValueHero view={view} nowSec={nowSec} />
+          <CheckStrip view={view} zone={zone} nowSec={nowSec} onGoLive={owner ? () => setGoLive(true) : null} />
+        </View>
+      </Rise>
+      <Rise i={2}>
+        <View style={styles.tabs}>
+          <UnderlineTabs value={tab} onChange={setTab} items={tabs} label={COCKPIT.tabsAria} />
+          <Animated.View key={tab} entering={FadeInDown.duration(280).easing(Easing.bezier(0.22, 1, 0.36, 1))}>
+            {tab === "overview" ? <OverviewTab view={view} actions={owner ? actions : null} base={base} zone={zone} nowSec={nowSec} /> : null}
+            {tab === "holdings" ? <HoldingsTab view={view} /> : null}
+            {tab === "activity" ? <ActivityTab records={view.wire.recent} base={base} nowSec={nowSec} zone={zone} /> : null}
+            {tab === "rules" ? <RulesTab view={view} /> : null}
+          </Animated.View>
+        </View>
+      </Rise>
+      <Text style={[DT.caption, { color: color.inkMuted }]}>{DESK_ADVICE}</Text>
       {owner && actions ? (
-        <Modal visible={goLive} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setGoLive(false)}>
-          <ScrollView style={{ backgroundColor: color.ground }} contentContainerStyle={styles.sheet}>
-            <GoLive view={view} actions={actions} liveMode="ask_first" zone={zone} nowSec={nowSec} />
-            <Button label="Close" variant="outline" onPress={() => setGoLive(false)} />
-          </ScrollView>
-        </Modal>
+        <DeskDialog open={goLive} onClose={() => setGoLive(false)} title={GO_LIVE.title}>
+          {goLive ? <GoLive view={view} actions={actions} liveMode="ask_first" zone={zone} nowSec={nowSec} /> : null}
+        </DeskDialog>
       ) : null}
-    </Screen>
+    </ExplorePage>
   );
 }
 
 const styles = StyleSheet.create({
-  stack: { gap: 14 },
-  sheet: { padding: SPACE.gutter, paddingTop: 24, paddingBottom: 48, gap: 14 },
+  page: { paddingTop: 28, gap: 22 },
+  cta: { paddingHorizontal: 18, gap: 6 },
+  top: { gap: 16 },
+  tabs: { gap: 20 },
 });

@@ -1,6 +1,6 @@
 import type { OutcomeColumn } from "@agari/core/desk";
 import { TICKERS, type PreIpoSymbol } from "@agari/core/market";
-import type { SymbolViewProps } from "expo-symbols";
+import { Ban, Check, CircleDashed, Hand, OctagonAlert, type LucideIcon } from "lucide-react-native";
 import type { Palette } from "~/theme";
 
 /**
@@ -10,7 +10,7 @@ import type { Palette } from "~/theme";
  */
 export type NodeTone = "acted" | "declined" | "quiet" | "asked" | "stopped" | "error" | "neutral";
 
-/** web/src/features/desk/activity/ActivityTimeline.tsx `TONE`. */
+/** web/src/features/desk/activity/check-groups.ts `TONE`. */
 export const TONE: Record<OutcomeColumn, NodeTone> = {
   acted: "acted",
   acted_in_part: "acted",
@@ -55,7 +55,19 @@ export function toneWash(tone: NodeTone, color: Palette): string {
   }
 }
 
-export const TONE_ICON: Record<NodeTone, SymbolViewProps["name"]> = {
+/** web's ActivityTimeline `ICON`: the lucide mark each verdict carries. */
+export const TONE_LUCIDE: Record<NodeTone, LucideIcon> = {
+  acted: Check,
+  declined: Ban,
+  quiet: CircleDashed,
+  asked: Hand,
+  stopped: OctagonAlert,
+  error: OctagonAlert,
+  neutral: CircleDashed,
+};
+
+/** Kept for callers that still draw the tone with a platform symbol; new code uses TONE_LUCIDE. */
+export const TONE_ICON: Record<NodeTone, { ios: string; android: string }> = {
   acted: { ios: "checkmark", android: "check" },
   declined: { ios: "nosign", android: "block" },
   quiet: { ios: "circle.dashed", android: "radio_button_unchecked" },
@@ -82,4 +94,9 @@ export function mixHex(a: string, b: string, share: number): string {
 export function segColor(symbol: string, color: Palette): string {
   const hex = TICKERS[symbol as PreIpoSymbol]?.brand.hex;
   return hex ? mixHex(hex, color.ink, 0.78) : color.inkSecondary;
+}
+
+/** web's cockpit `brandColor`: the registry's own brand hex, unmixed; the secondary ink for anything unknown. */
+export function brandColor(symbol: string, color: Palette): string {
+  return TICKERS[symbol as PreIpoSymbol]?.brand.hex ?? color.inkSecondary;
 }

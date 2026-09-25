@@ -1,7 +1,5 @@
 import { nameOf, type DeskRecordBody } from "@agari/core/desk";
 import type { PreIpoSymbol } from "@agari/core/market";
-import { SymbolView } from "expo-symbols";
-import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { namesIn } from "@/features/desk/activity/activity-model";
 import { DESK } from "@/features/desk/copy";
@@ -9,9 +7,9 @@ import { RECORD } from "@/features/desk/copy-record";
 import { DECISION } from "@/features/desk/decision/copy-decision";
 import { stamp, tokensText, usdText } from "@/features/desk/format";
 import type { DecisionWire } from "@/features/desk/protocol";
-import { haptic } from "~/components/kit";
-import { RADIUS, TYPE, useTheme } from "~/theme";
-import { LogoStack, RadialGauge, StatusDot, TONE, TONE_ICON, toneInk, toneWash } from "../kit";
+import { FONT } from "~/theme";
+import { cmix, fade } from "~/theme/web/products/desk-cockpit";
+import { LogoStack, RadialGauge, RadialWash, StatusDot, TONE, TONE_LUCIDE, useDeskTheme } from "../kit";
 
 /** "$50 of Anthropic" for a buy, "0.4718 Anthropic" for a sell; null when the check had no candidate. */
 function amountLine(body: DeskRecordBody | null): { side: "buy" | "sell"; text: string } | null {
@@ -21,52 +19,86 @@ function amountLine(body: DeskRecordBody | null): { side: "buy" | "sell"; text: 
   return c.side === "buy" ? { side: "buy", text: DECISION.wouldBuy(usdText(c.amountIn), name) } : { side: "sell", text: DECISION.wouldSell(tokensText(c.amountIn), name) };
 }
 
-/** The decision's hero (web's decision/DecisionHero.tsx): the verdict in its tone, the companies, the amount, how sure. */
+/**
+ * The decision's hero (web's decision/DecisionHero.tsx at ≤ 640 px): the verdict in its tone with its icon and the
+ * mode, the companies it was about with the amount, the summary, # and when; the model's confidence as a gauge scaled
+ * to 72% in the top right corner. The card's edge and glow take the verdict's tone.
+ */
 export function DecisionHero({ decision, body, zone }: { decision: DecisionWire; body: DeskRecordBody | null; zone: string | null }) {
-  const { color } = useTheme();
+  const { color } = useDeskTheme();
   const { record } = decision;
   const tone = TONE[record.outcome];
-  const ink = toneInk(tone, color);
+  const toneInk = tone === "acted" ? color.profit : tone === "declined" ? color.accent : tone === "asked" ? color.warning : tone === "error" || tone === "stopped" ? color.loss : color.inkMuted;
+  const quiet = tone === "quiet" || tone === "neutral";
+  const Icon = TONE_LUCIDE[tone];
   const names: PreIpoSymbol[] = body?.candidate ? [body.candidate.symbol] : namesIn(record.summary);
   const amount = amountLine(body);
   const confidence = body?.timing?.decision?.confidencePercent ?? null;
   const practice = record.mode === "practice";
-  useEffect(() => {
-    if (tone === "acted") haptic.heavy();
-  }, [tone]);
   return (
-    <View style={[styles.hero, { backgroundColor: toneWash(tone, color), borderColor: ink }]} accessibilityLabel={RECORD.outcome[record.outcome]}>
-      <View style={styles.top}>
-        <View style={[styles.icon, { borderColor: ink }]}>
-          <SymbolView name={TONE_ICON[tone] as never} size={16} tintColor={ink} weight="bold" />
+    <View style={[styles.hero, { backgroundColor: color.surface1, borderColor: cmix(toneInk, color.hairline, 0.45) }]} accessibilityLabel={RECORD.outcome[record.outcome]}>
+      <RadialWash color={fade(toneInk, 0.16)} cx={0.25} cy={0.5} rx={0.35} ry={0.9} until={1} radius={19} />
+      <View style={styles.main}>
+        <View style={styles.top}>
+          <View style={[styles.verdictIcon, { borderColor: quiet ? color.hairline : toneInk, backgroundColor: fade(toneInk, 0.14) }]}>
+            <Icon size={16} color={toneInk} strokeWidth={tone === "acted" ? 2.75 : 2} />
+          </View>
+          <Text style={[styles.verdict, { color: quiet ? color.inkSecondary : toneInk }]}>{RECORD.outcome[record.outcome]}</Text>
+          <StatusDot tone={practice ? "practice" : "live"} label={DESK.modes[record.mode]} />
         </View>
-        <Text style={[TYPE.title, styles.grow, { color: ink }]}>{RECORD.outcome[record.outcome]}</Text>
-        <StatusDot tone={practice ? "practice" : "live"} label={DESK.modes[record.mode]} />
-      </View>
-      <View style={styles.subject}>
-        <View style={styles.grow}>
-          {names.length > 0 ? <LogoStack symbols={names} names={names.map((s) => nameOf(s))} size={30} max={4} /> : null}
-          <Text style={[TYPE.headline, { color: color.ink }]} accessibilityRole="header">
-            {amount ? `${DECISION.side[amount.side]} ${amount.text}` : names.length > 0 ? names.map((s) => nameOf(s)).join(" · ") : RECORD.outcome[record.outcome]}
+        <View style={styles.subject}>
+          {names.length > 0 ? <LogoStack symbols={names} names={names.map((s) => nameOf(s))} size="lg" max={4} /> : null}
+          <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+            {amount ? (
+              <>
+                <Text style={[styles.side, { color: color.inkSecondary }]}>{DECISION.side[amount.side]}</Text> {amount.text}
+              </>
+            ) : names.length > 0 ? (
+              names.map((s) => nameOf(s)).join(" · ")
+            ) : (
+              RECORD.outcome[record.outcome]
+            )}
           </Text>
         </View>
-        <RadialGauge value={confidence ?? 0} size={80} stroke={7} tone={tone === "acted" ? "profit" : tone === "error" || tone === "stopped" ? "loss" : "accent"} label={confidence === null ? RECORD.decision.noModel : `${confidence}% ${DECISION.sure}`}>
-          <Text style={[TYPE.dataLg, { color: color.ink }]}>{confidence === null ? "—" : `${confidence}%`}</Text>
-          <Text style={[TYPE.caption, { color: color.inkMuted, fontSize: 11 }]}>{confidence === null ? DECISION.noModel : DECISION.sure}</Text>
+        <Text style={[styles.summary, { color: color.inkSecondary }]}>{record.summary}</Text>
+        <View style={styles.meta}>
+          <Text style={[styles.metaText, { color: color.inkMuted }]}>{DECISION.seq(record.seq)}</Text>
+          <Text style={[styles.metaText, { color: color.inkMuted }]}>·</Text>
+          <Text style={[styles.metaText, { color: color.inkMuted }]}>{stamp(record.decidedAtSec, zone)}</Text>
+        </View>
+      </View>
+      <View style={styles.side96}>
+        <RadialGauge
+          value={confidence ?? 0}
+          size={96}
+          stroke={8}
+          tone={confidence === null ? "accent" : tone === "acted" ? "profit" : tone === "error" || tone === "stopped" ? "loss" : "accent"}
+          label={confidence === null ? RECORD.decision.noModel : `${confidence}% ${DECISION.sure}`}
+        >
+          <View style={styles.gaugeText}>
+            <Text style={[styles.gaugeB, { color: color.ink }]}>{confidence === null ? "—" : `${confidence}%`}</Text>
+            <Text style={[styles.gaugeSmall, { color: color.inkMuted }]}>{confidence === null ? DECISION.noModel : DECISION.sure}</Text>
+          </View>
         </RadialGauge>
       </View>
-      <Text style={[TYPE.body, { color: color.inkSecondary }]}>{record.summary}</Text>
-      <Text style={[TYPE.data, { color: color.inkMuted }]}>
-        {DECISION.seq(record.seq)} · {stamp(record.decidedAtSec, zone)}
-      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { borderWidth: 1, borderRadius: RADIUS.lg, padding: 16, gap: 12 },
-  top: { flexDirection: "row", alignItems: "center", gap: 10 },
-  icon: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
-  grow: { flex: 1, gap: 8 },
-  subject: { flexDirection: "row", alignItems: "center", gap: 12 },
+  hero: { padding: 18, borderWidth: 1, borderRadius: 20, overflow: "hidden" },
+  main: { gap: 12 },
+  top: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, paddingRight: 76 },
+  verdictIcon: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  verdict: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 19.2, letterSpacing: 1.2, textTransform: "uppercase" },
+  subject: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 14 },
+  title: { flexShrink: 1, fontFamily: FONT.headingHeavy, fontSize: 24, lineHeight: 26.4, letterSpacing: -0.48 },
+  side: { fontFamily: FONT.heading },
+  summary: { fontFamily: FONT.body, fontSize: 15, lineHeight: 23.25 },
+  meta: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  metaText: { fontFamily: FONT.body, fontSize: 12, lineHeight: 19.2 },
+  side96: { position: "absolute", top: 14, right: 14, width: 96, height: 96, transform: [{ scale: 0.72 }], transformOrigin: "top right" },
+  gaugeText: { alignItems: "center" },
+  gaugeB: { fontFamily: FONT.headingHeavy, fontSize: 20, lineHeight: 21 },
+  gaugeSmall: { fontFamily: FONT.body, fontSize: 10, lineHeight: 10.5, letterSpacing: 0.8, textTransform: "uppercase" },
 });

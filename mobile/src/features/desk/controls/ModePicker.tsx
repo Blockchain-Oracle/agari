@@ -1,23 +1,24 @@
+import { Hand, Zap } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";
-import { TYPE, useTheme } from "~/theme";
-import { IconTile, RadioCards } from "../kit";
+import { FONT } from "~/theme";
+import { IconTile, RadioCards, useDeskTheme } from "../kit";
 
 export type LiveMode = "ask_first" | "on_its_own";
 
-/** web's ModePicker.tsx: the two live modes as radio cards; practice is never picked here, it is where every desk starts. */
+/** web's ModePicker.tsx: the two live modes as radio cards under a `.st-label`; practice is never picked here. */
 export function ModePicker({ value, onChange, label }: { value: LiveMode; onChange: (mode: LiveMode) => void; label: string }) {
-  const { color } = useTheme();
+  const { color } = useDeskTheme();
   return (
     <View style={styles.block}>
-      <Text style={[TYPE.labelMicro, { color: color.inkMuted }]}>{label}</Text>
+      <Text style={[styles.label, { color: color.inkMuted }]}>{label}</Text>
       <RadioCards
         value={value}
         onChange={onChange}
         label={label}
         items={(["ask_first", "on_its_own"] as const).map((mode) => ({
           value: mode,
-          media: <IconTile level={mode === "ask_first" ? "careful" : "loose"} icon={mode === "ask_first" ? { ios: "hand.raised", android: "front_hand" } : { ios: "bolt", android: "bolt" }} />,
+          media: <IconTile icon={mode === "ask_first" ? Hand : Zap} level={mode === "ask_first" ? "careful" : "loose"} />,
           title: DESK.modes[mode],
           body: DESK.modeNote[mode],
         }))}
@@ -27,5 +28,6 @@ export function ModePicker({ value, onChange, label }: { value: LiveMode; onChan
 }
 
 const styles = StyleSheet.create({
-  block: { gap: 8 },
+  block: { gap: 12 },
+  label: { fontFamily: FONT.body, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.32, textTransform: "uppercase" },
 });

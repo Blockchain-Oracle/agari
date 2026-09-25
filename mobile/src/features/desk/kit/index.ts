@@ -1,6 +1,10 @@
 export { AreaChart, type AreaPoint } from "./AreaChart";
 export { Donut, FillSparkline, PartitionBar, RadialGauge, Sparkline, type Slice } from "./charts";
-export { Eyebrow, IconTile, LogoStack, Panel, RadioCards, StatusDot, UnderlineTabs, type DotTone, type RadioCardItem, type TabItem } from "./primitives";
-export { StepProgress, TimelineDay, TimelineNode, type StepItem } from "./sequence";
+export { CpAction, DkControl, RadioCards, UnderlineTabs, type RadioCardItem, type TabItem } from "./controls";
+export { EmptyState, Eyebrow, IconTile, LogoStack, lucideOf, Panel, StatusDot, type DotTone, type LegacyIcon } from "./primitives";
+export { StepProgress, Timeline, TimelineDay, TimelineNode, type StepItem } from "./sequence";
 export { Slider } from "./Slider";
-export { mixHex, segColor, TONE, TONE_ICON, toneInk, toneWash, type NodeTone } from "./tone";
+export { DkLink } from "./links";
+export { DT, useDeskTheme } from "./theme";
+export { brandColor, mixHex, segColor, TONE, TONE_ICON, TONE_LUCIDE, toneInk, toneWash, type NodeTone } from "./tone";
+export { LinearWash, RadialWash } from "./wash";
