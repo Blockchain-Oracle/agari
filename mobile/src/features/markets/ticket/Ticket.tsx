@@ -99,6 +99,8 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
           ) : null}
           {c.privateMode ? <PrivateNote priv={c.priv} stakeBase={c.stakeBase} decimals={c.decimals} symbol={c.symbol} /> : null}
           {c.t.advancedFrom ? <Text style={[tkType.body, { color: tk.inkSecondary }]}>{TICKET.advanced(formatCadence(c.t.advancedFrom.intervalSec), formatCadence(c.market.intervalSec))}</Text> : null}
+          {/* web's `.tk-note`: an armed tap the caps refuse signs from the wallet instead, and says so. */}
+          {!c.privateMode && !c.isRange && c.routing.fallbackReason ? <Text style={[tkType.caption, styles.note, { color: tk.caption }]}>{c.routing.fallbackReason}</Text> : null}
           <OutcomeNote state={c.bet.state} decimals={c.decimals} symbol={c.symbol} onDismiss={c.bet.reset} />
           {cta}
           {c.regionHeld ? <RegionNote /> : null}
@@ -116,5 +118,6 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
 
 const styles = StyleSheet.create({
   depth: { alignSelf: "flex-start" },
+  note: { marginTop: -8 },
   depthText: { fontFamily: FONT.body, fontSize: 15, lineHeight: 22.5 },
 });
