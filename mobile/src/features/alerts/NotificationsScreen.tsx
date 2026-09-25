@@ -1,19 +1,27 @@
 import { router } from "expo-router";
 import { Platform, StyleSheet, Switch, Text, View } from "react-native";
 import { PUSH_KINDS, type PushKind } from "@/features/push/protocol";
-import { Button, Card, haptic, LoadingState, Screen, SectionHeader } from "~/components/kit";
-import { TYPE, useTheme } from "~/theme";
+import { haptic, Screen } from "~/components/kit";
+import { LoadingState, SectionHeader, WebButton } from "~/components/portfolio/web";
+import { FONT, useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { WEB_TYPE } from "~/theme/web/portfolio";
 import { ALERTS } from "./copy";
 import { usePushSettings } from "./usePushSettings";
 
 const short = (address: string) => `${address.slice(0, 4)}…${address.slice(-4)}`;
 
-/** More → Notifications (S26.4): push on or off for this phone, which news it hears, and the Lock Screen extras. */
+/**
+ * More → Notifications (S26.4, phone-only). Web has no page for it, so it speaks web's language: the `/news` page head
+ * (display title, one sentence), numbered `SectionHeader`s, and the `rounded-lg border bg-surface-1 p-4` panel the
+ * states use, with web's shadcn buttons — push on or off, which news this phone hears, and the Lock Screen extras.
+ */
 export function NotificationsScreen() {
   const { color } = useTheme();
   const push = usePushSettings();
   const { state, busy, error } = push;
   const kinds: readonly PushKind[] = state.phase === "on" || state.phase === "other-wallet" ? state.reg.kinds : [];
+  const panel = [styles.panel, { backgroundColor: color.surface1, borderColor: color.hairline }];
 
   const toggle = (kind: PushKind, on: boolean) => {
     haptic.select();
@@ -21,56 +29,81 @@ export function NotificationsScreen() {
   };
 
   return (
-    <Screen title={ALERTS.title}>
-      <View style={styles.body}>
-        <Text style={[TYPE.body, { color: color.inkSecondary }]}>{ALERTS.intro}</Text>
+    <Screen title={ALERTS.title} contentStyle={styles.page}>
+      <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
+        {ALERTS.title}
+      </Text>
+      <Text style={[styles.intro, { color: color.inkSecondary }]}>{ALERTS.intro}</Text>
+
+      <View style={styles.section}>
+        <SectionHeader index="01" title={ALERTS.title} />
         {state.phase === "loading" ? <LoadingState shape="plate" label={ALERTS.title} /> : null}
 
         {state.phase === "off" ? (
-          <Card>
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>{push.connected ? ALERTS.signNote : ALERTS.connectFirst}</Text>
+          <View style={panel}>
+            <Text style={[WEB_TYPE.body, { color: color.ink }]}>{push.connected ? ALERTS.signNote : ALERTS.connectFirst}</Text>
             {push.connected ? (
-              <Button label={busy ? ALERTS.switching : ALERTS.on} onPress={() => void push.turnOn()} disabled={busy} />
+              <WebButton label={busy ? ALERTS.switching : ALERTS.on} onPress={() => void push.turnOn()} disabled={busy} block />
             ) : (
-              <Button label="Connect" variant="secondary" onPress={() => router.push("/connect")} />
+              <WebButton label="Connect" onPress={() => router.push("/connect")} />
             )}
-          </Card>
+          </View>
         ) : null}
 
         {state.phase === "on" || state.phase === "other-wallet" ? (
-          <Card>
-            <Text style={[TYPE.bodyStrong, { color: color.ink }]} accessibilityLiveRegion="polite">
+          <View style={panel}>
+            <Text style={[WEB_TYPE.bodyStrong, { color: color.ink }]} accessibilityLiveRegion="polite">
               {state.phase === "on" ? ALERTS.following(short(state.reg.wallet)) : ALERTS.otherWallet(short(state.reg.wallet))}
             </Text>
-            {state.phase === "other-wallet" ? <Button label={busy ? ALERTS.switching : ALERTS.moveHere} variant="secondary" onPress={() => void push.turnOn(kinds.length ? [...kinds] : undefined)} disabled={busy} /> : null}
+            {state.phase === "other-wallet" ? (
+              <WebButton label={busy ? ALERTS.switching : ALERTS.moveHere} variant="secondary" size="sm" onPress={() => void push.turnOn(kinds.length ? [...kinds] : undefined)} disabled={busy} />
+            ) : null}
             {PUSH_KINDS.map((kind) => (
-              <View key={kind} style={styles.switchRow}>
+              <View key={kind} style={[styles.switchRow, { borderTopColor: color.hairline }]}>
                 <View style={styles.switchCopy}>
-                  <Text style={[TYPE.bodyStrong, { color: color.ink }]}>{ALERTS.kinds[kind].label}</Text>
-                  <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{ALERTS.kinds[kind].hint}</Text>
+                  <Text style={[WEB_TYPE.bodyStrong, { color: color.ink }]}>{ALERTS.kinds[kind].label}</Text>
+                  <Text style={[WEB_TYPE.caption, { color: color.inkSecondary }]}>{ALERTS.kinds[kind].hint}</Text>
                 </View>
-                <Switch value={kinds.includes(kind)} disabled={busy} onValueChange={(on) => toggle(kind, on)} trackColor={{ true: color.accent, false: color.surface3 }} accessibilityLabel={ALERTS.kinds[kind].label} />
+                <Switch
+                  value={kinds.includes(kind)}
+                  disabled={busy}
+                  onValueChange={(on) => toggle(kind, on)}
+                  trackColor={{ true: color.accent, false: color.surface2 }}
+                  thumbColor={color.onAccent}
+                  ios_backgroundColor={color.surface2}
+                  accessibilityLabel={ALERTS.kinds[kind].label}
+                />
               </View>
             ))}
-            <Button label={busy ? ALERTS.switching : ALERTS.off} variant="ghost" size="sm" onPress={() => void push.turnOff()} disabled={busy} />
-          </Card>
+            <WebButton label={busy ? ALERTS.switching : ALERTS.off} variant="ghost" size="sm" onPress={() => void push.turnOff()} disabled={busy} />
+          </View>
         ) : null}
 
         {error ? (
-          <Text style={[TYPE.caption, { color: color.loss }]} accessibilityLiveRegion="assertive" selectable>
+          <Text style={[WEB_TYPE.caption, { color: color.warning }]} accessibilityLiveRegion="assertive" selectable>
             {error}
           </Text>
         ) : null}
-
-        <SectionHeader title={ALERTS.live.title} desc={Platform.OS === "ios" ? ALERTS.live.body : ALERTS.live.android} />
-        {Platform.OS === "ios" ? <SectionHeader title={ALERTS.widget.title} desc={ALERTS.widget.body} /> : null}
       </View>
+
+      <View style={styles.section}>
+        <SectionHeader index="02" title={ALERTS.live.title} desc={Platform.OS === "ios" ? ALERTS.live.body : ALERTS.live.android} />
+      </View>
+      {Platform.OS === "ios" ? (
+        <View style={styles.section}>
+          <SectionHeader index="03" title={ALERTS.widget.title} desc={ALERTS.widget.body} />
+        </View>
+      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { gap: 16 },
-  switchRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  page: { paddingHorizontal: 18, paddingTop: 48, paddingBottom: 96 + CHROME.dockClearance, gap: 0 },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 36, lineHeight: 39.6, letterSpacing: -0.9, marginBottom: 8 },
+  intro: { fontFamily: FONT.body, fontSize: 14, lineHeight: 21.7 },
+  section: { gap: 16, marginTop: 32 },
+  panel: { gap: 12, borderRadius: 12, borderWidth: 1, padding: 16 },
+  switchRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingTop: 12, borderTopWidth: 1 },
   switchCopy: { flex: 1, gap: 2 },
 });

@@ -1,21 +1,20 @@
 import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { useTheme } from "~/theme";
 
-/** web's `.news-live-dot`: a vermilion dot with a ring that breathes out; still under Reduce Motion. */
-export function LiveDot({ size = 8 }: { size?: number }) {
+/** news.css `.news-live-dot`: a 6 px vermilion dot with a 12 px glow, breathing between full and half opacity; still under Reduce Motion. */
+export function LiveDot() {
   const { color } = useTheme();
   const reduce = useReducedMotion();
-  const pulse = useSharedValue(0);
+  const pulse = useSharedValue(1);
   useEffect(() => {
-    if (!reduce) pulse.value = withRepeat(withTiming(1, { duration: 1400 }), -1, false);
+    if (!reduce) pulse.value = withRepeat(withTiming(0.5, { duration: 1000 }), -1, true);
   }, [reduce, pulse]);
-  const ring = useAnimatedStyle(() => ({ opacity: 0.6 * (1 - pulse.value), transform: [{ scale: 1 + pulse.value * 1.6 }] }));
-  return (
-    <View style={{ width: size, height: size }} accessible={false}>
-      <Animated.View style={[StyleSheet.absoluteFill, { borderRadius: size / 2, backgroundColor: color.accent }, ring]} />
-      <View style={[StyleSheet.absoluteFill, { borderRadius: size / 2, backgroundColor: color.accent }]} />
-    </View>
-  );
+  const fade = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  return <Animated.View style={[styles.dot, { backgroundColor: color.accent, shadowColor: color.accent }, fade]} accessible={false} />;
 }
+
+const styles = StyleSheet.create({
+  dot: { width: 6, height: 6, borderRadius: 3, shadowOpacity: 1, shadowRadius: 6, shadowOffset: { width: 0, height: 0 } },
+});

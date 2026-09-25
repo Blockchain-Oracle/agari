@@ -1,22 +1,75 @@
 import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import { useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { CLAIM } from "@/features/x/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Screen } from "~/components/kit";
 import { ClaimFlow } from "~/features/recovery/ClaimFlow";
+import { useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { activityTokens } from "~/theme/web/portfolio-activity";
 
-/** `/claim` — X recovery: find and take the Trading Balance an X mention's trades landed in. */
-export default function ClaimScreen() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletSession();
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["agari", "x-status"] }),
-      address ? invalidateAfterWrite(queryClient, { wallet: address }) : null,
-    ]);
+/** x-card.css `.xc-wash--v` / `--g`: the two fixed radial washes behind the page. */
+function Washes({ v, g }: { v: string; g: string }) {
   return (
-    <Screen title={CLAIM.title} onRefresh={refresh}>
-      <ClaimFlow />
-    </Screen>
+    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
+      <Defs>
+        <RadialGradient id="xc-v" cx="80%" cy="30%" rx="58%" ry="44%">
+          <Stop offset="0" stopColor={v} stopOpacity={1} />
+          <Stop offset="0.68" stopColor={v} stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id="xc-g" cx="14%" cy="90%" rx="46%" ry="40%">
+          <Stop offset="0" stopColor={g} stopOpacity={1} />
+          <Stop offset="0.72" stopColor={g} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Rect width="100%" height="100%" fill="url(#xc-v)" />
+      <Rect width="100%" height="100%" fill="url(#xc-g)" />
+    </Svg>
   );
 }
+
+/**
+ * `/claim` — web app/claim/page.tsx (`.xc`): the fixed 5 px vermilion rail down the left edge, the two washes, and the
+ * container (104 px top, 18 px gutter) holding the ticket and the flow. Pull to refresh re-reads the X route and the vault.
+ */
+export default function ClaimScreen() {
+  const { name, color } = useTheme();
+  const t = activityTokens(name);
+  const queryClient = useQueryClient();
+  const { address } = useWalletSession();
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["agari", "x-status"] }),
+        address ? invalidateAfterWrite(queryClient, { wallet: address }) : null,
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+  return (
+    <View style={[styles.xc, { backgroundColor: color.ground }]}>
+      <Stack.Screen options={{ title: CLAIM.title, headerShown: false }} />
+      <Washes v={t.washV} g={t.washG} />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.main}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={color.accent} colors={[color.accent]} />}
+      >
+        <ClaimFlow />
+      </ScrollView>
+      <View style={[styles.rail, { backgroundColor: color.accent }]} pointerEvents="none" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  xc: { flex: 1 },
+  main: { paddingTop: 104, paddingHorizontal: 18, paddingBottom: 120 + CHROME.dockClearance },
+  rail: { position: "absolute", top: 0, bottom: 0, left: 0, width: 5 },
+});

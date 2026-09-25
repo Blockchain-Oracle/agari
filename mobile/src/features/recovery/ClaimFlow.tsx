@@ -3,27 +3,27 @@ import { isAddress } from "@agari/core/types";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { useVaultSnapshot } from "@agari/markets/react";
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";
 import { CLAIM, X_LINK_STATUS } from "@/features/x/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { Button, Card, SectionHeader } from "~/components/kit";
-import { Logo } from "~/components/logos/Logo";
-import { FONT, TYPE, useTheme } from "~/theme";
-import { Glyph } from "../strategies/Glyph";
-import { Step } from "../x/StepRail";
+import { WebButton } from "~/components/portfolio/web";
+import { FONT, useTheme } from "~/theme";
+import { activityTokens } from "~/theme/web/portfolio-activity";
 import { X_SIGN_IN_ON_PHONE } from "../x/LinkStep";
 import { useXLink } from "../x/useXLink";
+import { Done, Hint, Step, XPill } from "./ClaimParts";
 import { ClaimTicket } from "./ClaimTicket";
-import { RecoveryPanel } from "./RecoveryPanel";
 
 /**
- * web's features/x/ClaimScreen.tsx: a trade made from an X mention lands in the Trading Balance of the wallet that X
- * account routes to. Prove it is you, find which wallet that is, connect it — then its balance is in your hands.
- * Below, the write recovery web runs silently (features/recovery), on demand.
+ * web features/x/ClaimScreen.tsx on a phone (`.xc-grid` single column: the ticket first, then the flow): a trade made
+ * from an X mention lands in the Trading Balance of the wallet that X account routes to. Prove it is you, connect that
+ * wallet, and the balance is yours. The phone cannot hold web's X session cookie, so a route already linked counts as
+ * proven and "Sign in with X" re-reads it.
  */
 export function ClaimFlow() {
-  const { color } = useTheme();
+  const { name, color } = useTheme();
+  const t = activityTokens(name);
   const { address } = useWalletSession();
   const { boot } = useVenue();
   const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
@@ -37,106 +37,114 @@ export function ClaimFlow() {
   const handle = session?.handle ?? binding?.handle ?? null;
   const ready = Boolean(address && boundWallet && boundWallet === address);
   const proven = Boolean(session) || ready;
+  const connect = () => router.push("/connect");
 
   return (
-    <View style={styles.wrap}>
-      <View style={styles.intro}>
-        <Text style={[TYPE.labelMicro, { color: color.accent }]}>{CLAIM.eyebrow}</Text>
-        {amount !== null ? (
-          <>
-            <Text style={[TYPE.dataHero, { color: color.ink }]} adjustsFontSizeToFit numberOfLines={1}>
-              {`${amount} ${symbol}`}
-            </Text>
-            <Text style={[TYPE.stamp, { color: color.accent }]}>{CLAIM.headlineKnown}</Text>
-            <Text style={[TYPE.body, { color: color.inkSecondary }]}>{CLAIM.ledeKnown(handle)}</Text>
-          </>
-        ) : (
-          <>
-            <Text style={[TYPE.headline, { color: color.ink }]} accessibilityRole="header">
-              {CLAIM.headline[0]} {CLAIM.headline[1]}
-            </Text>
-            <Text style={[TYPE.body, { color: color.inkSecondary }]}>{CLAIM.lede}</Text>
-          </>
-        )}
-      </View>
-
+    <View style={styles.grid}>
       <ClaimTicket amount={amount} handle={handle} done={ready} symbol={symbol} />
 
       <View>
-        <Step n={1} title={CLAIM.steps.prove} state={proven ? "done" : "active"} filled={proven}>
+        <View style={styles.intro}>
+          <Text style={[styles.eyebrow, { color: color.accent }]}>{CLAIM.eyebrow}</Text>
+          {amount !== null ? (
+            <Text style={[styles.h1, { color: color.ink }]} accessibilityRole="header">
+              {`${amount} ${symbol}`} <Text style={[styles.h1Word, { color: color.inkSecondary }]}>{CLAIM.headlineKnown}</Text>
+            </Text>
+          ) : (
+            <Text style={[styles.h1Ask, { color: color.ink }]} accessibilityRole="header">
+              {CLAIM.headline[0]}
+              {"\n"}
+              {CLAIM.headline[1]}
+            </Text>
+          )}
+          <Text style={[styles.lede, { color: color.inkSecondary }]}>{amount !== null ? CLAIM.ledeKnown(handle) : CLAIM.lede}</Text>
+        </View>
+
+        <Step index={1} label={CLAIM.steps.prove} done={proven}>
           {session ? (
             <Done text={CLAIM.signedInAs(session.handle)} />
           ) : ready ? (
-            <Done text={CLAIM.signedInAs(binding?.handle ?? null).replace("signed in", "linked")} />
+            <Done text={CLAIM.signedInAs(binding?.handle ?? null)} />
           ) : link.loading ? (
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>{X_LINK_STATUS.checking}</Text>
+            <Hint text={X_LINK_STATUS.checking} />
           ) : !link.status?.configured ? (
-            <Text style={[TYPE.caption, { color: color.inkMuted }]}>{X_LINK_STATUS.unavailable}</Text>
+            <Hint text={X_LINK_STATUS.unavailable} />
           ) : (
-            <View style={styles.row}>
-              <Logo brand="x" size={16} />
-              <Text style={[TYPE.caption, styles.flex, { color: color.inkMuted }]}>{X_SIGN_IN_ON_PHONE}</Text>
-            </View>
+            <XPill label={CLAIM.signIn} glyph onPress={() => void link.refresh()} hint={X_SIGN_IN_ON_PHONE} />
           )}
         </Step>
-        <Step n={2} title={CLAIM.steps.where} state={ready ? "done" : proven ? "active" : "idle"} filled={ready} last>
-          {!address ? (
+
+        <Step index={2} label={CLAIM.steps.where} done={ready} dim={!proven}>
+          {!proven ? (
+            <View style={address ? null : styles.muted} pointerEvents={address ? "auto" : "none"}>
+              <WebButton label="Connect" onPress={connect} />
+            </View>
+          ) : !boundWallet ? (
             <>
-              {boundWallet ? <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{CLAIM.routesTo(shortHex(boundWallet))}</Text> : null}
-              <Button label="Connect" onPress={() => router.push("/connect")} />
+              <Hint text={CLAIM.noRoute} />
+              <View style={styles.mt}>
+                <XPill label={CLAIM.setUp} onPress={() => router.push("/trade-from-x")} />
+              </View>
+            </>
+          ) : !address ? (
+            <>
+              <Hint text={CLAIM.routesTo(shortHex(boundWallet))} />
+              <View style={styles.mt}>
+                <WebButton label="Connect" onPress={connect} />
+              </View>
             </>
           ) : ready ? (
             <Done text={CLAIM.connected(shortHex(address))} />
-          ) : !boundWallet ? (
-            <>
-              <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{CLAIM.noRoute}</Text>
-              <Button label={CLAIM.setUp} variant="secondary" onPress={() => router.push("/trade-from-x")} />
-            </>
-          ) : session ? (
-            <>
-              <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{CLAIM.otherWallet(shortHex(boundWallet))}</Text>
-              <Button
-                label={link.busy === "link" ? CLAIM.linking : CLAIM.relink(session.handle ?? session.authorId)}
-                loading={link.busy === "link"}
-                disabled={link.busy !== ""}
-                accessibilityHint="Signs a message with your wallet. No transaction."
-                onPress={() => void link.link()}
-              />
-            </>
           ) : (
-            <Text style={[TYPE.caption, { color: color.inkSecondary }]}>{CLAIM.routesTo(shortHex(boundWallet))}</Text>
+            <>
+              <Hint text={CLAIM.otherWallet(shortHex(boundWallet))} />
+              <View style={styles.mt}>
+                <XPill
+                  label={link.busy === "link" ? CLAIM.linking : CLAIM.relink(session?.handle ?? session?.authorId ?? handle ?? "")}
+                  disabled={link.busy !== "" || !session}
+                  onPress={() => void link.link()}
+                />
+              </View>
+            </>
           )}
-          {link.error ? <Text style={[TYPE.caption, { color: color.loss }]}>{link.error}</Text> : null}
+          {link.error ? <Text style={[styles.err, { color: color.loss }]}>{link.error}</Text> : null}
         </Step>
+
+        {ready ? (
+          <View style={[styles.slab, { backgroundColor: t.slabFill, borderColor: t.slabBorder }]}>
+            <View style={styles.slabTitle}>
+              <View style={[styles.dot, { backgroundColor: color.profit }]} />
+              <Text style={[styles.slabText, { color: color.profit }]}>{CLAIM.thisWallet}</Text>
+            </View>
+            <Pressable onPress={() => router.push("/portfolio")} accessibilityRole="link" style={({ pressed }) => [styles.cta, { backgroundColor: color.accent }, pressed ? styles.pressed : null]}>
+              <Text style={[styles.ctaText, { color: t.ctaInk }]}>{CLAIM.openPortfolio}</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        <Text style={[styles.foot, { color: color.inkSecondary }]}>{CLAIM.footnote}</Text>
       </View>
-
-      {ready ? (
-        <Card tone="accent">
-          <Done text={CLAIM.thisWallet} />
-          <Button label={CLAIM.openPortfolio} trailing="→" onPress={() => router.push("/portfolio")} />
-        </Card>
-      ) : null}
-      <Text style={[TYPE.caption, { color: color.inkMuted }]}>{CLAIM.footnote}</Text>
-
-      <SectionHeader title="Unfinished sends" desc="Recover a trade whose confirmation never reached this phone." />
-      <RecoveryPanel />
-    </View>
-  );
-}
-
-function Done({ text }: { text: string }) {
-  const { color } = useTheme();
-  return (
-    <View style={styles.row}>
-      <Glyph name="check" tint={color.profit} />
-      <Text style={[TYPE.bodyStrong, styles.flex, { color: color.ink, fontFamily: FONT.bodyStrong }]}>{text}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 18 },
-  intro: { gap: 6 },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  flex: { flex: 1 },
+  grid: { gap: 48 },
+  intro: { marginBottom: 40 },
+  eyebrow: { fontFamily: FONT.heading, fontSize: 13, lineHeight: 20.8, letterSpacing: 2.86, textTransform: "uppercase", marginBottom: 16 },
+  h1: { fontFamily: FONT.headingHeavy, fontSize: 60.3, lineHeight: 60.3, letterSpacing: -1.8 },
+  h1Word: { fontFamily: FONT.heading, fontSize: 28.14, letterSpacing: 0 },
+  h1Ask: { fontFamily: FONT.headingHeavy, fontSize: 52, lineHeight: 54.6, letterSpacing: -1.56 },
+  lede: { fontFamily: FONT.body, fontSize: 17, lineHeight: 25.5, marginTop: 16 },
+  mt: { marginTop: 12 },
+  muted: { opacity: 0.4 },
+  err: { fontFamily: FONT.bodyMedium, fontSize: 13, lineHeight: 19.5, marginTop: 10 },
+  slab: { marginTop: 12, borderRadius: 16, borderWidth: 1, padding: 24 },
+  slabTitle: { flexDirection: "row", alignItems: "center", gap: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  slabText: { flexShrink: 1, fontFamily: FONT.headingHeavy, fontSize: 18, lineHeight: 28.8 },
+  cta: { marginTop: 12, borderRadius: 16, padding: 20, alignItems: "center" },
+  ctaText: { fontFamily: FONT.headingHeavy, fontSize: 18.49, lineHeight: 29.6, letterSpacing: -0.18 },
+  pressed: { opacity: 0.9 },
+  foot: { marginTop: 48, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
 });
