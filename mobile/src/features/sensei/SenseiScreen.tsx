@@ -3,15 +3,19 @@ import { countdown } from "@agari/core/lifecycle";
 import type { TickerSymbol } from "@agari/core/market";
 import type { LaneSet } from "@agari/core/types";
 import { useLanes } from "@agari/markets/react";
+import { router } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
-import { chipsFor, SENSEI_STARTERS, SENSEI_UI } from "@/features/sensei/copy";
+import { SENSEI_UI } from "@/features/sensei/copy";
 import { useSenseiChat } from "@/features/sensei/useSenseiChat";
 import { useSenseiSnapshot } from "@/features/sensei/useSenseiSnapshot";
-import { Chips, haptic } from "~/components/kit";
-import { FONT, TYPE, useTheme } from "~/theme";
+import { haptic } from "~/components/kit";
+import { FONT, useTheme } from "~/theme";
+import { senseiTokens } from "~/theme/web/explore/sensei";
+import { SenseiChips, SenseiStarters } from "./SenseiChips";
 import { SenseiComposer } from "./SenseiComposer";
 import { SenseiMeter } from "./SenseiMeter";
 import { SenseiThread } from "./SenseiThread";
@@ -28,12 +32,15 @@ function focusLanes(laneSet: LaneSet | null, asset: TickerSymbol | null): LaneSe
 }
 
 /**
- * Sensei as a native sheet — web's `SenseiDock` + `SenseiDrawer` (features/sensei): the meter over the nearest Window,
- * the thread with its typewriter reveal, the reference's follow-up chips, the starters on the first turn, the trade
- * cards once a read exists, and web's own `useSenseiChat` posting to `/api/sensei` (one JSON reply, revealed here).
+ * web's `SenseiDrawer` as the app's Sensei sheet, top to bottom as web stacks it: the head (eyebrow, title, beta, ✕),
+ * the meter over the nearest Window, the thread with its typewriter reveal and follow-up chips, the trade cards once a
+ * read exists, the starters on the first turn, the pill composer and the advice line. Chat is web's own
+ * `useSenseiChat` posting to `/api/sensei`.
  */
 export function SenseiScreen({ focus }: { focus: TickerSymbol | null }) {
-  const { color } = useTheme();
+  const { name, color } = useTheme();
+  const t = senseiTokens(name);
+  const insets = useSafeAreaInsets();
   const venue = useVenue();
   const lanes = useLanes(venue.venueId);
   const nowMs = useChainNowMs();
@@ -62,29 +69,37 @@ export function SenseiScreen({ focus }: { focus: TickerSymbol | null }) {
   };
 
   return (
-    <KeyboardAvoidingView style={[styles.fill, { backgroundColor: color.ground }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <View style={styles.head}>
-        <Text style={[styles.eyebrow, { color: color.accent }]}>{SENSEI_UI.eyebrow.toUpperCase()}</Text>
-        <Text style={[TYPE.headline, { color: color.ink }]} accessibilityRole="header">
-          {SENSEI_UI.title} <Text style={[styles.beta, { color: color.inkMuted }]}>{SENSEI_UI.beta}</Text>
-        </Text>
+    <KeyboardAvoidingView style={[styles.fill, { backgroundColor: t.panel }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View style={[styles.head, { borderBottomColor: t.rule }]}>
+        <View>
+          <Text style={[styles.eyebrow, { color: color.accent }]}>{SENSEI_UI.eyebrow}</Text>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: t.title }]} accessibilityRole="header">
+              {SENSEI_UI.title}
+            </Text>
+            <Text style={[styles.beta, { color: color.accent, borderColor: t.betaBorder }]}>{SENSEI_UI.beta}</Text>
+          </View>
+        </View>
+        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel={SENSEI_UI.close} style={styles.close}>
+          <Text style={[styles.closeText, { color: color.inkMuted }]}>✕</Text>
+        </Pressable>
       </View>
-      <View style={styles.meter}>
-        <SenseiMeter reading={reading} secsLeft={clock?.remainingSec ?? 0} urgent={clock?.urgent ?? false} />
-      </View>
+
+      <SenseiMeter reading={reading} secsLeft={clock?.remainingSec ?? 0} urgent={clock?.urgent ?? false} />
 
       <ScrollView
         ref={scrollRef}
         style={styles.fill}
-        contentContainerStyle={styles.body}
+        contentContainerStyle={styles.msgs}
         keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
       >
         <SenseiThread messages={chat.messages} loading={chat.loading} typingIndex={chat.typingIndex} doneTyping={chat.doneTyping} onType={toBottom} />
-        {showChips && last ? <Chips options={chipsFor(last.content).map((chip) => ({ value: chip, label: chip }))} onPick={ask} /> : null}
-        {chat.messages.length === 1 ? <Chips options={SENSEI_STARTERS.map((s) => ({ value: s, label: s }))} onPick={ask} /> : null}
-        {hasRead ? <SenseiTradeCards markets={nearestMarkets} nowMs={nowMs} /> : null}
+        {showChips && last ? <SenseiChips reply={last.content} onPick={ask} /> : null}
       </ScrollView>
+
+      {hasRead ? <SenseiTradeCards markets={nearestMarkets} snapshotMarkets={reading.snapshot?.markets ?? []} nowMs={nowMs} /> : null}
+      {chat.messages.length === 1 ? <SenseiStarters onPick={ask} /> : null}
 
       <SenseiComposer
         value={input}
@@ -95,17 +110,20 @@ export function SenseiScreen({ focus }: { focus: TickerSymbol | null }) {
           setInput("");
         }}
       />
-      <Text style={[TYPE.caption, styles.advice, { color: color.inkMuted }]}>{ADVICE_COPY.notAdvice}</Text>
+      <Text style={[styles.advice, { color: color.inkMuted, paddingBottom: 12 + insets.bottom }]}>{ADVICE_COPY.notAdvice}</Text>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  head: { paddingHorizontal: 16, paddingTop: 22, gap: 2 },
-  eyebrow: { fontFamily: FONT.data, fontSize: 10.5, letterSpacing: 1.8 },
-  beta: { fontFamily: FONT.data, fontSize: 12, letterSpacing: 1 },
-  meter: { paddingHorizontal: 16, paddingTop: 12 },
-  body: { padding: 16, gap: 14, paddingBottom: 24 },
-  advice: { paddingHorizontal: 16, paddingBottom: 12 },
+  head: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingTop: 20, paddingBottom: 16, paddingHorizontal: 20, borderBottomWidth: 1 },
+  eyebrow: { fontFamily: FONT.dataRegular, fontSize: 9, lineHeight: 14.4, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 4 },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  title: { fontFamily: FONT.headingHeavy, fontSize: 22, lineHeight: 35.2 },
+  beta: { fontFamily: FONT.dataRegular, fontSize: 8, lineHeight: 12.8, letterSpacing: 1.12, textTransform: "uppercase", borderWidth: 1, borderRadius: 999, paddingVertical: 1, paddingHorizontal: 6, overflow: "hidden" },
+  close: { padding: 4 },
+  closeText: { fontSize: 15, lineHeight: 15 },
+  msgs: { padding: 18, gap: 14 },
+  advice: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18.85, paddingHorizontal: 16 },
 });
