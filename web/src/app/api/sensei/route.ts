@@ -1,4 +1,4 @@
-import { APICallError, generateText, InvalidPromptError } from "ai";
+import { APICallError, generateText, InvalidPromptError, RetryError } from "ai";
 import { NextResponse } from "next/server";
 import { earningsTurn } from "@/features/sensei/earnings.server";
 import { missingCredentialHint, resolveModel } from "@/features/sensei/model.server";
@@ -66,6 +66,13 @@ function statusOf(error: unknown): number | null {
   return typeof name === "string" && /authentication|unauthor/i.test(name) ? 401 : null;
 }
 
+/** The SDK retries a 429 or a 5xx, then throws `RetryError` around the provider's own error; the status lives on that one. */
+const unwrap = (error: unknown): unknown => (RetryError.isInstance(error) ? (error.lastError ?? error) : error);
+
+/** A 429 that no wait clears: the provider account has no credits left (OpenAI answers `insufficient_quota`). */
+const outOfCredits = (error: unknown): boolean =>
+  APICallError.isInstance(error) && error.statusCode === 429 && /insufficient_quota|credit_balance_exhausted/.test(error.responseBody ?? "");
+
 export async function POST(req: Request) {
   const resolved = resolveModel();
   if (!resolved) return bad(SENSEI_ERRORS.notConfigured(missingCredentialHint()), 503);
@@ -100,9 +107,11 @@ export async function POST(req: Request) {
     return reply ? NextResponse.json({ reply }, { headers: NO_STORE }) : bad(SENSEI_ERRORS.wentQuiet, 502);
   } catch (error) {
     if (error instanceof InvalidPromptError) return bad(SENSEI_ERRORS.badRequest, 400);
-    const status = statusOf(error);
-    // 401/403 is a credential problem and not the reader's fault; say which.
+    const cause = unwrap(error);
+    const status = statusOf(cause);
+    // 401/403 and an empty account are credential problems and not the reader's fault; say which.
     if (status === 401 || status === 403) return bad(SENSEI_ERRORS.badKey(resolved.providerName), 503);
+    if (outOfCredits(cause)) return bad(SENSEI_ERRORS.noCredits(resolved.providerName), 503);
     if (status === 429) return bad(SENSEI_ERRORS.rateLimited, 429);
     if (status !== null) return bad(SENSEI_ERRORS.upstream(status), 502);
     return bad(SENSEI_ERRORS.unreachable, 502);

@@ -137,6 +137,7 @@ export const SENSEI_ERRORS = {
   /** Names the variable that would switch it on, so the fix does not need the source. */
   notConfigured: (hint: string) => `Sensei isn't switched on yet. No model credential is configured on the server — set ${hint}.`,
   badKey: (provider: string) => `Sensei's ${provider || "model"} credential was rejected. That's a configuration problem, not you.`,
+  noCredits: (provider: string) => `Sensei's ${provider || "model"} account is out of credits. That's a configuration problem, not you.`,
   badRequest: "Bad request.",
   saySomething: "Say something first.",
   wentQuiet: "Sensei went quiet. Try again.",
