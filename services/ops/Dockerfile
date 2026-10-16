@@ -49,6 +49,9 @@ RUN pnpm --filter @agari/ops build \
 
 FROM node:22-slim
 ENV NODE_ENV=production
+# Coolify probes HTTP services with curl or wget. The slim image has neither.
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/services/ops
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /out/node_modules ./node_modules
@@ -60,7 +63,10 @@ COPY --from=build /out/src/actors/x-relay/reply-card-assets ./src/actors/x-relay
 ENV GAME_DECK_JOURNAL=/data/deck-journal.jsonl \
     GAME_ROOM_HOST=0.0.0.0 \
     GAME_ROOM_PORT=8787
-EXPOSE 8787
+EXPOSE 8080 8787
+# Liveness only: the body can report a degraded upstream without requiring a restart.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+    CMD curl -s -o /dev/null http://127.0.0.1:8080/health || exit 1
 # The heap is set under the container's memory limit (Node sizes it from the container otherwise). ops ran at ~260 MB on
 # 16 Oct; 1 GB is about four times that, under Coolify's 1.5 GB limit. Growth past it restarts ops instead of swapping
 # the whole 8 GB host.
