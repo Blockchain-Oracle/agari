@@ -1,12 +1,15 @@
 # The ops service — one long-running Node process (AD-8): the duel room, the matchmaker, the projector,
-# the settler, the maker and the keepers. Built from the repo root so the workspace packages it imports
-# as TypeScript source are present; run through tsx exactly as `pnpm --filter @agari/ops start` does.
+# the settler, the maker and the keepers. Built from the repo root.
+#   build:   install the workspace, bundle the service's own TypeScript (it and every @agari package) to JavaScript
+#            once (scripts/build.mjs), then `pnpm deploy` a production install.
+#   runtime: the bundle, config/, the reply-card fonts and production node_modules, run by `node` as one process — it
+#            was pnpm → sh → tsx → node, compiling TypeScript at runtime. The heap is capped under the container's limit.
 #
 #   fly deploy --config services/ops/fly.toml --dockerfile services/ops/Dockerfile .
 #
 # One instance only, ever: every actor is a single writer over its own key, and two copies of this image
 # would race nonces (AD-4). fly.toml pins one machine that never auto-stops.
-FROM node:22-slim AS runtime
+FROM node:22-slim AS build
 ENV NODE_ENV=production \
     PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
@@ -38,9 +41,24 @@ COPY packages/db ./packages/db
 COPY packages/markets ./packages/markets
 COPY services/ops ./services/ops
 
+RUN pnpm --filter @agari/ops build \
+    && pnpm --filter @agari/ops deploy --prod --legacy --config.node-linker=hoisted /out
+
+FROM node:22-slim
+ENV NODE_ENV=production
+WORKDIR /app/services/ops
+COPY --from=build /out/package.json ./package.json
+COPY --from=build /out/node_modules ./node_modules
+COPY --from=build /out/dist ./dist
+COPY --from=build /out/config ./config
+COPY --from=build /out/src/actors/x-relay/reply-card-assets ./src/actors/x-relay/reply-card-assets
+
 # The deck journal — the second copy of every sealed deck's reveal material — lives on the mounted volume.
 ENV GAME_DECK_JOURNAL=/data/deck-journal.jsonl \
     GAME_ROOM_HOST=0.0.0.0 \
     GAME_ROOM_PORT=8787
 EXPOSE 8787
-CMD ["pnpm", "--filter", "@agari/ops", "start"]
+# The heap is set under the container's memory limit (Node sizes it from the container otherwise). ops ran at ~260 MB on
+# 16 Oct; 1 GB is about four times that, under Coolify's 1.5 GB limit. Growth past it restarts ops instead of swapping
+# the whole 8 GB host.
+CMD ["node", "--max-old-space-size=1024", "--import", "./dist/bundle/register.mjs", "dist/bundle/main.mjs"]

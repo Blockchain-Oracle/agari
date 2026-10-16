@@ -7,7 +7,9 @@
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "start:runner": "tsx src/runner-main.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "node scripts/build.mjs",
+    "start:prod": "node --import ./dist/bundle/register.mjs dist/bundle/main.mjs"
   },
   "dependencies": {
     "@agari/brain": "workspace:*",
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/ws": "^8.18.1",
+    "esbuild": "0.28.2",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
