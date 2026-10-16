@@ -85,8 +85,15 @@ if (process.argv[2] === "--check") {
 const expected = new Map();
 rmSync(here("../dist"), { recursive: true, force: true });
 await build({
-  entryPoints: [here("../src/main.ts")],
-  outfile: here("../dist/bundle/main.mjs"),
+  entryPoints: { main: here("../src/main.ts") },
+  outdir: OUT_DIR,
+  // Dynamic `import()`s become their own chunks with Node's own module order. In one file esbuild wraps those
+  // modules in lazy initialisers, and a constant read before its wrapper ran was undefined (16 Oct: ONCHAIN_STATUS in
+  // deckSupply crash-looped ops).
+  splitting: true,
+  outExtension: { ".js": ".mjs" },
+  // Chunks sit beside main.mjs, so paths re-aimed from the bundle's folder hold in every chunk.
+  chunkNames: "[name]-[hash]",
   bundle: true,
   platform: "node",
   format: "esm",
